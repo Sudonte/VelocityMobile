@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stylized Standard Room illustration used when a room type has no photo from the server. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="220dp"
+    android:viewportWidth="360"
+    android:viewportHeight="220">
+    <!-- Wall & floor -->
+    <path android:fillColor="#FBEAEA" android:pathData="M0,0 h360 v152 h-360 z" />
+    <path android:fillColor="#E9D2C9" android:pathData="M0,152 h360 v68 h-360 z" />
+    <!-- Rug -->
+    <path android:fillColor="#C14B4A" android:fillAlpha="0.18" android:pathData="M104,190 a80,14 0 1,0 160,0 a80,14 0 1,0 -160,0" />
+    <!-- Wall art -->
+    <path android:fillColor="#9C6B4F" android:pathData="M64,24 h44 v32 h-44 z" />
+    <path android:fillColor="#E06A6A" android:pathData="M70,30 h32 v20 h-32 z" />
+    <!-- Window -->
+    <path android:fillColor="#9C6B4F" android:pathData="M260,24 h84 v88 h-84 z" />
+    <path android:fillColor="#BCE0F0" android:pathData="M268,32 h68 v72 h-68 z" />
+    <path android:fillColor="#FDF6DE" android:pathData="M318,50 m-7,0 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0" />
+    <path android:fillColor="#9C6B4F" android:pathData="M301,32 h2 v72 h-2 z" />
+    <path android:fillColor="#9C6B4F" android:pathData="M268,66 h68 v2 h-68 z" />
+    <!-- Headboard -->
+    <path android:fillColor="#C14B4A" android:pathData="M44,70 a12,12 0 0,1 12,-12 h136 a12,12 0 0,1 12,12 v58 h-160 z" />
+    <!-- Mattress & blanket -->
+    <path android:fillColor="#FFFFFF" android:pathData="M32,112 h184 v22 h-184 z" />
+    <path android:fillColor="#E06A6A" android:pathData="M32,134 h184 v32 h-184 z" />
+    <path android:fillColor="#F0908F" android:pathData="M32,134 h184 v6 h-184 z" />
+    <!-- Pillows -->
+    <path android:fillColor="#FFFFFF" android:pathData="M58,100 a8,8 0 0,1 8,-8 h34 a8,8 0 0,1 8,8 v8 a8,8 0 0,1 -8,8 h-34 a8,8 0 0,1 -8,-8 z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M118,100 a8,8 0 0,1 8,-8 h34 a8,8 0 0,1 8,8 v8 a8,8 0 0,1 -8,8 h-34 a8,8 0 0,1 -8,-8 z" />
+    <!-- Nightstand & lamp -->
+    <path android:fillColor="#9C6B4F" android:pathData="M224,124 h40 v42 h-40 z" />
+    <path android:fillColor="#845A42" android:pathData="M224,124 h40 v6 h-40 z" />
+    <path android:fillColor="#845A42" android:pathData="M243,108 h2 v16 h-2 z" />
+    <path android:fillColor="#F2C94C" android:pathData="M236,92 h16 l4,16 h-24 z" />
+</vector>

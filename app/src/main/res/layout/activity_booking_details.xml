@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/velocity_red_bg_end"
+    android:orientation="vertical"
+    tools:context=".BookingDetailsActivity">
+
+    <!-- Custom back-arrow header, matching this app's established convention
+         (custom bar, not a native ActionBar) elsewhere in the app. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/velocity_red_primary"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/btnBookingDetailsBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back_label"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/tvDetailsScreenTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/booking_details_screen_title"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <!-- Header card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <!-- No room image here by design - a room photo belongs only in
+                         the Room Information section below (item_selected_room_type_card.xml,
+                         one per selected room type), never beside the Booking/Reservation
+                         ID (see BookingDetailsActivity#bindHeader() - the header previously
+                         showed a single image representing only the first/legacy room type,
+                         which was misleading for a multi-room-type transaction). -->
+
+                    <!-- Primary highlighted identifier - the Booking/Reservation ID
+                         itself (e.g. "BOOKING #338"), never the room name and never
+                         repeated a second time anywhere else in this header (see
+                         BookingDetailsActivity#bindHeader()). -->
+                    <TextView
+                        android:id="@+id/tvDetailsRoomHeadline"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:textAllCaps="true"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        tools:text="Booking #338" />
+
+                    <TextView
+                        android:id="@+id/tvDetailsDates"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="13sp"
+                        tools:text="Sep 04, 2026 - Sep 05, 2026" />
+
+                    <!-- Every selected room type and its quantity - e.g. "Bryan Dela
+                         Cruz ×1 • Deluxe ×1" - directly below the stay dates and
+                         directly above the status pill, per the required info
+                         hierarchy (see Booking#formatRoomSelectionSummary()). Not
+                         line/ellipsize-constrained, so a long multi-room-type
+                         selection wraps rather than truncating. -->
+                    <TextView
+                        android:id="@+id/tvDetailsRoomGuestCounts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp"
+                        tools:text="Bryan Dela Cruz ×1 • Deluxe ×1" />
+
+                    <TextView
+                        android:id="@+id/tvDetailsStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_green_subtle"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/velocity_green_primary"
+                        android:textSize="10sp"
+                        android:fontFamily="sans-serif-black"
+                        tools:text="CONFIRMED" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card/section-based layout: every section is always visible and
+                 scrolls together, replacing the old 4-tab toggle switcher. Each
+                 section is its own MaterialCardView with a red section title,
+                 matching activity_payment_receipt.xml's section styling so the
+                 two screens read consistently. Content is populated dynamically
+                 in Java (addInfoRow()) - keeps this layout manageable given how
+                 many optional fields each section can show. -->
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/section_title_booking_information"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionBookingInfoContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_guest_information_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionGuestInfoContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/section_title_room_information"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionRoomInfoContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_payment_information_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionPaymentInfoContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_billing_breakdown_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionPaymentSummaryContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/section_title_transaction_timeline"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionTimelineContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

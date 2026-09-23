@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stylized GCash QR placeholder for mock scan-to-pay -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="220dp"
+    android:height="220dp"
+    android:viewportWidth="220"
+    android:viewportHeight="220">
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0h220v220h-220z" />
+
+    <!-- Top-left finder -->
+    <path android:fillColor="#0A0A0A" android:pathData="M20,20h50v50h-50z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M30,30h30v30h-30z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M37,37h16v16h-16z" />
+
+    <!-- Top-right finder -->
+    <path android:fillColor="#0A0A0A" android:pathData="M150,20h50v50h-50z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M160,30h30v30h-30z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M167,37h16v16h-16z" />
+
+    <!-- Bottom-left finder -->
+    <path android:fillColor="#0A0A0A" android:pathData="M20,150h50v50h-50z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M30,160h30v30h-30z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M37,167h16v16h-16z" />
+
+    <!-- Data modules (decorative) -->
+    <path android:fillColor="#0A0A0A" android:pathData="M85,20h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M105,20h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M85,40h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M120,40h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M20,85h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M40,85h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M20,105h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M40,120h10v10h-10z" />
+
+    <!-- Center alignment cluster -->
+    <path android:fillColor="#0A0A0A" android:pathData="M85,85h50v50h-50z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M95,95h30v30h-30z" />
+    <path android:fillColor="#D32F2F" android:pathData="M102,102h16v16h-16z" />
+
+    <path android:fillColor="#0A0A0A" android:pathData="M150,85h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M170,85h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M190,95h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M150,120h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M175,120h10v10h-10z" />
+
+    <path android:fillColor="#0A0A0A" android:pathData="M85,150h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M105,150h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M125,150h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M85,170h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M120,175h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M150,150h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M170,165h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M190,150h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M150,190h10v10h-10z" />
+    <path android:fillColor="#0A0A0A" android:pathData="M175,190h10v10h-10z" />
+</vector>

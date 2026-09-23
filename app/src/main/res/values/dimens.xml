@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared room card sizing so item_room_card.xml (landing + room browsing lists)
+         and dialog_room_details.xml render with identical proportions. Corner radius
+         is already shared via style Widget.Velocity.Card.Glass (32dp) on both cards. -->
+    <dimen name="room_card_image_height">172dp</dimen>
+    <dimen name="room_card_content_padding">16dp</dimen>
+    <dimen name="room_card_spacing">16dp</dimen>
+    <dimen name="room_card_corner_radius">24dp</dimen>
+
+    <!-- Compact horizontal list-card sizing (item_room_card.xml only - landing.xml
+         Available Rooms + roombrowsing.xml results). Deliberately separate from
+         room_card_* above so dialog_room_details.xml's full-width hero image is
+         untouched by the list card's compactness pass. -->
+    <dimen name="room_list_card_image_width">140dp</dimen>
+    <dimen name="room_list_card_image_height">136dp</dimen>
+    <dimen name="room_list_card_image_corner_radius">12dp</dimen>
+    <dimen name="room_list_card_corner_radius">14dp</dimen>
+    <dimen name="room_list_card_content_padding">9dp</dimen>
+    <dimen name="room_list_card_spacing">8dp</dimen>
+
+    <!-- Compact sizing for the Available Room List dialog's cards only
+         (item_available_room.xml) - intentionally NOT shared with room_card_*
+         above so Room Browsing's cards stay full-size. -->
+    <dimen name="dialog_room_card_image_height">88dp</dimen>
+    <dimen name="dialog_room_card_content_padding">12dp</dimen>
+
+    <!-- Shared check-in / check-out date field sizing used by roombrowsing.xml
+         and bookingandreservation.xml so both screens match exactly. -->
+    <dimen name="date_field_gap">6dp</dimen>
+    <dimen name="date_field_text_padding">8dp</dimen>
+    <dimen name="date_field_label_margin_bottom">3dp</dimen>
+    <dimen name="date_field_text_size">12sp</dimen>
+    <dimen name="search_button_height">48dp</dimen>
+
+    <!-- Guest Header (guest_header.xml) - shared across every guest-facing
+         screen via BaseNavigationActivity#setupGuestNavigation(). Slightly
+         more compact than the original values while keeping every touch
+         target at/above the 48dp accessibility minimum (enforced via
+         minWidth/minHeight on menuButtonControl, not these visual sizes). -->
+    <dimen name="guest_header_height">60dp</dimen>
+    <dimen name="guest_header_padding_horizontal">10dp</dimen>
+    <dimen name="guest_header_menu_icon_size">24dp</dimen>
+    <dimen name="guest_header_menu_label_text_size">11sp</dimen>
+    <dimen name="guest_header_logo_size">29dp</dimen>
+    <dimen name="guest_header_app_name_text_size">13sp</dimen>
+    <dimen name="guest_header_tagline_text_size">10sp</dimen>
+    <dimen name="guest_header_notification_size">34dp</dimen>
+    <dimen name="guest_header_notification_badge_circle_radius">16dp</dimen>
+    <dimen name="guest_header_profile_size">34dp</dimen>
+</resources>

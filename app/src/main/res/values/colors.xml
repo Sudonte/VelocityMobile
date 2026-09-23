@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Velocity Suites Red & White Theme -->
+    <!-- The whole app renders in red and white only. The resource names are kept
+         so every existing layout/style/drawable reference stays valid. -->
+    <color name="velocity_red_deep">#5A0A0A</color>
+    <color name="velocity_red_dark">#7F1212</color>
+    <color name="velocity_red_medium">#B71C1C</color>
+    <color name="velocity_red_primary">#D32F2F</color>
+    <color name="velocity_red_light">#E53935</color>
+    <color name="velocity_red_rose">#EF5350</color>
+    <color name="velocity_red_soft">#FDECEC</color>
+    <color name="velocity_red_subtle">#F7D4D4</color>
+    <color name="velocity_red_bg_start">#FDE7E7</color>
+    <color name="velocity_red_bg_end">#FFFFFF</color>
+    <color name="velocity_text_secondary">#5A4141</color>
+    <color name="velocity_text_primary">#1A1010</color>
+    <color name="velocity_inactive_gray">#9E9E9E</color>
+    <!-- Elevated surface (navigation drawer + its header) - separate from
+         bg_glass_card_white's translucent card look since these are solid,
+         opaque surfaces. Overridden per-theme in values-night/colors.xml -
+         see Dark Mode support. -->
+    <color name="velocity_surface_elevated">#FFFFFF</color>
+
+    <!-- Status Colors (mapped to red shades to keep the red & white palette) -->
+    <color name="velocity_green_primary">#B71C1C</color>
+    <color name="velocity_green_dark">#7F1212</color>
+    <color name="velocity_green_soft">#FDECEC</color>
+    <color name="velocity_green_subtle">#F7D4D4</color>
+
+    <!-- Blue Status (Checked-In) -> red -->
+    <color name="velocity_blue_primary">#C62828</color>
+    <color name="velocity_blue_soft">#FCE4E4</color>
+
+    <!-- Gray Status (Checked-Out) - neutral -->
+    <color name="velocity_gray_primary">#757575</color>
+    <color name="velocity_gray_soft">#F5F5F5</color>
+
+    <!-- Status accents (red) -->
+    <color name="velocity_red_status_primary">#E53935</color>
+    <color name="velocity_red_status_dark">#7F1212</color>
+    <color name="velocity_red_status_soft">#FDECEC</color>
+    <color name="velocity_red_status_subtle">#F7D4D4</color>
+
+    <!-- Warning/Yellow -> red -->
+    <color name="velocity_orange_primary">#E53935</color>
+    <color name="velocity_orange_soft">#FFEAEA</color>
+
+    <!-- GCash Branding -> red -->
+    <color name="gcash_blue">#D32F2F</color>
+    <color name="gcash_blue_dark">#B71C1C</color>
+    <color name="gcash_blue_soft">#FDECEC</color>
+
+    <!-- Alpha Reds for effects -->
+    <color name="velocity_red_alpha_55">#8CD32F2F</color>
+    <color name="velocity_red_alpha_40">#66D32F2F</color>
+    <color name="velocity_red_alpha_30">#4DD32F2F</color>
+    <color name="velocity_red_alpha_22">#38B71C1C</color>
+    <color name="velocity_red_alpha_20">#33D32F2F</color>
+    <color name="velocity_red_alpha_00">#00D32F2F</color>
+
+    <!-- Premium accents (red instead of gold to stay red & white) -->
+    <color name="velocity_gold_deep">#7F1212</color>
+    <color name="velocity_gold_dark">#B71C1C</color>
+    <color name="velocity_gold_primary">#D32F2F</color>
+    <color name="velocity_gold_light">#E53935</color>
+    <color name="velocity_gold_soft">#FDECEC</color>
+    <color name="velocity_gold_subtle">#F7D4D4</color>
+
+    <!-- Landing surface tints -->
+    <color name="velocity_landing_star">#D32F2F</color>
+    <color name="velocity_landing_overlay">#66000000</color>
+
+    <!-- Overlay / scrim tints (loading overlays, sticky bar backgrounds, hairline dividers) -->
+    <color name="velocity_overlay_scrim_dark">#B3000000</color>
+    <color name="velocity_overlay_scrim_light">#80FFFFFF</color>
+    <color name="velocity_sticky_bar_bg">#E6FFFFFF</color>
+    <color name="velocity_divider_hairline">#1A000000</color>
+</resources>

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Velocity.Card.Glass.Compact"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:rippleColor="@color/velocity_red_subtle">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
+
+        <!-- Compact summary row: status/name/type/dates, chevron - deliberately
+             image-free (room images belong only in BookingDetailsActivity's
+             Selected Rooms section, never this list - see that screen's own
+             per-room-type image cards). Only the essentials per card - full
+             guest/payment/timeline info lives in BookingDetailsActivity,
+             opened by tapping anywhere on this card. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Level 1 (primary heading): Booking/Reservation ID - the main
+                     identifier of this transaction, per the required card
+                     hierarchy (never the room name). Not constrained to a single
+                     line/ellipsized - an ID must never be truncated or hidden. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvModifiedBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_inactive_gray"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:text="@string/status_modified"
+                        android:textColor="@color/white"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif-black"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/tvBookingId"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-black"
+                        android:textAllCaps="true"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        tools:text="Booking #164" />
+                </LinearLayout>
+
+                <!-- Level 2 (secondary): every selected room type and its
+                     quantity ("Executive ×2", or "Bryan Dela Cruz ×1 • Deluxe
+                     ×1" for multiple types - see BookingsAdapter#
+                     buildTrueMultiRoomSummaryText()/buildGroupSummaryText()).
+                     Not line/ellipsize-constrained - a long multi-room-type
+                     selection must wrap onto additional lines rather than
+                     being truncated; sits in a plain vertical LinearLayout,
+                     so wrapping only pushes the dates/status rows below it
+                     down, never overlaps them. -->
+                <TextView
+                    android:id="@+id/tvBookingRoomName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/executive_suite"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp" />
+
+                <!-- Level 3: Stay dates. -->
+                <TextView
+                    android:id="@+id/tvBookingDates"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/loading_date"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp" />
+
+                <!-- Level 4: Status badge - the one status indicator on the
+                     compact card (payment method/status/amount-paid detail all
+                     moved into Booking Details' Guest Info/Payment tabs). -->
+                <TextView
+                    android:id="@+id/tvBookingStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_red_subtle"
+                    android:paddingHorizontal="9dp"
+                    android:paddingVertical="3dp"
+                    android:text="@string/status_pending"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="11sp"
+                    android:fontFamily="sans-serif-black" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="4dp"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@color/velocity_inactive_gray" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="7dp"
+            android:background="@color/velocity_red_subtle"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvBookingGuests"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/guests_count_format"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <!-- Explicit "Grand Total" caption above the amount - the whole point of
+                     grouping every room/room type/amenity under one card is that this one
+                     figure represents the complete transaction, not just one room type, so
+                     it must never read as an unlabeled number (see MULTI_ROOM_TRANSACTION_
+                     BACKEND_SPEC.md and the list-vs-details total-consistency requirement). -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.05"
+                    android:text="@string/details_grand_total_label"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/tvBookingPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/zero_price"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="15sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutActionButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+
+            <!--
+              Primary row: View Details always shown; Pay Now only for an active
+              Reservation List card (see BookingAndReservationActivity.BookingsAdapter).
+            -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="5dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewDetails"
+                    android:layout_width="0dp"
+                    android:layout_height="37dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/view_details"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    app:backgroundTint="@color/velocity_red_primary"
+                    app:cornerRadius="32dp"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-black" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPayNow"
+                    android:layout_width="0dp"
+                    android:layout_height="37dp"
+                    android:layout_weight="1"
+                    android:text="@string/pay_now"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    app:backgroundTint="@color/velocity_green_primary"
+                    app:cornerRadius="32dp"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-black" />
+            </LinearLayout>
+
+            <!-- Secondary row: Modify (Reservation List only, while Pending) and Cancel. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModify"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/modify_label"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    app:cornerRadius="32dp"
+                    app:strokeColor="@color/velocity_red_primary"
+                    android:textColor="@color/velocity_red_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancel"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="@string/cancel_label"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textColor="@color/velocity_text_secondary" />
+            </LinearLayout>
+
+            <!-- Book/Reserve Again + Delete: only Completed/Cancelled transactions
+                 may be removed from the guest's own view (see
+                 TransactionCategorizer); Book/Reserve Again only appears for
+                 Cancelled items and only when a matching room is still
+                 bookable (see BookingsAdapter). Shares this row so either
+                 button expands to fill the width when the other is gone. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBookAgain"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/book_again_button"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    app:cornerRadius="32dp"
+                    app:strokeColor="@color/velocity_red_primary"
+                    android:textColor="@color/velocity_red_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDelete"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="@string/delete_permanently_button_label"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    app:cornerRadius="32dp"
+                    app:strokeColor="@color/velocity_inactive_gray"
+                    android:textColor="@color/velocity_text_secondary" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

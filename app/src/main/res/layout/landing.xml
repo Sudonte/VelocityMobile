@@ -1,0 +1,1075 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/landingRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/velocity_red_bg_end"
+    android:orientation="vertical"
+    tools:context=".LandingActivity">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/landingHeaderCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="10dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_landing_header_red"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="18dp"
+            android:paddingBottom="18dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/headerLogoCard"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="13dp"
+                app:cardElevation="2dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/app_logo"
+                    android:padding="7dp"
+                    android:src="@drawable/velocity_suites_logo" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/headerTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-black"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:text="@string/velocity_suites"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="@id/headerLogoCard"
+                app:layout_constraintEnd_toStartOf="@id/btnProceed"
+                app:layout_constraintStart_toEndOf="@id/headerLogoCard"
+                app:layout_constraintTop_toTopOf="@id/headerLogoCard" />
+
+            <!-- Sign In / Sign Up - same existing id/click listener as before,
+                 now living in the header row itself (LEFT: logo+name, RIGHT:
+                 this button) instead of overlaid on the hero image. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnProceed"
+                style="@style/Widget.Velocity.Button"
+                android:layout_width="120dp"
+                android:layout_height="28dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="14dp"
+                android:text="@string/sign_in_sign_up_label"
+                android:textSize="7sp"
+                app:backgroundTint="@color/white"
+                app:cornerRadius="18dp"
+                app:elevation="2dp"
+                app:icon="@drawable/ic_person"
+                app:iconGravity="textEnd"
+                app:iconPadding="6dp"
+                app:iconSize="14dp"
+                app:iconTint="@color/velocity_red_primary"
+                android:textColor="@color/velocity_red_primary"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/landingScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="34dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="8dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="280dp">
+
+                        <ImageView
+                            android:id="@+id/landingHeroImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:contentDescription="@string/cd_landing_banner"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/bg_landing_banner_luxury" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/gradient_overlay_hero" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="22dp"
+                            android:paddingTop="22dp"
+                            android:paddingBottom="24dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_badge_hero"
+                                android:fontFamily="sans-serif-black"
+                                android:letterSpacing="0.08"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="6dp"
+                                android:text="@string/landing_welcome_guest"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:fontFamily="sans-serif-black"
+                                android:includeFontPadding="false"
+                                android:shadowColor="#99000000"
+                                android:shadowDy="2"
+                                android:shadowRadius="8"
+                                android:text="@string/landing_banner_luxury_title"
+                                android:textColor="@color/white"
+                                android:textSize="30sp"
+                                android:letterSpacing="-0.02" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:alpha="0.95"
+                                android:fontFamily="sans-serif-medium"
+                                android:lineSpacingExtra="2dp"
+                                android:shadowColor="#99000000"
+                                android:shadowDy="1"
+                                android:shadowRadius="6"
+                                android:text="@string/landing_banner_luxury_sub"
+                                android:textColor="@color/white"
+                                android:textSize="14sp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExploreNow"
+                                style="@style/Widget.Velocity.Button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="44dp"
+                                android:layout_marginTop="16dp"
+                                android:minWidth="0dp"
+                                android:paddingHorizontal="22dp"
+                                android:text="@string/landing_banner_cta"
+                                android:textSize="13sp"
+                                app:backgroundTint="@color/velocity_red_primary"
+                                app:cornerRadius="22dp"
+                                app:elevation="4dp"
+                                app:icon="@drawable/ic_chevron_right"
+                                app:iconGravity="textEnd"
+                                app:iconTint="@color/white"
+                                app:rippleColor="@color/white" />
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="22dp"
+                        android:paddingTop="22dp"
+                        android:paddingBottom="24dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="top"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/landingWelcomeLabel"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-black"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/welcome_title"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="28sp"
+                                    android:letterSpacing="-0.02" />
+
+                                <TextView
+                                    android:id="@+id/landingTagline"
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:text="@string/welcome_tagline"
+                                    android:textColor="@color/black"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <!-- Decorative hospitality icon badge - matches the
+                                 reference's building+heart mark. Purely visual,
+                                 no id/click behavior needed. -->
+                            <FrameLayout
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:layout_marginStart="12dp">
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="52dp"
+                                    android:layout_height="52dp"
+                                    app:cardBackgroundColor="@color/velocity_red_soft"
+                                    app:cardCornerRadius="26dp"
+                                    app:cardElevation="0dp">
+
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:layout_gravity="center"
+                                        android:importantForAccessibility="no"
+                                        android:src="@drawable/ic_amenity_concierge"
+                                        app:tint="@color/velocity_red_primary" />
+                                </com.google.android.material.card.MaterialCardView>
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="bottom|end"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_favorite_filled"
+                                    app:tint="@color/velocity_red_primary" />
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="48dp"
+                            android:layout_height="4dp"
+                            android:layout_marginTop="12dp"
+                            android:background="@drawable/shape_intro_pill"
+                            android:backgroundTint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:id="@+id/landingGreeting"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:lineSpacingExtra="4dp"
+                            android:text="@string/landing_greeting"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/availableRoomsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="7dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_marginEnd="10dp"
+                            app:cardBackgroundColor="@color/velocity_red_soft"
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_room_search"
+                                app:tint="@color/velocity_red_primary" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/landing_section_rooms" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvLandingRoomsCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="4dp"
+                                android:fontFamily="sans-serif-black"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="10sp"
+                                android:visibility="gone"
+                                tools:text="8 Available"
+                                tools:visibility="visible" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_primary"
+                                android:fontFamily="sans-serif-black"
+                                android:letterSpacing="0.08"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="@string/landing_live_rates_badge"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="9sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:lineSpacingExtra="2dp"
+                        android:text="@string/landing_section_rooms_sub"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilRoomTypeFilter"
+                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:hint="@string/landing_filter_by_type_label">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/dropdownRoomTypeFilter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:includeFontPadding="false"
+                            android:inputType="none"
+                            android:paddingVertical="14dp"
+                            android:text="@string/all_categories"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <ProgressBar
+                        android:id="@+id/landingRoomsLoading"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="18dp"
+                        android:indeterminateTint="@color/velocity_red_primary" />
+
+                    <LinearLayout
+                        android:id="@+id/landingRoomsEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="24dp"
+                        android:paddingVertical="36dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <FrameLayout
+                            android:layout_width="96dp"
+                            android:layout_height="96dp">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:alpha="0.18"
+                                android:background="@drawable/shape_intro_red_glow" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="96dp"
+                                android:layout_height="96dp"
+                                app:cardBackgroundColor="@color/velocity_red_soft"
+                                app:cardCornerRadius="48dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="@color/velocity_red_subtle"
+                                app:strokeWidth="1.5dp">
+
+                                <ImageView
+                                    android:id="@+id/landingRoomsEmptyIcon"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_room_search"
+                                    app:tint="@color/velocity_red_primary" />
+                            </com.google.android.material.card.MaterialCardView>
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/landingRoomsEmptyTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20dp"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:text="@string/landing_empty_title"
+                            android:textColor="@color/velocity_red_dark"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/landingRoomsEmptyDesc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:alpha="0.85"
+                            android:fontFamily="sans-serif-medium"
+                            android:gravity="center"
+                            android:lineSpacingExtra="3dp"
+                            android:text="@string/landing_no_available_rooms"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Persistent network/API failure state - distinct from the
+                         empty-state block above (which means "no rooms match",
+                         this means "couldn't load at all"). Never leave the
+                         RecyclerView blank with only a transient Toast. -->
+                    <LinearLayout
+                        android:id="@+id/layoutRoomError"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="24dp"
+                        android:paddingVertical="36dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <FrameLayout
+                            android:layout_width="96dp"
+                            android:layout_height="96dp">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:alpha="0.18"
+                                android:background="@drawable/shape_intro_red_glow" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="96dp"
+                                android:layout_height="96dp"
+                                app:cardBackgroundColor="@color/velocity_red_soft"
+                                app:cardCornerRadius="48dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="@color/velocity_red_subtle"
+                                app:strokeWidth="1.5dp">
+
+                                <ImageView
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_wifi_off"
+                                    app:tint="@color/velocity_red_primary" />
+                            </com.google.android.material.card.MaterialCardView>
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20dp"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:text="@string/room_error_title"
+                            android:textColor="@color/velocity_red_dark"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/tvRoomErrorMessage"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:alpha="0.85"
+                            android:fontFamily="sans-serif-medium"
+                            android:gravity="center"
+                            android:lineSpacingExtra="3dp"
+                            android:text="@string/room_error_message"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRetryRooms"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="18dp"
+                            android:minWidth="0dp"
+                            android:paddingHorizontal="24dp"
+                            android:text="@string/retry_label"
+                            android:textAllCaps="true"
+                            android:textSize="13sp"
+                            app:backgroundTint="@color/velocity_red_primary"
+                            app:cornerRadius="22dp"
+                            app:rippleColor="@color/white" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvLandingRooms"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        tools:itemCount="3"
+                        tools:listitem="@layout/item_room_card" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnToggleRooms"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/shape_search_field"
+                        android:backgroundTint="@color/velocity_red_bg_end"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/view_all_rooms"
+                        android:textAllCaps="false"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_expand_more"
+                        app:iconGravity="textEnd"
+                        app:iconTint="@color/velocity_red_primary"
+                        app:rippleColor="@color/velocity_red_soft"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/promotionsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="7dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawablePadding="8dp"
+                        android:text="@string/landing_section_promos"
+                        app:drawableStartCompat="@drawable/ic_star"
+                        app:drawableTint="@color/velocity_red_primary" />
+
+                    <ProgressBar
+                        android:id="@+id/promotionsLoading"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="18dp"
+                        android:indeterminateTint="@color/velocity_red_primary" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvLandingPromotions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        android:visibility="gone"
+                        tools:itemCount="2"
+                        tools:listitem="@layout/item_promotion"
+                        tools:visibility="visible" />
+
+                    <include
+                        android:id="@+id/promotionsStateView"
+                        layout="@layout/item_landing_state_message"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/announcementsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="7dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawablePadding="8dp"
+                        android:text="@string/landing_section_news"
+                        app:drawableStartCompat="@drawable/ic_notifications"
+                        app:drawableTint="@color/velocity_red_primary" />
+
+                    <ProgressBar
+                        android:id="@+id/announcementsLoading"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="18dp"
+                        android:indeterminateTint="@color/velocity_red_primary" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvLandingAnnouncements"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        android:visibility="gone"
+                        tools:itemCount="2"
+                        tools:listitem="@layout/item_announcement"
+                        tools:visibility="visible" />
+
+                    <include
+                        android:id="@+id/announcementsStateView"
+                        layout="@layout/item_landing_state_message"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/amenitiesSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="7dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawablePadding="8dp"
+                        android:text="@string/landing_section_amenities"
+                        app:drawableStartCompat="@drawable/ic_services"
+                        app:drawableTint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/landing_section_amenities_sub"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="14sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progressLandingAmenities"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="20dp"
+                        android:indeterminateTint="@color/velocity_red_primary" />
+
+                    <!-- Populated dynamically from the centralized Amenities catalog
+                         (GET /amenities, active-only) - see LandingActivity#loadAmenities().
+                         Never hardcode amenity items here; the admin-managed catalog is
+                         the single source of truth. -->
+                    <GridLayout
+                        android:id="@+id/gridLandingAmenities"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:alignmentMode="alignMargins"
+                        android:columnCount="2"
+                        android:useDefaultMargins="false"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <include
+                        android:id="@+id/amenitiesStateView"
+                        layout="@layout/item_landing_state_message"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/hotelInfoSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="30dp"
+                app:cardElevation="7dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawablePadding="8dp"
+                        android:text="@string/landing_section_hotel_info"
+                        app:drawableStartCompat="@drawable/ic_info"
+                        app:drawableTint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/landing_hotel_name"
+                        android:textColor="@color/velocity_red_dark"
+                        android:textSize="22sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="7dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:lineSpacingExtra="3dp"
+                        android:text="@string/landing_hotel_desc"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/mapPreviewCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="190dp"
+                        android:layout_marginTop="16dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/velocity_red_soft"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:rippleColor="@color/velocity_red_subtle"
+                        app:strokeColor="@color/velocity_red_subtle"
+                        app:strokeWidth="1dp">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <com.google.android.gms.maps.MapView
+                                android:id="@+id/hotelMapView"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@string/cd_hotel_map_preview" />
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="56dp"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/gradient_overlay_hero" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="bottom|start"
+                                android:layout_margin="12dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/white"
+                                android:drawablePadding="6dp"
+                                android:fontFamily="sans-serif-black"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="7dp"
+                                android:text="@string/landing_hotel_name"
+                                android:textColor="@color/velocity_red_dark"
+                                android:textSize="11sp"
+                                app:drawableStartCompat="@drawable/ic_location"
+                                app:drawableTint="@color/velocity_red_primary" />
+                        </FrameLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewLocation"
+                        style="@style/Widget.MaterialComponents.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/landing_hotel_view_location"
+                        android:textAllCaps="false"
+                        android:textSize="13sp"
+                        app:backgroundTint="@color/velocity_red_primary"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_location"
+                        app:iconGravity="textStart"
+                        app:iconTint="@color/white"
+                        app:rippleColor="@color/velocity_red_soft" />
+
+                    <include layout="@layout/item_landing_contact_address" />
+                    <include layout="@layout/item_landing_contact_phone" />
+                    <include layout="@layout/item_landing_contact_email" />
+                    <include layout="@layout/item_landing_contact_hours" />
+                    <include layout="@layout/item_landing_contact_event" />
+                    <include layout="@layout/item_landing_contact_website" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="3dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="28dp"
+                android:alpha="0.6"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_subtle" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="@string/landing_footer_tagline"
+                android:textColor="@color/velocity_inactive_gray"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-bold"
+                android:gravity="center"
+                android:text="@string/landing_footer_copyright"
+                android:textColor="@color/velocity_inactive_gray"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Multi-room selection cart: hidden until >=1 room has a quantity set
+         via the card's stepper (see RoomAdapter#bindQuantityStepper). Reserve/
+         Book act on the whole selection - see LandingActivity#
+         updateSelectionSummaryBar()/handleCartAction(). Two full-width rows
+         (info, then actions) rather than packing the info column and all 3
+         buttons into one row - three wrap_content buttons alone can already
+         exceed a phone's width, which previously starved the 0dp-weighted
+         info column to nothing and pushed Book Selected off-screen. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSelectionSummaryBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:cardBackgroundColor="@color/velocity_surface_elevated"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="12dp"
+        app:strokeColor="@color/velocity_red_subtle"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp">
+
+            <LinearLayout
+                android:id="@+id/layoutSelectionSummaryDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/view_details_label">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvSelectionSummaryCount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-bold"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="13sp"
+                        tools:text="2 room(s) selected · Up to 4 guests" />
+
+                    <TextView
+                        android:id="@+id/tvSelectionSummaryTotal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="15sp"
+                        tools:text="&#8369;7,000 total / night" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/view_details_label"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCartClear"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/cart_clear_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/velocity_inactive_gray"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCartReserve"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="@string/cart_reserve_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="11sp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="@color/velocity_red_soft" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCartBook"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="@string/cart_book_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    app:backgroundTint="@color/velocity_red_primary"
+                    app:cornerRadius="20dp"
+                    app:elevation="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

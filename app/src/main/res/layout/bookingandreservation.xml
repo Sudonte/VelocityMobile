@@ -1,0 +1,1670 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/velocity_red_bg_end"
+    tools:context=".BookingAndReservationActivity">
+
+    <!-- Main Content Area -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/bookingRoot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:outlineProvider="none"
+            android:translationZ="6dp"
+            app:elevation="0dp"
+            app:liftOnScroll="true"
+            app:liftOnScrollTargetViewId="@id/swipeRefresh">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="72dp"
+                app:contentScrim="@drawable/bg_guest_header"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:statusBarScrim="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="92dp">
+
+                    <TextView
+                        android:id="@+id/screenTitle"
+                        style="@style/TextAppearance.Velocity.ScreenTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="24dp"
+                        android:text="@string/title_booking_reservation"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="20sp" />
+
+                    <View
+                        android:layout_width="48dp"
+                        android:layout_height="4dp"
+                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:id="@+id/screenDescription"
+                        style="@style/TextAppearance.Velocity.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="16dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/booking_tab_desc"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/tabLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/shape_tab_background"
+                        app:tabIndicator="@drawable/shape_tab_indicator"
+                        app:tabIndicatorColor="@color/velocity_red_primary"
+                        app:tabIndicatorGravity="stretch"
+                        app:tabIndicatorHeight="36dp"
+                        app:tabMode="fixed"
+                        app:tabRippleColor="@null"
+                        app:tabSelectedTextColor="@color/white"
+                        app:tabTextColor="@color/velocity_text_primary">
+
+                        <com.google.android.material.tabs.TabItem
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tab_booking_list_switcher" />
+
+                        <com.google.android.material.tabs.TabItem
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tab_reservation_list_switcher" />
+                    </com.google.android.material.tabs.TabLayout>
+
+                </LinearLayout>
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    app:contentInsetStart="0dp"
+                    app:layout_collapseMode="pin">
+
+                    <include
+                        android:id="@+id/header"
+                        layout="@layout/guest_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="72dp" />
+                </androidx.appcompat.widget.Toolbar>
+
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/screenContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:id="@+id/layoutNewBooking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="28dp">
+
+                <!-- Landing actions: launch the 7-step BookingWizardActivity for a
+                     brand-new transaction. Hidden while layoutCreateForm below is
+                     showing (edit-existing-reservation mode only). -->
+                <LinearLayout
+                    android:id="@+id/layoutWizardEntryActions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNewBooking"
+                        style="@style/Widget.Velocity.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/tab_new_booking"
+                        android:textSize="11sp"
+                        app:icon="@drawable/ic_bed"
+                        app:backgroundTint="@color/velocity_red_primary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNewReservation"
+                        style="@style/Widget.Velocity.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/tab_new_reservation"
+                        android:textSize="11sp"
+                        app:icon="@drawable/ic_calendar"
+                        app:backgroundTint="@color/velocity_red_primary" />
+                </LinearLayout>
+
+                <!-- Edit-existing-reservation form (Modify action from the list below,
+                     via populateFormForEdit) - hidden by default; the guest never sees
+                     this on first landing, only when editing an item. New-transaction
+                     creation now happens entirely in BookingWizardActivity above. -->
+                <LinearLayout
+                    android:id="@+id/layoutCreateForm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                <!-- Horizontal step progress indicator (updated by the Activity) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvProgressStep1"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:background="@drawable/shape_step_badge"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:importantForAccessibility="no"
+                            android:text="@string/step_number_1"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/step_label_details"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/progressLine1"
+                        android:layout_width="0dp"
+                        android:layout_height="2dp"
+                        android:layout_marginHorizontal="8dp"
+                        android:layout_marginTop="11dp"
+                        android:layout_weight="1"
+                        android:background="@color/velocity_red_subtle" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvProgressStep2"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:background="@drawable/shape_step_badge_inactive"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:importantForAccessibility="no"
+                            android:text="@string/step_number_2"
+                            android:textColor="@color/velocity_red_primary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/step_label_guests"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/progressLine2"
+                        android:layout_width="0dp"
+                        android:layout_height="2dp"
+                        android:layout_marginHorizontal="8dp"
+                        android:layout_marginTop="11dp"
+                        android:layout_weight="1"
+                        android:background="@color/velocity_red_subtle" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvProgressStep3"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:background="@drawable/shape_step_badge_inactive"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:importantForAccessibility="no"
+                            android:text="@string/step_number_3"
+                            android:textColor="@color/velocity_red_primary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/step_label_confirm"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Step 1: Stay Details (Room & Dates) -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Glass.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:clickable="false"
+                    android:focusable="false">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:background="@drawable/shape_step_badge"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:importantForAccessibility="no"
+                                android:text="@string/step_number_1"
+                                android:textColor="@color/white"
+                                android:textSize="13sp" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvStepDetails"
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/step_booking_details_title"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/step_details_subtitle"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Input"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="6dp"
+                            android:text="@string/add_room_hint"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="11sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddRoom"
+                            style="@style/Widget.Velocity.Button.Outlined"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:text="@string/add_room_button_label"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            app:icon="@drawable/ic_bed"
+                            app:iconTint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:id="@+id/tvRoomSelectionHelper"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="10dp"
+                            android:lineSpacingExtra="2dp"
+                            android:text="@string/booking_select_room_helper_multi"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp" />
+
+                        <!-- Dynamically populated with one item_selected_room row per
+                             room the guest has added to this booking/reservation. -->
+                        <LinearLayout
+                            android:id="@+id/layoutSelectedRooms"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:orientation="vertical" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutNoRoomsSelected"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="14dp"
+                            android:background="@drawable/shape_tab_background"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="18dp">
+
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_marginBottom="6dp"
+                                android:alpha="0.6"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_bed"
+                                app:tint="@color/velocity_text_secondary" />
+
+                            <TextView
+                                android:id="@+id/tvNoRoomsSelected"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:lineSpacingExtra="2dp"
+                                android:text="@string/no_rooms_selected_hint"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <!-- Check-in / Check-out: equal-width symmetric row (matches Room Browsing) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/date_field_gap"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    style="@style/TextAppearance.Velocity.Label.Input"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="@dimen/date_field_label_margin_bottom"
+                                    android:labelFor="@+id/etCheckIn"
+                                    android:text="@string/check_in_hint"
+                                    android:textColor="@color/velocity_text_primary" />
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/tilCheckIn"
+                                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textColorHint="@color/velocity_text_secondary"
+                                    app:helperText="@string/helper_checkin_from_tomorrow"
+                                    app:helperTextTextColor="@color/velocity_text_secondary"
+                                    app:hintTextColor="@color/velocity_text_secondary"
+                                    app:startIconDrawable="@drawable/ic_calendar"
+                                    app:startIconTint="@color/velocity_red_primary">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etCheckIn"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:focusable="false"
+                                        android:fontFamily="sans-serif-black"
+                                        android:hint="@string/select_date_hint"
+                                        android:inputType="none"
+                                        android:paddingVertical="@dimen/date_field_text_padding"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:includeFontPadding="false"
+                                        android:textSize="@dimen/date_field_text_size" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/date_field_gap"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    style="@style/TextAppearance.Velocity.Label.Input"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="@dimen/date_field_label_margin_bottom"
+                                    android:labelFor="@+id/etCheckOut"
+                                    android:text="@string/check_out_hint"
+                                    android:textColor="@color/velocity_text_primary" />
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/tilCheckOut"
+                                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textColorHint="@color/velocity_text_secondary"
+                                    app:helperText="@string/helper_checkout_after_checkin"
+                                    app:helperTextTextColor="@color/velocity_text_secondary"
+                                    app:hintTextColor="@color/velocity_text_secondary"
+                                    app:startIconDrawable="@drawable/ic_calendar"
+                                    app:startIconTint="@color/velocity_red_primary">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etCheckOut"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:focusable="false"
+                                        android:fontFamily="sans-serif-black"
+                                        android:hint="@string/select_date_hint"
+                                        android:inputType="none"
+                                        android:paddingVertical="@dimen/date_field_text_padding"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:includeFontPadding="false"
+                                        android:textSize="@dimen/date_field_text_size" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Read-only Capacity Indicator -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardCapacity"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            app:cardBackgroundColor="@color/velocity_red_subtle"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="@color/velocity_red_soft"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="12dp">
+
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_people"
+                                    app:tint="@color/velocity_red_primary" />
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="14dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        style="@style/TextAppearance.Velocity.Label.Input"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/capacity_label"
+                                        android:textColor="@color/velocity_text_secondary"
+                                        android:textSize="11sp" />
+
+                                    <TextView
+                                        android:id="@+id/tvCapacityIndicator"
+                                        style="@style/TextAppearance.Velocity.Price"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/add_room_hint"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="15sp" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvRoomsSelectedCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/shape_intro_pill"
+                                    android:backgroundTint="@color/white"
+                                    android:paddingHorizontal="10dp"
+                                    android:paddingVertical="4dp"
+                                    android:text="@string/no_rooms_selected_yet"
+                                    android:textColor="@color/velocity_red_primary"
+                                    android:fontFamily="sans-serif-black"
+                                    android:textSize="10sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Choose Amenity: sourced live from the admin-managed, active-only
+                             Amenity catalog (GET /api/amenities) - see
+                             BookingAndReservationActivity#loadAmenityCatalog(). Rows are
+                             inflated dynamically (item_amenity_addon.xml) since the count/
+                             names vary with whatever the admin currently has active. Only
+                             shown once at least one room has been selected above. -->
+                        <LinearLayout
+                            android:id="@+id/layoutAmenitiesSection"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="@string/addon_amenities_label"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="10dp"
+                            android:text="@string/addon_amenities_notice"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutAmenitiesItemsContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <TextView
+                            android:id="@+id/tvAmenitiesEmptyState"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:padding="12dp"
+                            android:text="@string/addon_amenities_empty"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp"
+                            android:visibility="gone" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Step 2: Guest Verification & IDs -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Glass.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:clickable="false"
+                    android:focusable="false">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="14dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:background="@drawable/shape_step_badge"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:importantForAccessibility="no"
+                                android:text="@string/step_number_2"
+                                android:textColor="@color/white"
+                                android:textSize="13sp" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvStepVerification"
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/step_guests_title"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/step_guests_subtitle"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="@string/who_is_staying_label"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="@string/who_is_staying_hint"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPrimaryGuestFirstName"
+                            style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:hint="@string/guest_first_name_hint"
+                            android:textColorHint="@color/velocity_text_secondary"
+                            app:hintTextColor="@color/velocity_text_secondary"
+                            app:startIconDrawable="@drawable/ic_person"
+                            app:startIconTint="@color/velocity_red_primary">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPrimaryGuestFirstName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPersonName"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPrimaryGuestMiddleName"
+                            style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:hint="@string/middle_name_label"
+                            android:textColorHint="@color/velocity_text_secondary"
+                            app:hintTextColor="@color/velocity_text_secondary"
+                            app:startIconDrawable="@drawable/ic_person"
+                            app:startIconTint="@color/velocity_red_primary">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPrimaryGuestMiddleName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPersonName"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPrimaryGuestLastName"
+                            style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:hint="@string/guest_last_name_hint"
+                            android:textColorHint="@color/velocity_text_secondary"
+                            app:hintTextColor="@color/velocity_text_secondary"
+                            app:startIconDrawable="@drawable/ic_person"
+                            app:startIconTint="@color/velocity_red_primary">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPrimaryGuestLastName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPersonName"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Body"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="6dp"
+                            android:text="@string/id_question"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/cgIdType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:chipSpacingHorizontal="8dp"
+                            app:chipSpacingVertical="4dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipNone"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true"
+                                android:text="@string/id_type_none"
+                                android:textColor="@color/velocity_text_primary" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipSenior"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/id_type_senior"
+                                android:textColor="@color/velocity_text_primary" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipPwd"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/id_type_pwd"
+                                android:textColor="@color/velocity_text_primary" />
+                        </com.google.android.material.chip.ChipGroup>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnUploadId"
+                            style="@style/Widget.Velocity.Button.Outlined"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:paddingVertical="10dp"
+                            android:text="@string/upload_id_card"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_upload"
+                            app:iconTint="@color/velocity_red_primary" />
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardIdPreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="180dp"
+                            android:layout_marginTop="10dp"
+                            android:visibility="gone"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="@color/velocity_red_subtle"
+                            app:strokeWidth="1dp">
+
+                            <ImageView
+                                android:id="@+id/ivIdPreview"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@string/id_card_preview_desc"
+                                android:scaleType="centerCrop" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:id="@+id/tvIdUploadStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/no_id_uploaded"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp"
+                            android:visibility="gone" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="16dp"
+                            android:background="@color/velocity_red_subtle" />
+
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="@string/additional_guest_info"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:text="@string/additional_guest_subtitle"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutAdditionalGuests"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddGuest"
+                            style="@style/Widget.Velocity.Button.Outlined"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:paddingVertical="10dp"
+                            android:text="@string/add_additional_guest"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            app:icon="@drawable/ic_person"
+                            app:iconTint="@color/velocity_red_primary" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Step 3: Summary & Confirm -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Glass.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:clickable="false"
+                    android:focusable="false"
+                    app:strokeColor="@color/velocity_red_soft"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="14dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:background="@drawable/shape_step_badge"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:importantForAccessibility="no"
+                                android:text="@string/step_number_3"
+                                android:textColor="@color/white"
+                                android:textSize="13sp" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvStepSummary"
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/step_summary_title"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/step_summary_subtitle"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_calendar"
+                                app:tint="@color/velocity_red_primary" />
+
+                            <TextView
+                                android:id="@+id/tvSummaryDates"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:text="@string/summary_dates_placeholder"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_people"
+                                app:tint="@color/velocity_red_primary" />
+
+                            <TextView
+                                android:id="@+id/tvSummaryGuests"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:text="@string/summary_guests_default"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginBottom="12dp"
+                            android:background="@color/velocity_red_subtle" />
+
+                        <TextView
+                            android:id="@+id/tvSummaryRoom"
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/no_room_selected"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="11sp" />
+
+                        <!-- Dynamically populated: one row per selected room showing its
+                             name, nights, and subtotal, mirroring layoutSelectedRooms above. -->
+                        <LinearLayout
+                            android:id="@+id/layoutSummaryRooms"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <!-- Dynamically populated: one row per selected add-on amenity,
+                             hidden entirely when none are selected. -->
+                        <LinearLayout
+                            android:id="@+id/layoutSummaryAmenities"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="4dp"
+                                android:text="@string/summary_amenities_header"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="10sp"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.05" />
+
+                            <LinearLayout
+                                android:id="@+id/layoutSummaryAmenitiesRows"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:layout_weight="1"
+                                android:text="@string/tax_service_charge_label"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tvSummaryTax"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/tax_service_charge_none"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layoutSummaryDiscount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="12dp"
+                                android:layout_weight="1"
+                                android:text="@string/summary_discount_label"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tvSummaryDiscount"
+                                style="@style/TextAppearance.Velocity.Price"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/zero_price"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="14dp"
+                            android:background="@color/velocity_red_subtle" />
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="@color/velocity_red_subtle"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="@color/velocity_red_soft"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:baselineAligned="false"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="14dp">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:fontFamily="sans-serif-black"
+                                    android:text="@string/total_amount"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="16sp" />
+
+                                <TextView
+                                    android:id="@+id/tvSummaryTotal"
+                                    style="@style/TextAppearance.Velocity.Price.Large"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/zero_price"
+                                    android:textColor="@color/velocity_red_primary"
+                                    android:textSize="20sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Terms &amp; Cancellation Policy gate: Booking tab only (Reservation
+                     tab has no payment step, so nothing to gate here). Visibility and
+                     btnConfirmBooking's enabled state are both driven by applyMode()/
+                     the checkbox listener in the Activity. -->
+                <LinearLayout
+                    android:id="@+id/layoutTermsAgreement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/shape_tab_background"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbTermsAgreement"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/terms_agreement_label"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="12sp"
+                        android:lineSpacingExtra="2dp"
+                        app:buttonTint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:id="@+id/tvViewTerms"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginStart="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:fontFamily="sans-serif-black"
+                        android:padding="2dp"
+                        android:text="@string/view_terms_link_label"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConfirmBooking"
+                    style="@style/Widget.Velocity.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/confirm_booking_label"
+                    android:textSize="16sp"
+                    app:icon="@drawable/ic_payment_card"
+                    app:iconGravity="textStart"
+                    app:iconPadding="10dp" />
+
+                <!-- Only shown while editing an existing reservation (see populateFormForEdit) -
+                     gives the guest a way to back out of edit mode instead of only discovering
+                     their edits get discarded by switching tabs. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelEdit"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="4dp"
+                    android:minHeight="0dp"
+                    android:text="@string/cancel_edit_label"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-black"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                </LinearLayout>
+
+                <!-- Booking List / Reservation List -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardListSection"
+                    style="@style/Widget.Velocity.Card.Glass.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:clickable="false"
+                    android:focusable="false"
+                    app:strokeColor="@color/velocity_red_subtle">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:padding="13dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:contentDescription="@null"
+                                android:padding="7dp"
+                                android:src="@drawable/ic_reservation"
+                                app:tint="@color/velocity_red_primary" />
+
+                            <TextView
+                                android:id="@+id/tvListTitle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif-black"
+                                android:text="@string/booking_list_title"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvListCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:fontFamily="sans-serif-black"
+                                android:paddingHorizontal="9dp"
+                                android:paddingVertical="3dp"
+                                android:text="@string/zero"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="10sp"
+                                tools:text="3" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExpandList"
+                                style="@style/Widget.MaterialComponents.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="28dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:paddingHorizontal="6dp"
+                                android:text="@string/expand_label"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="10sp"
+                                app:icon="@drawable/ic_expand_more"
+                                app:iconGravity="end"
+                                app:iconSize="14dp"
+                                app:iconTint="@color/velocity_red_primary" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvListDesc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:layout_marginBottom="10dp"
+                            android:lineSpacingExtra="2dp"
+                            android:text="@string/booking_items_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp" />
+
+                        <!-- Search: filters rvItemList in-memory against the already-
+                             loaded allMyBookings, combined with whichever status chip
+                             is active below (see BookingAndReservationActivity#
+                             matchesSearch()/itemsForCurrentTab()) - no per-keystroke
+                             network call, and search never changes the active tab or
+                             status on its own. -->
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Input"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="@string/search_label"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:hint="@string/search_transactions_hint"
+                            android:textColorHint="@color/velocity_text_secondary"
+                            app:endIconMode="clear_text"
+                            app:hintTextColor="@color/velocity_text_secondary"
+                            app:startIconDrawable="@drawable/ic_room_search"
+                            app:startIconTint="@color/velocity_red_primary">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etSearchTransactions"
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:inputType="text"
+                                android:imeOptions="actionSearch"
+                                android:maxLines="1"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="12sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Cancellation policy notice: shown above the Booking List only
+                             (payment already exists there), explaining that a fully paid
+                             booking cannot be cancelled while a partially paid one can be,
+                             without any refund of the partial amount. -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardCancellationPolicy"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            app:cardBackgroundColor="@color/velocity_red_subtle"
+                            app:cardCornerRadius="11dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="@color/velocity_red_soft"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="top"
+                                android:orientation="horizontal"
+                                android:padding="10dp">
+
+                                <ImageView
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
+                                    android:layout_marginTop="1dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_info"
+                                    app:tint="@color/velocity_red_primary" />
+
+                                <TextView
+                                    android:id="@+id/tvCancellationPolicyNotice"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_weight="1"
+                                    android:lineSpacingExtra="2dp"
+                                    android:text="@string/booking_cancellation_policy_notice"
+                                    android:textColor="@color/velocity_red_dark"
+                                    android:textSize="10sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Status Filter combo box: one dropdown per tab (never shared -
+                             see BookingAndReservationActivity's per-tab
+                             showAllBookingCategories/showAllReservationCategories
+                             state), replacing the old four-chip toggle row. Same
+                             ExposedDropdown pattern as the Sort By/Room Type row
+                             below, for visual and behavioral consistency. -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layoutBookingStatusFilter"
+                            style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="9dp"
+                            android:hint="@string/filter_by_status_label"
+                            app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/bookingStatusFilter"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-bold"
+                                android:includeFontPadding="false"
+                                android:inputType="none"
+                                android:paddingVertical="8dp"
+                                android:text="@string/booking_status_all"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="12sp"
+                                tools:ignore="LabelFor" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layoutReservationStatusFilter"
+                            style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="9dp"
+                            android:visibility="gone"
+                            tools:visibility="visible"
+                            android:hint="@string/filter_by_status_label"
+                            app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/reservationStatusFilter"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-bold"
+                                android:includeFontPadding="false"
+                                android:inputType="none"
+                                android:paddingVertical="8dp"
+                                android:text="@string/reservation_status_all"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="12sp"
+                                tools:ignore="LabelFor" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Sort By / Room Type: two visually separate exposed-dropdown
+                             controls (not one combined Filter dialog) - same
+                             TextInputLayout.ExposedDropdown pattern RoomBrowsingActivity's
+                             own Sort/Room Type row already uses, for consistency. Room
+                             Type options are sourced from the active room catalog
+                             (allRooms, already loaded by this screen for Add Room), not
+                             from the guest's own past transactions, so a room type the
+                             Administrator has since deactivated stops being offered as a
+                             filter choice while any historical transaction that used it
+                             remains visible in the list untouched (see
+                             refreshRoomTypeFilterDropdown()). -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="9dp"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/date_field_gap"
+                                android:layout_weight="1"
+                                android:hint="@string/sort_row_label"
+                                app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/dropdownTransactionSort"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:includeFontPadding="false"
+                                    android:inputType="none"
+                                    android:paddingVertical="8dp"
+                                    android:text="@string/transaction_sort_newest"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="12sp"
+                                    tools:ignore="LabelFor" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/date_field_gap"
+                                android:layout_weight="1"
+                                android:hint="@string/room_type_row_label"
+                                app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/dropdownTransactionRoomType"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:includeFontPadding="false"
+                                    android:inputType="none"
+                                    android:paddingVertical="8dp"
+                                    android:text="@string/all_room_types_label"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="12sp"
+                                    tools:ignore="LabelFor" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@color/velocity_red_subtle" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvItemList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false"
+                            tools:listitem="@layout/item_booking_card" />
+
+                        <LinearLayout
+                            android:id="@+id/tvListEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="24dp"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <FrameLayout
+                                android:layout_width="72dp"
+                                android:layout_height="72dp">
+
+                                <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:alpha="0.18"
+                                    android:background="@drawable/shape_intro_red_glow" />
+
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="72dp"
+                                    android:layout_height="72dp"
+                                    app:cardBackgroundColor="@color/velocity_red_soft"
+                                    app:cardCornerRadius="36dp"
+                                    app:cardElevation="0dp"
+                                    app:strokeColor="@color/velocity_red_subtle"
+                                    app:strokeWidth="1.5dp">
+
+                                    <ImageView
+                                        android:id="@+id/ivListEmptyIcon"
+                                        android:layout_width="30dp"
+                                        android:layout_height="30dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_booking"
+                                        app:tint="@color/velocity_red_primary" />
+                                </com.google.android.material.card.MaterialCardView>
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/tvListEmptyTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="14dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:text="@string/booking_list_empty_title"
+                                android:textColor="@color/velocity_red_dark"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/tvListEmptyDesc"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:alpha="0.85"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:lineSpacingExtra="2dp"
+                                android:text="@string/no_bookings_yet"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <View
+            android:id="@+id/glowTop"
+            android:layout_width="600dp"
+            android:layout_height="600dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="-300dp"
+            android:alpha="0.25"
+            android:background="@drawable/shape_intro_red_glow"
+            app:layout_anchor="@+id/appBarLayout"
+            app:layout_anchorGravity="top|center" />
+
+        <!-- Loading Overlay (kept last so it covers all content) -->
+        <FrameLayout
+            android:id="@+id/loadingOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/velocity_overlay_scrim_light"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                app:indicatorColor="@color/velocity_red_primary" />
+        </FrameLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- Navigation Drawer -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        style="@style/Widget.VelocitySuites.NavigationView"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/velocity_surface_elevated"
+        app:headerLayout="@layout/nav_header_guest"
+        app:menu="@menu/menu_dashboard" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

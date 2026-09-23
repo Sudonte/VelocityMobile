@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="14dp"
+    app:cardBackgroundColor="@color/velocity_surface_elevated"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/velocity_red_subtle"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/promoImage"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:src="@drawable/bg_landing_banner_wellness"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/promoBundleBadge"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_red_primary"
+                    android:drawablePadding="6dp"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:text="@string/promo_bundle_badge_label"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    app:drawableStartCompat="@drawable/ic_star"
+                    app:drawableTint="@color/white" />
+
+                <TextView
+                    android:id="@+id/promoActiveBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_green_soft"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="6dp"
+                    android:text="@string/promo_active_label"
+                    android:textColor="@color/velocity_green_dark"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/promoTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="16sp"
+                tools:text="Book a Deluxe, Get Free Breakfast" />
+
+            <TextView
+                android:id="@+id/promoDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:lineSpacingExtra="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Enjoy a complimentary breakfast buffet for two when you book our Deluxe Room. This offer includes airport pickup and a late checkout."
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/promoAmenitiesList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:lineSpacingExtra="3dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="✓ 1× Breakfast Buffet\n✓ 1× Airport Transfer"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/promoRoomType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:drawablePadding="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:drawableStartCompat="@drawable/ic_bed"
+                app:drawableTint="@color/velocity_red_primary"
+                tools:text="Deluxe Room"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/promoValidity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:drawablePadding="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_inactive_gray"
+                android:textSize="11sp"
+                app:drawableStartCompat="@drawable/ic_calendar"
+                app:drawableTint="@color/velocity_inactive_gray"
+                tools:text="Valid Aug 14 - Aug 15, 2026" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

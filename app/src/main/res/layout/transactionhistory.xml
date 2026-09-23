@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/velocity_red_bg_end"
+    tools:context=".TransactionHistoryActivity">
+
+    <!-- Main Content Area -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/screenContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            app:liftOnScroll="true"
+            app:liftOnScrollTargetViewId="@id/swipeRefresh">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="72dp"
+                app:contentScrim="@drawable/bg_guest_header"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:statusBarScrim="@android:color/transparent">
+
+                <!-- Background Glow -->
+                <View
+                    android:layout_width="600dp"
+                    android:layout_height="600dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="-450dp"
+                    android:alpha="0.2"
+                    android:background="@drawable/shape_intro_red_glow"
+                    android:importantForAccessibility="no"
+                    app:layout_collapseMode="parallax" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="92dp">
+
+                    <TextView
+                        android:id="@+id/screenTitle"
+                        style="@style/TextAppearance.Velocity.ScreenTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="24dp"
+                        android:textSize="17sp"
+                        android:textColor="@color/velocity_red_primary"
+                        android:text="@string/title_transaction_history" />
+
+                    <View
+                        android:layout_width="56dp"
+                        android:layout_height="6dp"
+                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_primary"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:id="@+id/screenDescription"
+                        style="@style/TextAppearance.Velocity.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="20dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="@string/transaction_history_desc"
+                        android:textSize="13sp" />
+
+                    <!-- Search & Filter Container -->
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Velocity.Card.Glass.Compact"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginBottom="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_glass_card_white"
+                            android:orientation="vertical"
+                            android:padding="12dp">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/searchLayout"
+                                style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:endIconMode="clear_text"
+                                app:startIconDrawable="@drawable/ic_room_search">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etSearch"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:hint="@string/search_transactions_hint"
+                                    android:imeOptions="actionSearch"
+                                    android:inputType="text"
+                                    android:maxLines="1"
+                                    android:paddingVertical="8dp"
+                                    android:textSize="13sp" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <!-- Filter by Status: single combo box replacing the old 9-way
+                                 category chip row (All/Bookings/Reservations/Payments/
+                                 Cancelled/Stays/FullyPaid/PartiallyPaid/PendingPayment) -
+                                 same ExposedDropdown pattern already used elsewhere in the
+                                 app (see bookingandreservation.xml's own status filter). -->
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/layoutTransactionStatusFilter"
+                                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="14dp"
+                                android:hint="@string/filter_by_status_label">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/dropdownTransactionStatus"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:includeFontPadding="false"
+                                    android:inputType="none"
+                                    android:paddingVertical="8dp"
+                                    android:text="@string/filter_all_transactions_label"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="12sp"
+                                    tools:ignore="LabelFor" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <!-- Remaining filters: Room Type, Date, and Booking Status -
+                                 Reservation Status removed entirely per spec. -->
+                            <HorizontalScrollView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:overScrollMode="never"
+                                android:scrollbars="none">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                    <com.google.android.material.chip.Chip
+                                        android:id="@+id/chipRoomType"
+                                        style="@style/Widget.MaterialComponents.Chip.Action"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="10dp"
+                                        android:fontFamily="sans-serif-bold"
+                                        android:text="@string/room_type_filter_label"
+                                        android:textColor="@color/chip_sort_text_color"
+                                        android:textSize="12sp"
+                                        app:chipBackgroundColor="@color/chip_sort_background_color"
+                                        app:chipIcon="@drawable/ic_room_search"
+                                        app:chipIconSize="18dp"
+                                        app:chipIconTint="@color/chip_sort_icon_tint"
+                                        app:chipMinHeight="36dp"
+                                        app:chipStrokeColor="@color/velocity_red_subtle"
+                                        app:chipStrokeWidth="1.2dp"
+                                        app:ensureMinTouchTargetSize="false" />
+
+                                    <com.google.android.material.chip.Chip
+                                        android:id="@+id/chipDateFilter"
+                                        style="@style/Widget.MaterialComponents.Chip.Action"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="10dp"
+                                        android:fontFamily="sans-serif-bold"
+                                        android:text="@string/date_filter_label"
+                                        android:textColor="@color/chip_sort_text_color"
+                                        android:textSize="12sp"
+                                        app:chipBackgroundColor="@color/chip_sort_background_color"
+                                        app:chipIcon="@drawable/ic_calendar"
+                                        app:chipIconSize="18dp"
+                                        app:chipIconTint="@color/chip_sort_icon_tint"
+                                        app:chipMinHeight="36dp"
+                                        app:chipStrokeColor="@color/velocity_red_subtle"
+                                        app:chipStrokeWidth="1.2dp"
+                                        app:ensureMinTouchTargetSize="false" />
+
+                                    <com.google.android.material.chip.Chip
+                                        android:id="@+id/chipBookingStatus"
+                                        style="@style/Widget.MaterialComponents.Chip.Action"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:fontFamily="sans-serif-bold"
+                                        android:text="@string/booking_status_filter_label"
+                                        android:textColor="@color/chip_sort_text_color"
+                                        android:textSize="12sp"
+                                        app:chipBackgroundColor="@color/chip_sort_background_color"
+                                        app:chipIcon="@drawable/ic_booking"
+                                        app:chipIconSize="18dp"
+                                        app:chipIconTint="@color/chip_sort_icon_tint"
+                                        app:chipMinHeight="36dp"
+                                        app:chipStrokeColor="@color/velocity_red_subtle"
+                                        app:chipStrokeWidth="1.2dp"
+                                        app:ensureMinTouchTargetSize="false" />
+                                </LinearLayout>
+                            </HorizontalScrollView>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    app:contentInsetStart="0dp"
+                    app:layout_collapseMode="pin">
+
+                    <include
+                        layout="@layout/guest_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="72dp" />
+                </androidx.appcompat.widget.Toolbar>
+
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+            <!-- Sticky Stats / Export Bar -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/velocity_sticky_bar_bg"
+                    android:paddingHorizontal="24dp"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:background="@color/velocity_divider_hairline"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvTransactionHeader"
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAllCaps="false"
+                        android:textSize="15sp"
+                        android:text="@string/recent_transactions"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/btnExport"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnExport"
+                        style="@style/Widget.Velocity.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:text="@string/export_label"
+                        android:textSize="11sp"
+                        app:icon="@drawable/ic_upload"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="16dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:overScrollMode="never">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="100dp">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTransactions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        tools:itemCount="4"
+                        tools:listitem="@layout/item_transaction_card" />
+
+                    <!-- Improved Empty State -->
+                    <include
+                        android:id="@+id/layoutEmptyState"
+                        layout="@layout/view_empty_state"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="48dp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        style="@style/Widget.VelocitySuites.NavigationView"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/velocity_surface_elevated"
+        app:headerLayout="@layout/nav_header_guest"
+        app:menu="@menu/menu_dashboard" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

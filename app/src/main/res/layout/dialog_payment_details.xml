@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Velocity.Card.Glass"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/payment_details_title"
+                android:textColor="@color/velocity_red_dark"
+                android:textSize="20sp"
+                android:letterSpacing="-0.02"
+                android:layout_marginBottom="8dp"/>
+
+            <View
+                android:layout_width="48dp"
+                android:layout_height="4dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_primary" />
+
+            <!-- Prominent Booking ID banner - always the first thing the guest sees in this dialog -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/velocity_red_primary"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+
+                <TextView
+                    android:id="@+id/detailPaymentBookingId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="14dp"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:letterSpacing="0.02"
+                    tools:text="Booking ID: VS-1029" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Booking Info -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/velocity_red_bg_end"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/title_booking_info"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/detailPaymentBookingRef"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="4dp"
+                        tools:text="Ref: VS-8829" />
+
+                    <TextView
+                        android:id="@+id/detailPaymentRoomInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="8dp"
+                        tools:text="Executive City Suite  Oct 12 - Oct 15, 2023" />
+
+                    <TextView
+                        android:id="@+id/detailPaymentCurrentStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/shape_intro_pill"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:fontFamily="sans-serif-black"
+                        android:textSize="11sp"
+                        android:textAllCaps="true"
+                        android:layout_marginBottom="10dp"
+                        tools:text="Fully Paid" />
+
+                    <TextView
+                        android:id="@+id/detailPaymentLastMethod"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="2dp"
+                        tools:text="Payment Method: GCash" />
+
+                    <TextView
+                        android:id="@+id/detailPaymentLastDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="13sp"
+                        tools:text="Payment Date &amp; Time: Oct 12, 2023 3:45 PM" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Cancellation info - only shown when the booking status is Cancelled -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPaymentCancellation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/velocity_red_subtle"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/detailPaymentCancelDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:fontFamily="sans-serif-bold"
+                        android:textColor="@color/velocity_red_dark"
+                        android:textSize="13sp"
+                        tools:text="Cancelled on Oct 10, 2023" />
+
+                    <TextView
+                        android:id="@+id/detailPaymentCancelReason"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp"
+                        tools:text="Reason: Change of plans" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Amount + Progress -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/velocity_red_bg_end"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/title_payment_breakdown"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_amount" android:textColor="@color/velocity_text_secondary" android:textSize="13sp"/>
+                        <TextView android:id="@+id/detailPaymentTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-bold" android:textColor="@color/velocity_text_primary" android:textSize="14sp" tools:text="₱16,500.00"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/already_paid_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp"/>
+                        <TextView android:id="@+id/detailPaymentPaid" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-bold" android:textColor="@color/velocity_green_dark" android:textSize="14sp" tools:text="₱6,600.00"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginBottom="10dp"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/remaining_balance_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp"/>
+                        <TextView android:id="@+id/detailPaymentRemaining" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-bold" android:textColor="@color/velocity_red_primary" android:textSize="14sp" tools:text="₱9,900.00"/>
+                    </LinearLayout>
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/detailPaymentProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:trackCornerRadius="6dp"
+                        app:trackThickness="8dp"
+                        app:indicatorColor="@color/velocity_green_primary"
+                        app:trackColor="@color/velocity_red_soft"
+                        android:progress="0" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Payment History -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/velocity_red_bg_end"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/velocity_red_subtle"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/title_payment_history"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp"/>
+
+                    <LinearLayout
+                        android:id="@+id/detailPaymentHistoryContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/detailPaymentHistoryEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/no_payment_yet_label"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDownloadPaymentReceipt"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="sans-serif-bold"
+                android:text="@string/download_receipt"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                app:cornerRadius="26dp"
+                app:strokeColor="@color/velocity_red_primary"
+                android:textColor="@color/velocity_red_primary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRequestAdditionalAmenities"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="sans-serif-bold"
+                android:text="@string/request_additional_amenities_button"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                app:cornerRadius="26dp"
+                app:strokeColor="@color/velocity_red_primary"
+                android:textColor="@color/velocity_red_primary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClosePaymentDetail"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/close_label"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:backgroundTint="@color/velocity_red_primary"
+                app:cornerRadius="32dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</com.google.android.material.card.MaterialCardView>

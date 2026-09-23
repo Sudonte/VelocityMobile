@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+      <com.google.android.material.card.MaterialCardView
+          style="@style/Widget.Velocity.Card.Glass.Elevated"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:clickable="false"
+          android:focusable="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass_card_white"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginBottom="14dp"
+              android:gravity="center_vertical"
+              android:orientation="horizontal">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                app:cardBackgroundColor="@color/velocity_red_soft"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp">
+              <ImageView
+                  android:layout_width="18dp"
+                  android:layout_height="18dp"
+                  android:layout_gravity="center"
+                  android:importantForAccessibility="no"
+                  android:src="@drawable/ic_shield_check"
+                  app:tint="@color/velocity_red_primary" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+              <TextView
+                  style="@style/TextAppearance.Velocity.Label.Section"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="@string/id_verification_title"
+                  android:textColor="@color/velocity_text_primary"
+                  android:textSize="12sp" />
+
+              <TextView
+                  style="@style/TextAppearance.Velocity.Body"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="2dp"
+                  android:text="@string/id_question"
+                  android:textColor="@color/velocity_text_secondary"
+                  android:textSize="11sp" />
+            </LinearLayout>
+          </LinearLayout>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/cgIdType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNone"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/id_type_none"
+                android:textColor="@color/velocity_text_primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSenior"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/id_type_senior"
+                android:textColor="@color/velocity_text_primary" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPwd"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/id_type_pwd"
+                android:textColor="@color/velocity_text_primary" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUploadId"
+            style="@style/Widget.Velocity.Button.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:paddingVertical="10dp"
+            android:text="@string/upload_id_card"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            android:visibility="gone"
+            app:icon="@drawable/ic_upload"
+            app:iconTint="@color/velocity_red_primary" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardIdPreview"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/velocity_red_subtle"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/ivIdPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/id_card_preview_desc"
+                android:scaleType="centerCrop" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tvIdUploadStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/no_id_uploaded"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        </LinearLayout>
+      </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Active (Checked) state - red text on the soft pink pill background -->
+    <item android:color="@color/velocity_red_primary" android:state_checked="true" />
+    <!-- Pressed state -->
+    <item android:color="@color/velocity_red_primary" android:state_pressed="true" />
+    <!-- Inactive state - Black text -->
+    <item android:color="@color/black" />
+</selector>

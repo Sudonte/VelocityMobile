@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Active (checked) - soft/light pink pill, not a bright solid fill,
+         so the highlighted item reads as selected without dominating the
+         rest of the drawer (see nav_item_icon_tint.xml/nav_item_text_color.xml
+         for the matching red-on-soft-pink foreground). -->
+    <item android:color="@color/velocity_red_soft" android:state_checked="true" />
+    <item android:color="@color/velocity_red_subtle" android:state_pressed="true" />
+    <item android:color="@android:color/transparent" />
+</selector>

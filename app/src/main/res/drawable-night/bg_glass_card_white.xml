@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark Mode equivalent of drawable/bg_glass_card_white.xml - same shape/
+     radius, but a layered dark-gray-red surface instead of near-white, and
+     a light-alpha stroke instead of a dark one (a dark stroke would be
+     invisible against this background). Picked up automatically by every
+     layout that already references @drawable/bg_glass_card_white (87 uses
+     across 49 files) with zero per-layout changes. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#E62A1C1C" />
+    <stroke android:width="1dp" android:color="#26FFFFFF" />
+    <corners android:radius="32dp" />
+</shape>

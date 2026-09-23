@@ -1,0 +1,869 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Velocity.Card.Glass"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white"
+        android:maxHeight="560dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    app:cardBackgroundColor="@color/velocity_red_soft"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_edit"
+                        app:tint="@color/velocity_red_primary" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:id="@+id/editDialogTitle"
+                    style="@style/TextAppearance.Velocity.ScreenTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:text="@string/edit_profile"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="48dp"
+                android:layout_height="4dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_primary" />
+
+            <TextView
+                android:id="@+id/editDialogDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="18dp"
+                android:alpha="0.8"
+                android:text="@string/edit_profile_desc"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="14sp" />
+
+            <!-- Step Indicator: one combined 4-step flow (Personal -> Contact -> Address ->
+                 Review) covering the single one-time profile edit - see
+                 ProfileManagementActivity#performEditProfileWizard(). -->
+            <LinearLayout
+                android:id="@+id/stepIndicatorContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/stepText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.08"
+                    android:text="@string/registration_step_format"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/stepTitleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/edit_profile_wizard_step1_title"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="15sp" />
+
+                <LinearLayout
+                    android:layout_width="120dp"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="#F0F0F0"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/stepProgressBar"
+                        android:layout_width="30dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_primary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/stepDot1"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_primary" />
+
+                    <View
+                        android:layout_width="14dp"
+                        android:layout_height="1dp"
+                        android:background="@color/velocity_red_soft" />
+
+                    <View
+                        android:id="@+id/stepDot2"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft" />
+
+                    <View
+                        android:layout_width="14dp"
+                        android:layout_height="1dp"
+                        android:background="@color/velocity_red_soft" />
+
+                    <View
+                        android:id="@+id/stepDot3"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft" />
+
+                    <View
+                        android:layout_width="14dp"
+                        android:layout_height="1dp"
+                        android:background="@color/velocity_red_soft" />
+
+                    <View
+                        android:id="@+id/stepDot4"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ================= STEP 1 OF 4: PERSONAL INFORMATION ================= -->
+            <LinearLayout
+                android:id="@+id/step1Page"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Age / DOB validation banner: hidden unless the selected date of birth
+                     indicates the guest is under 18. -->
+                <LinearLayout
+                    android:id="@+id/profileAgeValidationErrorContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_red_soft"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="10dp"
+                        android:importantForAccessibility="no"
+                        android:src="@android:drawable/ic_dialog_alert"
+                        app:tint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/age_validation_error"
+                        android:textColor="@color/velocity_red_dark"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editFirstName"
+                    android:text="@string/first_name_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editFirstNameLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="18dp"
+                    app:startIconDrawable="@drawable/ic_person">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editFirstName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editMiddleName"
+                    android:text="@string/middle_name_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editMiddleNameLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="18dp"
+                    app:startIconDrawable="@drawable/ic_person">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editMiddleName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editLastName"
+                    android:text="@string/last_name_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editLastNameLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="18dp"
+                    app:startIconDrawable="@drawable/ic_person">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editLastName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editGender"
+                    android:text="@string/gender_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editGenderLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="18dp"
+                    app:boxCornerRadiusTopStart="32dp"
+                    app:boxCornerRadiusTopEnd="32dp"
+                    app:boxCornerRadiusBottomStart="32dp"
+                    app:boxCornerRadiusBottomEnd="32dp"
+                    app:boxStrokeColor="@color/velocity_red_primary"
+                    app:boxStrokeWidth="1.5dp"
+                    app:boxStrokeWidthFocused="2dp">
+                    <AutoCompleteTextView
+                        android:id="@+id/editGender"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editDob"
+                    android:text="@string/dob_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editDobLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="18dp"
+                    app:helperText="@string/helper_dob_format"
+                    app:startIconDrawable="@drawable/ic_calendar">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editDob"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editAge"
+                    android:text="@string/age_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editAgeLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:helperText="@string/helper_age_readonly"
+                    app:startIconDrawable="@drawable/ic_clock">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editAge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:cursorVisible="false"
+                        android:focusable="false"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- ================= STEP 2 OF 4: CONTACT INFORMATION ================= -->
+            <LinearLayout
+                android:id="@+id/step2Page"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editEmail"
+                    android:text="@string/email_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editEmailLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:startIconDrawable="@drawable/ic_email">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/editMobile"
+                    android:text="@string/mobile_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/editMobileLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:startIconDrawable="@drawable/ic_phone">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editMobile"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="phone" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- ================= STEP 3 OF 4: ADDRESS INFORMATION ================= -->
+            <LinearLayout
+                android:id="@+id/step3Page"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:labelFor="@+id/addrCountryField"
+                    android:text="@string/country_label"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/addrCountryLayout"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:endIconMode="dropdown_menu"
+                    app:startIconDrawable="@android:drawable/ic_menu_mapmode">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/addrCountryField"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Shown only for non-Philippine countries: explains why no address fields
+                     follow (Phase 8 of the registration spec - PH-only address collection). -->
+                <TextView
+                    android:id="@+id/addrIntlNoteText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/addr_intl_note"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <!-- Timezone: only shown for countries spanning multiple timezones
+                     (United States, Canada, Australia). -->
+                <LinearLayout
+                    android:id="@+id/addrTimezoneGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrTimezoneField"
+                        android:text="@string/timezone_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrTimezoneLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:endIconMode="dropdown_menu"
+                        app:startIconDrawable="@android:drawable/ic_menu_recent_history">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/addrTimezoneField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/timezone_hint"
+                            android:inputType="none" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- Region -->
+                <LinearLayout
+                    android:id="@+id/addrRegionGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrRegionField"
+                        android:text="@string/region_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrRegionLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:endIconMode="dropdown_menu"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/addrRegionField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- Province -->
+                <LinearLayout
+                    android:id="@+id/addrProvinceGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrProvinceField"
+                        android:text="@string/province_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrProvinceLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:endIconMode="dropdown_menu"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/addrProvinceField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- City / Municipality -->
+                <LinearLayout
+                    android:id="@+id/addrCityGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrCityField"
+                        android:text="@string/city_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrCityLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:endIconMode="dropdown_menu"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/addrCityField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- Barangay -->
+                <LinearLayout
+                    android:id="@+id/addrBarangayGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrBarangayField"
+                        android:text="@string/barangay_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrBarangayLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:endIconMode="dropdown_menu"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/addrBarangayField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- Street -->
+                <LinearLayout
+                    android:id="@+id/addrStreetGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrStreetField"
+                        android:text="@string/street_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrStreetLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:startIconDrawable="@drawable/ic_edit">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/addrStreetField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPostalAddress|textCapWords" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- ZIP -->
+                <LinearLayout
+                    android:id="@+id/addrZipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Input"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:labelFor="@+id/addrZipField"
+                        android:text="@string/zip_label"
+                        android:textColor="@color/velocity_text_primary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/addrZipLayout"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/addrZipField"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ================= STEP 4 OF 4: REVIEW & CONFIRM ================= -->
+            <LinearLayout
+                android:id="@+id/step4Page"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="18dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_red_soft"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="10dp"
+                        android:importantForAccessibility="no"
+                        android:src="@android:drawable/ic_dialog_alert"
+                        app:tint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/review_one_time_warning"
+                        android:textColor="@color/velocity_red_dark"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/personal_info_title"
+                    android:textSize="13sp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/first_name_label" />
+                <TextView android:id="@+id/reviewFirstName" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/middle_name_label" />
+                <TextView android:id="@+id/reviewMiddleName" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/last_name_label" />
+                <TextView android:id="@+id/reviewLastName" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/gender_label" />
+                <TextView android:id="@+id/reviewGender" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/dob_label" />
+                <TextView android:id="@+id/reviewDob" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/age_label" />
+                <TextView android:id="@+id/reviewAge" style="@style/ProfileValueStyle" android:layout_width="match_parent" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="16dp"
+                    android:background="@color/velocity_red_soft" />
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/contact_info_title"
+                    android:textSize="13sp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/email_label" />
+                <TextView android:id="@+id/reviewEmail" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/mobile_label" />
+                <TextView android:id="@+id/reviewMobile" style="@style/ProfileValueStyle" android:layout_width="match_parent" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="16dp"
+                    android:background="@color/velocity_red_soft" />
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/address_info_step_title"
+                    android:textSize="13sp" />
+
+                <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/country_label" />
+                <TextView android:id="@+id/reviewCountry" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView android:id="@+id/reviewRegionLabel" style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/region_label" />
+                <TextView android:id="@+id/reviewRegion" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView android:id="@+id/reviewProvinceLabel" style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/province_label" />
+                <TextView android:id="@+id/reviewProvince" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView android:id="@+id/reviewCityLabel" style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/city_label" />
+                <TextView android:id="@+id/reviewCity" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView android:id="@+id/reviewBarangayLabel" style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/barangay_label" />
+                <TextView android:id="@+id/reviewBarangay" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView android:id="@+id/reviewZipLabel" style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/zip_label" />
+                <TextView android:id="@+id/reviewZip" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
+
+                <TextView android:id="@+id/reviewStreetLabel" style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/street_label" />
+                <TextView android:id="@+id/reviewStreet" style="@style/ProfileValueStyle" android:layout_width="match_parent" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/velocity_red_soft" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical|end">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelEdit"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="42dp"
+                    android:text="@string/cancel_label"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <!-- Step 4 only: sits between Back and Confirm Update so all three of
+                     Back/Cancel/Confirm Update are available together on the review step -
+                     see ProfileManagementActivity#renderWizardStep(). -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDiscardEdit"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="42dp"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/cancel_label"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textAllCaps="false"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveProfile"
+                    style="@style/Widget.Velocity.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="42dp"
+                    android:layout_marginStart="12dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="@string/next"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</com.google.android.material.card.MaterialCardView>

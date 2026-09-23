@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardNextTransactionItem"
+    style="@style/Widget.Velocity.Card.Glass.Compact"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/rowNextItemHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/iconContainerNextItem"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            app:cardBackgroundColor="@color/velocity_red_soft"
+            app:cardCornerRadius="11dp"
+            app:cardElevation="0dp">
+            <ImageView
+                android:id="@+id/ivNextItemIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_calendar"
+                app:tint="@color/velocity_red_primary" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNextItemTypePill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_soft"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="8sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.04"
+                tools:text="Booking" />
+
+            <TextView
+                android:id="@+id/tvNextItemRoomName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Executive City Suite" />
+
+            <TextView
+                android:id="@+id/tvNextItemBookingId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="10sp"
+                android:alpha="0.75"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Booking ID: VS-8829" />
+
+            <TextView
+                android:id="@+id/tvNextItemDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-bold"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="11sp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                tools:text="Check-in: Oct 12, 2023" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="end"
+            android:maxWidth="130dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNextItemTomorrowBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_primary"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/white"
+                android:textSize="8sp"
+                android:textAllCaps="true"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="Tomorrow" />
+
+            <TextView
+                android:id="@+id/tvNextItemStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_badge_success"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textColor="@color/velocity_green_dark"
+                android:textSize="8sp"
+                android:textAllCaps="true"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Confirmed" />
+
+            <TextView
+                android:id="@+id/tvNextItemPaymentStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/shape_intro_pill"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textSize="8sp"
+                android:textAllCaps="true"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:backgroundTint="@color/velocity_green_soft"
+                tools:textColor="@color/velocity_green_dark"
+                tools:text="Fully Paid" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="6dp"
+            android:alpha="0.4"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_chevron_right"
+            app:tint="@color/velocity_text_secondary" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNextItemViewDetails"
+            style="@style/Widget.Velocity.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="12dp"
+            android:text="@string/view_details"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

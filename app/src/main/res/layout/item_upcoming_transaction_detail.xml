@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardUpcomingTransaction"
+    style="@style/Widget.Velocity.Card.Glass"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvTomorrowBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/shape_intro_pill"
+            android:backgroundTint="@color/velocity_red_primary"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:letterSpacing="0.02"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Check-in Tomorrow" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTransactionTypePill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_soft"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="10sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.05"
+                tools:text="Booking" />
+
+            <TextView
+                android:id="@+id/tvTransactionBookingId"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="11sp"
+                android:letterSpacing="0.03"
+                android:textAllCaps="true"
+                android:alpha="0.7"
+                tools:text="Booking ID: VS-8829" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTransactionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_red_dark"
+            android:textSize="17sp"
+            android:letterSpacing="-0.02"
+            tools:text="Executive City Suite" />
+
+        <TextView
+            android:id="@+id/tvTransactionRoomType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            android:alpha="0.8"
+            tools:text="Room Type: Executive Suite" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/check_in_label"
+                    android:textSize="10sp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_inactive_gray"
+                    android:fontFamily="sans-serif-bold"/>
+                <TextView
+                    android:id="@+id/tvTransactionCheckIn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    tools:text="Oct 12, 2023" />
+                <TextView
+                    android:id="@+id/tvTransactionCheckInTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="11sp"
+                    android:alpha="0.75"
+                    tools:text="2:00 PM" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/check_out_label"
+                    android:textSize="10sp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_inactive_gray"
+                    android:fontFamily="sans-serif-bold"/>
+                <TextView
+                    android:id="@+id/tvTransactionCheckOut"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    tools:text="Oct 15, 2023" />
+                <TextView
+                    android:id="@+id/tvTransactionCheckOutTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="11sp"
+                    android:alpha="0.75"
+                    tools:text="12:00 PM" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/velocity_red_subtle"
+            android:alpha="0.4" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTransactionGuests"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="2 Guests" />
+
+            <TextView
+                android:id="@+id/tvTransactionTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="15sp"
+                tools:text="₱16,500.00" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTransactionStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_badge_success"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="5dp"
+                android:textColor="@color/velocity_green_dark"
+                android:textSize="9sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.04"
+                tools:text="Confirmed" />
+
+            <TextView
+                android:id="@+id/tvTransactionPaymentStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_green_soft"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="5dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_green_dark"
+                android:textSize="9sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.04"
+                tools:text="Fully Paid" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

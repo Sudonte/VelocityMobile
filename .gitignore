@@ -1,0 +1,23 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Scratch/debug artifacts from ad-hoc development sessions - not part of the
+# app itself, never intended for version control.
+.check_counts.php
+_patch_edit_rooms_amenities.php
+landing_screenshot.png
+profile_screen.png
+_verify_screen2.png

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="520dp"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <!-- Header: reference number + status badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/tvDetailsRef"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="18sp"
+                tools:text="Ref: BOOK-1697000000" />
+
+            <TextView
+                android:id="@+id/tvDetailsStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_green_soft"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="5dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_green_dark"
+                android:textSize="10sp"
+                tools:text="CONFIRMED" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDetailsRoomHeadline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp"
+            tools:text="Executive Suite · RM 402" />
+
+        <!-- Room Information -->
+        <TextView
+            style="@style/TextAppearance.Velocity.Label.Section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/details_section_room"
+            app:drawableStartCompat="@drawable/ic_bed"
+            app:drawableTint="@color/velocity_red_primary"
+            android:drawablePadding="8dp" />
+
+        <LinearLayout
+            android:id="@+id/rowDetailsRoomType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_type_summary_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsRoomType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="Deluxe"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="14dp">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/details_room_number_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsRoomNumber" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="RM 402"/>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/velocity_red_subtle" android:layout_marginBottom="14dp"/>
+
+        <!-- Stay Details -->
+        <TextView
+            style="@style/TextAppearance.Velocity.Label.Section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/details_section_stay"
+            app:drawableStartCompat="@drawable/ic_calendar"
+            app:drawableTint="@color/velocity_red_primary"
+            android:drawablePadding="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/details_checkin_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsCheckIn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="Jan 01, 2026"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/details_checkout_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsCheckOut" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="Jan 03, 2026"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="14dp">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/details_guests_count_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsGuestCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="2 Guests"/>
+        </LinearLayout>
+
+        <!-- Representative Name: the person authorized to represent this
+             transaction - lets the receptionist/guest validate who booked. -->
+        <LinearLayout
+            android:id="@+id/rowDetailsRepresentativeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="14dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/who_is_staying_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsRepresentativeName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="Juan Dela Cruz"/>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/velocity_red_subtle" android:layout_marginBottom="14dp"/>
+
+        <!-- Guest Information (additional guests + group booking - only shown when applicable) -->
+        <LinearLayout
+            android:id="@+id/sectionDetailsGuests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                style="@style/TextAppearance.Velocity.Label.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/details_section_guests"
+                app:drawableStartCompat="@drawable/ic_people"
+                app:drawableTint="@color/velocity_red_primary"
+                android:drawablePadding="8dp" />
+
+            <LinearLayout
+                android:id="@+id/layoutDetailsGuestRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <!-- Group Booking (only shown when applicable) -->
+        <LinearLayout
+            android:id="@+id/sectionDetailsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                style="@style/TextAppearance.Velocity.Label.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/details_section_group"
+                app:drawableStartCompat="@drawable/ic_reservation"
+                app:drawableTint="@color/velocity_red_primary"
+                android:drawablePadding="8dp" />
+
+            <TextView
+                android:id="@+id/tvDetailsGroupRef"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-bold"
+                tools:text="Group Reference: GRP-1697000000" />
+
+            <LinearLayout
+                android:id="@+id/layoutDetailsGroupRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/dividerDetailsPayment"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/velocity_red_subtle"
+            android:layout_marginBottom="14dp"/>
+
+        <!-- Payment Information -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                style="@style/TextAppearance.Velocity.Label.Section"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/details_section_payment"
+                app:drawableStartCompat="@drawable/ic_payment_card"
+                app:drawableTint="@color/velocity_red_primary"
+                android:drawablePadding="8dp" />
+
+            <TextView
+                android:id="@+id/tvDetailsPaymentStatusPill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_subtle"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="10sp"
+                tools:text="PENDING" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/details_total_amount_short_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsTotalAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-black" tools:text="₱3,500.00"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowDetailsAmountPaid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/amount_paid_short_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsAmountPaid" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_green_dark" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱700.00"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowDetailsRemainingBalance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/remaining_balance_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsRemainingBalance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_red_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱2,800.00"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowDetailsPaymentMethod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/payment_method_label_short" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+            <TextView android:id="@+id/tvDetailsPaymentMethod" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="GCash"/>
+        </LinearLayout>
+
+        <!-- Rejection reason/feedback (Section 12) - shown only when this
+             transaction was rejected by staff or auto-rejected past its
+             payment deadline. -->
+        <LinearLayout
+            android:id="@+id/sectionDetailsRejectionReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:background="@drawable/shape_notice_box_red"
+            android:visibility="gone"
+            tools:visibility="visible">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/rejection_reason_label"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-black"
+                android:layout_marginBottom="2dp"/>
+            <TextView
+                android:id="@+id/tvDetailsRejectionReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                tools:text="The room type is fully booked for the requested dates."/>
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/payment_option_label"
+        android:textAllCaps="true"
+        android:letterSpacing="0.1"
+        android:textColor="@color/velocity_text_secondary"
+        android:fontFamily="sans-serif-bold"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/confirmPaymentType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Full Payment"
+        android:textColor="@color/velocity_text_primary"
+        android:fontFamily="sans-serif-black"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/velocity_red_soft"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/amount_to_pay_label"
+            android:textColor="@color/velocity_text_secondary"
+            android:fontFamily="sans-serif-medium" />
+        <TextView
+            android:id="@+id/confirmAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₱0.00"
+            android:textColor="@color/velocity_red_primary"
+            android:fontFamily="sans-serif-black" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/total_amount_due"
+            android:textColor="@color/velocity_text_secondary"
+            android:fontFamily="sans-serif-medium" />
+        <TextView
+            android:id="@+id/confirmTotalDue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₱0.00"
+            android:textColor="@color/velocity_text_primary"
+            android:fontFamily="sans-serif-bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/remaining_balance_label"
+            android:textColor="@color/velocity_text_secondary"
+            android:fontFamily="sans-serif-medium" />
+        <TextView
+            android:id="@+id/confirmRemainingBalance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₱0.00"
+            android:textColor="@color/velocity_text_primary"
+            android:fontFamily="sans-serif-bold" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- endColor was a hardcoded @color/white - fine in Light Mode (the
+         gradient already ended near-white) but created a streaky
+         maroon-to-white blend on the Login/Register form card in Dark
+         Mode. velocity_surface_elevated keeps the same soft-red-to-surface
+         gradient shape while staying dark in Dark Mode. -->
+    <gradient
+        android:startColor="@color/velocity_red_soft"
+        android:endColor="@color/velocity_surface_elevated"
+        android:angle="135"/>
+    <corners android:radius="32dp"/>
+</shape>

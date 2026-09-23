@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Single row layout for every field on the receipt - label fixed to its own
+     natural width on the left, value taking all remaining width on the right.
+     The value never sets maxLines/ellipsize, so a long value (a full name, an
+     email address, a 13-digit GCash reference) wraps onto a second line
+     instead of being clipped or shortened with "..." - android:gravity="end"
+     right-aligns each wrapped line, not just the block as a whole, so the
+     value stays flush to the right edge even when it wraps.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvRowLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="14dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp"
+            tools:text="GCash Reference #" />
+
+        <TextView
+            android:id="@+id/tvRowValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="end"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/velocity_text_primary"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            tools:text="1234 567 890123" />
+    </LinearLayout>
+</LinearLayout>

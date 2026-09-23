@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/guestHeaderRoot"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/guest_header_height"
+    android:background="@drawable/bg_guest_header"
+    android:paddingHorizontal="@dimen/guest_header_padding_horizontal"
+    android:elevation="0dp"
+    android:translationZ="0dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Navigation Menu Control: "Menu" label stacked ABOVE the hamburger
+         icon, both centered horizontally, acting as one clickable target
+         (icon/label are importantForAccessibility="no" so a screen reader
+         announces this container once via its own contentDescription, not
+         twice). minWidth/minHeight keep the touch target at the 48dp
+         accessibility minimum regardless of how small the drawn content is. -->
+    <LinearLayout
+        android:id="@+id/menuButtonControl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="2dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/nav_open_drawer"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/menuButtonLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:importantForAccessibility="no"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.04"
+            android:text="@string/menu_label"
+            android:textAllCaps="true"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="@dimen/guest_header_menu_label_text_size" />
+
+        <ImageView
+            android:id="@+id/menuButton"
+            android:layout_width="@dimen/guest_header_menu_icon_size"
+            android:layout_height="@dimen/guest_header_menu_icon_size"
+            android:layout_marginTop="1dp"
+            android:importantForAccessibility="no"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_menu"
+            app:tint="@color/velocity_red_primary" />
+    </LinearLayout>
+
+    <!-- Brand Identity Logo Container (Styled like login.xml) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerLogoContainer"
+        style="@style/Widget.Velocity.Card.Glass"
+        android:layout_width="@dimen/guest_header_logo_size"
+        android:layout_height="@dimen/guest_header_logo_size"
+        android:layout_marginStart="4dp"
+        app:cardCornerRadius="7dp"
+        app:cardElevation="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/menuButtonControl"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/headerLogoImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_glass_card_white"
+            android:contentDescription="@string/app_logo"
+            android:padding="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/velocity_suites_logo" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Header Text: App Name and Tagline (Styled like login.xml) -->
+    <LinearLayout
+        android:id="@+id/headerTitleContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="6dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/headerNotificationContainer"
+        app:layout_constraintStart_toEndOf="@id/headerLogoContainer"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/headerAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-black"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.05"
+            android:maxLines="1"
+            android:text="@string/velocity_suites"
+            android:textAllCaps="true"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="@dimen/guest_header_app_name_text_size"
+            android:shadowColor="@color/velocity_red_alpha_20"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="2"
+            tools:text="VELOCITY SUITES" />
+
+        <TextView
+            android:id="@+id/headerTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:alpha="0.85"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.08"
+            android:maxLines="1"
+            android:text="@string/welcome_tagline"
+            android:textAllCaps="true"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="@dimen/guest_header_tagline_text_size"
+            tools:text="YOUR COMFORT IS OUR SERVICE" />
+    </LinearLayout>
+
+    <!-- Header Notification Entry Point -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerNotificationContainer"
+        style="@style/Widget.Velocity.Card.Glass"
+        android:layout_width="@dimen/guest_header_notification_size"
+        android:layout_height="@dimen/guest_header_notification_size"
+        android:layout_marginEnd="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="17dp"
+        app:cardElevation="2dp"
+        app:strokeColor="@color/velocity_red_subtle"
+        app:strokeWidth="1.2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/headerProfileContainer"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/headerNotificationIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="4dp"
+            android:background="@drawable/shape_intro_pill"
+            android:backgroundTint="@color/velocity_red_soft"
+            android:contentDescription="@string/title_notifications"
+            android:padding="5dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_notifications"
+            app:tint="@color/velocity_red_primary" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Unread Notification Badge (count updates dynamically) -->
+    <TextView
+        android:id="@+id/headerNotificationBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="16dp"
+        android:minWidth="16dp"
+        android:background="@drawable/bg_notification_badge"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:paddingHorizontal="4dp"
+        android:text="@string/zero"
+        android:textColor="@color/white"
+        android:textSize="9sp"
+        android:visibility="gone"
+        android:elevation="6dp"
+        app:layout_constraintCircle="@id/headerNotificationContainer"
+        app:layout_constraintCircleAngle="45"
+        app:layout_constraintCircleRadius="@dimen/guest_header_notification_badge_circle_radius"
+        tools:ignore="MissingConstraints"
+        tools:text="3"
+        tools:visibility="visible" />
+
+    <!-- Header profile thumbnail with a small green "online" indicator -
+         same picture BaseNavigationActivity#refreshHeaderProfilePicture()
+         loads everywhere else the guest's photo appears (Dashboard's own
+         Welcome/Account Summary cards). Tapping it opens the same
+         destination as tapping it there (Profile Management). -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerProfileContainer"
+        android:layout_width="@dimen/guest_header_profile_size"
+        android:layout_height="@dimen/guest_header_profile_size"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="17dp"
+        app:cardElevation="2dp"
+        app:strokeColor="@color/white"
+        app:strokeWidth="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/headerProfileImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/profile_image_desc"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img_profile_placeholder" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:id="@+id/headerProfileOnlineRing"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/shape_intro_pill"
+        android:backgroundTint="@color/white"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="@id/headerProfileContainer"
+        app:layout_constraintEnd_toEndOf="@id/headerProfileContainer" />
+
+    <View
+        android:id="@+id/headerProfileOnlineDot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:background="@drawable/shape_intro_pill"
+        android:backgroundTint="@color/velocity_green_primary"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="@id/headerProfileOnlineRing"
+        app:layout_constraintEnd_toEndOf="@id/headerProfileOnlineRing"
+        app:layout_constraintStart_toStartOf="@id/headerProfileOnlineRing"
+        app:layout_constraintTop_toTopOf="@id/headerProfileOnlineRing" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

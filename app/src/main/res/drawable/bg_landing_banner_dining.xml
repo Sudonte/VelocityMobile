@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:startColor="#1A1414"
+                android:centerColor="@color/velocity_red_deep"
+                android:endColor="@color/velocity_red_dark" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="@color/velocity_landing_overlay"
+                android:centerColor="#11000000"
+                android:endColor="@color/velocity_landing_overlay" />
+        </shape>
+    </item>
+</layer-list>

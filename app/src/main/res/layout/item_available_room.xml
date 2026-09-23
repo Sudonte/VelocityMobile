@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Velocity.Card.Glass"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardUseCompatPadding="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white">
+
+        <!-- Image Section -->
+        <FrameLayout
+            android:id="@+id/imageContainer"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dialog_room_card_image_height"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/roomImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_room_placeholder_gradient"
+                android:contentDescription="@string/cd_room_image"
+                android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/gradient_overlay" />
+
+            <!-- Floating Available Quantity Badge (kept in sync live with the qty stepper) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="8dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/velocity_green_subtle"
+                app:strokeWidth="1dp">
+                <TextView
+                    android:id="@+id/roomAvailableBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.05"
+                    android:textColor="@color/velocity_green_primary"
+                    android:textSize="9sp"
+                    tools:text="Available: 5" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Price Tag Overlay -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="8dp"
+                app:cardBackgroundColor="@color/velocity_red_primary"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/velocity_green_subtle"
+                app:strokeWidth="1dp">
+
+                <TextView
+                    android:id="@+id/roomPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="-0.02"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    tools:text="₱3,500 / night" />
+            </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
+
+        <!-- Content Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/dialog_room_card_content_padding"
+            app:layout_constraintTop_toBottomOf="@id/imageContainer">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="36dp">
+
+                <TextView
+                    android:id="@+id/roomName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-black"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="-0.02"
+                    android:singleLine="true"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="15sp"
+                    app:layout_constraintEnd_toStartOf="@+id/roomTypeIcon"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Deluxe Room" />
+
+                <ImageView
+                    android:id="@+id/roomTypeIcon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:importantForAccessibility="no"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/velocity_red_primary"
+                    tools:src="@drawable/ic_booking" />
+
+                <TextView
+                    android:id="@+id/roomTypeAndCapacity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-bold"
+                    android:letterSpacing="0.05"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="9sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/roomName"
+                    tools:text="Deluxe Room &#8226; 2 Guests" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Bed Type / Room Size Facts Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/shape_search_field"
+                android:backgroundTint="@color/velocity_red_bg_end"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="6dp">
+
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bed"
+                    app:tint="@color/velocity_red_primary" />
+
+                <TextView
+                    android:id="@+id/roomBedType"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:singleLine="true"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="10sp"
+                    tools:text="King Bed" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="12dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:background="@color/velocity_red_subtle" />
+
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_area"
+                    app:tint="@color/velocity_red_primary" />
+
+                <TextView
+                    android:id="@+id/roomSizeText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:singleLine="true"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="10sp"
+                    tools:text="42 sqm" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/roomDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:lineSpacingExtra="1dp"
+                android:maxLines="2"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="11sp"
+                android:alpha="0.85"
+                tools:text="Experience ultimate luxury with a breathtaking view of the ocean and premium amenities." />
+
+            <LinearLayout
+                android:id="@+id/amenitiesIconsRow"
+                android:layout_width="match_parent"
+                android:layout_height="18dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:alpha="0.5"
+                android:background="@color/velocity_red_subtle" />
+
+            <!-- Quantity Stepper + Select control, sharing one row to save vertical space -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="@string/quantity_label"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnQtyMinus"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/cd_decrease_quantity"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:padding="0dp"
+                    app:backgroundTint="@color/velocity_red_subtle"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/ic_remove"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="14dp"
+                    app:iconTint="@color/velocity_red_primary" />
+
+                <TextView
+                    android:id="@+id/tvQty"
+                    android:layout_width="34dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="14sp"
+                    tools:text="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnQtyPlus"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/cd_increase_quantity"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:padding="0dp"
+                    app:backgroundTint="@color/velocity_red_subtle"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/ic_add"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="14dp"
+                    app:iconTint="@color/velocity_red_primary" />
+            </LinearLayout>
+
+            <!-- Select control: a toggleable button that stages this room type into
+                 the dialog's pending selection without closing the dialog - the guest
+                 commits every staged room type/qty at once via the top-right Book Now/
+                 Reserve Now button (see dialog_available_rooms.xml). -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectRoom"
+                style="@style/Widget.Velocity.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/select_room_button"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="12sp"
+                app:icon="@drawable/ic_add"
+                app:iconTint="@color/velocity_red_primary" />
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

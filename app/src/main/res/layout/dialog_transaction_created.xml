@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shown once per successful Booking/Reservation creation, right before
+     navigating to the newly created transaction - see
+     PaymentActivity#showTransactionCreatedDialog(). Large, bold, centered
+     ID so the guest can't miss or lose it; the single action button is
+     what actually triggers the redirect. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="26dp">
+
+    <ImageView
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginBottom="12dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_check_circle"
+        app:tint="@color/velocity_green_dark" />
+
+    <TextView
+        android:id="@+id/tvTransactionCreatedTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:textAllCaps="true"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="17sp"
+        tools:text="Booking Created Successfully" />
+
+    <TextView
+        android:id="@+id/tvTransactionCreatedLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="13sp"
+        tools:text="Your Booking ID is:" />
+
+    <TextView
+        android:id="@+id/tvTransactionCreatedId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:textColor="@color/velocity_red_primary"
+        android:textIsSelectable="true"
+        android:textSize="26sp"
+        tools:text="BOOKING #164" />
+
+    <TextView
+        android:id="@+id/tvTransactionCreatedFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp"
+        tools:text="Please keep this Booking ID for reference when checking your booking, payment, or contacting Velocity Suites." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnTransactionCreatedAction"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="22dp"
+        android:fontFamily="sans-serif-black"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/velocity_red_primary"
+        app:cornerRadius="28dp"
+        tools:text="View My Booking" />
+
+</LinearLayout>

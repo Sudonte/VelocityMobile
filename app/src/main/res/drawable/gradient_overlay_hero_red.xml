@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Subtle corner highlight so the photo still reads as a real room. -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="45"
+                android:startColor="#26000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    <!-- Dominant Velocity Suites red wash, matching the reference hero -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#E67F1212"
+                android:centerColor="#B8961616"
+                android:endColor="#665A0A0A" />
+        </shape>
+    </item>
+</layer-list>

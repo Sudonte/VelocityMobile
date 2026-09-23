@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Text set programmatically in Step2DatesFragment#onViewCreated() - "Booking Details" for a Booking transaction, "Reservation Details" for a Reservation (same strings/convention as BookingAndReservationActivity's own step-1 label). -->
+        <TextView
+            android:id="@+id/tvDatesStepDetailsLabel"
+            style="@style/TextAppearance.Velocity.Label.Section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="@string/step_booking_details_title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/wizard_dates_subtitle"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/date_field_gap"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/date_field_label_margin_bottom"
+                    android:labelFor="@+id/etCheckIn"
+                    android:text="@string/check_in_hint"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCheckIn"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="@color/velocity_text_secondary"
+                    app:helperText="@string/helper_checkin_two_day_rule"
+                    app:helperTextTextColor="@color/velocity_text_secondary"
+                    app:hintTextColor="@color/velocity_text_secondary"
+                    app:startIconDrawable="@drawable/ic_calendar"
+                    app:startIconTint="@color/velocity_red_primary">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCheckIn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:fontFamily="sans-serif-black"
+                        android:hint="@string/select_date_hint"
+                        android:inputType="none"
+                        android:paddingVertical="@dimen/date_field_text_padding"
+                        android:textColor="@color/velocity_text_primary"
+                        android:includeFontPadding="false"
+                        android:textSize="@dimen/date_field_text_size" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/date_field_gap"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Input"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/date_field_label_margin_bottom"
+                    android:labelFor="@+id/etCheckOut"
+                    android:text="@string/check_out_hint"
+                    android:textColor="@color/velocity_text_primary" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCheckOut"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColorHint="@color/velocity_text_secondary"
+                    app:helperText="@string/helper_checkout_after_checkin"
+                    app:helperTextTextColor="@color/velocity_text_secondary"
+                    app:hintTextColor="@color/velocity_text_secondary"
+                    app:startIconDrawable="@drawable/ic_calendar"
+                    app:startIconTint="@color/velocity_red_primary">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCheckOut"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:fontFamily="sans-serif-black"
+                        android:hint="@string/select_date_hint"
+                        android:inputType="none"
+                        android:paddingVertical="@dimen/date_field_text_padding"
+                        android:textColor="@color/velocity_text_primary"
+                        android:includeFontPadding="false"
+                        android:textSize="@dimen/date_field_text_size" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Auto-calculated stay duration - only shown once both dates are picked, see Step2DatesFragment#updateNightsSummary(). -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardNightsSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:cardBackgroundColor="@color/velocity_red_bg_end"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/velocity_red_subtle"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="@color/velocity_red_primary" />
+
+                <TextView
+                    android:id="@+id/tvNightsSummary"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="sans-serif-bold"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    tools:text="3 nights · Aug 24, 2026 – Aug 27, 2026" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

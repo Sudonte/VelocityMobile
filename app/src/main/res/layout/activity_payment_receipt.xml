@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_red_primary"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="10dp">
+
+        <ImageButton
+            android:id="@+id/btnReceiptBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@android:string/cancel"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/official_payment_receipt_title"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/receiptScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/receiptCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/velocity_red_soft"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Hotel branding header -->
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_gravity="center_horizontal"
+                        android:contentDescription="@string/app_name"
+                        android:src="@drawable/velocity_suites_logo" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:text="@string/app_name"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:text="@string/landing_hotel_address"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:letterSpacing="0.04"
+                        android:text="@string/official_payment_receipt_title"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="14sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@color/velocity_red_soft" />
+
+                    <!-- Receipt Information -->
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_information_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/receipt_reference_label"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvReceiptReference"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:text="Ref: PAY-000123" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/layoutVerifiedBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_green_soft"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_marginEnd="6dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_check_circle"
+                            app:tint="@color/velocity_green_dark" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/receipt_verified_title"
+                            android:textColor="@color/velocity_green_dark"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!-- Guest Information -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@color/velocity_divider_hairline" />
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_guest_information_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp" />
+
+                    <!-- Guest Account Name = the authenticated account holder (profile
+                         first/middle/last name in SharedPreferences, same source
+                         BookingAndReservationActivity prefills its guest-name fields
+                         from) - a distinct concept from Representative Name below,
+                         which is the stay guest entered for THIS transaction and may
+                         be a different person. Separately labeled so the two are never
+                         confused. -->
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowGuestName" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRepresentativeName" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowGuestEmail" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowGuestMobile" />
+
+                    <!-- Booking Information -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@color/velocity_divider_hairline" />
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_booking_information_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp" />
+
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowBookingId" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomType" />
+                    <!-- Room Number only renders once a room is actually assigned at
+                         check-in (Booking#getRoomNumber(), from the backend's assigned-
+                         room record) - null/hidden beforehand, never fabricated. -->
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomNumber" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowCheckIn" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowCheckOut" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowNights" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAdults" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowChildren" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowTotalGuests" />
+
+                    <!-- Transaction Information -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@color/velocity_divider_hairline" />
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_transaction_information_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp" />
+
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentMethod" />
+                    <!-- GCash-only: the mobile number entered in payment.xml Step 2 of 5
+                         (Booking#getGcashNumber()) and the reference number entered in Step 3
+                         (Booking#getTransactionRef()). Each row is removed entirely (not
+                         shown as "N/A"/"null") for a Cash payment. -->
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowGcashMobileNumber" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowGcashReference" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentType" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentPercentage" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentStatus" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentDate" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentTime" />
+
+                    <!-- Payment Summary -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@color/velocity_divider_hairline" />
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_billing_breakdown_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvPaymentTypeBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_subtle"
+                        android:fontFamily="sans-serif-black"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="10sp"
+                        tools:text="FULL PAYMENT" />
+
+                    <!-- Room Charges/Amenities/Additional Guest Fee only render when the
+                         backend's Billing breakdown actually returned them
+                         (Booking#getRoomCharge() etc.) - never fabricated for a still-
+                         pending Reservation or a direct Booking, neither of which carries
+                         this breakdown. See PAYMENT_RECEIPT_BACKEND_SPEC.md. -->
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomCharge" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAmenityCharge" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAdditionalGuestFee" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowTotalAmount" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAmountPaid" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRemainingBalance" />
+
+                    <!-- Payment Verification Information -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@color/velocity_divider_hairline" />
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="@string/receipt_verification_title"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp" />
+
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowVerifiedBy" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowVerifiedAt" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@color/velocity_red_soft" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_receipt_total_panel"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingVertical="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:letterSpacing="0.04"
+                            android:text="@string/receipt_total_amount_paid_label"
+                            android:textAllCaps="true"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tvTotalAmountPaid"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:textColor="@color/velocity_red_primary"
+                            android:textSize="28sp"
+                            tools:text="₱5,050.00" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:gravity="center"
+                        android:text="@string/receipt_thank_you_message"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textStyle="italic"
+                        android:gravity="center"
+                        android:text="@string/welcome_tagline"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReceiptDownload"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/download_receipt_button_label"
+                android:textAllCaps="false"
+                app:backgroundTint="@color/velocity_red_primary"
+                app:cornerRadius="26dp"
+                app:icon="@drawable/ic_download" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

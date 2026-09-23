@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- centerColor was a hardcoded @color/white, invisible in Light Mode
+         (already near-white there) but creating a jarring bright streak
+         through the middle of an otherwise dark gradient in Dark Mode -
+         removed so this is a clean 2-stop gradient, same pattern as the
+         already-correct bg_guest_header.xml. -->
+    <gradient
+        android:angle="135"
+        android:endColor="@color/velocity_red_bg_end"
+        android:startColor="@color/velocity_red_bg_start"
+        android:type="linear" />
+</shape>

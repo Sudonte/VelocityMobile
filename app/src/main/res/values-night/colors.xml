@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode overrides for Velocity Suites' Red & White palette.
+         Deliberately scoped to color NAMES that are already single-purpose
+         (screen background / card text / dividers) across the whole app -
+         see the light values/colors.xml comment on each name. white/black
+         and the brand reds themselves are intentionally NOT overridden
+         here: they're reused for many different purposes throughout the
+         app (e.g. white icon-on-red contrast), so redefining them globally
+         would break contrast in places that must stay the same in both
+         modes, rather than help dark mode.
+
+         This is the "centralized" half of the theme system - because
+         hundreds of layouts across every guest screen already reference
+         these same resource names (not raw hex), switching to Dark Mode
+         automatically restyles the whole app the moment Android picks up
+         this qualified resource set - no per-screen edits needed. -->
+
+    <!-- Primary/secondary text - near-white and warm light-gray instead of
+         near-black, readable against the dark surfaces below. -->
+    <color name="velocity_text_primary">#F2E9E9</color>
+    <color name="velocity_text_secondary">#C9B3B3</color>
+
+    <!-- Plain black is used throughout the app as a third, simpler "primary
+         text on a surface" color (TextAppearance.Velocity.Label.Section/
+         .Label.Input, several screens' own textColor="@color/black") and
+         as a couple of low-alpha hairline dividers - audited every layout
+         usage (20 occurrences, 14 files) and confirmed none of them need
+         to stay literally black regardless of theme, so it's safe to
+         invert here the same way velocity_text_primary is above. -->
+    <color name="black">#EDEDED</color>
+
+    <!-- Screen background gradient (root background on every guest screen,
+         and reused by bg_guest_header.xml for the header gradient) - a
+         layered dark red-black rather than pure black, keeping the red
+         brand identity even in the background instead of going neutral gray. -->
+    <color name="velocity_red_bg_start">#241414</color>
+    <color name="velocity_red_bg_end">#140B0B</color>
+
+    <!-- Elevated surface (navigation drawer + its header). -->
+    <color name="velocity_surface_elevated">#221616</color>
+
+    <!-- Hairline dividers - 10% black is invisible on a dark surface;
+         use a light-alpha white instead so section separators stay visible. -->
+    <color name="velocity_divider_hairline">#26FFFFFF</color>
+
+    <!-- Inactive/secondary icon gray - lightened for legibility against dark surfaces. -->
+    <color name="velocity_inactive_gray">#9E8F8F</color>
+
+    <!-- Sticky bar background (was a light translucent white) -> dark translucent equivalent. -->
+    <color name="velocity_sticky_bar_bg">#E6241414</color>
+
+    <!-- Found via on-device verification: velocity_red_soft/velocity_red_subtle
+         are used 178+136 times across 53/51 files as icon-circle backgrounds,
+         badge/pill fills, dividers, and strokes - e.g. Profile Management's
+         Gender/DOB/Age/Address "value pill" rows fill their background with
+         velocity_red_soft and set their text to velocity_text_primary. With
+         velocity_text_primary now light-colored for Dark Mode (above), that
+         combination was unreadable (light text on a background that stayed
+         light pink). Deepened to a dark warm-maroon here so light text stays
+         readable while still reading as a "soft red" accent rather than a
+         neutral gray - not a redesign, a direct fix for confirmed low-contrast
+         pairs found on a real device in Dark Mode. -->
+    <color name="velocity_red_soft">#3D1F1F</color>
+    <color name="velocity_red_subtle">#4A2424</color>
+</resources>

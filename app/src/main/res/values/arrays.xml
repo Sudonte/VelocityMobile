@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="default_price_range">
+        <item>1000</item>
+        <item>10000</item>
+    </array>
+
+    <!-- Room Browsing: exposed dropdown menu options -->
+    <string-array name="sort_options">
+        <item>@string/sort_default</item>
+        <item>@string/sort_price_low_high</item>
+        <item>@string/sort_price_high_low</item>
+        <item>@string/sort_name_az</item>
+    </string-array>
+
+    <string-array name="status_filter_options">
+        <item>@string/filter_status_all_rooms</item>
+        <item>@string/filter_status_available</item>
+        <item>@string/filter_status_limited</item>
+        <item>@string/filter_status_unavailable</item>
+    </string-array>
+</resources>

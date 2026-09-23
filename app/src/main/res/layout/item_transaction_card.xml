@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Velocity.Card.Glass.Compact"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="14dp"
+    android:layout_marginBottom="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_card_white"
+        android:padding="12dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/iconContainerTx"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            app:cardBackgroundColor="@color/velocity_red_soft"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivTxStatusIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_payment_card"
+                app:tint="@color/velocity_red_primary" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tvBookingId"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="11sp"
+            android:letterSpacing="0.05"
+            android:textAllCaps="true"
+            android:alpha="0.7"
+            app:layout_constraintStart_toEndOf="@id/iconContainerTx"
+            app:layout_constraintTop_toTopOf="@id/iconContainerTx"
+            app:layout_constraintEnd_toStartOf="@+id/tvStatusBadge"
+            tools:text="Ref: VS-8829" />
+
+        <TextView
+            android:id="@+id/tvStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_badge_success"
+            android:fontFamily="sans-serif-black"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/velocity_green_dark"
+            android:textSize="9sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Completed" />
+
+        <TextView
+            android:id="@+id/tvRoomName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_red_dark"
+            android:textSize="14sp"
+            android:letterSpacing="-0.02"
+            app:layout_constraintStart_toStartOf="@id/tvBookingId"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvBookingId"
+            tools:text="Executive City Suite" />
+
+        <TextView
+            android:id="@+id/tvStayDates"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp"
+            android:alpha="0.85"
+            app:layout_constraintTop_toBottomOf="@id/tvRoomName"
+            app:layout_constraintStart_toStartOf="@id/tvBookingId"
+            app:layout_constraintEnd_toStartOf="@id/btnExpandTransaction"
+            tools:text="Oct 12 – Oct 15, 2023 • 3 Nights" />
+
+        <ImageButton
+            android:id="@+id/btnExpandTransaction"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/expand_label"
+            android:padding="4dp"
+            android:src="@drawable/ic_expand_more"
+            app:tint="@color/velocity_red_primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvStayDates"
+            app:layout_constraintBottom_toBottomOf="@id/tvStayDates" />
+
+        <TextView
+            android:id="@+id/tvPaymentStatusPillTx"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/shape_intro_pill"
+            android:backgroundTint="@color/velocity_green_soft"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="4dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_green_dark"
+            android:textSize="10sp"
+            android:textAllCaps="true"
+            app:layout_constraintStart_toStartOf="@id/tvBookingId"
+            app:layout_constraintTop_toBottomOf="@id/tvStayDates"
+            tools:text="Fully Paid" />
+
+        <LinearLayout
+            android:id="@+id/layoutPaymentMeta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="@id/tvBookingId"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvPaymentStatusPillTx">
+
+            <TextView
+                android:id="@+id/tvCardPaymentMethod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="10sp"
+                android:alpha="0.85"
+                tools:text="Payment Method: GCash" />
+
+            <TextView
+                android:id="@+id/tvCardPaymentDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="10sp"
+                android:alpha="0.85"
+                tools:text="Payment Date &amp; Time: Oct 12, 2023 3:45 PM" />
+
+            <TextView
+                android:id="@+id/tvCardTransactionRef"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="10sp"
+                android:alpha="0.85"
+                tools:text="Transaction Ref: GCASH-9123456" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutExpandableDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@id/tvBookingId"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layoutPaymentMeta"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/tvExpandRoomType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="Room Type: Executive Suite" />
+
+            <TextView
+                android:id="@+id/tvExpandGuests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="Guests: 2" />
+
+            <TextView
+                android:id="@+id/tvExpandTransactionRef"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="Transaction Ref: GCASH-9123456" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1.5dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/velocity_red_soft"
+            app:layout_constraintTop_toBottomOf="@id/layoutExpandableDetails" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/divider">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/total_paid_label"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="10sp"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1"
+                    android:alpha="0.6" />
+
+                <TextView
+                    android:id="@+id/tvTotalAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="18sp"
+                    android:letterSpacing="-0.04"
+                    tools:text="₱16,500.00" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewDetails"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/view_details_label"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                android:textColor="@color/velocity_red_primary"
+                android:paddingHorizontal="14dp"
+                app:cornerRadius="28dp"
+                app:rippleColor="@color/velocity_red_soft" />
+
+            <ImageButton
+                android:id="@+id/btnDeleteRecord"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/delete_permanently_button_label"
+                android:padding="7dp"
+                android:src="@drawable/ic_delete"
+                android:visibility="gone"
+                app:tint="@color/velocity_text_secondary"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/velocity_red_bg_end"
+    android:orientation="vertical"
+    tools:context=".NotificationDetailsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/velocity_red_primary"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/btnNotificationDetailsBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back_label"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/notification_details_title"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <!-- Notification header card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="top">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/iconContainerNotifDetail"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="14dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/velocity_red_soft">
+
+                        <ImageView
+                            android:id="@+id/ivNotifDetailIcon"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_notifications"
+                            app:tint="@color/velocity_red_primary" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvNotifDetailTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            tools:text="Reservation Confirmation" />
+
+                        <TextView
+                            android:id="@+id/tvNotifDetailTime"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="@color/velocity_inactive_gray"
+                            android:textSize="11sp"
+                            tools:text="Today • 10:30 AM" />
+
+                        <TextView
+                            android:id="@+id/tvNotifDetailMessage"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:fontFamily="sans-serif"
+                            android:lineSpacingMultiplier="1.4"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="14sp"
+                            tools:text="Your booking for Executive Suite (Ref: VS-1024) has been confirmed for Oct 12-15, 2023." />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Related Reservation/Booking Information - only present when this
+                 notification is linked to a record still resident in the app's
+                 in-memory booking cache. Populated dynamically in Java. -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRelatedRecord"
+                style="@style/Widget.Velocity.Card.Glass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_card_white"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:id="@+id/tvRelatedRecordTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp"
+                        tools:text="Reservation Information" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionRelatedRecordInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Only shown for a PAYMENT/BOOKING notification whose related record has an
+                 actually staff-verified payment - see NotificationDetailsActivity#bindPrimaryAction(),
+                 same gate as everywhere else a receipt action appears. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNotifViewReceipt"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="10dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/view_receipt_button_label"
+                android:textAllCaps="false"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:cornerRadius="30dp"
+                app:strokeColor="@color/velocity_red_primary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNotifPrimaryAction"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/view_transaction_details_label"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:backgroundTint="@color/velocity_red_primary"
+                app:cornerRadius="30dp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

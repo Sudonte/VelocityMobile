@@ -1,0 +1,329 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.VelocitySuites" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/velocity_red_primary</item>
+        <item name="colorPrimaryVariant">@color/velocity_red_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/velocity_red_rose</item>
+        <item name="colorSecondaryVariant">@color/velocity_red_deep</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/velocity_red_primary</item>
+        <!-- Customize your theme here. -->
+        <item name="textAppearanceHeadline1">@style/TextAppearance.MaterialComponents.Headline1</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.MaterialComponents.Headline2</item>
+        <item name="textAppearanceHeadline3">@style/TextAppearance.MaterialComponents.Headline3</item>
+        <item name="textAppearanceHeadline4">@style/TextAppearance.MaterialComponents.Headline4</item>
+        <item name="textAppearanceHeadline5">@style/TextAppearance.MaterialComponents.Headline5</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.MaterialComponents.Headline6</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.MaterialComponents.Subtitle1</item>
+        <item name="textAppearanceSubtitle2">@style/TextAppearance.MaterialComponents.Subtitle2</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.MaterialComponents.Body1</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.MaterialComponents.Body2</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.MaterialComponents.Caption</item>
+        <item name="textAppearanceButton">@style/TextAppearance.MaterialComponents.Button</item>
+        <item name="textAppearanceOverline">@style/TextAppearance.MaterialComponents.Overline</item>
+    </style>
+
+    <!-- Login/Registration only - the status bar now sits directly over the
+         new photo header (see CurvedHeaderView), so it's darkened to match
+         the hero gradient's start color instead of the base theme's brighter
+         red, avoiding a visible seam at the very top of the screen. -->
+    <style name="Theme.VelocitySuites.Auth" parent="Theme.VelocitySuites">
+        <item name="android:statusBarColor">@color/velocity_red_deep</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+    </style>
+
+    <style name="Theme.VelocitySuites.Introduction" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:navigationBarColor">#FFF7F7</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="ShapeAppearance.Material3.Corner.Pill" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Velocity.Header" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">0dp</item>
+        <item name="cornerSizeTopRight">0dp</item>
+        <item name="cornerSizeBottomLeft">32dp</item>
+        <item name="cornerSizeBottomRight">32dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Velocity.Drawer" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeBottomLeft">24dp</item>
+    </style>
+
+    <style name="NavMenuItemText" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <style name="NavMenuItemText.Active">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="NavMenuItemText.Inactive">
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="Widget.VelocitySuites.NavigationView" parent="Widget.MaterialComponents.NavigationView">
+        <item name="android:background">@color/velocity_surface_elevated</item>
+        <item name="itemIconTint">@color/nav_item_icon_tint</item>
+        <item name="itemTextColor">@color/nav_item_text_color</item>
+        <item name="itemShapeFillColor">@color/nav_item_background_color</item>
+        <item name="itemShapeAppearanceOverlay">@style/ShapeAppearance.Material3.Corner.Pill</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Velocity.Drawer</item>
+        <item name="itemVerticalPadding">4dp</item>
+        <item name="itemHorizontalPadding">20dp</item>
+        <item name="itemIconPadding">16dp</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="itemMinHeight">56dp</item>
+        <item name="itemTextAppearanceActive">@style/NavMenuItemText.Active</item>
+        <item name="itemTextAppearanceInactive">@style/NavMenuItemText.Inactive</item>
+        <item name="headerLayout">@layout/nav_header_guest</item>
+        <item name="elevation">8dp</item>
+    </style>
+
+    <style name="VelocityDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowMinWidthMajor">90%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+        <item name="android:windowAnimationStyle">@style/DialogSlideAnimation</item>
+    </style>
+
+    <style name="ProfileLabelStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:textColor">@color/velocity_text_secondary</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="ProfileValueStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textColor">@color/velocity_text_primary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="DialogSlideAnimation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/dialog_slide_up</item>
+        <item name="android:windowExitAnimation">@anim/dialog_slide_down</item>
+    </style>
+
+    <!-- Velocity Suites Glassmorphic Styles -->
+    <style name="Widget.Velocity.Card.Glass" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+        <item name="cardCornerRadius">32dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="strokeColor">@color/velocity_red_alpha_20</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:foreground">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="Widget.Velocity.Card.Glass.Elevated">
+        <item name="cardElevation">12dp</item>
+        <item name="strokeWidth">1.5dp</item>
+    </style>
+
+    <!-- Compact variants for dashboard.xml - same glass-card look, but a
+         14-18dp corner radius instead of the base style's dramatic 32dp
+         "pill" rounding, matching a denser summary-screen density without
+         touching the base style used by the taller hero cards elsewhere. -->
+    <style name="Widget.Velocity.Card.Glass.Compact">
+        <item name="cardCornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.Velocity.Card.Glass.Compact.Elevated">
+        <item name="cardElevation">12dp</item>
+        <item name="strokeWidth">1.5dp</item>
+    </style>
+
+    <style name="Widget.Velocity.TextInputLayout.OutlinedBox.Rounded" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusBottomEnd">32dp</item>
+        <item name="boxCornerRadiusBottomStart">32dp</item>
+        <item name="boxCornerRadiusTopEnd">32dp</item>
+        <item name="boxCornerRadiusTopStart">32dp</item>
+        <item name="boxStrokeColor">@color/velocity_red_primary</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="startIconTint">@color/velocity_red_primary</item>
+        <item name="endIconTint">@color/velocity_red_primary</item>
+        <item name="passwordToggleTint">@color/velocity_red_primary</item>
+        <item name="hintEnabled">false</item>
+    </style>
+
+    <!-- Modern exposed dropdown (combo box) used for Sort By / Room Type filter -->
+    <style name="Widget.Velocity.TextInputLayout.ExposedDropdown" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxStrokeColor">@color/velocity_red_primary</item>
+        <item name="boxStrokeWidth">1.2dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="endIconTint">@color/velocity_red_primary</item>
+        <item name="hintTextColor">@color/velocity_red_primary</item>
+        <item name="android:textColorHint">@color/velocity_text_secondary</item>
+        <item name="boxBackgroundColor">@color/velocity_red_bg_end</item>
+    </style>
+
+    <!-- Typography Consolidation -->
+    <style name="TextAppearance.Velocity.ScreenTitle" parent="TextAppearance.MaterialComponents.Headline3">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:letterSpacing">-0.04</item>
+        <item name="android:textColor">@color/velocity_red_dark</item>
+        <item name="android:textSize">32sp</item>
+    </style>
+
+    <style name="TextAppearance.Velocity.Label.Section" parent="TextAppearance.MaterialComponents.Overline">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.Velocity.Label.Input" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:fontFamily">sans-serif-bold</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.Velocity.Body" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/velocity_text_secondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:alpha">0.85</item>
+    </style>
+
+    <style name="TextAppearance.Velocity.Price" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textColor">@color/velocity_text_primary</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.Velocity.Price.Large">
+        <item name="android:textColor">@color/velocity_red_primary</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="Widget.Velocity.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_height">56dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textSize">15sp</item>
+        <item name="backgroundTint">@color/velocity_red_primary</item>
+        <item name="cornerRadius">32dp</item>
+        <item name="elevation">4dp</item>
+        <item name="rippleColor">@color/white</item>
+    </style>
+
+    <style name="Widget.Velocity.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_height">56dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/velocity_red_primary</item>
+        <item name="cornerRadius">32dp</item>
+        <item name="strokeColor">@color/velocity_red_primary</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="rippleColor">@color/velocity_red_alpha_20</item>
+    </style>
+    <style name="Widget.Velocity.Chip.Sort" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/chip_sort_text_color</item>
+        <item name="android:fontFamily">sans-serif-bold</item>
+        <item name="chipBackgroundColor">@color/chip_sort_background_color</item>
+        <item name="chipMinHeight">38dp</item>
+        <item name="chipStartPadding">14dp</item>
+        <item name="chipEndPadding">14dp</item>
+        <item name="rippleColor">@color/velocity_red_subtle</item>
+        <item name="chipStrokeColor">@color/velocity_red_subtle</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="checkedIconEnabled">false</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+    </style>
+
+    <style name="Widget.Velocity.Chip.Filter" parent="Widget.Velocity.Chip.Sort">
+        <item name="chipMinHeight">40dp</item>
+        <item name="chipStrokeWidth">1.2dp</item>
+    </style>
+
+    <!-- Non-interactive "who this announcement is for" pill - blue-tinted (matches the
+         TYPE_ANNOUNCEMENT icon color elsewhere) so it reads as distinct metadata, never
+         confused with a red status/priority indicator. -->
+    <style name="Widget.Velocity.Chip.AudienceBadge" parent="Widget.MaterialComponents.Chip.Entry">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/velocity_blue_primary</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="chipBackgroundColor">@color/velocity_blue_soft</item>
+        <item name="chipMinHeight">24dp</item>
+        <item name="chipStartPadding">8dp</item>
+        <item name="chipEndPadding">8dp</item>
+        <item name="chipIconVisible">false</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="closeIconVisible">false</item>
+        <item name="android:clickable">false</item>
+        <item name="android:checkable">false</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+    </style>
+
+    <style name="Widget.Velocity" parent="@android:style/Widget" />
+
+    <style name="Widget.Velocity.LandingAmenity">
+        <item name="android:layout_width">104dp</item>
+        <item name="android:layout_height">102dp</item>
+        <item name="android:layout_margin">6dp</item>
+        <item name="android:background">@drawable/bg_glass_card_white</item>
+        <item name="android:fontFamily">sans-serif-bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:textColor">@color/velocity_text_primary</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:drawableTint">@color/velocity_red_primary</item>
+    </style>
+
+    <style name="Widget.Velocity.LandingAnnouncement">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@drawable/bg_glass_card_white</item>
+        <item name="android:drawablePadding">12dp</item>
+        <item name="android:drawableTint">@color/velocity_red_primary</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textColor">@color/velocity_text_primary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+</resources>
+
+

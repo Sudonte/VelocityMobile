@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:paddingVertical="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/rowPaymentAmount"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="15sp"
+            tools:text="₱3,300.00" />
+
+        <TextView
+            android:id="@+id/rowPaymentStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_intro_pill"
+            android:backgroundTint="@color/velocity_green_soft"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_green_dark"
+            android:textSize="10sp"
+            android:textAllCaps="true"
+            tools:text="Completed" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/rowPaymentMethodDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp"
+        tools:text="GCASH  •  Oct 10, 2023" />
+
+    <TextView
+        android:id="@+id/rowPaymentRef"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="11sp"
+        android:alpha="0.8"
+        tools:text="Ref: GCASH-9123456-1699999999" />
+
+</LinearLayout>

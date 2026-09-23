@@ -1,0 +1,24 @@
+# Ignore Gradle build outputs and caches (The biggest culprits)
+.gradle/
+build/
+app/build/
+*.apk
+*.aar
+*.jar
+
+# Ignore Android Studio system configurations
+.idea/
+*.iml
+.cxx/
+local.properties
+
+# Ignore Logs and heavy transient outputs
+*.log
+captures/
+
+# Ignore sensitive keys and environments
+.env
+.env.*
+*.pem
+*.key
+*.jks

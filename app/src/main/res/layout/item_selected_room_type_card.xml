@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One room-type card inside Booking/Reservation Details' "Selected Rooms"
+    section - shown once per distinct room type in the transaction (never
+    once per physical room), per the multi-room-type requirement. Inflated
+    programmatically by BookingDetailsActivity#addRoomDetailBlock() and
+    inserted directly above that method's existing Quantity/Price Per Night/
+    Subtotal rows, so the price breakdown these rows already show is never
+    duplicated here - this card only ever shows the image, name, quantity,
+    and assigned room number(s)/price-per-night at a glance.
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    app:cardBackgroundColor="@color/velocity_surface_elevated"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/velocity_red_subtle"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/ivSelectedRoomTypeImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/velocity_red_soft"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/cd_room_image" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tvSelectedRoomTypeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="15sp"
+            tools:text="Deluxe Room" />
+
+        <TextView
+            android:id="@+id/tvSelectedRoomTypeQuantity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="12sp"
+            tools:text="2 Rooms Selected" />
+
+        <TextView
+            android:id="@+id/tvSelectedRoomTypeAssigned"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="Assigned Rooms: 201, 202" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
