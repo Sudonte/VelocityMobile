@@ -2,17 +2,23 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/availableRoomCard"
     style="@style/Widget.Velocity.Card.Glass"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="16dp"
-    app:cardUseCompatPadding="true">
+    app:cardUseCompatPadding="true"
+    app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/availableRoomCardContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_glass_card_white">
+        android:background="@drawable/bg_glass_card_white"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
 
         <!-- Image Section -->
         <FrameLayout
@@ -200,39 +206,26 @@
                     tools:text="42 sqm" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/roomDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:lineSpacingExtra="1dp"
-                android:maxLines="2"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="11sp"
-                android:alpha="0.85"
-                tools:text="Experience ultimate luxury with a breathtaking view of the ocean and premium amenities." />
-
             <LinearLayout
                 android:id="@+id/amenitiesIconsRow"
                 android:layout_width="match_parent"
                 android:layout_height="18dp"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="10dp"
-                android:alpha="0.5"
-                android:background="@color/velocity_red_subtle" />
-
-            <!-- Quantity Stepper + Select control, sharing one row to save vertical space -->
+            <!-- Direct quantity control - selects/deselects this room type right
+                 from the list, no need to open View Full Details first. These
+                 buttons sit inside availableRoomCardContent (which itself has a
+                 card-wide click listener that opens Full Details), but Android
+                 never bubbles a consumed click from a clickable child (these
+                 MaterialButtons) up to an ancestor's own OnClickListener, so
+                 tapping +/- can never accidentally open the details sheet - only
+                 tapping non-interactive areas (image, name, facts row) does. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -248,8 +241,8 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnQtyMinus"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:contentDescription="@string/cd_decrease_quantity"
                     android:insetLeft="0dp"
                     android:insetTop="0dp"
@@ -257,28 +250,28 @@
                     android:insetBottom="0dp"
                     android:padding="0dp"
                     app:backgroundTint="@color/velocity_red_subtle"
-                    app:cornerRadius="14dp"
+                    app:cornerRadius="16dp"
                     app:icon="@drawable/ic_remove"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconSize="14dp"
+                    app:iconSize="15dp"
                     app:iconTint="@color/velocity_red_primary" />
 
                 <TextView
                     android:id="@+id/tvQty"
-                    android:layout_width="34dp"
+                    android:layout_width="38dp"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
                     android:gravity="center"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="14sp"
-                    tools:text="1" />
+                    android:textSize="15sp"
+                    tools:text="2" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnQtyPlus"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
                     android:contentDescription="@string/cd_increase_quantity"
                     android:insetLeft="0dp"
                     android:insetTop="0dp"
@@ -286,29 +279,80 @@
                     android:insetBottom="0dp"
                     android:padding="0dp"
                     app:backgroundTint="@color/velocity_red_subtle"
-                    app:cornerRadius="14dp"
+                    app:cornerRadius="16dp"
                     app:icon="@drawable/ic_add"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconSize="14dp"
+                    app:iconSize="15dp"
                     app:iconTint="@color/velocity_red_primary" />
             </LinearLayout>
 
-            <!-- Select control: a toggleable button that stages this room type into
-                 the dialog's pending selection without closing the dialog - the guest
-                 commits every staged room type/qty at once via the top-right Book Now/
-                 Reserve Now button (see dialog_available_rooms.xml). -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSelectRoom"
-                style="@style/Widget.Velocity.Button.Outlined"
+            <!-- Selected-state indicator - GONE unless this room type currently
+                 has a staged quantity > 0. Never the card's only selected signal
+                 (the card's own stroke/background tint carries that too, set in
+                 buildAvailableRoomCard()'s updateCardSelectedState()) - text +
+                 check icon here, border + tint on the card itself. -->
+            <LinearLayout
+                android:id="@+id/layoutSelectedIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="@color/velocity_red_primary" />
+
+                <TextView
+                    android:id="@+id/tvSelectedIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="12sp"
+                    tools:text="2 Rooms Selected" />
+            </LinearLayout>
+
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:layout_marginTop="8dp"
-                android:text="@string/select_room_button"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="12sp"
-                app:icon="@drawable/ic_add"
-                app:iconTint="@color/velocity_red_primary" />
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:alpha="0.5"
+                android:background="@color/velocity_red_subtle" />
+
+            <!-- Tap-target affordance row - the whole card is clickable (see
+                 availableRoomCardContent's foreground/clickable above), this is
+                 just the visible "there's more here" cue. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="@string/view_details_label"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="12sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/velocity_red_primary" />
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

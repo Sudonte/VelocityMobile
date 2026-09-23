@@ -1327,6 +1327,9 @@
     <string name="no_available_rooms_title">No Available Rooms</string>
     <string name="no_available_rooms_message">No rooms are available for your selected Check-in and Check-out dates. Please choose different dates.</string>
     <string name="change_dates_button">Change Dates</string>
+    <string name="room_load_error_title">Couldn\'t Load Rooms</string>
+    <string name="room_load_error_message">We couldn\'t check room availability. Please check your connection and try again.</string>
+    <string name="room_load_error_toast">Couldn\'t check room availability. Please try again.</string>
     <string name="no_more_amenity_stock_toast">No more %1$s available right now.</string>
 
     <!-- Post-Booking Additional Amenity Request -->
@@ -1357,6 +1360,34 @@
         <item quantity="other">%1$d room types selected</item>
     </plurals>
     <string name="rooms_staged_count_none">No rooms selected yet</string>
+    <!-- Total staged room quantity (not distinct room types) - shown alongside
+         rooms_staged_count when more than one room type is staged, so "2
+         Deluxe + 1 Suite" reads as "3 Rooms Selected", not just "2 room
+         types selected". -->
+    <plurals name="rooms_staged_total_count">
+        <item quantity="one">%1$d Room Selected</item>
+        <item quantity="other">%1$d Rooms Selected</item>
+    </plurals>
+
+    <!-- Room-type detail sheet (tap a card in the Available Room List) and the
+         "Your Selection" footer summary/breakdown above Book Now/Reserve Now. -->
+    <plurals name="room_types_count_plain">
+        <item quantity="one">%1$d Room Type</item>
+        <item quantity="other">%1$d Room Types</item>
+    </plurals>
+    <plurals name="rooms_count_plain">
+        <item quantity="one">%1$d Room</item>
+        <item quantity="other">%1$d Rooms</item>
+    </plurals>
+    <plurals name="nights_count_plain">
+        <item quantity="one">%1$d Night</item>
+        <item quantity="other">%1$d Nights</item>
+    </plurals>
+    <string name="about_this_room_label">About This Room</string>
+    <string name="view_selection_details_label">View Selection Details</string>
+    <string name="selected_rooms_summary_title">Selected Rooms</string>
+    <string name="not_selected_yet_label">Not selected yet</string>
+    <string name="subtotal_label">Subtotal</string>
 
     <!-- Terms &amp; Cancellation Policy gate (New Booking only) -->
     <string name="terms_agreement_label">I agree to the Terms and Conditions, understand the Cancellation Policy, and acknowledge that all payments are non-refundable.</string>

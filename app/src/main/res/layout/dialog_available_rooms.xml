@@ -46,23 +46,6 @@
                     tools:text="Aug 4, 2026 – Aug 5, 2026 · 1 night" />
             </LinearLayout>
 
-            <!-- Top-right commit action: labeled "Book Now" on the New Booking tab
-                 or "Reserve Now" on the New Reservation tab (set in the Activity),
-                 enabled once at least one room is staged below. -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBookOrReserveRoom"
-                style="@style/Widget.Velocity.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="34dp"
-                android:layout_marginEnd="8dp"
-                android:enabled="false"
-                android:letterSpacing="0"
-                android:paddingHorizontal="14dp"
-                android:textAllCaps="false"
-                android:textSize="12sp"
-                app:cornerRadius="17dp"
-                tools:text="@string/book_now" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCloseAvailableRooms"
                 style="@style/Widget.MaterialComponents.Button.Icon"
@@ -91,11 +74,21 @@
             android:background="@drawable/shape_intro_pill"
             android:backgroundTint="@color/velocity_red_soft" />
 
+        <!-- 0dp height + weight="1" (NOT wrap_content + android:maxHeight) - NestedScrollView
+             never honors android:maxHeight (only a few widgets like ImageView enforce that
+             attribute; ScrollView/NestedScrollView silently ignore it), so with an unbounded
+             wrap_content height this would grow to fit every room card and push the footer
+             below the dialog window's actual clipped bounds. Weight-based sizing genuinely
+             caps this region to whatever space is left after the header/footer are laid out
+             within the window's own bounded height (see showAvailableRoomsDialog()'s explicit
+             dialog.getWindow().setLayout(...) call, which gives this LinearLayout chain a real
+             EXACTLY/AT_MOST height to distribute instead of an effectively infinite one) -
+             the footer stays pinned below this, always on-screen, regardless of room count. -->
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:layout_marginTop="14dp"
-            android:maxHeight="460dp"
             android:overScrollMode="never">
 
             <LinearLayout
@@ -103,7 +96,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="18dp" />
+                android:paddingHorizontal="18dp"
+                android:paddingBottom="6dp" />
         </androidx.core.widget.NestedScrollView>
 
         <LinearLayout
@@ -136,26 +130,100 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Footer: stays outside the scrollable area so it's always visible. The
-             guest may stage multiple room types/quantities above; this count
-             updates live as cards are toggled, mirroring the top-right
-             Book Now/Reserve Now button that actually commits the selection. -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="14dp"
-            android:background="@color/velocity_red_subtle" />
-
-        <TextView
-            android:id="@+id/tvStagedRoomsCount"
+        <!-- Bottom action area: stays outside the scrollable area so it's always
+             visible while reviewing selected rooms. Deliberately compact - the full
+             per-room-type breakdown lives in dialog_selected_rooms_summary.xml
+             (opened via "View Selection Details" below), not here, so the room
+             list above (NestedScrollView, layout_weight="1") gets the large
+             majority of the dialog's height instead of competing with a tall
+             summary block. This entire container - divider, View Selection
+             Details, Room Total, and the commit button (Book Now on the New
+             Booking tab, Reserve Now on New Reservation - text set in the
+             Activity) - is only shown once at least one room is staged above
+             (see updateFooter() in Step1RoomSelectionFragment#showAvailableRoomsDialog());
+             no reserved empty space while the selection is empty. -->
+        <LinearLayout
+            android:id="@+id/layoutSelectionFooter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:paddingHorizontal="18dp"
-            android:gravity="center"
-            android:text="@string/rooms_staged_count_none"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="12sp" />
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/velocity_red_subtle" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="18dp">
+
+                <!-- Opens dialog_selected_rooms_summary.xml with the full
+                     per-room-type price breakdown (room-type count, quantity
+                     per type, quantity × price/night × nights = subtotal for
+                     each, and the grand total). -->
+                <TextView
+                    android:id="@+id/tvViewSelectionDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-bold"
+                    android:gravity="center"
+                    android:padding="6dp"
+                    android:text="@string/view_selection_details_label"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="@string/room_total_label"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvSelectionTotal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="16sp"
+                        tools:text="₱48,000.00" />
+                </LinearLayout>
+
+                <!-- Commit action - text set to Book Now/Reserve Now in the
+                     Activity/Fragment depending on transaction mode. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBookOrReserveRoom"
+                    style="@style/Widget.Velocity.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="8dp"
+                    android:letterSpacing="0"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    app:cornerRadius="23dp"
+                    app:icon="@drawable/ic_check_circle"
+                    app:iconGravity="textStart"
+                    tools:text="@string/book_now" />
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

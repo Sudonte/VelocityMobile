@@ -156,11 +156,14 @@
             </com.google.android.material.card.MaterialCardView>
         </FrameLayout>
 
-        <!-- Detailed Information -->
-        <androidx.core.widget.NestedScrollView
+        <!-- Detailed Information. MaxHeightNestedScrollView (not plain
+             NestedScrollView, which silently ignores android:maxHeight) - see
+             that class's doc comment. Capped programmatically in
+             RoomDetailsDialog since the cap needs to be screen-size-aware. -->
+        <com.example.velocitysuites.MaxHeightNestedScrollView
+            android:id="@+id/scrollRoomDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxHeight="400dp"
             android:overScrollMode="never">
 
             <LinearLayout
@@ -508,8 +511,142 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- Staging-mode quantity selector - shown INSTEAD of
+                     layoutDetailActions when this dialog is opened via
+                     RoomDetailsDialog#showForStaging() from the Available Room
+                     List during Step 2 (Booking/Reservation creation), where the
+                     guest is choosing how many of this room type to add rather
+                     than immediately navigating to Book Now/Reserve Now. -->
+                <LinearLayout
+                    android:id="@+id/layoutDetailQuantitySection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/room_quantity_label"
+                        android:textSize="10sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDetailQtyMinus"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:contentDescription="@string/cd_decrease_quantity"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="0dp"
+                            app:backgroundTint="@color/velocity_red_subtle"
+                            app:cornerRadius="20dp"
+                            app:icon="@drawable/ic_remove"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconSize="18dp"
+                            app:iconTint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:id="@+id/tvDetailQty"
+                            android:layout_width="56dp"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:gravity="center"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="20sp"
+                            tools:text="2" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDetailQtyPlus"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:contentDescription="@string/cd_increase_quantity"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="0dp"
+                            app:backgroundTint="@color/velocity_red_subtle"
+                            app:cornerRadius="20dp"
+                            app:icon="@drawable/ic_add"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconSize="18dp"
+                            app:iconTint="@color/velocity_red_primary" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvDetailSelectedIndicator"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="sans-serif-bold"
+                        android:gravity="center"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="13sp"
+                        tools:text="2 Rooms Selected" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutDetailSubtotalRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:background="@drawable/shape_search_field"
+                        android:backgroundTint="@color/velocity_red_bg_end"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="14dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="@string/subtotal_label"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvDetailSubtotalAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:textColor="@color/velocity_red_primary"
+                            android:textSize="16sp"
+                            tools:text="₱14,000.00" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDetailDone"
+                        style="@style/Widget.Velocity.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/done_label"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
             </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+        </com.example.velocitysuites.MaxHeightNestedScrollView>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

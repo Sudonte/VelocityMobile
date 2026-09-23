@@ -38,6 +38,57 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <!-- Shown instead of everything below when the initial availability fetch itself fails (network/server error) - distinct from the zero-availability empty state below it, since "no rooms for these dates" and "couldn't reach the server" need different messaging and this one offers Retry. -->
+        <LinearLayout
+            android:id="@+id/layoutRoomLoadError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/shape_tab_background"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="24dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginBottom="10dp"
+                android:alpha="0.6"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_wifi_off"
+                app:tint="@color/velocity_text_secondary" />
+
+            <TextView
+                style="@style/TextAppearance.Velocity.Label.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="@string/room_load_error_title"
+                android:textColor="@color/velocity_text_primary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/room_load_error_message"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetryRoomLoad"
+                style="@style/Widget.Velocity.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/retry_label"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <!-- Shown instead of everything below once the fetch above comes back with zero availability across every room type for the selected dates. -->
         <LinearLayout
             android:id="@+id/layoutNoRoomsAvailableForDates"

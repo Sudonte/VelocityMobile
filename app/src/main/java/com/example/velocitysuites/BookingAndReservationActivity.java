@@ -28,6 +28,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -1388,7 +1389,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         View btnClose = dialogView.findViewById(R.id.btnCloseAvailableRooms);
         LinearLayout listContainer = dialogView.findViewById(R.id.layoutAvailableRoomsList);
         View emptyState = dialogView.findViewById(R.id.layoutAvailableRoomsEmpty);
-        TextView tvStagedCount = dialogView.findViewById(R.id.tvStagedRoomsCount);
+        View layoutSelectionFooter = dialogView.findViewById(R.id.layoutSelectionFooter);
+        TextView tvSelectionTotal = dialogView.findViewById(R.id.tvSelectionTotal);
+        TextView tvViewSelectionDetails = dialogView.findViewById(R.id.tvViewSelectionDetails);
         MaterialButton btnCommit = dialogView.findViewById(R.id.btnBookOrReserveRoom);
         btnCommit.setText(isReservationMode() ? R.string.reserve_now : R.string.book_now);
 
@@ -1404,14 +1407,39 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // id -> representative Room / staged quantity, populated as cards are toggled on.
         Map<String, Room> stagedRooms = new LinkedHashMap<>();
         Map<String, Integer> stagedQuantities = new LinkedHashMap<>();
+        long nights = selectedNights();
+
+        // Hidden (not just disabled) until at least one room is staged, and hidden
+        // again the instant every staged room is deselected - matches the shared
+        // dialog_available_rooms.xml, whose btnBookOrReserveRoom now defaults to
+        // visibility="gone" (see Step1RoomSelectionFragment's identical dialog
+        // logic, which this Activity's Available Room Form was originally ported
+        // from and must stay in sync with, since both share the same layout).
+        // Deliberately compact - only Room Total lives in this footer; the full
+        // room-type/quantity/subtotal breakdown lives behind "View Selection
+        // Details" (showSelectedRoomsSummaryDialog()) so this footer - and
+        // therefore the room list above it - stays as compact/tall as possible.
         Runnable updateFooter = () -> {
-            int typeCount = stagedRooms.size();
-            tvStagedCount.setText(typeCount == 0
-                    ? getString(R.string.rooms_staged_count_none)
-                    : getResources().getQuantityString(R.plurals.rooms_staged_count, typeCount, typeCount));
-            btnCommit.setEnabled(typeCount > 0);
+            int totalQty = 0;
+            double totalAmount = 0;
+            for (Map.Entry<String, Integer> e : stagedQuantities.entrySet()) {
+                int qty = e.getValue();
+                totalQty += qty;
+                Room staged = stagedRooms.get(e.getKey());
+                if (staged != null) totalAmount += staged.getPricePerNight() * nights * qty;
+            }
+
+            layoutSelectionFooter.setVisibility(totalQty > 0 ? View.VISIBLE : View.GONE);
+            btnCommit.setVisibility(totalQty > 0 ? View.VISIBLE : View.GONE);
+            btnCommit.setEnabled(true);
+            if (totalQty == 0) return;
+
+            tvSelectionTotal.setText(String.format(java.util.Locale.US, getString(R.string.price_format), totalAmount));
         };
         updateFooter.run();
+
+        tvViewSelectionDetails.setOnClickListener(v ->
+                showSelectedRoomsSummaryDialog(stagedRooms, stagedQuantities, nights));
 
         listContainer.removeAllViews();
         for (Room room : rooms) {
@@ -1420,6 +1448,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         emptyState.setVisibility(rooms.isEmpty() ? View.VISIBLE : View.GONE);
 
         btnCommit.setOnClickListener(v -> {
+            // Guards against a rapid double-tap adding the staged rooms twice
+            // before the dialog has a chance to dismiss.
+            btnCommit.setEnabled(false);
             List<String> trimmedOrDropped = new ArrayList<>();
             for (Map.Entry<String, Room> entry : stagedRooms.entrySet()) {
                 String roomId = entry.getKey();
@@ -1458,9 +1489,117 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
         dialog.show();
+        // Cap the dialog's window height (see Step1RoomSelectionFragment's identical
+        // fix) so dialog_available_rooms.xml's NestedScrollView (layout_weight="1")
+        // has a real bounded height to fill instead of growing unbounded to fit every
+        // room card, which used to push the Book Now/Reserve Now footer below the
+        // visible/clipped window area once more than a couple of room types showed.
+        if (dialog.getWindow() != null) {
+            int maxDialogHeightPx = (int) (getResources().getDisplayMetrics().heightPixels * 0.85f);
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, maxDialogHeightPx);
+        }
     }
 
-    /** Builds one room-type card for the Available Room List, with a bounded qty stepper and a toggleable Select control. */
+    /** "View Selection Details" - the full per-room-type price breakdown (quantity × price/night × nights = subtotal) behind the compact footer summary. */
+    private void showSelectedRoomsSummaryDialog(Map<String, Room> stagedRooms, Map<String, Integer> stagedQuantities, long nights) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_selected_rooms_summary, null);
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.VelocityDialogTheme)
+                .setView(dialogView)
+                .create();
+
+        LinearLayout listContainer = dialogView.findViewById(R.id.layoutSelectionSummaryList);
+        TextView tvRoomTypesCount = dialogView.findViewById(R.id.tvSummaryRoomTypesCount);
+        TextView tvTotalRooms = dialogView.findViewById(R.id.tvSummaryTotalRooms);
+        TextView tvTotalAmount = dialogView.findViewById(R.id.tvSummaryTotalAmount);
+        dialogView.findViewById(R.id.btnCloseSelectionSummary).setOnClickListener(v -> dialog.dismiss());
+
+        listContainer.removeAllViews();
+        int typeCount = 0;
+        int totalQty = 0;
+        double totalAmount = 0;
+        for (Map.Entry<String, Room> entry : stagedRooms.entrySet()) {
+            int qty = stagedQuantities.getOrDefault(entry.getKey(), 0);
+            if (qty <= 0) continue;
+            typeCount++;
+            totalQty += qty;
+            Room room = entry.getValue();
+            double subtotal = room.getPricePerNight() * nights * qty;
+            totalAmount += subtotal;
+            listContainer.addView(buildSelectionBreakdownRow(room, qty, nights, subtotal));
+        }
+
+        tvRoomTypesCount.setText(getResources().getQuantityString(R.plurals.room_types_count_plain, typeCount, typeCount));
+        tvTotalRooms.setText(getResources().getQuantityString(R.plurals.rooms_count_plain, totalQty, totalQty));
+        tvTotalAmount.setText(String.format(java.util.Locale.US, getString(R.string.price_format), totalAmount));
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            int maxDialogHeightPx = (int) (getResources().getDisplayMetrics().heightPixels * 0.85f);
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, maxDialogHeightPx);
+        }
+    }
+
+    private View buildSelectionBreakdownRow(Room room, int qty, long nights, double subtotal) {
+        float density = getResources().getDisplayMetrics().density;
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        rowParams.bottomMargin = Math.round(16 * density);
+        row.setLayoutParams(rowParams);
+
+        TextView tvName = new TextView(this);
+        tvName.setText(room.getName());
+        tvName.setTextColor(ContextCompat.getColor(this, R.color.velocity_text_primary));
+        tvName.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvName.setTextSize(14f);
+        row.addView(tvName);
+
+        TextView tvMath = new TextView(this);
+        tvMath.setText(getResources().getQuantityString(R.plurals.rooms_count_plain, qty, qty)
+                + " × " + String.format(java.util.Locale.US, getString(R.string.price_format), room.getPricePerNight())
+                + " × " + getResources().getQuantityString(R.plurals.nights_count_plain, (int) nights, (int) nights));
+        tvMath.setTextColor(ContextCompat.getColor(this, R.color.velocity_text_secondary));
+        tvMath.setTextSize(12f);
+        LinearLayout.LayoutParams mathParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        mathParams.topMargin = Math.round(2 * density);
+        tvMath.setLayoutParams(mathParams);
+        row.addView(tvMath);
+
+        TextView tvSubtotal = new TextView(this);
+        tvSubtotal.setText(getString(R.string.subtotal_label) + ": "
+                + String.format(java.util.Locale.US, getString(R.string.price_format), subtotal));
+        tvSubtotal.setTextColor(ContextCompat.getColor(this, R.color.velocity_red_primary));
+        tvSubtotal.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvSubtotal.setTextSize(13f);
+        LinearLayout.LayoutParams subtotalParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        subtotalParams.topMargin = Math.round(4 * density);
+        tvSubtotal.setLayoutParams(subtotalParams);
+        row.addView(tvSubtotal);
+
+        return row;
+    }
+
+    /**
+     * Builds one summary card for the Available Room List. The guest has two
+     * equivalent ways to select this room type, and both write through the
+     * same {@code stagedRooms}/{@code stagedQuantities} maps (the one shared
+     * source of truth) via {@code applyQuantity} below, so either path stays
+     * perfectly in sync with the other and with the footer:
+     *  - Directly on the card: the +/- stepper wired below (no need to open
+     *    Full Details first).
+     *  - Tapping the card itself (image/name/facts/"View Full Details" row -
+     *    anywhere that isn't the stepper buttons, since a clickable child
+     *    like MaterialButton consumes its own touch and never bubbles the
+     *    click up to cardContent's listener) opens
+     *    RoomDetailsDialog#showForStaging(), seeded with the current staged
+     *    quantity, whose own stepper calls back into the same applyQuantity.
+     */
     private View buildAvailableRoomCard(Room room, Map<String, Room> stagedRooms,
                                          Map<String, Integer> stagedQuantities, Runnable updateFooter) {
         View card = LayoutInflater.from(this).inflate(R.layout.item_available_room, null, false);
@@ -1469,7 +1608,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         TextView tvTypeAndCapacity = card.findViewById(R.id.roomTypeAndCapacity);
         TextView tvBedType = card.findViewById(R.id.roomBedType);
         TextView tvRoomSize = card.findViewById(R.id.roomSizeText);
-        TextView tvDescription = card.findViewById(R.id.roomDescription);
         TextView tvPrice = card.findViewById(R.id.roomPrice);
         TextView tvAvailableBadge = card.findViewById(R.id.roomAvailableBadge);
         ImageView ivImage = card.findViewById(R.id.roomImage);
@@ -1478,12 +1616,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         TextView tvQty = card.findViewById(R.id.tvQty);
         MaterialButton btnQtyMinus = card.findViewById(R.id.btnQtyMinus);
         MaterialButton btnQtyPlus = card.findViewById(R.id.btnQtyPlus);
-        MaterialButton btnSelectRoom = card.findViewById(R.id.btnSelectRoom);
+        View layoutSelectedIndicator = card.findViewById(R.id.layoutSelectedIndicator);
+        TextView tvSelectedIndicator = card.findViewById(R.id.tvSelectedIndicator);
+        MaterialCardView cardRoot = (MaterialCardView) card;
+        View cardContent = card.findViewById(R.id.availableRoomCardContent);
 
         int remainingBase = Math.max(0, room.getAvailableCount() - currentQtyForId(room.getId()));
         int maxQty = Math.max(1, remainingBase);
-        final int[] qty = {1};
-        final boolean[] selected = {false};
 
         tvName.setText(room.getName());
         tvTypeAndCapacity.setText(getString(R.string.room_type_capacity_format, room.getType(), room.getCapacity()));
@@ -1493,10 +1632,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         tvRoomSize.setText(room.getRoomSize() == null || room.getRoomSize().isEmpty()
                 ? getString(R.string.not_specified)
                 : room.getRoomSize());
-        tvDescription.setText(room.getDescription());
         tvPrice.setText(getString(R.string.price_format_per_night, room.getPricePerNight()));
         ivTypeIcon.setImageResource(RoomVisuals.getTypeIcon(room.getType()));
-        tvQty.setText(String.valueOf(qty[0]));
 
         int fallbackImage = RoomVisuals.getRoomImage(room.getType());
         if (room.getImageUrl() != null && !room.getImageUrl().isEmpty()) {
@@ -1509,69 +1646,65 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
         bindAvailableRoomAmenities(amenitiesRow, room);
 
-        // Live "remaining after this pick" badge: starts at the true remaining count
-        // (already-selected quantity subtracted) and ticks down further while this
-        // card is toggled Selected, e.g. "Available: 5" -> "Available: 4" the moment
-        // 1 unit of this room type is selected - matching real-time availability.
-        Runnable updateBadge = () -> tvAvailableBadge.setText(getString(R.string.available_qty_format,
-                Math.max(0, remainingBase - (selected[0] ? qty[0] : 0))));
-        updateBadge.run();
-
-        Runnable updateSelectButtonStyle = () -> {
-            if (selected[0]) {
-                btnSelectRoom.setText(R.string.select_room_button_selected);
-                btnSelectRoom.setIconResource(R.drawable.ic_close);
-                btnSelectRoom.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                        ContextCompat.getColor(this, R.color.velocity_red_primary)));
-                btnSelectRoom.setTextColor(ContextCompat.getColor(this, R.color.white));
-                btnSelectRoom.setIconTint(android.content.res.ColorStateList.valueOf(
-                        ContextCompat.getColor(this, R.color.white)));
+        // Selected state is never signaled by color alone - text ("N Rooms
+        // Selected") + check icon, and the card's own border/background, all
+        // change together (matches Step1RoomSelectionFragment's identical dialog).
+        int strokeSelected = Math.round(2 * getResources().getDisplayMetrics().density);
+        Runnable refreshCardUi = () -> {
+            int qty = stagedQuantities.getOrDefault(room.getId(), 0);
+            tvQty.setText(String.valueOf(qty));
+            btnQtyMinus.setEnabled(qty > 0);
+            btnQtyPlus.setEnabled(qty < maxQty);
+            tvAvailableBadge.setText(getString(R.string.available_qty_format, Math.max(0, remainingBase - qty)));
+            if (qty > 0) {
+                layoutSelectedIndicator.setVisibility(View.VISIBLE);
+                tvSelectedIndicator.setText(getResources().getQuantityString(R.plurals.rooms_staged_total_count, qty, qty));
+                cardRoot.setStrokeWidth(strokeSelected);
+                cardRoot.setStrokeColor(ContextCompat.getColor(this, R.color.velocity_red_primary));
+                cardContent.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                        ContextCompat.getColor(this, R.color.velocity_red_bg_end)));
             } else {
-                btnSelectRoom.setText(R.string.select_room_button);
-                btnSelectRoom.setIconResource(R.drawable.ic_add);
-                btnSelectRoom.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                        ContextCompat.getColor(this, android.R.color.transparent)));
-                btnSelectRoom.setTextColor(ContextCompat.getColor(this, R.color.velocity_text_primary));
-                btnSelectRoom.setIconTint(android.content.res.ColorStateList.valueOf(
-                        ContextCompat.getColor(this, R.color.velocity_red_primary)));
+                layoutSelectedIndicator.setVisibility(View.GONE);
+                cardRoot.setStrokeWidth(0);
+                cardContent.setBackgroundTintList(null);
             }
         };
-        updateSelectButtonStyle.run();
+        refreshCardUi.run();
 
-        btnQtyMinus.setOnClickListener(v -> {
-            if (qty[0] > 1) {
-                qty[0]--;
-                tvQty.setText(String.valueOf(qty[0]));
-                updateBadge.run();
-                if (selected[0]) {
-                    stagedQuantities.put(room.getId(), qty[0]);
-                }
-            }
-        });
-        btnQtyPlus.setOnClickListener(v -> {
-            if (qty[0] < maxQty) {
-                qty[0]++;
-                tvQty.setText(String.valueOf(qty[0]));
-                updateBadge.run();
-                if (selected[0]) {
-                    stagedQuantities.put(room.getId(), qty[0]);
-                }
-            } else {
-                Toast.makeText(this, getString(R.string.no_more_rooms_available_toast, room.getName()), Toast.LENGTH_SHORT).show();
-            }
-        });
-        btnSelectRoom.setOnClickListener(v -> {
-            selected[0] = !selected[0];
-            if (selected[0]) {
+        // The one mutation point both selection paths funnel through -
+        // clamped to [0, maxQty], updates the shared staged maps, then
+        // refreshes this card and the dialog footer together.
+        java.util.function.IntConsumer applyQuantity = requested -> {
+            int clamped = Math.max(0, Math.min(requested, maxQty));
+            if (clamped > 0) {
                 stagedRooms.put(room.getId(), room);
-                stagedQuantities.put(room.getId(), qty[0]);
+                stagedQuantities.put(room.getId(), clamped);
             } else {
                 stagedRooms.remove(room.getId());
                 stagedQuantities.remove(room.getId());
             }
-            updateSelectButtonStyle.run();
+            refreshCardUi.run();
             updateFooter.run();
+        };
+
+        btnQtyMinus.setOnClickListener(v -> {
+            int current = stagedQuantities.getOrDefault(room.getId(), 0);
+            if (current > 0) applyQuantity.accept(current - 1);
         });
+        btnQtyPlus.setOnClickListener(v -> {
+            int current = stagedQuantities.getOrDefault(room.getId(), 0);
+            if (current < maxQty) {
+                applyQuantity.accept(current + 1);
+            } else {
+                Toast.makeText(this, getString(R.string.no_more_rooms_available_toast, room.getName()), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        cardContent.setOnClickListener(v -> RoomDetailsDialog.showForStaging(
+                this, room, selectedNights(), remainingBase,
+                stagedQuantities.getOrDefault(room.getId(), 0),
+                (r, newQty) -> applyQuantity.accept(newQty),
+                refreshCardUi));
 
         return card;
     }
