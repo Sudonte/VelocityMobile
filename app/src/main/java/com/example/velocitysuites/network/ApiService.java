@@ -17,6 +17,7 @@ import com.example.velocitysuites.network.dto.PaginatedResponse;
 import com.example.velocitysuites.network.dto.PaymentRequest;
 import com.example.velocitysuites.network.dto.PaymentSubmitResponse;
 import com.example.velocitysuites.network.dto.PaymentsResponse;
+import com.example.velocitysuites.network.dto.ReceiptDetailResponse;
 import com.example.velocitysuites.network.dto.ProfileResponse;
 import com.example.velocitysuites.network.dto.ProfileUpdateRequest;
 import com.example.velocitysuites.network.dto.ReactivateResendRequest;
@@ -235,8 +236,30 @@ public interface ApiService {
     @POST("guest/reservations/{id}/amenities/requests")
     Call<AmenityRequestDto> submitAmenityRequest(@Path("id") String id, @Body AmenityRequestSubmitRequest request);
 
+    /**
+     * Guest-level payment ledger across every transaction (Api\ProfileController::payments()) -
+     * already declared here for a while but not yet wired into any
+     * screen/repository method. Prefer a specific Booking/Reservation's own
+     * payment_transactions (richer - includes running totals and receipt
+     * linkage) for a single transaction's detail view; this is for a
+     * guest-wide "all my payments" ledger, if/when one is built - see
+     * RoomRepository#refreshGuestPayments().
+     */
     @GET("guest/payments")
     Call<PaymentsResponse> getPayments();
+
+    /**
+     * Authorization-protected lookup by receipt_number (PR-.../FR-.../OR-...) -
+     * Api\ReceiptController::show()/ReceiptService::findReceiptPayload()
+     * (backend). A PURE LOOKUP: never generates/mints a missing receipt,
+     * returns 404 for an unknown, not-yet-available, or not-owned-by-this-
+     * guest receipt_number, indistinguishably (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+     * §19). Not yet deployed to production as of this Android integration
+     * pass - do not call expecting it to exist until the backend branch
+     * ships and the receipt_number migration has run.
+     */
+    @GET("guest/receipts/{receiptNumber}")
+    Call<ReceiptDetailResponse> getReceipt(@Path("receiptNumber") String receiptNumber);
 
     @GET("guest/profile")
     Call<ProfileResponse> getProfile();

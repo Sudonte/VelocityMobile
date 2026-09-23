@@ -157,6 +157,8 @@
     <string name="receipt_pending_desc">Payment verification is currently pending. Your official receipt will become available after your payment has been verified and confirmed by Velocity Suites.</string>
     <string name="receipt_rejected_title">Receipt Not Available</string>
     <string name="receipt_rejected_desc">This payment was rejected, so no official receipt was generated. Please resubmit valid proof of payment.</string>
+    <!-- GET guest/receipts/{receiptNumber} - shown when the backend returns 404 (unknown, not-yet-available, or not owned by this guest - deliberately indistinguishable). -->
+    <string name="receipt_not_available_desc">This receipt is not available.</string>
     <string name="official_payment_receipt_title">Official Payment Receipt</string>
     <string name="receipt_reference_label">Payment Reference</string>
     <string name="receipt_reference_value_prefix">Ref:</string>

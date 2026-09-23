@@ -47,6 +47,17 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     private static final String TAG = "PaymentReceiptActivity";
     private static final String EXTRA_BOOKING = "EXTRA_BOOKING";
     private static final String EXTRA_AUTO_DOWNLOAD = "EXTRA_AUTO_DOWNLOAD";
+    /**
+     * Phase 4 prep only (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §17) - not
+     * yet read in onCreate() below. Establishes the safe Intent-extra key a
+     * future notification deep-link should use to open this Activity at a
+     * SPECIFIC receipt (Partial/Full-Payment/Official) by its
+     * receipt_number, once notifications carry one as structured data
+     * rather than only inside the free-text message. Do not derive this by
+     * parsing the visible notification message string - fragile, and the
+     * backend doesn't guarantee any particular wording there.
+     */
+    public static final String EXTRA_RECEIPT_NUMBER = "EXTRA_RECEIPT_NUMBER";
 
     private Booking booking;
     private View receiptCard;
@@ -67,6 +78,20 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         Intent intent = new Intent(context, PaymentReceiptActivity.class);
         intent.putExtra(EXTRA_BOOKING, booking);
         intent.putExtra(EXTRA_AUTO_DOWNLOAD, autoDownload);
+        return intent;
+    }
+
+    /**
+     * Phase 4 prep only - see EXTRA_RECEIPT_NUMBER's own doc. Not yet
+     * consumed by onCreate() below (still gated purely on the passed-in
+     * Booking snapshot, same as newIntent() above) - this only establishes
+     * the call shape a future notification deep-link/Receipts list entry
+     * can use once this Activity is redesigned (Phase 4) to fetch a
+     * specific receipt by number via RoomRepository#getReceipt().
+     */
+    public static Intent newIntentForReceipt(Context context, Booking booking, String receiptNumber) {
+        Intent intent = newIntent(context, booking, false);
+        intent.putExtra(EXTRA_RECEIPT_NUMBER, receiptNumber);
         return intent;
     }
 

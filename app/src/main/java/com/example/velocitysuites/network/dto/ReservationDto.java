@@ -79,6 +79,22 @@ public class ReservationDto {
      */
     public double total_amount_due;
 
+    /**
+     * Attached only on Api\ReservationController::show() (not index()) -
+     * delegates to the converted Booking's own authoritative summary once
+     * one exists, or a safe zero/PENDING default before that (see
+     * Reservation::paymentSummary(), backend). Null on any response that
+     * doesn't attach it yet - see PaymentSummaryDto's own doc. This is the
+     * SAME kind of block DirectBookingResponseDto#payment_summary carries -
+     * deliberately reusing PaymentSummaryDto rather than a second, parallel
+     * model, since the backend payload shape doesn't differ.
+     */
+    public PaymentSummaryDto payment_summary;
+    /** Attached only on show() - see DirectBookingResponseDto#payment_transactions's identical contract; empty before conversion (nothing can be receptionist-verified without a Booking yet). */
+    public java.util.List<PaymentTransactionDto> payment_transactions;
+    /** Attached only on show() - see DirectBookingResponseDto#receipts's identical contract; empty before conversion. */
+    public java.util.List<ReceiptSummaryDto> receipts;
+
     public static class DiscountPreviewDto {
         public double discount;
     }

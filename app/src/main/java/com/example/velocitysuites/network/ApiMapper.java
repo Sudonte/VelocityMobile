@@ -3,6 +3,7 @@ package com.example.velocitysuites.network;
 import com.example.velocitysuites.Booking;
 import com.example.velocitysuites.BookingAmenity;
 import com.example.velocitysuites.BookingRoom;
+import com.example.velocitysuites.ReceiptDetail;
 import com.example.velocitysuites.Room;
 import com.example.velocitysuites.RoomAmenity;
 import com.example.velocitysuites.TimeUtils;
@@ -10,6 +11,11 @@ import com.example.velocitysuites.network.dto.BookingAmenityDto;
 import com.example.velocitysuites.network.dto.BookingRoomDto;
 import com.example.velocitysuites.network.dto.DirectBookingResponseDto;
 import com.example.velocitysuites.network.dto.NotificationDto;
+import com.example.velocitysuites.network.dto.PaymentSummaryDto;
+import com.example.velocitysuites.network.dto.PaymentTransactionDto;
+import com.example.velocitysuites.network.dto.ReceiptDetailDto;
+import com.example.velocitysuites.network.dto.ReceiptDetailResponse;
+import com.example.velocitysuites.network.dto.ReceiptSummaryDto;
 import com.example.velocitysuites.network.dto.ReservationDto;
 import com.example.velocitysuites.network.dto.RoomAmenityDto;
 import com.example.velocitysuites.network.dto.RoomDto;
@@ -368,6 +374,14 @@ public final class ApiMapper {
         }
         booking.setAdditionalGuests(guests);
 
+        // Attached only by Api\ReservationController::show() (not index()) -
+        // null/empty on any other response, which Booking's own getters
+        // already fall back gracefully for - see PaymentSummaryDto's own
+        // doc and PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §11.
+        booking.setPaymentSummary(toPaymentSummary(dto.payment_summary));
+        booking.setPaymentTransactions(toPaymentTransactions(dto.payment_transactions));
+        booking.setReceipts(toReceipts(dto.receipts));
+
         return booking;
     }
 
@@ -474,6 +488,17 @@ public final class ApiMapper {
         historical.setSelectedPaymentPercentage(real.getSelectedPaymentPercentage());
         historical.setRequiredPaymentAmount(real.getRequiredPaymentAmount());
         historical.setAdditionalGuests(real.getAdditionalGuests());
+        // Unlike paymentHistory (deliberately not copied - see this method's
+        // own doc, to avoid double-counting per-payment rows in Transaction
+        // History's flattening), payment_summary/payment_transactions/receipts
+        // are booking-level aggregates describing the SAME underlying
+        // converted transaction, not per-item rows - safe, and desired, to
+        // carry over so this historical entry's own Booking Details still
+        // shows accurate figures (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+        // §7 - "converted Reservation -> Booking data must remain representable").
+        historical.setPaymentSummary(real.getPaymentSummary());
+        historical.setPaymentTransactions(real.getPaymentTransactions());
+        historical.setReceipts(real.getReceipts());
         // The Completed Reservation list must still show both the original
         // reservation creation date and the conversion date (getBookingDate(),
         // already passed to the constructor above via confirmed_at).
@@ -631,7 +656,103 @@ public final class ApiMapper {
         }
         booking.setAdditionalGuests(guests);
 
+        // Attached only by Api\BookingController::show() (not index()/store()) -
+        // see the ReservationDto overload's identical wiring above.
+        booking.setPaymentSummary(toPaymentSummary(dto.payment_summary));
+        booking.setPaymentTransactions(toPaymentTransactions(dto.payment_transactions));
+        booking.setReceipts(toReceipts(dto.receipts));
+
         return booking;
+    }
+
+    /**
+     * Null-safe - a response that hasn't attached payment_summary yet
+     * (older cached data, or a build predating this feature) must produce
+     * a null Booking.PaymentSummary, never a synthesized default; see
+     * Booking#hasAuthoritativePaymentSummary()'s fallback contract.
+     */
+    @androidx.annotation.Nullable
+    private static Booking.PaymentSummary toPaymentSummary(@androidx.annotation.Nullable PaymentSummaryDto dto) {
+        if (dto == null) return null;
+        return new Booking.PaymentSummary(
+                dto.grand_total,
+                dto.total_amount_paid,
+                dto.remaining_balance,
+                dto.payment_status,
+                dto.payment_percentage,
+                dto.official_receipt_available
+        );
+    }
+
+    /** Empty (never null) when the backend response didn't attach payment_transactions - see Booking#getPaymentTransactions()'s contract. */
+    private static List<Booking.PaymentTransactionRecord> toPaymentTransactions(@androidx.annotation.Nullable List<PaymentTransactionDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) return Collections.emptyList();
+        List<Booking.PaymentTransactionRecord> out = new ArrayList<>(dtos.size());
+        for (PaymentTransactionDto dto : dtos) {
+            out.add(new Booking.PaymentTransactionRecord(
+                    dto.id, dto.payment_method, dto.payment_stage, dto.transaction_type,
+                    dto.amount_paid, dto.payment_status, dto.verification_status,
+                    dto.gcash_number, dto.gcash_reference_number, dto.reference_number,
+                    dto.payment_percentage, dto.verified_by, dto.verified_at,
+                    dto.rejection_reason, dto.payment_date,
+                    dto.total_paid_after_transaction, dto.remaining_balance_after_transaction,
+                    dto.receipt_type, dto.receipt_number
+            ));
+        }
+        return out;
+    }
+
+    /** Empty (never null) when the backend response didn't attach receipts - see Booking#getReceipts()'s contract. */
+    private static List<Booking.ReceiptSummary> toReceipts(@androidx.annotation.Nullable List<ReceiptSummaryDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) return Collections.emptyList();
+        List<Booking.ReceiptSummary> out = new ArrayList<>(dtos.size());
+        for (ReceiptSummaryDto dto : dtos) {
+            out.add(new Booking.ReceiptSummary(
+                    dto.receipt_number, dto.receipt_type, dto.status, dto.amount,
+                    dto.payment_percentage, dto.issued_at
+            ));
+        }
+        return out;
+    }
+
+    /**
+     * GET guest/receipts/{receiptNumber} (Api\ReceiptController::show()) ->
+     * this app's ReceiptDetail model. See ReceiptDetail's own doc for the
+     * critical "display the snapshot exactly as returned" contract for a
+     * PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT.
+     */
+    public static ReceiptDetail toReceiptDetail(ReceiptDetailResponse response) {
+        ReceiptDetailDto dto = response.receipt;
+        ReceiptDetail.AnchorPayment anchor = null;
+        if (dto.anchor_payment != null) {
+            anchor = new ReceiptDetail.AnchorPayment(
+                    dto.anchor_payment.amount_paid,
+                    dto.anchor_payment.payment_method,
+                    dto.anchor_payment.payment_percentage,
+                    dto.anchor_payment.gcash_number,
+                    dto.anchor_payment.gcash_reference_number,
+                    dto.anchor_payment.verified_at,
+                    dto.anchor_payment.verified_by
+            );
+        }
+        return new ReceiptDetail(
+                dto.receipt_type,
+                dto.receipt_number,
+                String.valueOf(dto.booking_id),
+                dto.reservation_id != null ? String.valueOf(dto.reservation_id) : null,
+                dto.guest_account_name,
+                dto.representative_name,
+                dto.room_type,
+                toBookingRooms(dto.room_lines),
+                reformatDate(dto.check_in),
+                reformatDate(dto.check_out),
+                dto.number_of_nights,
+                dto.assigned_room_numbers,
+                toPaymentSummary(dto.payment_summary),
+                toPaymentTransactions(dto.payment_transactions),
+                anchor,
+                reformatDateTime(dto.issued_at)
+        );
     }
 
     private static double parseAmount(String s) {

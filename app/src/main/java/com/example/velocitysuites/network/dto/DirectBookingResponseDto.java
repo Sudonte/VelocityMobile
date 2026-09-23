@@ -78,4 +78,18 @@ public class DirectBookingResponseDto {
     public Double selected_payment_percentage;
     /** The peso amount that corresponds to selected_payment_percentage - same value as the latest payment's own amount_paid, kept alongside the percentage for convenience. */
     public Double required_payment_amount;
+
+    /**
+     * Attached only on Api\BookingController::show() (not index()/store()) -
+     * the authoritative Grand Total/Total Amount Paid/Remaining Balance/
+     * Payment Status/Official-Receipt-availability block (ReceiptService,
+     * backend). Null on any response that doesn't attach it yet - see
+     * PaymentSummaryDto's own doc. When present, this must be preferred
+     * over any client-side reconstruction from totalAmount/amountPaid.
+     */
+    public PaymentSummaryDto payment_summary;
+    /** Attached only on show() - the complete, chronological Payment Transaction History (ReceiptService::paymentTransactions(), backend). Null/absent on an older response - see PaymentTransactionDto's own doc. */
+    public java.util.List<PaymentTransactionDto> payment_transactions;
+    /** Attached only on show() - every receipt already issued for this booking (ReceiptService::receiptsList(), backend). Null/absent on an older response - see ReceiptSummaryDto's own doc. */
+    public java.util.List<ReceiptSummaryDto> receipts;
 }
