@@ -75,6 +75,52 @@
                 android:textColor="@color/velocity_inactive_gray"
                 android:textSize="11sp"
                 tools:text="Sep 02, 2026  •  10:24 AM" />
+
+            <!-- Booking-level Paid/Remaining - authoritative payment_summary when the
+                 backend has attached one, else the legacy fields (see
+                 PaymentTransactionAdapter#bindPaymentProgress()). Never this one
+                 transaction's own amount (tvPtxAmount, at right, already shows that). -->
+            <TextView
+                android:id="@+id/tvPtxPaymentProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="11sp"
+                tools:text="Paid ₱10,000.00  •  Remaining ₱0.00" />
+
+            <!-- "N Receipt(s) Available" - only when booking.getReceipts() is
+                 non-empty; tapping this whole card already opens
+                 TransactionDetailsActivity, where every receipt is individually
+                 listed (see item 11 of the Phase 5 spec - either UX is acceptable). -->
+            <LinearLayout
+                android:id="@+id/layoutPtxReceiptsAvailable"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="4dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_transaction_history"
+                    app:tint="@color/velocity_red_primary" />
+
+                <TextView
+                    android:id="@+id/tvPtxReceiptsAvailable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="10sp"
+                    tools:text="2 Receipts Available" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

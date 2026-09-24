@@ -245,6 +245,11 @@
     <string name="ptx_type_booking_payment">Booking Payment</string>
     <string name="ptx_type_reservation_payment">Reservation Payment</string>
     <string name="ptx_subtitle_format">%1$s  •  %2$s</string>
+    <string name="ptx_payment_progress_format">Paid %1$s  •  Remaining %2$s</string>
+    <plurals name="ptx_receipts_available">
+        <item quantity="one">%1$d Receipt Available</item>
+        <item quantity="other">%1$d Receipts Available</item>
+    </plurals>
     <string name="wizard_step_label_format">Step %1$d of %2$d - %3$s</string>
     <string name="wizard_final_step_label">Final step</string>
     <string name="stay_duration_summary_format">%1$d night(s) · %2$s – %3$s</string>

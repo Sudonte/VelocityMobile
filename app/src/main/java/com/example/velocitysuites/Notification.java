@@ -21,6 +21,11 @@ public class Notification implements Serializable {
     private String referenceId;
     private List<String> targetAudience;
     private String publishedAt;
+    /** The exact receipt this notification is about (e.g. "PR-20260925-000501"), or null - see ReceiptTypeMapper's PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT/OFFICIAL_RECEIPT constants for receiptType's possible values. Backend-authoritative only: never inferred from the message text, never guessed from booking status - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §8. Null for every notification created before this metadata existed and for every non-payment notification, which must keep behaving exactly as before. */
+    @androidx.annotation.Nullable
+    private String receiptNumber;
+    @androidx.annotation.Nullable
+    private String receiptType;
 
     public Notification(String id, String title, String message, String timestamp, String type, boolean isRead) {
         this(id, title, message, timestamp, type, isRead, null, null, null);
@@ -31,6 +36,11 @@ public class Notification implements Serializable {
     }
 
     public Notification(String id, String title, String message, String timestamp, String type, boolean isRead, String referenceId, List<String> targetAudience, String publishedAt) {
+        this(id, title, message, timestamp, type, isRead, referenceId, targetAudience, publishedAt, null, null);
+    }
+
+    public Notification(String id, String title, String message, String timestamp, String type, boolean isRead, String referenceId, List<String> targetAudience, String publishedAt,
+                         @androidx.annotation.Nullable String receiptNumber, @androidx.annotation.Nullable String receiptType) {
         this.id = id;
         this.title = title;
         this.message = message;
@@ -40,6 +50,8 @@ public class Notification implements Serializable {
         this.referenceId = referenceId;
         this.targetAudience = targetAudience;
         this.publishedAt = publishedAt;
+        this.receiptNumber = receiptNumber;
+        this.receiptType = receiptType;
     }
 
     // Getters
@@ -55,6 +67,16 @@ public class Notification implements Serializable {
     public List<String> getTargetAudience() { return targetAudience; }
     /** Absolute "MMM dd, yyyy at h:mm a" formatted publish date/time, distinct from the relative getTimestamp(). */
     public String getPublishedAt() { return publishedAt; }
+    /** Exact backend receipt_number this notification is about, or null - see this field's own doc above. */
+    @androidx.annotation.Nullable
+    public String getReceiptNumber() { return receiptNumber; }
+    /** PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT/OFFICIAL_RECEIPT (ReceiptTypeMapper), or null - always paired with a non-null getReceiptNumber(). */
+    @androidx.annotation.Nullable
+    public String getReceiptType() { return receiptType; }
+    /** True once the backend has attached a real, already-issued receipt_number - the single gate every receipt-navigation caller should check before using getReceiptNumber(). */
+    public boolean hasStructuredReceipt() {
+        return receiptNumber != null && !receiptNumber.trim().isEmpty();
+    }
 
     // Setters
     public void setRead(boolean read) { isRead = read; }

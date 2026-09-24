@@ -101,15 +101,29 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     }
 
     /**
-     * Phase 4 prep only - see EXTRA_RECEIPT_NUMBER's own doc. Not yet
-     * consumed by onCreate() below (still gated purely on the passed-in
-     * Booking snapshot, same as newIntent() above) - this only establishes
-     * the call shape a future notification deep-link/Receipts list entry
-     * can use once this Activity is redesigned (Phase 4) to fetch a
-     * specific receipt by number via RoomRepository#getReceipt().
+     * Used by the Receipts section (ReceiptCardHelper#buildReceiptsSection())
+     * where a Booking is already in hand alongside the receipt_number - see
+     * EXTRA_RECEIPT_NUMBER's own doc. onCreate() below checks
+     * EXTRA_RECEIPT_NUMBER first regardless of which overload was used, so
+     * the Booking extra this sets is simply unused once receipt-number mode
+     * takes over.
      */
     public static Intent newIntentForReceipt(Context context, Booking booking, String receiptNumber) {
         Intent intent = newIntent(context, booking, false);
+        intent.putExtra(EXTRA_RECEIPT_NUMBER, receiptNumber);
+        return intent;
+    }
+
+    /**
+     * Notification-deep-link variant - no Booking snapshot available/needed
+     * (see NotificationDetailsActivity#bindPrimaryAction()'s structured-
+     * receipt-number path): a bare receipt_number is enough to open the
+     * exact PR/FR/OR this notification was about, fetched fresh from
+     * GET /guest/receipts/{receiptNumber} exactly like the Booking-carrying
+     * overload above.
+     */
+    public static Intent newIntentForReceipt(Context context, String receiptNumber) {
+        Intent intent = new Intent(context, PaymentReceiptActivity.class);
         intent.putExtra(EXTRA_RECEIPT_NUMBER, receiptNumber);
         return intent;
     }

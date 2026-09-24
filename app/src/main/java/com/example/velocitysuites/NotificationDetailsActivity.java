@@ -196,21 +196,37 @@ public class NotificationDetailsActivity extends AppCompatActivity {
             btnPrimary.setVisibility(View.GONE);
         }
 
-        // Same gate as every other Payment Receipt entry point in the app
-        // (BookingDetailsActivity/TransactionDetailsActivity, via the shared
-        // ReceiptCardHelper.isLegacyReceiptVerified()) - only a notification
-        // whose related record already has a staff-verified payment gets
-        // this button at all, matching "Do not send the official payment
-        // receipt link before successful verification". Still routes to the
-        // legacy Booking-snapshot receipt (not a specific receipt_number) -
-        // Notification/NotificationDto carry no structured receipt_number/
-        // receipt_type today (confirmed 2026-09-24), so this can't yet open
-        // the exact PR/FR/OR this notification was actually about; see the
-        // Phase 5 report's notification-integration section for the gap.
+        bindReceiptAction();
+    }
+
+    /**
+     * Priority: a structured receipt_number on this notification itself
+     * (backend-attached - see Notification#hasStructuredReceipt()) always
+     * wins and opens that EXACT receipt by number - never the legacy
+     * Booking-snapshot receipt, never inferred from booking status, never a
+     * regex/parse of the message text (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+     * Phase 5 §8). Only when the notification carries no structured receipt
+     * at all (every notification created before this metadata existed, and
+     * any non-payment notification) does this fall back to the pre-existing
+     * legacy gate - same as every other Payment Receipt entry point in the
+     * app (BookingDetailsActivity/TransactionDetailsActivity, via the shared
+     * ReceiptCardHelper.isLegacyReceiptVerified()).
+     */
+    private void bindReceiptAction() {
         MaterialButton btnReceipt = findViewById(R.id.btnNotifViewReceipt);
+
+        if (notification.hasStructuredReceipt()) {
+            btnReceipt.setVisibility(View.VISIBLE);
+            btnReceipt.setText(ReceiptTypeMapper.labelForReceiptType(notification.getReceiptType()));
+            btnReceipt.setOnClickListener(v -> startActivity(
+                    PaymentReceiptActivity.newIntentForReceipt(this, notification.getReceiptNumber())));
+            return;
+        }
+
         boolean canViewReceipt = relatedBooking != null && ReceiptCardHelper.isLegacyReceiptVerified(relatedBooking);
         if (canViewReceipt) {
             btnReceipt.setVisibility(View.VISIBLE);
+            btnReceipt.setText(R.string.view_receipt_button_label);
             btnReceipt.setOnClickListener(v -> startActivity(PaymentReceiptActivity.newIntent(this, relatedBooking, false)));
         } else {
             btnReceipt.setVisibility(View.GONE);

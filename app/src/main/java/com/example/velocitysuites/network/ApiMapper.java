@@ -896,7 +896,9 @@ public final class ApiMapper {
                 dto.is_read,
                 dto.reference_id != null ? String.valueOf(dto.reference_id) : null,
                 dto.target_audience,
-                absoluteDateTime(dto.created_at)
+                absoluteDateTime(dto.created_at),
+                dto.receipt_number,
+                dto.receipt_type
         );
     }
 

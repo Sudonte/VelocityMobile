@@ -13,55 +13,116 @@ public final class PaymentStatusResolver {
     private PaymentStatusResolver() {
     }
 
-    public static Result resolve(Context ctx, Booking booking) {
-        String label;
-        int bgColorRes;
-        int fgColorRes;
-        int iconRes;
+    /**
+     * The pure, Context-free decision this whole class exists to make -
+     * separated from resolve() purely so it's JVM-unit-testable (this
+     * project has no Robolectric, so anything touching Context/R.string
+     * directly can't be - see PaymentStatusResolverTest). resolve() below is
+     * a thin Context-string/color lookup over this result; keep the two in
+     * lockstep if either changes.
+     */
+    public enum StatusKey {
+        CANCELLED, REJECTED, PENDING_VERIFICATION, NO_PAYMENT_YET, FULLY_PAID, PARTIALLY_PAID, PENDING
+    }
 
+    public static StatusKey resolveStatusKey(Booking booking) {
         if ("Cancelled".equalsIgnoreCase(booking.getStatus())) {
-            label = ctx.getString(R.string.status_cancelled);
-            bgColorRes = R.color.velocity_gray_soft;
-            fgColorRes = R.color.velocity_gray_primary;
-            iconRes = R.drawable.ic_close;
+            return StatusKey.CANCELLED;
         } else if (booking.isPaymentRejected()) {
-            label = ctx.getString(R.string.status_rejected);
-            bgColorRes = R.color.velocity_red_subtle;
-            fgColorRes = R.color.velocity_red_dark;
-            iconRes = R.drawable.ic_close;
+            return StatusKey.REJECTED;
         } else if (booking.isPaymentPendingVerification()) {
             // Must be checked before the plain !isHasBooking() branch below -
             // a GCash payment already submitted on a not-yet-converted
             // Reservation previously fell through to "No Payment Yet" here,
             // contradicting the separate "Awaiting Verification" pill shown
             // alongside it (see DashboardActivity's tvVerification).
-            label = ctx.getString(R.string.status_payment_verification_label);
-            bgColorRes = R.color.velocity_orange_soft;
-            fgColorRes = R.color.velocity_orange_primary;
-            iconRes = R.drawable.ic_info;
+            return StatusKey.PENDING_VERIFICATION;
         } else if (!booking.isHasBooking()) {
-            label = ctx.getString(R.string.no_payment_yet_label);
-            bgColorRes = R.color.velocity_gray_soft;
-            fgColorRes = R.color.velocity_inactive_gray;
-            iconRes = R.drawable.ic_clock;
-        } else if (booking.getRemainingBalance() <= 0.009) {
-            label = ctx.getString(R.string.status_fully_paid);
-            bgColorRes = R.color.velocity_green_soft;
-            fgColorRes = R.color.velocity_green_dark;
-            iconRes = R.drawable.ic_check_circle;
-        } else if (booking.getAmountPaid() > 0) {
-            label = ctx.getString(R.string.status_partial_paid);
-            bgColorRes = R.color.velocity_blue_soft;
-            fgColorRes = R.color.velocity_blue_primary;
-            iconRes = R.drawable.ic_clock;
-        } else {
-            label = ctx.getString(R.string.status_pending_label);
-            bgColorRes = R.color.velocity_red_subtle;
-            fgColorRes = R.color.velocity_red_primary;
-            iconRes = R.drawable.ic_clock;
+            return StatusKey.NO_PAYMENT_YET;
+        } else if (isFullyPaid(booking)) {
+            return StatusKey.FULLY_PAID;
+        } else if (isPartiallyPaid(booking)) {
+            return StatusKey.PARTIALLY_PAID;
+        }
+        return StatusKey.PENDING;
+    }
+
+    public static Result resolve(Context ctx, Booking booking) {
+        String label;
+        int bgColorRes;
+        int fgColorRes;
+        int iconRes;
+
+        switch (resolveStatusKey(booking)) {
+            case CANCELLED:
+                label = ctx.getString(R.string.status_cancelled);
+                bgColorRes = R.color.velocity_gray_soft;
+                fgColorRes = R.color.velocity_gray_primary;
+                iconRes = R.drawable.ic_close;
+                break;
+            case REJECTED:
+                label = ctx.getString(R.string.status_rejected);
+                bgColorRes = R.color.velocity_red_subtle;
+                fgColorRes = R.color.velocity_red_dark;
+                iconRes = R.drawable.ic_close;
+                break;
+            case PENDING_VERIFICATION:
+                label = ctx.getString(R.string.status_payment_verification_label);
+                bgColorRes = R.color.velocity_orange_soft;
+                fgColorRes = R.color.velocity_orange_primary;
+                iconRes = R.drawable.ic_info;
+                break;
+            case NO_PAYMENT_YET:
+                label = ctx.getString(R.string.no_payment_yet_label);
+                bgColorRes = R.color.velocity_gray_soft;
+                fgColorRes = R.color.velocity_inactive_gray;
+                iconRes = R.drawable.ic_clock;
+                break;
+            case FULLY_PAID:
+                label = ctx.getString(R.string.status_fully_paid);
+                bgColorRes = R.color.velocity_green_soft;
+                fgColorRes = R.color.velocity_green_dark;
+                iconRes = R.drawable.ic_check_circle;
+                break;
+            case PARTIALLY_PAID:
+                label = ctx.getString(R.string.status_partial_paid);
+                bgColorRes = R.color.velocity_blue_soft;
+                fgColorRes = R.color.velocity_blue_primary;
+                iconRes = R.drawable.ic_clock;
+                break;
+            case PENDING:
+            default:
+                label = ctx.getString(R.string.status_pending_label);
+                bgColorRes = R.color.velocity_red_subtle;
+                fgColorRes = R.color.velocity_red_primary;
+                iconRes = R.drawable.ic_clock;
+                break;
         }
 
         return new Result(label, bgColorRes, fgColorRes, iconRes);
+    }
+
+    /**
+     * Fully Paid/Partially Paid/Pending - the backend's own
+     * payment_summary.payment_status (PAID/PARTIALLY_PAID/PENDING) when the
+     * backend has attached one, taken as authoritative and never locally
+     * reinterpreted from raw transaction sums; only falls back to the legacy
+     * getRemainingBalance()/getAmountPaid() comparison when no payment_summary
+     * is present at all (an older/not-yet-migrated response) - see
+     * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §13/§15.
+     */
+    private static boolean isFullyPaid(Booking booking) {
+        if (booking.hasAuthoritativePaymentSummary()) {
+            return "PAID".equals(booking.getPaymentSummary().paymentStatus);
+        }
+        return booking.getRemainingBalance() <= 0.009;
+    }
+
+    private static boolean isPartiallyPaid(Booking booking) {
+        if (booking.hasAuthoritativePaymentSummary()) {
+            return "PARTIALLY_PAID".equals(booking.getPaymentSummary().paymentStatus);
+        }
+        return booking.getAmountPaid() > 0;
     }
 
     /**
