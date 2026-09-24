@@ -365,7 +365,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         // of any outstanding balance.
         if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) return false;
 
-        boolean currentlyDue = !"Checked-Out".equalsIgnoreCase(status) && b.getRemainingBalance() > 0.009;
+        boolean currentlyDue = !"Checked-Out".equalsIgnoreCase(status) && b.getEffectiveRemainingBalance() > 0.009;
         if (currentlyDue) return true;
 
         boolean createdToday = isSameCalendarDay(b.getBookingDate(), 0);
@@ -398,8 +398,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         // Most urgent first: a currently-due balance outranks a same-day event with
         // nothing owed, then fall back to the existing status ordering.
         paymentBookings.sort((firstBooking, secondBooking) -> {
-            boolean firstDue = !"Checked-Out".equalsIgnoreCase(firstBooking.getStatus()) && firstBooking.getRemainingBalance() > 0.009;
-            boolean secondDue = !"Checked-Out".equalsIgnoreCase(secondBooking.getStatus()) && secondBooking.getRemainingBalance() > 0.009;
+            boolean firstDue = !"Checked-Out".equalsIgnoreCase(firstBooking.getStatus()) && firstBooking.getEffectiveRemainingBalance() > 0.009;
+            boolean secondDue = !"Checked-Out".equalsIgnoreCase(secondBooking.getStatus()) && secondBooking.getEffectiveRemainingBalance() > 0.009;
             if (firstDue != secondDue) return firstDue ? -1 : 1;
             return getBookingPriority(firstBooking) - getBookingPriority(secondBooking);
         });
@@ -480,8 +480,12 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
 
         double total = b.getTotalAmount();
-        double paid = b.getAmountPaid();
-        double remaining = b.getRemainingBalance();
+        // Backend-authoritative payment_summary totals when attached, else the
+        // legacy fields - see Booking#getEffectiveTotalAmountPaid()'s own doc
+        // (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1) - must never
+        // disagree with the PaymentStatusResolver pill shown right below.
+        double paid = b.getEffectiveTotalAmountPaid();
+        double remaining = b.getEffectiveRemainingBalance();
 
         tvTotal.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), total));
         tvPaid.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), paid));

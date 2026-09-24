@@ -73,13 +73,27 @@ public final class BookingStatusPresenter {
         badge.setCompoundDrawablePadding((int) (4 * context.getResources().getDisplayMetrics().density));
     }
 
-    /** Plain payment-status word for the dedicated Payment Status pill (no "Payment: " prefix). */
+    /**
+     * Plain payment-status word for the dedicated Payment Status pill (no
+     * "Payment: " prefix). Prefers the backend's own authoritative
+     * payment_summary.payment_status (PAID/PARTIALLY_PAID/PENDING) over the
+     * legacy billingStatus string when available, so this pill can never
+     * disagree with the authoritative Paid/Remaining figures shown right
+     * next to it on BookingDetailsActivity/TransactionDetailsActivity - see
+     * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1.
+     */
     public static String paymentStatusPillText(Context context, Booking b) {
         if (!b.isHasBooking()) {
             return context.getString(R.string.no_payment_yet_label);
         }
         if (b.isPaymentPendingVerification()) {
             return context.getString(R.string.awaiting_verification_label);
+        }
+        if (b.hasAuthoritativePaymentSummary()) {
+            String authoritative = b.getPaymentSummary().paymentStatus;
+            if ("PAID".equals(authoritative)) return context.getString(R.string.status_fully_paid);
+            if ("PARTIALLY_PAID".equals(authoritative)) return context.getString(R.string.status_partial_paid);
+            if ("PENDING".equals(authoritative)) return context.getString(R.string.status_pending_label);
         }
         String status = b.getBillingStatus() != null ? b.getBillingStatus() : "pending";
         switch (status.toLowerCase(Locale.US)) {
@@ -99,11 +113,11 @@ public final class BookingStatusPresenter {
             bg = R.color.velocity_blue_soft;
             fg = R.color.velocity_blue_primary;
             iconRes = R.drawable.ic_info;
-        } else if ("paid".equalsIgnoreCase(b.getBillingStatus())) {
+        } else if (isAuthoritativelyPaid(b) || (!b.hasAuthoritativePaymentSummary() && "paid".equalsIgnoreCase(b.getBillingStatus()))) {
             bg = R.color.velocity_green_soft;
             fg = R.color.velocity_green_dark;
             iconRes = R.drawable.ic_check_circle;
-        } else if (b.getAmountPaid() > 0) {
+        } else if (b.getEffectiveTotalAmountPaid() > 0) {
             bg = R.color.velocity_blue_soft;
             fg = R.color.velocity_blue_primary;
             iconRes = R.drawable.ic_clock;
@@ -122,5 +136,10 @@ public final class BookingStatusPresenter {
         }
         pill.setCompoundDrawables(icon, null, null, null);
         pill.setCompoundDrawablePadding((int) (4 * context.getResources().getDisplayMetrics().density));
+    }
+
+    /** Same authoritative-first rule as {@link #paymentStatusPillText}, isolated so stylePaymentStatusPill's color branch can share it. */
+    private static boolean isAuthoritativelyPaid(Booking b) {
+        return b.hasAuthoritativePaymentSummary() && "PAID".equals(b.getPaymentSummary().paymentStatus);
     }
 }
