@@ -377,8 +377,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // outstanding (matches PaymentReceiptActivity's identical fullyPaid gate),
         // and Percentage is the deposit percentage chosen once at reservation-
         // creation time (Booking#getSelectedPaymentPercentage()'s own doc).
-        boolean fullyPaid = booking.getRemainingBalance() <= 0.009;
-        if (booking.getAmountPaid() > 0.009 || booking.isHasBooking()) {
+        // Backend-authoritative payment_summary totals when attached, else the
+        // legacy fields - must never disagree with the Payment Status row
+        // right below (BookingStatusPresenter.paymentStatusPillText(), same
+        // authoritative-first rule) - PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+        // Phase 6 §1.
+        boolean fullyPaid = booking.getEffectiveRemainingBalance() <= 0.009;
+        if (booking.getEffectiveTotalAmountPaid() > 0.009 || booking.isHasBooking()) {
             addInfoRow(container, getString(R.string.details_label_payment_type),
                     getString(fullyPaid ? R.string.review_payment_type_full : R.string.review_payment_type_partial));
         }
