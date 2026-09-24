@@ -16,6 +16,7 @@ import com.example.velocitysuites.NotificationDetailsActivity;
 import com.example.velocitysuites.PaymentReceiptActivity;
 import com.example.velocitysuites.ReceiptDetail;
 import com.example.velocitysuites.R;
+import com.example.velocitysuites.ThemePreferences;
 
 /**
  * DEBUG-ONLY developer entry point (Phase 6B) for visually previewing the
@@ -46,6 +47,32 @@ public class DebugReceiptPreviewActivity extends AppCompatActivity {
         title.setTextSize(16);
         title.setPadding(0, 0, 0, dp(16));
         root.addView(title);
+
+        // Reuses the app's real ThemePreferences (Profile Management's own
+        // Appearance toggle) - plain local SharedPreferences + AppCompatDelegate,
+        // no login/network involved, so it's safe to expose directly here for
+        // manual Light/Dark verification without needing to sign in first.
+        LinearLayout themeRow = new LinearLayout(this);
+        themeRow.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams themeRowParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        themeRowParams.bottomMargin = dp(16);
+        themeRow.setLayoutParams(themeRowParams);
+        Button lightBtn = new Button(this);
+        lightBtn.setText("Light Mode");
+        lightBtn.setAllCaps(false);
+        lightBtn.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        lightBtn.setOnClickListener(v -> ThemePreferences.setMode(this, ThemePreferences.MODE_LIGHT));
+        Button darkBtn = new Button(this);
+        darkBtn.setText("Dark Mode");
+        darkBtn.setAllCaps(false);
+        LinearLayout.LayoutParams darkParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        darkParams.leftMargin = dp(8);
+        darkBtn.setLayoutParams(darkParams);
+        darkBtn.setOnClickListener(v -> ThemePreferences.setMode(this, ThemePreferences.MODE_DARK));
+        themeRow.addView(lightBtn);
+        themeRow.addView(darkBtn);
+        root.addView(themeRow);
 
         addButton(root, "Partial Receipt (PR)", v ->
                 startActivity(receiptIntent(DebugReceiptFixtures.partialReceipt())));
