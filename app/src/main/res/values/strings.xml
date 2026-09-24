@@ -906,7 +906,7 @@
     <string name="pay_now_confirm_msg">Do you want to continue with the payment process for reservation %1$s?</string>
     <string name="reservation_converted_to_booking_msg">Payment successful! Your reservation has been converted into a confirmed booking.</string>
     <string name="balance_format">Balance: %1$s</string>
-    <string name="no_balance_label">Fully paid - no balance</string>
+    <string name="no_balance_label">Fully paid - no balance</string>
     <string name="scan_qr_title">Scan QR Code and Pay</string>
     <string name="scan_qr_desc">Open your GCash app, tap Scan QR, and point your camera at our official code below to pay instantly.</string>
     <string name="gcash_qr_desc">Official Velocity Suites GCash QR code</string>
@@ -1084,7 +1084,7 @@
     <string name="awaiting_verification_label">Pending Verification</string>
     <string name="pending_verification_label">Pending Verification</string>
     <string name="payment_status_format">Payment: %1$s</string>
-    <string name="no_payment_yet_label">Reservation - no payment yet</string>
+    <string name="no_payment_yet_label">Reservation - no payment yet</string>
     <string name="booking_list_title">Booking List</string>
     <string name="reservation_list_label">Reservation List</string>
     <!-- Full list-section headings, one per Confirmed/Completed/Cancelled

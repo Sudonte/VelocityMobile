@@ -37,7 +37,7 @@ public final class PaymentStatusResolver {
             // contradicting the separate "Awaiting Verification" pill shown
             // alongside it (see DashboardActivity's tvVerification).
             return StatusKey.PENDING_VERIFICATION;
-        } else if (!booking.isHasBooking()) {
+        } else if (!booking.isHasBooking() && !hasRecordedPayment(booking)) {
             return StatusKey.NO_PAYMENT_YET;
         } else if (isFullyPaid(booking)) {
             return StatusKey.FULLY_PAID;
@@ -123,6 +123,21 @@ public final class PaymentStatusResolver {
             return "PARTIALLY_PAID".equals(booking.getPaymentSummary().paymentStatus);
         }
         return booking.getAmountPaid() > 0;
+    }
+
+    /**
+     * True once real money has actually been recorded against this
+     * Booking/Reservation - lets a not-yet-converted Reservation that
+     * already received a payment (e.g. a PR-anchored partial payment made
+     * before conversion) resolve to its real FULLY_PAID/PARTIALLY_PAID/
+     * PENDING state above instead of the !isHasBooking() branch forcing
+     * NO_PAYMENT_YET regardless of what was actually paid.
+     */
+    private static boolean hasRecordedPayment(Booking booking) {
+        if (booking.hasAuthoritativePaymentSummary()) {
+            return booking.getPaymentSummary().totalAmountPaid > 0.009;
+        }
+        return booking.getAmountPaid() > 0.009;
     }
 
     /**

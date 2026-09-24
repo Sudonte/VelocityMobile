@@ -83,7 +83,7 @@ public final class BookingStatusPresenter {
      * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1.
      */
     public static String paymentStatusPillText(Context context, Booking b) {
-        if (!b.isHasBooking()) {
+        if (!b.isHasBooking() && b.getEffectiveTotalAmountPaid() <= 0.009) {
             return context.getString(R.string.no_payment_yet_label);
         }
         if (b.isPaymentPendingVerification()) {
@@ -105,7 +105,7 @@ public final class BookingStatusPresenter {
 
     public static void stylePaymentStatusPill(Context context, TextView pill, Booking b) {
         int bg, fg, iconRes;
-        if (!b.isHasBooking()) {
+        if (!b.isHasBooking() && b.getEffectiveTotalAmountPaid() <= 0.009) {
             bg = R.color.velocity_gray_soft;
             fg = R.color.velocity_inactive_gray;
             iconRes = R.drawable.ic_clock;
