@@ -60,57 +60,31 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * Same gated Payment Receipt card as BookingDetailsActivity's Payment tab
-     * (see that class's buildReceiptActionCard() for the full rationale) -
-     * duplicated in structure rather than shared as one method since the two
-     * screens build their info sections completely differently (this one is
-     * a single flat PaymentTransaction record, not a full Booking dynamic
-     * section), but the gating rule itself must stay identical: only
-     * booking.isStaffVerified() with an actual payment on record unlocks
-     * View/Download, routed through the same PaymentReceiptActivity so
-     * there's still exactly one place that actually renders/exports the PDF.
+     * "Receipts" (one card per booking.getReceipts() entry) when the backend
+     * has already issued at least one, hiding the legacy single-receipt
+     * include entirely in that case; otherwise falls back to the same
+     * gated Payment Receipt card BookingDetailsActivity's Payment tab shows,
+     * now shared via ReceiptCardHelper instead of duplicated inline here -
+     * only booking.isStaffVerified() with an actual payment on record
+     * unlocks View/Download, routed through the same PaymentReceiptActivity
+     * so there's still exactly one place that actually renders/exports the PDF.
      */
     private void buildReceiptActionCard() {
-        View card = findViewById(R.id.includeReceiptAction);
-        ImageView icon = card.findViewById(R.id.ivReceiptStatusIcon);
-        TextView title = card.findViewById(R.id.tvReceiptStatusTitle);
-        TextView desc = card.findViewById(R.id.tvReceiptStatusDesc);
-        View buttonRow = card.findViewById(R.id.layoutReceiptButtons);
-        com.google.android.material.button.MaterialButton btnView = card.findViewById(R.id.btnViewReceipt);
-        com.google.android.material.button.MaterialButton btnDownload = card.findViewById(R.id.btnDownloadReceipt);
+        View legacyCard = findViewById(R.id.includeReceiptAction);
+        LinearLayout receiptsSection = findViewById(R.id.sectionTxDetailReceipts);
 
-        boolean hasPayment = booking.getAmountPaid() > 0.009 || booking.isPaymentPendingVerification() || booking.isPaymentRejected();
-        if (!hasPayment) {
-            card.setVisibility(View.GONE);
+        if (!booking.getReceipts().isEmpty()) {
+            legacyCard.setVisibility(View.GONE);
+            ReceiptCardHelper.buildReceiptsSection(this, receiptsSection, booking);
             return;
         }
-        card.setVisibility(View.VISIBLE);
 
-        boolean verified = booking.isStaffVerified() && booking.getAmountPaid() > 0.009;
-        if (verified) {
-            icon.setImageResource(R.drawable.ic_check_circle);
-            icon.setImageTintList(androidx.core.content.ContextCompat.getColorStateList(this, R.color.velocity_green_dark));
-            title.setText(R.string.receipt_verified_title);
-            title.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.velocity_green_dark));
-            desc.setText(R.string.receipt_verified_desc);
-            buttonRow.setVisibility(View.VISIBLE);
-            btnView.setOnClickListener(v -> startActivity(PaymentReceiptActivity.newIntent(this, booking, false)));
-            btnDownload.setOnClickListener(v -> startActivity(PaymentReceiptActivity.newIntent(this, booking, true)));
-        } else if (booking.isPaymentRejected()) {
-            icon.setImageResource(R.drawable.ic_close);
-            icon.setImageTintList(androidx.core.content.ContextCompat.getColorStateList(this, R.color.velocity_red_dark));
-            title.setText(R.string.receipt_rejected_title);
-            title.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.velocity_red_dark));
-            desc.setText(R.string.receipt_rejected_desc);
-            buttonRow.setVisibility(View.GONE);
-        } else {
-            icon.setImageResource(R.drawable.ic_lock);
-            icon.setImageTintList(androidx.core.content.ContextCompat.getColorStateList(this, R.color.velocity_inactive_gray));
-            title.setText(R.string.receipt_pending_title);
-            title.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.velocity_text_primary));
-            desc.setText(R.string.receipt_pending_desc);
-            buttonRow.setVisibility(View.GONE);
+        if (!ReceiptCardHelper.hasLegacyReceiptCandidate(booking)) {
+            legacyCard.setVisibility(View.GONE);
+            return;
         }
+        legacyCard.setVisibility(View.VISIBLE);
+        ReceiptCardHelper.bindLegacyReceiptActionCard(this, legacyCard, booking);
     }
 
     private void bindHeader() {
@@ -197,11 +171,15 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         addInfoRow(container, getString(R.string.payment_status), BookingStatusPresenter.paymentStatusPillText(this, booking));
         addInfoRow(container, getString(R.string.details_label_payment_date), transaction.getDate());
         addInfoRow(container, getString(R.string.details_label_total_amount), formatPrice(booking.getTotalAmount()));
-        if (booking.getAmountPaid() > 0.009) {
-            addInfoRow(container, getString(R.string.details_label_amount_paid), formatPrice(booking.getAmountPaid()));
+        // Backend-authoritative payment_summary totals when attached, else the
+        // legacy client-side fields - see Booking#getEffectiveTotalAmountPaid()'s doc.
+        double effectiveAmountPaid = booking.getEffectiveTotalAmountPaid();
+        double effectiveRemainingBalance = booking.getEffectiveRemainingBalance();
+        if (effectiveAmountPaid > 0.009) {
+            addInfoRow(container, getString(R.string.details_label_amount_paid), formatPrice(effectiveAmountPaid));
         }
-        if (booking.getRemainingBalance() > 0.009) {
-            addInfoRow(container, getString(R.string.details_label_remaining_balance), formatPrice(booking.getRemainingBalance()));
+        if (effectiveRemainingBalance > 0.009) {
+            addInfoRow(container, getString(R.string.details_label_remaining_balance), formatPrice(effectiveRemainingBalance));
         }
         if (booking.getPaymentVerificationStatus() != null) {
             addInfoRow(container, getString(R.string.details_label_verification_status), booking.getPaymentVerificationStatus());
@@ -216,14 +194,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             }
         }
 
-        List<Booking.PaymentRecord> history = booking.getPaymentHistory();
-        if (history != null && !history.isEmpty()) {
-            addSectionDivider(container, getString(R.string.details_label_payment_history));
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-            for (Booking.PaymentRecord record : history) {
-                container.addView(buildPaymentHistoryRow(container, record, currencyFormat));
-            }
-        }
+        buildPaymentHistorySection(container);
 
         // Full accurate timestamp trail for this transaction - each row is
         // skipped entirely (addInfoRow already no-ops on empty/null) when the
@@ -239,6 +210,27 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             addInfoRow(container, getString(R.string.timeline_payment_verified), booking.getPaymentVerifiedAtDisplay());
             addInfoRow(container, getString(R.string.timeline_checked_in), booking.getCheckedInAtDisplay());
             addInfoRow(container, getString(R.string.timeline_checked_out), booking.getCheckedOutAtDisplay());
+        }
+    }
+
+    /** Same authoritative-first-with-fallback rule as BookingDetailsActivity#buildPaymentHistorySection() - see that method's doc. */
+    private void buildPaymentHistorySection(LinearLayout container) {
+        List<Booking.PaymentTransactionRecord> transactions = booking.getPaymentTransactions();
+        if (!transactions.isEmpty()) {
+            addSectionDivider(container, getString(R.string.details_label_payment_history));
+            for (int i = 0; i < transactions.size(); i++) {
+                container.addView(ReceiptCardHelper.buildTransactionRow(this, container, transactions.get(i), i == transactions.size() - 1));
+            }
+            return;
+        }
+
+        List<Booking.PaymentRecord> history = booking.getPaymentHistory();
+        if (history != null && !history.isEmpty()) {
+            addSectionDivider(container, getString(R.string.details_label_payment_history));
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
+            for (Booking.PaymentRecord record : history) {
+                container.addView(buildPaymentHistoryRow(container, record, currencyFormat));
+            }
         }
     }
 

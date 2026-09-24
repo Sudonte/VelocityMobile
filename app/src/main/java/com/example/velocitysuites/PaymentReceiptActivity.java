@@ -362,23 +362,13 @@ public class PaymentReceiptActivity extends AppCompatActivity {
                     formatPrice(detail.getAnchorPayment().amountPaid));
             addRow(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
             addRow(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
-            addRow(content, getString(R.string.receipt_payment_status_label), statusLabelFor(summary.paymentStatus));
+            addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
         } else {
             // OFFICIAL_RECEIPT - final settlement; Total Amount Paid made prominent below.
             addRow(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
-            addRow(content, getString(R.string.receipt_payment_status_label), statusLabelFor(summary.paymentStatus));
+            addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
             addDivider(content, dp(12));
             addProminentTotal(content, getString(R.string.receipt_total_amount_paid_label), formatPrice(summary.totalAmountPaid));
-        }
-    }
-
-    private String statusLabelFor(@Nullable String paymentStatus) {
-        if (paymentStatus == null) return getString(R.string.status_verified);
-        switch (paymentStatus) {
-            case "PAID": return getString(R.string.receipt_status_official_paid);
-            case "PARTIALLY_PAID": return getString(R.string.status_partial_paid);
-            case "PENDING": return getString(R.string.status_pending_label);
-            default: return paymentStatus;
         }
     }
 
@@ -407,83 +397,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         }
 
         for (int i = 0; i < transactions.size(); i++) {
-            View row = buildTransactionRow(content, transactions.get(i), i == transactions.size() - 1);
+            View row = ReceiptCardHelper.buildTransactionRow(this, content, transactions.get(i), i == transactions.size() - 1);
             content.addView(row);
         }
-    }
-
-    private View buildTransactionRow(ViewGroup parent, Booking.PaymentTransactionRecord tx, boolean isLast) {
-        View row = getLayoutInflater().inflate(R.layout.item_receipt_transaction_entry, parent, false);
-
-        String methodLabel = "gcash".equalsIgnoreCase(tx.paymentMethod) ? getString(R.string.payment_method_gcash) : getString(R.string.payment_method_cash);
-        String typeLabel = ReceiptTypeMapper.labelForTransactionType(tx.transactionType);
-        ((TextView) row.findViewById(R.id.tvTxTitle)).setText(methodLabel + " " + typeLabel);
-        ((TextView) row.findViewById(R.id.tvTxDate)).setText(
-                tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "");
-
-        TextView statusView = row.findViewById(R.id.tvTxStatus);
-        String statusLabel;
-        int statusBg;
-        int statusFg;
-        if (tx.verificationStatus != null) {
-            switch (tx.verificationStatus) {
-                case "verified": statusLabel = getString(R.string.status_verified); statusBg = R.color.velocity_green_soft; statusFg = R.color.velocity_green_dark; break;
-                case "rejected": statusLabel = getString(R.string.status_rejected); statusBg = R.color.velocity_red_subtle; statusFg = R.color.velocity_red_dark; break;
-                default: statusLabel = getString(R.string.status_payment_verification_label); statusBg = R.color.velocity_orange_soft; statusFg = R.color.velocity_orange_primary;
-            }
-        } else if ("rejected".equalsIgnoreCase(tx.paymentStatus)) {
-            statusLabel = getString(R.string.status_rejected); statusBg = R.color.velocity_red_subtle; statusFg = R.color.velocity_red_dark;
-        } else if ("failed".equalsIgnoreCase(tx.paymentStatus)) {
-            statusLabel = getString(R.string.status_rejected); statusBg = R.color.velocity_red_subtle; statusFg = R.color.velocity_red_dark;
-        } else if ("completed".equalsIgnoreCase(tx.paymentStatus)) {
-            statusLabel = getString(R.string.receipt_status_official_paid); statusBg = R.color.velocity_green_soft; statusFg = R.color.velocity_green_dark;
-        } else {
-            statusLabel = getString(R.string.status_pending_label); statusBg = R.color.velocity_orange_soft; statusFg = R.color.velocity_orange_primary;
-        }
-        statusView.setText(statusLabel);
-        statusView.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(statusBg)));
-        statusView.setTextColor(getColor(statusFg));
-
-        bindInflatedRow(row, R.id.rowTxAmount, getString(R.string.details_label_amount_paid), formatPrice(tx.amountPaid));
-        bindInflatedRow(row, R.id.rowTxPercentage, getString(R.string.receipt_payment_percentage_label),
-                tx.paymentPercentage != null ? PaymentPercentageUtil.formatApiPercentageForDisplay(tx.paymentPercentage) : null);
-        // Cash checkout rows legitimately have no GCash fields at all - these
-        // rows simply don't render rather than showing an empty value (see
-        // item 13 of the Phase 4 checklist).
-        boolean isGcash = "gcash".equalsIgnoreCase(tx.paymentMethod);
-        bindInflatedRow(row, R.id.rowTxGcashMobile, getString(R.string.receipt_gcash_mobile_label),
-                isGcash ? GcashReferenceFormatter.formatMobileNumber(tx.gcashNumber) : null);
-        String reference = tx.gcashReferenceNumber != null ? tx.gcashReferenceNumber : tx.referenceNumber;
-        bindInflatedRow(row, R.id.rowTxGcashReference, getString(R.string.receipt_gcash_reference_number_label),
-                isGcash ? GcashReferenceFormatter.formatOrFallback(reference, getString(R.string.receipt_gcash_value_missing), getString(R.string.receipt_gcash_reference_legacy_incomplete)) : null);
-        bindInflatedRow(row, R.id.rowTxVerifiedAt, getString(R.string.receipt_verified_at_label),
-                tx.verifiedAt != null ? TimeUtils.formatDateTime(tx.verifiedAt) : null);
-
-        View receiptBadge = row.findViewById(R.id.layoutTxReceiptBadge);
-        if (tx.receiptType != null && tx.receiptNumber != null) {
-            receiptBadge.setVisibility(View.VISIBLE);
-            ((TextView) row.findViewById(R.id.tvTxReceiptType)).setText(ReceiptTypeMapper.labelForReceiptType(tx.receiptType));
-            ((TextView) row.findViewById(R.id.tvTxReceiptNumber)).setText(tx.receiptNumber);
-        } else {
-            receiptBadge.setVisibility(View.GONE);
-        }
-
-        if (isLast) {
-            row.findViewById(R.id.viewTimelineConnector).setVisibility(View.INVISIBLE);
-        }
-
-        return row;
-    }
-
-    private void bindInflatedRow(View parent, int includeId, String label, @Nullable String value) {
-        View row = parent.findViewById(includeId);
-        if (row == null) return;
-        if (value == null || value.trim().isEmpty()) {
-            row.setVisibility(View.GONE);
-            return;
-        }
-        ((TextView) row.findViewById(R.id.tvRowLabel)).setText(label);
-        ((TextView) row.findViewById(R.id.tvRowValue)).setText(value);
     }
 
     // ---- Small dynamic-UI builder helpers (receipt-number mode only) ----

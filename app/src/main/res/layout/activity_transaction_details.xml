@@ -160,13 +160,24 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- "Receipts" - one card per booking.getReceipts() entry (see
+                 ReceiptCardHelper#buildReceiptsSection()), populated only when the
+                 backend has already issued at least one; empty/untouched otherwise. -->
+            <LinearLayout
+                android:id="@+id/sectionTxDetailReceipts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:orientation="vertical" />
+
             <!-- Payment Receipt: same gated card/action as BookingDetailsActivity's
                  Payment tab (see item_payment_receipt_action.xml) - replaces the old
                  unconditional Download Receipt button that used to call
                  ReceiptPdfGenerator directly regardless of verification status.
                  Request Amenities intentionally removed from Transaction History
                  (kept only on the live Booking Details screen, not this historical
-                 per-payment record view). -->
+                 per-payment record view). Hidden entirely once sectionTxDetailReceipts
+                 above is populated - see TransactionDetailsActivity#buildReceiptActionCard(). -->
             <include
                 android:id="@+id/includeReceiptAction"
                 layout="@layout/item_payment_receipt_action" />

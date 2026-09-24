@@ -55,7 +55,10 @@ public final class BookingGroupAggregator {
         double totalAmount = 0, amountPaid = 0, roomCharge = 0, amenityCharge = 0, additionalGuestFee = 0;
         for (Booking member : groupMembers) {
             totalAmount += member.getTotalAmount();
-            amountPaid += member.getAmountPaid();
+            // Each sibling's own backend-authoritative payment_summary.total_amount_paid
+            // when the backend has attached one to that member, else its legacy
+            // amountPaid field - see Booking#getEffectiveTotalAmountPaid()'s own doc.
+            amountPaid += member.getEffectiveTotalAmountPaid();
             roomCharge += member.getRoomCharge();
             // Amenities/additional-guest fee were attached to exactly one sibling at
             // creation time (PaymentActivity#submitPendingBookingGroups()'s/

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     One card in a "Receipts" section (ReceiptCardHelper#buildReceiptsSection()) -
+     used by BookingDetailsActivity/TransactionDetailsActivity. Every
+     receipt the backend has actually issued for a booking (Booking#getReceipts(),
+     PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT/OFFICIAL_RECEIPT alike) gets its
+     own independent card of this shape - opening one never hides/replaces
+     another (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §3).
+     Differentiates receipt type via icon + text label + status badge, not
+     color alone (item 28 of the Phase 5 checklist).
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="@color/velocity_surface_elevated"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/velocity_divider_hairline"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="14dp">
+
+        <ImageView
+            android:id="@+id/ivReceiptCardIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="12dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_transaction_history"
+            app:tint="@color/velocity_red_primary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvReceiptCardType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp"
+                tools:text="Partial Payment Receipt" />
+
+            <TextView
+                android:id="@+id/tvReceiptCardNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textIsSelectable="true"
+                android:textSize="11sp"
+                tools:text="PR-20260920-000501" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvReceiptCardStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_green_soft"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_green_dark"
+                    android:textSize="9sp"
+                    tools:text="Verified" />
+
+                <TextView
+                    android:id="@+id/tvReceiptCardAmount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-bold"
+                    android:gravity="end"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    tools:text="₱5,000.00" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="8dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_arrow_forward"
+            app:tint="@color/velocity_text_secondary" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -222,6 +222,7 @@
     <string name="receipt_label_reservation_id">Reservation ID</string>
     <string name="details_label_rejection_reason">Reason</string>
     <string name="details_label_receipt_image">Receipt / Proof of Payment</string>
+    <string name="details_label_receipts_section">Receipts</string>
     <string name="details_label_payment_history">Payment History</string>
     <string name="details_label_converted_booking">Converted Booking</string>
     <string name="details_label_cancelled_on">Cancelled On</string>

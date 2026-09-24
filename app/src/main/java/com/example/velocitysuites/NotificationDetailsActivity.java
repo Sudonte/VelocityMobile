@@ -197,13 +197,18 @@ public class NotificationDetailsActivity extends AppCompatActivity {
         }
 
         // Same gate as every other Payment Receipt entry point in the app
-        // (BookingDetailsActivity/TransactionDetailsActivity) - only a
-        // notification whose related record already has a staff-verified
-        // payment gets this button at all, matching "Do not send the
-        // official payment receipt link before successful verification".
+        // (BookingDetailsActivity/TransactionDetailsActivity, via the shared
+        // ReceiptCardHelper.isLegacyReceiptVerified()) - only a notification
+        // whose related record already has a staff-verified payment gets
+        // this button at all, matching "Do not send the official payment
+        // receipt link before successful verification". Still routes to the
+        // legacy Booking-snapshot receipt (not a specific receipt_number) -
+        // Notification/NotificationDto carry no structured receipt_number/
+        // receipt_type today (confirmed 2026-09-24), so this can't yet open
+        // the exact PR/FR/OR this notification was actually about; see the
+        // Phase 5 report's notification-integration section for the gap.
         MaterialButton btnReceipt = findViewById(R.id.btnNotifViewReceipt);
-        boolean canViewReceipt = relatedBooking != null
-                && relatedBooking.isStaffVerified() && relatedBooking.getAmountPaid() > 0.009;
+        boolean canViewReceipt = relatedBooking != null && ReceiptCardHelper.isLegacyReceiptVerified(relatedBooking);
         if (canViewReceipt) {
             btnReceipt.setVisibility(View.VISIBLE);
             btnReceipt.setOnClickListener(v -> startActivity(PaymentReceiptActivity.newIntent(this, relatedBooking, false)));

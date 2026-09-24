@@ -76,6 +76,25 @@ public class BookingGroupAggregatorTest {
     }
 
     @Test
+    public void amountPaid_prefersEachMembersAuthoritativePaymentSummaryOverItsLegacyField() {
+        // Phase 5 §11: once the backend has attached its own payment_summary to a
+        // sibling, that member's legacy amountPaid (which may be stale/wrong - e.g.
+        // undercounting an amenity paid separately) must not be summed instead.
+        Booking withAuthoritativeSummary = member(10000.0, 2000.0, 10000.0, 0.0, 0.0);
+        withAuthoritativeSummary.setPaymentSummary(new Booking.PaymentSummary(
+                10000.0, 7000.0, 3000.0, "PARTIALLY_PAID", 70, false));
+        Booking legacyOnly = member(16000.0, 8000.0, 16000.0, 0.0, 0.0);
+
+        List<Booking> members = new ArrayList<>();
+        members.add(withAuthoritativeSummary);
+        members.add(legacyOnly);
+
+        BookingGroupAggregator.Totals totals = BookingGroupAggregator.sum(members);
+        // 7000 (authoritative) + 8000 (legacy fallback), never 2000 + 8000.
+        assertEquals(15000.0, totals.amountPaid, 0.001);
+    }
+
+    @Test
     public void amenityChargeOnNonFirstMember_stillPickedUpRegardlessOfPosition() {
         // Same index==0 attachment convention, but verifying the sum doesn't
         // depend on WHICH position actually carries the non-zero amenityCharge.
