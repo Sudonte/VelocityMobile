@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.button.MaterialButton;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -374,16 +373,24 @@ public class BookingDetailsActivity extends AppCompatActivity {
         } else {
             addInfoRow(container, getString(R.string.details_label_transaction_ref), booking.getTransactionRef());
         }
-        // Payment Type/Percentage only apply while a payment obligation is still
-        // outstanding (matches PaymentReceiptActivity's identical fullyPaid gate),
-        // and Percentage is the deposit percentage chosen once at reservation-
-        // creation time (Booking#getSelectedPaymentPercentage()'s own doc).
-        boolean fullyPaid = booking.getRemainingBalance() <= 0.009;
-        if (booking.getAmountPaid() > 0.009 || booking.isHasBooking()) {
+        // Percentage is the deposit/full-payment percentage chosen once at
+        // reservation-creation time (Booking#getSelectedPaymentPercentage()'s own
+        // doc) - shown regardless of fullyPaid, so a Full Payment (100%)
+        // transaction still shows "Payment Percentage: 100%" instead of the row
+        // being hidden entirely (the old `!fullyPaid` gate here hid it for every
+        // Full Payment, since that always leaves remainingBalance at 0 - the exact
+        // bug PaymentReceiptActivity#populateReceipt() already fixed; kept
+        // consistent with it here). Backend-authoritative payment_summary totals
+        // when attached, else the legacy fields - must never disagree with the
+        // Payment Status row right below (BookingStatusPresenter.paymentStatusPillText(),
+        // same authoritative-first rule) - PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+        // Phase 6 §1.
+        boolean fullyPaid = booking.getEffectiveRemainingBalance() <= 0.009;
+        if (booking.getEffectiveTotalAmountPaid() > 0.009 || booking.isHasBooking()) {
             addInfoRow(container, getString(R.string.details_label_payment_type),
                     getString(fullyPaid ? R.string.review_payment_type_full : R.string.review_payment_type_partial));
         }
-        if (!fullyPaid && booking.getSelectedPaymentPercentage() != null) {
+        if (booking.getSelectedPaymentPercentage() != null) {
             addInfoRow(container, getString(R.string.receipt_payment_percentage_label),
                     formatPercentage(booking.getSelectedPaymentPercentage()));
         }
@@ -434,8 +441,12 @@ public class BookingDetailsActivity extends AppCompatActivity {
             amenityCharge = booking.getAmenityCharge();
             additionalGuestFee = booking.getAdditionalGuestFee();
             totalAmount = booking.getTotalAmount();
-            amountPaid = booking.getAmountPaid();
-            remainingBalance = booking.getRemainingBalance();
+            // Backend-authoritative payment_summary.total_amount_paid/remaining_balance
+            // when attached, else the legacy client-side fields - see
+            // Booking#getEffectiveTotalAmountPaid()'s own doc
+            // (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §11).
+            amountPaid = booking.getEffectiveTotalAmountPaid();
+            remainingBalance = booking.getEffectiveRemainingBalance();
         }
 
         // ---- 1. Selected Amenities: every selected amenity, then Amenities
@@ -509,6 +520,27 @@ public class BookingDetailsActivity extends AppCompatActivity {
             container.addView(receiptView);
         }
 
+        buildPaymentHistorySection(container);
+    }
+
+    /**
+     * Payment Transaction History - prefers the backend-authoritative
+     * booking.getPaymentTransactions() (richer: includes payment_stage,
+     * verifier, receipt cross-reference) when the backend has attached one;
+     * falls back to the legacy flat paymentHistory only for an older/
+     * not-yet-migrated response. Never both at once - showing the same
+     * payments twice would double the guest's apparent transaction count.
+     */
+    private void buildPaymentHistorySection(LinearLayout container) {
+        List<Booking.PaymentTransactionRecord> transactions = booking.getPaymentTransactions();
+        if (!transactions.isEmpty()) {
+            addSectionDivider(container, getString(R.string.details_label_payment_history));
+            for (int i = 0; i < transactions.size(); i++) {
+                container.addView(ReceiptCardHelper.buildTransactionRow(this, container, transactions.get(i), i == transactions.size() - 1));
+            }
+            return;
+        }
+
         List<Booking.PaymentRecord> history = booking.getPaymentHistory();
         if (history != null && !history.isEmpty()) {
             addSectionDivider(container, getString(R.string.details_label_payment_history));
@@ -527,52 +559,30 @@ public class BookingDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * Gates View/Download Receipt strictly on booking.isStaffVerified() (the
-     * same server-authoritative signal PaymentStatusResolver already treats
-     * as "verified" everywhere else) plus an actual payment existing - a
-     * plain Reservation with no payment involved shows no card at all (see
-     * business rule: a reservation with no monetary payment must not have a
-     * payment receipt). A guest-uploaded GCash screenshot
-     * (booking.getReceiptUrl(), shown separately below as "Receipt image")
-     * is never treated as satisfying this - only staff verification does.
+     * "Receipts" (one card per booking.getReceipts() entry, each opening its
+     * own PaymentReceiptActivity by exact receipt_number) when the backend
+     * has already issued at least one; otherwise falls back to the legacy
+     * single-receipt card gated on booking.isStaffVerified() (the same
+     * server-authoritative signal PaymentStatusResolver already treats as
+     * "verified" everywhere else) plus an actual payment existing - a plain
+     * Reservation with no payment involved shows no card at all. A guest-
+     * uploaded GCash screenshot (booking.getReceiptUrl(), shown separately
+     * below as "Receipt image") is never treated as satisfying either path -
+     * only staff verification/an actually-issued receipt does. See
+     * ReceiptCardHelper for the shared binding logic (previously inlined
+     * here and duplicated byte-for-byte in TransactionDetailsActivity).
      */
     private void buildReceiptActionCard(LinearLayout container) {
-        boolean hasPayment = booking.getAmountPaid() > 0.009 || booking.isPaymentPendingVerification() || booking.isPaymentRejected();
-        if (!hasPayment) return;
+        if (!booking.getReceipts().isEmpty()) {
+            addSectionDivider(container, getString(R.string.details_label_receipts_section));
+            ReceiptCardHelper.buildReceiptsSection(this, container, booking);
+            return;
+        }
+
+        if (!ReceiptCardHelper.hasLegacyReceiptCandidate(booking)) return;
 
         View card = LayoutInflater.from(this).inflate(R.layout.item_payment_receipt_action, container, false);
-        ImageView icon = card.findViewById(R.id.ivReceiptStatusIcon);
-        TextView title = card.findViewById(R.id.tvReceiptStatusTitle);
-        TextView desc = card.findViewById(R.id.tvReceiptStatusDesc);
-        View buttonRow = card.findViewById(R.id.layoutReceiptButtons);
-        MaterialButton btnView = card.findViewById(R.id.btnViewReceipt);
-        MaterialButton btnDownload = card.findViewById(R.id.btnDownloadReceipt);
-
-        boolean verified = booking.isStaffVerified() && booking.getAmountPaid() > 0.009;
-        if (verified) {
-            icon.setImageResource(R.drawable.ic_check_circle);
-            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.velocity_green_dark));
-            title.setText(R.string.receipt_verified_title);
-            title.setTextColor(ContextCompat.getColor(this, R.color.velocity_green_dark));
-            desc.setText(R.string.receipt_verified_desc);
-            buttonRow.setVisibility(View.VISIBLE);
-            btnView.setOnClickListener(v -> startActivity(PaymentReceiptActivity.newIntent(this, booking, false)));
-            btnDownload.setOnClickListener(v -> startActivity(PaymentReceiptActivity.newIntent(this, booking, true)));
-        } else if (booking.isPaymentRejected()) {
-            icon.setImageResource(R.drawable.ic_close);
-            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.velocity_red_dark));
-            title.setText(R.string.receipt_rejected_title);
-            title.setTextColor(ContextCompat.getColor(this, R.color.velocity_red_dark));
-            desc.setText(R.string.receipt_rejected_desc);
-            buttonRow.setVisibility(View.GONE);
-        } else {
-            icon.setImageResource(R.drawable.ic_lock);
-            icon.setImageTintList(ContextCompat.getColorStateList(this, R.color.velocity_inactive_gray));
-            title.setText(R.string.receipt_pending_title);
-            title.setTextColor(ContextCompat.getColor(this, R.color.velocity_text_primary));
-            desc.setText(R.string.receipt_pending_desc);
-            buttonRow.setVisibility(View.GONE);
-        }
+        ReceiptCardHelper.bindLegacyReceiptActionCard(this, card, booking);
         container.addView(card);
     }
 

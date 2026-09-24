@@ -293,8 +293,12 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         }
 
         double total = booking.getTotalAmount();
-        double paid = booking.getAmountPaid();
-        double remaining = Math.max(0, booking.getRemainingBalance());
+        // Backend-authoritative payment_summary totals when attached, else the
+        // legacy fields - see Booking#getEffectiveTotalAmountPaid()'s own doc
+        // (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1) - must never
+        // disagree with the PaymentStatusResolver pill shown right above.
+        double paid = booking.getEffectiveTotalAmountPaid();
+        double remaining = Math.max(0, booking.getEffectiveRemainingBalance());
         tvTotal.setText(currencyFormat.format(total));
         tvPaid.setText(currencyFormat.format(paid));
         tvRemaining.setText(currencyFormat.format(remaining));

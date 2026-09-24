@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     One row in a receipt's Payment Transaction History timeline
+     (PaymentReceiptActivity#buildTransactionRow()). Left column is the
+     timeline dot + connecting line (line hidden on the last row by the
+     Activity); right column is a card with the transaction's fields, all
+     individually hide-able since a Cash checkout row legitimately has no
+     GCash/percentage/receipt fields (see item_receipt_row.xml reuse below
+     for that same hide-when-empty behavior).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="24dp"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/shape_timeline_dot" />
+
+        <View
+            android:id="@+id/viewTimelineConnector"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="2dp"
+            android:background="@color/velocity_red_soft" />
+    </LinearLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="14dp"
+        app:cardBackgroundColor="@color/velocity_surface_elevated"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/velocity_divider_hairline"
+        app:strokeWidth="1dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvTxTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-bold"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="13sp"
+                        tools:text="GCash Partial Payment" />
+
+                    <TextView
+                        android:id="@+id/tvTxDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="11sp"
+                        tools:text="Sep 20, 2026 • 3:45 PM" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvTxStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_green_soft"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_green_dark"
+                    android:textSize="9sp"
+                    tools:text="Verified" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/velocity_divider_hairline" />
+
+            <include layout="@layout/item_receipt_row" android:id="@+id/rowTxAmount" />
+            <include layout="@layout/item_receipt_row" android:id="@+id/rowTxPercentage" />
+            <include layout="@layout/item_receipt_row" android:id="@+id/rowTxGcashMobile" />
+            <include layout="@layout/item_receipt_row" android:id="@+id/rowTxGcashReference" />
+            <include layout="@layout/item_receipt_row" android:id="@+id/rowTxVerifiedAt" />
+
+            <LinearLayout
+                android:id="@+id/layoutTxReceiptBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_subtle"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/tvTxReceiptType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="10sp"
+                    tools:text="Partial Payment Receipt" />
+
+                <TextView
+                    android:id="@+id/tvTxReceiptNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="10sp"
+                    tools:text="PR-20260920-000001" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

@@ -13,6 +13,8 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,9 +49,37 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     private static final String TAG = "PaymentReceiptActivity";
     private static final String EXTRA_BOOKING = "EXTRA_BOOKING";
     private static final String EXTRA_AUTO_DOWNLOAD = "EXTRA_AUTO_DOWNLOAD";
+    /**
+     * Phase 4 prep only (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §17) - not
+     * yet read in onCreate() below. Establishes the safe Intent-extra key a
+     * future notification deep-link should use to open this Activity at a
+     * SPECIFIC receipt (Partial/Full-Payment/Official) by its
+     * receipt_number, once notifications carry one as structured data
+     * rather than only inside the free-text message. Do not derive this by
+     * parsing the visible notification message string - fragile, and the
+     * backend doesn't guarantee any particular wording there.
+     */
+    public static final String EXTRA_RECEIPT_NUMBER = "EXTRA_RECEIPT_NUMBER";
 
     private Booking booking;
     private View receiptCard;
+    /** Receipt-number mode only (see EXTRA_RECEIPT_NUMBER) - null in legacy Booking-snapshot mode. */
+    @Nullable
+    private String receiptNumber;
+    /**
+     * The currently-rendered receipt, if any - a plain instance field, never
+     * cached anywhere static/shared (RoomRepository does not cache
+     * ReceiptDetail either - see its getReceipt() doc). Each Activity
+     * instance renders exactly one receipt for its own lifetime; opening a
+     * different receipt_number always means a new Activity instance via a
+     * new Intent, never this same instance being re-populated - so PR and OR
+     * can never bleed into one another (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+     * §27).
+     */
+    @Nullable
+    private ReceiptDetail receiptDetail;
+    /** The View actually visible on screen right now (receiptCard in legacy mode, layoutDynamicReceiptContent in receipt-number mode) - what Download Receipt renders to PDF. */
+    private View activeReceiptView;
     /**
      * Every sibling Booking/Reservation created together with this one as a
      * multi-room-type transaction (see BookingGroupState/BookingDetailsActivity's
@@ -70,11 +100,61 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         return intent;
     }
 
+    /**
+     * Used by the Receipts section (ReceiptCardHelper#buildReceiptsSection())
+     * where a Booking is already in hand alongside the receipt_number - see
+     * EXTRA_RECEIPT_NUMBER's own doc. onCreate() below checks
+     * EXTRA_RECEIPT_NUMBER first regardless of which overload was used, so
+     * the Booking extra this sets is simply unused once receipt-number mode
+     * takes over.
+     */
+    public static Intent newIntentForReceipt(Context context, Booking booking, String receiptNumber) {
+        Intent intent = newIntent(context, booking, false);
+        intent.putExtra(EXTRA_RECEIPT_NUMBER, receiptNumber);
+        return intent;
+    }
+
+    /**
+     * Notification-deep-link variant - no Booking snapshot available/needed
+     * (see NotificationDetailsActivity#bindPrimaryAction()'s structured-
+     * receipt-number path): a bare receipt_number is enough to open the
+     * exact PR/FR/OR this notification was about, fetched fresh from
+     * GET /guest/receipts/{receiptNumber} exactly like the Booking-carrying
+     * overload above.
+     */
+    public static Intent newIntentForReceipt(Context context, String receiptNumber) {
+        Intent intent = new Intent(context, PaymentReceiptActivity.class);
+        intent.putExtra(EXTRA_RECEIPT_NUMBER, receiptNumber);
+        return intent;
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment_receipt);
 
+        ImageButton btnBack = findViewById(R.id.btnReceiptBack);
+        btnBack.setOnClickListener(v -> finish());
+
+        // receipt-number mode takes priority whenever present - a caller that
+        // supplies EXTRA_RECEIPT_NUMBER always gets the backend-authoritative
+        // ReceiptDetail rendering (PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT/
+        // OFFICIAL_RECEIPT), never the legacy Booking-snapshot path below,
+        // even if EXTRA_BOOKING was also supplied (newIntentForReceipt()
+        // includes both today, but the Booking extra is unused in this mode).
+        // If the fetch itself fails (404/network/malformed response), this
+        // shows the error state - it deliberately does NOT fall back to
+        // rendering the passed-in Booking snapshot instead, since that would
+        // be exactly the "manufacture a local receipt" the backend must stay
+        // authoritative against (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+        // §25/§29).
+        receiptNumber = getIntent().getStringExtra(EXTRA_RECEIPT_NUMBER);
+        if (receiptNumber != null && !receiptNumber.trim().isEmpty()) {
+            initReceiptNumberMode();
+            return;
+        }
+
+        // ---- LEGACY MODE - unchanged from before Phase 4 ----
         booking = (Booking) getIntent().getSerializableExtra(EXTRA_BOOKING);
         if (booking == null || !booking.isStaffVerified() || booking.getAmountPaid() <= 0.009) {
             Toast.makeText(this, R.string.receipt_pending_desc, Toast.LENGTH_LONG).show();
@@ -82,9 +162,8 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return;
         }
 
-        ImageButton btnBack = findViewById(R.id.btnReceiptBack);
-        btnBack.setOnClickListener(v -> finish());
         receiptCard = findViewById(R.id.receiptCard);
+        activeReceiptView = receiptCard;
 
         resolveGroupMembers();
         populateReceipt();
@@ -94,6 +173,378 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         if (getIntent().getBooleanExtra(EXTRA_AUTO_DOWNLOAD, false)) {
             receiptCard.post(this::downloadReceiptAsPdf);
         }
+    }
+
+    // ==================== Receipt-number mode (Phase 4) ====================
+
+    /**
+     * DEBUG-ONLY preview hook (Phase 6B) - see
+     * com.example.velocitysuites.debug.DebugReceiptPreviewActivity, which
+     * lives entirely under src/debug and does not exist in a release
+     * build. Keyed by receipt_number (not a single last-wins field) - a
+     * single static field here caused a real bug found during physical-
+     * device verification: tapping a Booking Details receipt card or a
+     * notification's "Payment Receipt" button always re-rendered whichever
+     * fixture had most recently been opened from the top-level debug menu,
+     * silently ignoring the actual receipt_number being requested (e.g. an
+     * FR notification opened PR). Looking this map up BY the exact
+     * receiptNumber this Activity was actually asked to show, instead of
+     * trusting one shared last-write-wins field, closes that gap - the
+     * SAME "never guess/never show the wrong receipt" rule the production
+     * navigation code follows for real. Never assigned from anywhere but
+     * src/debug; guarded by BuildConfig.DEBUG below so a release build
+     * (DEBUG=false) can never take this branch regardless.
+     */
+    public static final java.util.Map<String, ReceiptDetail> debugPreviewFixtures = new java.util.HashMap<>();
+
+    private void initReceiptNumberMode() {
+        findViewById(R.id.btnReceiptRetry).setOnClickListener(v -> loadReceiptByNumber());
+        // Download is wired once a receipt actually loads (see renderReceiptDetail()) -
+        // hidden until then so it can never be tapped against stale/absent data
+        // (item 22 of the Phase 4 checklist).
+        findViewById(R.id.btnReceiptDownload).setVisibility(View.GONE);
+        loadReceiptByNumber();
+    }
+
+    /**
+     * PURE LOOKUP by receipt_number (RoomRepository#getReceipt() -> GET
+     * guest/receipts/{receiptNumber}) - never derives a receipt number from
+     * visible text, payment percentage, or remaining balance, and never
+     * fabricates a receipt locally on failure. A 404/network/malformed-
+     * response failure always shows the error state below, never a stale or
+     * substituted receipt - the backend remains the sole source of truth
+     * for both the receipt's content and whether this guest may see it at
+     * all (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §29).
+     */
+    private void loadReceiptByNumber() {
+        if (BuildConfig.DEBUG && debugPreviewFixtures.containsKey(receiptNumber)) {
+            ReceiptDetail fixture = debugPreviewFixtures.get(receiptNumber);
+            receiptDetail = fixture;
+            renderReceiptDetail(fixture);
+            return;
+        }
+
+        showLoadingState();
+        RoomRepository.getInstance(this).getReceipt(receiptNumber, new RoomRepository.RepositoryCallback<ReceiptDetail>() {
+            @Override
+            public void onSuccess(ReceiptDetail result) {
+                if (isFinishing() || isDestroyed()) return;
+                receiptDetail = result;
+                renderReceiptDetail(result);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                showErrorState(message);
+            }
+        });
+    }
+
+    private void showLoadingState() {
+        findViewById(R.id.layoutReceiptLoading).setVisibility(View.VISIBLE);
+        findViewById(R.id.layoutReceiptError).setVisibility(View.GONE);
+        findViewById(R.id.receiptScrollView).setVisibility(View.GONE);
+    }
+
+    private void showErrorState(String message) {
+        findViewById(R.id.layoutReceiptLoading).setVisibility(View.GONE);
+        findViewById(R.id.receiptScrollView).setVisibility(View.GONE);
+        View errorLayout = findViewById(R.id.layoutReceiptError);
+        errorLayout.setVisibility(View.VISIBLE);
+        ((TextView) findViewById(R.id.tvReceiptErrorMessage)).setText(
+                message != null && !message.trim().isEmpty() ? message : getString(R.string.receipt_load_failed_desc));
+    }
+
+    private void showContentState() {
+        findViewById(R.id.layoutReceiptLoading).setVisibility(View.GONE);
+        findViewById(R.id.layoutReceiptError).setVisibility(View.GONE);
+        findViewById(R.id.receiptScrollView).setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Renders a fetched receipt entirely from ReceiptDetail - never
+     * PaymentStatusResolver, Booking#getAmountPaid()/getPaymentHistory(), or
+     * any other legacy client-side calculation (see
+     * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §30). For a PARTIAL_RECEIPT/
+     * FULL_PAYMENT_RECEIPT, detail.getPaymentSummary()/getPaymentTransactions()
+     * are already the frozen point-in-time snapshot the backend computed
+     * (see ReceiptDetail's own doc) - displayed exactly as received, never
+     * recomputed or replaced with a separately-cached Booking's current
+     * live totals.
+     */
+    private void renderReceiptDetail(ReceiptDetail detail) {
+        receiptCard = findViewById(R.id.receiptCard);
+        receiptCard.setVisibility(View.GONE);
+
+        ViewGroup content = findViewById(R.id.layoutDynamicReceiptContent);
+        content.removeAllViews();
+        content.setVisibility(View.VISIBLE);
+        activeReceiptView = content;
+
+        String typeLabel = ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType());
+        ((TextView) findViewById(R.id.tvReceiptHeaderTitle)).setText(typeLabel);
+
+        buildHeaderSection(content, detail, typeLabel);
+        buildStaySection(content, detail);
+        buildGuestSection(content, detail);
+        buildPaymentSummarySection(content, detail);
+        buildTransactionHistorySection(content, detail);
+
+        MaterialButton btnDownload = findViewById(R.id.btnReceiptDownload);
+        btnDownload.setVisibility(View.VISIBLE);
+        btnDownload.setOnClickListener(v -> downloadReceiptAsPdf(activeReceiptView,
+                detail.getReceiptNumber() != null ? detail.getReceiptNumber() : detail.getBookingId()));
+
+        showContentState();
+    }
+
+    /** Receipt Header + Receipt Status - see item 5 of the Phase 4 checklist. */
+    private void buildHeaderSection(ViewGroup parent, ReceiptDetail detail, String typeLabel) {
+        LinearLayout content = newSectionCard(parent, null);
+
+        ImageView logo = new ImageView(this);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(56), dp(56));
+        logoParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        logo.setLayoutParams(logoParams);
+        logo.setImageResource(R.drawable.velocity_suites_logo);
+        logo.setContentDescription(getString(R.string.app_name));
+        content.addView(logo);
+
+        content.addView(centeredText(getString(R.string.app_name), 16, true, R.color.velocity_red_primary, dp(6)));
+        content.addView(centeredText(getString(R.string.welcome_tagline), 11, false, R.color.velocity_text_secondary, dp(2)));
+        content.addView(centeredText(typeLabel, 15, true, R.color.velocity_text_primary, dp(14)));
+
+        String statusText = "OFFICIAL_RECEIPT".equals(detail.getReceiptType())
+                ? getString(R.string.receipt_status_official_paid)
+                : getString(R.string.status_verified);
+        LinearLayout badge = new LinearLayout(this);
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        badgeParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        badgeParams.topMargin = dp(8);
+        badge.setLayoutParams(badgeParams);
+        badge.setBackgroundResource(R.drawable.shape_intro_pill);
+        badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.velocity_green_soft)));
+        badge.setPadding(dp(14), dp(6), dp(14), dp(6));
+        TextView badgeText = new TextView(this);
+        badgeText.setText(statusText);
+        badgeText.setTextColor(getColor(R.color.velocity_green_dark));
+        badgeText.setTypeface(badgeText.getTypeface(), android.graphics.Typeface.BOLD);
+        badgeText.setTextSize(12);
+        badge.addView(badgeText);
+        content.addView(badge);
+
+        addDivider(content, dp(16));
+        addRow(content, getString(R.string.receipt_reference_label), detail.getReceiptNumber());
+        addRow(content, getString(R.string.receipt_issued_date_label),
+                detail.getIssuedAt() != null ? TimeUtils.formatDateTime(detail.getIssuedAt()) : null);
+    }
+
+    /** Stay/Booking Information - item 7. */
+    private void buildStaySection(ViewGroup parent, ReceiptDetail detail) {
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_booking_information_title));
+        addRow(content, getString(R.string.receipt_label_booking_id), detail.getBookingId());
+        addRow(content, getString(R.string.receipt_original_reservation_id_label), detail.getReservationId());
+        addRow(content, getString(R.string.details_label_room_type), formatRoomLinesValue(detail));
+        addRow(content, getString(R.string.details_label_check_in), detail.getCheckIn());
+        addRow(content, getString(R.string.details_label_check_out), detail.getCheckOut());
+        addRow(content, getString(R.string.receipt_number_of_nights_label),
+                detail.getNumberOfNights() > 0 ? String.valueOf(detail.getNumberOfNights()) : null);
+        if (!detail.getAssignedRoomNumbers().isEmpty()) {
+            addRow(content, getString(R.string.details_label_room_number),
+                    android.text.TextUtils.join(", ", detail.getAssignedRoomNumbers()));
+        }
+    }
+
+    private String formatRoomLinesValue(ReceiptDetail detail) {
+        List<BookingRoom> lines = detail.getRoomLines();
+        if (!lines.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (BookingRoom room : lines) {
+                if (sb.length() > 0) sb.append('\n');
+                sb.append(room.getRoomTypeName()).append(" ×").append(room.getQuantity());
+            }
+            return sb.toString();
+        }
+        return detail.getRoomType();
+    }
+
+    /** Guest Information - item 6. */
+    private void buildGuestSection(ViewGroup parent, ReceiptDetail detail) {
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_guest_information_title));
+        addRow(content, getString(R.string.receipt_guest_account_name_label), detail.getGuestAccountName());
+        addRow(content, getString(R.string.details_label_representative_name), detail.getRepresentativeName());
+    }
+
+    /**
+     * Payment Summary - items 8/9/10. detail.isAnchoredOnSinglePayment()
+     * distinguishes a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT (a frozen
+     * point-in-time snapshot, anchored on one specific payment) from an
+     * OFFICIAL_RECEIPT (the live final checkout totals) - both cases read
+     * exclusively from detail.getPaymentSummary(), never a separately
+     * fetched/cached Booking.
+     */
+    private void buildPaymentSummarySection(ViewGroup parent, ReceiptDetail detail) {
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_summary_title));
+        Booking.PaymentSummary summary = detail.getPaymentSummary();
+        if (summary == null) {
+            return;
+        }
+
+        addRow(content, getString(R.string.details_label_total_amount), formatPrice(summary.grandTotal));
+        if (summary.paymentPercentage != null) {
+            addRow(content, getString(R.string.receipt_payment_percentage_label),
+                    PaymentPercentageUtil.formatApiPercentageForDisplay(summary.paymentPercentage));
+        }
+
+        if (detail.isAnchoredOnSinglePayment() && detail.getAnchorPayment() != null) {
+            // PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - the frozen snapshot.
+            addRow(content, getString(R.string.receipt_amount_paid_this_transaction_label),
+                    formatPrice(detail.getAnchorPayment().amountPaid));
+            addRow(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
+            addRow(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
+            addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
+        } else {
+            // OFFICIAL_RECEIPT - final settlement; Total Amount Paid made prominent below.
+            addRow(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
+            addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
+            addDivider(content, dp(12));
+            addProminentTotal(content, getString(R.string.receipt_total_amount_paid_label), formatPrice(summary.totalAmountPaid));
+        }
+    }
+
+    /**
+     * Payment Transaction History - items 11-15. Reads EXCLUSIVELY from
+     * detail.getPaymentTransactions() - for a PARTIAL_RECEIPT/
+     * FULL_PAYMENT_RECEIPT this is already trimmed by the backend to "the
+     * history as it stood at that point" (see ReceiptDetail's own doc); for
+     * an OFFICIAL_RECEIPT it's the complete history. Never falls back to
+     * Booking.paymentHistory/PaymentTransaction - those would show the
+     * booking's CURRENT full history regardless of which receipt is being
+     * viewed, exactly the bug PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §12
+     * warns against.
+     */
+    private void buildTransactionHistorySection(ViewGroup parent, ReceiptDetail detail) {
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_transaction_history_title));
+        List<Booking.PaymentTransactionRecord> transactions = detail.getPaymentTransactions();
+
+        if (transactions.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText(R.string.receipt_no_transactions_desc);
+            empty.setTextColor(getColor(R.color.velocity_text_secondary));
+            empty.setTextSize(12);
+            content.addView(empty);
+            return;
+        }
+
+        for (int i = 0; i < transactions.size(); i++) {
+            View row = ReceiptCardHelper.buildTransactionRow(this, content, transactions.get(i), i == transactions.size() - 1);
+            content.addView(row);
+        }
+    }
+
+    // ---- Small dynamic-UI builder helpers (receipt-number mode only) ----
+
+    /** New rounded card appended to parent; returns its inner content LinearLayout for callers to add rows into. Null title omits the section-title TextView (used for the header card, which has its own bespoke title treatment). */
+    private LinearLayout newSectionCard(ViewGroup parent, @Nullable String title) {
+        com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(this);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cardParams.bottomMargin = dp(14);
+        card.setLayoutParams(cardParams);
+        card.setRadius(dp(16));
+        card.setCardElevation(0);
+        card.setStrokeWidth(dp(1));
+        card.setStrokeColor(getColor(R.color.velocity_red_soft));
+        card.setCardBackgroundColor(getColor(R.color.velocity_surface_elevated));
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(18), dp(18), dp(18), dp(18));
+
+        if (title != null) {
+            TextView titleView = new TextView(this);
+            titleView.setText(title);
+            titleView.setTextColor(getColor(R.color.velocity_red_primary));
+            titleView.setTypeface(titleView.getTypeface(), android.graphics.Typeface.BOLD);
+            titleView.setTextSize(12);
+            titleView.setLetterSpacing(0.04f);
+            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            titleParams.bottomMargin = dp(10);
+            titleView.setLayoutParams(titleParams);
+            content.addView(titleView);
+        }
+
+        card.addView(content);
+        parent.addView(card);
+        return content;
+    }
+
+    /** Reuses item_receipt_row.xml (the same label/value row template the legacy card already uses) - hides itself when value is null/empty, matching bindRow()'s established convention. */
+    private void addRow(ViewGroup parent, String label, @Nullable String value) {
+        if (value == null || value.trim().isEmpty()) return;
+        View row = getLayoutInflater().inflate(R.layout.item_receipt_row, parent, false);
+        ((TextView) row.findViewById(R.id.tvRowLabel)).setText(label);
+        ((TextView) row.findViewById(R.id.tvRowValue)).setText(value);
+        parent.addView(row);
+    }
+
+    private void addDivider(ViewGroup parent, int topMarginPx) {
+        View divider = new View(this);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1));
+        params.topMargin = topMarginPx;
+        params.bottomMargin = dp(10);
+        divider.setLayoutParams(params);
+        divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
+        parent.addView(divider);
+    }
+
+    /** The visually prominent "TOTAL AMOUNT PAID" panel for an Official Receipt - item 10. */
+    private void addProminentTotal(ViewGroup parent, String label, String value) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(android.view.Gravity.CENTER);
+        panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
+        panel.setPadding(0, dp(16), 0, dp(16));
+
+        TextView labelView = new TextView(this);
+        labelView.setText(label);
+        labelView.setAllCaps(true);
+        labelView.setGravity(android.view.Gravity.CENTER);
+        labelView.setTextColor(getColor(R.color.velocity_text_secondary));
+        labelView.setTextSize(11);
+        labelView.setLetterSpacing(0.04f);
+        panel.addView(labelView);
+
+        TextView valueView = new TextView(this);
+        valueView.setText(value);
+        valueView.setGravity(android.view.Gravity.CENTER);
+        valueView.setTypeface(valueView.getTypeface(), android.graphics.Typeface.BOLD);
+        valueView.setTextColor(getColor(R.color.velocity_red_primary));
+        valueView.setTextSize(26);
+        LinearLayout.LayoutParams valueParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        valueParams.topMargin = dp(4);
+        valueView.setLayoutParams(valueParams);
+        panel.addView(valueView);
+
+        parent.addView(panel);
+    }
+
+    private TextView centeredText(String text, float sizeSp, boolean bold, int colorRes, int topMarginPx) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setGravity(android.view.Gravity.CENTER);
+        view.setTextColor(getColor(colorRes));
+        view.setTextSize(sizeSp);
+        if (bold) view.setTypeface(view.getTypeface(), android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = topMarginPx;
+        view.setLayoutParams(params);
+        return view;
+    }
+
+    private int dp(int value) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(value * density);
     }
 
     /** Populates {@link #groupMembers} (this record included) if it belongs to a BookingGroupState group, else leaves it null - same logic as BookingDetailsActivity#resolveGroupMembers(). */
@@ -432,10 +883,26 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      */
     private void downloadReceiptAsPdf() {
         String paymentId = booking.getLatestPaymentId() != null ? booking.getLatestPaymentId() : booking.getId();
-        String fileName = "VelocitySuites_Receipt_" + paymentId + ".pdf";
+        downloadReceiptAsPdf(receiptCard, paymentId);
+    }
 
-        int width = receiptCard.getWidth();
-        int height = receiptCard.getHeight();
+    /**
+     * Generalized so the SAME mechanism serves both legacy mode (renders
+     * receiptCard) and receipt-number mode (renders whichever specific
+     * PR/FR/OR content is currently visible - see renderReceiptDetail()).
+     * This is a direct screenshot-to-PDF of whatever View is passed in, not
+     * a server-generated document - the backend has no per-receipt-type PDF
+     * endpoint today (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §26), so
+     * this client-side render is genuinely type-agnostic: it already works
+     * correctly for PR/FR/OR alike without needing any backend distinction,
+     * since it just captures the exact section content already being shown
+     * on screen for whichever receipt is currently open.
+     */
+    private void downloadReceiptAsPdf(View target, String idSuffix) {
+        String fileName = "VelocitySuites_Receipt_" + idSuffix + ".pdf";
+
+        int width = target.getWidth();
+        int height = target.getHeight();
         if (width <= 0 || height <= 0) {
             Toast.makeText(this, R.string.receipt_download_failed, Toast.LENGTH_LONG).show();
             return;
@@ -446,7 +913,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         PdfDocument.Page page = document.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
         canvas.drawColor(android.graphics.Color.WHITE);
-        receiptCard.draw(canvas);
+        target.draw(canvas);
         document.finishPage(page);
 
         try {

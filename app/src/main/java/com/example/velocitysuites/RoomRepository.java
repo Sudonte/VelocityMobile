@@ -17,6 +17,8 @@ import com.example.velocitysuites.network.dto.NotificationDto;
 import com.example.velocitysuites.network.dto.PaginatedResponse;
 import com.example.velocitysuites.network.dto.PaymentRequest;
 import com.example.velocitysuites.network.dto.PaymentSubmitResponse;
+import com.example.velocitysuites.network.dto.PaymentsResponse;
+import com.example.velocitysuites.network.dto.ReceiptDetailResponse;
 import com.example.velocitysuites.network.dto.RequestableAmenityDto;
 import com.example.velocitysuites.network.dto.ReservationDto;
 import com.example.velocitysuites.network.dto.ReservationRequest;
@@ -1891,6 +1893,72 @@ public final class RoomRepository {
             }
         }
         return null;
+    }
+
+    /**
+     * Authorization-protected lookup of a single receipt by its
+     * receipt_number (PR-.../FR-.../OR-...) - see ApiService#getReceipt()'s
+     * own doc: a pure lookup, never mints a missing receipt, and the
+     * backend rejects an unknown/not-yet-available/not-owned-by-this-guest
+     * number with the same 404 either way. Prefer a Booking/Reservation's
+     * own getPaymentTransactions()/getReceipts() (already attached by
+     * refreshBookings()) for a transaction-detail screen's own receipts
+     * list; use this specifically when a caller has only a bare
+     * receiptNumber on hand (e.g. eventually, a notification deep-link -
+     * see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §17) and needs the full
+     * receipt payload.
+     * <p>
+     * Not yet deployed to production as of this Android integration pass -
+     * do not call expecting a real response until the backend branch ships.
+     */
+    public void getReceipt(String receiptNumber, RepositoryCallback<ReceiptDetail> callback) {
+        api.getReceipt(receiptNumber).enqueue(new Callback<ReceiptDetailResponse>() {
+            @Override
+            public void onResponse(Call<ReceiptDetailResponse> call, Response<ReceiptDetailResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().receipt != null) {
+                    if (callback != null) callback.onSuccess(ApiMapper.toReceiptDetail(response.body()));
+                } else if (response.code() == 404) {
+                    if (callback != null) callback.onError(appContext.getString(R.string.receipt_not_available_desc));
+                } else {
+                    if (callback != null) callback.onError(errorMessage(response));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ReceiptDetailResponse> call, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
+    }
+
+    /**
+     * The guest's flat, cross-transaction payment ledger (Api\ProfileController::payments(),
+     * GET guest/payments) - declared in ApiService for a while but never
+     * wired into a repository method until now. Returns the raw
+     * PaymentsResponse (paginated payments + pending_bills) rather than a
+     * mapped domain list, since no screen consumes this yet - see
+     * ApiService#getPayments()'s own doc for when to prefer this over a
+     * specific Booking/Reservation's own payment_transactions (which is
+     * richer - running totals, receipt linkage - for a single transaction's
+     * detail view; this is for a guest-wide "all my payments" ledger, if/
+     * when one is built).
+     */
+    public void refreshGuestPayments(RepositoryCallback<PaymentsResponse> callback) {
+        api.getPayments().enqueue(new Callback<PaymentsResponse>() {
+            @Override
+            public void onResponse(Call<PaymentsResponse> call, Response<PaymentsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (callback != null) callback.onSuccess(response.body());
+                } else {
+                    if (callback != null) callback.onError(errorMessage(response));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PaymentsResponse> call, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
     }
 
     /**

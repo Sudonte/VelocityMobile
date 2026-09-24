@@ -157,6 +157,20 @@
     <string name="receipt_pending_desc">Payment verification is currently pending. Your official receipt will become available after your payment has been verified and confirmed by Velocity Suites.</string>
     <string name="receipt_rejected_title">Receipt Not Available</string>
     <string name="receipt_rejected_desc">This payment was rejected, so no official receipt was generated. Please resubmit valid proof of payment.</string>
+    <!-- GET guest/receipts/{receiptNumber} - shown when the backend returns 404 (unknown, not-yet-available, or not owned by this guest - deliberately indistinguishable). -->
+    <string name="receipt_not_available_desc">This receipt is not available.</string>
+    <string name="receipt_loading_label">Loading receipt…</string>
+    <string name="receipt_load_failed_desc">Payment receipt could not be loaded. Please try again.</string>
+    <!-- receipt-number mode (PaymentReceiptActivity#renderReceiptDetail()) - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 4. -->
+    <string name="receipt_payment_summary_title">Payment Summary</string>
+    <string name="receipt_payment_transaction_history_title">Payment Transaction History</string>
+    <string name="receipt_amount_paid_this_transaction_label">Amount Paid This Transaction</string>
+    <string name="receipt_total_paid_at_this_point_label">Total Amount Paid At This Point</string>
+    <string name="receipt_remaining_balance_at_this_point_label">Remaining Balance At This Point</string>
+    <string name="receipt_original_reservation_id_label">Original Reservation ID</string>
+    <string name="receipt_issued_date_label">Receipt Date</string>
+    <string name="receipt_no_transactions_desc">No payment transactions are available for this receipt.</string>
+    <string name="receipt_status_official_paid">PAID</string>
     <string name="official_payment_receipt_title">Official Payment Receipt</string>
     <string name="receipt_reference_label">Payment Reference</string>
     <string name="receipt_reference_value_prefix">Ref:</string>
@@ -208,6 +222,7 @@
     <string name="receipt_label_reservation_id">Reservation ID</string>
     <string name="details_label_rejection_reason">Reason</string>
     <string name="details_label_receipt_image">Receipt / Proof of Payment</string>
+    <string name="details_label_receipts_section">Receipts</string>
     <string name="details_label_payment_history">Payment History</string>
     <string name="details_label_converted_booking">Converted Booking</string>
     <string name="details_label_cancelled_on">Cancelled On</string>
@@ -230,6 +245,11 @@
     <string name="ptx_type_booking_payment">Booking Payment</string>
     <string name="ptx_type_reservation_payment">Reservation Payment</string>
     <string name="ptx_subtitle_format">%1$s  •  %2$s</string>
+    <string name="ptx_payment_progress_format">Paid %1$s  •  Remaining %2$s</string>
+    <plurals name="ptx_receipts_available">
+        <item quantity="one">%1$d Receipt Available</item>
+        <item quantity="other">%1$d Receipts Available</item>
+    </plurals>
     <string name="wizard_step_label_format">Step %1$d of %2$d - %3$s</string>
     <string name="wizard_final_step_label">Final step</string>
     <string name="stay_duration_summary_format">%1$d night(s) · %2$s – %3$s</string>
@@ -886,7 +906,7 @@
     <string name="pay_now_confirm_msg">Do you want to continue with the payment process for reservation %1$s?</string>
     <string name="reservation_converted_to_booking_msg">Payment successful! Your reservation has been converted into a confirmed booking.</string>
     <string name="balance_format">Balance: %1$s</string>
-    <string name="no_balance_label">Fully paid - no balance</string>
+    <string name="no_balance_label">Fully paid - no balance</string>
     <string name="scan_qr_title">Scan QR Code and Pay</string>
     <string name="scan_qr_desc">Open your GCash app, tap Scan QR, and point your camera at our official code below to pay instantly.</string>
     <string name="gcash_qr_desc">Official Velocity Suites GCash QR code</string>
@@ -1064,7 +1084,7 @@
     <string name="awaiting_verification_label">Pending Verification</string>
     <string name="pending_verification_label">Pending Verification</string>
     <string name="payment_status_format">Payment: %1$s</string>
-    <string name="no_payment_yet_label">Reservation - no payment yet</string>
+    <string name="no_payment_yet_label">Reservation - no payment yet</string>
     <string name="booking_list_title">Booking List</string>
     <string name="reservation_list_label">Reservation List</string>
     <!-- Full list-section headings, one per Confirmed/Completed/Cancelled

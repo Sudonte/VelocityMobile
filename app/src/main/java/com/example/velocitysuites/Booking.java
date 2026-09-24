@@ -1,5 +1,7 @@
 package com.example.velocitysuites;
 
+import androidx.annotation.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -221,6 +223,135 @@ public class Booking implements Serializable {
      * never assume it's populated.
      */
     private List<BookingAmenity> amenities = new ArrayList<>();
+    /**
+     * The authoritative Grand Total/Total Amount Paid/Remaining Balance/
+     * Payment Status/Official-Receipt-availability block, straight off the
+     * backend (ReceiptService::paymentSummary(), see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md) -
+     * null whenever the backend response this Booking was built from didn't
+     * attach one yet (an older cached response, or a response from before
+     * this feature deployed). Screens must prefer this over amountPaid/
+     * getRemainingBalance()/PaymentStatusResolver's client-side
+     * reconstruction whenever it's non-null - see this class's own
+     * getEffective*() helpers below.
+     */
+    private PaymentSummary paymentSummary;
+    /**
+     * The complete, chronological Payment Transaction History straight off
+     * the backend (ReceiptService::paymentTransactions()) - distinct from,
+     * and richer than, the legacy paymentHistory (List&lt;PaymentRecord&gt;)
+     * above (which is still populated the same old way, for any screen not
+     * yet migrated to this). Empty (never null) when the backend response
+     * didn't attach one.
+     */
+    private List<PaymentTransactionRecord> paymentTransactions = new ArrayList<>();
+    /**
+     * Every receipt already issued for this booking (Partial/Full-Payment/
+     * Official) straight off the backend (ReceiptService::receiptsList()).
+     * Empty (never null) when the backend response didn't attach one - see
+     * this class's own hasOfficialReceipt()/findReceipt() helpers below.
+     */
+    private List<ReceiptSummary> receipts = new ArrayList<>();
+
+    /**
+     * Mirrors ReceiptService::paymentSummary()'s shape (backend) field-for-
+     * field - see PaymentSummaryDto's own doc for why these are primitive
+     * doubles/an Integer, not formatted Strings.
+     */
+    public static class PaymentSummary implements Serializable {
+        public final double grandTotal;
+        public final double totalAmountPaid;
+        public final double remainingBalance;
+        public final String paymentStatus;
+        public final Integer paymentPercentage;
+        public final boolean officialReceiptAvailable;
+
+        public PaymentSummary(double grandTotal, double totalAmountPaid, double remainingBalance,
+                               String paymentStatus, Integer paymentPercentage, boolean officialReceiptAvailable) {
+            this.grandTotal = grandTotal;
+            this.totalAmountPaid = totalAmountPaid;
+            this.remainingBalance = remainingBalance;
+            this.paymentStatus = paymentStatus;
+            this.paymentPercentage = paymentPercentage;
+            this.officialReceiptAvailable = officialReceiptAvailable;
+        }
+    }
+
+    /**
+     * Mirrors ReceiptService::paymentTransactions()'s shape (backend)
+     * field-for-field - see PaymentTransactionDto's own doc for which
+     * fields are legitimately null (e.g. every GCash-only field is null for
+     * a Cash checkout row).
+     */
+    public static class PaymentTransactionRecord implements Serializable {
+        public final long id;
+        public final String paymentMethod;
+        public final String paymentStage;
+        public final String transactionType;
+        public final double amountPaid;
+        public final String paymentStatus;
+        @Nullable public final String verificationStatus;
+        @Nullable public final String gcashNumber;
+        @Nullable public final String gcashReferenceNumber;
+        @Nullable public final String referenceNumber;
+        @Nullable public final Integer paymentPercentage;
+        @Nullable public final String verifiedBy;
+        @Nullable public final String verifiedAt;
+        @Nullable public final String rejectionReason;
+        @Nullable public final String paymentDate;
+        public final double totalPaidAfterTransaction;
+        public final double remainingBalanceAfterTransaction;
+        @Nullable public final String receiptType;
+        @Nullable public final String receiptNumber;
+
+        public PaymentTransactionRecord(long id, String paymentMethod, String paymentStage, String transactionType,
+                                         double amountPaid, String paymentStatus, @Nullable String verificationStatus,
+                                         @Nullable String gcashNumber, @Nullable String gcashReferenceNumber,
+                                         @Nullable String referenceNumber, @Nullable Integer paymentPercentage,
+                                         @Nullable String verifiedBy, @Nullable String verifiedAt,
+                                         @Nullable String rejectionReason, @Nullable String paymentDate,
+                                         double totalPaidAfterTransaction, double remainingBalanceAfterTransaction,
+                                         @Nullable String receiptType, @Nullable String receiptNumber) {
+            this.id = id;
+            this.paymentMethod = paymentMethod;
+            this.paymentStage = paymentStage;
+            this.transactionType = transactionType;
+            this.amountPaid = amountPaid;
+            this.paymentStatus = paymentStatus;
+            this.verificationStatus = verificationStatus;
+            this.gcashNumber = gcashNumber;
+            this.gcashReferenceNumber = gcashReferenceNumber;
+            this.referenceNumber = referenceNumber;
+            this.paymentPercentage = paymentPercentage;
+            this.verifiedBy = verifiedBy;
+            this.verifiedAt = verifiedAt;
+            this.rejectionReason = rejectionReason;
+            this.paymentDate = paymentDate;
+            this.totalPaidAfterTransaction = totalPaidAfterTransaction;
+            this.remainingBalanceAfterTransaction = remainingBalanceAfterTransaction;
+            this.receiptType = receiptType;
+            this.receiptNumber = receiptNumber;
+        }
+    }
+
+    /** Mirrors ReceiptService::receiptsList()'s shape (backend) field-for-field. */
+    public static class ReceiptSummary implements Serializable {
+        public final String receiptNumber;
+        public final String receiptType;
+        public final String status;
+        public final double amount;
+        @Nullable public final Integer paymentPercentage;
+        @Nullable public final String issuedAt;
+
+        public ReceiptSummary(String receiptNumber, String receiptType, String status, double amount,
+                               @Nullable Integer paymentPercentage, @Nullable String issuedAt) {
+            this.receiptNumber = receiptNumber;
+            this.receiptType = receiptType;
+            this.status = status;
+            this.amount = amount;
+            this.paymentPercentage = paymentPercentage;
+            this.issuedAt = issuedAt;
+        }
+    }
 
     public static class PaymentRecord implements Serializable {
         public String amount;
@@ -358,6 +489,62 @@ public class Booking implements Serializable {
         if (!isNoShow()) return null;
         return transactionRejectionReason.trim().substring("NO_SHOW:".length()).trim();
     }
+    @Nullable public PaymentSummary getPaymentSummary() { return paymentSummary; }
+    public void setPaymentSummary(@Nullable PaymentSummary paymentSummary) { this.paymentSummary = paymentSummary; }
+    public List<PaymentTransactionRecord> getPaymentTransactions() { return paymentTransactions; }
+    public void setPaymentTransactions(@Nullable List<PaymentTransactionRecord> paymentTransactions) {
+        this.paymentTransactions = paymentTransactions != null ? paymentTransactions : new ArrayList<>();
+    }
+    public List<ReceiptSummary> getReceipts() { return receipts; }
+    public void setReceipts(@Nullable List<ReceiptSummary> receipts) {
+        this.receipts = receipts != null ? receipts : new ArrayList<>();
+    }
+
+    /** True once the backend has attached its own authoritative payment_summary to this Booking - see PaymentSummary's own doc for why every caller should check this before falling back to client-side reconstruction. */
+    public boolean hasAuthoritativePaymentSummary() {
+        return paymentSummary != null;
+    }
+
+    /**
+     * Total Amount Paid - the backend's own paymentSummary.totalAmountPaid
+     * when available, falling back to the legacy client-side amountPaid
+     * field only for an older/not-yet-migrated response. Callers should
+     * prefer this over getAmountPaid() directly wherever a mix of old and
+     * new responses might occur - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+     * §11 ("Android must not independently decide... Total Amount Paid...
+     * when those values are provided by the backend").
+     */
+    public double getEffectiveTotalAmountPaid() {
+        return paymentSummary != null ? paymentSummary.totalAmountPaid : amountPaid;
+    }
+
+    /** Remaining Balance - see getEffectiveTotalAmountPaid()'s identical fallback rule. */
+    public double getEffectiveRemainingBalance() {
+        return paymentSummary != null ? paymentSummary.remainingBalance : getRemainingBalance();
+    }
+
+    /**
+     * Whether the Official Payment Receipt is available - the backend's own
+     * official_receipt_available flag when present, otherwise falls back to
+     * this app's existing isStaffVerified()-based gate (the pre-existing,
+     * less precise signal every current screen already uses). Never
+     * inferred from remaining balance/payment percentage - see
+     * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Scenario C.
+     */
+    public boolean isOfficialReceiptAvailable() {
+        return paymentSummary != null ? paymentSummary.officialReceiptAvailable : isStaffVerified();
+    }
+
+    /** Finds an already-issued receipt of this booking by its receipt_number, or null - never generates one client-side. */
+    @Nullable
+    public ReceiptSummary findReceipt(String receiptNumber) {
+        if (receiptNumber == null) return null;
+        for (ReceiptSummary r : receipts) {
+            if (receiptNumber.equals(r.receiptNumber)) return r;
+        }
+        return null;
+    }
+
     public String getPaymentDeadline() { return paymentDeadline; }
     public Double getSelectedPaymentPercentage() { return selectedPaymentPercentage; }
     public Double getRequiredPaymentAmount() { return requiredPaymentAmount; }

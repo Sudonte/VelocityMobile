@@ -14,6 +14,14 @@
 .cxx
 local.properties
 
+# Release signing material must NEVER live in this repo - the real keystore
+# and keystore.properties live outside it entirely (see app/build.gradle.kts'
+# releaseKeystorePropertiesPath). These patterns are defense-in-depth only,
+# in case either ever ends up here by mistake.
+*.jks
+*.keystore
+keystore.properties
+
 # Scratch/debug artifacts from ad-hoc development sessions - not part of the
 # app itself, never intended for version control.
 .check_counts.php

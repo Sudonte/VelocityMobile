@@ -88,6 +88,29 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
         holder.tvAmount.setText(currencyFormat.format(tx.getAmount()));
 
+        // Booking-level Paid/Remaining - authoritative payment_summary when the
+        // backend has attached one, else the legacy fields (Booking#getEffectiveTotalAmountPaid()'s
+        // own fallback rule) - never this one transaction's own amount above.
+        if (holder.tvPaymentProgress != null) {
+            holder.tvPaymentProgress.setText(ctx.getString(R.string.ptx_payment_progress_format,
+                    currencyFormat.format(b.getEffectiveTotalAmountPaid()),
+                    currencyFormat.format(b.getEffectiveRemainingBalance())));
+        }
+
+        // "N Receipt(s) Available" - every already-issued receipt on this
+        // booking (PR/FR/OR alike, independently counted - never collapsed to
+        // "latest receipt only"), or hidden entirely when none exist yet.
+        if (holder.layoutReceiptsAvailable != null && holder.tvReceiptsAvailable != null) {
+            int receiptCount = b.getReceipts().size();
+            if (receiptCount > 0) {
+                holder.layoutReceiptsAvailable.setVisibility(View.VISIBLE);
+                holder.tvReceiptsAvailable.setText(ctx.getResources().getQuantityString(
+                        R.plurals.ptx_receipts_available, receiptCount, receiptCount));
+            } else {
+                holder.layoutReceiptsAvailable.setVisibility(View.GONE);
+            }
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onDetailsClick(tx);
         });
@@ -120,9 +143,10 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvSubtitle, tvDate, tvAmount;
+        TextView tvTitle, tvSubtitle, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable;
         MaterialCardView iconContainer;
         ImageView ivIcon;
+        View layoutReceiptsAvailable;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -132,6 +156,9 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             tvSubtitle = itemView.findViewById(R.id.tvPtxSubtitle);
             tvDate = itemView.findViewById(R.id.tvPtxDate);
             tvAmount = itemView.findViewById(R.id.tvPtxAmount);
+            tvPaymentProgress = itemView.findViewById(R.id.tvPtxPaymentProgress);
+            layoutReceiptsAvailable = itemView.findViewById(R.id.layoutPtxReceiptsAvailable);
+            tvReceiptsAvailable = itemView.findViewById(R.id.tvPtxReceiptsAvailable);
         }
     }
 }
