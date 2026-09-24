@@ -177,6 +177,21 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
     // ==================== Receipt-number mode (Phase 4) ====================
 
+    /**
+     * DEBUG-ONLY preview hook (Phase 6B) - see
+     * com.example.velocitysuites.debug.DebugReceiptPreviewActivity, which
+     * lives entirely under src/debug and does not exist in a release
+     * build. When set, loadReceiptByNumber() renders this directly instead
+     * of calling RoomRepository/the network - lets the debug-only preview
+     * screen exercise this Activity's real rendering code with fixture
+     * data, with zero effect on any real user flow: this field is only
+     * ever assigned from src/debug code, which is never compiled or
+     * packaged into a release build, and even if somehow non-null it is
+     * guarded by BuildConfig.DEBUG below, so a release build (DEBUG=false)
+     * can never take this branch regardless.
+     */
+    public static ReceiptDetail debugPreviewOverride;
+
     private void initReceiptNumberMode() {
         findViewById(R.id.btnReceiptRetry).setOnClickListener(v -> loadReceiptByNumber());
         // Download is wired once a receipt actually loads (see renderReceiptDetail()) -
@@ -197,6 +212,12 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * all (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §29).
      */
     private void loadReceiptByNumber() {
+        if (BuildConfig.DEBUG && debugPreviewOverride != null) {
+            receiptDetail = debugPreviewOverride;
+            renderReceiptDetail(debugPreviewOverride);
+            return;
+        }
+
         showLoadingState();
         RoomRepository.getInstance(this).getReceipt(receiptNumber, new RoomRepository.RepositoryCallback<ReceiptDetail>() {
             @Override

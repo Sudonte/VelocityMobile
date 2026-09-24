@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Merged into the debug build variant's manifest only - this whole
+     src/debug source set (including the .debug package it registers) is
+     absent from any release build, so DebugReceiptPreviewActivity is never
+     packaged, let alone reachable, in a release APK/AAB (Phase 6B).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name=".debug.DebugReceiptPreviewActivity"
+            android:exported="true"
+            android:label="Debug Receipt Preview" />
+    </application>
+</manifest>
