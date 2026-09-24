@@ -159,6 +159,18 @@
     <string name="receipt_rejected_desc">This payment was rejected, so no official receipt was generated. Please resubmit valid proof of payment.</string>
     <!-- GET guest/receipts/{receiptNumber} - shown when the backend returns 404 (unknown, not-yet-available, or not owned by this guest - deliberately indistinguishable). -->
     <string name="receipt_not_available_desc">This receipt is not available.</string>
+    <string name="receipt_loading_label">Loading receipt…</string>
+    <string name="receipt_load_failed_desc">Payment receipt could not be loaded. Please try again.</string>
+    <!-- receipt-number mode (PaymentReceiptActivity#renderReceiptDetail()) - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 4. -->
+    <string name="receipt_payment_summary_title">Payment Summary</string>
+    <string name="receipt_payment_transaction_history_title">Payment Transaction History</string>
+    <string name="receipt_amount_paid_this_transaction_label">Amount Paid This Transaction</string>
+    <string name="receipt_total_paid_at_this_point_label">Total Amount Paid At This Point</string>
+    <string name="receipt_remaining_balance_at_this_point_label">Remaining Balance At This Point</string>
+    <string name="receipt_original_reservation_id_label">Original Reservation ID</string>
+    <string name="receipt_issued_date_label">Receipt Date</string>
+    <string name="receipt_no_transactions_desc">No payment transactions are available for this receipt.</string>
+    <string name="receipt_status_official_paid">PAID</string>
     <string name="official_payment_receipt_title">Official Payment Receipt</string>
     <string name="receipt_reference_label">Payment Reference</string>
     <string name="receipt_reference_value_prefix">Ref:</string>

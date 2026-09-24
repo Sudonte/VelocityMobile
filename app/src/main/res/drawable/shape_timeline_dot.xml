@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small solid circle marker for the Payment Transaction History timeline (PaymentReceiptActivity). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/velocity_red_primary" />
+</shape>

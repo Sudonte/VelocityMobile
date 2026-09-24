@@ -27,6 +27,7 @@
             app:tint="@color/white" />
 
         <TextView
+            android:id="@+id/tvReceiptHeaderTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
@@ -35,6 +36,77 @@
             android:text="@string/official_payment_receipt_title"
             android:textColor="@color/white"
             android:textSize="16sp" />
+    </LinearLayout>
+
+    <!--
+         Receipt-number mode only (PaymentReceiptActivity#loadReceiptByNumber()) -
+         shown while RoomRepository.getReceipt() is in flight, hiding both the
+         scroll content below and the error state, so a previous/stale receipt
+         can never briefly flash on screen while a new one loads (see item 22
+         of PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md's Phase 4 checklist).
+    -->
+    <LinearLayout
+        android:id="@+id/layoutReceiptLoading"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:indeterminateTint="@color/velocity_red_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/receipt_loading_label"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Receipt-number mode only - a 404/network/malformed-response failure. -->
+    <LinearLayout
+        android:id="@+id/layoutReceiptError"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:visibility="gone"
+        tools:visibility="gone">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_info"
+            app:tint="@color/velocity_text_secondary" />
+
+        <TextView
+            android:id="@+id/tvReceiptErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp"
+            tools:text="This receipt is not available." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReceiptRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/retry_label"
+            android:textAllCaps="false"
+            app:backgroundTint="@color/velocity_red_primary"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -49,6 +121,25 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
+            <!--
+                 Receipt-number mode only - entirely populated in Java
+                 (PaymentReceiptActivity#renderReceiptDetail()), never both this
+                 and receiptCard visible at once. Built dynamically (not a
+                 second giant static template) because its content genuinely
+                 varies by receipt_type (PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT/
+                 OFFICIAL_RECEIPT each show a different Payment Summary shape)
+                 and by how many payment_transactions the specific receipt
+                 carries - see item_receipt_transaction_entry.xml for each
+                 history row's own template.
+            -->
+            <LinearLayout
+                android:id="@+id/layoutDynamicReceiptContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="gone" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/receiptCard"
