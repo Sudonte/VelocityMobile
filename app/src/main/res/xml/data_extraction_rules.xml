@@ -1,19 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Modern backup/transfer rules (API 31+) - cloud-backup and device-transfer
+   are independent Android mechanisms and must each be excluded explicitly;
+   omitting one is not guaranteed to inherit the other's rules.
+   "VelocitySecurePrefs" holds the auth token and Remember Me state (see
+   SessionManager's own doc) and must never survive a cloud restore or a
+   device-to-device transfer onto a different install - either would
+   otherwise resurrect a working session with zero backend validation.
+   Every other prefs file (account display fields, theme) is left
+   eligible on purpose - none of that is a credential.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="VelocitySecurePrefs.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="VelocitySecurePrefs.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>

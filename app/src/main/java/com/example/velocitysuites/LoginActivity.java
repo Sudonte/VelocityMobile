@@ -18,6 +18,7 @@ import com.example.velocitysuites.network.dto.ApiMessage;
 import com.example.velocitysuites.network.dto.AuthResponse;
 import com.example.velocitysuites.network.dto.EmailRequest;
 import com.example.velocitysuites.network.dto.LoginRequest;
+import com.example.velocitysuites.network.dto.ProfileResponse;
 import java.util.Locale;
 import com.example.velocitysuites.network.dto.ReactivateResendRequest;
 import com.example.velocitysuites.network.dto.ReactivateVerifyRequest;
@@ -75,19 +76,76 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Check for a still-valid (not yet 24h-expired) Remember Me session
-        // before setting content view, so a bypass is invisible - the guest
-        // never sees the login form flash before redirecting.
-        SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
+        // A still-valid (not yet 24h-expired) Remember Me session is only a
+        // LOCAL claim (see SessionManager#hasValidRememberedSession()'s own
+        // doc) - it says nothing about whether the token it's built on is
+        // still actually valid/authorized server-side. A token can stop
+        // being valid without this device ever finding out (revoked,
+        // password changed, account deactivated) - and, separately, this
+        // exact local state (token + Remember Me flags) could in principle
+        // have arrived on this device via something other than a real login
+        // here (see SessionManager's own class doc on why that state is kept
+        // out of Android backup/device-transfer). Either way, a locally-held
+        // token must be confirmed against the backend before this activity
+        // ever lets it into the dashboard - see validateRememberedSession().
         if (SessionManager.hasValidRememberedSession(this)) {
-            String userName = prefs.getString("userName", "");
-            Intent intent = PendingRoomSelection.createPostAuthIntent(this, userName);
-            intent.putExtra("USER_NAME", userName);
-            startActivity(intent);
-            finish();
+            validateRememberedSession();
             return;
         }
 
+        showLoginForm();
+    }
+
+    /**
+     * The one and only gate that turns a locally-held Remember Me session
+     * into an actual dashboard entry. A lightweight authenticated GET
+     * (guest/profile - already used elsewhere, no new backend endpoint) that
+     * only ever succeeds if the backend still considers this exact token
+     * valid: expired/invalid/revoked all come back non-2xx (or the call
+     * fails outright), and both cases fall back to showLoginForm() with the
+     * stale local session cleared - never a silent dashboard entry on local
+     * state alone.
+     */
+    private void validateRememberedSession() {
+        ApiClient.getService(this).getProfile().enqueue(new Callback<ProfileResponse>() {
+            @Override
+            public void onResponse(Call<ProfileResponse> call,
+                                    Response<ProfileResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful()) {
+                    enterAppFromRememberedSession();
+                } else {
+                    SessionManager.clear(LoginActivity.this);
+                    showLoginForm();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ProfileResponse> call, Throwable t) {
+                // A network failure here is NOT proof the token is invalid -
+                // but silently entering the dashboard on local state alone is
+                // exactly the risk this whole gate exists to close, so the
+                // safe default is the same as an explicit rejection: show
+                // the login form rather than assume. The guest can simply
+                // retry once connectivity returns; nothing was lost, since a
+                // real session (if this token is still good) resumes on the
+                // very next successful login attempt or app reopen.
+                if (isFinishing() || isDestroyed()) return;
+                showLoginForm();
+            }
+        });
+    }
+
+    private void enterAppFromRememberedSession() {
+        SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
+        String userName = prefs.getString("userName", "");
+        Intent intent = PendingRoomSelection.createPostAuthIntent(this, userName);
+        intent.putExtra("USER_NAME", userName);
+        startActivity(intent);
+        finish();
+    }
+
+    private void showLoginForm() {
         setContentView(R.layout.login);
 
         initializeViews();

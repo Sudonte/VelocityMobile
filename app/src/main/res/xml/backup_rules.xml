@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Legacy Auto Backup rules - only consulted on API 23-30 (ignored on API 31+,
+   which reads data_extraction_rules.xml instead; both files must stay in
+   sync). "VelocitySecurePrefs" holds the auth token and Remember Me state
+   (see SessionManager's own doc) and must never be restored onto a fresh
+   install/device - a restored copy would otherwise resurrect a working
+   session with zero backend validation. Every other prefs file (account
+   display fields, theme) is left backup-eligible on purpose.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <exclude domain="sharedpref" path="VelocitySecurePrefs.xml" />
 </full-backup-content>
