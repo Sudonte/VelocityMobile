@@ -373,21 +373,24 @@ public class BookingDetailsActivity extends AppCompatActivity {
         } else {
             addInfoRow(container, getString(R.string.details_label_transaction_ref), booking.getTransactionRef());
         }
-        // Payment Type/Percentage only apply while a payment obligation is still
-        // outstanding (matches PaymentReceiptActivity's identical fullyPaid gate),
-        // and Percentage is the deposit percentage chosen once at reservation-
-        // creation time (Booking#getSelectedPaymentPercentage()'s own doc).
-        // Backend-authoritative payment_summary totals when attached, else the
-        // legacy fields - must never disagree with the Payment Status row
-        // right below (BookingStatusPresenter.paymentStatusPillText(), same
-        // authoritative-first rule) - PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
+        // Percentage is the deposit/full-payment percentage chosen once at
+        // reservation-creation time (Booking#getSelectedPaymentPercentage()'s own
+        // doc) - shown regardless of fullyPaid, so a Full Payment (100%)
+        // transaction still shows "Payment Percentage: 100%" instead of the row
+        // being hidden entirely (the old `!fullyPaid` gate here hid it for every
+        // Full Payment, since that always leaves remainingBalance at 0 - the exact
+        // bug PaymentReceiptActivity#populateReceipt() already fixed; kept
+        // consistent with it here). Backend-authoritative payment_summary totals
+        // when attached, else the legacy fields - must never disagree with the
+        // Payment Status row right below (BookingStatusPresenter.paymentStatusPillText(),
+        // same authoritative-first rule) - PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
         // Phase 6 §1.
         boolean fullyPaid = booking.getEffectiveRemainingBalance() <= 0.009;
         if (booking.getEffectiveTotalAmountPaid() > 0.009 || booking.isHasBooking()) {
             addInfoRow(container, getString(R.string.details_label_payment_type),
                     getString(fullyPaid ? R.string.review_payment_type_full : R.string.review_payment_type_partial));
         }
-        if (!fullyPaid && booking.getSelectedPaymentPercentage() != null) {
+        if (booking.getSelectedPaymentPercentage() != null) {
             addInfoRow(container, getString(R.string.receipt_payment_percentage_label),
                     formatPercentage(booking.getSelectedPaymentPercentage()));
         }

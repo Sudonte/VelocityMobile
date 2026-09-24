@@ -181,16 +181,21 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * DEBUG-ONLY preview hook (Phase 6B) - see
      * com.example.velocitysuites.debug.DebugReceiptPreviewActivity, which
      * lives entirely under src/debug and does not exist in a release
-     * build. When set, loadReceiptByNumber() renders this directly instead
-     * of calling RoomRepository/the network - lets the debug-only preview
-     * screen exercise this Activity's real rendering code with fixture
-     * data, with zero effect on any real user flow: this field is only
-     * ever assigned from src/debug code, which is never compiled or
-     * packaged into a release build, and even if somehow non-null it is
-     * guarded by BuildConfig.DEBUG below, so a release build (DEBUG=false)
-     * can never take this branch regardless.
+     * build. Keyed by receipt_number (not a single last-wins field) - a
+     * single static field here caused a real bug found during physical-
+     * device verification: tapping a Booking Details receipt card or a
+     * notification's "Payment Receipt" button always re-rendered whichever
+     * fixture had most recently been opened from the top-level debug menu,
+     * silently ignoring the actual receipt_number being requested (e.g. an
+     * FR notification opened PR). Looking this map up BY the exact
+     * receiptNumber this Activity was actually asked to show, instead of
+     * trusting one shared last-write-wins field, closes that gap - the
+     * SAME "never guess/never show the wrong receipt" rule the production
+     * navigation code follows for real. Never assigned from anywhere but
+     * src/debug; guarded by BuildConfig.DEBUG below so a release build
+     * (DEBUG=false) can never take this branch regardless.
      */
-    public static ReceiptDetail debugPreviewOverride;
+    public static final java.util.Map<String, ReceiptDetail> debugPreviewFixtures = new java.util.HashMap<>();
 
     private void initReceiptNumberMode() {
         findViewById(R.id.btnReceiptRetry).setOnClickListener(v -> loadReceiptByNumber());
@@ -212,9 +217,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * all (see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §29).
      */
     private void loadReceiptByNumber() {
-        if (BuildConfig.DEBUG && debugPreviewOverride != null) {
-            receiptDetail = debugPreviewOverride;
-            renderReceiptDetail(debugPreviewOverride);
+        if (BuildConfig.DEBUG && debugPreviewFixtures.containsKey(receiptNumber)) {
+            ReceiptDetail fixture = debugPreviewFixtures.get(receiptNumber);
+            receiptDetail = fixture;
+            renderReceiptDetail(fixture);
             return;
         }
 

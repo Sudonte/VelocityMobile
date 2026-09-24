@@ -47,7 +47,7 @@ public final class DebugReceiptFixtures {
 
         return new ReceiptDetail("PARTIAL_RECEIPT", "PR-20260920-000501", "250", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Deluxe Room", null,
-                "2026-09-25T14:00:00+08:00", "2026-09-27T12:00:00+08:00", 2,
+                "Sep 25, 2026", "Sep 27, 2026", 2,
                 Arrays.asList("204"), summary, Arrays.asList(tx), anchor,
                 "2026-09-20T14:30:00+08:00");
     }
@@ -72,7 +72,7 @@ public final class DebugReceiptFixtures {
 
         return new ReceiptDetail("FULL_PAYMENT_RECEIPT", "FR-20260921-000502", "251", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Suite Room", null,
-                "2026-09-28T14:00:00+08:00", "2026-09-30T12:00:00+08:00", 2,
+                "Sep 28, 2026", "Sep 30, 2026", 2,
                 Arrays.asList("305"), summary, Arrays.asList(tx), anchor,
                 "2026-09-21T09:10:00+08:00");
     }
@@ -103,9 +103,39 @@ public final class DebugReceiptFixtures {
 
         return new ReceiptDetail("OFFICIAL_RECEIPT", "OR-20260923-000210", "250", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Deluxe Room", null,
-                "2026-09-25T14:00:00+08:00", "2026-09-27T12:00:00+08:00", 2,
+                "Sep 25, 2026", "Sep 27, 2026", 2,
                 Arrays.asList("204"), summary, Arrays.asList(gcashTx, cashTx), null,
                 "2026-09-23T11:00:00+08:00");
+    }
+
+    /** The Official Receipt for bookingWithFullPaymentAndOfficial() - same shape as officialReceipt() but its own distinct receipt_number/booking, so tapping it resolves to this one, not the other OR. */
+    public static ReceiptDetail officialReceiptForFullPaymentBooking() {
+        Booking.PaymentTransactionRecord gcashTx = new Booking.PaymentTransactionRecord(
+                502L, "gcash", "final", "FULL_PAYMENT",
+                10000.0, "completed", "verified",
+                "09181234567", "4136202609215", "4136202609215", 100,
+                "Maria Santos", "2026-09-21T09:10:00+08:00",
+                null, "2026-09-21T09:00:00+08:00",
+                10000.0, 0.0,
+                "FULL_PAYMENT_RECEIPT", "FR-20260921-000502"
+        );
+        Booking.PaymentSummary summary = new Booking.PaymentSummary(
+                10000.0, 10000.0, 0.0, "PAID", 100, true);
+
+        return new ReceiptDetail("OFFICIAL_RECEIPT", "OR-20260924-000211", "251", null,
+                "Juan Dela Cruz", "Juan Dela Cruz", "Suite Room", null,
+                "Sep 28, 2026", "Sep 30, 2026", 2,
+                Arrays.asList("305"), summary, Arrays.asList(gcashTx), null,
+                "2026-09-24T10:00:00+08:00");
+    }
+
+    /** Every ReceiptDetail fixture, keyed by its own receipt_number - see PaymentReceiptActivity#debugPreviewFixtures's own doc for why lookup must be keyed like this rather than a single last-wins field. */
+    public static java.util.Map<String, ReceiptDetail> allReceiptDetails() {
+        java.util.Map<String, ReceiptDetail> map = new java.util.HashMap<>();
+        for (ReceiptDetail r : Arrays.asList(partialReceipt(), fullPaymentReceipt(), officialReceipt(), officialReceiptForFullPaymentBooking())) {
+            map.put(r.getReceiptNumber(), r);
+        }
+        return map;
     }
 
     // ---- D. Converted Reservation -> Booking (RES-000100 -> BOOK-000250) ----

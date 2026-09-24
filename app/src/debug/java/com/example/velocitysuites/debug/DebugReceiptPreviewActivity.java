@@ -37,6 +37,13 @@ public class DebugReceiptPreviewActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Registers every fixture receipt BY its own receipt_number up front,
+        // once - so a receipt opened via ANY path (this menu, a Booking
+        // Details receipt card, a notification's "Payment Receipt" button)
+        // always resolves to the fixture that actually matches the
+        // receipt_number being requested, never whatever was last opened.
+        PaymentReceiptActivity.debugPreviewFixtures.putAll(DebugReceiptFixtures.allReceiptDetails());
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         int pad = dp(16);
@@ -80,6 +87,8 @@ public class DebugReceiptPreviewActivity extends AppCompatActivity {
                 startActivity(receiptIntent(DebugReceiptFixtures.fullPaymentReceipt())));
         addButton(root, "Official Receipt (OR)", v ->
                 startActivity(receiptIntent(DebugReceiptFixtures.officialReceipt())));
+        addButton(root, "Official Receipt for FR+OR booking", v ->
+                startActivity(receiptIntent(DebugReceiptFixtures.officialReceiptForFullPaymentBooking())));
         addButton(root, "Booking Details - PR + OR", v ->
                 startActivity(BookingDetailsActivity.newIntent(this, DebugReceiptFixtures.bookingWithPartialAndOfficial())));
         addButton(root, "Booking Details - FR + OR", v ->
@@ -102,9 +111,8 @@ public class DebugReceiptPreviewActivity extends AppCompatActivity {
         setContentView(scroll);
     }
 
-    /** Opens PaymentReceiptActivity's real receipt-number-mode rendering, fed by the debug override hook instead of a network call - see PaymentReceiptActivity#debugPreviewOverride's own doc. */
+    /** Opens PaymentReceiptActivity's real receipt-number-mode rendering, resolved via the debugPreviewFixtures map registered in onCreate() instead of a network call - see that field's own doc. */
     private Intent receiptIntent(ReceiptDetail fixture) {
-        PaymentReceiptActivity.debugPreviewOverride = fixture;
         return PaymentReceiptActivity.newIntentForReceipt(this, fixture.getReceiptNumber());
     }
 
