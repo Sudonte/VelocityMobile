@@ -260,7 +260,12 @@ public class LoginActivity extends AppCompatActivity {
                     // the no-connectivity fallback below.
                     loginWithDefaultAccount();
                 } else {
-                    Toast.makeText(LoginActivity.this, R.string.invalid_credentials, Toast.LENGTH_SHORT).show();
+                    // Show the server's actual message (same convention as
+                    // the 403 branch above) - the backend now returns a
+                    // distinct warning on the 2nd failed attempt ("one more
+                    // attempt will require verification"), which a fixed
+                    // local string would otherwise hide from the guest.
+                    Toast.makeText(LoginActivity.this, errorMessage(response), Toast.LENGTH_SHORT).show();
                     passwordEditText.setError(getString(R.string.incorrect_password));
                 }
             }
