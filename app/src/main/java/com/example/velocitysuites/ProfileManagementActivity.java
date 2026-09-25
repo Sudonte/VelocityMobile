@@ -35,6 +35,8 @@ import com.example.velocitysuites.network.dto.ApiMessage;
 import com.example.velocitysuites.network.dto.AuthResponse;
 import com.example.velocitysuites.network.dto.ProfileResponse;
 import com.example.velocitysuites.network.dto.ProfileUpdateRequest;
+import com.example.velocitysuites.network.dto.RequestEmailChangeRequest;
+import com.example.velocitysuites.network.dto.ConfirmEmailChangeRequest;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -1072,13 +1074,18 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         String mobileStr = editMobile.getText().toString().trim();
         AddressSelection selection = addressController.getStructuredValues();
 
+        // Email is handled entirely separately below via the OTP-gated flow -
+        // never sent through this generic update, which the server no longer
+        // accepts email changes on anyway (see RequestEmailChangeRequest).
+        String currentEmail = prefs.getString("userEmail", "");
+        boolean emailChanged = !emailStr.equalsIgnoreCase(currentEmail);
+
         ProfileUpdateRequest request = new ProfileUpdateRequest();
         request.first_name = firstStr;
         request.last_name = lastStr;
         request.middle_name = middleStr.isEmpty() ? null : middleStr;
         if (!genderStr.isEmpty()) request.gender = mapGender(genderStr);
         if (!dobStr.isEmpty()) request.date_of_birth = toApiDate(dobStr);
-        request.email = emailStr;
         request.mobile_number = mobileStr;
         request.address = addressController.getComposedAddress();
         request.country = selection.country;
@@ -1138,8 +1145,18 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 loadUserProfile();
                 refreshHeader();
                 refreshLockUI();
-                Toast.makeText(ProfileManagementActivity.this, R.string.profile_updated_full, Toast.LENGTH_SHORT).show();
-                dismissSafely(dialog);
+
+                if (emailChanged) {
+                    // Everything else just saved successfully - email is
+                    // handled as its own OTP-gated step from here. Those
+                    // other saved fields are never rolled back even if the
+                    // guest cancels the email step that follows.
+                    dismissSafely(dialog);
+                    showConfirmPasswordForEmailChangeDialog(emailStr);
+                } else {
+                    Toast.makeText(ProfileManagementActivity.this, R.string.profile_updated_full, Toast.LENGTH_SHORT).show();
+                    dismissSafely(dialog);
+                }
             }
 
             @Override
@@ -1148,6 +1165,148 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 Toast.makeText(ProfileManagementActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    /**
+     * Step 1 of the email-change flow - re-confirms the current password
+     * before anything about the new address is even sent (defense against a
+     * stolen/left-open session trying to silently redirect account
+     * recovery), matching Api\ProfileController::requestEmailChange()'s own
+     * server-side re-check. The password only ever lives in this field/local
+     * request for the one call it's needed for - never SharedPreferences,
+     * never logged, and not kept around to support a "resend" shortcut (see
+     * the OTP dialog's resend link, which re-opens this screen instead of
+     * silently reusing an old value).
+     */
+    private void showConfirmPasswordForEmailChangeDialog(String newEmail) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirm_password_email_change, null);
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        TextInputEditText passwordField = dialogView.findViewById(R.id.confirmEmailChangePassword);
+        MaterialButton btnContinue = dialogView.findViewById(R.id.btnContinueConfirmEmailChangePassword);
+        MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelConfirmEmailChangePassword);
+
+        btnCancel.setOnClickListener(v -> {
+            if (passwordField.getText() != null) passwordField.getText().clear();
+            dialog.dismiss();
+        });
+
+        btnContinue.setOnClickListener(v -> {
+            String password = passwordField.getText() != null ? passwordField.getText().toString() : "";
+            if (TextUtils.isEmpty(password)) {
+                passwordField.setError(getString(R.string.password_required));
+                return;
+            }
+
+            btnContinue.setEnabled(false);
+            ApiClient.getService(this).requestEmailChange(new RequestEmailChangeRequest(newEmail, password))
+                    .enqueue(new Callback<ApiMessage>() {
+                        @Override
+                        public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            btnContinue.setEnabled(true);
+                            // Never held longer than this one request, success or not.
+                            if (passwordField.getText() != null) passwordField.getText().clear();
+
+                            if (!response.isSuccessful()) {
+                                Toast.makeText(ProfileManagementActivity.this,
+                                        errorMessage(response, getString(R.string.incorrect_password)), Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+                            dismissSafely(dialog);
+                            if (!isFinishing() && !isDestroyed()) {
+                                Toast.makeText(ProfileManagementActivity.this, getString(R.string.otp_sent_to, newEmail), Toast.LENGTH_SHORT).show();
+                                showVerifyNewEmailOtpDialog(newEmail);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            btnContinue.setEnabled(true);
+                            if (passwordField.getText() != null) passwordField.getText().clear();
+                            Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                        }
+                    });
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * Step 2 - the new email only actually becomes the registered address
+     * once this succeeds; cancelling here leaves the account exactly as it
+     * was (old email still active, still the login/recovery address). The
+     * profile is re-fetched from the server afterward rather than trusting
+     * a local edit, so a killed/recreated Activity can never show an
+     * unconfirmed email as if it were already verified.
+     */
+    private void showVerifyNewEmailOtpDialog(String newEmail) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_verify_new_email_otp, null);
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        TextView descText = dialogView.findViewById(R.id.verifyNewEmailDesc);
+        if (descText != null) descText.setText(getString(R.string.otp_sent_to, newEmail));
+
+        TextInputEditText otpField = dialogView.findViewById(R.id.verifyNewEmailOtp);
+        MaterialButton btnConfirm = dialogView.findViewById(R.id.btnConfirmVerifyNewEmailOtp);
+        MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelVerifyNewEmailOtp);
+        View resendLink = dialogView.findViewById(R.id.resendVerifyNewEmailOtpLink);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Resending means calling requestEmailChange() again, which needs the
+        // password again too - rather than holding it in memory just to
+        // support this link, restart the previous step honestly.
+        resendLink.setOnClickListener(v -> {
+            dialog.dismiss();
+            Toast.makeText(ProfileManagementActivity.this, R.string.resend_code_reenter_password, Toast.LENGTH_LONG).show();
+            showConfirmPasswordForEmailChangeDialog(newEmail);
+        });
+
+        btnConfirm.setOnClickListener(v -> {
+            String otp = otpField.getText() != null ? otpField.getText().toString().trim() : "";
+            if (otp.length() != 6) {
+                otpField.setError(getString(R.string.invalid_otp));
+                return;
+            }
+
+            btnConfirm.setEnabled(false);
+            ApiClient.getService(this).confirmEmailChange(new ConfirmEmailChangeRequest(otp))
+                    .enqueue(new Callback<ApiMessage>() {
+                        @Override
+                        public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            btnConfirm.setEnabled(true);
+                            if (!response.isSuccessful()) {
+                                String msg = errorMessage(response, getString(R.string.otp_invalid_or_expired));
+                                otpField.setError(msg);
+                                Toast.makeText(ProfileManagementActivity.this, msg, Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+                            dismissSafely(dialog);
+                            if (!isFinishing() && !isDestroyed()) {
+                                Toast.makeText(ProfileManagementActivity.this, R.string.email_updated_success, Toast.LENGTH_LONG).show();
+                            }
+                            // Authoritative refresh from the server - never just
+                            // paint the locally-typed address on as if confirmed.
+                            fetchProfileFromServer();
+                        }
+
+                        @Override
+                        public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            btnConfirm.setEnabled(true);
+                            Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                        }
+                    });
+        });
+
+        dialog.show();
     }
 
     /**

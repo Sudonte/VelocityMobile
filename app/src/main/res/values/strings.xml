@@ -1623,6 +1623,17 @@
     <string name="profile_update_failed_generic">Couldn\'t update your profile. Please check your details and try again.</string>
     <string name="profile_updated_full">Profile updated successfully.</string>
 
+    <!-- Email-change OTP flow (ProfileManagementActivity) - triggered only
+         when the guest actually edits the Email field; the generic profile
+         update above never touches email. -->
+    <string name="confirm_password_email_change_title">Confirm Your Password</string>
+    <string name="confirm_password_email_change_desc">For your security, enter your current password to change your registered email address.</string>
+    <string name="send_verification_code_button">Send Code</string>
+    <string name="verify_new_email_title">Verify New Email</string>
+    <string name="verify_email_button">Verify</string>
+    <string name="email_updated_success">Email address updated successfully.</string>
+    <string name="resend_code_reenter_password">Please re-enter your password to resend the code.</string>
+
     <!-- Profile Summary's own "Last Name, First Middle" display - kept
          separate from full_name_format/full_name_middle_format above, which
          feed the shared "userName" SharedPreferences cache read by

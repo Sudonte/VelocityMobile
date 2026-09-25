@@ -20,6 +20,8 @@ import com.example.velocitysuites.network.dto.PaymentsResponse;
 import com.example.velocitysuites.network.dto.ReceiptDetailResponse;
 import com.example.velocitysuites.network.dto.ProfileResponse;
 import com.example.velocitysuites.network.dto.ProfileUpdateRequest;
+import com.example.velocitysuites.network.dto.RequestEmailChangeRequest;
+import com.example.velocitysuites.network.dto.ConfirmEmailChangeRequest;
 import com.example.velocitysuites.network.dto.ReactivateResendRequest;
 import com.example.velocitysuites.network.dto.ReactivateVerifyRequest;
 import com.example.velocitysuites.network.dto.RegisterRequest;
@@ -266,6 +268,19 @@ public interface ApiService {
 
     @PUT("guest/profile")
     Call<ProfileResponse> updateProfile(@Body ProfileUpdateRequest request);
+
+    /**
+     * Step 1 of the OTP-gated email change (see Api\ProfileController::
+     * requestEmailChange()) - re-verifies the current password and sends a
+     * 6-digit code to the PROPOSED new address. The generic updateProfile()
+     * above no longer accepts email at all; this is the only way to change it.
+     */
+    @POST("guest/profile/email/request")
+    Call<ApiMessage> requestEmailChange(@Body RequestEmailChangeRequest request);
+
+    /** Step 2: verify the code and actually apply the change. */
+    @POST("guest/profile/email/confirm")
+    Call<ApiMessage> confirmEmailChange(@Body ConfirmEmailChangeRequest request);
 
     @Multipart
     @POST("guest/profile/picture")
