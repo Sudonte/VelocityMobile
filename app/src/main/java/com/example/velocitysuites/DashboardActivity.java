@@ -104,8 +104,13 @@ public class DashboardActivity extends BaseNavigationActivity {
             });
         }
 
-        loadUserInfo();
-        loadDashboardData();
+        // Not loaded here - onResume() always fires immediately after
+        // onCreate() on first launch (standard Activity lifecycle), and
+        // already does both these calls unconditionally on every resume
+        // (including this first one) so the dashboard also refreshes
+        // correctly when returning from another screen. Calling them here
+        // too previously fired every network request in loadDashboardData()
+        // (bookings + notifications refresh) twice on every single launch.
 
         startAnimations();
         initClock();
