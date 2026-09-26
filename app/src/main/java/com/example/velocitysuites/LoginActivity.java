@@ -641,8 +641,9 @@ public class LoginActivity extends AppCompatActivity {
                 public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
                     forgotActionButton.setEnabled(true);
                     if (!response.isSuccessful()) {
-                        loginOtpEditText.setError(getString(R.string.invalid_otp));
-                        Toast.makeText(LoginActivity.this, R.string.otp_invalid_or_expired, Toast.LENGTH_LONG).show();
+                        String msg = errorMessage(response);
+                        loginOtpEditText.setError(msg);
+                        Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_LONG).show();
                         return;
                     }
 
@@ -683,8 +684,18 @@ public class LoginActivity extends AppCompatActivity {
                         public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                             forgotActionButton.setEnabled(true);
                             if (!response.isSuccessful() || response.body() == null) {
-                                loginOtpEditText.setError(getString(R.string.invalid_otp));
-                                Toast.makeText(LoginActivity.this, R.string.otp_invalid_or_expired, Toast.LENGTH_LONG).show();
+                                String msg = errorMessage(response);
+                                loginOtpEditText.setError(msg);
+                                Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            if (Boolean.TRUE.equals(response.body().reactivation_required)) {
+                                // Same shape login itself guards against above - this
+                                // account needs a fresh reactivation OTP before a real
+                                // session exists, so .user/.token are null here too.
+                                isOtpSent = false;
+                                isOtpVerified = false;
+                                showReactivationFlow(response.body());
                                 return;
                             }
 

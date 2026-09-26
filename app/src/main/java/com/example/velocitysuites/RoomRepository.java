@@ -1509,39 +1509,47 @@ public final class RoomRepository {
         });
     }
 
-    public void markNotificationAsRead(String notificationId, Runnable onDone) {
+    /** @param onDone receives true only if the server actually confirmed the read-state change. */
+    public void markNotificationAsRead(String notificationId, java.util.function.Consumer<Boolean> onDone) {
         api.markNotificationRead(notificationId).enqueue(new Callback<NotificationDto>() {
             @Override
             public void onResponse(Call<NotificationDto> call, Response<NotificationDto> response) {
-                for (Notification n : notifications) {
-                    if (n.getId().equals(notificationId)) {
-                        n.setRead(true);
-                        break;
+                boolean success = response.isSuccessful();
+                if (success) {
+                    for (Notification n : notifications) {
+                        if (n.getId().equals(notificationId)) {
+                            n.setRead(true);
+                            break;
+                        }
                     }
                 }
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.accept(success);
             }
 
             @Override
             public void onFailure(Call<NotificationDto> call, Throwable t) {
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.accept(false);
             }
         });
     }
 
-    public void markAllNotificationsAsRead(Runnable onDone) {
+    /** @param onDone receives true only if the server actually confirmed the read-state change. */
+    public void markAllNotificationsAsRead(java.util.function.Consumer<Boolean> onDone) {
         api.markAllNotificationsRead().enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                for (Notification n : notifications) {
-                    n.setRead(true);
+                boolean success = response.isSuccessful();
+                if (success) {
+                    for (Notification n : notifications) {
+                        n.setRead(true);
+                    }
                 }
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.accept(success);
             }
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
-                if (onDone != null) onDone.run();
+                if (onDone != null) onDone.accept(false);
             }
         });
     }

@@ -211,7 +211,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                 });
     }
 
-    private void updateNotificationBadge() {
+    protected void updateNotificationBadge() {
         View badgeView = findViewById(R.id.headerNotificationBadge);
         if (!(badgeView instanceof android.widget.TextView)) {
             return;

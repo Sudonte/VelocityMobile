@@ -171,6 +171,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
+                updateNotificationBadge();
                 populateDashboard(repository.getBookings(), repository.getNotifications());
             }
 
@@ -179,6 +180,17 @@ public class DashboardActivity extends BaseNavigationActivity {
                 // Bookings refresh above already re-populates; nothing further needed on notification failure.
             }
         });
+    }
+
+    /**
+     * This screen's own loadDashboardData() (called from onResume(), right after
+     * super.onResume()) already does its own fresh refreshNotifications() call above -
+     * the shared header's badge-only refetch would just be a second, redundant network
+     * call on every single dashboard resume.
+     */
+    @Override
+    protected void refreshNotificationBadge() {
+        updateNotificationBadge();
     }
 
     private void populateDashboard(List<Booking> allBookings, List<Notification> allNotifications) {
@@ -708,7 +720,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         View btnViewDetails = card.findViewById(R.id.btnNotifCompactViewDetails);
         header.setOnClickListener(v -> selectedNotificationCard = toggleSelection(selectedNotificationCard, cardRoot, btnViewDetails));
         btnViewDetails.setOnClickListener(v -> {
-            RoomRepository.getInstance(this).markNotificationAsRead(n.getId(), this::loadDashboardData);
+            RoomRepository.getInstance(this).markNotificationAsRead(n.getId(), success -> loadDashboardData());
             android.content.Intent intent = new android.content.Intent(this, NotificationActivity.class);
             intent.putExtra(NotificationActivity.EXTRA_NOTIFICATION_ID, n.getId());
             startActivity(intent);

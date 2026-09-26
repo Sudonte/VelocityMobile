@@ -123,9 +123,9 @@ public class NotificationActivity extends BaseNavigationActivity {
     private void confirmMarkAllRead() {
         new MaterialAlertDialogBuilder(this)
                 .setMessage(R.string.confirm_mark_all_read_msg)
-                .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> repository.markAllNotificationsAsRead(() -> {
+                .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> repository.markAllNotificationsAsRead(success -> {
                     loadNotifications(true);
-                    Toast.makeText(this, R.string.msg_mark_all_read, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, success ? R.string.msg_mark_all_read : R.string.network_error, Toast.LENGTH_SHORT).show();
                 }))
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
@@ -147,7 +147,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         rvNotifications.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NotificationAdapter(notificationList, notification -> {
             showNotificationDetails(notification);
-            repository.markNotificationAsRead(notification.getId(), () -> loadNotifications(false));
+            repository.markNotificationAsRead(notification.getId(), success -> loadNotifications(false));
         });
         rvNotifications.setAdapter(adapter);
     }
@@ -170,6 +170,17 @@ public class NotificationActivity extends BaseNavigationActivity {
      *                             without the guest asking for it; true for the initial
      *                             load and any explicit user-triggered refresh.
      */
+    /**
+     * This screen keeps its own data fresh (this method, called from onCreate/onResume/
+     * swipe-refresh/the 30s auto-poll), so the shared header's own badge-only refetch
+     * (BaseNavigationActivity#refreshNotificationBadge()) would just be a second,
+     * redundant network call every time this screen resumes - suppressed below.
+     */
+    @Override
+    protected void refreshNotificationBadge() {
+        updateNotificationBadge();
+    }
+
     private void loadNotifications(boolean showLoadingIndicator) {
         if (showLoadingIndicator && swipeRefresh != null) swipeRefresh.setRefreshing(true);
         repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
@@ -177,6 +188,7 @@ public class NotificationActivity extends BaseNavigationActivity {
             public void onSuccess(List<Notification> result) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 allNotifications = result != null ? result : new ArrayList<>();
+                updateNotificationBadge();
                 applyFilters();
                 openPendingDetailIfAny();
             }
@@ -335,7 +347,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         for (Notification n : allNotifications) {
             if (targetId.equals(n.getId())) {
                 showNotificationDetails(n);
-                repository.markNotificationAsRead(n.getId(), () -> loadNotifications(false));
+                repository.markNotificationAsRead(n.getId(), success -> loadNotifications(false));
                 break;
             }
         }

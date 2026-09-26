@@ -690,7 +690,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                         public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
                             btnConfirm.setEnabled(true);
                             if (!response.isSuccessful()) {
-                                passwordField.setError(getString(R.string.deactivate_account_password_error));
+                                passwordField.setError(errorMessage(response, getString(R.string.deactivate_account_password_error)));
                                 return;
                             }
                             // The account is already deactivated server-side regardless of
@@ -1437,8 +1437,9 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                         public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                             btnConfirm.setEnabled(true);
                             if (!response.isSuccessful()) {
-                                otpField.setError(getString(R.string.invalid_otp));
-                                Toast.makeText(ProfileManagementActivity.this, R.string.otp_invalid_or_expired, Toast.LENGTH_LONG).show();
+                                String msg = errorMessage(response, getString(R.string.otp_invalid_or_expired));
+                                otpField.setError(msg);
+                                Toast.makeText(ProfileManagementActivity.this, msg, Toast.LENGTH_LONG).show();
                                 return;
                             }
                             // The password is already changed server-side regardless of
