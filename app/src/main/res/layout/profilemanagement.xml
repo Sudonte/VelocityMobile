@@ -1290,6 +1290,252 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- About Card - read-only build identification (App Name/Version/Build),
+                     populated entirely from PackageManager/BuildConfig in
+                     ProfileManagementActivity (never hand-typed here) so it can never drift
+                     from what's actually installed. Commit/Build Type/Built rows are Debug-
+                     build-only diagnostics, hidden entirely in Release. -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="false"
+                    android:focusable="false">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                app:cardBackgroundColor="@color/velocity_red_soft"
+                                app:cardCornerRadius="13dp"
+                                app:cardElevation="0dp">
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_info"
+                                    app:tint="@color/velocity_red_primary" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/about_section_title"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="1dp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/about_section_subtitle"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/velocity_red_soft" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/shape_intro_pill"
+                            android:backgroundTint="@color/velocity_red_soft"
+                            android:orientation="vertical"
+                            android:padding="9dp">
+
+                            <TextView
+                                style="@style/ProfileLabelStyle"
+                                android:layout_width="match_parent"
+                                android:textSize="10sp"
+                                android:text="@string/about_app_name_label" />
+
+                            <TextView
+                                android:id="@+id/aboutAppNameText"
+                                style="@style/ProfileValueStyle"
+                                android:layout_width="match_parent"
+                                android:textSize="14sp"
+                                android:text="@string/app_name" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:orientation="vertical"
+                                android:padding="9dp">
+
+                                <TextView
+                                    style="@style/ProfileLabelStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:text="@string/about_version_label" />
+
+                                <TextView
+                                    android:id="@+id/aboutVersionText"
+                                    style="@style/ProfileValueStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    tools:text="1.1.0" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:orientation="vertical"
+                                android:padding="9dp">
+
+                                <TextView
+                                    style="@style/ProfileLabelStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:text="@string/about_build_label" />
+
+                                <TextView
+                                    android:id="@+id/aboutBuildText"
+                                    style="@style/ProfileValueStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    tools:text="2" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Debug-only diagnostics - visibility="gone" by default, only ever
+                             shown by ProfileManagementActivity when BuildConfig.DEBUG is true.
+                             Never present in a Release build's rendered UI regardless of view
+                             lookup, since the toggling code itself is the only thing that ever
+                             flips this to VISIBLE. -->
+                        <LinearLayout
+                            android:id="@+id/layoutAboutDebugInfo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:baselineAligned="false"
+                                android:orientation="horizontal">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="6dp"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_intro_pill"
+                                    android:backgroundTint="@color/velocity_red_soft"
+                                    android:orientation="vertical"
+                                    android:padding="9dp">
+
+                                    <TextView
+                                        style="@style/ProfileLabelStyle"
+                                        android:layout_width="match_parent"
+                                        android:textSize="10sp"
+                                        android:text="@string/about_commit_label" />
+
+                                    <TextView
+                                        android:id="@+id/aboutCommitText"
+                                        style="@style/ProfileValueStyle"
+                                        android:layout_width="match_parent"
+                                        android:textSize="14sp"
+                                        android:textIsSelectable="true"
+                                        tools:text="da55955" />
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:background="@drawable/shape_intro_pill"
+                                    android:backgroundTint="@color/velocity_red_soft"
+                                    android:orientation="vertical"
+                                    android:padding="9dp">
+
+                                    <TextView
+                                        style="@style/ProfileLabelStyle"
+                                        android:layout_width="match_parent"
+                                        android:textSize="10sp"
+                                        android:text="@string/about_build_type_label" />
+
+                                    <TextView
+                                        android:id="@+id/aboutBuildTypeText"
+                                        style="@style/ProfileValueStyle"
+                                        android:layout_width="match_parent"
+                                        android:textSize="14sp"
+                                        tools:text="debug" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:orientation="vertical"
+                                android:padding="9dp">
+
+                                <TextView
+                                    style="@style/ProfileLabelStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:text="@string/about_build_time_label" />
+
+                                <TextView
+                                    android:id="@+id/aboutBuildTimeText"
+                                    style="@style/ProfileValueStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    tools:text="2026-09-26 13:20" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Security Card - Change Password only. Previously combined with Account/
                      Danger Zone into one "Security & Account" card; split into three
                      separate cards so Logout (not destructive) and Delete Account

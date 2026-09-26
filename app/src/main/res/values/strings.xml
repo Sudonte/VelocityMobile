@@ -575,6 +575,16 @@
     <string name="security_account_subtitle">Manage your password and login security</string>
     <string name="appearance_section_title">Appearance</string>
     <string name="appearance_section_subtitle">Choose how Velocity Suites looks on your device</string>
+    <string name="about_section_title">About</string>
+    <string name="about_section_subtitle">Application information</string>
+    <string name="about_app_name_label">App Name</string>
+    <string name="about_version_label">Version</string>
+    <string name="about_build_label">Build</string>
+    <string name="about_version_format">Version %1$s</string>
+    <string name="about_build_format">Build %1$d</string>
+    <string name="about_commit_label">Commit</string>
+    <string name="about_build_type_label">Build Type</string>
+    <string name="about_build_time_label">Built</string>
     <string name="theme_label">Theme</string>
     <string name="theme_light_mode_active">Light Mode is on</string>
     <string name="theme_dark_mode_active">Dark Mode is on</string>

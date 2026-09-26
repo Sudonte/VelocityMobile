@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -112,7 +113,44 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         animateScreenContent();
         wireProfileActions();
         setupThemeToggle();
+        setupAboutSection();
         fetchProfileFromServer();
+    }
+
+    /**
+     * Read-only build identification (About card) - the version/build fields are
+     * deliberately sourced from PackageManager, not BuildConfig: that's Android's own
+     * live record of what's actually installed, the same thing `adb shell dumpsys
+     * package`/Settings -> App Info reports, so it can never disagree with the real
+     * running APK even if a stray build artifact were sitting somewhere on disk. Commit/
+     * Build Type/Built are Debug-only diagnostics (BuildConfig.DEBUG-gated, never shown in
+     * a Release build) - safe to read from BuildConfig there since those are compile-time
+     * constants baked by the exact same build that produced this running APK.
+     */
+    private void setupAboutSection() {
+        TextView aboutVersionText = findViewById(R.id.aboutVersionText);
+        TextView aboutBuildText = findViewById(R.id.aboutBuildText);
+        if (aboutVersionText != null && aboutBuildText != null) {
+            try {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                aboutVersionText.setText(getString(R.string.about_version_format, packageInfo.versionName));
+                aboutBuildText.setText(getString(R.string.about_build_format, packageInfo.getLongVersionCode()));
+            } catch (PackageManager.NameNotFoundException e) {
+                // Can't happen for our own package - leave the About card's version/build
+                // rows blank rather than crash a settings screen over a diagnostics feature.
+            }
+        }
+
+        View debugInfo = findViewById(R.id.layoutAboutDebugInfo);
+        if (debugInfo != null && BuildConfig.DEBUG) {
+            debugInfo.setVisibility(View.VISIBLE);
+            TextView commitText = findViewById(R.id.aboutCommitText);
+            TextView buildTypeText = findViewById(R.id.aboutBuildTypeText);
+            TextView buildTimeText = findViewById(R.id.aboutBuildTimeText);
+            if (commitText != null) commitText.setText(BuildConfig.GIT_COMMIT);
+            if (buildTypeText != null) buildTypeText.setText(BuildConfig.BUILD_TYPE);
+            if (buildTimeText != null) buildTimeText.setText(BuildConfig.BUILD_TIME);
+        }
     }
 
     /**

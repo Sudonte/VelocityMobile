@@ -1,4 +1,7 @@
 import java.io.FileInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.Properties
 
 plugins {
@@ -31,6 +34,23 @@ val releaseKeystoreProperties = Properties().apply {
     }
 }
 
+// Build identification (see ProfileManagementActivity's About section) - best-effort
+// only. A build must never fail just because git isn't on PATH or this isn't a git
+// checkout at all (e.g. a CI artifact export) - "unknown" is a safe, honest fallback,
+// never a build failure. Recomputed on every Gradle configuration pass, so it always
+// reflects the tree actually being built, not a stale cached value.
+val gitCommitHash: String = try {
+    val process = ProcessBuilder("git", "rev-parse", "--short=7", "HEAD")
+        .directory(rootDir)
+        .redirectErrorStream(true)
+        .start()
+    val output = process.inputStream.bufferedReader().use { it.readText() }.trim()
+    if (process.waitFor() == 0 && output.isNotEmpty()) output else "unknown"
+} catch (e: Exception) {
+    "unknown"
+}
+val buildTimestamp: String = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+
 android {
     namespace = "com.example.velocitysuites"
     compileSdk {
@@ -43,10 +63,19 @@ android {
         applicationId = "com.example.velocitysuites"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // Versioning policy (see project docs / commit history): versionCode must
+        // monotonically increase for every distributed build, never reset or decrease -
+        // it's the only reliable way to tell a stale install from the current one, since
+        // Android itself (dumpsys/PackageManager) reports it regardless of what the app's
+        // own UI displays. versionName is the human-facing "1.1.0"-style label; bump its
+        // patch/minor/major segment per normal semver judgement, versionCode always by
+        // exactly 1 regardless of how big the versionName jump is.
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GIT_COMMIT", "\"$gitCommitHash\"")
+        buildConfigField("String", "BUILD_TIME", "\"$buildTimestamp\"")
     }
 
     signingConfigs {
