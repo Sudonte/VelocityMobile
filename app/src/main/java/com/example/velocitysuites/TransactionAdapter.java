@@ -15,6 +15,11 @@ import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.ViewHolder> {
 
+    // Built once instead of on every bind - NumberFormat instance construction
+    // does a locale data lookup and isn't free; RecyclerView binding always runs
+    // on the main thread so a single shared (non-thread-safe) instance is safe.
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
+
     private final List<Booking> bookings;
     private final OnTransactionClickListener listener;
     private final OnDeleteClickListener deleteListener;
@@ -56,8 +61,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         String dateInfo = booking.getCheckInDate() + " – " + booking.getCheckOutDate();
         holder.tvStayDates.setText(dateInfo);
 
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-        holder.tvTotalAmount.setText(currencyFormat.format(booking.getTotalAmount()));
+        holder.tvTotalAmount.setText(CURRENCY_FORMAT.format(booking.getTotalAmount()));
 
         android.content.Context cardCtx = holder.itemView.getContext();
         String naLabel = cardCtx.getString(R.string.label_not_available);

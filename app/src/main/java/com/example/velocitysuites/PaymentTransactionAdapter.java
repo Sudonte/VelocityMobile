@@ -24,6 +24,9 @@ import java.util.Locale;
  */
 public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTransactionAdapter.ViewHolder> {
 
+    // Built once instead of on every bind - see TransactionAdapter's identical field for why.
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
+
     private final List<PaymentTransaction> transactions;
     private final OnTransactionClickListener listener;
     private String highlightedBookingId;
@@ -85,16 +88,15 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         String date = tx.getDate();
         holder.tvDate.setText(date != null && !date.isEmpty() ? date : ctx.getString(R.string.label_not_available));
 
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-        holder.tvAmount.setText(currencyFormat.format(tx.getAmount()));
+        holder.tvAmount.setText(CURRENCY_FORMAT.format(tx.getAmount()));
 
         // Booking-level Paid/Remaining - authoritative payment_summary when the
         // backend has attached one, else the legacy fields (Booking#getEffectiveTotalAmountPaid()'s
         // own fallback rule) - never this one transaction's own amount above.
         if (holder.tvPaymentProgress != null) {
             holder.tvPaymentProgress.setText(ctx.getString(R.string.ptx_payment_progress_format,
-                    currencyFormat.format(b.getEffectiveTotalAmountPaid()),
-                    currencyFormat.format(b.getEffectiveRemainingBalance())));
+                    CURRENCY_FORMAT.format(b.getEffectiveTotalAmountPaid()),
+                    CURRENCY_FORMAT.format(b.getEffectiveRemainingBalance())));
         }
 
         // "N Receipt(s) Available" - every already-issued receipt on this

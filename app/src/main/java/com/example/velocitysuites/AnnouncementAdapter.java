@@ -53,9 +53,15 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
         String imageUrl = announcement.getFirstImageUrl();
         if (imageUrl != null && !imageUrl.isEmpty()) {
             holder.ivImage.setVisibility(View.VISIBLE);
+            // placeholder+error required here (unlike a one-shot dialog ImageView) -
+            // this ImageView is recycled across rows, so a broken/slow URL without
+            // an explicit fallback can leave a previous row's announcement image
+            // showing behind the new row's content.
             Glide.with(holder.itemView.getContext())
                     .load(imageUrl)
                     .centerCrop()
+                    .placeholder(R.drawable.bg_landing_banner_wellness)
+                    .error(R.drawable.bg_landing_banner_wellness)
                     .into(holder.ivImage);
         } else {
             holder.ivImage.setVisibility(View.GONE);

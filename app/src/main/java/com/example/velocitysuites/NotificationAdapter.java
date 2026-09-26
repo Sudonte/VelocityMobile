@@ -137,11 +137,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         // Deep-link highlight for a specific notification id (e.g. tapped from the
         // dashboard's Booking, Reservation, Payment & Hotel Updates section) - outlines
-        // the exact row so it's unambiguous which update the guest tapped.
+        // the exact row so it's unambiguous which update the guest tapped. Both
+        // branches set stroke width explicitly (not just the highlighted one) -
+        // otherwise a recycled ViewHolder that once held the highlighted item
+        // keeps its thick red border forever on whatever unrelated notification
+        // scrolls into that slot next, since setStrokeWidth() is stateful on the
+        // underlying View and nothing else in this method resets it.
         if (highlightedNotificationId != null && highlightedNotificationId.equals(notification.getId())) {
             android.content.Context ctx = holder.itemView.getContext();
             holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_primary));
             holder.card.setStrokeWidth((int) (2 * ctx.getResources().getDisplayMetrics().density));
+        } else {
+            holder.card.setStrokeWidth(0);
         }
     }
 
