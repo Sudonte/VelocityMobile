@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.ChipGroup;
@@ -41,7 +42,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             if (uri == null) return;
             getState().idCardImageUri = uri;
             cardIdPreview.setVisibility(View.VISIBLE);
-            ivIdPreview.setImageURI(uri);
+            Glide.with(requireContext()).load(uri).into(ivIdPreview);
             tvIdUploadStatus.setVisibility(View.VISIBLE);
             tvIdUploadStatus.setText(R.string.id_uploaded_status);
         });
@@ -104,7 +105,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
 
     private void applyPreview(Uri uri) {
         cardIdPreview.setVisibility(View.VISIBLE);
-        ivIdPreview.setImageURI(uri);
+        Glide.with(requireContext()).load(uri).into(ivIdPreview);
         tvIdUploadStatus.setVisibility(View.VISIBLE);
         tvIdUploadStatus.setText(R.string.id_uploaded_status);
     }

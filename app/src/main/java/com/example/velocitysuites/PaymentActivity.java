@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.widget.NestedScrollView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.ChipGroup;
@@ -592,7 +593,11 @@ public class PaymentActivity extends BaseNavigationActivity {
             tvReviewReferenceNumber.setText(GcashReferenceFormatter.format(gcashReferenceDigitsOnly()));
         }
         if (ivReviewReceiptThumb != null && receiptUri != null) {
-            ivReviewReceiptThumb.setImageURI(receiptUri);
+            // A gallery-picked receipt photo can be full camera resolution
+            // (12MP+); Glide downsamples to the target ImageView's size
+            // instead of decoding the whole bitmap into memory like
+            // setImageURI() would, avoiding an OOM crash on lower-end devices.
+            Glide.with(this).load(receiptUri).into(ivReviewReceiptThumb);
         }
         if (tvReviewReceiptFileName != null) {
             String fileName = receiptUri != null ? queryFileName(receiptUri) : null;
@@ -952,7 +957,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                     return;
                 }
                 receiptUri = uri;
-                ivReceiptPreview.setImageURI(uri);
+                Glide.with(this).load(uri).into(ivReceiptPreview);
                 cardReceiptPreview.setVisibility(View.VISIBLE);
                 tvReceiptStatus.setText(R.string.receipt_attached_success);
                 tvReceiptStatus.setTextColor(getResources().getColor(R.color.velocity_green_primary, getTheme()));
@@ -1014,7 +1019,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         ImageView fullImage = new ImageView(this);
         fullImage.setAdjustViewBounds(true);
         fullImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        fullImage.setImageURI(receiptUri);
+        Glide.with(this).load(receiptUri).into(fullImage);
         int padding = (int) (16 * getResources().getDisplayMetrics().density);
         fullImage.setPadding(padding, padding, padding, padding);
         new MaterialAlertDialogBuilder(this)

@@ -191,6 +191,21 @@ public class BookingWizardActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             currentStepIndex = savedInstanceState.getInt("currentStepIndex", 1);
+            // BookingWizardState itself is deliberately not saved/restored across
+            // process death (see its own class doc) - only this index is, via
+            // onSaveInstanceState() below. So if the OS recreated this Activity
+            // (e.g. backgrounded and reclaimed) partway through a fresh wizard
+            // run, `state` above is a brand-new, empty object with no rooms/
+            // dates/guest info, yet currentStepIndex would still point past
+            // Step 1 - silently showing a later step with blank/wrong fields
+            // and no indication anything went wrong. isEditMode()'s path is
+            // unaffected (seedStateForEdit() already fully repopulated state
+            // just above, from the same Intent extra Android redelivers on
+            // recreation) - only reset for a fresh, in-progress run.
+            if (!isEditMode() && currentStepIndex > 1) {
+                currentStepIndex = 1;
+                Toast.makeText(this, R.string.wizard_progress_lost_restart, Toast.LENGTH_LONG).show();
+            }
         }
         showStep(currentStepIndex);
     }

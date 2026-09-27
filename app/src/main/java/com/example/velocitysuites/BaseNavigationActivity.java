@@ -357,8 +357,12 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                     }
                 });
 
-        SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
-        prefs.edit().clear().apply();
+        // Must clear the secure prefs (bearer token + Remember Me), not just the
+        // ordinary "VelocityPrefs" - otherwise Remember Me survives Log Out and
+        // LoginActivity's own validateRememberedSession() can silently sign the
+        // guest right back in on the very next cold start (or even immediately,
+        // if the fire-and-forget server-side logout() call above hasn't landed yet).
+        com.example.velocitysuites.network.SessionManager.clear(this);
         // The RoomRepository singleton otherwise survives a logout/login within the
         // same process - without this, the next account's data could momentarily
         // fall back to this account's stale cached bookings/notifications if its

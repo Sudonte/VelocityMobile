@@ -282,7 +282,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 uploadedIdUri = uri;
                 tvIdUploadStatus.setText(R.string.id_uploaded_success);
                 tvIdUploadStatus.setTextColor(getResources().getColor(R.color.velocity_red_primary));
-                ivIdPreview.setImageURI(uri);
+                // Glide downsamples instead of decoding a full-resolution
+                // camera/gallery ID photo into memory (avoids OOM on low-end devices).
+                Glide.with(this).load(uri).into(ivIdPreview);
                 cardIdPreview.setVisibility(View.VISIBLE);
             }
         });
@@ -2226,7 +2228,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 tvIdUploadStatus.setVisibility(View.VISIBLE);
                 if (uploadedIdUri != null) {
                     cardIdPreview.setVisibility(View.VISIBLE);
-                    ivIdPreview.setImageURI(uploadedIdUri);
+                    Glide.with(this).load(uploadedIdUri).into(ivIdPreview);
                 }
             } else if (checkedId == R.id.chipPwd) {
                 selectedIdType = "PWD";
@@ -2234,7 +2236,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 tvIdUploadStatus.setVisibility(View.VISIBLE);
                 if (uploadedIdUri != null) {
                     cardIdPreview.setVisibility(View.VISIBLE);
-                    ivIdPreview.setImageURI(uploadedIdUri);
+                    Glide.with(this).load(uploadedIdUri).into(ivIdPreview);
                 }
             } else {
                 selectedIdType = "None";
@@ -3334,7 +3336,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         selectedIdType = b.getIdCardType() != null ? b.getIdCardType() : "None";
         if (b.getIdCardUri() != null) {
             uploadedIdUri = android.net.Uri.parse(b.getIdCardUri());
-            ivIdPreview.setImageURI(uploadedIdUri);
+            Glide.with(this).load(uploadedIdUri).into(ivIdPreview);
             cardIdPreview.setVisibility(View.VISIBLE);
             tvIdUploadStatus.setText(R.string.id_uploaded_success);
             tvIdUploadStatus.setVisibility(View.VISIBLE);
@@ -3874,47 +3876,74 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 ? R.string.cancel_partial_payment_confirm
                 : (isBooking ? R.string.cancel_booking_confirm : R.string.cancel_reservation_confirm);
 
-        new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(isBooking ? R.string.cancel_booking_title : R.string.cancel_reservation_title)
                 .setMessage(messageRes)
-                .setPositiveButton(R.string.yes_cancel, (dialog, which) -> cancelAnyBooking(booking,
-                        new RoomRepository.RepositoryCallback<Booking>() {
-                            @Override
-                            public void onSuccess(Booking result) {
-                                new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
-                                        .setTitle(isBooking ? R.string.cancel_booking_success_title : R.string.cancel_reservation_success_title)
-                                        .setMessage(isBooking ? R.string.cancel_booking_success_msg : R.string.cancel_reservation_success_msg)
-                                        .setPositiveButton(R.string.close_label, null)
-                                        .show();
-                                refreshMyBookings();
-                                // The cancelled room's availability just changed
-                                // server-side - refresh the cached inventory so
-                                // Add Room reflects it without needing a full
-                                // screen restart.
-                                if (hasEnteredCheckIn() && hasEnteredCheckOut()) {
-                                    refreshRoomsForSelectedDates();
-                                } else {
-                                    repository.refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
-                                        @Override
-                                        public void onSuccess(List<Room> result) {
-                                            allRooms = result;
-                                        }
-
-                                        @Override
-                                        public void onError(String message) {
-                                            // Best-effort refresh; the next Add Room open still re-fetches.
-                                        }
-                                    });
-                                }
-                            }
-
-                            @Override
-                            public void onError(String message) {
-                                Toast.makeText(BookingAndReservationActivity.this, getString(R.string.cancel_failed_format, message), Toast.LENGTH_LONG).show();
-                            }
-                        }))
+                .setPositiveButton(R.string.yes_cancel, null)
                 .setNegativeButton(R.string.no_label, null)
-                .show();
+                .create();
+
+        dialog.setOnShowListener(shownDialog -> {
+            android.widget.Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            android.widget.Button negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            positive.setOnClickListener(v -> {
+                // Disable both buttons and swap in a "Cancelling..." label so a
+                // repeated tap while the request is in flight can't fire it twice -
+                // mirrors confirmDeleteTransaction()'s identical guard for the
+                // same reason (this dialog's default auto-dismissing positive
+                // button previously left the underlying row's own Cancel button
+                // fully re-enabled the instant it closed, so a fast double-tap on
+                // that row could reopen and reconfirm a second cancel before the
+                // first one's response landed).
+                positive.setEnabled(false);
+                negative.setEnabled(false);
+                positive.setText(R.string.cancelling_in_progress_label);
+
+                cancelAnyBooking(booking, new RoomRepository.RepositoryCallback<Booking>() {
+                    @Override
+                    public void onSuccess(Booking result) {
+                        dismissSafely(dialog);
+                        if (isFinishing() || isDestroyed()) return;
+                        new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                                .setTitle(isBooking ? R.string.cancel_booking_success_title : R.string.cancel_reservation_success_title)
+                                .setMessage(isBooking ? R.string.cancel_booking_success_msg : R.string.cancel_reservation_success_msg)
+                                .setPositiveButton(R.string.close_label, null)
+                                .show();
+                        refreshMyBookings();
+                        // The cancelled room's availability just changed
+                        // server-side - refresh the cached inventory so
+                        // Add Room reflects it without needing a full
+                        // screen restart.
+                        if (hasEnteredCheckIn() && hasEnteredCheckOut()) {
+                            refreshRoomsForSelectedDates();
+                        } else {
+                            repository.refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+                                @Override
+                                public void onSuccess(List<Room> result) {
+                                    allRooms = result;
+                                }
+
+                                @Override
+                                public void onError(String message) {
+                                    // Best-effort refresh; the next Add Room open still re-fetches.
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        // Leave the dialog open and re-enable controls so the
+                        // guest can retry, matching confirmDeleteTransaction().
+                        positive.setEnabled(true);
+                        negative.setEnabled(true);
+                        positive.setText(R.string.yes_cancel);
+                        Toast.makeText(BookingAndReservationActivity.this, getString(R.string.cancel_failed_format, message), Toast.LENGTH_LONG).show();
+                    }
+                });
+            });
+        });
+        dialog.show();
     }
 
     /**

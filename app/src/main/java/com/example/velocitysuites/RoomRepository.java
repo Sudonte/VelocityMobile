@@ -1796,14 +1796,6 @@ public final class RoomRepository {
      * invalid.") since they're the specific, actionable text guests need.
      */
     /**
-     * Guards forceSessionExpiredLogout() so a burst of parallel requests that
-     * all 401 around the same moment (e.g. a screen firing several calls at
-     * once right after the token expires) only clears the session and
-     * launches LoginActivity once, not once per failed call.
-     */
-    private static final java.util.concurrent.atomic.AtomicBoolean sessionExpiredHandled = new java.util.concurrent.atomic.AtomicBoolean(false);
-
-    /**
      * A 401/419 means the token this app is holding is no longer valid
      * (expired or revoked server-side) - previously this was only ever
      * translated into an "session expired" error STRING shown in a toast,
@@ -1815,13 +1807,18 @@ public final class RoomRepository {
      * (BaseNavigationActivity.logout()) - started with NEW_TASK|CLEAR_TASK
      * since this can fire from a background network callback with no
      * Activity in hand.
+     *
+     * Public/static so screens that talk to the API directly instead of
+     * through this repository (e.g. ProfileManagementActivity) can route
+     * their own 401/419 responses through the same clear+redirect instead of
+     * each silently no-oping or showing a dead-end error toast.
      */
-    private void forceSessionExpiredLogout() {
-        if (!sessionExpiredHandled.compareAndSet(false, true)) return;
-        com.example.velocitysuites.network.SessionManager.clear(appContext);
-        android.content.Intent intent = new android.content.Intent(appContext, LoginActivity.class);
+    public static void forceSessionExpiredLogout(Context context) {
+        if (!com.example.velocitysuites.network.SessionManager.claimSessionExpiredHandling()) return;
+        com.example.velocitysuites.network.SessionManager.clear(context);
+        android.content.Intent intent = new android.content.Intent(context, LoginActivity.class);
         intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        appContext.startActivity(intent);
+        context.startActivity(intent);
     }
 
     private String errorMessage(Response<?> response) {
@@ -1844,7 +1841,7 @@ public final class RoomRepository {
         }
         int code = response.code();
         if (code == 401 || code == 419) {
-            forceSessionExpiredLogout();
+            forceSessionExpiredLogout(appContext);
             return appContext.getString(R.string.error_session_expired);
         }
         if (code >= 500) {
@@ -1891,7 +1888,7 @@ public final class RoomRepository {
         switch (code) {
             case 401:
             case 419:
-                forceSessionExpiredLogout();
+                forceSessionExpiredLogout(appContext);
                 return appContext.getString(R.string.error_session_expired);
             case 403:
                 return appContext.getString(R.string.delete_error_forbidden);

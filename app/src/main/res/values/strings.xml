@@ -1169,6 +1169,8 @@
     <string name="delete_permanently_button_label">Delete Permanently</string>
     <string name="delete_transaction_permanently_title">Delete Transaction Permanently?</string>
     <string name="deleting_in_progress_label">Deleting…</string>
+    <string name="cancelling_in_progress_label">Cancelling…</string>
+    <string name="wizard_progress_lost_restart">Your booking session was interrupted, so we\'ve restarted it from the beginning. Please re-enter your details.</string>
     <string name="delete_transaction_success_title">Transaction Deleted</string>
     <!-- Booking-tab vs Reservation-tab specific copy for confirmDeleteTransaction()/TransactionListActivity#confirmDelete() - a Booking may be deleted once Completed or Cancelled/Rejected, a Reservation only once Cancelled/Rejected (never merely Completed/staff-verified - see TransactionCategorizer's own doc). -->
     <string name="delete_booking_transaction_confirm">This booking transaction will be permanently deleted and cannot be recovered. Are you sure you want to continue?</string>

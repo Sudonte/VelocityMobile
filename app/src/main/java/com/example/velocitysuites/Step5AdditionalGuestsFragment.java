@@ -118,6 +118,16 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
     }
 
     private void rebuildChildAgeFields() {
+        // Snapshot whatever the guest already typed in the still-visible fields
+        // before tearing them down - additionalGuests only gets (re)populated on
+        // a successful validateBeforeNext(), so without this, bumping the
+        // children count again (e.g. 2 -> 3) after typing ages but before
+        // tapping Next would silently wipe every age field back to blank.
+        List<String> previousAges = new ArrayList<>();
+        for (TextInputEditText input : childAgeInputs) {
+            previousAges.add(input.getText() != null ? input.getText().toString().trim() : "");
+        }
+
         layoutChildAgeFields.removeAllViews();
         childAgeInputLayouts.clear();
         childAgeInputs.clear();
@@ -125,7 +135,6 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         int children = getState().children;
         tvChildAgeNotice.setVisibility(children > 0 ? View.VISIBLE : View.GONE);
 
-        LayoutInflater inflater = LayoutInflater.from(requireContext());
         for (int i = 0; i < children; i++) {
             TextInputLayout til = new TextInputLayout(requireContext());
             til.setLayoutParams(new LinearLayout.LayoutParams(
@@ -137,7 +146,9 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
             input.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            if (i < getState().additionalGuests.size()) {
+            if (i < previousAges.size() && !previousAges.get(i).isEmpty()) {
+                input.setText(previousAges.get(i));
+            } else if (i < getState().additionalGuests.size()) {
                 input.setText(String.valueOf(getState().additionalGuests.get(i).age));
             }
             til.addView(input);

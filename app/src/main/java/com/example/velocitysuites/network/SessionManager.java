@@ -26,6 +26,22 @@ public final class SessionManager {
     private static final String KEY_TOKEN = "apiToken";
 
     /**
+     * Guards RoomRepository's one-shot "session expired, clear + redirect to
+     * login" action against a burst of parallel requests that all 401 around
+     * the same moment. Lives here (not in RoomRepository) so saveSession()
+     * can re-arm it below - without that reset, only the FIRST session
+     * expiry of the process's entire lifetime was ever handled; a second
+     * token (from a later login in the same process) that later also
+     * expired would silently fail to clear/redirect on every subsequent 401.
+     */
+    private static final java.util.concurrent.atomic.AtomicBoolean sessionExpiredHandled = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    /** Returns true only for the single caller that should actually clear the session and redirect to login. */
+    public static boolean claimSessionExpiredHandling() {
+        return sessionExpiredHandled.compareAndSet(false, true);
+    }
+
+    /**
      * Remember Me: a separate opt-in flag from the plain session token above.
      * The token alone means "authenticated for this process"; these three
      * keys mean "skip login.xml on a fresh cold start too, but only for up
@@ -75,6 +91,9 @@ public final class SessionManager {
                 .remove(KEY_REMEMBER_ME_LOGIN_AT)
                 .remove(KEY_REMEMBER_ME_EXPIRES_AT)
                 .apply();
+
+        // Re-arm the session-expiry guard for this fresh token - see its own doc.
+        sessionExpiredHandled.set(false);
     }
 
     /**

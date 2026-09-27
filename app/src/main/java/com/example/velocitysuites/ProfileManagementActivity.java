@@ -198,7 +198,16 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     loadUserProfile();
                     refreshHeader();
                     refreshLockUI();
+                } else if (response.code() == 401 || response.code() == 419) {
+                    // Unlike RoomRepository-backed screens, this Activity calls
+                    // ApiClient directly - without this, a dead/expired token here
+                    // just left the guest stuck on stale cached data forever, with
+                    // no path back to the login screen (see RoomRepository's own
+                    // forceSessionExpiredLogout() doc for the full rationale).
+                    RoomRepository.forceSessionExpiredLogout(ProfileManagementActivity.this);
                 }
+                // Any other non-2xx: keep showing the cached prefs values from the
+                // last login/update, same as onFailure() below.
             }
 
             @Override
@@ -1275,18 +1284,23 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-        resendLink.setOnClickListener(v -> ApiClient.getService(this).forgotPassword(new com.example.velocitysuites.network.dto.EmailRequest(email))
-                .enqueue(new Callback<ApiMessage>() {
-                    @Override
-                    public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                        Toast.makeText(ProfileManagementActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
-                    }
+        resendLink.setOnClickListener(v -> {
+            resendLink.setEnabled(false);
+            ApiClient.getService(this).forgotPassword(new com.example.velocitysuites.network.dto.EmailRequest(email))
+                    .enqueue(new Callback<ApiMessage>() {
+                        @Override
+                        public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            resendLink.setEnabled(true);
+                            Toast.makeText(ProfileManagementActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
+                        }
 
-                    @Override
-                    public void onFailure(Call<ApiMessage> call, Throwable t) {
-                        Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
-                    }
-                }));
+                        @Override
+                        public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            resendLink.setEnabled(true);
+                            Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                        }
+                    });
+        });
 
         btnConfirm.setOnClickListener(v -> {
             String otp = otpField.getText() != null ? otpField.getText().toString().trim() : "";

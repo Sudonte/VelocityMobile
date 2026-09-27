@@ -110,7 +110,8 @@ public class NotificationActivity extends BaseNavigationActivity {
             btnRefreshEmpty.setOnClickListener(v -> loadNotifications(true));
         }
 
-        findViewById(R.id.btnMarkAllRead).setOnClickListener(v -> confirmMarkAllRead());
+        View btnMarkAllRead = findViewById(R.id.btnMarkAllRead);
+        btnMarkAllRead.setOnClickListener(v -> confirmMarkAllRead(btnMarkAllRead));
 
         loadNotifications(true);
     }
@@ -120,13 +121,20 @@ public class NotificationActivity extends BaseNavigationActivity {
      * confirm before applying it - the same confirm-dialog convention used for other
      * one-way actions across the app (see ProfileManagementActivity's confirm dialogs).
      */
-    private void confirmMarkAllRead() {
+    private void confirmMarkAllRead(View triggerButton) {
         new MaterialAlertDialogBuilder(this)
                 .setMessage(R.string.confirm_mark_all_read_msg)
-                .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> repository.markAllNotificationsAsRead(success -> {
-                    loadNotifications(true);
-                    Toast.makeText(this, success ? R.string.msg_mark_all_read : R.string.network_error, Toast.LENGTH_SHORT).show();
-                }))
+                .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> {
+                    // Disabled for the duration of the request so a repeated tap
+                    // right after this dialog's auto-dismiss can't fire a second
+                    // concurrent mark-all-read call.
+                    triggerButton.setEnabled(false);
+                    repository.markAllNotificationsAsRead(success -> {
+                        triggerButton.setEnabled(true);
+                        loadNotifications(true);
+                        Toast.makeText(this, success ? R.string.msg_mark_all_read : R.string.network_error, Toast.LENGTH_SHORT).show();
+                    });
+                })
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
     }

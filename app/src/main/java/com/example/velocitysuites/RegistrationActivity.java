@@ -732,9 +732,11 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     private void resendOtp() {
+        resendOtpLink.setEnabled(false);
         ApiClient.getService(this).resendOtp(new EmailRequest(textOf(emailEdit))).enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                resendOtpLink.setEnabled(true);
                 if (response.isSuccessful()) {
                     Toast.makeText(RegistrationActivity.this, "A new OTP has been sent to your email.", Toast.LENGTH_SHORT).show();
                 } else {
@@ -744,6 +746,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
+                resendOtpLink.setEnabled(true);
                 Toast.makeText(RegistrationActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
             }
         });
