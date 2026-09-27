@@ -118,6 +118,17 @@
                 android:paddingEnd="16dp"
                 android:paddingBottom="40dp">
 
+                <!-- Group label for the profile-data cards below (Profile Summary through
+                     Address Information) - reuses ProfileLabelStyle (already this screen's
+                     small/letter-spaced/muted-caps convention for every field label) as a
+                     page-level section header instead of introducing a new style. -->
+                <TextView
+                    style="@style/ProfileLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/section_group_profile_info" />
+
                 <!-- Profile Summary Card -->
                 <com.google.android.material.card.MaterialCardView
                     style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
@@ -336,6 +347,164 @@
                             tools:visibility="visible" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Profile Update Status Card - a dedicated, always-visible summary of the
+                     30-day Personal Information / Contact & Address cooldown (see
+                     ProfileManagementActivity#applyProfileCooldownLock()), separate from the
+                     compact caption already shown inline in the Profile Summary card above.
+                     Placed immediately after Profile Summary since both concern the same
+                     edit-cooldown concept (a glance vs. the full detail). Dates are formatted
+                     client-side only from the server's own last_updated_at/next_update_at
+                     values - eligibility itself is never computed on-device. -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="false"
+                    android:focusable="false">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                app:cardBackgroundColor="@color/velocity_red_soft"
+                                app:cardCornerRadius="13dp"
+                                app:cardElevation="0dp">
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_clock"
+                                    app:tint="@color/velocity_red_primary" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/profile_update_status_title"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="1dp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/profile_update_status_subtitle"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/velocity_red_soft" />
+
+                        <!-- Eligible state - shown when the guest can update now. -->
+                        <TextView
+                            android:id="@+id/profileUpdateStatusEligibleText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/shape_intro_pill"
+                            android:backgroundTint="@color/velocity_red_soft"
+                            android:fontFamily="sans-serif-medium"
+                            android:padding="9dp"
+                            android:text="@string/profile_update_status_eligible"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            tools:visibility="gone" />
+
+                        <!-- Locked state - exact server-provided dates, shown as two rows. -->
+                        <LinearLayout
+                            android:id="@+id/profileUpdateStatusLockedGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="visible"
+                            tools:visibility="visible">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:orientation="vertical"
+                                android:padding="9dp">
+
+                                <TextView
+                                    style="@style/ProfileLabelStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:text="@string/profile_update_status_last_updated_label" />
+
+                                <TextView
+                                    android:id="@+id/profileUpdateStatusLastUpdatedValue"
+                                    style="@style/ProfileValueStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    tools:text="September 23, 2026" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:orientation="vertical"
+                                android:padding="9dp">
+
+                                <TextView
+                                    style="@style/ProfileLabelStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="10sp"
+                                    android:text="@string/profile_update_status_next_update_label" />
+
+                                <TextView
+                                    android:id="@+id/profileUpdateStatusNextValue"
+                                    style="@style/ProfileValueStyle"
+                                    android:layout_width="match_parent"
+                                    android:textSize="14sp"
+                                    tools:text="October 23, 2026" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/profile_update_status_supporting_text"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Personal Information Card -->
@@ -620,8 +789,11 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Contact & Address Information - one merged card containing both
-                     subsections (see the Address subsection comment below). -->
+                <!-- Contact Information - edited together with Address Information below
+                     through the single "Edit Profile" action in the Profile Summary card
+                     (see profileEditRow), not independently. Split from a single merged
+                     "Contact & Address" card into two, mirroring how the edit wizard already
+                     separates these into distinct Step 2/Step 3 pages. -->
                 <com.google.android.material.card.MaterialCardView
                     style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
                     android:layout_width="match_parent"
@@ -670,7 +842,7 @@
                                     style="@style/TextAppearance.Velocity.Label.Section"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/contact_address_info_title"
+                                    android:text="@string/contact_info_title"
                                     android:textSize="14sp" />
 
                                 <TextView
@@ -678,7 +850,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="1dp"
                                     android:fontFamily="sans-serif-medium"
-                                    android:text="@string/contact_address_subtitle"
+                                    android:text="@string/contact_info_subtitle"
                                     android:textColor="@color/velocity_text_secondary"
                                     android:textSize="11sp" />
                             </LinearLayout>
@@ -773,39 +945,79 @@
                                     android:text="@string/guest_mobile" />
                             </LinearLayout>
                         </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Address subsection - same merged card as Contact above; edited
-                             together through the single "Edit Profile" action in the Profile
-                             Summary card (see profileEditRow), not a separate section. -->
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="14dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/velocity_red_soft" />
+                <!-- Address Information - see the Contact Information card above for why
+                     this is now a separate card. -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="false"
+                    android:focusable="false">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp">
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginEnd="6dp"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_location"
-                                app:tint="@color/velocity_red_primary" />
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                app:cardBackgroundColor="@color/velocity_red_soft"
+                                app:cardCornerRadius="13dp"
+                                app:cardElevation="0dp">
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_location"
+                                    app:tint="@color/velocity_red_primary" />
+                            </com.google.android.material.card.MaterialCardView>
 
-                            <TextView
-                                style="@style/TextAppearance.Velocity.Label.Section"
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="@string/address_section_title"
-                                android:textSize="12sp" />
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    style="@style/TextAppearance.Velocity.Label.Section"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/address_info_step_title"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="1dp"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:text="@string/address_info_subtitle"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
                         </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/velocity_red_soft" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -996,162 +1208,14 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Profile Update Status Card - a dedicated, always-visible summary of the
-                     30-day Personal Information / Contact & Address cooldown (see
-                     ProfileManagementActivity#applyProfileCooldownLock()), separate from the
-                     compact caption already shown inline in the Profile Summary card above.
-                     Dates are formatted client-side only from the server's own
-                     last_updated_at/next_update_at values - eligibility itself is never
-                     computed on-device. -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
-                    android:layout_width="match_parent"
+                <!-- Group label for the app/account cards below (Appearance through Account). -->
+                <TextView
+                    style="@style/ProfileLabelStyle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:clickable="false"
-                    android:focusable="false">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:orientation="vertical"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="10dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="13dp"
-                                app:cardElevation="0dp">
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_clock"
-                                    app:tint="@color/velocity_red_primary" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/profile_update_status_title"
-                                    android:textSize="14sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="@string/profile_update_status_subtitle"
-                                    android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/velocity_red_soft" />
-
-                        <!-- Eligible state - shown when the guest can update now. -->
-                        <TextView
-                            android:id="@+id/profileUpdateStatusEligibleText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/shape_intro_pill"
-                            android:backgroundTint="@color/velocity_red_soft"
-                            android:fontFamily="sans-serif-medium"
-                            android:padding="9dp"
-                            android:text="@string/profile_update_status_eligible"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="13sp"
-                            android:visibility="gone"
-                            tools:visibility="gone" />
-
-                        <!-- Locked state - exact server-provided dates, shown as two rows. -->
-                        <LinearLayout
-                            android:id="@+id/profileUpdateStatusLockedGroup"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="visible"
-                            tools:visibility="visible">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:orientation="vertical"
-                                android:padding="9dp">
-
-                                <TextView
-                                    style="@style/ProfileLabelStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="10sp"
-                                    android:text="@string/profile_update_status_last_updated_label" />
-
-                                <TextView
-                                    android:id="@+id/profileUpdateStatusLastUpdatedValue"
-                                    style="@style/ProfileValueStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="14sp"
-                                    tools:text="September 23, 2026" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:orientation="vertical"
-                                android:padding="9dp">
-
-                                <TextView
-                                    style="@style/ProfileLabelStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="10sp"
-                                    android:text="@string/profile_update_status_next_update_label" />
-
-                                <TextView
-                                    android:id="@+id/profileUpdateStatusNextValue"
-                                    style="@style/ProfileValueStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="14sp"
-                                    tools:text="October 23, 2026" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/profile_update_status_supporting_text"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/section_group_preferences" />
 
                 <!-- Appearance Card - Light/Dark theme toggle. Fully functional:
                      wired in ProfileManagementActivity via ThemePreferences +
@@ -1286,252 +1350,6 @@
                                 android:layout_marginStart="8dp"
                                 android:importantForAccessibility="no"
                                 android:src="@drawable/ic_dark_mode" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- About Card - read-only build identification (App Name/Version/Build),
-                     populated entirely from PackageManager/BuildConfig in
-                     ProfileManagementActivity (never hand-typed here) so it can never drift
-                     from what's actually installed. Commit/Build Type/Built rows are Debug-
-                     build-only diagnostics, hidden entirely in Release. -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:clickable="false"
-                    android:focusable="false">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:orientation="vertical"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="10dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="13dp"
-                                app:cardElevation="0dp">
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_info"
-                                    app:tint="@color/velocity_red_primary" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/about_section_title"
-                                    android:textSize="14sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="@string/about_section_subtitle"
-                                    android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="10dp"
-                            android:background="@color/velocity_red_soft" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/shape_intro_pill"
-                            android:backgroundTint="@color/velocity_red_soft"
-                            android:orientation="vertical"
-                            android:padding="9dp">
-
-                            <TextView
-                                style="@style/ProfileLabelStyle"
-                                android:layout_width="match_parent"
-                                android:textSize="10sp"
-                                android:text="@string/about_app_name_label" />
-
-                            <TextView
-                                android:id="@+id/aboutAppNameText"
-                                style="@style/ProfileValueStyle"
-                                android:layout_width="match_parent"
-                                android:textSize="14sp"
-                                android:text="@string/app_name" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:baselineAligned="false"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="6dp"
-                                android:layout_weight="1"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:orientation="vertical"
-                                android:padding="9dp">
-
-                                <TextView
-                                    style="@style/ProfileLabelStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="10sp"
-                                    android:text="@string/about_version_label" />
-
-                                <TextView
-                                    android:id="@+id/aboutVersionText"
-                                    style="@style/ProfileValueStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="14sp"
-                                    tools:text="1.1.0" />
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:orientation="vertical"
-                                android:padding="9dp">
-
-                                <TextView
-                                    style="@style/ProfileLabelStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="10sp"
-                                    android:text="@string/about_build_label" />
-
-                                <TextView
-                                    android:id="@+id/aboutBuildText"
-                                    style="@style/ProfileValueStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="14sp"
-                                    tools:text="2" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <!-- Debug-only diagnostics - visibility="gone" by default, only ever
-                             shown by ProfileManagementActivity when BuildConfig.DEBUG is true.
-                             Never present in a Release build's rendered UI regardless of view
-                             lookup, since the toggling code itself is the only thing that ever
-                             flips this to VISIBLE. -->
-                        <LinearLayout
-                            android:id="@+id/layoutAboutDebugInfo"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="gone"
-                            tools:visibility="visible">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:baselineAligned="false"
-                                android:orientation="horizontal">
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="6dp"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/shape_intro_pill"
-                                    android:backgroundTint="@color/velocity_red_soft"
-                                    android:orientation="vertical"
-                                    android:padding="9dp">
-
-                                    <TextView
-                                        style="@style/ProfileLabelStyle"
-                                        android:layout_width="match_parent"
-                                        android:textSize="10sp"
-                                        android:text="@string/about_commit_label" />
-
-                                    <TextView
-                                        android:id="@+id/aboutCommitText"
-                                        style="@style/ProfileValueStyle"
-                                        android:layout_width="match_parent"
-                                        android:textSize="14sp"
-                                        android:textIsSelectable="true"
-                                        tools:text="da55955" />
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:background="@drawable/shape_intro_pill"
-                                    android:backgroundTint="@color/velocity_red_soft"
-                                    android:orientation="vertical"
-                                    android:padding="9dp">
-
-                                    <TextView
-                                        style="@style/ProfileLabelStyle"
-                                        android:layout_width="match_parent"
-                                        android:textSize="10sp"
-                                        android:text="@string/about_build_type_label" />
-
-                                    <TextView
-                                        android:id="@+id/aboutBuildTypeText"
-                                        style="@style/ProfileValueStyle"
-                                        android:layout_width="match_parent"
-                                        android:textSize="14sp"
-                                        tools:text="debug" />
-                                </LinearLayout>
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:orientation="vertical"
-                                android:padding="9dp">
-
-                                <TextView
-                                    style="@style/ProfileLabelStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="10sp"
-                                    android:text="@string/about_build_time_label" />
-
-                                <TextView
-                                    android:id="@+id/aboutBuildTimeText"
-                                    style="@style/ProfileValueStyle"
-                                    android:layout_width="match_parent"
-                                    android:textSize="14sp"
-                                    tools:text="2026-09-26 13:20" />
-                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -1673,12 +1491,13 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Account Card - Logout only. Deliberately neutral styling (no red) since
-                     logging out is not a destructive action, unlike Delete Account below. -->
+                     logging out is not a destructive action. Last card on this screen - see
+                     the 24dp marginBottom below. -->
                 <com.google.android.material.card.MaterialCardView
                     style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="24dp"
                     android:clickable="false"
                     android:focusable="false">
 
@@ -1804,113 +1623,6 @@
                                 android:src="@drawable/ic_chevron_right"
                                 app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Account Management Card - Deactivate Account only. Deliberately NOT
-                     styled as a "Danger Zone" (see task spec section 31) - deactivation is
-                     reversible (OTP reactivation on next sign-in, see LoginActivity), unlike
-                     the old permanent-sounding Delete Account it replaces. Warning emphasis
-                     is confined to the action button itself (velocity_orange_primary, this
-                     app's existing warning token - see colors.xml), not the whole card. -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
-                    android:clickable="false"
-                    android:focusable="false">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:orientation="vertical"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="10dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_orange_soft"
-                                app:cardCornerRadius="13dp"
-                                app:cardElevation="0dp">
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_pause"
-                                    app:tint="@color/velocity_orange_primary" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/account_management_title"
-                                    android:textSize="14sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="@string/account_management_subtitle"
-                                    android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="12dp"
-                            android:background="@color/velocity_red_soft" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/deactivate_account_title"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:layout_marginBottom="14dp"
-                            android:text="@string/deactivate_account_hint"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp"
-                            android:lineSpacingExtra="2dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/deactivateAccountButton"
-                            style="@style/Widget.MaterialComponents.Button"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/deactivate_account_title"
-                            android:textAllCaps="false"
-                            android:textColor="@color/white"
-                            app:backgroundTint="@color/velocity_orange_primary"
-                            app:icon="@drawable/ic_pause"
-                            app:iconTint="@color/white" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

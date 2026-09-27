@@ -60,7 +60,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColorHint="@color/velocity_text_secondary"
-                    app:helperText="@string/helper_checkin_two_day_rule"
+                    app:helperText="@string/helper_checkin_from_tomorrow"
                     app:helperTextTextColor="@color/velocity_text_secondary"
                     app:hintTextColor="@color/velocity_text_secondary"
                     app:startIconDrawable="@drawable/ic_calendar"

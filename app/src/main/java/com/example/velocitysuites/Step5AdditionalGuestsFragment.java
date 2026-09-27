@@ -19,13 +19,19 @@ import java.util.List;
 
 /**
  * Step 5: declared adults/children counts, plus a dynamic "Child N Age"
- * field per declared child - each required 0-7. Adults are bounded by step
- * 1's total room capacity (BookingWizardState#totalSelectedCapacity());
- * children are never counted against that capacity (only against
- * MAX_CHILDREN) - the two are deliberately independent validations. New
- * logic (BookingAndReservationActivity only ever derived adults/children
- * after the fact from a flat guest list's ages - see finalizeBooking());
- * this step collects the counts up front instead, per spec.
+ * field per declared child - each required 0-7. Adults + children COMBINED
+ * must not EXCEED step 1's total room capacity (BookingWizardState#
+ * totalSelectedCapacity(), summed across every selected room including
+ * quantity) before Next is allowed (see validateBeforeNext()), per spec -
+ * matching this same app's Hotel Terms & Policy wording ("must not exceed
+ * the selected room's stated capacity") and BookingAndReservationActivity's
+ * own Modify-guest-count check. The live +/- steppers enforce the same
+ * not-exceed guard as it's adjusted (changeAdults()/changeChildren()).
+ * Children are additionally, independently capped at MAX_CHILDREN
+ * regardless of capacity. (BookingAndReservationActivity only ever derived
+ * adults/children after the fact from a flat guest list's ages - see
+ * finalizeBooking()); this step collects the counts up front instead, per
+ * spec.
  */
 public class Step5AdditionalGuestsFragment extends WizardStepFragment {
 
@@ -76,10 +82,9 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         BookingWizardState state = getState();
         int next = state.adults + delta;
         if (next < 1) return;
-        // Room capacity governs adults only - children never consume it (see
-        // Step 5's class doc / spec: "2 Adults + 3 Children" against a
-        // capacity-2 room is valid, only the adult count is capped).
-        if (next > state.totalSelectedCapacity()) {
+        // Adults + children combined can't exceed the selected rooms' total
+        // capacity (see Step 5's class doc / spec).
+        if (next + state.children > state.totalSelectedCapacity()) {
             Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -91,10 +96,15 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         BookingWizardState state = getState();
         int next = state.children + delta;
         if (next < 0) return;
-        // Children are bounded only by MAX_CHILDREN, never by room capacity
-        // (that's an adults-only rule - see changeAdults()).
+        // Independent cap regardless of capacity.
         if (next > MAX_CHILDREN) {
             Toast.makeText(requireContext(), R.string.error_children_exceed_max, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Adults + children combined can't exceed the selected rooms' total
+        // capacity (see Step 5's class doc / spec).
+        if (state.adults + next > state.totalSelectedCapacity()) {
+            Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
             return;
         }
         state.children = next;
@@ -149,7 +159,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
             Toast.makeText(requireContext(), R.string.error_children_exceed_max, Toast.LENGTH_SHORT).show();
             return false;
         }
-        if (state.adults > state.totalSelectedCapacity()) {
+        if (state.adults + state.children > state.totalSelectedCapacity()) {
             Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
             return false;
         }

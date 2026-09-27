@@ -111,16 +111,20 @@ public class Step2DatesFragment extends WizardStepFragment {
     }
 
     /**
-     * Guest Transaction Date Validation - blocks Next while this exact
-     * check-in/check-out range overlaps another of THIS guest's own active
+     * Guest Transaction Date Validation - blocks Next while this check-in/
+     * check-out range genuinely OVERLAPS another of THIS guest's own active
      * Bookings/Reservations (any room type - see
-     * RoomRepository#findConflictingStayForGuest()). Completely separate
-     * from Room Availability Validation (cross-guest inventory for a
-     * specific room type, judged server-side and by Step1RoomSelectionFragment
-     * on step 2) - both must independently pass. On a Modify run, the
-     * reservation being edited AND every sibling of its own
-     * BookingGroupState group (same multi-room-type transaction, same
-     * dates by construction) are excluded from its own conflict check -
+     * RoomRepository#findConflictingStayForGuest()). An EXACT date match is
+     * never returned as a conflict by that method - a guest may create
+     * multiple Bookings/Reservations using the same dates, as long as room
+     * availability and every other condition is independently satisfied -
+     * so any non-null result here is always a genuine, different-range
+     * overlap. Completely separate from Room Availability Validation
+     * (cross-guest inventory for a specific room type, judged server-side
+     * and by Step1RoomSelectionFragment on step 2) - both must independently
+     * pass. On a Modify run, the reservation being edited AND every sibling
+     * of its own BookingGroupState group (same multi-room-type transaction,
+     * same dates by construction) are excluded from its own conflict check -
      * excluding only the one edited id would make Modify falsely report
      * the guest's own sibling record as a conflicting stay.
      */
@@ -137,9 +141,7 @@ public class Step2DatesFragment extends WizardStepFragment {
             tilCheckOut.setError(null);
             return true;
         }
-        boolean exactDuplicate = dateFormat.format(state.checkIn.getTime()).equals(conflict.getCheckInDate())
-                && dateFormat.format(state.checkOut.getTime()).equals(conflict.getCheckOutDate());
-        String message = getString(exactDuplicate ? R.string.error_duplicate_stay_dates : R.string.error_overlapping_stay_dates);
+        String message = getString(R.string.error_overlapping_stay_dates);
         tilCheckOut.setError(message);
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
         return false;
@@ -156,9 +158,9 @@ public class Step2DatesFragment extends WizardStepFragment {
         Calendar activeCal = (isCheckIn ? state.checkIn : state.checkOut);
         if (activeCal == null) {
             activeCal = Calendar.getInstance();
-            // Matches the two-day-advance minDate below for check-in, so the
+            // Matches the one-day-advance minDate below for check-in, so the
             // picker doesn't open already showing an out-of-range initial date.
-            activeCal.add(Calendar.DAY_OF_YEAR, isCheckIn ? 2 : 1);
+            activeCal.add(Calendar.DAY_OF_YEAR, 1);
         }
         Calendar activeCalFinal = activeCal;
 
@@ -204,9 +206,9 @@ public class Step2DatesFragment extends WizardStepFragment {
 
         Calendar minDate = Calendar.getInstance();
         if (isCheckIn) {
-            // Two-day advance rule: same-day and next-day Check-In are not
-            // accepted - the earliest selectable Check-In is today+2.
-            minDate.add(Calendar.DAY_OF_YEAR, 2);
+            // One-day advance rule: same-day Check-In is not accepted - the
+            // earliest selectable Check-In is today+1.
+            minDate.add(Calendar.DAY_OF_YEAR, 1);
         } else if (state.checkIn != null) {
             minDate.setTime(state.checkIn.getTime());
             minDate.add(Calendar.DAY_OF_YEAR, 1);

@@ -1646,7 +1646,19 @@ public final class RoomRepository {
      * the Guest Transaction Date Validation from the Dates step's own
      * validateBeforeNext() - a completely separate concern from Room
      * Availability Validation (cross-guest inventory, judged server-side).
-     * Same exclusions/half-open-range convention as findOverlappingBooking().
+     * An EXACT check-in/check-out match against another active stay is
+     * deliberately NOT reported as a conflict (a guest may create multiple
+     * Bookings/Reservations using the same dates, as long as room
+     * availability and every other condition is independently satisfied) -
+     * only a genuinely different, overlapping range is returned. This
+     * exclusion happens per-record inside the loop below, not by inspecting
+     * whichever single record this method happens to return: `bookings` is
+     * an unordered merged cache, so if a guest has both an exact-duplicate
+     * stay and a separate, genuinely-overlapping stay on file, only
+     * filtering exact matches out of every candidate (rather than picking
+     * one arbitrary match and asking whether that one happened to be exact)
+     * guarantees the real overlap still gets returned regardless of
+     * iteration order.
      */
     public Booking findConflictingStayForGuest(Calendar checkIn, Calendar checkOut, String excludeBookingId) {
         return findConflictingStayForGuest(checkIn, checkOut,
@@ -1675,7 +1687,7 @@ public final class RoomRepository {
             try {
                 long existingIn = displayDate.parse(b.getCheckInDate()).getTime();
                 long existingOut = displayDate.parse(b.getCheckOutDate()).getTime();
-                if (newIn < existingOut && existingIn < newOut) {
+                if (isGenuineOverlap(newIn, newOut, existingIn, existingOut)) {
                     return b;
                 }
             } catch (Exception ignored) {
@@ -1683,6 +1695,19 @@ public final class RoomRepository {
             }
         }
         return null;
+    }
+
+    /**
+     * True for a genuine, non-identical date-range overlap; false for an exact
+     * check-in/check-out match (deliberately not a conflict - see
+     * findConflictingStayForGuest()'s class doc) and false for a non-overlapping
+     * range. Extracted as a pure static predicate (package-private) so this
+     * exact logic - including the exact-match exclusion - is unit-testable
+     * without a RoomRepository instance (which needs a Context).
+     */
+    static boolean isGenuineOverlap(long newIn, long newOut, long existingIn, long existingOut) {
+        if (newIn == existingIn && newOut == existingOut) return false;
+        return newIn < existingOut && existingIn < newOut;
     }
 
     private static long startOfDay(Calendar cal) {

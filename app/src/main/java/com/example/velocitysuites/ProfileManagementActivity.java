@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -113,44 +112,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         animateScreenContent();
         wireProfileActions();
         setupThemeToggle();
-        setupAboutSection();
         fetchProfileFromServer();
-    }
-
-    /**
-     * Read-only build identification (About card) - the version/build fields are
-     * deliberately sourced from PackageManager, not BuildConfig: that's Android's own
-     * live record of what's actually installed, the same thing `adb shell dumpsys
-     * package`/Settings -> App Info reports, so it can never disagree with the real
-     * running APK even if a stray build artifact were sitting somewhere on disk. Commit/
-     * Build Type/Built are Debug-only diagnostics (BuildConfig.DEBUG-gated, never shown in
-     * a Release build) - safe to read from BuildConfig there since those are compile-time
-     * constants baked by the exact same build that produced this running APK.
-     */
-    private void setupAboutSection() {
-        TextView aboutVersionText = findViewById(R.id.aboutVersionText);
-        TextView aboutBuildText = findViewById(R.id.aboutBuildText);
-        if (aboutVersionText != null && aboutBuildText != null) {
-            try {
-                PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                aboutVersionText.setText(getString(R.string.about_version_format, packageInfo.versionName));
-                aboutBuildText.setText(getString(R.string.about_build_format, packageInfo.getLongVersionCode()));
-            } catch (PackageManager.NameNotFoundException e) {
-                // Can't happen for our own package - leave the About card's version/build
-                // rows blank rather than crash a settings screen over a diagnostics feature.
-            }
-        }
-
-        View debugInfo = findViewById(R.id.layoutAboutDebugInfo);
-        if (debugInfo != null && BuildConfig.DEBUG) {
-            debugInfo.setVisibility(View.VISIBLE);
-            TextView commitText = findViewById(R.id.aboutCommitText);
-            TextView buildTypeText = findViewById(R.id.aboutBuildTypeText);
-            TextView buildTimeText = findViewById(R.id.aboutBuildTimeText);
-            if (commitText != null) commitText.setText(BuildConfig.GIT_COMMIT);
-            if (buildTypeText != null) buildTypeText.setText(BuildConfig.BUILD_TYPE);
-            if (buildTimeText != null) buildTimeText.setText(BuildConfig.BUILD_TIME);
-        }
     }
 
     /**
@@ -263,10 +225,12 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Opens the DOB picker for the edit-profile dialog, always capped at today so a future
-     * date can never be selected (mirrors RegistrationActivity.openDobPicker() exactly -
-     * Age is derived from Date of Birth only, never the other way around). Reopens at the
-     * previously chosen date when one exists; otherwise defaults to today.
+     * Opens the DOB picker for the edit-profile dialog, capped at yesterday so neither today
+     * nor any future date can ever be selected as a Date of Birth (mirrors
+     * RegistrationActivity.openDobPicker() exactly - Age is derived from Date of Birth only,
+     * never the other way around). Reopens at the previously chosen date when one exists;
+     * otherwise anchors on MIN_REGISTRATION_AGE years ago instead of today, so the guest
+     * isn't forced to spin the picker back several decades from the current date.
      */
     private void openDobPicker(TextInputEditText editAge, TextInputEditText editDob) {
         Calendar initial = Calendar.getInstance();
@@ -277,6 +241,8 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 if (parsed != null) initial.setTime(parsed);
             } catch (ParseException ignored) {
             }
+        } else {
+            initial.add(Calendar.YEAR, -MIN_REGISTRATION_AGE);
         }
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
@@ -284,7 +250,9 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             editAge.setText(String.valueOf(calculateAge(year, month + 1, dayOfMonth)));
         }, initial.get(Calendar.YEAR), initial.get(Calendar.MONTH), initial.get(Calendar.DAY_OF_MONTH));
 
-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        Calendar maxDob = Calendar.getInstance();
+        maxDob.add(Calendar.DAY_OF_YEAR, -1);
+        datePickerDialog.getDatePicker().setMaxDate(maxDob.getTimeInMillis());
         datePickerDialog.show();
     }
 
@@ -633,86 +601,6 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     .setNegativeButton(R.string.cancel_label, null)
                     .show());
         }
-
-        View deactivateAccountButton = findViewById(R.id.deactivateAccountButton);
-        if (deactivateAccountButton != null) {
-            deactivateAccountButton.setOnClickListener(v -> showDeactivateAccountConfirmDialog());
-        }
-    }
-
-    /**
-     * Step 1 of 2 (see task spec sections 5-6) - a plain, non-destructive-sounding
-     * confirmation explaining that deactivation is temporary/reversible and what
-     * stays intact. Only on confirming here does showDeactivateAccountPasswordDialog()
-     * (the actual password-gated submission) appear - a single accidental tap on the
-     * card's button can never deactivate the account by itself.
-     */
-    private void showDeactivateAccountConfirmDialog() {
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.deactivate_confirm_title)
-                .setMessage(R.string.deactivate_confirm_message)
-                .setPositiveButton(R.string.deactivate_confirm_action, (d, w) -> showDeactivateAccountPasswordDialog())
-                .setNegativeButton(R.string.cancel_label, null)
-                .show();
-    }
-
-    /**
-     * Step 2 of 2 - requires the current password as a safety confirmation, same
-     * pattern the old delete-account dialog used. Reversible (see
-     * Api\ProfileController::deactivateAccount) - unlike the permanent-sounding
-     * flow it replaces, so this never claims data will be deleted. On success the
-     * guest is fully logged out (the server already revoked every token),
-     * matching what happens on a normal logout - see BaseNavigationActivity#logout().
-     */
-    private void showDeactivateAccountPasswordDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_deactivate_account, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogView)
-                .create();
-
-        TextInputEditText passwordField = dialogView.findViewById(R.id.deactivateAccountPassword);
-        MaterialButton btnConfirm = dialogView.findViewById(R.id.btnConfirmDeactivateAccount);
-        MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelDeactivateAccount);
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        btnConfirm.setOnClickListener(v -> {
-            String password = passwordField.getText() != null ? passwordField.getText().toString() : "";
-            if (TextUtils.isEmpty(password)) {
-                passwordField.setError(getString(R.string.current_password_error));
-                return;
-            }
-
-            btnConfirm.setEnabled(false);
-            ApiClient.getService(this).deactivateAccount(new com.example.velocitysuites.network.dto.DeactivateAccountRequest(password))
-                    .enqueue(new Callback<ApiMessage>() {
-                        @Override
-                        public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                            btnConfirm.setEnabled(true);
-                            if (!response.isSuccessful()) {
-                                passwordField.setError(errorMessage(response, getString(R.string.deactivate_account_password_error)));
-                                return;
-                            }
-                            // The account is already deactivated server-side regardless of
-                            // whether this screen is still visible - logout() itself is
-                            // always safe to call (clears local state, navigates fresh to
-                            // LoginActivity), so only the now-pointless dialog/Toast are guarded.
-                            dismissSafely(dialog);
-                            if (!isFinishing() && !isDestroyed()) {
-                                Toast.makeText(ProfileManagementActivity.this, R.string.deactivate_account_success, Toast.LENGTH_LONG).show();
-                            }
-                            logout();
-                        }
-
-                        @Override
-                        public void onFailure(Call<ApiMessage> call, Throwable t) {
-                            btnConfirm.setEnabled(true);
-                            Toast.makeText(ProfileManagementActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
-                        }
-                    });
-        });
-
-        dialog.show();
     }
 
     private void handleProfilePictureTap() {
@@ -1076,19 +964,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
      * uses for its own error responses.
      */
     private String errorMessage(Response<?> response, String fallback) {
-        if (response.errorBody() != null) {
-            try {
-                String body = response.errorBody().string();
-                int idx = body.indexOf("\"message\":\"");
-                if (idx != -1) {
-                    int start = idx + 11;
-                    int end = body.indexOf('"', start);
-                    if (end != -1) return body.substring(start, end);
-                }
-            } catch (Exception ignored) {
-            }
-        }
-        return fallback;
+        return ApiErrorParser.extractMessage(response, fallback);
     }
 
     /**

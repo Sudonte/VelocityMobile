@@ -26,7 +26,7 @@ public final class PhoneNumberValidator {
     private PhoneNumberValidator() {
     }
 
-    private static final Pattern PH_PATTERN = Pattern.compile("^(09|\\+639|639)\\d{9}$");
+    private static final Pattern PH_PATTERN = Pattern.compile("^(09|\\+639)\\d{9}$");
     private static final Pattern FALLBACK_PATTERN = Pattern.compile("^\\+?\\d{7,15}$");
 
     /** Every named country except Philippines (kept above) and "Other" (no fixed region -

@@ -160,4 +160,73 @@ public class RoomRepositoryTest {
         assertNotNull("Querying the second room type of a multi-type booking must still find the overlap",
                 repository.findOverlappingBooking("Deluxe", checkIn, checkOut, null));
     }
+
+    // ---- isGenuineOverlap() / findConflictingStayForGuest() - Requirement 2 ----
+
+    @Test
+    public void isGenuineOverlap_exactMatch_isNotAConflict() {
+        long in = 1000L, out = 2000L;
+        assertFalse(RoomRepository.isGenuineOverlap(in, out, in, out));
+    }
+
+    @Test
+    public void isGenuineOverlap_partialOverlap_isAConflict() {
+        // Existing May1-May5, new May3-May7 - genuinely different range, overlaps.
+        assertTrue(RoomRepository.isGenuineOverlap(3000L, 7000L, 1000L, 5000L));
+    }
+
+    @Test
+    public void isGenuineOverlap_backToBack_isNotAConflict() {
+        // New check-in on the existing stay's check-out day - half-open range, allowed.
+        assertFalse(RoomRepository.isGenuineOverlap(5000L, 9000L, 1000L, 5000L));
+    }
+
+    @Test
+    public void isGenuineOverlap_nonOverlapping_isNotAConflict() {
+        assertFalse(RoomRepository.isGenuineOverlap(9000L, 12000L, 1000L, 5000L));
+    }
+
+    @Test
+    public void findConflictingStayForGuest_exactDuplicateDates_allowed() {
+        // Requirement 2: a guest may create multiple transactions using the
+        // same check-in/check-out dates as an existing one of theirs.
+        repository.addBookingForTesting(new Booking(
+                "B1", room.getId(), room.getName(), room.getType(),
+                "May 01, 2025", "May 05, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
+        ));
+
+        Calendar checkIn = Calendar.getInstance();
+        checkIn.set(2025, Calendar.MAY, 1);
+        Calendar checkOut = Calendar.getInstance();
+        checkOut.set(2025, Calendar.MAY, 5);
+
+        assertNull("An exact date-range duplicate must not be reported as a conflict",
+                repository.findConflictingStayForGuest(checkIn, checkOut, (String) null));
+    }
+
+    @Test
+    public void findConflictingStayForGuest_exactMatchAndGenuineOverlapBothOnFile_stillBlocksOnTheOverlap() {
+        // Regression test for the iteration-order bug: a guest with BOTH an
+        // exact-duplicate stay (B1, allowed) AND a separately, genuinely
+        // overlapping stay (B2, must still block) on file must not slip
+        // through just because B1 happened to be checked first - the
+        // exact-match exclusion has to apply per-candidate, not by deciding
+        // from whichever single record the method happens to return.
+        repository.addBookingForTesting(new Booking(
+                "B1", room.getId(), room.getName(), room.getType(),
+                "May 01, 2025", "May 05, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
+        ));
+        repository.addBookingForTesting(new Booking(
+                "B2", room.getId(), room.getName(), room.getType(),
+                "May 03, 2025", "May 08, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
+        ));
+
+        Calendar checkIn = Calendar.getInstance();
+        checkIn.set(2025, Calendar.MAY, 1);
+        Calendar checkOut = Calendar.getInstance();
+        checkOut.set(2025, Calendar.MAY, 5);
+
+        assertNotNull("The genuine overlap with B2 must still block, regardless of B1's exact match",
+                repository.findConflictingStayForGuest(checkIn, checkOut, (String) null));
+    }
 }

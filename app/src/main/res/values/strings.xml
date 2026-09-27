@@ -562,29 +562,21 @@
     <string name="guest_mobile">+63 912 345 6789</string>
     <string name="profile_image_desc">Profile picture of the user</string>
     <string name="edit_profile_pic_desc">Edit profile picture</string>
+    <string name="section_group_profile_info">Profile Information</string>
+    <string name="section_group_preferences">Preferences &amp; Security</string>
     <string name="personal_info_title">Personal Information</string>
     <string name="contact_info_title">Contact Information</string>
-    <string name="contact_address_info_title">Contact &amp; Address Information</string>
     <string name="account_actions_title">Account Actions</string>
     <string name="security_section_title">Security</string>
     <string name="change_password_hint">Keep your account secure with a strong password</string>
     <string name="logout_hint">Sign out of your account on this device</string>
     <string name="profile_management_screen_desc">Manage your personal information and account settings.</string>
     <string name="personal_info_subtitle">Your basic information</string>
-    <string name="contact_address_subtitle">Your contact details and address</string>
+    <string name="contact_info_subtitle">Your email and mobile number</string>
+    <string name="address_info_subtitle">Your registered address</string>
     <string name="security_account_subtitle">Manage your password and login security</string>
     <string name="appearance_section_title">Appearance</string>
     <string name="appearance_section_subtitle">Choose how Velocity Suites looks on your device</string>
-    <string name="about_section_title">About</string>
-    <string name="about_section_subtitle">Application information</string>
-    <string name="about_app_name_label">App Name</string>
-    <string name="about_version_label">Version</string>
-    <string name="about_build_label">Build</string>
-    <string name="about_version_format">Version %1$s</string>
-    <string name="about_build_format">Build %1$d</string>
-    <string name="about_commit_label">Commit</string>
-    <string name="about_build_type_label">Build Type</string>
-    <string name="about_build_time_label">Built</string>
     <string name="theme_label">Theme</string>
     <string name="theme_light_mode_active">Light Mode is on</string>
     <string name="theme_dark_mode_active">Dark Mode is on</string>
@@ -1435,7 +1427,7 @@
     <string name="view_hotel_terms_button_label">View Terms, Conditions, and Policy</string>
     <string name="hotel_terms_agreement_checkbox_label">I have read, understood, and agree to the Velocity Suites Hotel Terms, Conditions, and Policy.</string>
     <string name="hotel_terms_policy_title">Velocity Suites Hotel Terms, Conditions, and Policy</string>
-    <string name="hotel_terms_policy_body_general">By proceeding with this transaction, you acknowledge that you have read, understood, and agree to the following Velocity Suites hotel policies.\n\n1. Two-Day Advance Rule\nAll Bookings and Reservations must be made at least two (2) days before the requested Check-In date. Same-day and next-day Check-In requests are not accepted.\n\n2. Room Availability Policy\nRoom types shown during creation reflect availability at the time of your request. Availability is re-verified before your transaction is confirmed, and again immediately before submission is completed, to prevent overbooking.\n\n3. Duplicate/Overlapping Date Prevention\nA guest may not hold more than one active Booking or Reservation with overlapping stay dates, regardless of room type. Overlapping requests will be rejected.\n\n4. Check-In and Check-Out Policy\nStandard Check-In and Check-Out times apply as posted at the property. Early Check-In or late Check-Out is subject to availability and may incur additional charges.\n\n5. Guest Information and Capacity Policy\nThe representative guest named on the transaction is responsible for the accuracy of all guest information provided. The declared number of guests must not exceed the selected room\'s stated capacity.\n\n6. Guest Responsibility Policy\nThe representative guest is responsible for the conduct of all guests under the transaction and for any damage caused during the stay.\n\n7. Reservation Policy\nA Reservation provisionally holds your requested dates and room type pending confirmation and, where applicable, payment verification.\n\n8. Booking Policy\nA Booking is confirmed once payment has been submitted and, for GCash payments, verified by hotel staff.\n\n9. Reservation Modification Policy\nReservation details may be modified once prior to conversion or Check-In, subject to room availability for the newly requested dates. A confirmed Booking\'s room or primary guest can no longer be changed.\n\n10. Reservation-to-Booking Conversion Policy\nA Reservation may be converted into a Booking by Velocity Suites once payment requirements are satisfied. Conversion preserves the original stay dates and guest details and does not create a duplicate transaction.\n\n11. Cancellation Policy\nA Booking or Reservation with no payment, or with only a partial payment, may be cancelled subject to the hotel\'s cancellation rules. A fully paid Booking cannot be cancelled by the guest.\n\n12. Non-Refundable Policy\nAny amount already paid toward a Booking is non-refundable upon cancellation, except where required by law or expressly approved by hotel management.\n\n13. No-Show Policy\nIf a guest fails to arrive within the hotel\'s allowed Check-In window on the scheduled Check-In date, the transaction may be marked as a No-Show and moved to Cancelled status. Amounts already paid remain non-refundable.\n\n14. Payment Verification Policy\nGCash payments are reviewed by hotel staff before a transaction is marked Confirmed. Cash payments are settled and verified directly at the property.\n\n15. Partial and Full Payment Policy\nWhere offered, guests may pay a partial percentage of the total amount or the full amount at the time of transaction. Any remaining balance is due according to the hotel\'s payment schedule.\n\n16. Hotel\'s Right to Reject or Cancel\nVelocity Suites reserves the right to reject, cancel, or reschedule a Booking or Reservation in cases of suspected fraud, data errors, room unavailability beyond the hotel\'s control, or violation of these policies.\n\n17. Other Applicable Policies\nAdditional house rules and applicable local regulations apply throughout the stay and are available at the property.</string>
+    <string name="hotel_terms_policy_body_general">By proceeding with this transaction, you acknowledge that you have read, understood, and agree to the following Velocity Suites hotel policies.\n\n1. One-Day Advance Rule\nAll Bookings and Reservations must be made at least one (1) day before the requested Check-In date. Same-day Check-In requests are not accepted.\n\n2. Room Availability Policy\nRoom types shown during creation reflect availability at the time of your request. Availability is re-verified before your transaction is confirmed, and again immediately before submission is completed, to prevent overbooking.\n\n3. Duplicate/Overlapping Date Prevention\nA guest may not hold more than one active Booking or Reservation with overlapping stay dates, regardless of room type. Overlapping requests will be rejected.\n\n4. Check-In and Check-Out Policy\nStandard Check-In and Check-Out times apply as posted at the property. Early Check-In or late Check-Out is subject to availability and may incur additional charges.\n\n5. Guest Information and Capacity Policy\nThe representative guest named on the transaction is responsible for the accuracy of all guest information provided. The declared number of guests must not exceed the selected room\'s stated capacity.\n\n6. Guest Responsibility Policy\nThe representative guest is responsible for the conduct of all guests under the transaction and for any damage caused during the stay.\n\n7. Reservation Policy\nA Reservation provisionally holds your requested dates and room type pending confirmation and, where applicable, payment verification.\n\n8. Booking Policy\nA Booking is confirmed once payment has been submitted and, for GCash payments, verified by hotel staff.\n\n9. Reservation Modification Policy\nReservation details may be modified once prior to conversion or Check-In, subject to room availability for the newly requested dates. A confirmed Booking\'s room or primary guest can no longer be changed.\n\n10. Reservation-to-Booking Conversion Policy\nA Reservation may be converted into a Booking by Velocity Suites once payment requirements are satisfied. Conversion preserves the original stay dates and guest details and does not create a duplicate transaction.\n\n11. Cancellation Policy\nA Booking or Reservation with no payment, or with only a partial payment, may be cancelled subject to the hotel\'s cancellation rules. A fully paid Booking cannot be cancelled by the guest.\n\n12. Non-Refundable Policy\nAny amount already paid toward a Booking is non-refundable upon cancellation, except where required by law or expressly approved by hotel management.\n\n13. No-Show Policy\nIf a guest fails to arrive within the hotel\'s allowed Check-In window on the scheduled Check-In date, the transaction may be marked as a No-Show and moved to Cancelled status. Amounts already paid remain non-refundable.\n\n14. Payment Verification Policy\nGCash payments are reviewed by hotel staff before a transaction is marked Confirmed. Cash payments are settled and verified directly at the property.\n\n15. Partial and Full Payment Policy\nWhere offered, guests may pay a partial percentage of the total amount or the full amount at the time of transaction. Any remaining balance is due according to the hotel\'s payment schedule.\n\n16. Hotel\'s Right to Reject or Cancel\nVelocity Suites reserves the right to reject, cancel, or reschedule a Booking or Reservation in cases of suspected fraud, data errors, room unavailability beyond the hotel\'s control, or violation of these policies.\n\n17. Other Applicable Policies\nAdditional house rules and applicable local regulations apply throughout the stay and are available at the property.</string>
     <string name="hotel_terms_policy_gcash_addendum">GCash Payment Policy (this transaction)\nThis transaction is set to be paid via GCash. Your payment is held as Pending until verified by hotel staff, which is typically completed within the hotel\'s standard processing time. A rejected or unverifiable GCash payment will not confirm the transaction, and any amount already paid remains subject to the Non-Refundable Policy above.</string>
     <string name="hotel_terms_policy_cash_addendum">Cash Payment Policy (this transaction)\nThis transaction is set to be paid in Cash. Cash payments are settled and verified directly at the property, at or before Check-In. The Cancellation, No-Show, and Non-Refundable Policies above apply equally once any payment has been made.</string>
     <string name="error_terms_not_accepted">Please accept the Terms and Conditions before proceeding to payment.</string>
@@ -1674,19 +1666,13 @@
     <string name="danger_zone_title">Danger Zone</string>
     <string name="danger_zone_subtitle">Irreversible and sensitive account actions</string>
 
-    <!-- Account Management / Deactivate Account - replaces the old permanent-sounding
-         Delete Account (see Api\ProfileController::deactivateAccount()). Deliberately
-         not framed as a "Danger Zone" item since deactivation is fully reversible. -->
-    <string name="account_management_title">Account Management</string>
-    <string name="account_management_subtitle">Manage your account status</string>
+    <!-- Deactivate Account is no longer surfaced on Profile Management (guest-facing
+         entry point removed per spec); these two strings stay because
+         dialog_deactivate_account.xml - now unused but deliberately left in place in
+         case the feature returns - still references them. -->
     <string name="deactivate_account_title">Deactivate Account</string>
-    <string name="deactivate_account_hint">Temporarily disable your account and sign out of Velocity Suites. Your information and transaction history will remain available when you reactivate.</string>
-    <string name="deactivate_confirm_title">Deactivate Account?</string>
-    <string name="deactivate_confirm_message">Your account will be temporarily disabled and you will be signed out of Velocity Suites.\n\nYour bookings, reservations, payments, and transaction history will not be deleted.\n\nYou can reactivate your account later by signing in and verifying the 6-digit code sent to your registered email address.</string>
     <string name="deactivate_confirm_action">Deactivate Account</string>
     <string name="deactivate_password_prompt_message">Enter your password to confirm account deactivation.</string>
-    <string name="deactivate_account_password_error">The password you entered is incorrect.</string>
-    <string name="deactivate_account_success">Your account has been deactivated successfully.</string>
     <string name="deactivate_account_success_hint">You can reactivate it by signing in again and verifying the code sent to your registered email address.</string>
 
     <!-- OTP account-reactivation screen on Login (see LoginActivity's
@@ -1915,7 +1901,6 @@
     <string name="tap_to_pick_date">Tap to pick a date</string>
     <string name="error_select_checkin_first">Please select your check-in date first</string>
     <string name="helper_checkin_from_tomorrow">Earliest check-in is tomorrow</string>
-    <string name="helper_checkin_two_day_rule">Bookings and Reservations require at least 2 days advance notice</string>
     <string name="helper_checkout_after_checkin">At least 1 night after check-in</string>
     <string name="title_select_checkin">Select Check-in Date</string>
     <string name="title_select_checkout">Select Check-out Date</string>

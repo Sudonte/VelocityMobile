@@ -235,8 +235,11 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     /**
-     * Opens the DOB picker, always capped at today so a future date can never be selected.
-     * Reopens at the previously chosen date when one exists; otherwise defaults to today.
+     * Opens the DOB picker, capped at yesterday so neither today nor any future date can
+     * ever be selected as a Date of Birth. Reopens at the previously chosen date when one
+     * exists; otherwise anchors on MIN_REGISTRATION_AGE years ago (a typical new adult
+     * guest) instead of today, so the guest isn't forced to spin the picker back several
+     * decades from the current date just to reach a plausible birth year.
      */
     private void openDobPicker() {
         Calendar initial = Calendar.getInstance();
@@ -247,6 +250,8 @@ public class RegistrationActivity extends AppCompatActivity {
                 if (parsed != null) initial.setTime(parsed);
             } catch (ParseException ignored) {
             }
+        } else {
+            initial.add(Calendar.YEAR, -MIN_REGISTRATION_AGE);
         }
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
@@ -255,7 +260,9 @@ public class RegistrationActivity extends AppCompatActivity {
                     ageEdit.setText(String.valueOf(calculateAge(year1, monthOfYear + 1, dayOfMonth)));
                 }, initial.get(Calendar.YEAR), initial.get(Calendar.MONTH), initial.get(Calendar.DAY_OF_MONTH));
 
-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        Calendar maxDob = Calendar.getInstance();
+        maxDob.add(Calendar.DAY_OF_YEAR, -1);
+        datePickerDialog.getDatePicker().setMaxDate(maxDob.getTimeInMillis());
         datePickerDialog.show();
     }
 
@@ -767,19 +774,7 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     private String errorMessage(Response<?> response) {
-        if (response.errorBody() != null) {
-            try {
-                String body = response.errorBody().string();
-                int idx = body.indexOf("\"message\":\"");
-                if (idx != -1) {
-                    int start = idx + 11;
-                    int end = body.indexOf('"', start);
-                    if (end != -1) return body.substring(start, end);
-                }
-            } catch (Exception ignored) {
-            }
-        }
-        return "please try again.";
+        return ApiErrorParser.extractMessage(response, "please try again.");
     }
 
     private boolean validateFinalStep() {
