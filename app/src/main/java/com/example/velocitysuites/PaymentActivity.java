@@ -69,13 +69,23 @@ public class PaymentActivity extends BaseNavigationActivity {
      * Reservation confirmation + ID for a Reservation transaction, per an
      * explicit product decision) - the isPendingReservationMode code this
      * gates is live again, not dead code.
+     *
+     * IMPORTANT: must NOT also feed into freshReservation (see that field's
+     * own doc) - the two were briefly conflated on the same 2026-09-28
+     * re-wire, which made proceedToGcashButton silently take the "Proceed &
+     * Pay Later" no-payment shortcut for every pending reservation, so the
+     * GCash form (and this whole atomic create-with-payment path) was never
+     * actually reachable despite being fully wired. Fixed 2026-09-28 (later
+     * same day) - keep these two flags independent.
      */
     public static final String EXTRA_PENDING_RESERVATION = "PENDING_RESERVATION";
     /**
-     * Legacy flag, no longer set by any caller - isPendingReservationMode
-     * (see EXTRA_PENDING_RESERVATION) already implies the same "Proceed &
-     * Pay Later" labeling/behavior. Kept only as a defensive extra-read in
-     * case of a future/other caller.
+     * Legacy flag, no longer set by any caller - freshReservation is now
+     * effectively always false in practice, which is correct: it must never
+     * be inferred from isPendingReservationMode (see EXTRA_PENDING_RESERVATION's
+     * own doc) - that would silently re-disable the real GCash payment form
+     * for every pending reservation again. Kept only as a defensive
+     * extra-read in case of a future/other caller.
      */
     public static final String EXTRA_FRESH_RESERVATION = "FRESH_RESERVATION";
 
@@ -187,10 +197,10 @@ public class PaymentActivity extends BaseNavigationActivity {
         fromReservationPayment = getIntent().getBooleanExtra(EXTRA_FROM_RESERVATION_PAYMENT, false);
         isPendingBookingMode = getIntent().getBooleanExtra(EXTRA_PENDING_BOOKING, false);
         isPendingReservationMode = getIntent().getBooleanExtra(EXTRA_PENDING_RESERVATION, false);
-        // A pending reservation always offers the "Proceed & Pay Later" CTA -
-        // the Reservation doesn't exist yet either way, so labeling/behavior
-        // is identical to the legacy already-created-fresh-reservation case.
-        freshReservation = getIntent().getBooleanExtra(EXTRA_FRESH_RESERVATION, false) || isPendingReservationMode;
+        // Deliberately NOT `|| isPendingReservationMode` - see EXTRA_PENDING_RESERVATION's
+        // own doc for why conflating the two silently disables the real GCash
+        // payment form for every pending reservation.
+        freshReservation = getIntent().getBooleanExtra(EXTRA_FRESH_RESERVATION, false);
         allowCash = isPendingBookingMode ? false : getIntent().getBooleanExtra("ALLOW_CASH", true);
         lockedPaymentMethod = bookingId != null && !isPendingBookingMode && !isPendingReservationMode;
         if (isPendingBookingMode) {
@@ -1381,10 +1391,12 @@ public class PaymentActivity extends BaseNavigationActivity {
                     return;
                 }
 
-                // "Proceed & Pay Later" on a brand-new Reservation defers GCash
-                // payment entirely - the Reservation already exists, so there's
-                // nothing to submit yet. Skip the GCash portal/receipt form and
-                // go straight to a pending confirmation instead.
+                // Legacy "Proceed & Pay Later" shortcut - only reachable via the
+                // dead EXTRA_FRESH_RESERVATION extra (see its own doc), never via
+                // isPendingReservationMode. A pending reservation's GCash choice
+                // must always go through the real GCash portal below, exactly
+                // like a pending booking, so its payment actually gets attached
+                // at creation (see submitPendingReservationSingleCall()).
                 if (freshReservation) {
                     showReservationPendingConfirmationDialog();
                     return;
@@ -1522,10 +1534,13 @@ public class PaymentActivity extends BaseNavigationActivity {
         dialog.show();
 
         List<List<Room>> groups = new ArrayList<>(pendingWizardState.selectedRoomsGroupedByType().values());
-        // Reachable only via the "Proceed & Pay Later" branch (freshReservation
-        // always true for a new reservation) - GCash-only, no cash "create
-        // only" path exists (Cash always goes through submitCashPaymentToServer()
-        // instead, which registers the cash intent in the same tap - see below).
+        // Reachable only via the legacy "Proceed & Pay Later" branch (the dead
+        // EXTRA_FRESH_RESERVATION extra - see its own doc) - NOT the normal
+        // isPendingReservationMode GCash flow, which now always goes through
+        // the real portal and submitPendingReservationSingleCall() instead.
+        // GCash-only, no cash "create only" path exists (Cash always goes
+        // through submitCashPaymentToServer() instead, which registers the
+        // cash intent in the same tap - see below).
         repository.createReservation(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
                 pendingWizardState.adults, pendingWizardState.children,
                 pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,

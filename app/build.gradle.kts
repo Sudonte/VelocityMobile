@@ -70,8 +70,8 @@ android {
         // own UI displays. versionName is the human-facing "1.1.0"-style label; bump its
         // patch/minor/major segment per normal semver judgement, versionCode always by
         // exactly 1 regardless of how big the versionName jump is.
-        versionCode = 5
-        versionName = "1.2.1"
+        versionCode = 6
+        versionName = "1.2.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "GIT_COMMIT", "\"$gitCommitHash\"")

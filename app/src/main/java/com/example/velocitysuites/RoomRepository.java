@@ -432,6 +432,16 @@ public final class RoomRepository {
         List<Booking> historicalReservations = new ArrayList<>();
         boolean[] reservationsFailed = {false};
         boolean[] directFailed = {false};
+        // Real reason for whichever call fails first - a bare "Failed to load
+        // bookings." string was previously all a caller could ever see or
+        // show the guest, indistinguishable from a session-expired 401, a
+        // 500, or a genuine offline device. errorMessage(response)/
+        // networkErrorMessage() are the same helpers every other call in
+        // this class already uses for this, so this stays consistent (e.g.
+        // a 401 here now correctly triggers forceSessionExpiredLogout() too,
+        // instead of leaving the guest stuck retrying forever against a
+        // token that will never become valid again).
+        String[] failureMessage = {null};
         int[] remaining = {2};
         // Captured before either network call fires - see accountGeneration's own doc.
         final int requestGeneration = accountGeneration;
@@ -453,7 +463,7 @@ public final class RoomRepository {
                 if (allowRetry) {
                     refreshBookingsInternal(callback, false);
                 } else if (callback != null) {
-                    callback.onError("Failed to load bookings.");
+                    callback.onError(failureMessage[0] != null ? failureMessage[0] : "Failed to load bookings.");
                 }
                 return;
             }
@@ -485,6 +495,7 @@ public final class RoomRepository {
                     }
                 } else {
                     reservationsFailed[0] = true;
+                    if (failureMessage[0] == null) failureMessage[0] = errorMessage(response);
                 }
                 if (--remaining[0] <= 0) finish.run();
             }
@@ -492,6 +503,7 @@ public final class RoomRepository {
             @Override
             public void onFailure(Call<PaginatedResponse<ReservationDto>> call, Throwable t) {
                 reservationsFailed[0] = true;
+                if (failureMessage[0] == null) failureMessage[0] = networkErrorMessage(appContext, t);
                 if (--remaining[0] <= 0) finish.run();
             }
         });
@@ -505,6 +517,7 @@ public final class RoomRepository {
                     }
                 } else {
                     directFailed[0] = true;
+                    if (failureMessage[0] == null) failureMessage[0] = errorMessage(response);
                 }
                 if (--remaining[0] <= 0) finish.run();
             }
@@ -512,6 +525,7 @@ public final class RoomRepository {
             @Override
             public void onFailure(Call<PaginatedResponse<DirectBookingResponseDto>> call, Throwable t) {
                 directFailed[0] = true;
+                if (failureMessage[0] == null) failureMessage[0] = networkErrorMessage(appContext, t);
                 if (--remaining[0] <= 0) finish.run();
             }
         });
