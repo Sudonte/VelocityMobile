@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <array name="default_price_range">
-        <item>1000</item>
-        <item>10000</item>
-    </array>
 
     <!-- Room Browsing: exposed dropdown menu options -->
     <string-array name="sort_options">

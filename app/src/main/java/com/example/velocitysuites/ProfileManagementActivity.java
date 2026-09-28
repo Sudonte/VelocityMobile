@@ -1085,7 +1085,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
                 btnSave.setEnabled(true);
-                Toast.makeText(ProfileManagementActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -1150,7 +1150,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
                             btnContinue.setEnabled(true);
                             if (passwordField.getText() != null) passwordField.getText().clear();
-                            Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                            Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -1224,7 +1224,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                         @Override
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
                             btnConfirm.setEnabled(true);
-                            Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                            Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -1263,7 +1263,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     @Override
                     public void onFailure(Call<ApiMessage> call, Throwable t) {
                         if (changePasswordButton != null) changePasswordButton.setEnabled(true);
-                        Toast.makeText(ProfileManagementActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -1297,7 +1297,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                         @Override
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
                             resendLink.setEnabled(true);
-                            Toast.makeText(ProfileManagementActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                            Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -1353,7 +1353,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                         @Override
                         public void onFailure(Call<AuthResponse> call, Throwable t) {
                             btnConfirm.setEnabled(true);
-                            Toast.makeText(ProfileManagementActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -1479,7 +1479,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
                 tempFile.delete();
-                Toast.makeText(ProfileManagementActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }

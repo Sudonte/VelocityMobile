@@ -14,33 +14,27 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    android:orientation="vertical">
+    android:orientation="horizontal">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvRowLabel"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_marginEnd="14dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="13sp"
+        tools:text="GCash Reference #" />
 
-        <TextView
-            android:id="@+id/tvRowLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="14dp"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="13sp"
-            tools:text="GCash Reference #" />
-
-        <TextView
-            android:id="@+id/tvRowValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="end"
-            android:textAlignment="viewEnd"
-            android:textColor="@color/velocity_text_primary"
-            android:textIsSelectable="true"
-            android:textSize="12sp"
-            tools:text="1234 567 890123" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/tvRowValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="end"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/velocity_text_primary"
+        android:textIsSelectable="true"
+        android:textSize="12sp"
+        tools:text="1234 567 890123" />
 </LinearLayout>

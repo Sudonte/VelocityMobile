@@ -4,16 +4,15 @@
     <string name="notification_channel_name">Booking &amp; Payment Alerts</string>
     <string name="notification_channel_description">Booking, reservation, payment, verification, cancellation, check-in, and promotion alerts from Velocity Suites.</string>
     <string name="notification_group_summary_format">%1$d new updates</string>
-    <string name="notification_permission_rationale">Turn on notifications to get alerted about your bookings, payments, and check-ins.</string>
-    <string name="introduction_loading_message">Loading...</string>
-    <string name="introduction_starting">Starting Velocity Suites...</string>
-    <string name="introduction_checking_connection">Checking internet connection...</string>
-    <string name="introduction_connecting">Connecting to Velocity Suites...</string>
-    <string name="introduction_loading_hotel_info">Loading hotel information...</string>
-    <string name="introduction_almost_ready">Almost ready...</string>
-    <string name="introduction_slow_connection">Connection is taking longer than expected...</string>
+    <string name="introduction_loading_message">Loading…</string>
+    <string name="introduction_loading_percent_initial">0%</string>
+    <string name="introduction_starting">Starting Velocity Suites…</string>
+    <string name="introduction_checking_connection">Checking internet connection…</string>
+    <string name="introduction_connecting">Connecting to Velocity Suites…</string>
+    <string name="introduction_loading_hotel_info">Loading hotel information…</string>
+    <string name="introduction_almost_ready">Almost ready…</string>
+    <string name="introduction_slow_connection">Connection is taking longer than expected…</string>
     <string name="introduction_loading_complete">Loading complete</string>
-    <string name="introduction_retrying">Trying again...</string>
     <string name="introduction_progress_percent_format">%1$d%%</string>
     <string name="introduction_error_title">Unable to Load</string>
     <string name="introduction_error_no_internet">No Internet Connection</string>
@@ -40,7 +39,6 @@
     <string name="last_name_hint">Last Name</string>
     <string name="first_name_hint">First Name</string>
     <string name="middle_name_hint">Middle Name (Optional)</string>
-    <string name="age_required">Age is required</string>
     <string name="age_label">Age</string>
     <string name="gender_hint">Gender</string>
     <string name="dob_hint">Date of Birth</string>
@@ -68,7 +66,6 @@
     <string name="profile_picture_none_selected">No photo selected</string>
     <string name="profile_picture_selected">Photo selected</string>
     <string name="remove_photo">Remove photo</string>
-    <string name="full_name_hint">Full Name</string>
     <string name="sign_up_now">Sign Up Now</string>
     <string name="view_terms_button_label">View Velocity Suites Terms and Agreement</string>
     <string name="terms_status_hint">Please open and read the full Terms and Agreement before you can agree to it.</string>
@@ -92,7 +89,7 @@
     <string name="resend_otp_countdown">Resend code in %1$ds</string>
     <string name="didnt_receive_code">Didn\'t receive the code? </string>
     <string name="registration_success">Account activated successfully!</string>
-    <string name="preparing_stay">Loading... Please wait...</string>
+    <string name="preparing_stay">Loading… Please wait…</string>
     <string name="velocity_suites">Velocity Suites</string>
     <string name="forgot_password_instruction">Enter your email to receive an OTP code.</string>
     <string name="otp_sent_to">Enter the 6-digit OTP sent to %1$s</string>
@@ -128,7 +125,6 @@
     <string name="details_label_adults">Adults</string>
     <string name="details_label_children">Children</string>
     <string name="details_label_total_guests">Total Guests</string>
-    <string name="details_label_required_payment">Required Payment</string>
     <string name="details_label_discount">Discount</string>
     <string name="details_label_total_amount">Total Amount</string>
     <string name="details_label_status">Status</string>
@@ -207,13 +203,11 @@
     <string name="details_label_room_charge">Room Charges</string>
     <string name="details_label_amenity_charge">Amenities</string>
     <string name="details_price_per_night_label">Price Per Room/Night</string>
-    <string name="details_room_total_label">Room Total</string>
     <string name="details_amenity_price_label">Price</string>
     <string name="details_amenities_total_label">Amenities Total</string>
     <string name="details_grand_total_label">Grand Total</string>
     <string name="details_label_additional_guest_fee">Additional Guest Fee</string>
     <string name="payment_balance_section_title">Payment Balance</string>
-    <string name="transaction_totals_section_title">Transaction Totals</string>
     <string name="grand_total_amount_section_title">Grand Total Amount</string>
     <string name="receipt_thank_you_message">Thank you for choosing Velocity Suites.</string>
     <string name="receipt_download_success">Receipt saved to Downloads.</string>
@@ -275,7 +269,7 @@
     <string name="reservation_created_cash_msg">Your reservation has been submitted successfully. You selected Cash as your payment method. Payment can be completed through walk-in payment at the hotel.</string>
     <string name="reservation_created_gcash_title">Reservation Created</string>
     <string name="reservation_created_gcash_msg">Your reservation has been submitted successfully. You selected GCash. You can pay later by selecting Pay Now from your reservation.</string>
-    <string name="submitting_reservation_msg">Submitting your reservation...</string>
+    <string name="submitting_reservation_msg">Submitting your reservation…</string>
     <string name="wizard_dates_subtitle">Choose your Check-in and Check-out dates to see available rooms.</string>
     <string name="skip_amenities_button">Skip</string>
     <string name="additional_guest_info_title">Additional Guest Information</string>
@@ -283,6 +277,10 @@
     <string name="children_label">Children</string>
     <string name="child_age_notice">You may add up to 3 children. Each child\'s age must be 7 years old or below.</string>
     <string name="child_age_field_format">Child %1$d Age</string>
+    <string name="stepper_decrement_symbol">—</string>
+    <string name="stepper_increment_symbol">+</string>
+    <string name="default_adults_count_display">1</string>
+    <string name="default_children_count_display">0</string>
     <string name="capacity_hint_format">Maximum %1$d guest(s) for the room(s) you selected.</string>
     <string name="error_guests_exceed_capacity">Adults + children can\'t exceed the room capacity.</string>
     <string name="error_children_exceed_max">You can add up to 3 children.</string>
@@ -291,11 +289,9 @@
     <string name="error_child_age_required">Please enter every child\'s age.</string>
     <string name="amenity_quantity_clamped_to_guests">Some amenity quantities were adjusted to match your total number of guests.</string>
     <string name="error_amenity_qty_exceeds_capacity">Quantity can\'t exceed the room capacity you selected.</string>
-    <string name="pay_by_deadline_format">Pay by %1$s</string>
     <string name="payment_due_in_days_hours_format">Payment Due In: %1$d Day%2$s %3$02d Hr%4$s</string>
     <string name="payment_due_in_hours_format">Payment Due In: %1$02d Hr%2$s</string>
     <string name="payment_due_in_expiring">Payment Due In: Less than 1 Hr</string>
-    <string name="rejection_reason_label">Rejection Reason</string>
     <string name="error_receipt_too_large">This receipt image is too large. Please attach a file no larger than 50 MB.</string>
     <string name="error_receipt_invalid_format">GCash receipt image must be JPG, JPEG, or PNG.</string>
     <string name="gcash_reference_number_hint">Enter 13-digit GCash Reference Number</string>
@@ -308,18 +304,8 @@
     <string name="error_id_required">Please upload your Senior Citizen / PWD ID card.</string>
     <string name="bill_summary_title">Bill Summary and Review</string>
     <string name="total_label">Total</string>
-    <string name="payment_method_section_title">Payment Method</string>
-    <string name="gcash_number_hint">Registered GCash Number</string>
-    <string name="reference_number_hint">Reference Number</string>
-    <string name="upload_receipt_button">Upload GCash Receipt</string>
     <string name="confirm_booking_button">Confirm Booking</string>
     <string name="confirm_reservation_button">Confirm Reservation</string>
-    <string name="error_gcash_number_invalid">Enter a valid GCash number (e.g. 9171234567).</string>
-    <string name="error_reference_number_required">Please enter the GCash reference number.</string>
-    <string name="error_receipt_required">Please upload your GCash payment receipt.</string>
-    <string name="booking_confirmed_message">Booking confirmed! Your Booking #%1$s has been submitted.</string>
-    <string name="reservation_confirmed_message">Reservation confirmed! Your Reservation #%1$s has been submitted.</string>
-    <string name="multi_type_partial_failure_message">Some room types couldn\'t be booked (%1$s). The rest of your booking was submitted successfully - check your Booking List for details.</string>
     <string name="invalid_credentials">Invalid credentials. Please try again.</string>
     <string name="incorrect_password">Incorrect password</string>
     <string name="email_required">Email is required</string>
@@ -330,18 +316,13 @@
     <string name="gender_required">Gender is required</string>
     <string name="dob_required">Date of birth is required</string>
     <string name="age_validation_error">You must be at least 18 years old to create an account.</string>
-    <string name="helper_min_age">You must be 18 or older to register</string>
     <string name="helper_dob_format">Format: MM/DD/YYYY</string>
     <string name="helper_age_readonly">Calculated automatically from your date of birth.</string>
-    <string name="dob_future_error">Please select a valid Date of Birth.</string>
-    <string name="mobile_required">Valid mobile number is required</string>
     <string name="mobile_required_intl">Enter a valid mobile number with country code</string>
     <string name="mobile_invalid_ph">Enter a valid Philippine mobile number using 09XXXXXXXXX or +639XXXXXXXXX.</string>
     <string name="mobile_invalid_for_country">Enter a valid mobile number for the selected country.</string>
     <string name="contact_info_section_title">Contact Information</string>
     <string name="contact_info_section_desc">How we\'ll reach you and verify your account.</string>
-    <string name="mobile_number_may_be_invalid_title">Check Your Mobile Number</string>
-    <string name="mobile_number_may_be_invalid_message">Your saved mobile number may not be valid for %1$s. Please update it from Contact Info.</string>
     <string name="password_min_length">Password must be at least 8 characters</string>
     <string name="passwords_do_not_match">Passwords do not match</string>
     <string name="invalid_otp">Invalid OTP</string>
@@ -362,35 +343,23 @@
     <string name="guest_last_name">Ombid</string>
     <string name="guest_email">ombid.guest@velocitysuites.com</string>
     <string name="executive_suite">Executive Suite</string>
-    <string name="executive_suite_desc">Experience luxury at its peak</string>
     <string name="quick_actions">Quick Actions</string>
     <string name="quick_action_booking">Booking</string>
     <string name="quick_action_reservation">Reservation</string>
-    <string name="book_room">Book Room</string>
-    <string name="services">Services</string>
     <string name="logout">Logout</string>
-    <string name="menu_clicked">Menu clicked</string>
     <string name="system_clock_label">System Clock</string>
-    <string name="loading_date">Loading Date...</string>
+    <string name="loading_date">Loading Date…</string>
     <string name="time_placeholder">00:00</string>
-    <string name="guest_portal">Guest Portal</string>
-    <string name="today_at_velocity">Today at Velocity</string>
-    <string name="dashboard_overview">Plan your stay, manage reservations, and track every update from one place.</string>
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_room_browsing">Room Browsing</string>
     <string name="nav_booking_reservation">Booking &amp; Reservation</string>
     <string name="nav_payment">Payment</string>
     <string name="nav_transaction_history">Transaction History</string>
-    <string name="nav_notification">Notifications</string>
     <string name="nav_profile_management">Profile Management</string>
     <string name="nav_logout">Logout</string>
     <string name="nav_open_drawer">Open navigation drawer</string>
     <string name="menu_label">Menu</string>
     <string name="hello_user">Hello, %1$s!</string>
-    <string name="nav_account_actions">Account Actions</string>
-    <string name="menu_group_booking">Booking &amp; Services</string>
-    <string name="menu_group_account">Account &amp; History</string>
-    <string name="room_number_format">RM %1$s</string>
     <string name="transaction_ref_format">TRX-%1$s</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_room_browsing">Room Browsing</string>
@@ -401,21 +370,10 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_profile_management">Profile Management</string>
     <string name="premium_guest">Guest</string>
-    <string name="search_hint">Search rooms, services...</string>
-    <string name="account_details">Profile Information</string>
-    <string name="personal_info_label">Personal Information</string>
-    <string name="contact_info_label">Contact Information</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="change_password">Change Password</string>
-    <string name="gender_dob_label">Gender / Date of Birth</string>
-    <string name="browse_rooms">Browse Rooms</string>
-    <string name="my_reservation">My Reservation</string>
-    <string name="make_payment">Make Payment</string>
     <string name="notifications">Notifications</string>
-    <string name="gender_dob_format">%1$s  %2$s  %3$s yrs</string>
     <string name="age_years_format">%1$s yrs</string>
-    <string name="exclusive_offers">Exclusive Offers</string>
-    <string name="dob_format">%1$d/%2$d/%3$d</string>
 
 
     <!-- Dashboard Redesign Strings -->
@@ -424,19 +382,12 @@
     <string name="contact_support_button">Contact Support</string>
     <string name="support_email_subject">Velocity Suites - Support Request</string>
     <string name="error_no_email_app">No email app found. Call us instead at %1$s.</string>
-    <string name="nav_bottom_home">Home</string>
-    <string name="nav_bottom_rooms">Rooms</string>
-    <string name="nav_bottom_bookings">Bookings</string>
-    <string name="nav_bottom_transactions">Transactions</string>
-    <string name="nav_bottom_profile">Profile</string>
     <string name="next_hotel_transaction_label">Next Hotel Transaction</string>
     <string name="next_hotel_transaction_desc">Your nearest upcoming check-in or check-out</string>
     <string name="no_next_transaction">No scheduled check-ins or check-outs</string>
     <string name="check_in_tomorrow_label">Check-in Tomorrow</string>
     <string name="check_out_tomorrow_label">Check-out Tomorrow</string>
     <string name="tomorrow_badge_short">Tomorrow</string>
-    <string name="reservation_summary_desc">Active, upcoming, completed, and cancelled reservations are counted from your booking records.</string>
-    <string name="booking_details_dashboard_desc">Tap a reservation to view room type, stay dates, status, payment details, guests, and total amount.</string>
     <string name="payment_status_dashboard_desc">Each reservation shows paid, pending, or partially paid status with current payment progress.</string>
     <string name="upcoming_transactions_desc">Check-in and check-out schedule for your confirmed reservations.</string>
     <string name="notifications_dashboard_desc">Recent booking, payment, and hotel updates appear here. Tap an item to mark it as read.</string>
@@ -458,7 +409,6 @@
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
     <string name="upcoming_transactions_screen_desc">Every upcoming check-in and check-out from your bookings and reservations, in chronological order.</string>
     <string name="filter_all_transactions">All Transactions</string>
-    <string name="filter_tomorrow">Tomorrow</string>
     <string name="filter_upcoming_bookings">Upcoming Bookings</string>
     <string name="filter_upcoming_reservations">Upcoming Reservations</string>
 
@@ -487,33 +437,18 @@
     <string name="booking_status_filter_label">Booking Status</string>
     <string name="booking_status_filter_title">Filter by Booking Status</string>
     <string name="filter_pending_payment">Pending Payment</string>
-    <string name="reservation_summary">Reservation Summary</string>
-    <string name="active_reservations">Active</string>
-    <string name="completed_reservations">Completed</string>
-    <string name="cancelled_reservations">Cancelled</string>
-    <string name="upcoming_reservations">Upcoming</string>
 
-    <string name="booking_details">Booking Details</string>
-    <string name="booking_detail_title">Booking %1$s</string>
     <string name="booking_detail_room_type">Room Type: %1$s</string>
-    <string name="booking_detail_dates">Dates: %1$s to %2$s</string>
-    <string name="booking_detail_payment_status">Payment Status: %1$s</string>
-    <string name="booking_detail_payment_method">Payment Method: %1$s</string>
-    <string name="booking_detail_transaction_ref">Transaction Ref: %1$s</string>
     <string name="profile_completion_format">Profile %1$d%% Complete</string>
     <string name="no_bookings_found">No recent active bookings.</string>
     <string name="no_upcoming_stays_dashboard">No upcoming stays.</string>
     <string name="no_active_payment_status">No active payment status.</string>
-    <string name="ref_label">Ref: %1$s</string>
     <string name="guests_label">Guests: %1$d</string>
 
     <string name="payment_status">Payment Status</string>
     <string name="total_amount">Total:</string>
-    <string name="amount_paid">Paid: %1$s</string>
-    <string name="balance_due">Balance: %1$s</string>
 
     <string name="upcoming_transactions">Upcoming Stays</string>
-    <string name="no_upcoming_activities">No upcoming activities</string>
 
     <string name="account_summary">Account Summary</string>
     <string name="profile_complete">Profile 100%% Complete</string>
@@ -531,24 +466,17 @@
     <string name="time_format_seconds">hh:mm:ss a</string>
     <string name="date_format_short">MMM dd, yyyy</string>
     <string name="booking_item_format">%1$s (%2$s)</string>
-    <string name="ref_guests_format">%1$s  %2$s</string>
-    <string name="payment_item_format">%1$s - %2$s</string>
-    <string name="amounts_format">%1$s  %2$s</string>
-    <string name="status_paid">PAID</string>
     <string name="status_pending">PENDING</string>
     <string name="status_modified">MODIFIED</string>
-    <string name="status_partially_paid">PARTIALLY PAID</string>
     <string name="status_fully_paid">Fully Paid</string>
     <string name="status_partial_paid">Partial Paid</string>
     <string name="status_booking_pending">Booking Pending</string>
-    <string name="status_payment_submitted">Payment Submitted</string>
     <string name="status_payment_verification_label">Paid - Pending Verification</string>
     <string name="status_validated">Validated</string>
     <string name="status_completed_reservation">Completed Reservation</string>
     <string name="status_no_show">NO-SHOW</string>
     <string name="check_in_time">2:00 PM</string>
     <string name="check_out_time">12:00 PM</string>
-    <string name="mock_email">%1$s@email.com</string>
     <string name="mock_mobile">+63 912 345 6789</string>
     <string name="age_hint">Age</string>
     <string name="active_reservations_label">Pending/Confirmed Reservations</string>
@@ -558,7 +486,6 @@
     <string name="zero">0</string>
 
     <string name="guest_role">GUEST</string>
-    <string name="guest_gender_dob">Male  June 15, 1990</string>
     <string name="guest_mobile">+63 912 345 6789</string>
     <string name="profile_image_desc">Profile picture of the user</string>
     <string name="edit_profile_pic_desc">Edit profile picture</string>
@@ -566,7 +493,6 @@
     <string name="section_group_preferences">Preferences &amp; Security</string>
     <string name="personal_info_title">Personal Information</string>
     <string name="contact_info_title">Contact Information</string>
-    <string name="account_actions_title">Account Actions</string>
     <string name="security_section_title">Security</string>
     <string name="change_password_hint">Keep your account secure with a strong password</string>
     <string name="logout_hint">Sign out of your account on this device</string>
@@ -581,15 +507,12 @@
     <string name="theme_light_mode_active">Light Mode is on</string>
     <string name="theme_dark_mode_active">Dark Mode is on</string>
     <string name="theme_toggle_content_description">Switch between Light Mode and Dark Mode</string>
-    <string name="luxury_comfort_personalized">Luxury comfort tailored to your preferences, %1$s.</string>
     <string name="pay_now">Pay Now</string>
     <string name="pay_later">Pay Later</string>
-    <string name="complete_payment">Complete Payment</string>
     <string name="proceed_to_gcash">Show GCash QR Code</string>
     <string name="proceed_and_pay_later">Proceed &amp; Pay Later</string>
     <string name="reservation_pending_title">Reservation Pending</string>
     <string name="reservation_pending_thank_you_msg">Thank you for trusting us, Velocity Suites! Your reservation #%1$s has been created and is now pending. You can complete your GCash payment anytime before check-in.</string>
-    <string name="booking_created_thank_you_msg">Thank you for trusting us, Velocity Suites! Your booking #%1$s has been successfully created. Any remaining balance can be settled by walk-in payment at the hotel.</string>
     <string name="reservation_payment_attach_partial_failure_message">Your reservation was created successfully, but attaching the payment failed (%1$s). You can retry the payment anytime from your active reservations.</string>
     <string name="confirmed_button">Confirmed</string>
     <string name="payment_method_gcash">GCash</string>
@@ -599,14 +522,6 @@
     <string name="confirm_cash_payment">Confirm Cash Reservation</string>
     <string name="cash_payment_submitted_msg">Your reservation is noted for cash payment. Our staff will confirm it with you at check-in.</string>
     <string name="payment_greeting">Hello, %1$s! Complete your payment securely using GCash to confirm your reservation. Please upload the official GCash receipt for verification.</string>
-    <string name="payment_method_selected">%1$s selected as payment method.</string>
-    <string name="desc_card">Credit or Debit Card</string>
-    <string name="desc_gcash">GCash E-Wallet</string>
-    <string name="desc_bank">Bank Transfer</string>
-    <string name="desc_cash">Cash Payment</string>
-    <string name="desc_executive_room">Executive Suite room image</string>
-    <string name="explore_suites">Explore Suites</string>
-    <string name="search_room_hint">Search by room name or type</string>
     <string name="check_in_label">Check-in</string>
     <string name="check_out_label">Check-out</string>
     <string name="select_date_hint">Select date</string>
@@ -618,46 +533,25 @@
     <string name="filter_status_limited">Limited</string>
     <string name="filter_status_unavailable">Unavailable</string>
     <string name="search_availability">Search Availability</string>
-    <string name="refine_results">Refine Results</string>
-    <string name="single_room">Single Room</string>
-    <string name="double_room">Double Room</string>
     <string name="find_perfect_stay">Find Your Perfect Stay</string>
-    <string name="guests_count_hint">Guests</string>
-    <string name="price_range_filter">Price Range</string>
-    <string name="guests_filter">Guests</string>
-    <string name="standard_room">Standard Room</string>
-    <string name="deluxe_room">Deluxe Room</string>
-    <string name="superior_room">Superior Room</string>
-    <string name="grand_family_suite">Grand Family Suite</string>
-    <string name="executive_room">Executive Room</string>
-    <string name="suite_label">Suite</string>
     <string name="no_rooms_available">No rooms available for the selected dates and filters.</string>
     <string name="available_label">Available</string>
     <string name="limited_label">Limited</string>
     <string name="unavailable_label">Fully Booked</string>
     <string name="rooms_left_format">Only %d room(s) left</string>
-    <string name="room_not_available">Room Not Available</string>
-    <string name="occupied_label">Occupied</string>
     <string name="price_format_night">&#8369;%,.0f</string>
     <string name="price_format_per_night">&#8369;%,.0f / night</string>
     <string name="per_night_suffix">/ night</string>
-    <string name="persons_count">%1$d Persons</string>
     <string name="room_type_capacity_format">%1$s  %2$d Guests</string>
-    <string name="room_description_title">Description</string>
     <string name="description_label">Description</string>
     <string name="amenities_label">Amenities</string>
-    <string name="room_amenities_title">Amenities</string>
-    <string name="book_this_room">Book This Room</string>
     <string name="room_browsing_desc">Luxury comfort tailored to your preferences. Find your perfect stay with our refined selection of suites.</string>
-    <string name="available_rooms_label">Available Suites</string>
     <string name="all_categories">All Types</string>
-    <string name="find_availability">Find Availability</string>
-    <string name="sort_label">Sort</string>
     <string name="capacity_label">Capacity</string>
     <string name="price_range_label">Price Range</string>
     <string name="any_capacity">Any Capacity</string>
-    <string name="guests_1_2">1-2 Guests</string>
-    <string name="guests_3_4">3-4 Guests</string>
+    <string name="guests_1_2">1–2 Guests</string>
+    <string name="guests_3_4">3–4 Guests</string>
     <string name="guests_5_plus">5+ Guests</string>
     <string name="bed_type_label">Bed Type</string>
     <string name="room_size_label">Room Size</string>
@@ -673,22 +567,13 @@
     <string name="clear_filters">Clear All Filters</string>
     <string name="apply_filters">Apply Filters</string>
     <string name="filter_rooms_title">Filter Rooms</string>
-    <string name="filter_transactions_title">Filters</string>
-    <string name="filter_button_label">Filter</string>
-    <string name="filter_sort_label">Sort By</string>
-    <string name="filter_sort_newest">Newest First</string>
-    <string name="filter_sort_oldest">Oldest First</string>
-    <string name="filter_room_type_label">Room Type</string>
-    <string name="filters_applied_toast">Filters applied.</string>
     <string name="no_matching_rooms">No Available Rooms</string>
     <string name="no_matching_rooms_desc">No rooms match your selected filters or search criteria. Please try different options.</string>
-    <string name="searching_rooms">Searching for rooms...</string>
-    <string name="finding_best_options">Finding the best options...</string>
-    <string name="finding_best_match">Finding the best match for you...</string>
+    <string name="searching_rooms">Searching for rooms…</string>
+    <string name="finding_best_options">Finding the best options…</string>
     <string name="reset_label">Reset</string>
     <string name="refresh_label">Refresh</string>
 
-    <string name="results_count_format">%1$d Rooms Found</string>
     <string name="results_count_split_format">%1$d Available &#8226; %2$d Unavailable</string>
     <string name="error_fill_search_fields">You must fill the search by room/types or check in and check out dates before clicking the search availability button</string>
     <string name="no_rooms_available_for_dates">No rooms are available for the selected check-in and check-out dates. Please choose different dates.</string>
@@ -715,7 +600,7 @@
     <string name="personalized_greeting_format">Hello %1$s! %2$s</string>
     <string name="transaction_history_desc">Track your stays and billing records. Review your past reservations and payment history with Velocity Suites.</string>
     <string name="search_label">Search</string>
-    <string name="search_transactions_hint">Search reference or room...</string>
+    <string name="search_transactions_hint">Search reference or room…</string>
     <string name="filter_all">All</string>
     <string name="filter_unread">Unread</string>
     <string name="filter_bookings">Bookings</string>
@@ -724,19 +609,15 @@
     <string name="filter_cancelled">Cancelled</string>
     <string name="filter_stays">Check-in/Out</string>
     <string name="date_filter_label">Date Filter</string>
-    <string name="transaction_details_label">Details</string>
     <string name="export_label">Export</string>
     <string name="recent_transactions">Recent Transactions</string>
     <string name="total_paid_label">Total Paid</string>
     <string name="booking_id_format">Booking ID: %1$s</string>
-    <string name="tap_to_view_details">Tap to view full details in Transaction History</string>
-    <string name="tap_to_select_card">Tap to select, then tap View Details</string>
     <string name="no_transactions_found">Transaction History is Empty</string>
     <string name="transaction_search_empty_desc">No transactions match your search. Try a different keyword or clear your search.</string>
     <string name="transaction_payment_empty_desc">No payment records are available. Completed payments will appear here.</string>
     <string name="view_details_label">View Details</string>
     <string name="view_transaction_details_label">View Transaction Details</string>
-    <string name="notification_target_audience_format">Sent to: %1$s</string>
     <string name="announcement_published_format">Published %1$s</string>
     <string name="promo_bundle_badge_label">Free Add-Ons Included</string>
     <string name="promo_active_label">ACTIVE</string>
@@ -753,13 +634,10 @@
     <string name="landing_amenities_empty_desc">Check back soon for our full list of amenities, facilities, and services.</string>
     <string name="landing_amenities_error_title">Couldn\'t Load Amenities</string>
     <string name="landing_amenities_error_desc">Something went wrong while fetching amenities. Pull down to try again.</string>
-    <string name="payment_screen_desc">Complete your payment securely using GCash to confirm your reservation. Upload your official GCash receipt after payment for verification.</string>
     <string name="transaction_secured_msg">Your transaction is secured with end-to-end encryption.</string>
     <string name="placeholder_amount">&#8369;0.00</string>
     <string name="placeholder_booking_ref">Booking Ref: ---</string>
     <string name="payment_summary_title">Payment Summary</string>
-    <string name="gcash_label">GCash E-Wallet</string>
-    <string name="secure_instant_payment">Secure instant payment</string>
     <string name="total_amount_due">Total Amount Due</string>
     <string name="booking_ref_label">Booking Ref: %1$s</string>
     <string name="reservation_ref_label">Reservation Ref: %1$s</string>
@@ -767,13 +645,10 @@
     <string name="status_unpaid">UNPAID</string>
     <string name="room_charges_label">Room Charges</string>
     <string name="grand_total_label">Grand Total</string>
-    <string name="select_payment_method">Select Payment Method</string>
-    <string name="pay_via_gcash">Pay via GCash</string>
     <string name="gcash_instruction_text">Click \'Proceed to GCash\' to securely pay using your GCash account. You will be redirected to the GCash portal.</string>
     <string name="gcash_mobile_hint">GCash Registered Mobile Number</string>
-    <string name="proceed_to_payment">Proceed to Payment</string>
-    <string name="processing_payment">Processing secure payment...</string>
-    <string name="downloading_receipt">Downloading receipt...</string>
+    <string name="processing_payment">Processing secure payment…</string>
+    <string name="downloading_receipt">Downloading receipt…</string>
     <string name="receipt_saved_path">Receipt saved to /Downloads/VelocitySuites/</string>
     <string name="payment_success_title">Payment Successful!</string>
 
@@ -788,37 +663,17 @@
     <string name="keep_reservation_id_reference_msg">Please keep this Reservation ID for reference when checking or managing your reservation.</string>
     <string name="view_my_booking_button">View My Booking</string>
     <string name="view_my_reservation_button">View My Reservation</string>
-    <string name="proceed_button">PROCEED</string>
-    <string name="payment_success_msg">Your payment has been successfully processed via GCash. A digital receipt has been generated.</string>
     <string name="transaction_ref_label">Transaction Ref: %1$s</string>
     <string name="view_receipt">View Receipt</string>
     <string name="download_receipt">Download Receipt</string>
-    <string name="payment_receipt_title">Payment Receipt</string>
     <string name="gcash_portal_title">Secure GCash Checkout</string>
     <string name="payable_amount_label">Payable Amount:</string>
     <string name="payment_date_label">Payment Date &amp; Time: %1$s</string>
     <string name="payment_method_label">Payment Method: %1$s</string>
-    <string name="payment_method_label_short">Payment Method</string>
-    <string name="remaining_balance_short_format">₱%1$,.2f left</string>
-    <string name="amount_paid_short_format">₱%1$,.2f paid</string>
-    <string name="representative_name_short_format">Representative: %1$s</string>
     <string name="payment_method_colon_format">Payment Method: %1$s</string>
-    <string name="amount_paid_label">Total Amount Paid: %1$s</string>
     <string name="paid_column_label">Paid</string>
-    <string name="details_section_room">Room Information</string>
-    <string name="details_room_number_label">Room Number</string>
-    <string name="details_section_stay">Stay Details</string>
-    <string name="details_checkin_label">Check-in</string>
-    <string name="details_checkout_label">Check-out</string>
-    <string name="details_guests_count_label">Guests</string>
-    <string name="details_section_guests">Guest Information</string>
-    <string name="details_section_group">Group Booking</string>
     <string name="details_section_payment">Payment Information</string>
-    <string name="details_total_amount_short_label">Total Amount</string>
-    <string name="amount_paid_short_label">Amount Paid</string>
-    <string name="receipt_footer">Thank you for choosing Velocity Suites!</string>
     <string name="error_invalid_gcash_number">Please enter a valid 10-digit mobile number</string>
-    <string name="error_select_payment_method">Please select a payment method</string>
 
     <!-- Payment amount: a single unified selector - 20/30/40/50% or Full Payment -->
     <string name="payment_option_label">Payment Amount</string>
@@ -834,14 +689,8 @@
     <string name="percent_50">50%</string>
     <string name="full_payment_hint">Enter the exact total booking amount to pay in full</string>
     <string name="full_payment_hint_with_due">This will settle your remaining balance of %1$s in full</string>
-    <string name="error_amount_below_minimum">Enter at least the minimum deposit amount (10%% of the total).</string>
-    <string name="error_amount_above_maximum">The deposit cannot exceed 20%% of the total - the rest is settled at checkout.</string>
     <string name="error_full_amount_mismatch">Amount must exactly match the total booking amount (%1$s) to proceed.</string>
     <string name="amount_to_pay_label">Amount to Pay Now</string>
-    <string name="quick_amount_min_label">Pay minimum</string>
-    <string name="quick_amount_max_label">Pay maximum</string>
-    <string name="quick_amount_min">Min 10%% · %1$s</string>
-    <string name="quick_amount_max">Max 20%% · %1$s</string>
     <string name="remaining_balance_label">Remaining Balance</string>
     <string name="already_paid_label">Already Paid</string>
     <string name="selected_payment_label">Selected Payment</string>
@@ -879,7 +728,6 @@
     <string name="nights_label">Nights</string>
     <string name="nights_count_format">%1$d night(s)</string>
     <string name="room_rate_per_night_label">Total Room Rate per Night</string>
-    <string name="room_subtotal_label">Room Subtotal</string>
     <string name="discount_applied_label">Discount Applied</string>
     <string name="billing_amenities_title">Add-on Amenities</string>
     <string name="guest_information_title">Guest Information</string>
@@ -889,8 +737,6 @@
     <string name="id_type_label">ID Type</string>
     <string name="payment_breakdown_title">Billing Breakdown</string>
     <string name="payment_information_title">Payment Information</string>
-    <string name="room_charges_breakdown_label">Room Charges</string>
-    <string name="booking_amount_label">Booking Amount</string>
     <string name="total_amenities_amount_label">Total Amenities Amount</string>
     <string name="total_room_stay_amount_label">Total Room Amount</string>
     <string name="room_rate_label">Room Rate</string>
@@ -906,8 +752,6 @@
     <string name="terms_view_required_hint">Open Terms &amp; Cancellation Policy above to enable this checkbox.</string>
     <string name="pay_now_confirm_title">Proceed to Payment?</string>
     <string name="pay_now_confirm_msg">Do you want to continue with the payment process for reservation %1$s?</string>
-    <string name="reservation_converted_to_booking_msg">Payment successful! Your reservation has been converted into a confirmed booking.</string>
-    <string name="balance_format">Balance: %1$s</string>
     <string name="no_balance_label">Fully paid - no balance</string>
     <string name="scan_qr_title">Scan QR Code and Pay</string>
     <string name="scan_qr_desc">Open your GCash app, tap Scan QR, and point your camera at our official code below to pay instantly.</string>
@@ -917,8 +761,6 @@
     <string name="gcash_number_step_desc">Enter the mobile number registered to the GCash account you used to pay.</string>
     <string name="gcash_reference_number_step_title">Enter Your GCash Reference Number</string>
     <string name="gcash_reference_step_desc">Enter the transaction/reference number shown on your GCash payment receipt.</string>
-    <string name="or_divider_label">AND</string>
-    <string name="gcash_and_desc">Both steps are required — scan the QR code to pay, AND enter the GCash number and receipt below so we can verify it.</string>
     <string name="attach_receipt_title">Upload GCash Receipt</string>
     <string name="attach_receipt_desc">Attach a screenshot of your GCash receipt so the receptionist can validate your payment.</string>
     <string name="attach_receipt_button">Upload GCash Receipt</string>
@@ -958,8 +800,6 @@
     <string name="review_receipt_file_name_unknown">Receipt attached</string>
     <string name="submit_payment_verification_button">Submit Payment</string>
     <string name="submitting_payment_button">Submitting Payment…</string>
-    <string name="error_gcash_number_required">Enter your registered GCash number to continue</string>
-    <string name="error_receipt_required_short">Upload your GCash receipt to continue</string>
     <string name="error_gcash_reference_duplicate">This GCash reference number has already been submitted. Please check your transaction and enter a valid reference number.</string>
     <string name="status_pending_verification_title">Pending Verification</string>
     <string name="status_pending_verification_message">Your payment and uploaded receipt are currently being reviewed by our receptionist. You\'ll be notified once it\'s verified.</string>
@@ -978,9 +818,6 @@
     <string name="cancel_payment_success_msg">Your pending payment was cancelled and the transaction is now marked Transaction Failed.</string>
     <string name="convert_to_reservation_success_msg">Your payment attempt was withdrawn. The room is still held for you as an unpaid reservation.</string>
     <string name="transaction_failed_label">TRANSACTION FAILED</string>
-    <string name="payment_partial_success_msg">Your partial payment was received via GCash. The remaining balance is recorded on your booking.</string>
-    <string name="remaining_balance_cash_note">Pay the remaining balance in cash through a walk-in transaction at Velocity Suites.</string>
-    <string name="remaining_balance_amount">Remaining Balance: %1$s</string>
     <string name="error_no_booking_data">No booking data available. Please go back and select a booking to pay for.</string>
     <string name="error_booking_not_found">We couldn\'t find this booking. Please try again.</string>
     <string name="error_no_active_booking">No active booking was selected for payment.</string>
@@ -992,9 +829,7 @@
     <string name="error_server_error">Something went wrong on our end. Please try again, and contact us if the problem continues.</string>
     <string name="error_session_expired">Your session has expired. Please log in again to continue.</string>
     <string name="error_unexpected_response">We received an unexpected response from the server. Please try again.</string>
-    <string name="error_receipt_upload_failed">We couldn\'t upload your GCash receipt. Please check your connection and try again.</string>
     <string name="confirm_submit_gcash_payment_msg">Submit this GCash payment of %1$s for verification? Double-check your reference number and receipt — this can\'t be undone.</string>
-    <string name="view_label">View</string>
     <string name="book_now_cta_title">Ready to book a room?</string>
     <string name="book_now_cta_desc">Select your rooms and dates, then come back here to complete payment.</string>
     <string name="empty_payment_balance_msg">You do not have any selected rooms for booking. Tap the Book Now button to select one or more rooms.</string>
@@ -1004,7 +839,6 @@
     <string name="mark_all_read_label">Mark all as read</string>
     <string name="confirm_mark_all_read_msg">Mark all notifications as read? This can\'t be undone.</string>
     <string name="error_load_notifications_format">Couldn\'t load notifications: %1$s</string>
-    <string name="booking_screen_desc">Complete the details below to finalize your reservation at Velocity Suites.</string>
 
     <!-- Booking and Reservation Module Strings -->
     <string name="tab_new_booking">New Booking</string>
@@ -1030,18 +864,8 @@
          list I'm viewing" with "start a new transaction". -->
     <string name="tab_booking_list_switcher">Bookings</string>
     <string name="tab_reservation_list_switcher">Reservations</string>
-    <string name="tab_my_reservations">My Reservations</string>
-    <string name="step_booking_details">Step 1: Booking Details</string>
-    <string name="step_reservation_details">Step 1: Reservation Details</string>
-    <string name="recent_activity_label">Recent Booking Activity</string>
-    <string name="recent_activity_desc">A snapshot of your most recent reservations and bookings.</string>
-    <string name="reservation_list_title">My Reservations &amp; Bookings</string>
-    <string name="reservation_list_desc">Manage your full stay history, track payment verification, and modify upcoming reservations.</string>
-    <string name="select_room_hint">Select Room</string>
     <string name="check_in_hint">Check-in</string>
     <string name="check_out_hint">Check-out</string>
-    <string name="guest_count_hint">Number of Guests</string>
-    <string name="step_id_and_guests">Step 2: Identification &amp; Additional Guests</string>
     <string name="who_is_staying_label">Representative Name</string>
     <string name="who_is_staying_hint">This is the main guest or person responsible for this booking or reservation.</string>
     <string name="guest_first_name_hint">First Name *</string>
@@ -1051,7 +875,6 @@
     <string name="middle_name_placeholder">Enter middle name</string>
     <string name="error_first_name_required">First name is required.</string>
     <string name="error_last_name_required">Last name is required.</string>
-    <string name="error_name_invalid_characters">Only letters, spaces, hyphens, and apostrophes are allowed.</string>
     <string name="required_fields_note">* Required fields</string>
     <string name="id_verification_title">ID Verification</string>
     <string name="id_question">Do you have a Senior Citizen or PWD ID?</string>
@@ -1063,32 +886,20 @@
     <string name="id_uploaded_success">ID card uploaded successfully</string>
     <string name="additional_guest_info">Additional Guest Information</string>
     <string name="add_additional_guest">+ Add Additional Guest</string>
-    <string name="step_summary">Step 3: Summary</string>
     <string name="no_room_selected">No room selected</string>
     <string name="confirm_reservation_label">Confirm Reservation</string>
-    <string name="no_active_reservations">No active reservations</string>
     <string name="error_room_unavailable">Selected room is not available for these dates.</string>
     <string name="duplicate_reservation_title">Already Reserved</string>
     <string name="error_duplicate_reservation">You already have an active reservation (Ref: %1$s) for this room type from %2$s to %3$s. To avoid a double booking, please modify or cancel that reservation instead of creating a new one.</string>
     <string name="error_invalid_dates">Check-out date must be later than the check-in date.</string>
-    <string name="error_duplicate_stay_dates">These check-in and check-out dates are already used in another transaction. Please select different dates.</string>
     <string name="error_overlapping_stay_dates">Your selected stay dates overlap with another active booking or reservation. Please select different check-in and check-out dates.</string>
     <string name="error_checkin_past">Check-in date can\'t be in the past. Please pick a new date.</string>
-    <string name="error_select_room">Please select a room.</string>
-    <string name="booking_confirmed_title">Booking Confirmed!</string>
-    <string name="booking_confirmed_msg">Your reservation #%1$s has been successfully created.</string>
-    <string name="reserve_or_book_title">Reserve or Book?</string>
-    <string name="reserve_or_book_msg">Reserve holds the room with no payment - you can pay any time later. Book &amp; Pay takes you to payment now; your booking is confirmed once our staff verifies the payment.</string>
-    <string name="reserve_only_label">Reserve Only</string>
-    <string name="book_and_pay_label">Book &amp; Pay</string>
     <string name="reservation_created_title">Reservation Created!</string>
     <string name="reservation_created_msg">Your reservation #%1$s is in. No payment has been made - use Pay Now whenever you\'re ready to turn it into a booking.</string>
     <string name="awaiting_verification_label">Pending Verification</string>
     <string name="pending_verification_label">Pending Verification</string>
-    <string name="payment_status_format">Payment: %1$s</string>
     <string name="no_payment_yet_label">Reservation - no payment yet</string>
     <string name="booking_list_title">Booking List</string>
-    <string name="reservation_list_label">Reservation List</string>
     <!-- Full list-section headings, one per Confirmed/Completed/Cancelled
          sub-tab, shown in tvListTitle (see applyListFilterLabels()) - the
          Reservations tab's "Confirmed" bucket is deliberately labelled
@@ -1105,7 +916,6 @@
     <string name="list_title_all_bookings">All Bookings</string>
     <string name="list_title_all_reservations">All Reservations</string>
     <string name="active_bookings_label">Active Bookings</string>
-    <string name="chip_upcoming">Upcoming</string>
     <!-- Filter by Status combo box (bookingandreservation.xml) - one dropdown per
          tab, each self-descriptive since there's no toggle-button row anymore
          to lean on the tab above for Booking/Reservation context. -->
@@ -1129,7 +939,6 @@
     <string name="search_no_bookings_found_title">No matching booking found</string>
     <string name="search_no_reservations_found_title">No matching reservation found</string>
     <string name="search_empty_state_desc">Try another transaction number, room type, or date.</string>
-    <string name="created_transaction_format">Created %1$s</string>
     <string name="booking_items_desc">Your bookings with payment activity. Tap any item to view its complete details.</string>
     <string name="reservation_items_desc">Your reservations with no payment yet. Tap any item to view its complete details.</string>
     <string name="showing_category_format">Showing: %1$s</string>
@@ -1177,7 +986,6 @@
     <string name="delete_booking_transaction_success">The booking transaction has been permanently deleted.</string>
     <string name="delete_reservation_transaction_confirm">This reservation transaction will be permanently deleted and cannot be recovered. Are you sure you want to continue?</string>
     <string name="delete_reservation_transaction_success">The reservation transaction has been permanently deleted.</string>
-    <string name="delete_transaction_failed_title">Unable to Delete Transaction</string>
     <string name="delete_transaction_failed_format">The transaction could not be permanently deleted. %1$s</string>
     <!-- Status-code-specific delete errors (RoomRepository#deleteErrorMessage()) - always a clean, fixed message, never the raw backend/framework error text. -->
     <string name="delete_error_forbidden">You are not allowed to delete this transaction.</string>
@@ -1187,13 +995,9 @@
     <string name="delete_error_unavailable">Unable to delete the transaction right now. Please try again later.</string>
     <string name="book_again_button">Book Again</string>
     <string name="reserve_again_button">Reserve Again</string>
-    <string name="book_again_prefilled_toast">Form pre-filled from your previous booking. Please choose new dates to continue.</string>
-    <string name="reserve_again_prefilled_toast">Form pre-filled from your previous reservation. Please choose new dates to continue.</string>
     <string name="book_again_room_unavailable">That room type is no longer available. Please choose a different room.</string>
-    <string name="no_show_cancellation_reason">Guest did not arrive within 5 hours of the scheduled check-in time. Cancelled per Velocity Suites\' no-refund cancellation policy.</string>
     <string name="booking_tab_desc">Book a room and complete your payment right away. Your booking is confirmed once the payment is verified. Please note that full payment is required to confirm your booking, and all payments are non-refundable.</string>
     <string name="reservation_tab_desc">Hold a room with no payment needed now. You can pay later to turn your reservation into a booking.</string>
-    <string name="modify_booking_title">Modify Reservation</string>
     <string name="cancel_booking_title">Cancel Booking</string>
     <string name="cancel_booking_confirm">Are you sure you want to cancel your booking? Please note that cancelled bookings are non-refundable.</string>
     <string name="cancel_reservation_title">Cancel Reservation</string>
@@ -1207,15 +1011,10 @@
     <string name="cancel_not_allowed_title">Cancellation Not Allowed</string>
     <string name="cancel_not_allowed_verified_msg">This booking is fully paid, so it can no longer be cancelled here. If you have concerns, please contact the front desk for assistance.</string>
     <string name="cancel_partial_payment_confirm">This booking will be cancelled permanently. Since only a partial payment was made, that amount is non-refundable and will not be returned. Do you want to proceed?</string>
-    <string name="modify_success">Reservation modified successfully.</string>
-    <string name="additional_guest_name">Full Name</string>
     <string name="additional_guest_age">Age</string>
-    <string name="additional_guest_gender">Gender</string>
     <string name="additional_guest_relationship">Relationship</string>
     <string name="guest_number_format">Guest %1$d</string>
-    <string name="summary_room_format">%1$s (%2$d nights)</string>
     <string name="price_format">&#8369;%,.2f</string>
-    <string name="ref_format">Ref: %1$s</string>
     <string name="direct_booking_ref_format">Booking #%1$s</string>
     <string name="reservation_ref_format">Reservation #%1$s</string>
     <string name="reservation_details_screen_title">Reservation Details</string>
@@ -1224,41 +1023,17 @@
     <string name="modify_reservation_label">Update Reservation</string>
     <string name="reservation_updated_title">Reservation Updated</string>
     <string name="reservation_updated_msg">Your reservation %1$s has been successfully updated.</string>
-    <string name="booking_details_title">Booking Details: %1$s</string>
-    <string name="details_room_label">Room: %1$s</string>
-    <string name="details_room_type_label">Room Type: %1$s</string>
-    <string name="room_type_label">Room Type</string>
-    <string name="booking_summary_title">Reservation Summary</string>
-    <string name="confirm_and_book_label">Confirm &amp; Book</string>
-    <string name="details_dates_label">Dates: %1$s - %2$s</string>
-    <string name="details_guests_label">Guests: %1$d</string>
-    <string name="details_status_label">Status: %1$s</string>
-    <string name="details_id_type_label">ID Type: %1$s</string>
     <string name="details_additional_guests_header">Additional Guests:</string>
     <string name="details_guest_entry">- %1$s (%2$s)</string>
-    <string name="receipt_booking_format">Room: %1$s (%2$s)</string>
     <string name="details_total_amount_label">Total Amount: &#8369;%,.2f</string>
     <string name="close_label">Close</string>
     <string name="modify_label">Modify</string>
-    <string name="switch_to_gcash_label">Switch to GCash Payment</string>
-    <string name="switch_to_cash_label">Switch to Cash Payment</string>
-    <string name="confirm_switch_to_gcash_title">Switch to GCash?</string>
-    <string name="confirm_switch_to_gcash_message">This reservation will switch from Cash to GCash payment. This can only be done once and cannot be undone - after switching, you\'ll be able to Pay Now with GCash.</string>
-    <string name="switch_to_gcash_success">Payment method switched to GCash. You can now Pay Now.</string>
-    <string name="switch_to_gcash_error">Couldn\'t switch payment method. Please try again.</string>
-    <string name="confirm_switch_to_cash_title">Switch to Cash?</string>
-    <string name="confirm_switch_to_cash_message">This reservation will switch from GCash to Cash payment. This can only be done once and cannot be undone - you\'ll settle the balance walk-in at Velocity Suites.</string>
-    <string name="switch_to_cash_success">Payment method switched to Cash. You can pay walk-in at the hotel.</string>
-    <string name="switch_to_cash_error">Couldn\'t switch payment method. Please try again.</string>
     <string name="id_card_preview_desc">ID Card Preview</string>
     <string name="error_upload_id">Please upload your ID card</string>
     <string name="error_required">Required</string>
-    <string name="error_min_guest">Must be at least 1</string>
-    <string name="error_capacity_exceeded">Exceeds room capacity (%1$d)</string>
     <string name="summary_discount_label">Discount Requested</string>
     <string name="discount_pending_verification">Pending staff verification</string>
     <string name="summary_subtotal_label">Subtotal</string>
-    <string name="error_invalid_number">Invalid number</string>
     <string name="error_form_incomplete">Please correct the errors in the form</string>
     <string name="confirm_create_booking_msg">Are you sure you want to confirm this booking? You\'ll be taken to payment next.</string>
     <string name="confirm_create_reservation_msg">Are you sure you want to create this reservation? No payment is required now — you can pay later to turn it into a booking.</string>
@@ -1269,34 +1044,20 @@
     <string name="confirm_discard_edit_msg">Discard your changes to this reservation? Your edits will be lost.</string>
     <string name="default_guest_count">1</string>
     <string name="zero_price">&#8369;0</string>
-    <string name="id_preview_label">ID Card Preview</string>
-    <string name="capacity_reached">Maximum capacity reached for this room (%1$d guests).</string>
 
     <!-- Multi-Room Booking / Reservation Strings -->
     <string name="add_room_hint">Add a Room</string>
     <string name="booking_select_room_helper_multi">Select a room to add it to this booking. Add as many rooms as you need.</string>
     <string name="error_no_rooms_selected">Please add at least one room.</string>
-    <string name="error_room_type_locked_during_modify">Room type can\'t be changed while modifying a reservation - you can only adjust the quantity of %1$s. Cancel this edit and create a new reservation to book a different room type.</string>
     <string name="no_rooms_selected_yet">No rooms added yet</string>
     <string name="no_rooms_selected_hint">Pick a room above to add it here. You can add more than one room to this booking.</string>
     <string name="no_rooms_selected_hint_reservation">Pick a room above to add it here. You can add more than one room to this reservation.</string>
     <string name="room_added_toast">%1$s added to your booking.</string>
     <string name="room_removed_toast">%1$s removed from your booking.</string>
-    <string name="room_already_added_toast">%1$s is already in your booking.</string>
     <string name="remove_room_desc">Remove room</string>
     <plurals name="rooms_selected_count">
         <item quantity="one">%1$d Room Selected</item>
         <item quantity="other">%1$d Rooms Selected</item>
-    </plurals>
-    <string name="group_amenities_total_format">Amenities: %1$s</string>
-    <string name="group_amenities_label">Amenities:</string>
-    <plurals name="group_amenity_types_count">
-        <item quantity="one">%1$d Amenity Type</item>
-        <item quantity="other">%1$d Amenity Types</item>
-    </plurals>
-    <plurals name="group_amenity_items_count">
-        <item quantity="one">%1$d Amenity Item</item>
-        <item quantity="other">%1$d Amenity Items</item>
     </plurals>
     <plurals name="room_qty_format">
         <item quantity="one">Quantity: %1$d Room</item>
@@ -1315,14 +1076,12 @@
     <string name="summary_room_row_qty_format">%1$d× %2$s — %3$d night(s)</string>
     <string name="summary_rooms_header_format">Selected Rooms (%1$d)</string>
     <string name="summary_amenity_row_qty_format">%1$s × %2$d</string>
-    <string name="group_reference_label">Booking Group Reference</string>
 
     <!-- Booking wizard Step 7 -> payment.xml handoff -->
     <string name="booking_payment_next_notice">You\'ll complete GCash payment on the next screen before your booking is created.</string>
     <string name="pending_booking_ref_label">New Booking</string>
     <string name="pending_booking_status_label">PAYMENT PENDING</string>
     <string name="pending_booking_id_review_label">Will be generated after submission</string>
-    <string name="booking_created_success_msg">Payment submitted! Your booking has been created.</string>
 
     <!-- Landing/Room Browsing multi-room selection cart -->
     <plurals name="cart_summary_capacity_format">
@@ -1340,14 +1099,12 @@
     <string name="available_rooms_subtitle_format">%1$s – %2$s · %3$d night(s)</string>
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
-    <string name="select_room_button">Select Room</string>
-    <string name="select_room_button_selected">Selected</string>
     <string name="quantity_label">Quantity</string>
     <string name="no_more_rooms_available_toast">No more %1$s available for these dates.</string>
     <string name="error_room_no_longer_available_format">%1$s is no longer available for your chosen dates. Please select another room.</string>
     <string name="error_room_availability_decreased_format">Room availability has changed. Only %1$d room(s) of %2$s are currently available.</string>
     <string name="error_room_no_longer_available_for_dates">Your previously selected room is no longer available for the updated dates. Please select another available room.</string>
-    <string name="checking_available_rooms_message">Checking available rooms...</string>
+    <string name="checking_available_rooms_message">Checking available rooms…</string>
     <string name="no_available_rooms_title">No Available Rooms</string>
     <string name="no_available_rooms_message">No rooms are available for your selected Check-in and Check-out dates. Please choose different dates.</string>
     <string name="change_dates_button">Change Dates</string>
@@ -1374,16 +1131,9 @@
     <string name="no_available_rooms_desc">There are no room types available for the selected dates right now. Please try different dates.</string>
     <string name="cd_decrease_quantity">Decrease quantity</string>
     <string name="cd_add_to_favorites">Add to favorites</string>
-    <string name="cd_remove_from_favorites">Remove from favorites</string>
     <string name="cd_add_to_favorites_format">Add %1$s to favorites</string>
     <string name="cd_remove_from_favorites_format">Remove %1$s from favorites</string>
     <string name="cd_increase_quantity">Increase quantity</string>
-    <string name="room_qty_format">%1$d× %2$s</string>
-    <plurals name="rooms_staged_count">
-        <item quantity="one">%1$d room type selected</item>
-        <item quantity="other">%1$d room types selected</item>
-    </plurals>
-    <string name="rooms_staged_count_none">No rooms selected yet</string>
     <!-- Total staged room quantity (not distinct room types) - shown alongside
          rooms_staged_count when more than one room type is staged, so "2
          Deluxe + 1 Suite" reads as "3 Rooms Selected", not just "2 room
@@ -1407,7 +1157,6 @@
         <item quantity="one">%1$d Night</item>
         <item quantity="other">%1$d Nights</item>
     </plurals>
-    <string name="about_this_room_label">About This Room</string>
     <string name="view_selection_details_label">View Selection Details</string>
     <string name="selected_rooms_summary_title">Selected Rooms</string>
     <string name="not_selected_yet_label">Not selected yet</string>
@@ -1451,21 +1200,15 @@
 
     <!-- Connectivity banner -->
     <string name="no_internet_connection_label">No Internet Connection</string>
-    <string name="group_reference_format">Group Ref: %1$s</string>
     <string name="group_reference_suffix_format"> · Group %1$s (%2$d of %3$d rooms)</string>
     <string name="details_group_reference_label">Group Reference: %1$s</string>
-    <string name="details_group_members_header">Other rooms in this booking group:</string>
-    <string name="details_group_member_entry">- %1$s (Ref: %2$s)</string>
     <string name="multi_room_created_title">Rooms Reserved!</string>
-    <string name="multi_room_created_msg">%1$d rooms have been reserved under group reference %2$s. No payment has been made — use Pay Now on each room whenever you\'re ready to turn it into a booking.</string>
     <string name="multi_room_booked_msg">Room 1 of %1$d is ready for payment now. The remaining %2$d room(s) have been reserved under group reference %3$s and can be paid individually from your Booking List.</string>
     <string name="multi_room_partial_failure_title">Some Rooms Couldn\'t Be Booked</string>
     <string name="multi_room_partial_failure_msg">%1$d of %2$d rooms were successfully reserved before an error occurred (%3$s). The successful rooms have been rolled back and cancelled so you\'re not left with a partial booking. Please try again.</string>
     <string name="multi_room_rollback_failed_msg">%1$d of %2$d rooms were reserved before an error occurred (%3$s), and automatic rollback of those rooms failed. Please check your Booking List and cancel them manually if needed, or contact the front desk for help.</string>
 
     <!-- Transaction History Refinement Strings -->
-    <string name="msg_exporting_pdf">Exporting transaction history as PDF...</string>
-    <string name="msg_filtering_date_range">Filtering by date range...</string>
     <string name="label_pending_payment">Pending Payment</string>
     <string name="label_not_available">N/A</string>
     <string name="label_paid_on">Paid on: %1$s</string>
@@ -1475,16 +1218,13 @@
     <string name="empty_transactions_desc">No items match the selected filter or sorting options. Please adjust your selection.</string>
     <string name="label_current_status">Current Status: %1$s</string>
     <string name="title_booking_info">Booking Information</string>
-    <string name="title_stay_dates">Stay Dates</string>
     <string name="title_payment_history">Payment History</string>
-    <string name="title_cancellation_details">Cancellation Details</string>
     <string name="export_options_title">Export Transaction History</string>
     <string name="export_as_pdf">Export as PDF Document</string>
     <string name="export_as_csv">Export as CSV Spreadsheet</string>
     <string name="msg_export_success">Exported successfully to %1$s</string>
-    <string name="msg_exporting_format">Generating %1$s report...</string>
+    <string name="msg_exporting_format">Generating %1$s report…</string>
     <string name="msg_export_error">Failed to export file</string>
-    <string name="filter_clear_dates">Clear Date Filter</string>
     <string name="downloads_folder_name">Downloads</string>
     <string name="error_load_transactions_format">Couldn\'t load transactions: %1$s</string>
     <string name="empty_transactions_no_activity_desc">Your transaction history is empty. Completed bookings and payments will appear here.</string>
@@ -1495,60 +1235,32 @@
     <string name="no_search_results_desc">We couldn\'t find any notifications matching your current search or filter. Try another keyword or select a different notification category.</string>
     <string name="no_unread_notifications_title">No Unread Notifications</string>
     <string name="no_unread_notifications_desc">You\'re all caught up — no new hotel updates right now.</string>
-    <string name="view_details_and_book">View Details &amp; Book</string>
-    <string name="personal_info_updated">Your personal information has been updated successfully. You may edit it again after 30 days.</string>
-    <string name="contact_info_updated">Your contact information has been updated successfully. You may edit it again after 30 days.</string>
     <string name="password_changed_success">Your password has been changed successfully. You may change it again after 30 days.</string>
-    <string name="change_password_desc">Ensure your new password is secure and easy to remember.</string>
     <string name="change_password_otp_desc">For your security, enter the verification code we sent to your registered email address, then set your new password.</string>
     <string name="profile_picture_updated">Your profile picture has been updated successfully. You may update it again after 30 days.</string>
     <string name="confirm_update_profile_picture">Are you sure you want to update your profile picture? After saving your changes, you will not be able to update your profile picture again for 30 days.</string>
-    <string name="delete_account_title">Delete Account</string>
-    <string name="delete_account_hint">Deactivate your account with a 30-day restore option</string>
-    <string name="delete_account_explanation">Your account will be deactivated immediately, not permanently deleted right away. You\'ll have 30 days to restore it by simply logging in again. If you don\'t log back in within that time, your account and its data will be permanently deleted. Enter your password to continue.</string>
-    <string name="delete_account_button">Delete Account</string>
-    <string name="delete_account_success">Your account has been deactivated. Log in again within 30 days to restore it.</string>
-    <string name="delete_account_password_error">The password you entered is incorrect.</string>
     <string name="restore_account_title">Welcome Back!</string>
     <string name="restore_account_message">Your account is scheduled for deletion and will be permanently removed on %1$s. Would you like to restore it?</string>
     <string name="restore_account_button">Restore My Account</string>
     <string name="restore_account_success">Your account has been restored. Welcome back!</string>
     <string name="restore_account_declined">You\'ve been logged out. Your account remains scheduled for deletion.</string>
-    <string name="confirm_update_personal_info">Are you sure you want to update your personal information? After saving your changes, you will not be able to edit your personal information again for 30 days.</string>
-    <string name="confirm_update_contact_info">Are you sure you want to update your contact information? After saving your changes, you will not be able to edit your contact information again for 30 days.</string>
     <string name="locked_profile_picture">You cannot update your profile picture at this time. Please try again after the remaining waiting period has expired.</string>
-    <string name="locked_personal_info">You cannot edit your personal information yet. Please wait until the 30-day update restriction has expired.</string>
-    <string name="locked_contact_info">You cannot edit your contact information yet. Please wait until the 30-day update restriction has expired.</string>
     <string name="locked_password">You cannot change your password yet. Please wait until the 30-day security restriction has expired.</string>
     <string name="days_remaining_format">You can update this section again in %1$d days.</string>
     <string name="confirm_dialog_positive">Yes, Continue</string>
     <string name="save_changes">Save Changes</string>
     <string name="cancel_label">Cancel</string>
     <string name="current_password_label">Current Password</string>
-    <string name="current_password_error">Incorrect current password</string>
     <string name="select_image_title">Update Profile Picture</string>
     <string name="take_photo">Take New Photo</string>
     <string name="choose_from_gallery">Choose from Gallery</string>
     <string name="camera_permission_required">Camera permission is required to take photos.</string>
-    <string name="storage_permission_required">Storage permission is required to access gallery.</string>
     <string name="invalid_age">Please enter a valid age</string>
     <string name="full_name_format">%1$s %2$s</string>
     <string name="full_name_middle_format">%1$s %2$s %3$s</string>
     <string name="edit_profile_desc">Update your personal and contact information below.</string>
-    <string name="edit_personal_info_desc">Update your name, gender, age, and birth date below.</string>
-    <string name="edit_contact_info_title">Edit Contact Information</string>
-    <string name="edit_contact_info_desc">Update your email address and mobile number below.</string>
-    <string name="booking_select_room_helper">Please select your preferred room first to enable stay date selection.</string>
-    <string name="notif_booking_updated_title">Booking Updated</string>
-    <string name="notif_booking_updated_msg">Your reservation #%1$s has been successfully modified.</string>
-    <string name="notif_booking_created_title">Booking Created</string>
-    <string name="notif_booking_created_msg">Your reservation #%1$s is currently %2$s.</string>
-    <string name="notif_booking_cancelled_title">Booking Cancelled</string>
-    <string name="notif_booking_cancelled_msg">Your reservation #%1$s has been cancelled.</string>
-    <string name="just_now">Just now</string>
     <string name="not_specified">Not Specified</string>
     <string name="no_amenities_available">No Available Amenities</string>
-    <string name="amenity_included_label">Included</string>
     <string name="close">Close</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
@@ -1560,9 +1272,6 @@
     <string name="extra_room_gallery_labels">room_gallery_labels</string>
     <string name="extra_room_gallery_start_index">room_gallery_start_index</string>
     <string name="extra_room_gallery_title">room_gallery_title</string>
-    <string name="address_label">Address</string>
-    <string name="address_hint">Street, city, province</string>
-    <string name="address_required">Address is required</string>
     <string name="address_section_title">Address</string>
     <string name="address_section_desc">Select your location step by step - each field unlocks once the one before it is set.</string>
     <string name="country_label">Country</string>
@@ -1592,18 +1301,7 @@
     <string name="timezone_hint">Select timezone</string>
     <string name="timezone_required">Timezone is required</string>
     <string name="address_lookup_failed">Couldn\'t load address options. Check your connection and try again.</string>
-    <string name="edit_address_title">Edit Address</string>
-    <string name="edit_address_desc">Update your address below. Selections cascade top to bottom.</string>
-    <string name="edit_contact_address_title">Edit Contact &amp; Address</string>
-    <string name="edit_contact_address_desc">Update your contact details and address below. Address selections cascade top to bottom.</string>
-    <string name="address_updated">Your address has been updated successfully. You may edit it again after 30 days.</string>
-    <string name="locked_address">You cannot edit your address yet. Please wait until the 30-day update restriction has expired.</string>
-    <string name="confirm_update_address">Save these changes to your address?</string>
-    <string name="contact_address_updated">Your contact information and address have been updated successfully. You may edit them again after 30 days.</string>
-    <string name="locked_contact_address">You cannot edit your contact information or address yet. Please wait until the 30-day update restriction has expired.</string>
-    <string name="confirm_update_contact_address">Save these changes to your contact information and address?</string>
     <string name="edit_profile_wizard_step1_title">Personal Information</string>
-    <string name="edit_profile_wizard_step2_title">Contact &amp; Address Information</string>
     <string name="address_info_step_title">Address Information</string>
     <string name="review_confirm_step_title">Review &amp; Confirm</string>
     <string name="review_one_time_warning">Please review all of your information carefully. You can only update your Personal Information and Contact &amp; Address Information once.</string>
@@ -1611,8 +1309,6 @@
     <string name="discard_changes_message">Your profile changes have not been saved.</string>
     <string name="continue_editing_label">Continue Editing</string>
     <string name="discard_changes_action">Discard Changes</string>
-    <string name="profile_updated_status">Profile Updated</string>
-    <string name="profile_already_updated_message">Your profile information has already been updated. Profile information can only be updated once.</string>
     <!-- 30-day Personal Information / Contact & Address cooldown - replaces the
          old permanent one-time-edit wording above (never actually enforced
          server-side - see Api\ProfileController's profile_last_updated_at).
@@ -1622,7 +1318,6 @@
     <string name="logout_confirm_title">Log out?</string>
     <string name="logout_confirm_message">Are you sure you want to log out of your Velocity Suites account?</string>
     <string name="logout_confirm_action">Logout</string>
-    <string name="confirm_update_profile">Are you sure you want to save these changes to your profile?</string>
     <string name="confirm_update_action">Confirm Update</string>
     <string name="profile_update_failed_generic">Couldn\'t update your profile. Please check your details and try again.</string>
     <string name="profile_updated_full">Profile updated successfully.</string>
@@ -1665,17 +1360,14 @@
          no longer reads as destructive next to Delete Account. -->
     <string name="account_section_title">Account</string>
     <string name="account_section_subtitle">Manage your session on this device</string>
-    <string name="danger_zone_title">Danger Zone</string>
-    <string name="danger_zone_subtitle">Irreversible and sensitive account actions</string>
 
     <!-- Deactivate Account is no longer surfaced on Profile Management (guest-facing
-         entry point removed per spec); these two strings stay because
+         entry point removed per spec); these three strings stay because
          dialog_deactivate_account.xml - now unused but deliberately left in place in
          case the feature returns - still references them. -->
     <string name="deactivate_account_title">Deactivate Account</string>
     <string name="deactivate_confirm_action">Deactivate Account</string>
     <string name="deactivate_password_prompt_message">Enter your password to confirm account deactivation.</string>
-    <string name="deactivate_account_success_hint">You can reactivate it by signing in again and verifying the code sent to your registered email address.</string>
 
     <!-- OTP account-reactivation screen on Login (see LoginActivity's
          handleLogin()/reactivation card) - shown only when correct
@@ -1687,9 +1379,6 @@
     <string name="mobile_calling_code_hint">Starts with %1$s</string>
     <string name="back_step_hint">Use the back arrow above to review or edit a previous step</string>
     <string name="error_dates_not_available">The room is not available for selected dates. Please choose different dates.</string>
-    <string name="id_type_none_label">None</string>
-    <string name="id_type_senior_label">Senior Citizen</string>
-    <string name="id_type_pwd_label">PWD</string>
     <string name="rel_spouse">Spouse</string>
     <string name="rel_child">Child</string>
     <string name="rel_parent">Parent</string>
@@ -1701,16 +1390,11 @@
     <string name="status_confirmed">Confirmed</string>
     <string name="status_checked_in">Checked In</string>
     <string name="status_checked_out">Checked Out</string>
-    <string name="status_pending_validation">PENDING VALIDATION</string>
     <string name="status_verified">VERIFIED</string>
     <string name="status_rejected">REJECTED</string>
     <string name="payment_submitted_msg">Your payment has been submitted and is currently pending validation by our receptionist. You will be notified once verified.</string>
     <string name="confirm_payment_title">Confirm Payment Details</string>
     <string name="confirm_and_proceed">Confirm &amp; Proceed</string>
-    <string name="receipt_mandatory_error">Official GCash receipt is required for validation.</string>
-    <string name="payment_validation_status">Status: Pending Validation</string>
-    <string name="digital_receipt_label">Digital Receipt</string>
-    <string name="transaction_date_label">Date: %1$s</string>
     <string name="payment_step_1">1</string>
     <string name="payment_step_2">2</string>
     <string name="payment_step_review">Review Billing</string>
@@ -1719,16 +1403,10 @@
     <!-- ============ Landing Page (Public Homepage) ============ -->
     <string name="landing_welcome_guest">👋 Welcome, Guest</string>
     <string name="landing_greeting">Welcome to Velocity Suites, where comfort, convenience, and exceptional hospitality await you. Explore our elegant rooms, modern amenities, exclusive promotions, and premium services designed to make every stay relaxing and memorable.</string>
-    <string name="landing_proceed">Proceed</string>
-    <string name="landing_sign_in_prompt">Sign in or create an account to book this room.</string>
 
     <!-- Banner slider -->
     <string name="landing_banner_luxury_title">Luxury Redefined</string>
     <string name="landing_banner_luxury_sub">Elegant suites designed for unforgettable stays</string>
-    <string name="landing_banner_wellness_title">Wellness &amp; Spa</string>
-    <string name="landing_banner_wellness_sub">Rejuvenate at our world-class wellness center</string>
-    <string name="landing_banner_dining_title">Fine Dining</string>
-    <string name="landing_banner_dining_sub">Savor gourmet cuisine crafted by expert chefs</string>
     <string name="landing_banner_cta">Explore Now</string>
 
     <!-- Section headers -->
@@ -1750,10 +1428,6 @@
     <string name="landing_section_amenities">Amenities, Facilities &amp; Services</string>
     <string name="landing_section_amenities_sub">Everything you need for a comfortable, effortless stay</string>
     <string name="landing_section_promos">Ongoing Promotions &amp; Special Offers</string>
-    <string name="landing_section_featured">Featured Services</string>
-    <string name="landing_section_reviews">Guest Reviews</string>
-    <string name="landing_section_stats">Velocity Suites at a Glance</string>
-    <string name="landing_view_all">View All</string>
 
     <!-- Hotel information -->
     <string name="landing_section_news">Announcements &amp; Updates</string>
@@ -1761,7 +1435,6 @@
     <string name="landing_hotel_desc">A modern five-star hotel offering comfortable accommodations, premium amenities, and heartfelt service for business and leisure travelers alike.</string>
     <string name="landing_hotel_address_label">Address</string>
     <string name="landing_hotel_address">Allah Valley Drive National Highway, Surallah, South Cotabato, 9512</string>
-    <string name="landing_hotel_map_hint">Map preview - tap to view location</string>
     <string name="landing_hotel_view_location">View Location</string>
     <string name="cd_hotel_map_preview">Interactive map preview showing the Velocity Suites location</string>
     <string name="landing_hotel_phone_label">Contact Number</string>
@@ -1777,120 +1450,21 @@
     <string name="landing_hotel_hours">Front Desk: 24 / 7\nCheck-In: From 2:00 PM\nCheck-Out: Until 12:00 PM</string>
     <string name="landing_hotel_event_booking_label">Event Booking</string>
     <string name="landing_hotel_event_booking">Day Slot: 8:00 AM – 6:00 AM\nNight Slot: 7:00 PM – 5:00 AM</string>
-    <string name="landing_hotel_service_label">Customer Service</string>
-    <string name="landing_hotel_service">Dedicated concierge and 24/7 guest support</string>
 
     <!-- Amenities -->
-    <string name="amenity_wifi">Free Wi-Fi</string>
-    <string name="amenity_wifi_desc">High-speed internet everywhere</string>
-    <string name="amenity_pool">Swimming Pool</string>
-    <string name="amenity_pool_desc">Infinity pool with city views</string>
-    <string name="amenity_gym">Fitness Center</string>
-    <string name="amenity_gym_desc">Modern gym, open 24/7</string>
-    <string name="amenity_spa">Spa &amp; Wellness</string>
-    <string name="amenity_spa_desc">Relaxing spa treatments</string>
-    <string name="amenity_restaurant">Restaurant</string>
-    <string name="amenity_restaurant_desc">Gourmet local &amp; global cuisine</string>
-    <string name="amenity_cafe">CafÃƒÆ’Ã‚Â©</string>
-    <string name="amenity_cafe_desc">Artisan coffee &amp; pastries</string>
-    <string name="amenity_room_service">Room Service</string>
-    <string name="amenity_room_service_desc">In-room dining, anytime</string>
-    <string name="amenity_parking">Parking Area</string>
-    <string name="amenity_parking_desc">Secure covered parking</string>
-    <string name="amenity_shuttle">Airport Shuttle</string>
-    <string name="amenity_shuttle_desc">Complimentary transfers</string>
-    <string name="amenity_conference">Conference Rooms</string>
-    <string name="amenity_conference_desc">Fully equipped meeting spaces</string>
-    <string name="amenity_laundry">Laundry Service</string>
-    <string name="amenity_laundry_desc">Same-day laundry &amp; pressing</string>
-    <string name="amenity_concierge">Concierge</string>
-    <string name="amenity_concierge_desc">Personalized guest assistance</string>
-    <string name="amenity_family">Family Rooms</string>
-    <string name="amenity_family_desc">Spacious rooms for families</string>
-    <string name="amenity_business">Business Center</string>
-    <string name="amenity_business_desc">Workstations &amp; printing</string>
-    <string name="amenity_front_desk">24h Front Desk</string>
-    <string name="amenity_front_desk_desc">Round-the-clock reception</string>
-    <string name="amenity_security">Security</string>
-    <string name="amenity_security_desc">24/7 CCTV &amp; guards</string>
-    <string name="amenity_ac">Air Conditioning</string>
-    <string name="amenity_ac_desc">Climate-controlled comfort</string>
-    <string name="amenity_tv">Smart TV</string>
-    <string name="amenity_tv_desc">Streaming &amp; cable channels</string>
 
     <!-- Announcements -->
-    <string name="news_category_update">Update</string>
-    <string name="news_category_event">Event</string>
-    <string name="news_category_notice">Notice</string>
-    <string name="news_title_1">New Rooftop Lounge Now Open</string>
-    <string name="news_date_1">July 25, 2026</string>
-    <string name="news_desc_1">Experience skyline views and signature cocktails at our newly opened rooftop lounge.</string>
-    <string name="news_title_2">Independence Day Dinner Buffet</string>
-    <string name="news_date_2">July 18, 2026</string>
-    <string name="news_desc_2">Join us for a special holiday buffet featuring local and international dishes.</string>
-    <string name="news_title_3">Wellness Center Renovation Complete</string>
-    <string name="news_date_3">July 10, 2026</string>
-    <string name="news_desc_3">Our spa and fitness center have been upgraded with new equipment and facilities.</string>
 
     <!-- Featured services -->
-    <string name="featured_luxury">Luxury Accommodations</string>
-    <string name="featured_luxury_desc">Elegantly appointed suites and rooms</string>
-    <string name="featured_events">Event Venues</string>
-    <string name="featured_events_desc">Grand ballrooms for any occasion</string>
-    <string name="featured_wedding">Wedding Packages</string>
-    <string name="featured_wedding_desc">Unforgettable celebrations, tailored to you</string>
-    <string name="featured_business">Business Meetings</string>
-    <string name="featured_business_desc">Professional venues and services</string>
-    <string name="featured_dining">Dining Experiences</string>
-    <string name="featured_dining_desc">Curated culinary journeys</string>
-    <string name="featured_wellness">Wellness Services</string>
-    <string name="featured_wellness_desc">Spa, sauna, and relaxation</string>
-    <string name="featured_recreation">Recreation</string>
-    <string name="featured_recreation_desc">Pool, lounges, and activities</string>
 
     <!-- Guest reviews -->
-    <string name="review_name_1">Maria Santos</string>
-    <string name="review_role_1">Leisure Traveler</string>
-    <string name="review_text_1">Absolutely stunning hotel! The staff went above and beyond. The suite was immaculate and the views were breathtaking.</string>
-    <string name="review_rating_1">5.0</string>
-    <string name="review_name_2">James Reyes</string>
-    <string name="review_role_2">Business Traveler</string>
-    <string name="review_text_2">Perfect for work trips - fast Wi-Fi, quiet rooms, and an excellent business center. Highly recommended.</string>
-    <string name="review_rating_2">4.8</string>
-    <string name="review_name_3">Anna Cruz</string>
-    <string name="review_role_3">Family Vacation</string>
-    <string name="review_text_3">Our family had a wonderful stay. The kids loved the pool and the family room was spacious and clean.</string>
-    <string name="review_rating_3">4.9</string>
 
     <!-- Quick statistics -->
-    <string name="stat_rooms_value">120+</string>
-    <string name="stat_rooms_label">Available Rooms</string>
-    <string name="stat_occupied_value">85%</string>
-    <string name="stat_occupied_label">Occupancy Rate</string>
-    <string name="stat_categories_value">6</string>
-    <string name="stat_categories_label">Room Categories</string>
-    <string name="stat_years_value">15+</string>
-    <string name="stat_years_label">Years of Service</string>
-    <string name="stat_satisfaction_value">4.9</string>
-    <string name="stat_satisfaction_label">Guest Satisfaction</string>
-    <string name="stat_reviews_value">12K+</string>
-    <string name="stat_reviews_label">Total Reviews</string>
 
     <!-- Footer -->
     <string name="landing_footer_tagline">Your Comfort is our Service</string>
-    <string name="landing_footer_call">Call Us</string>
-    <string name="landing_footer_email">Email Us</string>
-    <string name="landing_footer_locate">Locate Us</string>
-    <string name="stat_available_rooms_card">120+\nAvailable Rooms</string>
-    <string name="stat_occupancy_rate_card">85%\nOccupancy Rate</string>
-    <string name="stat_room_categories_card">6\nRoom Categories</string>
-    <string name="landing_footer_links">Home  â€¢  Rooms  â€¢  Offers  â€¢  Contact</string>
     <string name="landing_footer_copyright">Â© 2026 Velocity Suites Hotel. All rights reserved.</string>
     <string name="cd_landing_banner">Featured hotel banner</string>
-    <string name="cd_social_facebook">Facebook</string>
-    <string name="cd_social_instagram">Instagram</string>
-    <string name="cd_social_twitter">Twitter</string>
-    <string name="cd_reviewer_photo">Reviewer photo</string>
     <string name="landing_no_available_rooms">No available rooms at the moment. Please check back later or adjust your search criteria.</string>
     <string name="expand_label">Expand</string>
     <string name="collapse_label">Collapse</string>
@@ -1900,7 +1474,6 @@
     <string name="step_details_title">Reservation Details</string>
     <string name="step_booking_details_title">Booking Details</string>
     <string name="confirm_booking_label">Confirm Booking</string>
-    <string name="tap_to_pick_date">Tap to pick a date</string>
     <string name="error_select_checkin_first">Please select your check-in date first</string>
     <string name="helper_checkin_from_tomorrow">Earliest check-in is tomorrow</string>
     <string name="helper_checkout_after_checkin">At least 1 night after check-in</string>

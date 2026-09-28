@@ -114,6 +114,24 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    lint {
+        // Every Activity is deliberately locked to portrait (see AndroidManifest.xml) -
+        // the multi-step booking wizard and most other screens were never built to
+        // preserve their in-progress state across a real orientation change, so allowing
+        // rotation would reintroduce exactly the kind of state-loss bug fixed elsewhere
+        // this session, not just a cosmetic layout issue. These two checks flag that
+        // same deliberate, permanent decision on every single Activity declaration -
+        // suppressed here once, with the reason on record, instead of silently
+        // recurring as 48+ warnings forever or being tagged individually 24 times over.
+        disable += "LockedOrientationActivity"
+        disable += "DiscouragedApi"
+        // mipmap-anydpi/ic_launcher(_round).xml (the adaptive-icon definition) deliberately
+        // coexists with the per-density mipmap-*dpi/ic_launcher(_round).png legacy fallbacks -
+        // this is the standard dual-format launcher icon setup Android Studio's own Image
+        // Asset tool generates (adaptive icons need API 26+; the PNGs back older devices/
+        // tooling), not a duplicate-icon mistake.
+        disable += "IconXmlAndPng"
+    }
 }
 
 // Fail the build LOUDLY - not with a silently unsigned/debug-signed

@@ -19,7 +19,7 @@
         android:id="@+id/confirmPaymentType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Full Payment"
+        android:text="@string/payment_type_full"
         android:textColor="@color/velocity_text_primary"
         android:fontFamily="sans-serif-black"
         android:textSize="18sp"
@@ -47,7 +47,7 @@
             android:id="@+id/confirmAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₱0.00"
+            android:text="@string/zero_amount_display"
             android:textColor="@color/velocity_red_primary"
             android:fontFamily="sans-serif-black" />
     </LinearLayout>
@@ -68,7 +68,7 @@
             android:id="@+id/confirmTotalDue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₱0.00"
+            android:text="@string/zero_amount_display"
             android:textColor="@color/velocity_text_primary"
             android:fontFamily="sans-serif-bold" />
     </LinearLayout>
@@ -88,7 +88,7 @@
             android:id="@+id/confirmRemainingBalance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₱0.00"
+            android:text="@string/zero_amount_display"
             android:textColor="@color/velocity_text_primary"
             android:fontFamily="sans-serif-bold" />
     </LinearLayout>

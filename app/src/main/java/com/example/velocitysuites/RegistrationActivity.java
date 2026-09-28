@@ -683,7 +683,7 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
                 signUpButton.setEnabled(true);
-                Toast.makeText(RegistrationActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -726,7 +726,7 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<AuthResponse> call, Throwable t) {
                 signUpButton.setEnabled(true);
-                Toast.makeText(RegistrationActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -747,7 +747,7 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
                 resendOtpLink.setEnabled(true);
-                Toast.makeText(RegistrationActivity.this, "Couldn't reach the server. Check your connection.", Toast.LENGTH_LONG).show();
+                Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }

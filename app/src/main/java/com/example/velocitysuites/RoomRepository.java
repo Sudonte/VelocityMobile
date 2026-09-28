@@ -1999,20 +1999,31 @@ public final class RoomRepository {
      * exception class/message to the guest.
      */
     private String networkErrorMessage(Throwable t) {
+        return networkErrorMessage(appContext, t);
+    }
+
+    /**
+     * Public/static so screens that talk to the API directly instead of
+     * through this repository (LoginActivity, RegistrationActivity,
+     * ProfileManagementActivity) can show the same specific timeout/offline/
+     * unreachable/malformed-response message instead of one flat generic
+     * string regardless of actual cause.
+     */
+    public static String networkErrorMessage(Context context, Throwable t) {
         if (t instanceof java.net.UnknownHostException || t instanceof java.net.ConnectException) {
-            return appContext.getString(R.string.error_no_internet_connection);
+            return context.getString(R.string.error_no_internet_connection);
         }
         if (t instanceof java.net.SocketTimeoutException) {
-            return appContext.getString(R.string.error_request_timed_out);
+            return context.getString(R.string.error_request_timed_out);
         }
         if (t instanceof javax.net.ssl.SSLException) {
-            return appContext.getString(R.string.error_server_unreachable);
+            return context.getString(R.string.error_server_unreachable);
         }
         if (t instanceof com.google.gson.JsonParseException || t instanceof java.io.IOException) {
             // A successful-looking response whose body Gson/OkHttp couldn't parse as expected -
             // not a connectivity problem, but still not something to show the guest verbatim.
-            return appContext.getString(R.string.error_unexpected_response);
+            return context.getString(R.string.error_unexpected_response);
         }
-        return appContext.getString(R.string.error_server_unreachable);
+        return context.getString(R.string.error_server_unreachable);
     }
 }

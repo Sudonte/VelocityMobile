@@ -33,7 +33,7 @@
          red, avoiding a visible seam at the very top of the screen. -->
     <style name="Theme.VelocitySuites.Auth" parent="Theme.VelocitySuites">
         <item name="android:statusBarColor">@color/velocity_red_deep</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.VelocitySuites.Introduction" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -49,13 +49,6 @@
         <item name="cornerSize">28dp</item>
     </style>
 
-    <style name="ShapeAppearance.Velocity.Header" parent="ShapeAppearance.MaterialComponents.LargeComponent">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopLeft">0dp</item>
-        <item name="cornerSizeTopRight">0dp</item>
-        <item name="cornerSizeBottomLeft">32dp</item>
-        <item name="cornerSizeBottomRight">32dp</item>
-    </style>
 
     <style name="ShapeAppearance.Velocity.Drawer" parent="ShapeAppearance.MaterialComponents.LargeComponent">
         <item name="cornerFamily">rounded</item>
@@ -257,44 +250,11 @@
         <item name="strokeWidth">2dp</item>
         <item name="rippleColor">@color/velocity_red_alpha_20</item>
     </style>
-    <style name="Widget.Velocity.Chip.Sort" parent="Widget.MaterialComponents.Chip.Choice">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/chip_sort_text_color</item>
-        <item name="android:fontFamily">sans-serif-bold</item>
-        <item name="chipBackgroundColor">@color/chip_sort_background_color</item>
-        <item name="chipMinHeight">38dp</item>
-        <item name="chipStartPadding">14dp</item>
-        <item name="chipEndPadding">14dp</item>
-        <item name="rippleColor">@color/velocity_red_subtle</item>
-        <item name="chipStrokeColor">@color/velocity_red_subtle</item>
-        <item name="chipStrokeWidth">1dp</item>
-        <item name="checkedIconEnabled">false</item>
-        <item name="ensureMinTouchTargetSize">false</item>
-    </style>
 
-    <style name="Widget.Velocity.Chip.Filter" parent="Widget.Velocity.Chip.Sort">
-        <item name="chipMinHeight">40dp</item>
-        <item name="chipStrokeWidth">1.2dp</item>
-    </style>
 
     <!-- Non-interactive "who this announcement is for" pill - blue-tinted (matches the
          TYPE_ANNOUNCEMENT icon color elsewhere) so it reads as distinct metadata, never
          confused with a red status/priority indicator. -->
-    <style name="Widget.Velocity.Chip.AudienceBadge" parent="Widget.MaterialComponents.Chip.Entry">
-        <item name="android:textSize">10sp</item>
-        <item name="android:textColor">@color/velocity_blue_primary</item>
-        <item name="android:fontFamily">sans-serif-black</item>
-        <item name="chipBackgroundColor">@color/velocity_blue_soft</item>
-        <item name="chipMinHeight">24dp</item>
-        <item name="chipStartPadding">8dp</item>
-        <item name="chipEndPadding">8dp</item>
-        <item name="chipIconVisible">false</item>
-        <item name="checkedIconVisible">false</item>
-        <item name="closeIconVisible">false</item>
-        <item name="android:clickable">false</item>
-        <item name="android:checkable">false</item>
-        <item name="ensureMinTouchTargetSize">false</item>
-    </style>
 
     <style name="Widget.Velocity" parent="@android:style/Widget" />
 
@@ -312,18 +272,6 @@
         <item name="android:drawableTint">@color/velocity_red_primary</item>
     </style>
 
-    <style name="Widget.Velocity.LandingAnnouncement">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:background">@drawable/bg_glass_card_white</item>
-        <item name="android:drawablePadding">12dp</item>
-        <item name="android:drawableTint">@color/velocity_red_primary</item>
-        <item name="android:fontFamily">sans-serif-black</item>
-        <item name="android:padding">16dp</item>
-        <item name="android:textColor">@color/velocity_text_primary</item>
-        <item name="android:textSize">15sp</item>
-    </style>
 </resources>
 
 

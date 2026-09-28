@@ -105,14 +105,14 @@
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:padding="0dp"
-                        android:text="—" />
+                        android:text="@string/stepper_decrement_symbol" />
 
                     <TextView
                         android:id="@+id/tvAdultsCount"
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="1"
+                        android:text="@string/default_adults_count_display"
                         android:textColor="@color/velocity_red_dark"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-black" />
@@ -130,7 +130,7 @@
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:padding="0dp"
-                        android:text="+" />
+                        android:text="@string/stepper_increment_symbol" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -164,14 +164,14 @@
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:padding="0dp"
-                        android:text="—" />
+                        android:text="@string/stepper_decrement_symbol" />
 
                     <TextView
                         android:id="@+id/tvChildrenCount"
                         android:layout_width="40dp"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="0"
+                        android:text="@string/default_children_count_display"
                         android:textColor="@color/velocity_red_dark"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-black" />
@@ -189,7 +189,7 @@
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:padding="0dp"
-                        android:text="+" />
+                        android:text="@string/stepper_increment_symbol" />
                 </LinearLayout>
 
                 <TextView

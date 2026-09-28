@@ -279,7 +279,7 @@ public class LoginActivity extends AppCompatActivity {
                     loginWithDefaultAccount();
                     return;
                 }
-                Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -333,7 +333,12 @@ public class LoginActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton(R.string.restore_account_button, (dialog, which) -> restoreAccount(fullName))
                 .setNegativeButton(R.string.no_label, (dialog, which) -> {
-                    getSharedPreferences("VelocityPrefs", MODE_PRIVATE).edit().clear().apply();
+                    // Full clear (token + Remember Me), not just the ordinary prefs -
+                    // this login issued a real token specifically to reach this
+                    // prompt (see the pending_deletion branch above); declining the
+                    // restore must fully abandon that session, not leave a live
+                    // token behind for a pending_deletion account.
+                    SessionManager.clear(this);
                     Toast.makeText(this, R.string.restore_account_declined, Toast.LENGTH_LONG).show();
                 })
                 .show();
@@ -344,7 +349,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
                 if (!response.isSuccessful()) {
-                    getSharedPreferences("VelocityPrefs", MODE_PRIVATE).edit().clear().apply();
+                    SessionManager.clear(LoginActivity.this);
                     Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -356,8 +361,8 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
-                getSharedPreferences("VelocityPrefs", MODE_PRIVATE).edit().clear().apply();
-                Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                SessionManager.clear(LoginActivity.this);
+                Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -427,7 +432,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<AuthResponse> call, Throwable t) {
                         reactivationActionButton.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -456,7 +461,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<ApiMessage> call, Throwable t) {
                         reactivationResendLink.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -623,7 +628,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<ApiMessage> call, Throwable t) {
                     forgotActionButton.setEnabled(true);
-                    Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                 }
             });
         } else if (!isOtpVerified) {
@@ -664,7 +669,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<ApiMessage> call, Throwable t) {
                     forgotActionButton.setEnabled(true);
-                    Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                 }
             });
         } else {
@@ -707,7 +712,7 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(Call<AuthResponse> call, Throwable t) {
                             forgotActionButton.setEnabled(true);
-                            Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                            Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                         }
                     });
         }
@@ -746,7 +751,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
                 resendOtpLink.setEnabled(true);
-                Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
     }

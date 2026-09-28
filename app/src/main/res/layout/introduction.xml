@@ -159,7 +159,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:fontFamily="sans-serif-black"
-                android:text="0%"
+                android:text="@string/introduction_loading_percent_initial"
                 android:textColor="@color/velocity_red_primary"
                 android:textSize="11sp" />
         </LinearLayout>
