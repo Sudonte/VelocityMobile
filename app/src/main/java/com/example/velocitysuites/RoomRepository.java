@@ -412,6 +412,21 @@ public final class RoomRepository {
      * there's no single endpoint that already returns both together.
      */
     public void refreshBookings(RepositoryCallback<List<Booking>> callback) {
+        refreshBookingsInternal(callback, true);
+    }
+
+    /**
+     * getReservations()/getDirectBookings() are two independent network calls merged into one
+     * guest-facing list. A transient failure of just ONE of them (a cold connection right after
+     * install, a brief timeout, a flaky mobile network) must never masquerade as "this guest
+     * simply has no bookings/reservations" - previously this called onSuccess() with the other
+     * call's data alone whenever exactly one of the two failed, which could make a real,
+     * just-created Booking (or Reservation) silently vanish from its tab with no error shown at
+     * all. One transparent retry of the whole pair first (mirroring this codebase's existing
+     * one-retry convention, e.g. PaymentActivity#refreshBookingsAfterPayment()); only reports
+     * onError() to the caller if a failure survives the retry too.
+     */
+    private void refreshBookingsInternal(RepositoryCallback<List<Booking>> callback, boolean allowRetry) {
         List<Booking> reservationDerived = new ArrayList<>();
         List<Booking> direct = new ArrayList<>();
         List<Booking> historicalReservations = new ArrayList<>();
@@ -422,10 +437,6 @@ public final class RoomRepository {
         final int requestGeneration = accountGeneration;
 
         Runnable finish = () -> {
-            if (reservationsFailed[0] && directFailed[0]) {
-                if (callback != null) callback.onError("Failed to load bookings.");
-                return;
-            }
             if (requestGeneration != accountGeneration) {
                 // A logout (and possibly a different account's own login) happened
                 // while this request was in flight - this response belongs to
@@ -433,6 +444,17 @@ public final class RoomRepository {
                 // Silently dropped rather than onError()'d: from the CURRENT
                 // account's perspective nothing actually failed, there's simply
                 // nothing to report from a request they never made.
+                return;
+            }
+            if (reservationsFailed[0] || directFailed[0]) {
+                // Either endpoint failing - not just both - must not be reported as success;
+                // the merged list would silently be missing every Booking or every
+                // Reservation with no indication anything went wrong.
+                if (allowRetry) {
+                    refreshBookingsInternal(callback, false);
+                } else if (callback != null) {
+                    callback.onError("Failed to load bookings.");
+                }
                 return;
             }
             List<Booking> merged = new ArrayList<>(reservationDerived);
