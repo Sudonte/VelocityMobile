@@ -1448,9 +1448,10 @@ public final class RoomRepository {
     }
 
     public void submitPayment(String reservationId, String paymentMethod, String paymentType, String referenceNumber, double amount,
-                               Integer selectedPaymentPercentage, RepositoryCallback<Void> callback) {
+                               Integer selectedPaymentPercentage, String idempotencyKey, RepositoryCallback<Void> callback) {
         PaymentRequest request = new PaymentRequest(paymentMethod, paymentType, referenceNumber, amount);
         request.selected_payment_percentage = selectedPaymentPercentage;
+        request.idempotency_key = idempotencyKey;
         api.submitPayment(reservationId, request).enqueue(new Callback<PaymentSubmitResponse>() {
             @Override
             public void onResponse(Call<PaymentSubmitResponse> call, Response<PaymentSubmitResponse> response) {
@@ -1477,7 +1478,7 @@ public final class RoomRepository {
      * uploadIdCard() below).
      */
     public void submitGcashPayment(String reservationId, String paymentType, String referenceNumber, double amount,
-                                    String gcashNumber, Uri receiptUri, Integer selectedPaymentPercentage, RepositoryCallback<Void> callback) {
+                                    String gcashNumber, Uri receiptUri, Integer selectedPaymentPercentage, String idempotencyKey, RepositoryCallback<Void> callback) {
         fileIoExecutor.execute(() -> {
             File tempFile;
             try {
@@ -1496,10 +1497,11 @@ public final class RoomRepository {
             RequestBody percentageBody = RequestBody.create(
                     selectedPaymentPercentage != null ? String.valueOf(selectedPaymentPercentage) : "",
                     MediaType.parse("text/plain"));
+            RequestBody idempotencyKeyBody = RequestBody.create(idempotencyKey != null ? idempotencyKey : "", MediaType.parse("text/plain"));
             RequestBody fileBody = RequestBody.create(uploadFile, MediaType.parse("image/*"));
             MultipartBody.Part receiptPart = MultipartBody.Part.createFormData("receipt", uploadFile.getName(), fileBody);
 
-            api.submitGcashPayment(reservationId, textBody, typeBody, refBody, amountBody, gcashNumberBody, percentageBody, receiptPart)
+            api.submitGcashPayment(reservationId, textBody, typeBody, refBody, amountBody, gcashNumberBody, percentageBody, idempotencyKeyBody, receiptPart)
                     .enqueue(new Callback<PaymentSubmitResponse>() {
                 @Override
                 public void onResponse(Call<PaymentSubmitResponse> call, Response<PaymentSubmitResponse> response) {

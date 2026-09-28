@@ -23,6 +23,14 @@ public class PaymentRequest {
      */
     public Integer selected_payment_percentage;
 
+    /**
+     * Optional - lets Api\PaymentController::store() recognize a dropped-
+     * response retry (same key resubmitted) and return the original payment
+     * instead of a fresh/duplicate one. Omitted (null) from the JSON body
+     * when not set, same as selected_payment_percentage above.
+     */
+    public String idempotency_key;
+
     public PaymentRequest(String paymentMethod, String paymentType, String referenceNumber, double amountPaid) {
         this.payment_method = paymentMethod;
         this.payment_type = paymentType;

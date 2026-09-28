@@ -1612,7 +1612,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                         public void onSuccess(Booking created) {
                             uploadIdCardIfNeeded(created, () ->
                                     repository.submitPayment(created.getId(), "cash", paymentType, null, payNowValue,
-                                            selectedGcashPercentageForRequest(), new RoomRepository.RepositoryCallback<Void>() {
+                                            selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
                                                 @Override
                                                 public void onSuccess(Void result) {
                                                     onPendingReservationCashCreated(dialog, created, false);
@@ -1639,7 +1639,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // Cash has no reference number - the backend only requires one for
         // GCash (see Api\PaymentController).
         String paymentType = isFullPaymentMode ? "full" : "partial";
-        repository.submitPayment(bookingId, "cash", paymentType, null, payNowValue, selectedGcashPercentageForRequest(), new RoomRepository.RepositoryCallback<Void>() {
+        repository.submitPayment(bookingId, "cash", paymentType, null, payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 dismissSafely(dialog);
@@ -2314,7 +2314,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             return;
         }
 
-        repository.submitGcashPayment(bookingId, paymentType, referenceNumber, payNowValue, gcashNumber, receiptUri, selectedGcashPercentageForRequest(), new RoomRepository.RepositoryCallback<Void>() {
+        repository.submitGcashPayment(bookingId, paymentType, referenceNumber, payNowValue, gcashNumber, receiptUri, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 dismissSafely(dialog);

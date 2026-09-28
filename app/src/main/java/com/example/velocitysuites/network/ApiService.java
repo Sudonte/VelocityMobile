@@ -186,6 +186,7 @@ public interface ApiService {
                                                      @Part("amount_paid") okhttp3.RequestBody amountPaid,
                                                      @Part("gcash_number") okhttp3.RequestBody gcashNumber,
                                                      @Part("selected_payment_percentage") okhttp3.RequestBody selectedPaymentPercentage,
+                                                     @Part("idempotency_key") okhttp3.RequestBody idempotencyKey,
                                                      @Part MultipartBody.Part receipt);
 
     // ---- Direct Booking ("New Booking") - a genuinely independent
