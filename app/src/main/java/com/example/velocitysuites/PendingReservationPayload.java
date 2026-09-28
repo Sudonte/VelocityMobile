@@ -1,13 +1,12 @@
 package com.example.velocitysuites;
 
 /**
- * No longer set by any caller - Step8ReviewPaymentFragment's fresh-
- * Reservation path now calls RoomRepository#createReservation() directly
- * instead of staging state here for PaymentActivity to consume (see
- * PaymentActivity#EXTRA_PENDING_RESERVATION's docblock). Kept in place
- * (rather than deleted) only because PaymentActivity's now-dead
- * isPendingReservationMode code still references consume() - see that
- * class's docblock for why that dead code wasn't also removed.
+ * Carries a fresh Reservation's reviewed BookingWizardState from
+ * Step8ReviewPaymentFragment's Confirm button into PaymentActivity, for the
+ * GCash-chosen case only (see PaymentActivity#EXTRA_PENDING_RESERVATION's
+ * docblock) - a fresh Cash Reservation is created directly by
+ * Step8ReviewPaymentFragment itself and never touches this class. Mirrors
+ * PendingBookingPayload's identical role on the Booking side exactly.
  */
 final class PendingReservationPayload {
 

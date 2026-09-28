@@ -124,6 +124,25 @@ public interface ApiService {
     @POST("guest/reservations")
     Call<ReservationDto> createReservation(@Body ReservationRequest request);
 
+    /**
+     * Same "guest/reservations" creation endpoint as createReservation()
+     * above, but multipart - used only when the guest submits real GCash
+     * payment as part of Reservation creation itself (fields carry the same
+     * rooms[]/dates/guest data as ReservationRequest, plus reference_number/
+     * gcash_number/amount_paid/selected_payment_percentage; the receipt
+     * image can't travel in a @Body JSON request). The resulting Reservation
+     * does NOT auto-convert to a Booking - see Api\ReservationController::
+     * store()'s own doc for why this is a deliberately separate code path
+     * from the Pay Now endpoint (submitGcashPayment()) that does convert.
+     * Omitting the payment fields entirely (this method is simply never
+     * called in that case) preserves the existing "Reserve now, pay later"
+     * GCash behavior unchanged.
+     */
+    @Multipart
+    @POST("guest/reservations")
+    Call<ReservationDto> createReservationWithPayment(@PartMap Map<String, okhttp3.RequestBody> fields,
+                                                        @Part MultipartBody.Part receipt);
+
     @GET("guest/reservations/{id}")
     Call<ReservationDto> getReservation(@Path("id") String id);
 

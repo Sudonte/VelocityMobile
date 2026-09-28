@@ -677,6 +677,110 @@ public final class RoomRepository {
     }
 
     /**
+     * Creates a "New Reservation" transaction covering every selected room
+     * type/quantity/amenity, same shape as createReservation(List, ...)
+     * above, PLUS submits real GCash payment as part of this same atomic
+     * request (reference number, mobile number, receipt image, amount) -
+     * used only when the guest chooses GCash on Step7PaymentMethodFragment
+     * and actually completes the GCash portal during Reservation creation
+     * itself (Step 5 of 5), rather than deferring payment to a later Pay
+     * Now action. The resulting Reservation does NOT auto-convert into a
+     * Booking - see Api\ReservationController::store()'s own doc: this
+     * deliberately does not go through submitGcashPayment()/
+     * Api\PaymentController::store(), which is what actually triggers
+     * ReservationWorkflowService::tryAutoConvert(). The Reservation stays a
+     * Reservation, with its payment sitting "Pending Verification" directly
+     * against it - ApiMapper already reads a pre-conversion Reservation's
+     * own payments array this exact way.
+     */
+    public void createReservationWithPayment(List<List<Room>> roomGroups, Calendar checkIn, Calendar checkOut, int adults, int children,
+                                              String guestFirstName, String guestMiddleName, String guestLastName,
+                                              String idCardType, List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
+                                              List<AddOnAmenity> amenities, String referenceNumber, String gcashNumber, Uri receiptUri,
+                                              double amountPaid, Integer selectedPaymentPercentage, @Nullable String idempotencyKey,
+                                              RepositoryCallback<Booking> callback) {
+        fileIoExecutor.execute(() -> {
+            File receiptFile;
+            try {
+                receiptFile = copyUriToTempFile(receiptUri, "gcash_receipt_");
+            } catch (IOException e) {
+                if (callback != null) mainHandler().post(() -> callback.onError("Couldn't read the selected image."));
+                return;
+            }
+
+            Map<String, RequestBody> fields = new HashMap<>();
+            for (int i = 0; i < roomGroups.size(); i++) {
+                List<Room> group = roomGroups.get(i);
+                putText(fields, "rooms[" + i + "][room_type_id]", group.get(0).getId());
+                putText(fields, "rooms[" + i + "][quantity]", String.valueOf(group.size()));
+            }
+            putText(fields, "check_in", ApiMapper.toApiDate(checkIn));
+            putText(fields, "check_out", ApiMapper.toApiDate(checkOut));
+            putText(fields, "adults", String.valueOf(adults));
+            putText(fields, "children", String.valueOf(children));
+            putText(fields, "guest_first_name", guestFirstName);
+            if (guestMiddleName != null && !guestMiddleName.trim().isEmpty()) {
+                putText(fields, "guest_middle_name", guestMiddleName.trim());
+            }
+            putText(fields, "guest_last_name", guestLastName);
+            if (idCardType != null && !idCardType.equals("None")) {
+                putText(fields, "id_card_type", idCardType);
+            }
+            putText(fields, "payment_method", "gcash");
+            putText(fields, "reference_number", referenceNumber != null ? referenceNumber : "");
+            putText(fields, "gcash_number", gcashNumber != null ? gcashNumber : "");
+            putText(fields, "amount_paid", String.valueOf(amountPaid));
+            if (selectedPaymentPercentage != null) {
+                putText(fields, "selected_payment_percentage", String.valueOf(selectedPaymentPercentage));
+            }
+            if (idempotencyKey != null) {
+                putText(fields, "idempotency_key", idempotencyKey);
+            }
+            if (additionalGuests != null) {
+                for (int i = 0; i < additionalGuests.size(); i++) {
+                    BookingAndReservationActivity.AdditionalGuest g = additionalGuests.get(i);
+                    putText(fields, "additional_guests[" + i + "][name]", g.name);
+                    putText(fields, "additional_guests[" + i + "][age]", String.valueOf(g.age));
+                    if (g.gender != null) putText(fields, "additional_guests[" + i + "][gender]", g.gender);
+                    if (g.relationship != null) putText(fields, "additional_guests[" + i + "][relationship]", g.relationship);
+                }
+            }
+            if (amenities != null) {
+                for (int i = 0; i < amenities.size(); i++) {
+                    AddOnAmenity a = amenities.get(i);
+                    putText(fields, "amenities[" + i + "][amenity_id]", a.getId());
+                    putText(fields, "amenities[" + i + "][quantity]", String.valueOf(a.getQuantity()));
+                }
+            }
+
+            final File finalReceiptFile = receiptFile;
+            RequestBody fileBody = RequestBody.create(finalReceiptFile, MediaType.parse("image/*"));
+            MultipartBody.Part receiptPart = MultipartBody.Part.createFormData("receipt", finalReceiptFile.getName(), fileBody);
+
+            api.createReservationWithPayment(fields, receiptPart).enqueue(new Callback<ReservationDto>() {
+                @Override
+                public void onResponse(Call<ReservationDto> call, Response<ReservationDto> response) {
+                    finalReceiptFile.delete();
+                    if (response.isSuccessful() && response.body() != null) {
+                        Booking booking = ApiMapper.toBooking(response.body());
+                        bookings.add(0, booking);
+                        notifyBookingsChanged();
+                        if (callback != null) callback.onSuccess(booking);
+                    } else {
+                        if (callback != null) callback.onError(errorMessage(response));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ReservationDto> call, Throwable t) {
+                    finalReceiptFile.delete();
+                    reconcileAfterFailure(referenceNumber, t, callback);
+                }
+            });
+        });
+    }
+
+    /**
      * Creates a "New Booking" transaction directly - a genuinely independent
      * record, never a Reservation (see Api\BookingController::store() on the
      * server). Payment is submitted as part of this same call (paymentMethod/

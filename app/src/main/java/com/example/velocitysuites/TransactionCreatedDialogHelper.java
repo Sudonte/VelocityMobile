@@ -35,11 +35,22 @@ final class TransactionCreatedDialogHelper {
     }
 
     /**
-     * A null/empty transactionId (shouldn't normally happen at this point in
-     * the flow, but defensive) skips straight to onAcknowledged rather than
-     * showing a dialog with a blank ID.
+     * Legacy entry point (no Booking object available) - shows only the ID,
+     * skipping the Transaction Type/Payment Method/Payment Status/Date &amp;
+     * Time detail rows since there's nothing to populate them with.
      */
     static void show(Context context, boolean isBooking, @Nullable String transactionId, OnAcknowledged onAcknowledged) {
+        show(context, isBooking, transactionId, null, onAcknowledged);
+    }
+
+    /**
+     * A null/empty transactionId (shouldn't normally happen at this point in
+     * the flow, but defensive) skips straight to onAcknowledged rather than
+     * showing a dialog with a blank ID. {@code transaction}, when available,
+     * populates the Transaction Type/Payment Method/Payment Status/Date &amp;
+     * Time rows - the confirmation screen's minimum required fields.
+     */
+    static void show(Context context, boolean isBooking, @Nullable String transactionId, @Nullable Booking transaction, OnAcknowledged onAcknowledged) {
         if (transactionId == null || transactionId.isEmpty()) {
             onAcknowledged.run();
             return;
@@ -50,6 +61,11 @@ final class TransactionCreatedDialogHelper {
         TextView tvLabel = dialogView.findViewById(R.id.tvTransactionCreatedLabel);
         TextView tvId = dialogView.findViewById(R.id.tvTransactionCreatedId);
         TextView tvFooter = dialogView.findViewById(R.id.tvTransactionCreatedFooter);
+        TextView tvType = dialogView.findViewById(R.id.tvTransactionCreatedType);
+        TextView tvPaymentMethod = dialogView.findViewById(R.id.tvTransactionCreatedPaymentMethod);
+        TextView tvStatus = dialogView.findViewById(R.id.tvTransactionCreatedStatus);
+        TextView tvDateTime = dialogView.findViewById(R.id.tvTransactionCreatedDateTime);
+        View layoutDetails = dialogView.findViewById(R.id.layoutTransactionCreatedDetails);
         MaterialButton btnAction = dialogView.findViewById(R.id.btnTransactionCreatedAction);
 
         tvTitle.setText(isBooking ? R.string.booking_created_dialog_title : R.string.reservation_created_dialog_title);
@@ -57,6 +73,24 @@ final class TransactionCreatedDialogHelper {
         tvId.setText(context.getString(isBooking ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, transactionId));
         tvFooter.setText(isBooking ? R.string.keep_booking_id_reference_msg : R.string.keep_reservation_id_reference_msg);
         btnAction.setText(isBooking ? R.string.view_my_booking_button : R.string.view_my_reservation_button);
+
+        layoutDetails.setVisibility(transaction != null ? View.VISIBLE : View.GONE);
+        if (transaction != null) {
+            tvType.setText(isBooking ? R.string.transaction_type_booking_label : R.string.transaction_type_reservation_label);
+            boolean gcash = "gcash".equalsIgnoreCase(transaction.getPaymentMethod());
+            tvPaymentMethod.setText(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash);
+            // Same status computation the Bookings/Reservations list and Details
+            // screens already use (BookingStatusPresenter), so this confirmation
+            // screen can never disagree with what the guest sees a moment later
+            // on "View My Booking"/"View My Reservation" - shows "Pending
+            // Verification" for a submitted GCash payment awaiting receptionist
+            // review, or this transaction's real status otherwise (e.g. "Awaiting
+            // GCash Payment" for a fresh Cash/GCash-deferred Reservation with no
+            // payment submitted yet).
+            tvStatus.setText(BookingStatusPresenter.computeStatusLabel(context, transaction));
+            String dateTime = transaction.getCreatedAtDisplay();
+            tvDateTime.setText(dateTime != null && !dateTime.isEmpty() ? dateTime : context.getString(R.string.label_not_available));
+        }
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(context)
                 .setView(dialogView)

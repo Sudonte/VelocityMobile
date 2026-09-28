@@ -661,6 +661,12 @@
     <string name="your_reservation_id_is_label">Your Reservation ID is:</string>
     <string name="keep_booking_id_reference_msg">Please keep this Booking ID for reference when checking your booking, payment, or contacting Velocity Suites.</string>
     <string name="keep_reservation_id_reference_msg">Please keep this Reservation ID for reference when checking or managing your reservation.</string>
+    <string name="transaction_created_type_label">Transaction Type</string>
+    <string name="transaction_created_payment_method_label">Payment Method</string>
+    <string name="transaction_created_status_label">Payment Status</string>
+    <string name="transaction_created_datetime_label">Date &amp; Time</string>
+    <string name="transaction_type_booking_label">Booking</string>
+    <string name="transaction_type_reservation_label">Reservation</string>
     <string name="view_my_booking_button">View My Booking</string>
     <string name="view_my_reservation_button">View My Reservation</string>
     <string name="transaction_ref_label">Transaction Ref: %1$s</string>

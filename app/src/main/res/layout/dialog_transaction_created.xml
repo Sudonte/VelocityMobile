@@ -55,6 +55,109 @@
         android:textSize="26sp"
         tools:text="BOOKING #164" />
 
+    <LinearLayout
+        android:id="@+id/layoutTransactionCreatedDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/transaction_created_type_label"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvTransactionCreatedType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Booking" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/transaction_created_payment_method_label"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvTransactionCreatedPaymentMethod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="GCash" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/transaction_created_status_label"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvTransactionCreatedStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Pending Verification" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/transaction_created_datetime_label"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvTransactionCreatedDateTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Sep 28, 2026 1:51 PM" />
+        </LinearLayout>
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvTransactionCreatedFooter"
         android:layout_width="match_parent"

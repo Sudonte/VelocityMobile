@@ -55,26 +55,27 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     public static final String EXTRA_PENDING_BOOKING = "PENDING_BOOKING";
     /**
-     * No longer set by any caller - a fresh Reservation's Confirm button
-     * (Step8ReviewPaymentFragment, reservation mode) now calls
-     * RoomRepository#createReservation() directly and never opens this
-     * screen during creation, for either Cash or GCash (GCash always defers
-     * payment to a later Pay Now action instead). The pending-reservation-
-     * mode code below (isPendingReservationMode and everything gated on it -
-     * submitPendingReservationCreateOnlyGroups()/submitPendingReservationCashGroups()/
-     * submitPendingReservationGroups()/PendingReservationPayload) is kept in
-     * place as dead code rather than removed, since this is a large,
-     * heavily-tested file and the risk of a surgical removal outweighs the
-     * benefit - the existing "Pay Now" entry point (BOOKING_ID extra) is a
-     * fully separate, still-live code path, unaffected by this.
+     * Set by Step8ReviewPaymentFragment's Confirm button for a fresh
+     * Reservation when GCash is chosen (reservation mode, not editing): no
+     * Reservation row exists yet - PendingReservationPayload carries the
+     * reviewed wizard state, and RoomRepository#createReservationWithPayment()
+     * is only called once this screen's GCash submission succeeds (see
+     * submitPendingReservationSingleCall()). A fresh Cash Reservation never
+     * sets this - it's created directly by Step8ReviewPaymentFragment itself,
+     * no payment.xml hand-off (unchanged). Re-wired 2026-09-28 (previously
+     * dead - a fresh Reservation's GCash choice used to always defer payment
+     * to a later Pay Now action, which auto-converts to a Booking on
+     * success; this path deliberately does not, so the guest gets a real
+     * Reservation confirmation + ID for a Reservation transaction, per an
+     * explicit product decision) - the isPendingReservationMode code this
+     * gates is live again, not dead code.
      */
     public static final String EXTRA_PENDING_RESERVATION = "PENDING_RESERVATION";
     /**
-     * Legacy flag, no longer set by any caller now that Reservation creation
-     * is always deferred into this screen's pending-reservation mode (see
-     * EXTRA_PENDING_RESERVATION) - kept only as a defensive extra-read in
-     * case of a future/other caller. isPendingReservationMode alone already
-     * implies the same "Proceed & Pay Later" labeling/behavior.
+     * Legacy flag, no longer set by any caller - isPendingReservationMode
+     * (see EXTRA_PENDING_RESERVATION) already implies the same "Proceed &
+     * Pay Later" labeling/behavior. Kept only as a defensive extra-read in
+     * case of a future/other caller.
      */
     public static final String EXTRA_FRESH_RESERVATION = "FRESH_RESERVATION";
 
@@ -2362,10 +2363,23 @@ public class PaymentActivity extends BaseNavigationActivity {
      * payment history. That list is scoped to the authenticated guest only, so a match
      * here can only be this guest's own prior attempt - never a different guest's payment -
      * making it safe to treat as success rather than blocking a legitimate submission.
-     * Falls back to onGenuineDuplicate (no match found, or the refresh itself failed) -
-     * the original "please enter a different reference number" flow, unchanged.
+     * Falls back to onGenuineDuplicate (no match found after a retry, or both refresh
+     * attempts failed) - the original "please enter a different reference number" flow,
+     * unchanged.
      */
     private void reconcileDuplicateReference(String referenceNumber, Runnable onRecoveredAsOwnPayment, Runnable onGenuineDuplicate) {
+        reconcileDuplicateReference(referenceNumber, onRecoveredAsOwnPayment, onGenuineDuplicate, true);
+    }
+
+    /**
+     * One retry absorbs a transient blip on the reconciliation fetch itself - without
+     * this, a guest whose payment actually succeeded but whose connection is flaky enough
+     * to have caused the original dropped response could ALSO lose this recovery fetch to
+     * the same bad connection, surfacing "please use a different reference number" for a
+     * submission that already succeeded. Same one-retry convention already used by
+     * refreshBookingsAfterPayment() in this same class.
+     */
+    private void reconcileDuplicateReference(String referenceNumber, Runnable onRecoveredAsOwnPayment, Runnable onGenuineDuplicate, boolean allowRetry) {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
@@ -2381,7 +2395,11 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
-                onGenuineDuplicate.run();
+                if (allowRetry) {
+                    reconcileDuplicateReference(referenceNumber, onRecoveredAsOwnPayment, onGenuineDuplicate, false);
+                } else {
+                    onGenuineDuplicate.run();
+                }
             }
         });
     }
@@ -2500,34 +2518,49 @@ public class PaymentActivity extends BaseNavigationActivity {
      * Booking, which must never exist unpaid) - so it's kept and reported
      * as a distinct partial failure instead of the generic one.
      */
+    /**
+     * A single atomic call creates the Reservation AND attaches the GCash
+     * payment to it in one request (see RoomRepository#
+     * createReservationWithPayment()'s own doc) - replaces the old two-step
+     * create-then-submitGcashPayment() sequence, which called the same
+     * Pay Now endpoint (Api\PaymentController::store()) used to attach
+     * payment to an EXISTING reservation - that endpoint auto-converts to a
+     * Booking on GCash success, which is wrong here: a fresh Reservation
+     * paying via GCash at creation time must stay a Reservation. The old
+     * two-step version's "reservation created but payment attach failed"
+     * partial state can no longer happen (atomic: both succeed or neither
+     * does), so onError below is a plain, whole-submission failure - same
+     * duplicate-reference reconciliation as submitPendingBookingGroups()'s
+     * identical concern on the Booking side.
+     */
     private void submitPendingReservationSingleCall(AlertDialog dialog, String gcashNumber, String referenceNumber,
                                                       List<List<Room>> groups) {
-        repository.createReservation(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
+        repository.createReservationWithPayment(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
                 pendingWizardState.adults, pendingWizardState.children,
                 pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
                 pendingWizardState.idCardType, pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
-                "gcash", UUID.randomUUID().toString(),
+                referenceNumber, gcashNumber, receiptUri,
+                payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(),
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking created) {
                         uploadIdCardIfNeeded(created, () ->
-                                repository.submitGcashPayment(created.getId(), isFullPaymentMode ? "full" : "partial",
-                                        referenceNumber, payNowValue, gcashNumber, receiptUri,
-                                        selectedGcashPercentageForRequest(), new RoomRepository.RepositoryCallback<Void>() {
-                                            @Override
-                                            public void onSuccess(Void result) {
-                                                onPendingReservationPaidCreated(dialog, created, referenceNumber, false);
-                                            }
-
-                                            @Override
-                                            public void onError(String message) {
-                                                onPendingReservationPaidCreated(dialog, created, referenceNumber, true);
-                                            }
-                                        }));
+                                onPendingReservationPaidCreated(dialog, created, referenceNumber, false));
                     }
 
                     @Override
                     public void onError(String message) {
+                        if (isDuplicateReferenceError(message)) {
+                            reconcileDuplicateReference(referenceNumber,
+                                    () -> onPendingReservationPaidCreated(dialog, currentBooking, referenceNumber, false),
+                                    () -> {
+                                        dismissSafely(dialog);
+                                        isSubmittingPayment = false;
+                                        restoreSubmitButtonAfterError();
+                                        showGenuineDuplicateReferenceError();
+                                    });
+                            return;
+                        }
                         isSubmittingPayment = false;
                         dismissSafely(dialog);
                         restoreSubmitButtonAfterError();
@@ -2676,7 +2709,7 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     private void navigateToBookingSection() {
-        TransactionCreatedDialogHelper.show(this, true, currentBooking != null ? currentBooking.getId() : null, () -> {
+        TransactionCreatedDialogHelper.show(this, true, currentBooking != null ? currentBooking.getId() : null, currentBooking, () -> {
             Intent intent = new Intent(this, BookingAndReservationActivity.class);
             intent.putExtra(BookingAndReservationActivity.EXTRA_OPEN_SECTION, BookingAndReservationActivity.SECTION_BOOKING);
             if (currentBooking != null) {
@@ -2689,7 +2722,7 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     private void navigateToReservationSection() {
-        TransactionCreatedDialogHelper.show(this, false, currentBooking != null ? currentBooking.getId() : null, () -> {
+        TransactionCreatedDialogHelper.show(this, false, currentBooking != null ? currentBooking.getId() : null, currentBooking, () -> {
             Intent intent = new Intent(this, BookingAndReservationActivity.class);
             intent.putExtra(BookingAndReservationActivity.EXTRA_OPEN_SECTION, BookingAndReservationActivity.SECTION_RESERVATION);
             if (currentBooking != null) {
