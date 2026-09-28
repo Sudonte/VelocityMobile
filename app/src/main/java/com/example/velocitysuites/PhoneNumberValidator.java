@@ -1,7 +1,6 @@
 package com.example.velocitysuites;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -50,7 +49,9 @@ public final class PhoneNumberValidator {
     }
 
     public static boolean isValid(String country, String number) {
-        if (TextUtils.isEmpty(number)) return false;
+        // Plain-Java null/empty check (not TextUtils.isEmpty()) so this pure validation
+        // logic stays runnable under plain-JVM unit tests, same convention as ApiErrorParser.
+        if (number == null || number.trim().isEmpty()) return false;
         String trimmed = number.trim();
 
         if ("Philippines".equalsIgnoreCase(country)) {
@@ -79,6 +80,15 @@ public final class PhoneNumberValidator {
             return context.getString(R.string.mobile_invalid_for_country);
         }
         return context.getString(R.string.mobile_required_intl);
+    }
+
+    /** Strips visual formatting (spaces) that an input mask may have inserted (see
+     *  ProfileManagementActivity's Philippines mobile mask, "+63 917 123 4567") before
+     *  validating or submitting - isValid() and the backend API both only ever accept
+     *  the unspaced canonical form ("09XXXXXXXXX" / "+639XXXXXXXXX"), so a masked value
+     *  passed through unchanged would always fail isValid() even when genuinely valid. */
+    public static String stripFormatting(String number) {
+        return number == null ? null : number.replaceAll("\\s+", "");
     }
 
     /** Calling code to show as a live hint as the guest picks a country - reuses the same

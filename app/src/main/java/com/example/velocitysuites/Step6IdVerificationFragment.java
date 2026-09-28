@@ -65,15 +65,16 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         tvIdUploadStatus = view.findViewById(R.id.tvIdUploadStatus);
 
         BookingWizardState state = getState();
-        if ("Senior Citizen".equals(state.idCardType)) {
-            view.findViewById(R.id.chipSenior).performClick();
-        } else if ("PWD".equals(state.idCardType)) {
-            view.findViewById(R.id.chipPwd).performClick();
-        }
-        if (state.idCardImageUri != null) {
-            applyPreview(state.idCardImageUri);
-        }
 
+        // Attached BEFORE the restore performClick() calls below (previously after) -
+        // performClick() only toggles the chip's own checked visual state; it's this
+        // listener that actually runs setIdType() to reveal btnUploadId/the preview.
+        // With the listener attached too late, restoring "Senior Citizen"/"PWD" (e.g.
+        // every time Step 6 is (re)built while Modifying an existing Senior/PWD
+        // reservation - see BookingWizardActivity#seedStateForEdit()) left the chip
+        // visually checked but btnUploadId permanently gone, since setIdType() never
+        // ran - blocking Next with an "ID required" error and no visible way to
+        // satisfy it.
         cgIdType.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (checkedIds.isEmpty() || checkedIds.get(0) == R.id.chipNone) {
                 setIdType("None");
@@ -82,6 +83,14 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             int checkedId = checkedIds.get(0);
             setIdType(checkedId == R.id.chipSenior ? "Senior Citizen" : "PWD");
         });
+
+        if ("Senior Citizen".equals(state.idCardType)) {
+            view.findViewById(R.id.chipSenior).performClick();
+        } else if ("PWD".equals(state.idCardType)) {
+            view.findViewById(R.id.chipPwd).performClick();
+        } else if (state.idCardImageUri != null) {
+            applyPreview(state.idCardImageUri);
+        }
 
         btnUploadId.setOnClickListener(v -> idPickerLauncher.launch("image/*"));
     }

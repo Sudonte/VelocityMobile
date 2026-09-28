@@ -615,13 +615,17 @@ public class PaymentActivity extends BaseNavigationActivity {
      * can jump straight into creating a booking or reservation.
      */
     private void setupBookNow() {
+        // NavUtils.debounce() - every other equivalent entry point (BookingAndReservationActivity,
+        // RoomBrowsingActivity, StartingTransactionActivity's own action button) already guards
+        // against a fast double-tap stacking two instances of the destination screen; this pair
+        // of listeners was the one call site that had been missed.
         if (btnBookNow != null) {
-            btnBookNow.setOnClickListener(v -> startActivity(
-                    StartingTransactionActivity.newIntent(this, BookingWizardState.Mode.BOOKING)));
+            btnBookNow.setOnClickListener(NavUtils.debounce(v -> startActivity(
+                    StartingTransactionActivity.newIntent(this, BookingWizardState.Mode.BOOKING))));
         }
         if (btnReserveNow != null) {
-            btnReserveNow.setOnClickListener(v -> startActivity(
-                    StartingTransactionActivity.newIntent(this, BookingWizardState.Mode.RESERVATION)));
+            btnReserveNow.setOnClickListener(NavUtils.debounce(v -> startActivity(
+                    StartingTransactionActivity.newIntent(this, BookingWizardState.Mode.RESERVATION))));
         }
     }
 

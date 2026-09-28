@@ -311,7 +311,20 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
                 .setMessage(confirmMessageRes)
                 .setPositiveButton(isEditMode ? R.string.confirm_update_reservation_positive : R.string.confirm_dialog_positive,
-                        (dialog, which) -> recheckAvailabilityThenProceed())
+                        (dialog, which) -> {
+                            // Armed HERE, synchronously, the instant the guest taps Yes - not
+                            // inside proceedAfterConfirm(), which only runs once
+                            // recheckAvailabilityThenProceed()'s async network round-trip
+                            // resolves. Between those two points btnConfirm was still enabled
+                            // with no guard active, so an impatient second tap+Yes during a
+                            // slow connection could fire two independent submissions (each
+                            // correctly idempotency-keyed on its own, but two different keys
+                            // don't dedupe each other) and create two Bookings/Reservations.
+                            // setSubmitting(true) both flips the guard and disables btnConfirm
+                            // immediately via updateConfirmButtonEnabled().
+                            setSubmitting(true);
+                            recheckAvailabilityThenProceed();
+                        })
                 .setNegativeButton(R.string.cancel_label, null);
         if (isEditMode) {
             builder.setTitle(R.string.confirm_update_reservation_title);
@@ -370,6 +383,10 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
                 if (issues.length() > 0) {
                     Toast.makeText(requireContext(), issues.toString(), Toast.LENGTH_LONG).show();
+                    // Aborting without ever reaching proceedAfterConfirm() - undo the guard
+                    // armed in onConfirmClicked() so btnConfirm is usable again once the
+                    // guest comes back through Step 8 after adjusting their room selection.
+                    setSubmitting(false);
                     getWizardActivity().goToStep(2);
                     return;
                 }

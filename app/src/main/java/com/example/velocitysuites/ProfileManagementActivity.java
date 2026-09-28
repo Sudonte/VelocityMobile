@@ -697,53 +697,56 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         // Mobile masking (+63 9XX XXX XXXX) only makes sense for the Philippines' fixed-length
         // local format - other countries have too many different lengths/shapes to force into
-        // one mask, so their input is left as typed. Reflects the country on file when the
-        // dialog opens; PhoneNumberValidator still validates correctly against whatever
-        // country ends up selected at Confirm Update regardless of whether the mask applied.
-        if ("Philippines".equalsIgnoreCase(saved.country)) {
-            editMobile.addTextChangedListener(new TextWatcher() {
-                private boolean isUpdating = false;
+        // one mask, so their input is left as typed. Checks the LIVE Step-3 selection on every
+        // keystroke (not just the country on file when the dialog opened) so the mask correctly
+        // turns on/off if the guest changes country mid-edit, instead of staying stuck on
+        // whichever country was selected at dialog-open. The mask only ever affects what's
+        // shown/typed here - validateContactStep()/submitCombinedProfile() strip these spaces
+        // back out via PhoneNumberValidator.stripFormatting() before validating or submitting,
+        // since PhoneNumberValidator's PH pattern requires the unspaced canonical form.
+        editMobile.addTextChangedListener(new TextWatcher() {
+            private boolean isUpdating = false;
 
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-                @Override
-                public void afterTextChanged(Editable s) {
-                    if (isUpdating) return;
-                    isUpdating = true;
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isUpdating) return;
+                if (!"Philippines".equalsIgnoreCase(addressController.getSelectedCountry())) return;
+                isUpdating = true;
 
-                    String digits = s.toString().replaceAll("[^\\d]", "");
+                String digits = s.toString().replaceAll("[^\\d]", "");
 
-                    if (digits.startsWith("63")) {
-                        digits = digits.substring(2);
-                    } else if (digits.startsWith("0")) {
-                        digits = digits.substring(1);
-                    }
-
-                    if (digits.length() > 10) {
-                        digits = digits.substring(0, 10);
-                    }
-
-                    StringBuilder formatted = new StringBuilder();
-                    if (digits.length() > 0) {
-                        formatted.append("+63 ");
-                        for (int i = 0; i < digits.length(); i++) {
-                            if (i == 3 || i == 6) {
-                                formatted.append(" ");
-                            }
-                            formatted.append(digits.charAt(i));
-                        }
-                    }
-
-                    editMobile.setText(formatted.toString());
-                    editMobile.setSelection(formatted.length());
-                    isUpdating = false;
+                if (digits.startsWith("63")) {
+                    digits = digits.substring(2);
+                } else if (digits.startsWith("0")) {
+                    digits = digits.substring(1);
                 }
-            });
-        }
+
+                if (digits.length() > 10) {
+                    digits = digits.substring(0, 10);
+                }
+
+                StringBuilder formatted = new StringBuilder();
+                if (digits.length() > 0) {
+                    formatted.append("+63 ");
+                    for (int i = 0; i < digits.length(); i++) {
+                        if (i == 3 || i == 6) {
+                            formatted.append(" ");
+                        }
+                        formatted.append(digits.charAt(i));
+                    }
+                }
+
+                editMobile.setText(formatted.toString());
+                editMobile.setSelection(formatted.length());
+                isUpdating = false;
+            }
+        });
 
         // Live 18+ check for Step 1, mirroring registration's gate.
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelEdit);
@@ -917,7 +920,11 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         }
 
         String selectedCountry = addressController.getSelectedCountry();
-        String mobileStr = mobile.getText() != null ? mobile.getText().toString().trim() : "";
+        // Strip the Philippines display mask's spaces ("+63 917 123 4567") before
+        // validating - PhoneNumberValidator's PH pattern requires the unspaced
+        // canonical form and would otherwise reject every masked PH number, making
+        // it impossible to ever save a changed mobile number (see stripFormatting()).
+        String mobileStr = mobile.getText() != null ? PhoneNumberValidator.stripFormatting(mobile.getText().toString().trim()) : "";
         if (!PhoneNumberValidator.isValid(selectedCountry, mobileStr)) {
             mobile.setError(PhoneNumberValidator.errorMessage(this, selectedCountry));
             mobile.requestFocus();
@@ -994,7 +1001,9 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         String genderStr = editGender.getText() != null ? editGender.getText().toString().trim() : "";
         String dobStr = editDob.getText() != null ? editDob.getText().toString().trim() : "";
         String emailStr = editEmail.getText().toString().trim();
-        String mobileStr = editMobile.getText().toString().trim();
+        // Same normalization as validateContactStep() - the server must receive the
+        // canonical unspaced form, matching what's already stored for every other guest.
+        String mobileStr = PhoneNumberValidator.stripFormatting(editMobile.getText().toString().trim());
         AddressSelection selection = addressController.getStructuredValues();
 
         // Email is handled entirely separately below via the OTP-gated flow -
