@@ -44,6 +44,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -121,6 +122,10 @@ public interface ApiService {
     @GET("guest/reservations")
     Call<PaginatedResponse<ReservationDto>> getReservations(@Query("per_page") int perPage);
 
+    /** Same endpoint as getReservations(int) above - overload (not a signature change) so every existing caller is untouched; only RoomRepository's diagnostic-tagged refresh path uses this one, to correlate a failed mobile request with its backend log line (see DiagnosticLog#newRequestId()). */
+    @GET("guest/reservations")
+    Call<PaginatedResponse<ReservationDto>> getReservations(@Query("per_page") int perPage, @Header("X-Request-Id") String requestId);
+
     @POST("guest/reservations")
     Call<ReservationDto> createReservation(@Body ReservationRequest request);
 
@@ -196,6 +201,10 @@ public interface ApiService {
 
     @GET("guest/bookings")
     Call<PaginatedResponse<DirectBookingResponseDto>> getDirectBookings(@Query("per_page") int perPage);
+
+    /** Same endpoint as getDirectBookings(int) above - overload (not a signature change), see getReservations(int, String)'s identical doc just above. */
+    @GET("guest/bookings")
+    Call<PaginatedResponse<DirectBookingResponseDto>> getDirectBookings(@Query("per_page") int perPage, @Header("X-Request-Id") String requestId);
 
     /**
      * Payment is submitted as part of this same request (fields + optional
@@ -285,6 +294,10 @@ public interface ApiService {
 
     @GET("guest/profile")
     Call<ProfileResponse> getProfile();
+
+    /** Same endpoint as getProfile() above - overload used only for the debug-build runtime-identity-confirmation call (see BookingAndReservationActivity#refreshMyBookings()); every other caller keeps using the plain no-arg overload untouched. */
+    @GET("guest/profile")
+    Call<ProfileResponse> getProfile(@Header("X-Request-Id") String requestId);
 
     @PUT("guest/profile")
     Call<ProfileResponse> updateProfile(@Body ProfileUpdateRequest request);

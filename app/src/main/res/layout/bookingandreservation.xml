@@ -23,7 +23,7 @@
             android:translationZ="6dp"
             app:elevation="0dp"
             app:liftOnScroll="true"
-            app:liftOnScrollTargetViewId="@id/swipeRefresh">
+            app:liftOnScrollTargetViewId="@id/screenContent">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
@@ -128,6 +128,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
+            android:fillViewport="true"
             android:overScrollMode="never">
 
             <LinearLayout
@@ -1617,6 +1618,22 @@
                                 android:text="@string/no_bookings_yet"
                                 android:textColor="@color/velocity_text_secondary"
                                 android:textSize="11sp" />
+
+                            <!-- Shown only for a genuine load FAILURE (states C/D/E/F - see
+                                 BookingAndReservationActivity#renderListLoadError()), never for a
+                                 real "you have no transactions yet" empty state - kept GONE by
+                                 default here so the plain empty state (above) is unaffected. -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnListRetry"
+                                style="@style/Widget.Velocity.Button.Outlined"
+                                android:layout_width="wrap_content"
+                                android:layout_height="44dp"
+                                android:layout_marginTop="14dp"
+                                android:paddingHorizontal="20dp"
+                                android:text="@string/retry_label"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="13sp"
+                                android:visibility="gone" />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

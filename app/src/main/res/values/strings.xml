@@ -953,6 +953,8 @@
     <string name="no_reservations_yet">No reservations found. Your upcoming reservations will be displayed here.</string>
     <string name="booking_list_empty_title">No Bookings Found</string>
     <string name="reservation_list_empty_title">No Reservations Found</string>
+    <!-- Shown only for a genuine load failure (API/network/session/parsing) - never for a real "no transactions yet" state. See BookingAndReservationActivity#renderListLoadError(). -->
+    <string name="error_loading_transactions_title">Unable to Load</string>
     <string name="no_confirmed_bookings">No confirmed bookings.</string>
     <string name="no_completed_bookings">No completed bookings.</string>
     <string name="no_cancelled_bookings">No cancelled or rejected bookings.</string>

@@ -143,6 +143,22 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private View tvListEmpty;
     private TextView tvListEmptyTitle, tvListEmptyDesc;
     private ImageView ivListEmptyIcon;
+    /** Only ever made visible by renderListLoadError() - a real load failure (states C/D/E/F), never the genuine "no transactions yet" empty state. */
+    private MaterialButton btnListRetry;
+    /**
+     * True once THIS family's own fetch has completed at least one successful load this
+     * activity instance - lets the first-load failure path (no cached data to fall back on
+     * yet) be told apart from a later failure that still has something to show. Split into two
+     * independent flags (not one shared "bookings loaded" flag) because refreshBookingsSplit()
+     * reports the Bookings and Reservations families independently - one family failing must
+     * never suppress or misrepresent the other's already-confirmed state. See renderList()'s
+     * empty branch, the only place these are read.
+     */
+    private boolean hasLoadedBookingsOnce = false;
+    private boolean hasLoadedReservationsOnce = false;
+    /** Non-null only while that family's most recent fetch failed - see renderList()'s empty branch. */
+    private String bookingsLoadError = null;
+    private String reservationsLoadError = null;
     private TextView tvSummaryDates, tvSummaryGuests;
     private TextView tvProgressStep1, tvProgressStep2, tvProgressStep3;
     private View progressLine1, progressLine2;
@@ -321,6 +337,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     protected void onNewIntent(android.content.Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        com.example.velocitysuites.network.DiagnosticLog.d("BookingAndReservationActivity.onNewIntent",
+                "openSection=" + intent.getStringExtra(EXTRA_OPEN_SECTION) + " highlightId=" + intent.getStringExtra(EXTRA_HIGHLIGHT_ID));
 
         // A successful new booking/reservation redirects back here with a
         // fresh Intent (see navigateToBookingSection()/
@@ -370,6 +388,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        com.example.velocitysuites.network.DiagnosticLog.d("BookingAndReservationActivity.onResume", "triggeringRefresh=true");
         refreshMyBookings();
     }
 
@@ -380,6 +399,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      */
     private final RoomRepository.BookingsChangedListener bookingsChangedListener = () -> {
         allMyBookings = repository.getBookings();
+        com.example.velocitysuites.network.DiagnosticLog.d("BookingAndReservationActivity.bookingsChangedListener.fired",
+                "cachedCount=" + allMyBookings.size());
         renderList();
     };
 
@@ -459,6 +480,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         tvListEmptyTitle = findViewById(R.id.tvListEmptyTitle);
         tvListEmptyDesc = findViewById(R.id.tvListEmptyDesc);
         ivListEmptyIcon = findViewById(R.id.ivListEmptyIcon);
+        btnListRetry = findViewById(R.id.btnListRetry);
         tvStepDetails = findViewById(R.id.tvStepDetails);
         tvSummaryDates = findViewById(R.id.tvSummaryDates);
         tvSummaryGuests = findViewById(R.id.tvSummaryGuests);
@@ -1006,30 +1028,72 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
     }
 
+    /**
+     * Uses RoomRepository's split-aware refresh (not the plain combined refreshBookings()) so
+     * the Bookings and Reservations tabs never share one all-or-nothing result - a real,
+     * live-confirmed bug this fixes: one family's data tripping a load failure previously hid
+     * the OTHER family's perfectly good data too, and depending on which tab happened to be
+     * active when the callback fired, the guest could see "Unable to Load" on one tab and a
+     * plain, misleading "No Bookings/Reservations Found" on the other for the exact same
+     * underlying failure. Each family's own hasLoadedXOnce/XLoadError pair is updated
+     * independently here; renderList()'s empty branch reads whichever pair matches the
+     * currently active tab.
+     */
     private void refreshMyBookings() {
-        repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
-            @Override
-            public void onSuccess(List<Booking> bookings) {
-                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                allMyBookings = bookings != null ? bookings : new ArrayList<>();
-                renderList();
-                correctPendingReservationTotals(allMyBookings);
-            }
+        com.example.velocitysuites.network.DiagnosticLog.d("BookingAndReservationActivity.refresh.start",
+                "activeTab=" + (isReservationMode() ? "RESERVATION" : "BOOKING") + " hadCachedData=" + !allMyBookings.isEmpty());
+        repository.refreshBookingsSplit((merged, reservationsError, bookingsError) -> {
+            if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+            allMyBookings = merged != null ? merged : new ArrayList<>();
+            if (bookingsError == null) hasLoadedBookingsOnce = true;
+            if (reservationsError == null) hasLoadedReservationsOnce = true;
+            bookingsLoadError = bookingsError;
+            reservationsLoadError = reservationsError;
 
-            @Override
-            public void onError(String message) {
-                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                // allMyBookings deliberately keeps its last-known contents on error -
-                // the visible list stays as-is rather than going blank; Retry re-runs
-                // the same refresh in place.
+            com.example.velocitysuites.network.DiagnosticLog.d("BookingAndReservationActivity.refresh.settled",
+                    "totalCount=" + allMyBookings.size() + " bookingsOk=" + (bookingsError == null)
+                            + " reservationsOk=" + (reservationsError == null));
+
+            renderList();
+            correctPendingReservationTotals(allMyBookings);
+
+            // Only nag about the family the guest is actually looking at right now - a
+            // background tab's failure still surfaces correctly (via renderList()'s empty
+            // branch) the moment they switch to it, without a Snackbar interrupting whatever
+            // they're doing on the tab that's working fine.
+            String activeTabError = isReservationMode() ? reservationsError : bookingsError;
+            if (activeTabError != null) {
                 com.google.android.material.snackbar.Snackbar.make(
                                 findViewById(R.id.bookingRoot),
-                                "Couldn't refresh bookings: " + message,
+                                "Couldn't refresh: " + activeTabError,
                                 com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
                         .setAction(R.string.retry_label, v -> refreshMyBookings())
                         .show();
             }
         });
+    }
+
+    /**
+     * Persistent (non-transient, unlike the Snackbar in refreshMyBookings()) load-failure state
+     * for the transaction list area itself - reuses the existing empty-state container so no
+     * parallel layout is needed, but with distinct error copy and a visible Retry button.
+     * Called from renderList()'s own empty branch, which decides per-tab whether this or the
+     * genuine "no transactions yet" copy applies - see that check's own doc.
+     */
+    private void renderListLoadError(String message) {
+        rvItemList.setVisibility(View.GONE);
+        tvListEmpty.setVisibility(View.VISIBLE);
+        btnExpandList.setVisibility(View.GONE);
+        if (tvListEmptyTitle != null) {
+            tvListEmptyTitle.setText(R.string.error_loading_transactions_title);
+        }
+        if (tvListEmptyDesc != null) {
+            tvListEmptyDesc.setText(message);
+        }
+        if (btnListRetry != null) {
+            btnListRetry.setVisibility(View.VISIBLE);
+            btnListRetry.setOnClickListener(v -> refreshMyBookings());
+        }
     }
 
     /**
@@ -1207,9 +1271,29 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
 
         if (source.isEmpty()) {
+            // A failed fetch must never be mistaken for "you have no transactions" (task spec
+            // states C-F) - checked first, before any of the genuine-empty-state copy below.
+            // Deliberately keyed off hasLoadedXOnce, NOT just "there's an error message
+            // stored" - a guest who has already been shown a genuine, confirmed "zero
+            // transactions" empty state for THIS tab must keep seeing that on a later
+            // transient failure (e.g. a pull-to-refresh with no signal), never have it
+            // incorrectly replaced by an error state. Each tab checks its OWN family's
+            // loaded/error state (see refreshMyBookings()) - independent per refreshBookingsSplit(),
+            // so a failure on the OTHER tab's family never leaks into this one.
+            boolean reservation = isReservationMode();
+            boolean loadedOnce = reservation ? hasLoadedReservationsOnce : hasLoadedBookingsOnce;
+            String loadError = reservation ? reservationsLoadError : bookingsLoadError;
+            if (!loadedOnce && loadError != null) {
+                renderListLoadError(loadError);
+                return;
+            }
+
             rvItemList.setVisibility(View.GONE);
             tvListEmpty.setVisibility(View.VISIBLE);
             btnExpandList.setVisibility(View.GONE);
+            // Any error-state Retry button left over from a prior renderListLoadError() call
+            // (e.g. the guest switched away from a failed tab and back) must not linger.
+            if (btnListRetry != null) btnListRetry.setVisibility(View.GONE);
             // A search with no matches is a different situation from "you have
             // no bookings/reservations at all yet" - the guest may well have
             // transactions, just none matching this query, so say that instead

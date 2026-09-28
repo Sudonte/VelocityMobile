@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -403,6 +404,19 @@ public final class RoomRepository {
         });
     }
 
+    /** Reports both families independently - see refreshBookingsSplit()'s own doc for why. */
+    public interface SplitRepositoryCallback {
+        /**
+         * Always called exactly once per refreshBookingsSplit() call (after the internal
+         * retry, if any, has also settled). mergedBookings is the current best-known merged
+         * list - freshly updated for whichever side(s) succeeded, still carrying the last
+         * known good data for whichever side(s) didn't (see refreshBookingsSplitInternal()'s
+         * partial-merge logic). reservationsError/directBookingsError are null exactly when
+         * that side succeeded this round.
+         */
+        void onComplete(List<Booking> mergedBookings, @Nullable String reservationsError, @Nullable String directBookingsError);
+    }
+
     /**
      * Fetches both transaction families that make up "My Bookings" -
      * reservation-derived bookings (guest/reservations, unchanged) and
@@ -410,38 +424,68 @@ public final class RoomRepository {
      * Reservation - see Api\BookingController) - and merges them into one
      * cache. The two are genuinely independent record types server-side, so
      * there's no single endpoint that already returns both together.
+     * <p>
+     * Combined-result convenience wrapper over refreshBookingsSplit() for the ~6 callers
+     * (Dashboard/Calendar/TransactionList/TransactionHistory/BillingSummary/PaymentActivity)
+     * that only ever want "the list" and don't need to tell the two families' failures apart -
+     * onSuccess() only fires when BOTH sides succeeded, onError() otherwise, matching this
+     * method's original contract exactly. BookingAndReservationActivity uses
+     * refreshBookingsSplit() directly instead, since its two tabs need to know which specific
+     * family failed - see that method's own doc.
      */
     public void refreshBookings(RepositoryCallback<List<Booking>> callback) {
-        refreshBookingsInternal(callback, true);
+        refreshBookingsSplit((merged, reservationsError, directError) -> {
+            if (callback == null) return;
+            if (reservationsError == null && directError == null) {
+                callback.onSuccess(merged);
+            } else {
+                callback.onError(reservationsError != null ? reservationsError : directError);
+            }
+        });
     }
 
     /**
-     * getReservations()/getDirectBookings() are two independent network calls merged into one
-     * guest-facing list. A transient failure of just ONE of them (a cold connection right after
-     * install, a brief timeout, a flaky mobile network) must never masquerade as "this guest
-     * simply has no bookings/reservations" - previously this called onSuccess() with the other
-     * call's data alone whenever exactly one of the two failed, which could make a real,
-     * just-created Booking (or Reservation) silently vanish from its tab with no error shown at
-     * all. One transparent retry of the whole pair first (mirroring this codebase's existing
-     * one-retry convention, e.g. PaymentActivity#refreshBookingsAfterPayment()); only reports
-     * onError() to the caller if a failure survives the retry too.
+     * Same two underlying network calls as refreshBookings() above, but reports each family's
+     * outcome independently instead of collapsing them into one combined success/failure. A
+     * real, live-confirmed failure mode this fixes: the Bookings and Reservations tabs
+     * previously shared one all-or-nothing result, so a failure in EITHER call (e.g. one
+     * guest's data tripping a parsing error - see AdditionalGuestListDeserializer) hid the
+     * OTHER family's perfectly good data too, and the guest had no way to tell "genuinely no
+     * bookings" apart from "bookings failed to load, only reservations came back" - both
+     * rendered as the exact same generic error/empty state depending on timing. Each family's
+     * own cache slice (identified via Booking#isDirectBooking() - see the partial-merge logic
+     * below) now only ever gets replaced when THAT family's own fetch actually succeeds; a
+     * failure on one side leaves its slice exactly as it was (last known good, or empty if
+     * never loaded) while the other side still updates normally.
      */
-    private void refreshBookingsInternal(RepositoryCallback<List<Booking>> callback, boolean allowRetry) {
+    public void refreshBookingsSplit(SplitRepositoryCallback callback) {
+        refreshBookingsSplitInternal(callback, true);
+    }
+
+    private void refreshBookingsSplitInternal(SplitRepositoryCallback callback, boolean allowRetry) {
+        // Correlates this one refresh (both sub-calls) across the Android log and, via the
+        // X-Request-Id header below, the backend's own log - see DiagnosticLog's own doc.
+        // A fresh id every call (including the internal retry) is deliberate: a retry is a
+        // genuinely new HTTP request, not a resend of the same one, and giving it its own id
+        // avoids conflating "the first attempt's server-side log line" with "the retry's".
+        final String requestId = com.example.velocitysuites.network.DiagnosticLog.newRequestId("BOOKINGS_LOAD");
+        com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.start",
+                "requestId=" + requestId + " hasToken=" + (com.example.velocitysuites.network.SessionManager.getToken(appContext) != null)
+                        + " allowRetry=" + allowRetry + " accountGeneration=" + accountGeneration);
+        logRuntimeIdentityIfDebug(requestId);
+
         List<Booking> reservationDerived = new ArrayList<>();
         List<Booking> direct = new ArrayList<>();
         List<Booking> historicalReservations = new ArrayList<>();
         boolean[] reservationsFailed = {false};
         boolean[] directFailed = {false};
-        // Real reason for whichever call fails first - a bare "Failed to load
-        // bookings." string was previously all a caller could ever see or
-        // show the guest, indistinguishable from a session-expired 401, a
-        // 500, or a genuine offline device. errorMessage(response)/
-        // networkErrorMessage() are the same helpers every other call in
-        // this class already uses for this, so this stays consistent (e.g.
-        // a 401 here now correctly triggers forceSessionExpiredLogout() too,
-        // instead of leaving the guest stuck retrying forever against a
-        // token that will never become valid again).
-        String[] failureMessage = {null};
+        // Real reason each call failed, kept SEPARATE per family (previously one shared
+        // "whichever failed first" string, back when only a single combined error was ever
+        // reported) - see errorMessage(response)/networkErrorMessage()'s own docs for why
+        // these are trusted over a bare generic string (e.g. a 401 here still correctly
+        // triggers forceSessionExpiredLogout() as a side effect either way).
+        String[] reservationsErrorMsg = {null};
+        String[] directErrorMsg = {null};
         int[] remaining = {2};
         // Captured before either network call fires - see accountGeneration's own doc.
         final int requestGeneration = accountGeneration;
@@ -451,82 +495,174 @@ public final class RoomRepository {
                 // A logout (and possibly a different account's own login) happened
                 // while this request was in flight - this response belongs to
                 // whichever account started it, not to whoever is signed in now.
-                // Silently dropped rather than onError()'d: from the CURRENT
+                // Silently dropped rather than reported: from the CURRENT
                 // account's perspective nothing actually failed, there's simply
                 // nothing to report from a request they never made.
+                com.example.velocitysuites.network.DiagnosticLog.w("refreshBookings.staleDropped",
+                        "requestId=" + requestId + " requestGeneration=" + requestGeneration + " currentGeneration=" + accountGeneration);
                 return;
             }
-            if (reservationsFailed[0] || directFailed[0]) {
-                // Either endpoint failing - not just both - must not be reported as success;
-                // the merged list would silently be missing every Booking or every
-                // Reservation with no indication anything went wrong.
-                if (allowRetry) {
-                    refreshBookingsInternal(callback, false);
-                } else if (callback != null) {
-                    callback.onError(failureMessage[0] != null ? failureMessage[0] : "Failed to load bookings.");
-                }
+            if ((reservationsFailed[0] || directFailed[0]) && allowRetry) {
+                // Retry the WHOLE pair once, not just the failed side - mirrors this
+                // codebase's existing one-retry convention (e.g.
+                // PaymentActivity#refreshBookingsAfterPayment()) and keeps the retry logic
+                // simple; the side that already succeeded just re-fetches redundantly, which
+                // is harmless (a second, quick, already-warm request), not incorrect.
+                com.example.velocitysuites.network.DiagnosticLog.w("refreshBookings.partialOrFullFailure.retrying",
+                        "requestId=" + requestId + " reservationsFailed=" + reservationsFailed[0] + " directFailed=" + directFailed[0]);
+                refreshBookingsSplitInternal(callback, false);
                 return;
             }
-            List<Booking> merged = new ArrayList<>(reservationDerived);
-            merged.addAll(direct);
-            bookings = merged;
-            completedHistoricalReservations = historicalReservations;
-            // Fresh Booking objects from the server are room-cost-only again
-            // until corrected - see correctPendingReservationTotal().
-            correctedTotalIds.clear();
-            logRoomsShapeIfDebug(merged);
-            notifyBookingsChanged();
-            if (callback != null) callback.onSuccess(getBookings());
+            // Partial merge: each family's own slice of `bookings` (identified by
+            // isDirectBooking() - true only for getDirectBookings()-sourced items, false for
+            // every getReservations()-sourced item regardless of conversion status) is only
+            // ever replaced when THAT family's own fetch just succeeded. A failure on one
+            // side leaves its slice - and therefore that tab's data - exactly as it was;
+            // it never blocks or hides the other side's fresh data.
+            if (!reservationsFailed[0]) {
+                bookings.removeIf(b -> !b.isDirectBooking());
+                bookings.addAll(reservationDerived);
+                completedHistoricalReservations = historicalReservations;
+                // Fresh Booking objects from the server are room-cost-only again until
+                // corrected - see correctPendingReservationTotal(). Only this family's own
+                // ids are relevant - direct bookings and already-converted reservations never
+                // enter correctedTotalIds in the first place (see
+                // correctPendingReservationTotals()'s own guard).
+                for (Booking b : reservationDerived) correctedTotalIds.remove(b.getId());
+            }
+            if (!directFailed[0]) {
+                bookings.removeIf(Booking::isDirectBooking);
+                bookings.addAll(direct);
+            }
+            boolean anySucceeded = !reservationsFailed[0] || !directFailed[0];
+            if (anySucceeded) {
+                logRoomsShapeIfDebug(bookings);
+                notifyBookingsChanged();
+            }
+            com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.settled",
+                    "requestId=" + requestId + " reservationsOk=" + !reservationsFailed[0] + " directOk=" + !directFailed[0]
+                            + " reservationDerivedCount=" + reservationDerived.size() + " directCount=" + direct.size()
+                            + " totalCached=" + bookings.size() + " ids=" + bookingIdsForLog(bookings));
+            if (callback != null) {
+                callback.onComplete(
+                        getBookings(),
+                        reservationsFailed[0] ? (reservationsErrorMsg[0] != null ? reservationsErrorMsg[0] : "Failed to load reservations.") : null,
+                        directFailed[0] ? (directErrorMsg[0] != null ? directErrorMsg[0] : "Failed to load bookings.") : null);
+            }
         };
 
-        api.getReservations(200).enqueue(new Callback<PaginatedResponse<ReservationDto>>() {
+        api.getReservations(200, requestId).enqueue(new Callback<PaginatedResponse<ReservationDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<ReservationDto>> call, Response<PaginatedResponse<ReservationDto>> response) {
+                com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.reservations.response",
+                        "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
+                                + " recordCount=" + (response.body() != null ? response.body().data.size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
                     for (ReservationDto dto : response.body().data) {
-                        reservationDerived.add(ApiMapper.toBooking(dto));
-                        // Once converted, also keep a frozen, view-only copy under
-                        // the Reservation tab's Completed list - see
-                        // ApiMapper#toHistoricalReservation()'s own docblock for why
-                        // this doesn't just live in the main `bookings` cache.
-                        if (dto.booking != null) {
-                            historicalReservations.add(ApiMapper.toHistoricalReservation(dto));
+                        // A single malformed/unexpected record must never take down the
+                        // WHOLE list - see State F (JSON/model parsing failure) in the
+                        // task spec. Before this try/catch, ApiMapper#toBooking() throwing
+                        // for even one dto (e.g. an unanticipated null shape) propagated
+                        // straight out of this Retrofit callback - which runs on the main
+                        // thread - and crashed the entire app with zero diagnostic, while
+                        // looking to the guest exactly like "Bookings/Reservations
+                        // sometimes doesn't show" depending on which record tripped it.
+                        try {
+                            reservationDerived.add(ApiMapper.toBooking(dto));
+                            if (dto.booking != null) {
+                                historicalReservations.add(ApiMapper.toHistoricalReservation(dto));
+                            }
+                        } catch (RuntimeException mappingError) {
+                            com.example.velocitysuites.network.DiagnosticLog.e("refreshBookings.reservations.mappingFailed",
+                                    "requestId=" + requestId + " reservationId=" + dto.id, mappingError);
                         }
                     }
                 } else {
                     reservationsFailed[0] = true;
-                    if (failureMessage[0] == null) failureMessage[0] = errorMessage(response);
+                    reservationsErrorMsg[0] = errorMessage(response);
                 }
                 if (--remaining[0] <= 0) finish.run();
             }
 
             @Override
             public void onFailure(Call<PaginatedResponse<ReservationDto>> call, Throwable t) {
+                com.example.velocitysuites.network.DiagnosticLog.e("refreshBookings.reservations.failure", "requestId=" + requestId, t);
                 reservationsFailed[0] = true;
-                if (failureMessage[0] == null) failureMessage[0] = networkErrorMessage(appContext, t);
+                reservationsErrorMsg[0] = networkErrorMessage(appContext, t);
                 if (--remaining[0] <= 0) finish.run();
             }
         });
 
-        api.getDirectBookings(200).enqueue(new Callback<PaginatedResponse<DirectBookingResponseDto>>() {
+        api.getDirectBookings(200, requestId).enqueue(new Callback<PaginatedResponse<DirectBookingResponseDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<DirectBookingResponseDto>> call, Response<PaginatedResponse<DirectBookingResponseDto>> response) {
+                com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.directBookings.response",
+                        "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
+                                + " recordCount=" + (response.body() != null ? response.body().data.size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
                     for (DirectBookingResponseDto dto : response.body().data) {
-                        direct.add(ApiMapper.toBooking(dto));
+                        // Same State-F protection as the reservations loop above.
+                        try {
+                            direct.add(ApiMapper.toBooking(dto));
+                        } catch (RuntimeException mappingError) {
+                            com.example.velocitysuites.network.DiagnosticLog.e("refreshBookings.directBookings.mappingFailed",
+                                    "requestId=" + requestId + " bookingId=" + dto.id, mappingError);
+                        }
                     }
                 } else {
                     directFailed[0] = true;
-                    if (failureMessage[0] == null) failureMessage[0] = errorMessage(response);
+                    directErrorMsg[0] = errorMessage(response);
                 }
                 if (--remaining[0] <= 0) finish.run();
             }
 
             @Override
             public void onFailure(Call<PaginatedResponse<DirectBookingResponseDto>> call, Throwable t) {
+                com.example.velocitysuites.network.DiagnosticLog.e("refreshBookings.directBookings.failure", "requestId=" + requestId, t);
                 directFailed[0] = true;
-                if (failureMessage[0] == null) failureMessage[0] = networkErrorMessage(appContext, t);
+                directErrorMsg[0] = networkErrorMessage(appContext, t);
                 if (--remaining[0] <= 0) finish.run();
+            }
+        });
+    }
+
+    /** Non-sensitive booking/reservation ids only - see DiagnosticLog's own "never log tokens/payment secrets" contract. */
+    private static String bookingIdsForLog(List<Booking> bookings) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < bookings.size(); i++) {
+            if (i > 0) sb.append(",");
+            sb.append(bookings.get(i).getId());
+        }
+        return sb.append("]").toString();
+    }
+
+    /**
+     * Debug-build-only runtime identity confirmation (task spec "Verify Runtime Identity") -
+     * fired in PARALLEL with, never blocking, the real bookings/reservations calls above, so
+     * this adds zero latency to the actual list load; it exists purely so a Logcat read during
+     * testing can directly confirm "this refresh's data actually came back for guest id X",
+     * tagged with the same requestId as the bookings/reservations calls it's confirming. This
+     * is diagnostic only - the backend already derives ownership solely from the Bearer token
+     * server-side (see BookingController/ReservationController::index()), and this method never
+     * sends a guest id anywhere; it only reads one back to log it.
+     */
+    private void logRuntimeIdentityIfDebug(String correlationRequestId) {
+        if (!com.example.velocitysuites.BuildConfig.DEBUG) return;
+        api.getProfile(correlationRequestId).enqueue(new Callback<com.example.velocitysuites.network.dto.ProfileResponse>() {
+            @Override
+            public void onResponse(Call<com.example.velocitysuites.network.dto.ProfileResponse> call, Response<com.example.velocitysuites.network.dto.ProfileResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().user != null) {
+                    com.example.velocitysuites.network.DiagnosticLog.d("identityCheck.confirmed",
+                            "requestId=" + correlationRequestId + " authenticatedUserId=" + response.body().user.id);
+                } else {
+                    com.example.velocitysuites.network.DiagnosticLog.w("identityCheck.failed",
+                            "requestId=" + correlationRequestId + " httpCode=" + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.velocitysuites.network.dto.ProfileResponse> call, Throwable t) {
+                com.example.velocitysuites.network.DiagnosticLog.e("identityCheck.networkFailure", "requestId=" + correlationRequestId, t);
             }
         });
     }
@@ -747,7 +883,27 @@ public final class RoomRepository {
                 return;
             }
 
-            Map<String, RequestBody> fields = new HashMap<>();
+            // LinkedHashMap, NOT HashMap - a plain HashMap does not preserve insertion
+            // order, so multipart fields for additional_guests[0][*], additional_guests[1][*],
+            // etc. could be written to the wire in hash-bucket order instead of index order
+            // whenever there were 2+ additional guests. PHP's request parser builds
+            // $request->input('additional_guests') in the order fields actually arrive on
+            // the wire - out-of-order arrival produced a PHP array like ['1' => ..., '0' =>
+            // ...] (keys 0/1 present, but not in that order), which json_encode() then
+            // serializes as a JSON OBJECT ({"1":...,"0":...}) instead of a JSON ARRAY,
+            // because PHP's list-detection requires the keys in EXACTLY 0..n-1 order, not
+            // just that value set. Android's own additional_guest_details field is declared
+            // List<AdditionalGuestDto> - Gson throws (Expected BEGIN_ARRAY but was
+            // BEGIN_OBJECT) trying to parse a JSON object into a List, which fails Retrofit's
+            // response conversion entirely (onFailure(), not onResponse()) and took down the
+            // WHOLE combined bookings+reservations refresh for any guest who had ever
+            // submitted 2+ additional guests through this multipart path - confirmed live via
+            // 4 real corrupted booking rows (see repair script). A LinkedHashMap here
+            // guarantees fields are written in insertion (== index) order, so this can never
+            // happen again for a NEW submission; see BookingController/ReservationController's
+            // array_values() normalization (backend) for the defense-in-depth fix that also
+            // covers any other client/source, plus the one-time repair of already-affected rows.
+            Map<String, RequestBody> fields = new LinkedHashMap<>();
             for (int i = 0; i < roomGroups.size(); i++) {
                 List<Room> group = roomGroups.get(i);
                 putText(fields, "rooms[" + i + "][room_type_id]", group.get(0).getId());
@@ -867,7 +1023,27 @@ public final class RoomRepository {
                 return;
             }
 
-            Map<String, RequestBody> fields = new HashMap<>();
+            // LinkedHashMap, NOT HashMap - a plain HashMap does not preserve insertion
+            // order, so multipart fields for additional_guests[0][*], additional_guests[1][*],
+            // etc. could be written to the wire in hash-bucket order instead of index order
+            // whenever there were 2+ additional guests. PHP's request parser builds
+            // $request->input('additional_guests') in the order fields actually arrive on
+            // the wire - out-of-order arrival produced a PHP array like ['1' => ..., '0' =>
+            // ...] (keys 0/1 present, but not in that order), which json_encode() then
+            // serializes as a JSON OBJECT ({"1":...,"0":...}) instead of a JSON ARRAY,
+            // because PHP's list-detection requires the keys in EXACTLY 0..n-1 order, not
+            // just that value set. Android's own additional_guest_details field is declared
+            // List<AdditionalGuestDto> - Gson throws (Expected BEGIN_ARRAY but was
+            // BEGIN_OBJECT) trying to parse a JSON object into a List, which fails Retrofit's
+            // response conversion entirely (onFailure(), not onResponse()) and took down the
+            // WHOLE combined bookings+reservations refresh for any guest who had ever
+            // submitted 2+ additional guests through this multipart path - confirmed live via
+            // 4 real corrupted booking rows (see repair script). A LinkedHashMap here
+            // guarantees fields are written in insertion (== index) order, so this can never
+            // happen again for a NEW submission; see BookingController/ReservationController's
+            // array_values() normalization (backend) for the defense-in-depth fix that also
+            // covers any other client/source, plus the one-time repair of already-affected rows.
+            Map<String, RequestBody> fields = new LinkedHashMap<>();
             // One [room_type_id]/[quantity] pair per DISTINCT selected room
             // type - see this method's own doc. The legacy single
             // room_type_id/rooms_requested fields are intentionally not

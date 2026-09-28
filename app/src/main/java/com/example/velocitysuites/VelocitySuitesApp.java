@@ -1,6 +1,10 @@
 package com.example.velocitysuites;
 
+import android.app.Activity;
 import android.app.Application;
+import android.os.Bundle;
+
+import com.example.velocitysuites.network.CrashLogger;
 
 /**
  * Single startup point for the notification alert system: creates the
@@ -25,5 +29,19 @@ public class VelocitySuitesApp extends Application {
         super.onCreate();
         NotificationHelper.ensureChannel(this);
         NotificationPollWorker.schedule(this);
+
+        // Debug-build-only (see CrashLogger's own doc) - no-ops entirely in release.
+        CrashLogger.install(this);
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override public void onActivityResumed(Activity activity) {
+                CrashLogger.setCurrentActivityName(activity.getClass().getSimpleName());
+            }
+            @Override public void onActivityCreated(Activity activity, Bundle savedInstanceState) { }
+            @Override public void onActivityStarted(Activity activity) { }
+            @Override public void onActivityPaused(Activity activity) { }
+            @Override public void onActivityStopped(Activity activity) { }
+            @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }
+            @Override public void onActivityDestroyed(Activity activity) { }
+        });
     }
 }

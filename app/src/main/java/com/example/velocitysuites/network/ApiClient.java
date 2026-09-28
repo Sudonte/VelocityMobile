@@ -57,6 +57,9 @@ public final class ApiClient {
 
             Gson gson = new GsonBuilder()
                     .registerTypeAdapterFactory(new NullSafePrimitiveTypeAdapterFactory())
+                    .registerTypeAdapter(
+                            new com.google.gson.reflect.TypeToken<java.util.List<com.example.velocitysuites.network.dto.AdditionalGuestDto>>() {}.getType(),
+                            new AdditionalGuestListDeserializer())
                     .create();
 
             Retrofit retrofit = new Retrofit.Builder()
