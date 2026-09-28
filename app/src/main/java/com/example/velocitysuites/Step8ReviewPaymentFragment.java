@@ -42,25 +42,21 @@ import java.util.UUID;
  *   <li>Reservation Modify (edit mode): unchanged - saves via
  *   updateReservationFull(), optionally switching payment method via this
  *   step's own editable chip picker.</li>
- *   <li>Reservation mode, fresh (not editing), Cash: payment method was
- *   already chosen on the preceding Step7PaymentMethodFragment and is shown
- *   here read-only. Confirm calls RoomRepository#createReservation()
- *   directly, no payment attached - Cash always means full payment walk-in
- *   at the hotel.</li>
- *   <li>Reservation mode, fresh (not editing), GCash: stashes the reviewed
- *   BookingWizardState in PendingReservationPayload and opens PaymentActivity
- *   in "pending reservation" mode (GCash-only). PaymentActivity itself calls
- *   RoomRepository#createReservationWithPayment() only after the GCash
- *   portal step succeeds - see PaymentActivity#submitPendingReservationSingleCall().
- *   The resulting Reservation does NOT auto-convert into a Booking (unlike a
- *   later Pay Now GCash payment on an already-existing Reservation, which
- *   does) - see that method's own doc for why this is a deliberately
- *   separate code path.</li>
+ *   <li>Reservation mode, fresh (not editing), Cash or GCash: Confirm
+ *   Reservation is the terminal action - calls RoomRepository#createReservation()
+ *   directly with no payment attached, regardless of payment method, and
+ *   never opens PaymentActivity. A GCash Reservation is created in an
+ *   awaiting-payment state and paid later via a separate Pay Now action from
+ *   the reservation's own details screen - deliberately reverted away from a
+ *   same-day GCash-at-creation experiment (PendingReservationPayload /
+ *   RoomRepository#createReservationWithPayment(), still present but
+ *   intentionally unused - see PaymentActivity#EXTRA_PENDING_RESERVATION's
+ *   docblock) after product direction confirmed Confirm Reservation must
+ *   never redirect into the payment workflow.</li>
  * </ul>
  * A guest may have staged more than one distinct room TYPE in step 2 (e.g.
- * 2 Deluxe + 1 Suite) - both the Cash path below (createReservation(List,
- * ...)) and the GCash path (createReservationWithPayment()) send every
- * selected room type/quantity as one atomic call each, never a sequential
+ * 2 Deluxe + 1 Suite) - createReservation(List, ...) sends every selected
+ * room type/quantity as one atomic call, never a sequential
  * per-room-type-group loop - see MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md.
  */
 public class Step8ReviewPaymentFragment extends WizardStepFragment {
@@ -430,30 +426,18 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             return;
         }
 
-        if (!"gcash".equalsIgnoreCase(state.paymentMethod)) {
-            // Fresh Reservation, Cash: create directly here, no payment call,
-            // no payment.xml hand-off - walk-in payment, collected in person.
-            setSubmitting(true);
-            createReservationsThenShowSuccess();
-            return;
-        }
-
-        // Fresh Reservation, GCash: collects real payment at creation time
-        // itself (GCash Step 5 of 5, via PaymentActivity's portal) rather
-        // than always deferring to a later Pay Now action - see
-        // PaymentActivity#EXTRA_PENDING_RESERVATION's docblock (revived) and
-        // RoomRepository#createReservationWithPayment()'s own doc for why
-        // this does not auto-convert the resulting Reservation into a
-        // Booking the way a later Pay Now GCash payment would. Deliberately
-        // not finishing this Activity: backing out of payment.xml before
-        // completing GCash should return here with the review intact, same
-        // as Booking mode's identical PendingBookingPayload hand-off above.
+        // Fresh Reservation, Cash or GCash: Step 8's Confirm Reservation is
+        // the terminal action for a Reservation - create directly here, no
+        // payment call, no payment.xml hand-off, regardless of payment
+        // method. A GCash Reservation is created in an awaiting-payment
+        // state and paid later via the separate Pay Now action from the
+        // reservation's own details screen - see
+        // RoomRepository#createReservation(List, ...)'s payment_method
+        // pass-through. Confirm Reservation must never redirect into the
+        // payment workflow (see PaymentActivity#EXTRA_PENDING_RESERVATION's
+        // docblock - that hand-off path is intentionally unused again).
         setSubmitting(true);
-        PendingReservationPayload.set(state);
-        Intent intent = new Intent(requireContext(), PaymentActivity.class);
-        intent.putExtra(PaymentActivity.EXTRA_PENDING_RESERVATION, true);
-        intent.putExtra("ALLOW_CASH", false);
-        startActivity(intent);
+        createReservationsThenShowSuccess();
     }
 
     private void createReservationsThenShowSuccess() {

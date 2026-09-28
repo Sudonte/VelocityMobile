@@ -1,12 +1,13 @@
 package com.example.velocitysuites;
 
 /**
- * Carries a fresh Reservation's reviewed BookingWizardState from
- * Step8ReviewPaymentFragment's Confirm button into PaymentActivity, for the
- * GCash-chosen case only (see PaymentActivity#EXTRA_PENDING_RESERVATION's
- * docblock) - a fresh Cash Reservation is created directly by
- * Step8ReviewPaymentFragment itself and never touches this class. Mirrors
- * PendingBookingPayload's identical role on the Booking side exactly.
+ * No longer used by any caller as of 2026-09-28 (later same day) - see
+ * PaymentActivity#EXTRA_PENDING_RESERVATION's docblock. Previously carried a
+ * fresh Reservation's reviewed BookingWizardState from
+ * Step8ReviewPaymentFragment's Confirm button into PaymentActivity for the
+ * GCash-chosen case, mirroring PendingBookingPayload's identical role on the
+ * Booking side. Kept in place rather than removed in case a future product
+ * decision revives GCash-at-creation for Reservations.
  */
 final class PendingReservationPayload {
 

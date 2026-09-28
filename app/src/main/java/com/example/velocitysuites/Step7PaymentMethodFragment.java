@@ -16,16 +16,15 @@ import com.google.android.material.card.MaterialCardView;
 /**
  * Step 7 of 8 (New Reservation creation only, never shown for Booking mode
  * or for a Modify/edit run - see BookingWizardActivity's mode/step-count
- * branching): Cash vs GCash. No payment is collected on this step itself
- * either way - Cash always means full payment walk-in at the hotel,
- * collected in person, never through this app. GCash's actual payment
- * collection (reference number, mobile number, receipt, amount) happens one
- * step later, at Step 8's Confirm, via PaymentActivity's GCash portal (Step 5
- * of 5) - see Step8ReviewPaymentFragment's own doc and PaymentActivity#
- * EXTRA_PENDING_RESERVATION. The resulting Reservation stays a Reservation
- * (does not auto-convert to a Booking). Selection is stored in
- * BookingWizardState.paymentMethod ("cash"/"gcash", matching every other
- * payment-method call site's casing convention).
+ * branching): Cash vs GCash. No payment is ever collected during Reservation
+ * creation, for either method - Step 8's Confirm Reservation creates the
+ * Reservation directly and never opens a payment screen (see
+ * Step8ReviewPaymentFragment's own doc and PaymentActivity#
+ * EXTRA_PENDING_RESERVATION). Cash always means full payment walk-in at the
+ * hotel, collected in person; GCash means the guest pays later via a
+ * separate Pay Now action from the created reservation's own details screen.
+ * Selection is stored in BookingWizardState.paymentMethod ("cash"/"gcash",
+ * matching every other payment-method call site's casing convention).
  */
 public class Step7PaymentMethodFragment extends WizardStepFragment {
 

@@ -115,6 +115,7 @@
         <activity
             android:name=".BookingWizardActivity"
             android:screenOrientation="portrait"
+            android:configChanges="screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.VelocitySuites" />
 

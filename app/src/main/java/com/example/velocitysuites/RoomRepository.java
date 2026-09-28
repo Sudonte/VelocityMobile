@@ -716,14 +716,17 @@ public final class RoomRepository {
      * Creates a "New Reservation" transaction covering every selected room
      * type/quantity/amenity, same shape as createReservation(List, ...)
      * above, PLUS submits real GCash payment as part of this same atomic
-     * request (reference number, mobile number, receipt image, amount) -
-     * used only when the guest chooses GCash on Step7PaymentMethodFragment
-     * and actually completes the GCash portal during Reservation creation
-     * itself (Step 5 of 5), rather than deferring payment to a later Pay
-     * Now action. The resulting Reservation does NOT auto-convert into a
-     * Booking - see Api\ReservationController::store()'s own doc: this
-     * deliberately does not go through submitGcashPayment()/
-     * Api\PaymentController::store(), which is what actually triggers
+     * request (reference number, mobile number, receipt image, amount).
+     * No longer called by any caller as of 2026-09-28 (later same day) -
+     * Step8ReviewPaymentFragment's Confirm Reservation now always uses plain
+     * createReservation(List, ...) instead, per a product decision that
+     * Confirm Reservation must never redirect into the payment workflow (see
+     * PaymentActivity#EXTRA_PENDING_RESERVATION's docblock). Kept in place,
+     * not removed, in case GCash-at-creation for Reservations is revived: the
+     * resulting Reservation would NOT auto-convert into a Booking - see
+     * Api\ReservationController::store()'s own doc: this deliberately does
+     * not go through submitGcashPayment()/Api\PaymentController::store(),
+     * which is what actually triggers
      * ReservationWorkflowService::tryAutoConvert(). The Reservation stays a
      * Reservation, with its payment sitting "Pending Verification" directly
      * against it - ApiMapper already reads a pre-conversion Reservation's

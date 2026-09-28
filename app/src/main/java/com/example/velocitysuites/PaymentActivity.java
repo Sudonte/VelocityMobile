@@ -55,37 +55,29 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     public static final String EXTRA_PENDING_BOOKING = "PENDING_BOOKING";
     /**
-     * Set by Step8ReviewPaymentFragment's Confirm button for a fresh
-     * Reservation when GCash is chosen (reservation mode, not editing): no
-     * Reservation row exists yet - PendingReservationPayload carries the
-     * reviewed wizard state, and RoomRepository#createReservationWithPayment()
-     * is only called once this screen's GCash submission succeeds (see
-     * submitPendingReservationSingleCall()). A fresh Cash Reservation never
-     * sets this - it's created directly by Step8ReviewPaymentFragment itself,
-     * no payment.xml hand-off (unchanged). Re-wired 2026-09-28 (previously
-     * dead - a fresh Reservation's GCash choice used to always defer payment
-     * to a later Pay Now action, which auto-converts to a Booking on
-     * success; this path deliberately does not, so the guest gets a real
-     * Reservation confirmation + ID for a Reservation transaction, per an
-     * explicit product decision) - the isPendingReservationMode code this
-     * gates is live again, not dead code.
-     *
-     * IMPORTANT: must NOT also feed into freshReservation (see that field's
-     * own doc) - the two were briefly conflated on the same 2026-09-28
-     * re-wire, which made proceedToGcashButton silently take the "Proceed &
-     * Pay Later" no-payment shortcut for every pending reservation, so the
-     * GCash form (and this whole atomic create-with-payment path) was never
-     * actually reachable despite being fully wired. Fixed 2026-09-28 (later
-     * same day) - keep these two flags independent.
+     * Legacy flag, no longer set by any caller as of 2026-09-28 (later same
+     * day) - Step8ReviewPaymentFragment's Confirm Reservation button now
+     * always creates the Reservation directly (Cash or GCash alike) and
+     * never hands off to this screen, per an explicit product decision that
+     * Confirm Reservation must never redirect into the payment workflow. Was
+     * briefly live earlier the same day (PendingReservationPayload carrying
+     * the reviewed wizard state, RoomRepository#createReservationWithPayment()
+     * called once this screen's GCash submission succeeded - see
+     * submitPendingReservationSingleCall()) for a same-day GCash-at-creation
+     * experiment that was then reverted. The gated code (isPendingReservationMode,
+     * submitPendingReservationSingleCall(), PendingReservationPayload,
+     * RoomRepository#createReservationWithPayment()) is kept in place rather
+     * than surgically removed, same rationale as EXTRA_FRESH_RESERVATION
+     * below - a future product decision could revive it, and removing it
+     * carries more risk than leaving it provably unreachable.
      */
     public static final String EXTRA_PENDING_RESERVATION = "PENDING_RESERVATION";
     /**
      * Legacy flag, no longer set by any caller - freshReservation is now
      * effectively always false in practice, which is correct: it must never
      * be inferred from isPendingReservationMode (see EXTRA_PENDING_RESERVATION's
-     * own doc) - that would silently re-disable the real GCash payment form
-     * for every pending reservation again. Kept only as a defensive
-     * extra-read in case of a future/other caller.
+     * own doc), which is itself always false now too. Kept only as a
+     * defensive extra-read in case of a future/other caller.
      */
     public static final String EXTRA_FRESH_RESERVATION = "FRESH_RESERVATION";
 
