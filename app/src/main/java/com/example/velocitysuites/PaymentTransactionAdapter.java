@@ -80,6 +80,15 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         holder.ivIcon.setColorFilter(ctx.getColor(fgColorRes));
         holder.ivIcon.setImageResource(iconRes);
 
+        // Color-coded status badge - same cancelled/pending/successful classification
+        // already computed above for the title/icon, just also shown as a distinct pill
+        // (task requirement: a color-coded status badge on each Transaction History card).
+        if (holder.tvStatusBadge != null) {
+            holder.tvStatusBadge.setText(title);
+            holder.tvStatusBadge.setBackgroundTintList(ctx.getColorStateList(bgColorRes));
+            holder.tvStatusBadge.setTextColor(ctx.getColor(fgColorRes));
+        }
+
         String typeLabel = b.isHasBooking()
                 ? ctx.getString(R.string.ptx_type_booking_payment)
                 : ctx.getString(R.string.ptx_type_reservation_payment);
@@ -145,7 +154,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvSubtitle, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable;
+        TextView tvTitle, tvSubtitle, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
         MaterialCardView iconContainer;
         ImageView ivIcon;
         View layoutReceiptsAvailable;
@@ -155,6 +164,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             iconContainer = itemView.findViewById(R.id.iconContainerPtx);
             ivIcon = itemView.findViewById(R.id.ivPtxIcon);
             tvTitle = itemView.findViewById(R.id.tvPtxTitle);
+            tvStatusBadge = itemView.findViewById(R.id.tvPtxStatusBadge);
             tvSubtitle = itemView.findViewById(R.id.tvPtxSubtitle);
             tvDate = itemView.findViewById(R.id.tvPtxDate);
             tvAmount = itemView.findViewById(R.id.tvPtxAmount);

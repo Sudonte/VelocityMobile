@@ -62,20 +62,39 @@ public class NotificationPollWorker extends Worker {
             return Result.success();
         }
 
-        // RoomRepository's own refreshNotifications() is callback-based (built for the
-        // UI thread); doWork() already runs on a background thread pool, so bridging it
-        // to a blocking call here is the standard WorkManager pattern rather than
-        // re-implementing the fetch+mapping logic a second time.
-        CountDownLatch latch = new CountDownLatch(1);
-        boolean[] succeeded = {false};
+        // RoomRepository's own refreshNotifications()/refreshBookings() are callback-based
+        // (built for the UI thread); doWork() already runs on a background thread pool, so
+        // bridging both to one blocking wait here is the standard WorkManager pattern
+        // rather than re-implementing the fetch+mapping logic a second time. Both fetches
+        // fire together (not sequentially) so this job doesn't take twice as long, and
+        // Transaction History gets the same background freshness Notifications already had -
+        // a guest who never reopens the app between visits still sees an up-to-date
+        // booking/payment status the next time they check, not just new notifications.
+        RoomRepository repository = RoomRepository.getInstance(context);
+        CountDownLatch latch = new CountDownLatch(2);
+        boolean[] notificationsSucceeded = {false};
+        boolean[] bookingsSucceeded = {false};
 
-        RoomRepository.getInstance(context).refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+        repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
                 // NotificationHelper.maybeAlertNewNotifications() already runs inside
                 // refreshNotifications() itself (see RoomRepository) - nothing further
                 // to do here beyond releasing the latch.
-                succeeded[0] = true;
+                notificationsSucceeded[0] = true;
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(String message) {
+                latch.countDown();
+            }
+        });
+
+        repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
+            @Override
+            public void onSuccess(List<Booking> result) {
+                bookingsSucceeded[0] = true;
                 latch.countDown();
             }
 
@@ -92,6 +111,10 @@ public class NotificationPollWorker extends Worker {
             return Result.retry();
         }
 
-        return succeeded[0] ? Result.success() : Result.retry();
+        // Retry only if BOTH failed - a partial success plus this job's own 15-minute
+        // recurrence (and the foreground 30s polls whenever the guest has the app open,
+        // which remain the primary freshness mechanism) is enough; no need to burn a
+        // retry attempt over one of the two failing transiently.
+        return (notificationsSucceeded[0] || bookingsSucceeded[0]) ? Result.success() : Result.retry();
     }
 }

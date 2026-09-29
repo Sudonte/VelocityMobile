@@ -65,6 +65,19 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private String selectedBookingId = null;
     private boolean pendingScrollToSelected = false;
 
+    // Silent polling refresh, same pattern/interval as NotificationActivity's own 30s
+    // auto-poll - keeps booking/payment status current without the guest needing to
+    // pull-to-refresh or leave and re-enter the screen.
+    private static final long AUTO_REFRESH_MS = 30000;
+    private final android.os.Handler autoRefreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable autoRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            loadTransactions(false);
+            autoRefreshHandler.postDelayed(this, AUTO_REFRESH_MS);
+        }
+    };
+
     private final ActivityResultLauncher<String> createDocumentLauncher = registerForActivityResult(
             new ActivityResultContracts.CreateDocument(),
             uri -> {
@@ -96,11 +109,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         ImageView emptyIcon = layoutEmptyState != null ? layoutEmptyState.findViewById(R.id.emptyIcon) : null;
         btnEmptyAction = layoutEmptyState != null ? layoutEmptyState.findViewById(R.id.btnEmptyAction) : null;
         if (emptyIcon != null) emptyIcon.setImageResource(R.drawable.ic_transaction_history);
-        if (btnEmptyAction != null) {
-            btnEmptyAction.setText(R.string.clear_filters);
-            btnEmptyAction.setIconResource(R.drawable.ic_filter);
-            btnEmptyAction.setOnClickListener(v -> clearAllFiltersAndSearch());
-        }
+        resetEmptyActionToClearFilters();
 
         setupRecyclerView();
         setupFilters();
@@ -119,7 +128,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         selectedBookingId = getIntent().getStringExtra(EXTRA_SELECTED_BOOKING_ID);
         pendingScrollToSelected = selectedBookingId != null;
 
-        loadTransactions();
+        loadTransactions(true);
 
         View btnExport = findViewById(R.id.btnExport);
         if (btnExport != null) {
@@ -368,13 +377,21 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
 
     private void setupSwipeRefresh() {
         swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
-        swipeRefresh.setOnRefreshListener(this::loadTransactions);
+        // The pull gesture already shows the spinner itself, so this listener doesn't
+        // need to turn it on again - loadTransactions() turns it off once done.
+        swipeRefresh.setOnRefreshListener(() -> loadTransactions(false));
     }
 
-    /** Shows the pull-to-refresh spinner for both the initial load and manual refreshes,
-     *  so the guest gets visual feedback while transactions are being fetched. */
-    private void loadTransactions() {
-        if (swipeRefresh != null) swipeRefresh.setRefreshing(true);
+    /**
+     * @param showLoadingIndicator whether to show the pull-to-refresh spinner while this
+     *                             fetch is in flight. False for the silent 30s auto-poll
+     *                             (see autoRefreshRunnable) and pull-to-refresh (which
+     *                             already shows its own spinner) so neither flashes it a
+     *                             second time; true for the initial load and any explicit
+     *                             user-triggered retry.
+     */
+    private void loadTransactions(boolean showLoadingIndicator) {
+        if (showLoadingIndicator && swipeRefresh != null) swipeRefresh.setRefreshing(true);
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
@@ -386,9 +403,40 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             @Override
             public void onError(String message) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                Toast.makeText(TransactionHistoryActivity.this, getString(R.string.error_load_transactions_format, message), Toast.LENGTH_LONG).show();
+                // Same rule as NotificationActivity's identical guard: a transient
+                // refresh/auto-poll failure with a list already on screen just gets a
+                // toast - replacing a working list with a scary error screen over a
+                // momentary network blip would be worse than doing nothing. Only the
+                // genuine "never successfully loaded anything yet" case gets the full
+                // error state, with a real retry action (not "Clear Filters", which
+                // would do nothing useful against an empty allBookings).
+                if (allBookings.isEmpty()) {
+                    rvTransactions.setVisibility(View.GONE);
+                    layoutEmptyState.setVisibility(View.VISIBLE);
+                    if (tvEmptyTitle != null) tvEmptyTitle.setText(R.string.no_transactions_load_error_title);
+                    if (tvEmptyDesc != null) tvEmptyDesc.setText(R.string.no_transactions_load_error_desc);
+                    setEmptyActionButton(R.string.refresh_label, R.drawable.ic_clock, v -> loadTransactions(true));
+                } else {
+                    Toast.makeText(TransactionHistoryActivity.this, getString(R.string.error_load_transactions_format, message), Toast.LENGTH_LONG).show();
+                }
             }
         });
+    }
+
+    /**
+     * Re-wires the shared empty-state action button - used both for the load-error retry
+     * above and to restore "Clear Filters" mode (resetEmptyActionToClearFilters()) so a
+     * prior error-state wiring never leaks into a later filtered-empty state or vice versa.
+     */
+    private void setEmptyActionButton(int textRes, int iconRes, View.OnClickListener listener) {
+        if (btnEmptyAction == null) return;
+        btnEmptyAction.setText(textRes);
+        btnEmptyAction.setIconResource(iconRes);
+        btnEmptyAction.setOnClickListener(listener);
+    }
+
+    private void resetEmptyActionToClearFilters() {
+        setEmptyActionButton(R.string.clear_filters, R.drawable.ic_filter, v -> clearAllFiltersAndSearch());
     }
 
     /** Resets search text, filter chip, and date range, then re-applies - wired to the
@@ -603,6 +651,11 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             if (tvEmptyTitle != null) tvEmptyTitle.setText(R.string.no_transactions_found);
             if (tvEmptyDesc != null) tvEmptyDesc.setText(descRes);
             if (btnEmptyAction != null) {
+                // Always restore "Clear Filters" mode here, even if the button is about to
+                // be hidden - a prior load failure (see loadTransactions()'s onError) can
+                // leave it wired to "Refresh"/retry, which must never survive into this,
+                // unrelated, filtered-empty state.
+                resetEmptyActionToClearFilters();
                 btnEmptyAction.setVisibility(filtersActive ? View.VISIBLE : View.GONE);
             }
         } else {
@@ -658,6 +711,17 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadTransactions();
+        // Unconditional immediate refresh on every visit to this screen (pre-existing
+        // behavior, kept as-is) - the 30s silent poll below is additive, for staying
+        // current during a single, longer visit without the guest needing to leave
+        // and re-enter or pull-to-refresh.
+        loadTransactions(true);
+        autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
     }
 }
