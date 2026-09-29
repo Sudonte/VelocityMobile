@@ -1,9 +1,11 @@
 package com.example.velocitysuites;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -19,6 +21,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public interface OnNotificationClickListener {
         void onNotificationClick(Notification notification);
+        /** Tapped the per-row mark-as-read/unread toggle - distinct from the whole-card tap above. */
+        void onToggleReadClick(Notification notification);
     }
 
     public NotificationAdapter(List<Notification> notifications, OnNotificationClickListener listener) {
@@ -41,6 +45,24 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Notification notification = notifications.get(position);
+        Context ctx = holder.itemView.getContext();
+
+        // Date-group header ("Today"/"Yesterday"/"Earlier") - shown only above the first
+        // row of each new group; list is already newest-first from the backend, so a
+        // simple compare-to-previous-row is enough, no separate sort/grouping pass needed.
+        if (holder.tvDateGroup != null) {
+            long now = System.currentTimeMillis();
+            String group = NotificationDateGrouper.groupLabel(ctx, notification.getCreatedAtMillis(), now);
+            boolean isFirstInGroup = position == 0
+                    || !group.equals(NotificationDateGrouper.groupLabel(ctx, notifications.get(position - 1).getCreatedAtMillis(), now));
+            if (isFirstInGroup) {
+                holder.tvDateGroup.setVisibility(View.VISIBLE);
+                holder.tvDateGroup.setText(group);
+            } else {
+                holder.tvDateGroup.setVisibility(View.GONE);
+            }
+        }
+
         holder.tvTitle.setText(notification.getTitle());
         holder.tvMessage.setText(notification.getMessage());
         // Absolute "Sep 9, 2026 • 2:37 AM" (Asia/Manila, from the notification's
@@ -66,6 +88,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 iconRes = R.drawable.ic_booking;
                 bgColor = R.color.velocity_red_bg_start;
                 iconColor = R.color.velocity_red_primary;
+                break;
+            case Notification.TYPE_RESERVATION:
+                iconRes = R.drawable.ic_reservation;
+                bgColor = R.color.velocity_red_subtle;
+                iconColor = R.color.velocity_red_dark;
                 break;
             case Notification.TYPE_CHECK_IN:
                 iconRes = R.drawable.ic_clock;
@@ -101,29 +128,45 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         if (notification.isRead()) {
             holder.unreadDot.setVisibility(View.GONE);
             holder.card.setCardElevation(0f);
-            holder.card.setStrokeColor(holder.itemView.getContext().getColor(R.color.velocity_red_subtle));
-            holder.card.setCardBackgroundColor(holder.itemView.getContext().getColor(R.color.velocity_surface_elevated));
-            holder.itemView.setAlpha(0.7f);
+            holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_subtle));
+            holder.card.setCardBackgroundColor(ctx.getColor(R.color.velocity_surface_elevated));
+            holder.card.setAlpha(0.7f);
         } else {
             holder.unreadDot.setVisibility(View.VISIBLE);
             holder.card.setCardElevation(4f);
-            holder.card.setStrokeColor(holder.itemView.getContext().getColor(R.color.velocity_red_primary));
-            holder.card.setCardBackgroundColor(holder.itemView.getContext().getColor(R.color.velocity_surface_elevated));
-            holder.itemView.setAlpha(1.0f);
+            holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_primary));
+            holder.card.setCardBackgroundColor(ctx.getColor(R.color.velocity_surface_elevated));
+            holder.card.setAlpha(1.0f);
         }
 
-        holder.itemView.setOnClickListener(v -> {
+        // Set on the card itself, not holder.itemView (the outer wrapper that also
+        // contains the shared date-group header above - see item_notification.xml) -
+        // otherwise a tap anywhere in the header's row would also fire this, and the
+        // read/unread alpha above would dim the header text along with the card.
+        holder.card.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onNotificationClick(notification);
             }
         });
+
+        if (holder.btnToggleReadState != null) {
+            boolean isRead = notification.isRead();
+            holder.btnToggleReadState.setContentDescription(
+                    ctx.getString(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action));
+            holder.btnToggleReadState.setColorFilter(
+                    ctx.getColor(isRead ? R.color.velocity_inactive_gray : R.color.velocity_red_primary));
+            holder.btnToggleReadState.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onToggleReadClick(notification);
+                }
+            });
+        }
 
         if (holder.tvCategory != null) {
             holder.tvCategory.setText(notification.getType());
         }
 
         if (holder.tvStatusPill != null) {
-            android.content.Context ctx = holder.itemView.getContext();
             NotificationStatusResolver.Result status = NotificationStatusResolver.resolve(ctx, notification);
             if (status != null) {
                 holder.tvStatusPill.setVisibility(View.VISIBLE);
@@ -144,7 +187,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // scrolls into that slot next, since setStrokeWidth() is stateful on the
         // underlying View and nothing else in this method resets it.
         if (highlightedNotificationId != null && highlightedNotificationId.equals(notification.getId())) {
-            android.content.Context ctx = holder.itemView.getContext();
             holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_primary));
             holder.card.setStrokeWidth((int) (2 * ctx.getResources().getDisplayMetrics().density));
         } else {
@@ -158,8 +200,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvMessage, tvTime, tvCategory, tvStatusPill;
+        TextView tvTitle, tvMessage, tvTime, tvCategory, tvStatusPill, tvDateGroup;
         ImageView ivIcon;
+        ImageButton btnToggleReadState;
         View unreadDot;
         MaterialCardView card;
         MaterialCardView iconContainer;
@@ -171,7 +214,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvTime = itemView.findViewById(R.id.tvNotificationTime);
             tvCategory = itemView.findViewById(R.id.tvNotificationCategory);
             tvStatusPill = itemView.findViewById(R.id.tvNotificationStatusPill);
+            tvDateGroup = itemView.findViewById(R.id.tvNotificationDateGroup);
             ivIcon = itemView.findViewById(R.id.ivNotificationIcon);
+            btnToggleReadState = itemView.findViewById(R.id.btnToggleReadState);
             unreadDot = itemView.findViewById(R.id.unreadDot);
             card = itemView.findViewById(R.id.cardNotification);
             iconContainer = (MaterialCardView) itemView.findViewById(R.id.iconContainer);

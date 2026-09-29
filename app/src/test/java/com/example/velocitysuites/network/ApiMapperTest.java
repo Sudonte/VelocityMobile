@@ -1,9 +1,11 @@
 package com.example.velocitysuites.network;
 
 import com.example.velocitysuites.Booking;
+import com.example.velocitysuites.Notification;
 import com.example.velocitysuites.network.dto.BillingDto;
 import com.example.velocitysuites.network.dto.BookingDto;
 import com.example.velocitysuites.network.dto.BookingRoomDto;
+import com.example.velocitysuites.network.dto.NotificationDto;
 import com.example.velocitysuites.network.dto.ReservationDto;
 import com.example.velocitysuites.network.dto.RoomTypeDto;
 
@@ -210,5 +212,43 @@ public class ApiMapperTest {
         assertTrue(booking.getRooms().isEmpty());
         assertEquals("Deluxe", booking.getRoomType());
         assertTrue(booking.isHasBooking());
+    }
+
+    /**
+     * The backend's category='reservation' (split out from the previously-overloaded
+     * 'booking' - see NotificationService::notifyNewBooking()/notifyNewDirectBooking()'s
+     * docblocks) must map to the dedicated TYPE_RESERVATION, distinct from TYPE_BOOKING -
+     * this is the exact fix for the historical bug where a Reservation and a direct
+     * Booking notification were indistinguishable to the guest app.
+     */
+    @Test
+    public void toNotification_reservationCategory_mapsToTypeReservation() {
+        NotificationDto dto = new NotificationDto();
+        dto.id = 900;
+        dto.title = "Reservation Pending";
+        dto.message = "Your reservation for Deluxe is pending confirmation.";
+        dto.category = "reservation";
+        dto.reference_id = 55L;
+        dto.is_read = false;
+        dto.created_at = "2026-09-29T10:00:00Z";
+
+        Notification notification = ApiMapper.toNotification(dto);
+
+        assertEquals(Notification.TYPE_RESERVATION, notification.getType());
+    }
+
+    @Test
+    public void toNotification_bookingCategory_stillMapsToTypeBooking() {
+        NotificationDto dto = new NotificationDto();
+        dto.id = 901;
+        dto.title = "Booking Pending";
+        dto.message = "Your booking for Deluxe is pending confirmation.";
+        dto.category = "booking";
+        dto.is_read = false;
+        dto.created_at = "2026-09-29T10:00:00Z";
+
+        Notification notification = ApiMapper.toNotification(dto);
+
+        assertEquals(Notification.TYPE_BOOKING, notification.getType());
     }
 }

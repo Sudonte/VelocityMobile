@@ -1855,6 +1855,30 @@ public final class RoomRepository {
     }
 
     /** @param onDone receives true only if the server actually confirmed the read-state change. */
+    public void markNotificationAsUnread(String notificationId, java.util.function.Consumer<Boolean> onDone) {
+        api.markNotificationUnread(notificationId).enqueue(new Callback<NotificationDto>() {
+            @Override
+            public void onResponse(Call<NotificationDto> call, Response<NotificationDto> response) {
+                boolean success = response.isSuccessful();
+                if (success) {
+                    for (Notification n : notifications) {
+                        if (n.getId().equals(notificationId)) {
+                            n.setRead(false);
+                            break;
+                        }
+                    }
+                }
+                if (onDone != null) onDone.accept(success);
+            }
+
+            @Override
+            public void onFailure(Call<NotificationDto> call, Throwable t) {
+                if (onDone != null) onDone.accept(false);
+            }
+        });
+    }
+
+    /** @param onDone receives true only if the server actually confirmed the read-state change. */
     public void markAllNotificationsAsRead(java.util.function.Consumer<Boolean> onDone) {
         api.markAllNotificationsRead().enqueue(new Callback<ApiMessage>() {
             @Override

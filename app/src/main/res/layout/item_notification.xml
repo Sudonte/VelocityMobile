@@ -1,16 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/cardNotification"
-    style="@style/Widget.Velocity.Card.Glass.Compact"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginBottom="7dp"
-    android:clickable="true"
-    android:focusable="true"
-    app:rippleColor="@color/velocity_red_subtle">
+    android:orientation="vertical">
+
+    <!-- Date-group header ("Today"/"Yesterday"/"Earlier") - GONE by default, shown by
+         NotificationAdapter only for the first row of each new group (see
+         NotificationDateGrouper). Outside cardNotification's own border/background so
+         it reads as a section label above the card, not part of its content. -->
+    <TextView
+        android:id="@+id/tvNotificationDateGroup"
+        style="@style/TextAppearance.Velocity.Label.Section"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="6dp"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Today" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardNotification"
+        style="@style/Widget.Velocity.Card.Glass.Compact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="7dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:rippleColor="@color/velocity_red_subtle">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -140,14 +162,33 @@
 
         <!-- Decorative chevron - signals the whole card is tappable for full details. -->
         <ImageView
+            android:id="@+id/ivNotificationChevron"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:layout_marginTop="10dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_arrow_forward"
             app:tint="@color/velocity_inactive_gray"
+            app:layout_constraintBottom_toBottomOf="@+id/btnToggleReadState"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/layoutNotificationBadges" />
+            app:layout_constraintTop_toTopOf="@+id/btnToggleReadState" />
+
+        <!-- Mark as read/unread toggle - separately clickable from the card's own
+             tap-for-details gesture (a nested clickable View naturally consumes its own
+             touch, see NotificationAdapter). Icon/description swapped in code based on
+             the row's current read state. -->
+        <ImageButton
+            android:id="@+id/btnToggleReadState"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_eye"
+            app:tint="@color/velocity_inactive_gray"
+            app:layout_constraintEnd_toStartOf="@+id/ivNotificationChevron"
+            app:layout_constraintTop_toBottomOf="@+id/layoutNotificationBadges"
+            tools:contentDescription="@string/mark_as_read_action" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</com.google.android.material.card.MaterialCardView>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Notification implements Serializable {
     public static final String TYPE_BOOKING = "Booking";
+    public static final String TYPE_RESERVATION = "Reservation";
     public static final String TYPE_PAYMENT = "Payment";
     public static final String TYPE_CHECK_IN = "CheckIn";
     public static final String TYPE_PROMOTION = "Promotion";
@@ -21,6 +22,8 @@ public class Notification implements Serializable {
     private String referenceId;
     private List<String> targetAudience;
     private String publishedAt;
+    /** Raw created_at, epoch millis - 0 when unset (every constructor but the 12-arg one below). Only for Today/Yesterday/Earlier date-grouping on the Notification screen; every other display already uses timestamp/publishedAt above. */
+    private long createdAtMillis;
     /** The exact receipt this notification is about (e.g. "PR-20260925-000501"), or null - see ReceiptTypeMapper's PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT/OFFICIAL_RECEIPT constants for receiptType's possible values. Backend-authoritative only: never inferred from the message text, never guessed from booking status - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §8. Null for every notification created before this metadata existed and for every non-payment notification, which must keep behaving exactly as before. */
     @androidx.annotation.Nullable
     private String receiptNumber;
@@ -41,6 +44,11 @@ public class Notification implements Serializable {
 
     public Notification(String id, String title, String message, String timestamp, String type, boolean isRead, String referenceId, List<String> targetAudience, String publishedAt,
                          @androidx.annotation.Nullable String receiptNumber, @androidx.annotation.Nullable String receiptType) {
+        this(id, title, message, timestamp, type, isRead, referenceId, targetAudience, publishedAt, receiptNumber, receiptType, 0L);
+    }
+
+    public Notification(String id, String title, String message, String timestamp, String type, boolean isRead, String referenceId, List<String> targetAudience, String publishedAt,
+                         @androidx.annotation.Nullable String receiptNumber, @androidx.annotation.Nullable String receiptType, long createdAtMillis) {
         this.id = id;
         this.title = title;
         this.message = message;
@@ -52,6 +60,7 @@ public class Notification implements Serializable {
         this.publishedAt = publishedAt;
         this.receiptNumber = receiptNumber;
         this.receiptType = receiptType;
+        this.createdAtMillis = createdAtMillis;
     }
 
     // Getters
@@ -67,6 +76,8 @@ public class Notification implements Serializable {
     public List<String> getTargetAudience() { return targetAudience; }
     /** Absolute "MMM dd, yyyy at h:mm a" formatted publish date/time, distinct from the relative getTimestamp(). */
     public String getPublishedAt() { return publishedAt; }
+    /** Raw created_at as epoch millis, or 0 if unset - see the field's own doc above. */
+    public long getCreatedAtMillis() { return createdAtMillis; }
     /** Exact backend receipt_number this notification is about, or null - see this field's own doc above. */
     @androidx.annotation.Nullable
     public String getReceiptNumber() { return receiptNumber; }

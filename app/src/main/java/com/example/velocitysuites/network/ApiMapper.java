@@ -873,6 +873,7 @@ public final class ApiMapper {
         if (dto.category != null) {
             switch (dto.category) {
                 case "booking": type = com.example.velocitysuites.Notification.TYPE_BOOKING; break;
+                case "reservation": type = com.example.velocitysuites.Notification.TYPE_RESERVATION; break;
                 case "payment": type = com.example.velocitysuites.Notification.TYPE_PAYMENT; break;
                 case "check_in":
                 case "check_out":
@@ -898,7 +899,8 @@ public final class ApiMapper {
                 dto.target_audience,
                 absoluteDateTime(dto.created_at),
                 dto.receipt_number,
-                dto.receipt_type
+                dto.receipt_type,
+                epochMillis(dto.created_at)
         );
     }
 

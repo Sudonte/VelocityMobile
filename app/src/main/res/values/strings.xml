@@ -428,10 +428,16 @@
     <string name="search_notifications_hint">Search notifications, reference number, room type, payment status, or keyword</string>
     <string name="notif_filter_all_label">All Notifications</string>
     <string name="notif_filter_checkin">Check-in</string>
-    <string name="notif_filter_promotion">Promotions</string>
+    <string name="notif_filter_promotion">Promotions &amp; Discounts</string>
     <string name="notif_filter_system">System</string>
+    <string name="notif_filter_count_format">%1$s (%2$d)</string>
     <string name="no_notifications_load_error_title">Unable to Load Notifications</string>
     <string name="no_notifications_load_error_desc">Please check your internet connection and try again.</string>
+    <string name="no_category_notifications_title_format">No %1$s Notifications</string>
+    <string name="no_category_notifications_desc_format">No %1$s notifications yet.</string>
+    <string name="notif_date_group_today">Today</string>
+    <string name="notif_date_group_yesterday">Yesterday</string>
+    <string name="notif_date_group_earlier">Earlier</string>
     <string name="room_type_filter_label">Room Type</string>
     <string name="room_type_filter_title">Filter by Room Type</string>
     <string name="booking_status_filter_label">Booking Status</string>
@@ -844,6 +850,8 @@
     <string name="recent_alerts_label">RECENT ALERTS</string>
     <string name="mark_all_read_label">Mark all as read</string>
     <string name="confirm_mark_all_read_msg">Mark all notifications as read? This can\'t be undone.</string>
+    <string name="mark_as_read_action">Mark as read</string>
+    <string name="mark_as_unread_action">Mark as unread</string>
     <string name="error_load_notifications_format">Couldn\'t load notifications: %1$s</string>
 
     <!-- Booking and Reservation Module Strings -->
@@ -1236,6 +1244,8 @@
     <string name="downloads_folder_name">Downloads</string>
     <string name="error_load_transactions_format">Couldn\'t load transactions: %1$s</string>
     <string name="empty_transactions_no_activity_desc">Your transaction history is empty. Completed bookings and payments will appear here.</string>
+    <string name="no_transactions_load_error_title">Unable to Load Transactions</string>
+    <string name="no_transactions_load_error_desc">Please check your internet connection and try again.</string>
     <string name="msg_mark_all_read">All notifications marked as read</string>
     <string name="no_notifications_title">No Notifications Available</string>
     <string name="no_notifications_desc">You have no notifications at this time. New updates and alerts will appear here.</string>

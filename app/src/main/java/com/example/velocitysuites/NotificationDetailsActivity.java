@@ -94,6 +94,11 @@ public class NotificationDetailsActivity extends AppCompatActivity {
                 bgColor = R.color.velocity_red_bg_start;
                 iconColor = R.color.velocity_red_primary;
                 break;
+            case Notification.TYPE_RESERVATION:
+                iconRes = R.drawable.ic_reservation;
+                bgColor = R.color.velocity_red_subtle;
+                iconColor = R.color.velocity_red_dark;
+                break;
             case Notification.TYPE_CHECK_IN:
                 iconRes = R.drawable.ic_clock;
                 bgColor = R.color.velocity_orange_primary;
@@ -169,16 +174,16 @@ public class NotificationDetailsActivity extends AppCompatActivity {
     private void bindPrimaryAction() {
         String referenceId = notification.getReferenceId();
         String type = notification.getType();
-        // Booking/Check-in notifications go straight to the richer Booking/Reservation
-        // Details screen when the linked record is still resolvable (relatedBooking, set
-        // by bindRelatedRecord() above) - a more direct destination than the Transaction
-        // History filter below, which stays the destination for Payment notifications
-        // (paired with the separate View Receipt button) and as the fallback for a
-        // Booking/Check-in notification whose record has since fallen out of cache.
-        boolean canViewBookingDetails = relatedBooking != null
-                && (Notification.TYPE_BOOKING.equals(type) || Notification.TYPE_CHECK_IN.equals(type));
-        boolean canViewTransaction = referenceId != null
-                && (Notification.TYPE_BOOKING.equals(type) || Notification.TYPE_PAYMENT.equals(type) || Notification.TYPE_CHECK_IN.equals(type));
+        // Booking/Reservation/Check-in notifications go straight to the richer Booking/
+        // Reservation Details screen when the linked record is still resolvable
+        // (relatedBooking, set by bindRelatedRecord() above) - a more direct destination
+        // than the Transaction History filter below, which stays the destination for
+        // Payment notifications (paired with the separate View Receipt button) and as
+        // the fallback for a Booking/Reservation/Check-in notification whose record has
+        // since fallen out of cache. See NotificationPrimaryActionResolver for the full
+        // per-type rule (unit-tested there).
+        boolean canViewBookingDetails = NotificationPrimaryActionResolver.canViewBookingDetails(type, relatedBooking != null);
+        boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(type, referenceId);
 
         MaterialButton btnPrimary = findViewById(R.id.btnNotifPrimaryAction);
         if (canViewBookingDetails) {

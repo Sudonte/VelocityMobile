@@ -338,6 +338,9 @@ public interface ApiService {
     @PUT("notifications/{id}/read")
     Call<NotificationDto> markNotificationRead(@Path("id") String id);
 
+    @PUT("notifications/{id}/unread")
+    Call<NotificationDto> markNotificationUnread(@Path("id") String id);
+
     @PUT("notifications/read-all")
     Call<ApiMessage> markAllNotificationsRead();
 }

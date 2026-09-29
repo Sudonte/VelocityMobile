@@ -23,13 +23,13 @@ public class NotificationActivity extends BaseNavigationActivity {
     public static final String EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID";
     private static final String FILTER_UNREAD = "Unread";
 
-    /** Internal filter keys, position-matched with NOTIF_FILTER_LABEL_RES below - the dropdown's selection maps back to the correct key regardless of locale. Preserves the exact 7 categories the old chip row used. */
+    /** Internal filter keys, position-matched with NOTIF_FILTER_LABEL_RES below - the dropdown's selection maps back to the correct key regardless of locale. Required order: All, Unread, Booking, Reservation, Payment, Check-in, Promotions, System. */
     private static final String[] NOTIF_FILTER_KEYS = {
-            "All", FILTER_UNREAD, Notification.TYPE_BOOKING, Notification.TYPE_PAYMENT,
+            "All", FILTER_UNREAD, Notification.TYPE_BOOKING, Notification.TYPE_RESERVATION, Notification.TYPE_PAYMENT,
             Notification.TYPE_CHECK_IN, Notification.TYPE_PROMOTION, Notification.TYPE_SYSTEM
     };
     private static final int[] NOTIF_FILTER_LABEL_RES = {
-            R.string.notif_filter_all_label, R.string.filter_unread, R.string.quick_action_booking,
+            R.string.notif_filter_all_label, R.string.filter_unread, R.string.quick_action_booking, R.string.quick_action_reservation,
             R.string.payment_status, R.string.notif_filter_checkin, R.string.notif_filter_promotion,
             R.string.notif_filter_system
     };
@@ -129,9 +129,29 @@ public class NotificationActivity extends BaseNavigationActivity {
                     // right after this dialog's auto-dismiss can't fire a second
                     // concurrent mark-all-read call.
                     triggerButton.setEnabled(false);
+
+                    // Optimistic: flip every currently-unread item immediately, remembering
+                    // exactly which ones so a failed request can revert precisely those -
+                    // never an item that was already read before this tap.
+                    List<Notification> flipped = new ArrayList<>();
+                    for (Notification n : allNotifications) {
+                        if (!n.isRead()) {
+                            n.setRead(true);
+                            flipped.add(n);
+                        }
+                    }
+                    updateNotificationBadge();
+                    updateFilterLabelsWithCounts();
+                    applyFilters();
+
                     repository.markAllNotificationsAsRead(success -> {
                         triggerButton.setEnabled(true);
-                        loadNotifications(true);
+                        if (!success) {
+                            for (Notification n : flipped) n.setRead(false);
+                            updateNotificationBadge();
+                            updateFilterLabelsWithCounts();
+                            applyFilters();
+                        }
                         Toast.makeText(this, success ? R.string.msg_mark_all_read : R.string.network_error, Toast.LENGTH_SHORT).show();
                     });
                 })
@@ -153,15 +173,64 @@ public class NotificationActivity extends BaseNavigationActivity {
 
     private void setupRecyclerView() {
         rvNotifications.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new NotificationAdapter(notificationList, notification -> {
-            showNotificationDetails(notification);
-            repository.markNotificationAsRead(notification.getId(), success -> loadNotifications(false));
+        adapter = new NotificationAdapter(notificationList, new NotificationAdapter.OnNotificationClickListener() {
+            @Override
+            public void onNotificationClick(Notification notification) {
+                showNotificationDetails(notification);
+                setReadStateOptimistic(notification, true);
+            }
+
+            @Override
+            public void onToggleReadClick(Notification notification) {
+                setReadStateOptimistic(notification, !notification.isRead());
+            }
         });
         rvNotifications.setAdapter(adapter);
     }
 
     private void showNotificationDetails(Notification notification) {
         startActivity(NotificationDetailsActivity.newIntent(this, notification));
+    }
+
+    /**
+     * Flips a notification's read state immediately (before the network call resolves)
+     * so the row/badges/counts update instantly, then confirms with the backend in the
+     * background and reverts on failure. Single entry point for every read-state-changing
+     * action on this screen (tap-to-view, the per-row toggle, the deep-link auto-open, see
+     * openPendingDetailIfAny()) - replaces the old pattern of a full loadNotifications()
+     * reload after every mark-as-read, which cost a second, redundant network round-trip
+     * just to repaint the row, and left the dot visibly stale if that second call had a
+     * transient failure even though the mark-as-read itself had already genuinely succeeded.
+     */
+    private void setReadStateOptimistic(Notification notification, boolean newReadState) {
+        boolean previousState = notification.isRead();
+        if (previousState == newReadState) return;
+
+        notification.setRead(newReadState);
+        notifyNotificationChanged(notification);
+
+        java.util.function.Consumer<Boolean> onDone = success -> {
+            if (!success) {
+                notification.setRead(previousState);
+                notifyNotificationChanged(notification);
+                Toast.makeText(this, R.string.network_error, Toast.LENGTH_SHORT).show();
+            }
+        };
+        if (newReadState) {
+            repository.markNotificationAsRead(notification.getId(), onDone);
+        } else {
+            repository.markNotificationAsUnread(notification.getId(), onDone);
+        }
+    }
+
+    /** Repaints exactly this notification's row (if currently visible under the active filter) plus the badges/per-filter counts that depend on read state - avoids a full list rebuild for a single-row change. */
+    private void notifyNotificationChanged(Notification notification) {
+        updateNotificationBadge();
+        updateFilterLabelsWithCounts();
+        int position = notificationList.indexOf(notification);
+        if (position >= 0) {
+            adapter.notifyItemChanged(position);
+        }
     }
 
     private void setupSwipeRefresh() {
@@ -197,6 +266,7 @@ public class NotificationActivity extends BaseNavigationActivity {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 allNotifications = result != null ? result : new ArrayList<>();
                 updateNotificationBadge();
+                updateFilterLabelsWithCounts();
                 applyFilters();
                 openPendingDetailIfAny();
             }
@@ -233,14 +303,50 @@ public class NotificationActivity extends BaseNavigationActivity {
             });
         }
         if (dropdownNotificationStatus != null) {
-            String[] labels = new String[NOTIF_FILTER_LABEL_RES.length];
-            for (int i = 0; i < NOTIF_FILTER_LABEL_RES.length; i++) labels[i] = getString(NOTIF_FILTER_LABEL_RES[i]);
-            dropdownNotificationStatus.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, labels));
+            updateFilterLabelsWithCounts();
             dropdownNotificationStatus.setOnItemClickListener((parent, view, position, id) -> {
                 currentFilter = NOTIF_FILTER_KEYS[position];
                 applyFilters();
             });
         }
+    }
+
+    /**
+     * Rebuilds the filter dropdown's option labels with an unread-count suffix, e.g.
+     * "Booking (3)" - omitted (no "(0)") for a filter with nothing unread, so an
+     * already-caught-up category stays visually quiet. "All" and "Unread" both show
+     * the same total-unread count; a category's count is only its own unread rows,
+     * not its total volume. Re-set on every successful load and after every optimistic
+     * read/unread mutation so the counts never visibly lag what the rows themselves
+     * show. Rebuilding the AutoCompleteTextView's suggestion adapter doesn't change
+     * whatever text is currently displayed in the box, so this never disturbs the
+     * guest's active filter selection.
+     */
+    private void updateFilterLabelsWithCounts() {
+        if (dropdownNotificationStatus == null) return;
+
+        int totalUnread = 0;
+        java.util.Map<String, Integer> unreadByType = new java.util.HashMap<>();
+        for (Notification n : allNotifications) {
+            if (n.isRead()) continue;
+            totalUnread++;
+            String type = n.getType();
+            // "System" filter merges TYPE_SYSTEM + TYPE_ANNOUNCEMENT - see applyFilters()'s identical rule.
+            String bucket = (Notification.TYPE_SYSTEM.equals(type) || Notification.TYPE_ANNOUNCEMENT.equals(type))
+                    ? Notification.TYPE_SYSTEM : type;
+            unreadByType.merge(bucket, 1, Integer::sum);
+        }
+
+        String[] labels = new String[NOTIF_FILTER_LABEL_RES.length];
+        for (int i = 0; i < NOTIF_FILTER_LABEL_RES.length; i++) {
+            String base = getString(NOTIF_FILTER_LABEL_RES[i]);
+            String key = NOTIF_FILTER_KEYS[i];
+            int count = ("All".equals(key) || FILTER_UNREAD.equals(key))
+                    ? totalUnread
+                    : (unreadByType.containsKey(key) ? unreadByType.get(key) : 0);
+            labels[i] = count > 0 ? getString(R.string.notif_filter_count_format, base, count) : base;
+        }
+        dropdownNotificationStatus.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, labels));
     }
 
     /**
@@ -278,6 +384,14 @@ public class NotificationActivity extends BaseNavigationActivity {
         return value != null && value.toLowerCase(Locale.US).contains(query);
     }
 
+    /** The active filter's plain display label (no unread-count suffix) - for the per-category empty-state message, not the dropdown itself. */
+    private String currentFilterDisplayLabel() {
+        for (int i = 0; i < NOTIF_FILTER_KEYS.length; i++) {
+            if (NOTIF_FILTER_KEYS[i].equals(currentFilter)) return getString(NOTIF_FILTER_LABEL_RES[i]);
+        }
+        return currentFilter;
+    }
+
     private void applyFilters() {
         notificationList.clear();
         for (Notification n : allNotifications) {
@@ -306,6 +420,14 @@ public class NotificationActivity extends BaseNavigationActivity {
             } else if (FILTER_UNREAD.equals(currentFilter)) {
                 if (emptyTitle != null) emptyTitle.setText(R.string.no_unread_notifications_title);
                 if (emptyDesc != null) emptyDesc.setText(R.string.no_unread_notifications_desc);
+            } else if (!"All".equals(currentFilter)) {
+                // A specific category filter (Booking/Reservation/Payment/CheckIn/
+                // Promotions/System) with zero matches - a friendlier, more specific
+                // message than the generic "no notifications yet" below, which would
+                // otherwise wrongly imply the account has no notifications at all.
+                String label = currentFilterDisplayLabel();
+                if (emptyTitle != null) emptyTitle.setText(getString(R.string.no_category_notifications_title_format, label));
+                if (emptyDesc != null) emptyDesc.setText(getString(R.string.no_category_notifications_desc_format, label));
             } else {
                 if (emptyTitle != null) emptyTitle.setText(R.string.no_notifications_title);
                 if (emptyDesc != null) emptyDesc.setText(R.string.no_notifications_desc);
@@ -355,7 +477,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         for (Notification n : allNotifications) {
             if (targetId.equals(n.getId())) {
                 showNotificationDetails(n);
-                repository.markNotificationAsRead(n.getId(), success -> loadNotifications(false));
+                setReadStateOptimistic(n, true);
                 break;
             }
         }
