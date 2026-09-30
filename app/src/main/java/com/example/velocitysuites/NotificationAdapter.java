@@ -271,9 +271,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // = the card's normal surface color. Deliberately no alpha-fade on the read
         // state anymore: dimming the whole card (including its text) hurt readability
         // for a guest re-checking an already-read notification, and conflicts with
-        // "read cards use the normal background" - the ONLY unread-vs-read signal now
-        // is the dot, the tint, and the title weight above, each independently visible.
-        holder.unreadDot.setVisibility(notification.isRead() ? View.GONE : View.VISIBLE);
+        // "read cards use the normal background" - the unread-vs-read signal is now
+        // the tint, the title weight above, and the envelope icon's own open/closed
+        // shape (see bindActions()), each independently visible.
         holder.card.setCardElevation(notification.isRead() ? 0f : 2f);
         holder.card.setCardBackgroundColor(ctx.getColor(
                 notification.isRead() ? R.color.velocity_surface_elevated : R.color.velocity_red_bg_start));
@@ -322,22 +322,34 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     /**
-     * Read/Unread toggle (always shown) and "View Transaction Details" (only for a
-     * Booking/Reservation/Payment/Check-in notification with a resolvable reference
-     * id - Promotions/Announcements/System have nothing to deep-link to). Both are
-     * real MaterialButtons now (48dp tall, matching the app-wide minimum touch
-     * target) rather than the previous bare 36dp icon-only toggle.
+     * Read/Unread toggle - icon-only (closed envelope = unread, open envelope =
+     * read), top-right corner of the card - and "View Transaction Details" (only
+     * for a Booking/Reservation/Payment/Check-in notification with a resolvable
+     * reference id - Promotions/Announcements/System have nothing to deep-link
+     * to). Content description AND tooltip are set here rather than in XML since
+     * both depend on the current read state; androidx.appcompat's TooltipCompat
+     * degrades to a long-press popup on the (here, unreachable, minSdk 29) pre-26
+     * platforms it needs to support elsewhere, so it's used instead of the raw
+     * View#setTooltipText() for consistency with how the rest of the app would
+     * add a tooltip. The action divider+button are hidden together (never a lone
+     * divider with nothing below it) when there's no transaction to view.
      */
     private void bindActions(ViewHolder holder, Notification notification, Context ctx) {
         boolean isRead = notification.isRead();
-        holder.btnToggleReadState.setText(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action);
-        holder.btnToggleReadState.setIconResource(isRead ? R.drawable.ic_eye : R.drawable.ic_check_circle);
+        int toggleIconRes = isRead ? R.drawable.ic_email_open : R.drawable.ic_email;
+        String toggleDescription = ctx.getString(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action);
+        holder.btnToggleReadState.setIconResource(toggleIconRes);
+        holder.btnToggleReadState.setContentDescription(toggleDescription);
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(holder.btnToggleReadState, toggleDescription);
         holder.btnToggleReadState.setOnClickListener(v -> {
             if (listener != null) listener.onToggleReadClick(notification);
         });
 
         boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(notification.getType(), notification.getReferenceId());
         holder.btnViewTransactionDetails.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
+        if (holder.dividerActions != null) {
+            holder.dividerActions.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
+        }
         if (canViewTransaction) {
             holder.btnViewTransactionDetails.setOnClickListener(v -> {
                 if (listener != null) listener.onViewTransactionDetailsClick(notification);
@@ -384,7 +396,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         TextView tvTitle, tvMessage, tvTime, tvCategory, tvStatusPill, tvDateGroup;
         ImageView ivIcon;
         com.google.android.material.button.MaterialButton btnToggleReadState, btnViewTransactionDetails;
-        View unreadDot, dividerDateGroup;
+        View dividerDateGroup, dividerActions;
         MaterialCardView card;
         MaterialCardView iconContainer;
 
@@ -397,10 +409,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvStatusPill = itemView.findViewById(R.id.tvNotificationStatusPill);
             tvDateGroup = itemView.findViewById(R.id.tvNotificationDateGroup);
             dividerDateGroup = itemView.findViewById(R.id.dividerNotificationDateGroup);
+            dividerActions = itemView.findViewById(R.id.dividerNotificationActions);
             ivIcon = itemView.findViewById(R.id.ivNotificationIcon);
             btnToggleReadState = itemView.findViewById(R.id.btnToggleReadState);
             btnViewTransactionDetails = itemView.findViewById(R.id.btnViewTransactionDetails);
-            unreadDot = itemView.findViewById(R.id.unreadDot);
             card = itemView.findViewById(R.id.cardNotification);
             iconContainer = (MaterialCardView) itemView.findViewById(R.id.iconContainer);
         }
