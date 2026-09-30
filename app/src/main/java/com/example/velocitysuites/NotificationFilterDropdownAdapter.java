@@ -13,6 +13,9 @@ import androidx.annotation.Nullable;
 
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * Renders the "Filter by status" combo box's dropdown popup - one row per
  * filter option, each showing its category icon (NotificationCategoryPresenter,
@@ -36,7 +39,13 @@ public class NotificationFilterDropdownAdapter extends ArrayAdapter<String> {
     private String selectedKey;
 
     public NotificationFilterDropdownAdapter(@NonNull Context context, String[] labels, String[] filterKeys) {
-        super(context, R.layout.item_notification_filter_dropdown, labels);
+        // ArrayAdapter's own T[]-array constructor wraps it via Arrays.asList(), a
+        // fixed-size view over the array that throws UnsupportedOperationException
+        // on clear()/add() - exactly what updateLabels() below needs to call on
+        // every load. Passing an explicit, genuinely mutable ArrayList copy instead
+        // is the fix (this is the actual crash the notification bell hit 100% of
+        // the time on open, caught by NotificationScreenInstrumentedTest).
+        super(context, R.layout.item_notification_filter_dropdown, new ArrayList<>(Arrays.asList(labels)));
         this.filterKeys = filterKeys;
     }
 
