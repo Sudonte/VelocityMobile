@@ -58,6 +58,23 @@ public class DashboardActivity extends BaseNavigationActivity {
     private TextView accountFullNameText, accountEmailText, accountMobileText, membershipStatusText, profileCompletionText, accountStatusText;
     private final Handler clockHandler = new Handler(Looper.getMainLooper());
     private Runnable clockRunnable;
+    /** (TextView, Notification) pairs for every compact card currently shown in the "Recent Notifications" widget - lets notifTimeRefreshRunnable below re-render just their relative time text without rebuilding the section (which would also re-trigger the header/unread-dot/icon binding and the row's expand/collapse animation state). Rebuilt from scratch each time updateNotificationsSection() rebuilds the section itself. */
+    private final List<androidx.core.util.Pair<TextView, Notification>> compactNotificationTimeViews = new ArrayList<>();
+    // Independent of loadDashboardData()'s own refresh (which already re-renders this
+    // section with fresh data whenever the guest navigates back to this screen) - this
+    // is purely for the guest who stays on Dashboard without navigating away at all,
+    // where "5 minutes ago" would otherwise silently go stale for as long as they stay.
+    private static final long NOTIF_TIME_REFRESH_MS = 60000;
+    private final Handler notifTimeRefreshHandler = new Handler(Looper.getMainLooper());
+    private final Runnable notifTimeRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            for (androidx.core.util.Pair<TextView, Notification> pair : compactNotificationTimeViews) {
+                pair.first.setText(TimeUtils.formatRelative(pair.second.getCreatedAtMillis()));
+            }
+            notifTimeRefreshHandler.postDelayed(this, NOTIF_TIME_REFRESH_MS);
+        }
+    };
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshDashboard;
     private final androidx.activity.result.ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(), granted -> {
@@ -658,6 +675,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
     private void populateNotifications(List<Notification> notifications) {
         notificationListContainer.removeAllViews();
+        compactNotificationTimeViews.clear();
         selectedNotificationCard = null;
         if (notifications.isEmpty()) {
             noNotificationsText.setVisibility(View.VISIBLE);
@@ -708,6 +726,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         tvTitle.setText(n.getTitle());
         tvTime.setText(n.getTimestamp());
+        compactNotificationTimeViews.add(new androidx.core.util.Pair<>(tvTime, n));
         unreadDot.setVisibility(n.isRead() ? View.GONE : View.VISIBLE);
 
         if (Notification.TYPE_PAYMENT.equals(n.getType())) {
@@ -1292,6 +1311,13 @@ public class DashboardActivity extends BaseNavigationActivity {
         super.onResume();
         loadUserInfo();
         loadDashboardData();
+        notifTimeRefreshHandler.postDelayed(notifTimeRefreshRunnable, NOTIF_TIME_REFRESH_MS);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        notifTimeRefreshHandler.removeCallbacks(notifTimeRefreshRunnable);
     }
 
     @Override

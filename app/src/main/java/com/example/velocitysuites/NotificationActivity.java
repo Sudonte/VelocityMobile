@@ -59,6 +59,30 @@ public class NotificationActivity extends BaseNavigationActivity {
         }
     };
 
+    // Separate, more frequent timer purely for re-rendering relative "X minutes
+    // ago" time text on already-visible rows - this has nothing to do with
+    // fetching data (see autoRefreshRunnable above for that), it only refreshes
+    // what's already on screen so it doesn't go stale while the guest keeps the
+    // screen open. Deliberately its own Handler/Runnable, independent of the
+    // 30s data poll, so the two concerns (staying fresh from the server vs.
+    // staying fresh against the passage of time) can't interfere with each other.
+    private static final long TIME_TEXT_REFRESH_MS = 60000;
+    private final android.os.Handler timeTextRefreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable timeTextRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (rvNotifications.getLayoutManager() instanceof LinearLayoutManager) {
+                LinearLayoutManager lm = (LinearLayoutManager) rvNotifications.getLayoutManager();
+                int first = lm.findFirstVisibleItemPosition();
+                int last = lm.findLastVisibleItemPosition();
+                if (first != RecyclerView.NO_POSITION && last != RecyclerView.NO_POSITION) {
+                    adapter.refreshVisibleTimestamps(first, last);
+                }
+            }
+            timeTextRefreshHandler.postDelayed(this, TIME_TEXT_REFRESH_MS);
+        }
+    };
+
     private RecyclerView rvNotifications;
     private View layoutEmptyState;
     private TextView emptyTitle, emptyDesc;
@@ -208,6 +232,7 @@ public class NotificationActivity extends BaseNavigationActivity {
             pollForNewNotifications();
         }
         autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
+        timeTextRefreshHandler.postDelayed(timeTextRefreshRunnable, TIME_TEXT_REFRESH_MS);
     }
 
     /** Pairs with onCreate()'s savedInstanceState restore above - see that block's own doc. */
@@ -232,6 +257,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     protected void onPause() {
         super.onPause();
         autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
+        timeTextRefreshHandler.removeCallbacks(timeTextRefreshRunnable);
     }
 
     private void setupRecyclerView() {

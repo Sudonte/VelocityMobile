@@ -163,11 +163,66 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         notifyDataSetChanged();
     }
 
+    /** Payload marker for refreshVisibleTimestamps() below - onBindViewHolder(holder, position, payloads) checks for this to do a time-only partial rebind instead of the full bind every other notify path triggers. */
+    private static final Object PAYLOAD_REFRESH_TIME = new Object();
+
+    /**
+     * Re-renders ONLY the time text of the given (currently visible) row
+     * range, via RecyclerView's partial-bind payload mechanism - title,
+     * message, icon, read state, status pill, and everything else are left
+     * completely untouched, so nothing else rebinds or flickers. Called
+     * roughly once a minute by NotificationActivity's own timer, restricted
+     * to whatever's actually visible right now (there is no point
+     * refreshing a row the guest can't see). Absolute-time rows re-render
+     * the exact same text (no visible change, harmless) - only a row
+     * genuinely showing relative time (see bindTime()'s own doc) actually
+     * changes.
+     */
+    public void refreshVisibleTimestamps(int firstVisiblePosition, int lastVisiblePosition) {
+        if (rows.isEmpty() || lastVisiblePosition < 0 || firstVisiblePosition > lastVisiblePosition) return;
+        int from = Math.max(0, firstVisiblePosition);
+        int to = Math.min(rows.size() - 1, lastVisiblePosition);
+        if (from > to) return;
+        notifyItemRangeChanged(from, to - from + 1, PAYLOAD_REFRESH_TIME);
+    }
+
+    /**
+     * Time text only - always the absolute "Sep 9, 2026 • 2:37 AM" when the
+     * backend provided one, since that never goes stale; falls back to a
+     * FRESHLY computed relative string (never the cached, potentially
+     * minutes/hours-stale Notification#getTimestamp() field - see
+     * TimeUtils#formatRelative(long)'s own doc) for the rare older
+     * notification with no publishedAt at all. Shared by the full bind
+     * below and the payload-only partial bind, so both always agree.
+     */
+    private void bindTime(ViewHolder holder, Notification notification) {
+        String absoluteTime = notification.getPublishedAt();
+        holder.tvTime.setText(absoluteTime != null && !absoluteTime.isEmpty()
+                ? absoluteTime
+                : TimeUtils.formatRelative(notification.getCreatedAtMillis()));
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification, parent, false);
         return new ViewHolder(view);
+    }
+
+    /**
+     * Intercepts refreshVisibleTimestamps()'s payload to do a time-only
+     * rebind; any other call (payloads empty - a real data change via
+     * submitList(), the initial bind, a recycled-view rebind, etc.) falls
+     * through to the normal full onBindViewHolder(holder, position) via the
+     * default RecyclerView.Adapter implementation.
+     */
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (payloads.contains(PAYLOAD_REFRESH_TIME)) {
+            bindTime(holder, rows.get(position).notification);
+            return;
+        }
+        super.onBindViewHolder(holder, position, payloads);
     }
 
     @Override
@@ -190,13 +245,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         holder.tvTitle.setText(notification.getTitle());
         holder.tvMessage.setText(notification.getMessage());
-        // Absolute "Sep 9, 2026 • 2:37 AM" (Asia/Manila, from the notification's
-        // real created_at) rather than a purely relative "2 hours ago" - the
-        // exact date/time must always be visible on the card itself, not just
-        // in the detail screen. Falls back to the relative string only for the
-        // rare case an older cached notification has no publishedAt yet.
-        String absoluteTime = notification.getPublishedAt();
-        holder.tvTime.setText(absoluteTime != null && !absoluteTime.isEmpty() ? absoluteTime : notification.getTimestamp());
+        bindTime(holder, notification);
 
         // Set icon and colors based on type
         int iconRes = R.drawable.ic_notifications;

@@ -104,6 +104,22 @@ public final class TimeUtils {
     public static String formatRelative(String raw) {
         Instant instant = parseInstant(raw);
         if (instant == null) return "";
+        return formatRelative(instant);
+    }
+
+    /**
+     * Same as {@link #formatRelative(String)}, from an already-parsed epoch
+     * millis value instead of a raw string - for a caller re-freshening an
+     * already-displayed relative time (e.g. a notification row re-rendering
+     * "5 minutes ago" -> "6 minutes ago" a minute later) that only ever kept
+     * the parsed instant (Notification#getCreatedAtMillis()) around, not the
+     * original raw timestamp string.
+     */
+    public static String formatRelative(long epochMillis) {
+        return formatRelative(Instant.ofEpochMilli(epochMillis));
+    }
+
+    private static String formatRelative(Instant instant) {
         long diffMs = System.currentTimeMillis() - instant.toEpochMilli();
         if (diffMs < 0) diffMs = 0;
         long minutes = diffMs / (60 * 1000);
@@ -113,7 +129,7 @@ public final class TimeUtils {
         if (hours < 24) return hours + " hour" + (hours == 1 ? "" : "s") + " ago";
         long days = hours / 24;
         if (days < 30) return days + " day" + (days == 1 ? "" : "s") + " ago";
-        return formatDate(raw);
+        return DATE_FORMAT.format(instant.atZone(ZONE_MANILA));
     }
 
     /** ZonedDateTime for the current instant in Asia/Manila - for one-off "now" comparisons against Manila's calendar day. */
