@@ -120,19 +120,41 @@
                         android:background="@color/velocity_divider_hairline"
                         app:layout_constraintBottom_toBottomOf="parent" />
 
+                    <!-- Title + live unread summary stacked at the start, both bounded by
+                         the "Mark all as read" button at the end (0dp = match constraints)
+                         so a long summary or a large system font wraps instead of running
+                         underneath the button. -->
                     <TextView
                         android:id="@+id/tvAlertsCount"
                         style="@style/TextAppearance.Velocity.Price"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:includeFontPadding="false"
                         android:textColor="@color/velocity_red_dark"
                         android:textSize="16sp"
                         android:letterSpacing="-0.01"
                         android:text="@string/recent_alerts_label"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/tvUnreadSummary"
+                        app:layout_constraintEnd_toStartOf="@+id/btnMarkAllRead"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_chainStyle="packed" />
+
+                    <TextView
+                        android:id="@+id/tvUnreadSummary"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="8dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/btnMarkAllRead"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tvAlertsCount"
+                        tools:text="3 unread notifications" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnMarkAllRead"

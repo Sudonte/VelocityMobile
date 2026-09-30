@@ -81,6 +81,8 @@ public class NotificationActivity extends BaseNavigationActivity {
     private View layoutEmptyState;
     private View layoutInitialLoading;
     private TextView emptyTitle, emptyDesc;
+    /** "3 unread notifications" / "You're all caught up" under the sticky header's title - repainted from updateNotificationBadge(), so it changes on exactly the same beats as the header bell badge. */
+    private TextView tvUnreadSummary;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearchNotifications;
     private com.google.android.material.textfield.TextInputLayout layoutNotificationStatusFilter;
@@ -114,6 +116,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         rvNotifications = findViewById(R.id.rvNotifications);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
+        tvUnreadSummary = findViewById(R.id.tvUnreadSummary);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearchNotifications = findViewById(R.id.etSearchNotifications);
         layoutNotificationStatusFilter = findViewById(R.id.layoutNotificationStatusFilter);
@@ -182,30 +185,18 @@ public class NotificationActivity extends BaseNavigationActivity {
                     // concurrent mark-all-read call.
                     triggerButton.setEnabled(false);
 
-                    // Optimistic: flip every currently-unread item immediately, remembering
-                    // exactly which ones so a failed request can revert precisely those -
-                    // never an item that was already read before this tap.
-                    List<Notification> flipped = new ArrayList<>();
-                    for (Notification n : allNotifications) {
-                        if (!n.isRead()) {
-                            n.setRead(true);
-                            flipped.add(n);
-                        }
-                    }
-                    updateNotificationBadge();
-                    updateFilterLabelsWithCounts();
-                    applyFilters();
-
+                    // The repository flips every currently-unread row (and the unread
+                    // total) before returning - remembering exactly which rows, so a
+                    // failed request reverts precisely those and never a row that was
+                    // already read beforehand - so this repaint already shows the
+                    // optimistic result; the callback repaints again with the final one
+                    // (identical on success, reverted on failure).
                     repository.markAllNotificationsAsRead(success -> {
                         triggerButton.setEnabled(true);
-                        if (!success) {
-                            for (Notification n : flipped) n.setRead(false);
-                            updateNotificationBadge();
-                            updateFilterLabelsWithCounts();
-                            applyFilters();
-                        }
+                        syncFromRepository();
                         Toast.makeText(this, success ? R.string.msg_mark_all_read : R.string.network_error, Toast.LENGTH_SHORT).show();
                     });
+                    syncFromRepository();
                 })
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
@@ -315,19 +306,22 @@ public class NotificationActivity extends BaseNavigationActivity {
             @Override
             public void onNotificationClick(Notification notification) {
                 showNotificationDetails(notification);
-                setReadStateOptimistic(notification, true);
+                markReadIfUnread(notification);
             }
 
             @Override
             public void onToggleReadClick(Notification notification) {
-                setReadStateOptimistic(notification, !notification.isRead());
+                // The explicit "Mark as read"/"Mark as unread" button - the only read-state
+                // change that asks first (opening a notification marking it read is
+                // implicit, expected, and would be absurd to confirm every single time).
+                confirmReadStateChange(notification);
             }
 
             @Override
             public void onViewTransactionDetailsClick(Notification notification) {
                 // Marks read too, same as opening the notification's own detail
                 // screen would - the guest has now seen/acted on this update either way.
-                setReadStateOptimistic(notification, true);
+                markReadIfUnread(notification);
                 Intent intent = new Intent(NotificationActivity.this, TransactionHistoryActivity.class);
                 intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER,
                         NotificationPrimaryActionResolver.transactionHistoryFilterFor(notification.getType()));
@@ -343,44 +337,74 @@ public class NotificationActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Flips a notification's read state immediately (before the network call resolves)
-     * so the row/badges/counts update instantly, then confirms with the backend in the
-     * background and reverts on failure. Single entry point for every read-state-changing
-     * action on this screen (tap-to-view, the per-row toggle, the deep-link auto-open, see
-     * openPendingDetailIfAny()) - replaces the old pattern of a full loadNotifications()
-     * reload after every mark-as-read, which cost a second, redundant network round-trip
-     * just to repaint the row, and left the dot visibly stale if that second call had a
-     * transient failure even though the mark-as-read itself had already genuinely succeeded.
+     * The explicit per-notification "Mark as read"/"Mark as unread" flow: ask first,
+     * then change it, then say so. Cancel (or tapping outside the dialog) leaves
+     * everything exactly as it was - no request is sent and nothing is repainted.
+     * <p>
+     * The target state is decided HERE, from the state the guest actually saw when they
+     * tapped, and captured for the confirm callback - not re-derived on confirm, since a
+     * background poll can flip the row underneath an open dialog and "Mark this
+     * notification as read?" must never end up doing the opposite.
      */
-    private void setReadStateOptimistic(Notification notification, boolean newReadState) {
-        boolean previousState = notification.isRead();
-        if (previousState == newReadState) return;
+    private void confirmReadStateChange(Notification notification) {
+        final String notificationId = notification.getId();
+        final boolean markRead = !notification.isRead();
+        new MaterialAlertDialogBuilder(this)
+                .setMessage(markRead ? R.string.confirm_mark_read_msg : R.string.confirm_mark_unread_msg)
+                .setPositiveButton(R.string.confirm_button_label, (d, w) -> changeReadState(notificationId, markRead, true))
+                .setNegativeButton(R.string.cancel_label, null)
+                .show();
+    }
 
-        notification.setRead(newReadState);
-        notifyNotificationChanged(notification);
-
-        java.util.function.Consumer<Boolean> onDone = success -> {
-            if (!success) {
-                notification.setRead(previousState);
-                notifyNotificationChanged(notification);
-                Toast.makeText(this, R.string.network_error, Toast.LENGTH_SHORT).show();
-            }
-        };
-        if (newReadState) {
-            repository.markNotificationAsRead(notification.getId(), onDone);
-        } else {
-            repository.markNotificationAsUnread(notification.getId(), onDone);
+    /** The implicit half of read-state changes - opening a notification (or its transaction) marks it read, with no dialog and no success message. Skipped entirely for an already-read row, so re-opening one never fires a pointless request. */
+    private void markReadIfUnread(Notification notification) {
+        if (!notification.isRead()) {
+            changeReadState(notification.getId(), true, false);
         }
     }
 
-    /** Repaints exactly this notification's row (if currently visible under the active filter) plus the badges/per-filter counts that depend on read state - avoids a full list rebuild for a single-row change. */
-    private void notifyNotificationChanged(Notification notification) {
+    /**
+     * Single entry point for every read-state-changing action on this screen (the
+     * confirmed per-row button, tap-to-open, "View Transaction Details", the deep-link
+     * auto-open in openPendingDetailIfAny()). RoomRepository applies the change to its
+     * cache immediately - the row, the header bell badge, the filter counts and the
+     * unread summary all repaint from that in the very same beat, before any network
+     * round-trip - then persists it and reports back: on failure the change has already
+     * been reverted in the cache, so the repaint below simply shows the truth again.
+     *
+     * @param announceSuccess true only for the explicit button, which owes the guest a
+     *                        confirmation message; an implicit change stays silent unless
+     *                        it fails.
+     */
+    private void changeReadState(String notificationId, boolean markRead, boolean announceSuccess) {
+        repository.setNotificationReadState(notificationId, markRead, success -> {
+            if (!isFinishing() && !isDestroyed()) syncFromRepository();
+            if (success) {
+                if (announceSuccess) {
+                    Toast.makeText(getApplicationContext(),
+                            markRead ? R.string.msg_notification_marked_read : R.string.msg_notification_marked_unread,
+                            Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), R.string.error_notification_update_failed, Toast.LENGTH_LONG).show();
+            }
+        });
+        syncFromRepository();
+    }
+
+    /**
+     * Re-reads the notification list from RoomRepository's cache and repaints everything
+     * that depends on it: the badge, the filter counts, the unread summary, and the list
+     * itself (DiffUtil inside NotificationAdapter#submitList() rebinds only the rows whose
+     * content actually changed). Reading from the cache rather than mutating this
+     * screen's own copy means a row a background poll has replaced with a fresh object
+     * since it was last bound can never be left showing stale state.
+     */
+    private void syncFromRepository() {
+        allNotifications = repository.getNotifications();
         updateNotificationBadge();
         updateFilterLabelsWithCounts();
-        int position = notificationList.indexOf(notification);
-        if (position >= 0) {
-            adapter.notifyItemChanged(position);
-        }
+        applyFilters();
     }
 
     private void setupSwipeRefresh() {
@@ -406,6 +430,23 @@ public class NotificationActivity extends BaseNavigationActivity {
     @Override
     protected void refreshNotificationBadge() {
         updateNotificationBadge();
+    }
+
+    /**
+     * Repaints the header bell badge (super) AND this screen's own "N unread" summary
+     * under the sticky header - hooked here rather than called separately because every
+     * place that already updates the badge (each load, poll, load-more, and every
+     * read/unread change via syncFromRepository()) is by definition also a place the
+     * summary has to change, and this way the two can never drift apart.
+     */
+    @Override
+    protected void updateNotificationBadge() {
+        super.updateNotificationBadge();
+        if (tvUnreadSummary == null || repository == null) return;
+        int unread = repository.getUnreadNotificationCount();
+        tvUnreadSummary.setText(unread > 0
+                ? getResources().getQuantityString(R.plurals.notif_unread_summary, unread, unread)
+                : getString(R.string.notif_all_caught_up));
     }
 
     private void loadNotifications(boolean showLoadingIndicator) {
@@ -542,13 +583,14 @@ public class NotificationActivity extends BaseNavigationActivity {
      * Rebuilds the dropdown popup's row labels with an unread-count suffix, e.g.
      * "Booking (3)" - omitted (no "(0)") for a filter with nothing unread, so an
      * already-caught-up category stays visually quiet. "All" and "Unread" both
-     * show the guest's real backend-reported total unread count
-     * (RoomRepository#getBackendUnreadCount() - never a count of only however
-     * many notifications happen to be loaded client-side, which would under-count
-     * once a guest has more unread than fit in one loaded window); a category's
-     * own count is still the loaded-window count, since there's no backend
-     * endpoint for a true per-category unread total. Re-set on every successful
-     * load and after every optimistic read/unread mutation so the counts never
+     * show the guest's real total unread count
+     * (RoomRepository#getUnreadNotificationCount() - the backend-reported total, kept
+     * current on every local read/unread change and floored at what is visibly loaded,
+     * never a count of only however many notifications happen to be loaded
+     * client-side, which would under-count once a guest has more unread than fit in one
+     * loaded window); a category's own count is still the loaded-window count, since
+     * there's no backend endpoint for a true per-category unread total. Re-set on every
+     * successful load and after every optimistic read/unread mutation so the counts never
      * visibly lag what the rows themselves show - never disturbs the combo box's
      * own closed-state text, which is only ever set on an actual selection (see
      * selectDropdownFilter()/the OnItemClickListener above).
@@ -556,7 +598,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     private void updateFilterLabelsWithCounts() {
         if (filterDropdownAdapter == null) return;
 
-        int totalUnread = repository.getBackendUnreadCount();
+        int totalUnread = repository.getUnreadNotificationCount();
         java.util.Map<String, Integer> unreadByType = new java.util.HashMap<>();
         for (Notification n : allNotifications) {
             if (n.isRead()) continue;
@@ -711,7 +753,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         for (Notification n : allNotifications) {
             if (targetId.equals(n.getId())) {
                 showNotificationDetails(n);
-                setReadStateOptimistic(n, true);
+                markReadIfUnread(n);
                 break;
             }
         }

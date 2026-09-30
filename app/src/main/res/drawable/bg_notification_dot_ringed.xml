@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Unread indicator for a notification card's category icon: the same brand-red dot
+     as bg_notification_dot (dashboard's compact list), plus a ring in the card's own
+     UNREAD background tint (velocity_red_bg_start) so it reads as a badge sitting on
+     top of the icon circle instead of a blob merging into it. Only ever shown on an
+     unread card (see NotificationAdapter), whose background is exactly that tint - and
+     velocity_red_bg_start is overridden for dark mode in values-night, so the ring
+     follows the card in both themes. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/velocity_red_primary" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/velocity_red_bg_start" />
+</shape>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A short plain-text note inside the Payment Summary - "No amenities selected", or the
+     "amenity details unavailable" notice. Secondary color, not bold: it is information
+     about an absence, not a line item. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:fontFamily="sans-serif-medium"
+    android:lineSpacingMultiplier="1.2"
+    android:textColor="@color/velocity_text_secondary"
+    android:textSize="12sp"
+    tools:text="No amenities selected" />

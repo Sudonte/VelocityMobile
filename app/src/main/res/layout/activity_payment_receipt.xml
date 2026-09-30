@@ -236,6 +236,15 @@
                             tools:text="Ref: PAY-000123" />
                     </LinearLayout>
 
+                    <!-- Receipt date, right under the reference number - a receipt header
+                         states both. Hidden (bindRow) when no date is on record. -->
+                    <include
+                        android:id="@+id/rowReceiptDate"
+                        layout="@layout/item_receipt_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp" />
+
                     <LinearLayout
                         android:id="@+id/layoutVerifiedBadge"
                         android:layout_width="wrap_content"
@@ -354,6 +363,11 @@
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentStatus" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentDate" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowPaymentTime" />
+                    <!-- Payment PROGRESS (what has been paid against the Grand Total) lives
+                         here, not in the Payment Summary below - so the summary can end on
+                         its Grand Total. -->
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAmountPaid" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRemainingBalance" />
 
                     <!-- Payment Summary -->
                     <View
@@ -386,20 +400,17 @@
                         android:textSize="10sp"
                         tools:text="FULL PAYMENT" />
 
-                    <!-- Room Charges/Amenities/Additional Guest Fee only render when the
-                         backend's Billing breakdown actually returned them
-                         (Booking#getRoomCharge() etc.) - never fabricated for a still-
-                         pending Reservation or a direct Booking, neither of which carries
-                         this breakdown. See PAYMENT_RECEIPT_BACKEND_SPEC.md. -->
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomRate" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomCharge" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAmenityCharge" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAdditionalGuestFee" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowSubtotal" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowDiscount" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowTotalAmount" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowAmountPaid" />
-                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRemainingBalance" />
+                    <!-- The itemized breakdown (Selected Rooms -> Rooms Total, Amenities ->
+                         Amenities Total, additional guest fee/discount, Grand Total) is
+                         filled in by PaymentReceiptActivity#populateReceipt() via
+                         ReceiptSummaryRenderer - the same renderer receipt-number mode
+                         uses, so both layouts always show the same summary. Built from the
+                         Booking's own itemized lines/Billing split; nothing fabricated. -->
+                    <LinearLayout
+                        android:id="@+id/layoutPaymentSummaryBreakdown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
 
                     <!-- Payment Verification Information -->
                     <View
@@ -454,7 +465,7 @@
                             android:fontFamily="sans-serif-black"
                             android:gravity="center"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="28sp"
+                            android:textSize="20sp"
                             tools:text="₱5,050.00" />
                     </LinearLayout>
 

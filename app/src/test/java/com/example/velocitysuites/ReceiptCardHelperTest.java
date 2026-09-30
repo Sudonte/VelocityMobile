@@ -58,4 +58,53 @@ public class ReceiptCardHelperTest {
         assertEquals("₱5,000.00", ReceiptCardHelper.formatPrice(5000.0));
         assertEquals("₱0.00", ReceiptCardHelper.formatPrice(0.0));
     }
+
+    // ---- isReceiptForBooking: which transaction record a fetched receipt belongs to ----
+
+    private static ReceiptDetail receiptFor(String bookingId, String reservationId) {
+        return new ReceiptDetail("OFFICIAL_RECEIPT", "OR-1", bookingId, reservationId, null, null, null, null,
+                null, null, 2, null, 0, 0, null, null, null, null);
+    }
+
+    private static Booking record(String id, boolean direct) {
+        Booking b = new Booking(id, "R1", "Deluxe 101", "Deluxe",
+                "May 01, 2025", "May 05, 2025", 2, 10000.0, "Confirmed", "Apr 30, 2025");
+        b.setDirectBooking(direct);
+        return b;
+    }
+
+    @Test
+    public void isReceiptForBooking_directBookingReceipt_matchesTheDirectBookingWithThatBookingId() {
+        ReceiptDetail receipt = receiptFor("250", null);
+
+        assertTrue(ReceiptCardHelper.isReceiptForBooking(receipt, record("250", true)));
+        assertFalse("a different booking id", ReceiptCardHelper.isReceiptForBooking(receipt, record("251", true)));
+    }
+
+    @Test
+    public void isReceiptForBooking_reservationDerivedReceipt_matchesTheReservationKeyedRecord() {
+        // The converted booking is #250, but the client keeps this transaction under its original reservation id 100.
+        ReceiptDetail receipt = receiptFor("250", "100");
+
+        assertTrue(ReceiptCardHelper.isReceiptForBooking(receipt, record("100", false)));
+        assertFalse("the booking id 250 is not how the client keys a reservation-derived transaction",
+                ReceiptCardHelper.isReceiptForBooking(receipt, record("250", false)));
+    }
+
+    @Test
+    public void isReceiptForBooking_neverCrossesTheReservationAndDirectBookingIdSpaces() {
+        // Reservation #100 and direct booking #100 are two unrelated transactions.
+        ReceiptDetail reservationReceipt = receiptFor("250", "100");
+        ReceiptDetail directReceipt = receiptFor("100", null);
+
+        assertFalse(ReceiptCardHelper.isReceiptForBooking(reservationReceipt, record("100", true)));
+        assertFalse(ReceiptCardHelper.isReceiptForBooking(directReceipt, record("100", false)));
+    }
+
+    @Test
+    public void isReceiptForBooking_blankReservationId_isTreatedAsADirectBookingReceipt() {
+        ReceiptDetail receipt = receiptFor("250", "  ");
+
+        assertTrue(ReceiptCardHelper.isReceiptForBooking(receipt, record("250", true)));
+    }
 }

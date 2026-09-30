@@ -56,64 +56,40 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         Booking b = tx.parentBooking;
         Context ctx = holder.itemView.getContext();
 
-        String status = tx.getStatus() != null ? tx.getStatus() : "";
-        boolean cancelled = status.equalsIgnoreCase("Cancelled") || status.equalsIgnoreCase("Rejected") || status.equalsIgnoreCase("failed");
-        boolean pending = status.equalsIgnoreCase("pending") || b.isPaymentPendingVerification();
+        // One classification for the icon circle, the badge, and (via the shared
+        // resolver) the detail screen's header - see PaymentTransactionStatus.
+        PaymentTransactionStatus.Style style = PaymentTransactionStatus.styleFor(PaymentTransactionStatus.resolve(tx));
+        holder.iconContainer.setCardBackgroundColor(ctx.getColor(style.iconBgColorRes));
+        holder.ivIcon.setColorFilter(ctx.getColor(style.iconFgColorRes));
+        holder.ivIcon.setImageResource(style.iconRes);
 
-        int bgColorRes, fgColorRes, iconRes;
-        String title;
-        if (cancelled) {
-            title = ctx.getString(R.string.ptx_title_cancelled);
-            bgColorRes = R.color.velocity_gray_soft;
-            fgColorRes = R.color.velocity_inactive_gray;
-            iconRes = R.drawable.ic_close;
-        } else if (pending) {
-            title = ctx.getString(R.string.ptx_title_pending);
-            bgColorRes = R.color.velocity_blue_soft;
-            fgColorRes = R.color.velocity_blue_primary;
-            iconRes = R.drawable.ic_clock;
-        } else {
-            title = ctx.getString(R.string.ptx_title_successful);
-            bgColorRes = R.color.velocity_green_soft;
-            fgColorRes = R.color.velocity_green_dark;
-            iconRes = R.drawable.ic_check_circle;
-        }
-        holder.tvTitle.setText(title);
-        holder.iconContainer.setCardBackgroundColor(ctx.getColor(bgColorRes));
-        holder.ivIcon.setColorFilter(ctx.getColor(fgColorRes));
-        holder.ivIcon.setImageResource(iconRes);
+        // Color-coded status badge (Paid / Pending / Cancelled / Unpaid): a SOLID brand-red
+        // pill for Paid, soft red for Pending, neutral gray for Cancelled/Unpaid - each with
+        // its own leading icon, since the app is red-and-white only and status can't rely on
+        // hue alone (see PaymentTransactionStatus#styleFor()).
+        holder.tvStatusBadge.setText(style.badgeLabelRes);
+        holder.tvStatusBadge.setBackgroundTintList(ctx.getColorStateList(style.badgeBgColorRes));
+        holder.tvStatusBadge.setTextColor(ctx.getColor(style.badgeFgColorRes));
+        applyBadgeIcon(holder.tvStatusBadge, style.iconRes, style.badgeFgColorRes);
 
-        // Color-coded status badge - same cancelled/pending/successful classification
-        // already computed above for the title/icon, just also shown as a distinct pill
-        // (task requirement: a color-coded status badge on each Transaction History card).
-        if (holder.tvStatusBadge != null) {
-            holder.tvStatusBadge.setText(title);
-            holder.tvStatusBadge.setBackgroundTintList(ctx.getColorStateList(bgColorRes));
-            holder.tvStatusBadge.setTextColor(ctx.getColor(fgColorRes));
-        }
-
-        // Type chip - same NotificationCategoryPresenter mapping the "Filter by
-        // status" dropdown and notification cards use, so Booking/Reservation
+        // Type + reference chip ("Booking #250" / "Reservation #100") - the reference is
+        // always the Booking/Reservation's own (same formatting every other screen uses),
+        // never a GCash-specific reference, which is absent for a Cash payment and would
+        // leave this blank. Colored by NotificationCategoryPresenter, the same mapping the
+        // "Filter by status" dropdown and notification cards use, so Booking/Reservation
         // reads as the same color/icon concept everywhere in the app.
-        if (holder.tvTypeChip != null) {
-            NotificationCategoryPresenter.Result typeCategory = NotificationCategoryPresenter.resolveForBooking(b.isHasBooking());
-            holder.tvTypeChip.setText(b.isHasBooking() ? R.string.quick_action_booking : R.string.quick_action_reservation);
-            holder.tvTypeChip.setBackgroundTintList(ctx.getColorStateList(typeCategory.bgColorRes));
-            holder.tvTypeChip.setTextColor(ctx.getColor(typeCategory.fgColorRes));
-        }
-        // Room name only - the type chip above already conveys Booking-vs-Reservation.
-        holder.tvSubtitle.setText(b.getRoomName());
+        NotificationCategoryPresenter.Result typeCategory = NotificationCategoryPresenter.resolveForBooking(b.isHasBooking());
+        holder.tvTypeChip.setText(ctx.getString(
+                b.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, b.getId()));
+        holder.tvTypeChip.setBackgroundTintList(ctx.getColorStateList(typeCategory.bgColorRes));
+        holder.tvTypeChip.setTextColor(ctx.getColor(typeCategory.fgColorRes));
 
-        // Task requirement: the card itself (not just the expanded detail
-        // screen) must show a reference number and check-in/check-out dates.
-        // Always the Booking/Reservation's own reference (Booking #.../
-        // Reservation #...), never the payment-specific GCash reference -
-        // that's absent for a Cash payment, and this line must never be
-        // blank for a Cash transaction just because of that.
-        if (holder.tvRefAndStay != null) {
-            String ref = ctx.getString(b.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, b.getId());
-            holder.tvRefAndStay.setText(ctx.getString(R.string.ptx_ref_and_stay_format, ref, b.getCheckInDate(), b.getCheckOutDate()));
-        }
+        // The room selection ("Deluxe ×2 • Suite") - the same shared summary the Booking/
+        // Reservation lists and their Details screen use, so it also names every room type of
+        // a multi-room transaction instead of just the first.
+        holder.tvTitle.setText(Booking.buildRoomSelectionSummaryText(b, null));
+
+        holder.tvStay.setText(ctx.getString(R.string.ptx_stay_dates_format, b.getCheckInDate(), b.getCheckOutDate()));
 
         String date = tx.getDate();
         // A synthetic summary row for a Cash Pay-Later Reservation nobody has
@@ -132,31 +108,27 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         // still owed) - a fully-paid or still-unpaid transaction has nothing "in
         // progress" to report, and showing "Paid PHP0.00 - Remaining PHPX" for a
         // still-pending reservation read as confusing rather than informative.
-        if (holder.tvPaymentProgress != null) {
-            double effectivePaid = b.getEffectiveTotalAmountPaid();
-            double effectiveRemaining = b.getEffectiveRemainingBalance();
-            boolean isPartiallyPaid = effectivePaid > 0.009 && effectiveRemaining > 0.009;
-            if (isPartiallyPaid) {
-                holder.tvPaymentProgress.setVisibility(View.VISIBLE);
-                holder.tvPaymentProgress.setText(ctx.getString(R.string.ptx_payment_progress_format,
-                        CURRENCY_FORMAT.format(effectivePaid), CURRENCY_FORMAT.format(effectiveRemaining)));
-            } else {
-                holder.tvPaymentProgress.setVisibility(View.GONE);
-            }
+        double effectivePaid = b.getEffectiveTotalAmountPaid();
+        double effectiveRemaining = b.getEffectiveRemainingBalance();
+        boolean isPartiallyPaid = effectivePaid > 0.009 && effectiveRemaining > 0.009;
+        if (isPartiallyPaid) {
+            holder.tvPaymentProgress.setVisibility(View.VISIBLE);
+            holder.tvPaymentProgress.setText(ctx.getString(R.string.ptx_payment_progress_format,
+                    CURRENCY_FORMAT.format(effectivePaid), CURRENCY_FORMAT.format(effectiveRemaining)));
+        } else {
+            holder.tvPaymentProgress.setVisibility(View.GONE);
         }
 
         // "N Receipt(s) Available" - every already-issued receipt on this
         // booking (PR/FR/OR alike, independently counted - never collapsed to
         // "latest receipt only"), or hidden entirely when none exist yet.
-        if (holder.layoutReceiptsAvailable != null && holder.tvReceiptsAvailable != null) {
-            int receiptCount = b.getReceipts().size();
-            if (receiptCount > 0) {
-                holder.layoutReceiptsAvailable.setVisibility(View.VISIBLE);
-                holder.tvReceiptsAvailable.setText(ctx.getResources().getQuantityString(
-                        R.plurals.ptx_receipts_available, receiptCount, receiptCount));
-            } else {
-                holder.layoutReceiptsAvailable.setVisibility(View.GONE);
-            }
+        int receiptCount = b.getReceipts().size();
+        if (receiptCount > 0) {
+            holder.layoutReceiptsAvailable.setVisibility(View.VISIBLE);
+            holder.tvReceiptsAvailable.setText(ctx.getResources().getQuantityString(
+                    R.plurals.ptx_receipts_available, receiptCount, receiptCount));
+        } else {
+            holder.layoutReceiptsAvailable.setVisibility(View.GONE);
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -174,6 +146,22 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
                 card.setStrokeWidth(0);
             }
         }
+    }
+
+    /**
+     * Leading 12dp icon inside a status pill, tinted to the pill's own text color - the same
+     * technique as DashboardActivity#applyPillIcon(). A fresh, mutated drawable per call
+     * (never the shared constant state), so tinting one badge can't recolor another.
+     */
+    private static void applyBadgeIcon(TextView pill, int iconRes, int fgColorRes) {
+        Context ctx = pill.getContext();
+        android.graphics.drawable.Drawable icon = androidx.core.content.ContextCompat.getDrawable(ctx, iconRes);
+        if (icon == null) return;
+        icon = icon.mutate();
+        int size = (int) (12 * ctx.getResources().getDisplayMetrics().density);
+        icon.setBounds(0, 0, size, size);
+        icon.setTint(ctx.getColor(fgColorRes));
+        pill.setCompoundDrawables(icon, null, null, null);
     }
 
     /** Bright red stroke -> no stroke, over ~1.5s - see NotificationAdapter#startHighlightFade()'s identical doc for the full reasoning (short hold, then a real fade, never an instant snap). */
@@ -242,17 +230,16 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             return isSameTransaction(oldList.get(oldItemPosition), newList.get(newItemPosition));
         }
 
-        /** Every field onBindViewHolder() above actually renders: status classification (+ pending-verification flag), type+room, reference+stay dates, payment date, amount, paid/remaining progress, and receipts-available count. */
+        /** Every field onBindViewHolder() above actually renders: the resolved status (Paid/Pending/Cancelled/Unpaid), type+reference, room selection, stay dates, payment date, amount, paid/remaining progress, and receipts-available count. */
         @Override
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
             PaymentTransaction a = oldList.get(oldItemPosition);
             PaymentTransaction b = newList.get(newItemPosition);
             Booking ba = a.parentBooking;
             Booking bb = b.parentBooking;
-            return Objects.equals(a.getStatus(), b.getStatus())
-                    && ba.isPaymentPendingVerification() == bb.isPaymentPendingVerification()
+            return PaymentTransactionStatus.resolve(a) == PaymentTransactionStatus.resolve(b)
                     && ba.isHasBooking() == bb.isHasBooking()
-                    && Objects.equals(ba.getRoomName(), bb.getRoomName())
+                    && Objects.equals(Booking.buildRoomSelectionSummaryText(ba, null), Booking.buildRoomSelectionSummaryText(bb, null))
                     && Objects.equals(ba.getCheckInDate(), bb.getCheckInDate())
                     && Objects.equals(ba.getCheckOutDate(), bb.getCheckOutDate())
                     && Objects.equals(a.getDate(), b.getDate())
@@ -290,7 +277,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvTypeChip, tvSubtitle, tvRefAndStay, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
+        TextView tvTitle, tvTypeChip, tvStay, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
         MaterialCardView iconContainer;
         ImageView ivIcon;
         View layoutReceiptsAvailable;
@@ -302,8 +289,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             tvTitle = itemView.findViewById(R.id.tvPtxTitle);
             tvTypeChip = itemView.findViewById(R.id.tvPtxTypeChip);
             tvStatusBadge = itemView.findViewById(R.id.tvPtxStatusBadge);
-            tvSubtitle = itemView.findViewById(R.id.tvPtxSubtitle);
-            tvRefAndStay = itemView.findViewById(R.id.tvPtxRefAndStay);
+            tvStay = itemView.findViewById(R.id.tvPtxStay);
             tvDate = itemView.findViewById(R.id.tvPtxDate);
             tvAmount = itemView.findViewById(R.id.tvPtxAmount);
             tvPaymentProgress = itemView.findViewById(R.id.tvPtxPaymentProgress);

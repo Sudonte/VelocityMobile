@@ -222,12 +222,12 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         if (!(badgeView instanceof android.widget.TextView)) {
             return;
         }
-        int unread = 0;
-        for (Notification notification : RoomRepository.getInstance(this).getNotifications()) {
-            if (!notification.isRead()) {
-                unread++;
-            }
-        }
+        // Same single count the Notifications screen's own header and filter dropdown
+        // show (see RoomRepository#getUnreadNotificationCount()'s own doc) - the badge
+        // used to count only the rows loaded client-side, so it could disagree with
+        // both of them once a guest had more unread than fit in one loaded window, and
+        // never reflected the backend's own total at all.
+        int unread = RoomRepository.getInstance(this).getUnreadNotificationCount();
         android.widget.TextView badge = (android.widget.TextView) badgeView;
         if (unread > 0) {
             badge.setText(unread > 99 ? getString(R.string.unread_badge_overflow) : String.valueOf(unread));

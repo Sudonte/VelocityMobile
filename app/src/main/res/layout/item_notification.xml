@@ -77,32 +77,40 @@
                 app:tint="@color/velocity_red_primary" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Unread indicator: a red dot badge on the icon circle's top-right edge - shown by
+             NotificationAdapter only while the notification is unread. It is the STATE
+             cue; the labeled button in the footer below is the ACTION, and the two
+             never share a visual element (the old icon-only envelope toggle tried to be
+             both, and its meaning was not obvious without a label). Alongside this dot an
+             unread card also has a bold title and a tinted background, so the state never
+             relies on any one of the three alone.
+             Pinned to the icon's top-end CORNER: a 12dp dot in the corner of the 40dp
+             icon box is centred at (34, 6), and the icon circle's own rim at 45 degrees is
+             at (34.1, 5.9) - so it sits exactly on the rim, with no negative margins and
+             nothing hanging into the parent's padding (which clipToPadding would cut off). -->
+        <View
+            android:id="@+id/viewUnreadDot"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/bg_notification_dot_ringed"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/iconContainer"
+            app:layout_constraintTop_toTopOf="@+id/iconContainer"
+            tools:visibility="visible" />
+
         <TextView
             android:id="@+id/tvNotificationTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
             android:textColor="@color/velocity_text_primary"
             android:textSize="14sp"
             android:letterSpacing="-0.01"
-            app:layout_constraintEnd_toStartOf="@+id/btnToggleReadState"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/iconContainer"
             app:layout_constraintTop_toTopOf="@+id/iconContainer"
             tools:fontFamily="sans-serif-black"
             tools:text="Reservation Confirmation" />
-
-        <!-- Guarantees tvNotificationMessage starts below WHICHEVER of the title or the
-             top-right toggle button is taller - a plain toBottomOf="tvNotificationTitle"
-             would let a short single-line title leave the (wider/taller) toggle button
-             hanging over the message text below it, since the button sits in the same
-             end-aligned column the message's own end edge extends into. -->
-        <androidx.constraintlayout.widget.Barrier
-            android:id="@+id/barrierNotificationTitleRow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:barrierDirection="bottom"
-            app:constraint_referenced_ids="tvNotificationTitle,btnToggleReadState" />
 
         <TextView
             android:id="@+id/tvNotificationMessage"
@@ -117,7 +125,7 @@
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/tvNotificationTitle"
-            app:layout_constraintTop_toBottomOf="@+id/barrierNotificationTitleRow"
+            app:layout_constraintTop_toBottomOf="@+id/tvNotificationTitle"
             tools:text="Your booking for Executive Suite (Ref: VS-1024) has been confirmed for Oct 12-15, 2023. We look forward to welcoming you." />
 
         <LinearLayout
@@ -178,46 +186,6 @@
                 tools:text="5 minutes ago" />
         </LinearLayout>
 
-        <!-- Read/Unread toggle - icon-only (closed envelope = unread/"tap to mark
-             read", open envelope = read/"tap to mark unread"), top-right corner of
-             the card. Replaces both the old bottom-row icon+text button (whose label
-             could get squeezed against "View Transaction Details" on a narrow
-             screen) and the separate unread dot - the envelope's own open/closed
-             shape now carries that same at-a-glance unread signal by itself.
-             MaterialButton (not a plain ImageButton) purely so the existing
-             setIconResource()/setOnClickListener() code in NotificationAdapter
-             needed no change - its text-button insets/min-size are zeroed out below
-             so it renders as a plain 40dp circular icon button instead of a text
-             button with no text. Content description and tooltip are set in code
-             (NotificationAdapter#bindActions()) since they depend on the current
-             read state, not something a static XML value could express. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnToggleReadState"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            app:icon="@drawable/ic_email"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="20dp"
-            app:iconTint="@color/velocity_red_primary"
-            app:cornerRadius="20dp"
-            app:rippleColor="@color/velocity_red_subtle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/iconContainer"
-            tools:ignore="ContentDescription" />
-
-        <!-- Bottom action row: "View Transaction Details" alone now that the Read/
-             Unread toggle lives at the card's top-right corner (see
-             btnToggleReadState above) - GONE entirely (divider included) for a
-             notification with nothing to deep-link to (Promotions/System - see
-             NotificationAdapter's own bindActions()), so a Promotions/System card
-             never ends in a dangling empty divider with nothing below it. -->
         <View
             android:id="@+id/dividerNotificationActions"
             android:layout_width="match_parent"
@@ -226,19 +194,64 @@
             android:background="@color/velocity_divider_hairline"
             app:layout_constraintTop_toBottomOf="@+id/layoutNotificationBadges" />
 
-        <!-- wrap_content, end-aligned, no ellipsize/maxLines - alone on this row now,
-             so its full "View Transaction Details" text always has the row's whole
-             width available (comfortably under 360dp's available card width) and is
-             never at risk of being squeezed by a sibling the way it was when the
-             toggle button shared this row. -->
+        <!-- Action footer: the read/unread action always (labeled, text + icon - never
+             icon-only), "View Transaction Details" too when this notification has a
+             transaction to open (GONE otherwise - Flow skips GONE views entirely).
+             A Flow rather than a plain horizontal LinearLayout so the two buttons can
+             never squeeze, overlap, or truncate each other: side by side while they
+             both fit, and the second wraps onto its own row (still left-aligned)
+             the moment they don't - a narrow phone, a large system font size, or a longer
+             translated label all land in the same graceful place instead of clipped text.
+             Both buttons are min-48dp-tall text buttons (the accessibility touch-target
+             minimum) with wrap_content height, so even a label that has to wrap
+             inside a very narrow row grows instead of being cut off. -->
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flowNotificationActions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal"
+            app:constraint_referenced_ids="btnToggleReadState,btnViewTransactionDetails"
+            app:flow_horizontalBias="0"
+            app:flow_horizontalGap="8dp"
+            app:flow_horizontalStyle="packed"
+            app:flow_wrapMode="chain"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dividerNotificationActions" />
+
+        <!-- Text and icon are both set per state in NotificationAdapter#bindActions():
+             "Mark as read" (open-envelope icon = what the tap turns it into) on an
+             unread notification, "Mark as unread" (closed-envelope icon) on a read one. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggleReadState"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:minWidth="0dp"
+            android:minHeight="48dp"
+            android:paddingHorizontal="8dp"
+            android:text="@string/mark_as_read_action"
+            android:textAllCaps="false"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="12sp"
+            app:icon="@drawable/ic_email_open"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="16dp"
+            app:iconTint="@color/velocity_red_primary"
+            app:rippleColor="@color/velocity_red_subtle" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnViewTransactionDetails"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginTop="2dp"
+            android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
             android:minWidth="0dp"
+            android:minHeight="48dp"
             android:paddingHorizontal="8dp"
             android:text="@string/view_transaction_details_label"
             android:textAllCaps="false"
@@ -249,9 +262,6 @@
             app:iconPadding="4dp"
             app:iconSize="14dp"
             app:iconTint="@color/velocity_red_primary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/dividerNotificationActions"
             app:rippleColor="@color/velocity_red_subtle" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

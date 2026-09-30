@@ -52,13 +52,26 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
      * new row's own "Today" header, because the old row's unchanged content
      * never triggered a rebind.
      */
-    private static class Row {
+    static class Row {
         final Notification notification;
+        /**
+         * A SNAPSHOT of notification.isRead() taken when this Row was built - never re-read
+         * from the (mutable, shared) Notification afterwards. RoomRepository flips read state
+         * IN PLACE on the very same Notification instances the previous Row objects still
+         * point at, so a diff that compared old.notification.isRead() to new.notification.
+         * isRead() would always see the same (already-flipped) value on both sides, report
+         * "unchanged", and never rebind the row - leaving a stale button label, unread dot
+         * and title weight on screen after a confirmed change. Comparing snapshots taken at
+         * two different moments is what makes the change visible to DiffUtil; bindings use
+         * this too, so what is drawn always agrees with what was diffed.
+         */
+        final boolean isRead;
         final boolean isFirstInGroup;
         final String groupLabel;
 
-        Row(Notification notification, boolean isFirstInGroup, String groupLabel) {
+        Row(Notification notification, boolean isRead, boolean isFirstInGroup, String groupLabel) {
             this.notification = notification;
+            this.isRead = isRead;
             this.isFirstInGroup = isFirstInGroup;
             this.groupLabel = groupLabel;
         }
@@ -72,7 +85,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         for (Notification n : notifications) {
             String group = NotificationDateGrouper.groupLabel(context, n.getCreatedAtMillis(), now);
             boolean isFirst = !group.equals(previousGroup);
-            result.add(new Row(n, isFirst, group));
+            result.add(new Row(n, n.isRead(), isFirst, group));
             previousGroup = group;
         }
         return result;
@@ -95,7 +108,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         diffResult.dispatchUpdatesTo(this);
     }
 
-    private static class NotificationDiffCallback extends DiffUtil.Callback {
+    /** Package-private (not private) only so NotificationAdapterDiffTest can drive the diff on the JVM. */
+    static class NotificationDiffCallback extends DiffUtil.Callback {
         private final List<Row> oldRows;
         private final List<Row> newRows;
 
@@ -135,7 +149,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             Row newRow = newRows.get(newItemPosition);
             Notification a = oldRow.notification;
             Notification b = newRow.notification;
-            return a.isRead() == b.isRead()
+            // Row.isRead snapshots, deliberately NOT a.isRead()/b.isRead() - see Row#isRead.
+            return oldRow.isRead == newRow.isRead
                     && Objects.equals(a.getTitle(), b.getTitle())
                     && Objects.equals(a.getMessage(), b.getMessage())
                     && Objects.equals(a.getType(), b.getType())
@@ -230,6 +245,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Row row = rows.get(position);
         Notification notification = row.notification;
+        // The snapshot, never notification.isRead() - see Row#isRead.
+        boolean isRead = row.isRead;
         Context ctx = holder.itemView.getContext();
 
         // Date-group header ("Today"/"Yesterday"/"Earlier") - precomputed in
@@ -258,7 +275,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // background below, a second, text-level cue that doesn't rely on color
         // alone (helps in bright sunlight or for a guest who has trouble
         // distinguishing the background tint).
-        holder.tvTitle.setTypeface(null, notification.isRead() ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
+        holder.tvTitle.setTypeface(null, isRead ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
+        // The red dot on the category icon - the third, shape-based unread cue (bold
+        // title and tinted card being the other two). contentDescription makes it
+        // audible too: TalkBack announces "Unread" for an unread card instead of the
+        // state being conveyed by color/weight/shape alone.
+        holder.viewUnreadDot.setVisibility(isRead ? View.GONE : View.VISIBLE);
+        holder.viewUnreadDot.setContentDescription(isRead ? null : ctx.getString(R.string.notif_unread_indicator_desc));
         holder.tvMessage.setText(notification.getMessage());
         bindTime(holder, notification);
 
@@ -271,14 +294,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // = the card's normal surface color. Deliberately no alpha-fade on the read
         // state anymore: dimming the whole card (including its text) hurt readability
         // for a guest re-checking an already-read notification, and conflicts with
-        // "read cards use the normal background" - the unread-vs-read signal is now
-        // the tint, the title weight above, and the envelope icon's own open/closed
-        // shape (see bindActions()), each independently visible.
-        holder.card.setCardElevation(notification.isRead() ? 0f : 2f);
+        // "read cards use the normal background" - the unread-vs-read signal is
+        // the tint, the title weight, and the unread dot above, each independently
+        // visible.
+        holder.card.setCardElevation(isRead ? 0f : 2f);
         holder.card.setCardBackgroundColor(ctx.getColor(
-                notification.isRead() ? R.color.velocity_surface_elevated : R.color.velocity_red_bg_start));
+                isRead ? R.color.velocity_surface_elevated : R.color.velocity_red_bg_start));
         holder.card.setStrokeColor(ctx.getColor(
-                notification.isRead() ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
+                isRead ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
 
         // Set on the card itself, not holder.itemView (the outer wrapper that also
         // contains the shared date-group header above - see item_notification.xml) -
@@ -289,7 +312,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             }
         });
 
-        bindActions(holder, notification, ctx);
+        bindActions(holder, notification, isRead);
 
         if (holder.tvCategory != null) {
             holder.tvCategory.setText(notification.getType());
@@ -314,42 +337,36 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // guest scrolls this exact row off-screen and back while it's still the
         // selected one - a harmless, arguably helpful reinforcement, not a bug.
         if (highlightedNotificationId != null && highlightedNotificationId.equals(notification.getId())) {
-            startHighlightFade(holder.card, ctx, notification.isRead());
+            startHighlightFade(holder.card, ctx, isRead);
         } else {
             holder.card.setStrokeWidth((int) (1 * ctx.getResources().getDisplayMetrics().density));
-            holder.card.setStrokeColor(ctx.getColor(notification.isRead() ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
+            holder.card.setStrokeColor(ctx.getColor(isRead ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
         }
     }
 
     /**
-     * Read/Unread toggle - icon-only (closed envelope = unread, open envelope =
-     * read), top-right corner of the card - and "View Transaction Details" (only
-     * for a Booking/Reservation/Payment/Check-in notification with a resolvable
-     * reference id - Promotions/Announcements/System have nothing to deep-link
-     * to). Content description AND tooltip are set here rather than in XML since
-     * both depend on the current read state; androidx.appcompat's TooltipCompat
-     * degrades to a long-press popup on the (here, unreachable, minSdk 29) pre-26
-     * platforms it needs to support elsewhere, so it's used instead of the raw
-     * View#setTooltipText() for consistency with how the rest of the app would
-     * add a tooltip. The action divider+button are hidden together (never a lone
-     * divider with nothing below it) when there's no transaction to view.
+     * Footer actions. The read/unread action is ALWAYS present and labeled with
+     * what tapping it does - "Mark as read" on an unread notification, "Mark as
+     * unread" on a read one - with the matching envelope icon for the state it
+     * turns the notification INTO (open envelope = read, closed = unread, same
+     * convention as a mail client's own mark-as-read action). Tapping it only
+     * reports the tap (onToggleReadClick) - NotificationActivity owns the
+     * confirmation dialog, the write, and the success/failure message, so this
+     * adapter never mutates read state itself. "View Transaction Details" only
+     * shows for a Booking/Reservation/Payment/Check-in notification with a
+     * resolvable reference id - Promotions/Announcements/System have nothing to
+     * deep-link to; item_notification.xml's Flow skips it (GONE) and the
+     * remaining button simply takes the row.
      */
-    private void bindActions(ViewHolder holder, Notification notification, Context ctx) {
-        boolean isRead = notification.isRead();
-        int toggleIconRes = isRead ? R.drawable.ic_email_open : R.drawable.ic_email;
-        String toggleDescription = ctx.getString(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action);
-        holder.btnToggleReadState.setIconResource(toggleIconRes);
-        holder.btnToggleReadState.setContentDescription(toggleDescription);
-        androidx.appcompat.widget.TooltipCompat.setTooltipText(holder.btnToggleReadState, toggleDescription);
+    private void bindActions(ViewHolder holder, Notification notification, boolean isRead) {
+        holder.btnToggleReadState.setText(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action);
+        holder.btnToggleReadState.setIconResource(isRead ? R.drawable.ic_email : R.drawable.ic_email_open);
         holder.btnToggleReadState.setOnClickListener(v -> {
             if (listener != null) listener.onToggleReadClick(notification);
         });
 
         boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(notification.getType(), notification.getReferenceId());
         holder.btnViewTransactionDetails.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
-        if (holder.dividerActions != null) {
-            holder.dividerActions.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
-        }
         if (canViewTransaction) {
             holder.btnViewTransactionDetails.setOnClickListener(v -> {
                 if (listener != null) listener.onViewTransactionDetailsClick(notification);
@@ -396,7 +413,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         TextView tvTitle, tvMessage, tvTime, tvCategory, tvStatusPill, tvDateGroup;
         ImageView ivIcon;
         com.google.android.material.button.MaterialButton btnToggleReadState, btnViewTransactionDetails;
-        View dividerDateGroup, dividerActions;
+        View dividerDateGroup, viewUnreadDot;
         MaterialCardView card;
         MaterialCardView iconContainer;
 
@@ -409,40 +426,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvStatusPill = itemView.findViewById(R.id.tvNotificationStatusPill);
             tvDateGroup = itemView.findViewById(R.id.tvNotificationDateGroup);
             dividerDateGroup = itemView.findViewById(R.id.dividerNotificationDateGroup);
-            dividerActions = itemView.findViewById(R.id.dividerNotificationActions);
+            viewUnreadDot = itemView.findViewById(R.id.viewUnreadDot);
             ivIcon = itemView.findViewById(R.id.ivNotificationIcon);
             btnToggleReadState = itemView.findViewById(R.id.btnToggleReadState);
             btnViewTransactionDetails = itemView.findViewById(R.id.btnViewTransactionDetails);
             card = itemView.findViewById(R.id.cardNotification);
             iconContainer = (MaterialCardView) itemView.findViewById(R.id.iconContainer);
-            expandTouchTarget(btnToggleReadState);
-        }
-
-        /**
-         * Grows btnToggleReadState's touch target to the 48dp accessibility minimum
-         * via TouchDelegate rather than its own layout bounds - the button stays a
-         * visual 40dp circle (matching iconContainer) and nothing else in the card
-         * (barrierNotificationTitleRow, tvNotificationTitle's available width) shifts,
-         * since TouchDelegate only changes hit-testing, never layout. The button's
-         * position within its parent ConstraintLayout is fixed by constraints that
-         * don't depend on notification content (top-aligned to iconContainer, end-
-         * aligned to parent), so this rect is read once, after the item's first
-         * layout pass, and reused for the ViewHolder's whole recycled lifetime -
-         * never recomputed per bind.
-         */
-        private static void expandTouchTarget(View button) {
-            View parent = (View) button.getParent();
-            if (parent == null) return;
-            parent.post(() -> {
-                int extraPx = (int) (4 * button.getResources().getDisplayMetrics().density);
-                android.graphics.Rect rect = new android.graphics.Rect();
-                button.getHitRect(rect);
-                rect.top -= extraPx;
-                rect.bottom += extraPx;
-                rect.left -= extraPx;
-                rect.right += extraPx;
-                parent.setTouchDelegate(new android.view.TouchDelegate(rect, button));
-            });
         }
     }
 }

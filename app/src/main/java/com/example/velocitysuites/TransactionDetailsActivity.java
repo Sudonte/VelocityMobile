@@ -105,37 +105,20 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     }
 
     private void bindHeader() {
-        String status = transaction.getStatus() != null ? transaction.getStatus() : "";
-        boolean cancelled = status.equalsIgnoreCase("Cancelled") || status.equalsIgnoreCase("Rejected") || status.equalsIgnoreCase("failed");
-        boolean pending = status.equalsIgnoreCase("pending") || booking.isPaymentPendingVerification();
-
-        String title;
-        int bgColorRes, fgColorRes, iconRes;
-        if (cancelled) {
-            title = getString(R.string.ptx_title_cancelled);
-            bgColorRes = R.color.velocity_gray_soft;
-            fgColorRes = R.color.velocity_inactive_gray;
-            iconRes = R.drawable.ic_close;
-        } else if (pending) {
-            title = getString(R.string.ptx_title_pending);
-            bgColorRes = R.color.velocity_blue_soft;
-            fgColorRes = R.color.velocity_blue_primary;
-            iconRes = R.drawable.ic_clock;
-        } else {
-            title = getString(R.string.ptx_title_successful);
-            bgColorRes = R.color.velocity_green_soft;
-            fgColorRes = R.color.velocity_green_dark;
-            iconRes = R.drawable.ic_check_circle;
-        }
+        // The same shared classification the Transaction History card's badge uses
+        // (PaymentTransactionStatus) - this header is the long-form headline of what that
+        // card's short badge says ("Payment Successful" <-> "Paid"), so the two can never
+        // disagree about the same payment.
+        PaymentTransactionStatus.Style style = PaymentTransactionStatus.styleFor(PaymentTransactionStatus.resolve(transaction));
 
         TextView tvTitle = findViewById(R.id.tvTxDetailTitle);
-        tvTitle.setText(title);
+        tvTitle.setText(style.headlineRes);
 
         MaterialCardView iconContainer = findViewById(R.id.iconContainerTxDetail);
         ImageView ivIcon = findViewById(R.id.ivTxDetailIcon);
-        iconContainer.setCardBackgroundColor(getColor(bgColorRes));
-        ivIcon.setColorFilter(getColor(fgColorRes));
-        ivIcon.setImageResource(iconRes);
+        iconContainer.setCardBackgroundColor(getColor(style.iconBgColorRes));
+        ivIcon.setColorFilter(getColor(style.iconFgColorRes));
+        ivIcon.setImageResource(style.iconRes);
 
         String typeLabel = booking.isHasBooking()
                 ? getString(R.string.ptx_type_booking_payment)

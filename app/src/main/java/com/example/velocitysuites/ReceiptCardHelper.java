@@ -54,6 +54,26 @@ final class ReceiptCardHelper {
     }
 
     /**
+     * Whether a client-side transaction record IS the transaction a fetched receipt was
+     * issued for - used to find the amenity lines the receipt payload itself doesn't carry
+     * (see PaymentReceiptActivity#resolveAmenitiesThenRender()). The two sides key a
+     * transaction differently: a reservation-derived receipt carries the ORIGINAL
+     * reservation's id (ReceiptDetail#getReservationId()) and the client keeps that
+     * transaction under the reservation id (never as a direct booking); a direct
+     * booking's receipt has no reservation id and matches the direct Booking with the
+     * same booking id. Reservations and direct bookings are separate tables with
+     * independent id sequences, so the id alone is never enough - reservation #100 and
+     * direct booking #100 are different transactions.
+     */
+    static boolean isReceiptForBooking(ReceiptDetail detail, Booking booking) {
+        String reservationId = detail.getReservationId();
+        if (reservationId != null && !reservationId.trim().isEmpty()) {
+            return !booking.isDirectBooking() && reservationId.equals(booking.getId());
+        }
+        return booking.isDirectBooking() && detail.getBookingId() != null && detail.getBookingId().equals(booking.getId());
+    }
+
+    /**
      * Binds icon/title/desc/button state into an already-found
      * item_payment_receipt_action.xml card - identical to what
      * BookingDetailsActivity and TransactionDetailsActivity each used to

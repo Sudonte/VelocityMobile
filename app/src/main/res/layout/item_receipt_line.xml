@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     One itemized line of the receipt's Payment Summary (a selected room type or an
+     amenity): name on the left, amount right-aligned, and an optional secondary
+     "rate x nights" / "qty x unit price" detail line beneath the name.
+
+     The amount TextView is wrap_content and the name takes the remaining width
+     (weight 1, 0dp) - so a long room/amenity name wraps onto a second line instead of
+     ever squeezing or clipping the price, which must always be fully readable on a
+     financial document. The amount has no maxLines/ellipsize for the same reason.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvLineName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Deluxe Room ×2" />
+
+        <TextView
+            android:id="@+id/tvLineAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="end"
+            android:textAlignment="viewEnd"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="₱15,000.00" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvLineDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="11sp"
+        tools:text="₱2,500.00 / night × 2 rooms × 3 nights" />
+</LinearLayout>

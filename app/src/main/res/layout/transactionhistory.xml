@@ -329,6 +329,35 @@
                         android:visibility="gone"
                         tools:visibility="visible" />
 
+                    <!-- First-load-only indicator, same as the Notifications screen's: shown in
+                         place of (never alongside) the list and the empty state, exactly once per
+                         screen open while nothing has loaded yet - so a slow first fetch reads as
+                         "loading", not as a blank screen. Fixed height so nothing shifts when
+                         real content replaces it. -->
+                    <LinearLayout
+                        android:id="@+id/layoutInitialLoading"
+                        android:layout_width="match_parent"
+                        android:layout_height="280dp"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="gone">
+
+                        <ProgressBar
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:indeterminateTint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/loading_transactions_label"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

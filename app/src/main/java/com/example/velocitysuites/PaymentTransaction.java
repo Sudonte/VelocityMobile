@@ -63,27 +63,34 @@ public class PaymentTransaction implements java.io.Serializable {
     }
 
     /**
-     * Sortable millis - falls back to 0 (sorts last) if the date string can't
-     * be parsed. Tries the current "MMM d, yyyy • h:mm a" display format
-     * (see TimeUtils#formatDateTime) first, then the older formats this
-     * field may still hold from already-serialized/cached Booking objects,
-     * before giving up.
+     * Sortable millis for Transaction History's "most recent first" order. Tries
+     * the current "MMM d, yyyy • h:mm a" display format (see
+     * TimeUtils#formatDateTime) first, then the older formats this field may still
+     * hold from already-serialized/cached Booking objects.
+     * <p>
+     * A row with no (parseable) payment date - typically the synthetic summary row
+     * of a transaction nobody has paid against yet - sorts by when the transaction
+     * itself was CREATED instead of falling to 0, which used to sink every such row
+     * to the very bottom of the list however new it was, below years-old payments.
+     * Both are instants, so the two kinds of row interleave correctly; still 0
+     * (sorts last) only when the parent has no creation time either.
      */
     public long getDateMillis() {
         String date = getDate();
-        if (date == null) return 0L;
-        String[] patterns = {
-                "MMM d, yyyy • h:mm a",
-                "MMM dd, yyyy h:mm a",
-                "MMM dd, yyyy"
-        };
-        for (String pattern : patterns) {
-            try {
-                java.util.Date parsed = new java.text.SimpleDateFormat(pattern, java.util.Locale.ENGLISH).parse(date);
-                if (parsed != null) return parsed.getTime();
-            } catch (Exception ignored) {
+        if (date != null) {
+            String[] patterns = {
+                    "MMM d, yyyy • h:mm a",
+                    "MMM dd, yyyy h:mm a",
+                    "MMM dd, yyyy"
+            };
+            for (String pattern : patterns) {
+                try {
+                    java.util.Date parsed = new java.text.SimpleDateFormat(pattern, java.util.Locale.ENGLISH).parse(date);
+                    if (parsed != null) return parsed.getTime();
+                } catch (Exception ignored) {
+                }
             }
         }
-        return 0L;
+        return parentBooking.getCreatedAtMillis();
     }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small caps sub-heading inside the Payment Summary card ("Selected Rooms", "Amenities",
+     "Charges &amp; Adjustments") - quieter than the card's own red section title
+     (newSectionCard()/TextAppearance.Velocity.Label.Section) so the hierarchy reads:
+     section title > sub-heading > line item. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="10dp"
+    android:fontFamily="sans-serif-black"
+    android:letterSpacing="0.06"
+    android:textAllCaps="true"
+    android:textColor="@color/velocity_text_secondary"
+    android:textSize="11sp"
+    tools:text="Selected Rooms" />

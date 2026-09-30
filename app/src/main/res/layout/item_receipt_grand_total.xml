@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The highlighted Grand Total that closes the receipt's Payment Summary. The label
+     wraps (weight 1) and the amount never does (wrap_content, no maxLines), so even a
+     large amount at a large system font size stays fully readable - the label gives way
+     first ("GRAND\nTOTAL"), never the money.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:background="@drawable/bg_receipt_grand_total"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp">
+
+    <TextView
+        android:id="@+id/tvGrandTotalLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing="0.04"
+        android:textAllCaps="true"
+        android:textColor="@color/velocity_red_dark"
+        android:textSize="13sp"
+        tools:text="Grand Total" />
+
+    <TextView
+        android:id="@+id/tvGrandTotalAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:fontFamily="sans-serif-black"
+        android:gravity="end"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/velocity_red_primary"
+        android:textSize="22sp"
+        tools:text="₱30,400.00" />
+</LinearLayout>

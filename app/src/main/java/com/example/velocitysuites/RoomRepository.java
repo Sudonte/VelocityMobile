@@ -78,7 +78,8 @@ public final class RoomRepository {
 
     private static RoomRepository instance;
 
-    private final ApiService api;
+    /** Not final only so RoomRepositoryNotificationPersistenceTest can swap in a fake via setApiForTesting() - production code assigns it exactly once, in the constructor. */
+    private ApiService api;
     private final Context appContext;
     /** Off-loads the cache-file copy in submitGcashPayment()/uploadIdCard() so a multi-MB photo never blocks the UI thread. */
     private final java.util.concurrent.ExecutorService fileIoExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -127,8 +128,18 @@ public final class RoomRepository {
     private int notificationsPerPage = DEFAULT_NOTIFICATIONS_PER_PAGE;
     private static final int DEFAULT_NOTIFICATIONS_PER_PAGE = 200;
     private int lastNotificationsTotal = 0;
-    /** The guest's TRUE total unread count, straight from the backend (Api\NotificationController::index()'s unread_count - see PaginatedResponse's own doc) - never derived from however many of `notifications` happen to be loaded client-side, which under-counts once a guest has more unread than fit in one loaded window. */
+    /** The guest's TRUE total unread count, straight from the backend (Api\NotificationController::index()'s unread_count - see PaginatedResponse's own doc) - never derived from however many of `notifications` happen to be loaded client-side, which under-counts once a guest has more unread than fit in one loaded window. Adjusted by exactly +/-1 on every real local read/unread transition (see applyReadStateLocally()) so it never lags a change the guest just made, then overwritten by the next fetch's authoritative value. */
     private int backendUnreadCount = 0;
+    /**
+     * Notification id -> the read state a still-in-flight mark-read/unread request
+     * is trying to reach. A poll/refresh response that lands while such a request is
+     * still travelling was computed by the server BEFORE it applied the change, so
+     * taking that response at face value would silently flip the row (and the unread
+     * count) back to the old state for up to a whole poll interval, even though the
+     * request itself then succeeds - see reconcilePendingReadStates(). Entries live
+     * only for the duration of the request itself.
+     */
+    private final Map<String, Boolean> pendingReadStates = new java.util.HashMap<>();
     private final List<BookingsChangedListener> bookingsChangedListeners = new ArrayList<>();
     /** Booking ids already run through correctPendingReservationTotal() - reset whenever refreshBookings() replaces `bookings` with fresh (uncorrected) server objects. */
     private final java.util.Set<String> correctedTotalIds = new java.util.HashSet<>();
@@ -271,6 +282,7 @@ public final class RoomRepository {
         lastDirectBookingsTotal = 0;
         lastNotificationsTotal = 0;
         backendUnreadCount = 0;
+        pendingReadStates.clear();
         // See accountGeneration's own doc - lets refreshBookings()/refreshNotifications()
         // detect and discard a still-in-flight previous account's response instead of
         // letting it silently repopulate these caches after this point.
@@ -291,6 +303,29 @@ public final class RoomRepository {
 
     void addBookingForTesting(Booking booking) {
         this.bookings.add(booking);
+    }
+
+    /** Test-only - seeds the notification cache and the backend-reported unread total, same reason as setRoomsForTesting(). */
+    void setNotificationsForTesting(List<Notification> notifications, int backendUnreadCount) {
+        this.notifications = notifications != null ? new ArrayList<>(notifications) : new ArrayList<>();
+        this.backendUnreadCount = backendUnreadCount;
+        this.pendingReadStates.clear();
+    }
+
+    /** Test-only - registers an in-flight read/unread request without going through the network, so reconcilePendingReadStates() can be driven directly. */
+    void putPendingReadStateForTesting(String notificationId, boolean read) {
+        pendingReadStates.put(notificationId, read);
+    }
+
+    /**
+     * Test-only - swaps the ApiService (a java.lang.reflect.Proxy fake that records each request and
+     * lets the test decide when and how it completes) and returns the previous one, so a test can
+     * put the shared singleton back exactly as it found it.
+     */
+    ApiService setApiForTesting(ApiService replacement) {
+        ApiService previous = this.api;
+        this.api = replacement;
+        return previous;
     }
 
     /** Test-only accessor for accountGeneration - see its own field doc. */
@@ -839,9 +874,10 @@ public final class RoomRepository {
                     for (NotificationDto dto : response.body().data) {
                         mapped.add(ApiMapper.toNotification(dto));
                     }
+                    int unreadCount = reconcilePendingReadStates(mapped, response.body().unread_count);
                     notifications = mapped;
                     lastNotificationsTotal = response.body().total;
-                    backendUnreadCount = response.body().unread_count;
+                    backendUnreadCount = unreadCount;
                     // Single hook point for the whole app: every screen that refreshes
                     // notifications (dashboard, the Notification Module, the background
                     // poll worker) posts real system alerts for genuinely new/unread rows
@@ -868,6 +904,71 @@ public final class RoomRepository {
     /** See backendUnreadCount's own doc - 0 until the first successful refreshNotifications()/pollNotifications() call of this app session. */
     public int getBackendUnreadCount() {
         return backendUnreadCount;
+    }
+
+    /**
+     * The one unread count every badge/counter should show - the header bell badge on
+     * every guest screen, the Notifications screen's own header, and its filter
+     * dropdown. backendUnreadCount already counts unread rows beyond the loaded window;
+     * the loaded-window count is the floor it can never legitimately fall below (the
+     * backend caches its total for a few seconds, so a brand-new unread row a poll just
+     * delivered can briefly outrun it). Taking the larger of the two means the number
+     * never undercounts rows the guest can literally see, and - because every local
+     * read/unread change goes through applyReadStateLocally() - never lags a change the
+     * guest just made either.
+     */
+    public int getUnreadNotificationCount() {
+        int loadedUnread = 0;
+        for (Notification n : notifications) {
+            if (!n.isRead()) loadedUnread++;
+        }
+        return Math.max(backendUnreadCount, loadedUnread);
+    }
+
+    /**
+     * Flips one cached notification's read flag and, only when that is a real
+     * transition, moves backendUnreadCount by exactly one - so the count stays
+     * correct however many times (or from however many racing code paths) the same
+     * target state is applied. Id-based rather than taking a Notification: a poll may
+     * have replaced the cached object with a fresh copy since a caller last held it.
+     *
+     * @return true if the row is in the cache and its state actually changed.
+     */
+    boolean applyReadStateLocally(String notificationId, boolean read) {
+        if (notificationId == null) return false;
+        for (Notification n : notifications) {
+            if (notificationId.equals(n.getId())) {
+                if (n.isRead() == read) return false;
+                n.setRead(read);
+                backendUnreadCount = Math.max(0, backendUnreadCount + (read ? -1 : 1));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Re-applies every still-in-flight mark-read/unread change (pendingReadStates)
+     * over a freshly fetched page BEFORE it replaces/merges into the cache, and
+     * returns the unread total to store alongside it. A pending row that comes back
+     * with its OLD state means the server answered before it processed our request:
+     * the row is forced to the requested state and the server's own count - which still
+     * counts that row the old way - is corrected by one to match. A row already showing
+     * the requested state needs nothing: the request landed first. A no-op (returns
+     * serverUnreadCount unchanged) whenever nothing is in flight, which is the
+     * overwhelmingly common case. Package-private so the RoomRepositoryNotification*Test
+     * classes can drive it directly.
+     */
+    int reconcilePendingReadStates(List<Notification> fresh, int serverUnreadCount) {
+        if (pendingReadStates.isEmpty()) return serverUnreadCount;
+        int adjusted = serverUnreadCount;
+        for (Notification n : fresh) {
+            Boolean wanted = pendingReadStates.get(n.getId());
+            if (wanted == null || n.isRead() == wanted) continue;
+            n.setRead(wanted);
+            adjusted += wanted ? -1 : 1;
+        }
+        return Math.max(0, adjusted);
     }
 
     /**
@@ -915,9 +1016,10 @@ public final class RoomRepository {
                     for (NotificationDto dto : response.body().data) {
                         fetched.add(ApiMapper.toNotification(dto));
                     }
+                    int unreadCount = reconcilePendingReadStates(fetched, response.body().unread_count);
                     mergeNotifications(fetched);
                     lastNotificationsTotal = response.body().total;
-                    backendUnreadCount = response.body().unread_count;
+                    backendUnreadCount = unreadCount;
                     NotificationHelper.maybeAlertNewNotifications(appContext, fetched);
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {
@@ -950,8 +1052,9 @@ public final class RoomRepository {
      * is an unlikely combination (DEFAULT_NOTIFICATIONS_PER_PAGE is a lot of
      * history for a hotel guest), and this device's OWN read/unread taps are
      * already reflected instantly via their own optimistic update
-     * (NotificationActivity#setReadStateOptimistic()) - they never wait on
-     * this poll at all.
+     * (setNotificationReadState()) - they never wait on this poll at all, and
+     * one still in flight when this poll's response lands is re-applied over it
+     * by the caller (reconcilePendingReadStates()) before this method runs.
      */
     private void mergeNotifications(List<Notification> fetched) {
         for (Notification fresh : fetched) {
@@ -2098,73 +2201,122 @@ public final class RoomRepository {
         });
     }
 
-    /** @param onDone receives true only if the server actually confirmed the read-state change. */
+    /** Same as {@link #setNotificationReadState(String, boolean, java.util.function.Consumer)} with read=true - kept as its own entry point for callers that only ever mark read (e.g. the dashboard's "View Details"). */
     public void markNotificationAsRead(String notificationId, java.util.function.Consumer<Boolean> onDone) {
-        api.markNotificationRead(notificationId).enqueue(new Callback<NotificationDto>() {
-            @Override
-            public void onResponse(Call<NotificationDto> call, Response<NotificationDto> response) {
-                boolean success = response.isSuccessful();
-                if (success) {
-                    for (Notification n : notifications) {
-                        if (n.getId().equals(notificationId)) {
-                            n.setRead(true);
-                            break;
-                        }
-                    }
-                }
-                if (onDone != null) onDone.accept(success);
-            }
-
-            @Override
-            public void onFailure(Call<NotificationDto> call, Throwable t) {
-                if (onDone != null) onDone.accept(false);
-            }
-        });
+        setNotificationReadState(notificationId, true, onDone);
     }
 
-    /** @param onDone receives true only if the server actually confirmed the read-state change. */
+    /** Same as {@link #setNotificationReadState(String, boolean, java.util.function.Consumer)} with read=false. */
     public void markNotificationAsUnread(String notificationId, java.util.function.Consumer<Boolean> onDone) {
-        api.markNotificationUnread(notificationId).enqueue(new Callback<NotificationDto>() {
+        setNotificationReadState(notificationId, false, onDone);
+    }
+
+    /**
+     * Marks one notification read or unread, persisted server-side (PUT
+     * notifications/{id}/read | /unread - ownership-checked, and the backend busts its
+     * cached unread total on both). The change is applied to the local cache
+     * IMMEDIATELY (before the request resolves) so every screen reading the cache - the
+     * row itself, the header bell badge, the filter counts - reflects it on its very
+     * next repaint, then confirmed in the background: a failed request reverts exactly
+     * this one change. While it is in flight the requested state is remembered in
+     * pendingReadStates, so a poll/refresh that lands in that window cannot flip the row
+     * back (see reconcilePendingReadStates()).
+     * <p>
+     * Always sends the request, even when the cache already shows the target state -
+     * the PUTs are idempotent, and "the cache says so" is not the same as "the server
+     * has been told". Callers that want to skip a redundant request (e.g. tapping an
+     * already-read row) check isRead() themselves first.
+     *
+     * @param onDone receives true only if the server actually confirmed the change; false
+     *               means the local change was reverted.
+     */
+    public void setNotificationReadState(String notificationId, boolean read, java.util.function.Consumer<Boolean> onDone) {
+        final boolean previousState = !read;
+        final boolean changedLocally = applyReadStateLocally(notificationId, read);
+        pendingReadStates.put(notificationId, read);
+
+        Call<NotificationDto> request = read
+                ? api.markNotificationRead(notificationId)
+                : api.markNotificationUnread(notificationId);
+        request.enqueue(new Callback<NotificationDto>() {
             @Override
             public void onResponse(Call<NotificationDto> call, Response<NotificationDto> response) {
-                boolean success = response.isSuccessful();
-                if (success) {
-                    for (Notification n : notifications) {
-                        if (n.getId().equals(notificationId)) {
-                            n.setRead(false);
-                            break;
-                        }
-                    }
-                }
-                if (onDone != null) onDone.accept(success);
+                finishReadStateRequest(notificationId, read, previousState, changedLocally, response.isSuccessful(), onDone);
             }
 
             @Override
             public void onFailure(Call<NotificationDto> call, Throwable t) {
-                if (onDone != null) onDone.accept(false);
+                finishReadStateRequest(notificationId, read, previousState, changedLocally, false, onDone);
             }
         });
     }
 
-    /** @param onDone receives true only if the server actually confirmed the read-state change. */
+    private void finishReadStateRequest(String notificationId, boolean requestedState, boolean previousState,
+                                        boolean changedLocally, boolean success,
+                                        java.util.function.Consumer<Boolean> onDone) {
+        Boolean stillPending = pendingReadStates.get(notificationId);
+        // A LATER request for this same row (a quick second toggle) has replaced our
+        // entry - that request now owns the row's state, so this earlier one must
+        // neither clear its protection nor revert underneath it.
+        boolean superseded = stillPending != null && stillPending != requestedState;
+        if (!superseded) {
+            pendingReadStates.remove(notificationId);
+            if (!success && changedLocally) {
+                applyReadStateLocally(notificationId, previousState);
+            }
+        }
+        if (onDone != null) onDone.accept(success);
+    }
+
+    /**
+     * Marks every notification read - one-way, so confirmed by the caller first (see
+     * NotificationActivity#confirmMarkAllRead()). Optimistic exactly like
+     * setNotificationReadState(): every currently-unread cached row and the unread total
+     * flip at once, remembering precisely which rows that was so a failure reverts those
+     * and never a row that was already read beforehand.
+     *
+     * @param onDone receives true only if the server actually confirmed the change.
+     */
     public void markAllNotificationsAsRead(java.util.function.Consumer<Boolean> onDone) {
+        final List<String> flippedIds = new ArrayList<>();
+        for (Notification n : notifications) {
+            if (!n.isRead()) {
+                n.setRead(true);
+                flippedIds.add(n.getId());
+                pendingReadStates.put(n.getId(), true);
+            }
+        }
+        // Unread rows beyond the loaded window (counted only by the backend total) are
+        // read now too, so the whole total goes to zero - remembered so a failure can put
+        // the not-loaded remainder back as well.
+        final int unreadBeyondLoadedWindow = Math.max(0, backendUnreadCount - flippedIds.size());
+        backendUnreadCount = 0;
+
         api.markAllNotificationsRead().enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                boolean success = response.isSuccessful();
-                if (success) {
-                    for (Notification n : notifications) {
-                        n.setRead(true);
-                    }
-                }
-                if (onDone != null) onDone.accept(success);
+                finishMarkAll(flippedIds, unreadBeyondLoadedWindow, response.isSuccessful(), onDone);
             }
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
-                if (onDone != null) onDone.accept(false);
+                finishMarkAll(flippedIds, unreadBeyondLoadedWindow, false, onDone);
             }
         });
+    }
+
+    private void finishMarkAll(List<String> flippedIds, int unreadBeyondLoadedWindow, boolean success,
+                               java.util.function.Consumer<Boolean> onDone) {
+        for (String id : flippedIds) {
+            Boolean stillPending = pendingReadStates.get(id);
+            // Same "a later request owns the row" rule as finishReadStateRequest().
+            boolean superseded = stillPending != null && !stillPending;
+            if (superseded) continue;
+            pendingReadStates.remove(id);
+            if (!success) applyReadStateLocally(id, false);
+        }
+        if (!success) backendUnreadCount += unreadBeyondLoadedWindow;
+        if (onDone != null) onDone.accept(success);
     }
 
     // ---- Local-only search over cached rooms. Cross-guest date conflicts

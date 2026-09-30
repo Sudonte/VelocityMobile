@@ -196,6 +196,17 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      */
     public static final java.util.Map<String, ReceiptDetail> debugPreviewFixtures = new java.util.HashMap<>();
 
+    /**
+     * DEBUG-ONLY companion to {@link #debugPreviewFixtures}: the amenity lines a fixture
+     * receipt's transaction "has", keyed by the same receipt_number. A ReceiptDetail carries
+     * room lines but not amenity lines (see resolveAmenitiesThenRender()), so a fixture needs
+     * its amenities supplied separately - a fixture without an entry here is previewed as a
+     * transaction with no amenities, never one that would go to the network, and an entry
+     * mapped to null previews the "amenities could not be resolved" case. Same
+     * src/debug-only assignment and BuildConfig.DEBUG guard as debugPreviewFixtures.
+     */
+    public static final java.util.Map<String, List<BookingAmenity>> debugPreviewAmenities = new java.util.HashMap<>();
+
     private void initReceiptNumberMode() {
         findViewById(R.id.btnReceiptRetry).setOnClickListener(v -> loadReceiptByNumber());
         // Download is wired once a receipt actually loads (see renderReceiptDetail()) -
@@ -219,7 +230,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         if (BuildConfig.DEBUG && debugPreviewFixtures.containsKey(receiptNumber)) {
             ReceiptDetail fixture = debugPreviewFixtures.get(receiptNumber);
             receiptDetail = fixture;
-            renderReceiptDetail(fixture);
+            // No entry = "resolved, none"; an entry mapped to null = "could not be resolved".
+            renderReceiptDetail(fixture, debugPreviewAmenities.containsKey(receiptNumber)
+                    ? debugPreviewAmenities.get(receiptNumber)
+                    : new ArrayList<>(), 0);
             return;
         }
 
@@ -229,7 +243,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             public void onSuccess(ReceiptDetail result) {
                 if (isFinishing() || isDestroyed()) return;
                 receiptDetail = result;
-                renderReceiptDetail(result);
+                resolveAmenitiesThenRender(result);
             }
 
             @Override
@@ -238,6 +252,62 @@ public class PaymentReceiptActivity extends AppCompatActivity {
                 showErrorState(message);
             }
         });
+    }
+
+    /**
+     * The receipt payload (ReceiptService::buildReceiptPayload()) carries the transaction's
+     * room lines but NOT its amenity lines, and the itemized Payment Summary needs them - so
+     * they are taken from the transaction record the payload belongs to, in order of cost:
+     * the Booking this screen was opened from (Booking Details' Receipts section passes it),
+     * else the shared bookings cache, else a direct fetch of that one transaction (a
+     * notification opened cold, or a transaction older than the loaded window - the receipt
+     * screen's own loading spinner simply stays up a moment longer). The transaction is
+     * matched by ReceiptCardHelper#isReceiptForBooking(), never by id alone.
+     * <p>
+     * A fetch that fails still renders the receipt - with the amenities marked UNKNOWN (see
+     * ReceiptBreakdown.AmenityStatus), never as "No amenities selected": an unreachable server
+     * is not the same claim as an empty amenity list, and the Grand Total is the backend's
+     * either way. Amenity lines are transaction-level facts (what was ordered), not
+     * per-payment ones, so reading them from the current transaction record does not disturb
+     * the payload's own point-in-time payment figures (see renderReceiptDetail()).
+     */
+    private void resolveAmenitiesThenRender(ReceiptDetail detail) {
+        Booking local = findLocalTransactionFor(detail);
+        if (local != null) {
+            renderReceiptDetail(detail, local.getAmenities(), local.getAmenityCharge());
+            return;
+        }
+
+        boolean reservationDerived = detail.getReservationId() != null && !detail.getReservationId().trim().isEmpty();
+        String transactionId = reservationDerived ? detail.getReservationId() : detail.getBookingId();
+        RoomRepository.getInstance(this).fetchTransactionById(transactionId, reservationDerived,
+                new RoomRepository.RepositoryCallback<Booking>() {
+                    @Override
+                    public void onSuccess(Booking fetched) {
+                        if (isFinishing() || isDestroyed()) return;
+                        renderReceiptDetail(detail, fetched.getAmenities(), fetched.getAmenityCharge());
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
+                        renderReceiptDetail(detail, null, 0);
+                    }
+                });
+    }
+
+    @Nullable
+    private Booking findLocalTransactionFor(ReceiptDetail detail) {
+        Booking passedIn = (Booking) getIntent().getSerializableExtra(EXTRA_BOOKING);
+        if (passedIn != null && ReceiptCardHelper.isReceiptForBooking(detail, passedIn)) {
+            return passedIn;
+        }
+        for (Booking cached : RoomRepository.getInstance(this).getBookings()) {
+            if (ReceiptCardHelper.isReceiptForBooking(detail, cached)) {
+                return cached;
+            }
+        }
+        return null;
     }
 
     private void showLoadingState() {
@@ -270,9 +340,13 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * are already the frozen point-in-time snapshot the backend computed
      * (see ReceiptDetail's own doc) - displayed exactly as received, never
      * recomputed or replaced with a separately-cached Booking's current
-     * live totals.
+     * live totals. The only thing NOT taken from the payload is the amenity
+     * lines (it carries none) - see resolveAmenitiesThenRender(); {@code amenities}
+     * null means they could not be resolved, an empty list means there are none, and
+     * {@code aggregateAmenityCharge} is the transaction record's single amenity total,
+     * which keeps an amenity charge on record from ever reading as "no amenities".
      */
-    private void renderReceiptDetail(ReceiptDetail detail) {
+    private void renderReceiptDetail(ReceiptDetail detail, @Nullable List<BookingAmenity> amenities, double aggregateAmenityCharge) {
         receiptCard = findViewById(R.id.receiptCard);
         receiptCard.setVisibility(View.GONE);
 
@@ -287,7 +361,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         buildHeaderSection(content, detail, typeLabel);
         buildStaySection(content, detail);
         buildGuestSection(content, detail);
-        buildPaymentSummarySection(content, detail);
+        buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
         buildTransactionHistorySection(content, detail);
 
         MaterialButton btnDownload = findViewById(R.id.btnReceiptDownload);
@@ -378,18 +452,6 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         return detail.getRoomType();
     }
 
-    /** One "RoomType: ₱X,XXX.XX/night" line per room line - null when room_lines wasn't returned (a transaction predating that feature), rather than guessing a rate from the total. */
-    @Nullable
-    private String formatRoomRateValue(List<BookingRoom> lines) {
-        if (lines == null || lines.isEmpty()) return null;
-        StringBuilder sb = new StringBuilder();
-        for (BookingRoom room : lines) {
-            if (sb.length() > 0) sb.append('\n');
-            sb.append(room.getRoomTypeName()).append(": ").append(formatPrice(room.getPricePerNight())).append("/night");
-        }
-        return sb.toString();
-    }
-
     /** Guest Information - item 6. */
     private void buildGuestSection(ViewGroup parent, ReceiptDetail detail) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_guest_information_title));
@@ -398,34 +460,45 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     }
 
     /**
-     * Payment Summary - items 8/9/10. detail.isAnchoredOnSinglePayment()
-     * distinguishes a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT (a frozen
-     * point-in-time snapshot, anchored on one specific payment) from an
-     * OFFICIAL_RECEIPT (the live final checkout totals) - both cases read
-     * exclusively from detail.getPaymentSummary(), never a separately
-     * fetched/cached Booking.
+     * Payment Summary - items 8/9/10, now itemized: every selected room (rate per
+     * night, nights, subtotal) with the Rooms Total, every selected amenity (quantity,
+     * unit price, subtotal) with the Amenities Total - or "No amenities selected" - the
+     * charges/deductions, and the Grand Total LAST, which by construction equals the sum of
+     * the lines above it (see ReceiptBreakdown/ReceiptSummaryRenderer). The Grand Total
+     * itself is still exclusively detail.getPaymentSummary().grandTotal (never a
+     * separately fetched/cached Booking's): the payload's point-in-time payment figures stay
+     * authoritative, and any part of that total the itemized lines don't explain is shown as
+     * "Other Charges &amp; Adjustments" rather than silently absorbed. This system has no
+     * tax/service-charge concept anywhere (Billing/Payment models both confirmed to have no
+     * such column) - there is deliberately no "taxes and fees" row, since fabricating one
+     * would show data that was never actually collected.
+     * <p>
+     * The payment-PROGRESS lines that used to trail this card (percentage, amount paid,
+     * balance, status, verifier) moved to their own card just below - they describe what
+     * has been paid against the Grand Total, not how it is made up, and keeping them out
+     * lets the Grand Total genuinely close the summary.
      */
-    private void buildPaymentSummarySection(ViewGroup parent, ReceiptDetail detail) {
+    private void buildPaymentSummarySection(ViewGroup parent, ReceiptDetail detail, @Nullable List<BookingAmenity> amenities,
+                                            double aggregateAmenityCharge) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_summary_title));
         Booking.PaymentSummary summary = detail.getPaymentSummary();
         if (summary == null) {
             return;
         }
 
-        addRow(content, getString(R.string.room_rate_label), formatRoomRateValue(detail.getRoomLines()));
-        // subtotal = grandTotal + discount: Billing::total_amount (the
-        // backend source of grandTotal) is already discount-inclusive (see
-        // ReceiptService::grandTotal()'s own doc), so adding the discount
-        // back recovers the pre-discount subtotal without needing a
-        // separate backend field for it. This system has no tax/service-
-        // charge concept anywhere (Billing/Payment models both confirmed to
-        // have no such column) - there is deliberately no "taxes and fees"
-        // row here, since fabricating one would show data that was never
-        // actually collected.
-        double subtotal = summary.grandTotal + summary.discount;
-        addRow(content, getString(R.string.subtotal_label), subtotal > 0.009 ? formatPrice(subtotal) : null);
-        addRow(content, getString(R.string.details_label_discount), summary.discount > 0.009 ? formatPrice(summary.discount) : null);
-        addRow(content, getString(R.string.details_label_total_amount), formatPrice(summary.grandTotal));
+        ReceiptSummaryRenderer.render(this, content, ReceiptBreakdown.forReceiptDetail(detail, amenities, aggregateAmenityCharge));
+        buildPaymentDetailsSection(parent, detail, summary);
+    }
+
+    /**
+     * Payment progress - detail.isAnchoredOnSinglePayment() distinguishes a
+     * PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT (a frozen point-in-time snapshot, anchored on one
+     * specific payment) from an OFFICIAL_RECEIPT (the live final checkout totals) - both
+     * cases read exclusively from detail.getPaymentSummary(), never a separately
+     * fetched/cached Booking.
+     */
+    private void buildPaymentDetailsSection(ViewGroup parent, ReceiptDetail detail, Booking.PaymentSummary summary) {
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_information_title));
         if (summary.paymentPercentage != null) {
             addRow(content, getString(R.string.receipt_payment_percentage_label),
                     PaymentPercentageUtil.formatApiPercentageForDisplay(summary.paymentPercentage));
@@ -563,7 +636,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         valueView.setGravity(android.view.Gravity.CENTER);
         valueView.setTypeface(valueView.getTypeface(), android.graphics.Typeface.BOLD);
         valueView.setTextColor(getColor(R.color.velocity_red_primary));
-        valueView.setTextSize(26);
+        // One step below the Grand Total's 22sp panel (item_receipt_grand_total.xml) - this is
+        // what was PAID, the Grand Total is what is OWED, and the outlined Grand Total panel
+        // should read as the primary figure on the page.
+        valueView.setTextSize(20);
         LinearLayout.LayoutParams valueParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         valueParams.topMargin = dp(4);
         valueView.setLayoutParams(valueParams);
@@ -657,6 +733,14 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         String paymentId = booking.getLatestPaymentId();
         ((TextView) findViewById(R.id.tvReceiptReference)).setText(
                 getString(R.string.receipt_reference_value_prefix) + " " + (paymentId != null ? paymentId : booking.getId()));
+        // Receipt date for the header: when staff verified the payment (the moment this
+        // receipt became available) if on record, else the payment's own date - a legacy
+        // Booking snapshot carries no separate "issued at" the way a fetched receipt does.
+        // Hidden when neither exists, never a placeholder.
+        String receiptDate = booking.getPaymentVerifiedAtDisplay() != null && !booking.getPaymentVerifiedAtDisplay().trim().isEmpty()
+                ? booking.getPaymentVerifiedAtDisplay()
+                : booking.getPaymentDateOnly();
+        bindRow(R.id.rowReceiptDate, getString(R.string.receipt_issued_date_label), receiptDate);
 
         // --- Guest Information ---
         // Guest Account Name = the authenticated account holder, not this specific
@@ -732,30 +816,22 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         TextView paymentTypeBadge = findViewById(R.id.tvPaymentTypeBadge);
         paymentTypeBadge.setText(fullyPaid ? R.string.receipt_payment_type_full : R.string.receipt_payment_type_partial);
 
-        // Room Charges/Amenities/Additional Guest Fee only render when the backend's
-        // Billing breakdown actually returned them (Booking#getRoomCharge() etc.) -
-        // never fabricated for a still-pending Reservation or a direct Booking.
-        bindRow(R.id.rowRoomRate, getString(R.string.room_rate_label), formatLegacyRoomRateValue(roomCharge));
-        bindRow(R.id.rowRoomCharge, getString(R.string.details_label_room_charge),
-                roomCharge > 0.009 ? formatPrice(roomCharge) : null);
-        bindRow(R.id.rowAmenityCharge, getString(R.string.details_label_amenity_charge),
-                amenityCharge > 0.009 ? formatPrice(amenityCharge) : null);
-        bindRow(R.id.rowAdditionalGuestFee, getString(R.string.details_label_additional_guest_fee),
-                additionalGuestFee > 0.009 ? formatPrice(additionalGuestFee) : null);
-        double subtotal = roomCharge + amenityCharge + additionalGuestFee;
-        bindRow(R.id.rowSubtotal, getString(R.string.subtotal_label), subtotal > 0.009 ? formatPrice(subtotal) : null);
-        // Only ever populated for a reservation-derived transaction (see
-        // Booking#getDiscountAmount()'s own doc) - a direct Booking has no
-        // discount_preview source at all, so this correctly stays 0/hidden for
-        // that path rather than showing a fabricated value.
-        double discountAmount = booking.getDiscountAmount();
-        bindRow(R.id.rowDiscount, getString(R.string.details_label_discount),
-                discountAmount > 0.009 ? formatPrice(discountAmount) : null);
-        bindRow(R.id.rowTotalAmount, getString(R.string.details_label_total_amount), formatPrice(totalAmount));
+        // Itemized Selected Rooms/Amenities/charges -> Grand Total, from the Booking's own
+        // itemized lines and Billing split (Booking#getRooms()/getAmenities()/getRoomCharge()
+        // etc.) via the same ReceiptBreakdown/ReceiptSummaryRenderer receipt-number mode
+        // uses. totalAmount/amenityCharge/additionalGuestFee are the group-aggregated
+        // figures resolved above; the discount is only ever populated for a reservation-
+        // derived transaction (see Booking#getDiscountAmount()'s own doc) - a direct
+        // Booking has no discount_preview source at all, so it correctly stays 0/hidden
+        // for that path rather than showing a fabricated value.
+        long stayNights = StayDateCalculator.nightsBetween(booking.getCheckInDate(), booking.getCheckOutDate());
+        ReceiptSummaryRenderer.render(this, (ViewGroup) findViewById(R.id.layoutPaymentSummaryBreakdown),
+                ReceiptBreakdown.forLegacyBooking(booking, groupMembers, stayNights, totalAmount, amenityCharge, additionalGuestFee));
+
+        // Payment PROGRESS - moved out of the Payment Summary (see the layout) so the Grand Total closes it.
         bindRow(R.id.rowAmountPaid, getString(R.string.details_label_amount_paid), formatPrice(amountPaid));
         bindRow(R.id.rowRemainingBalance, getString(R.string.details_label_remaining_balance),
                 remainingBalance > 0.009 ? formatPrice(remainingBalance) : null);
-        emphasizeRowValue(R.id.rowTotalAmount);
         emphasizeRowValue(R.id.rowAmountPaid);
 
         // --- Payment Verification Information ---
@@ -902,25 +978,6 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return sb.toString();
         }
         return booking.getRoomType();
-    }
-
-    /**
-     * One "RoomType: rate/night" line per itemized room line (same data
-     * {@link #formatRoomRateValue(List)} uses for receipt-number mode) when
-     * available; falls back to roomCharge/nights - an approximation, only
-     * used for a transaction that predates the room_lines feature - when
-     * it isn't. Null (row hidden) only when neither is computable, never a
-     * guessed/fabricated rate.
-     */
-    @Nullable
-    private String formatLegacyRoomRateValue(double roomCharge) {
-        String perLine = formatRoomRateValue(booking.getRooms());
-        if (perLine != null) return perLine;
-        Long nights = StayDateCalculator.nightsBetweenOrNull(booking.getCheckInDate(), booking.getCheckOutDate());
-        if (nights != null && nights > 0 && roomCharge > 0.009) {
-            return formatPrice(roomCharge / nights) + "/night";
-        }
-        return null;
     }
 
     /**

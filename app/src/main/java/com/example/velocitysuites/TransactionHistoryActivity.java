@@ -43,6 +43,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
 
     private RecyclerView rvTransactions;
     private View layoutEmptyState;
+    private View layoutInitialLoading;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearch;
     private android.widget.AutoCompleteTextView dropdownTransactionStatus;
@@ -110,6 +111,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         
         rvTransactions = findViewById(R.id.rvTransactions);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
+        layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearch = findViewById(R.id.etSearch);
         dropdownTransactionStatus = findViewById(R.id.dropdownTransactionStatus);
@@ -429,11 +431,21 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
      *                             user-triggered retry.
      */
     private void loadTransactions(boolean showLoadingIndicator) {
+        // The centered first-load indicator, not the swipe spinner - only for a genuine
+        // "nothing shown yet" moment (never the silent 30s poll, which doesn't come through
+        // here at all, nor a pull-to-refresh, which passes false and shows its own spinner).
+        boolean isInitialLoad = showLoadingIndicator && allBookings.isEmpty();
+        if (isInitialLoad && layoutInitialLoading != null) {
+            layoutInitialLoading.setVisibility(View.VISIBLE);
+            rvTransactions.setVisibility(View.GONE);
+            layoutEmptyState.setVisibility(View.GONE);
+        }
         if (showLoadingIndicator && swipeRefresh != null) swipeRefresh.setRefreshing(true);
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+                if (layoutInitialLoading != null) layoutInitialLoading.setVisibility(View.GONE);
                 allBookings = result;
                 applyFilters();
             }
@@ -441,6 +453,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             @Override
             public void onError(String message) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+                if (layoutInitialLoading != null) layoutInitialLoading.setVisibility(View.GONE);
                 // Same rule as NotificationActivity's identical guard: a transient
                 // refresh/auto-poll failure with a list already on screen just gets a
                 // toast - replacing a working list with a scary error screen over a

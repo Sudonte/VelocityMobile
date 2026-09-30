@@ -30,11 +30,12 @@ public class NotificationScreenInstrumentedTest {
 
     /**
      * Exercises NotificationAdapter directly - onCreateViewHolder (inflates
-     * item_notification.xml), onBindViewHolder for one representative notification
-     * per category plus every read/unread and with/without-referenceId combination,
-     * and (via waitForIdleSync()) the posted TouchDelegate callback the envelope
-     * toggle button relies on - all with zero login/network dependency, so this
-     * fails the same way whether or not a real backend session is available.
+     * item_notification.xml, including its unread dot and the Flow-laid-out
+     * Mark as read/unread + View Transaction Details buttons), and onBindViewHolder
+     * for one representative notification per category plus every read/unread and
+     * with/without-referenceId combination - all with zero login/network
+     * dependency, so this fails the same way whether or not a real backend session
+     * is available.
      */
     @Test
     public void notificationAdapter_bindsEveryCategoryAndReadState_withoutCrashing() {
@@ -66,8 +67,8 @@ public class NotificationScreenInstrumentedTest {
                 recyclerView.measure(widthSpec, heightSpec);
                 recyclerView.layout(0, 0, 1080, 20000);
             });
-            // Lets the envelope toggle's TouchDelegate setup (posted from
-            // NotificationAdapter.ViewHolder's constructor) actually run.
+            // Lets anything the binds above posted to the main thread actually run, so a
+            // failure it would cause surfaces inside this test instead of after it returns.
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         }
     }

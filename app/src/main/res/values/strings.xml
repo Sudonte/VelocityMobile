@@ -157,9 +157,33 @@
     <string name="receipt_not_available_desc">This receipt is not available.</string>
     <string name="receipt_loading_label">Loading receipt…</string>
     <string name="loading_notifications_label">Loading notifications…</string>
+    <string name="loading_transactions_label">Loading transactions…</string>
     <string name="receipt_load_failed_desc">Payment receipt could not be loaded. Please try again.</string>
     <!-- receipt-number mode (PaymentReceiptActivity#renderReceiptDetail()) - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 4. -->
     <string name="receipt_payment_summary_title">Payment Summary</string>
+    <!-- Itemized Payment Summary (ReceiptSummaryRenderer): Selected Rooms -> Rooms Total,
+         Amenities -> Amenities Total, charges/deductions, Grand Total. -->
+    <string name="receipt_selected_rooms_title">Selected Rooms</string>
+    <string name="receipt_rooms_total_label">Rooms Total</string>
+    <string name="receipt_amenities_title">Amenities</string>
+    <string name="receipt_no_amenities">No amenities selected</string>
+    <string name="receipt_amenities_unavailable">Amenity details are unavailable right now.</string>
+    <string name="receipt_charges_adjustments_title">Charges &amp; Adjustments</string>
+    <string name="receipt_other_charges_label">Other Charges &amp; Adjustments</string>
+    <string name="receipt_grand_total_label">Grand Total</string>
+    <string name="receipt_room_line_detail_format">%1$s / night × %2$s</string>
+    <string name="receipt_room_line_detail_multi_format">%1$s / night × %2$s × %3$s</string>
+    <plurals name="receipt_rooms_count">
+        <item quantity="one">%d room</item>
+        <item quantity="other">%d rooms</item>
+    </plurals>
+    <string name="receipt_amenity_line_detail_format">%1$d × %2$s</string>
+    <!-- A deduction printed as a negative amount (U+2212 minus sign). -->
+    <string name="receipt_deduction_format">−%1$s</string>
+    <plurals name="receipt_nights_count">
+        <item quantity="one">%d night</item>
+        <item quantity="other">%d nights</item>
+    </plurals>
     <string name="receipt_payment_transaction_history_title">Payment Transaction History</string>
     <string name="receipt_amount_paid_this_transaction_label">Amount Paid This Transaction</string>
     <string name="receipt_total_paid_at_this_point_label">Total Amount Paid At This Point</string>
@@ -201,8 +225,6 @@
     <string name="room_assignment_pending_label">Room Assignment: Pending</string>
     <string name="assigned_rooms_format">Assigned Room(s): %1$s</string>
     <string name="details_label_amenities_section">Selected Amenities</string>
-    <string name="details_label_room_charge">Room Charges</string>
-    <string name="details_label_amenity_charge">Amenities</string>
     <string name="details_price_per_night_label">Price Per Room/Night</string>
     <string name="details_amenity_price_label">Price</string>
     <string name="details_amenities_total_label">Amenities Total</string>
@@ -237,10 +259,18 @@
     <string name="ptx_title_successful">Payment Successful</string>
     <string name="ptx_title_pending">Payment Under Verification</string>
     <string name="ptx_title_cancelled">Cancelled</string>
+    <string name="ptx_title_unpaid">No Payment Yet</string>
+    <!-- Short color-coded status badge on each Transaction History card (PaymentTransactionStatus). -->
+    <string name="ptx_status_paid">Paid</string>
+    <string name="ptx_status_pending">Pending</string>
+    <string name="ptx_status_cancelled">Cancelled</string>
+    <string name="ptx_status_unpaid">Unpaid</string>
+    <string name="ptx_stay_label">Stay</string>
+    <string name="ptx_payment_date_label">Payment</string>
+    <string name="ptx_stay_dates_format">%1$s – %2$s</string>
     <string name="ptx_type_booking_payment">Booking Payment</string>
     <string name="ptx_type_reservation_payment">Reservation Payment</string>
     <string name="ptx_subtitle_format">%1$s  •  %2$s</string>
-    <string name="ptx_ref_and_stay_format">%1$s  •  %2$s – %3$s</string>
     <string name="ptx_payment_progress_format">Paid %1$s  •  Remaining %2$s</string>
     <plurals name="ptx_receipts_available">
         <item quantity="one">%1$d Receipt Available</item>
@@ -858,6 +888,20 @@
     <string name="confirm_mark_all_read_msg">Mark all notifications as read? This can\'t be undone.</string>
     <string name="mark_as_read_action">Mark as read</string>
     <string name="mark_as_unread_action">Mark as unread</string>
+    <!-- Per-notification read/unread confirmation flow: dialog copy, its two buttons,
+         and the success/failure messages shown once the server has answered. -->
+    <string name="confirm_mark_read_msg">Mark this notification as read?</string>
+    <string name="confirm_mark_unread_msg">Mark this notification as unread?</string>
+    <string name="confirm_button_label">Confirm</string>
+    <string name="msg_notification_marked_read">Notification marked as read.</string>
+    <string name="msg_notification_marked_unread">Notification marked as unread.</string>
+    <string name="error_notification_update_failed">Couldn\'t update this notification. Check your connection and try again.</string>
+    <string name="notif_unread_indicator_desc">Unread</string>
+    <string name="notif_all_caught_up">You\'re all caught up</string>
+    <plurals name="notif_unread_summary">
+        <item quantity="one">%d unread notification</item>
+        <item quantity="other">%d unread notifications</item>
+    </plurals>
     <string name="error_load_notifications_format">Couldn\'t load notifications: %1$s</string>
 
     <!-- Booking and Reservation Module Strings -->
@@ -1254,7 +1298,7 @@
     <string name="no_transactions_load_error_title">Unable to Load Transactions</string>
     <string name="no_transactions_load_error_desc">Please check your internet connection and try again.</string>
     <string name="msg_mark_all_read">All notifications marked as read</string>
-    <string name="no_notifications_title">No Notifications Available</string>
+    <string name="no_notifications_title">No notifications yet</string>
     <string name="no_notifications_desc">You have no notifications at this time. New updates and alerts will appear here.</string>
     <string name="no_search_results_title">No Notifications Found</string>
     <string name="no_search_results_desc">We couldn\'t find any notifications matching your current search or filter. Try another keyword or select a different notification category.</string>

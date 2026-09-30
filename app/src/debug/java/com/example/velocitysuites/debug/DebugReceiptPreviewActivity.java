@@ -43,6 +43,7 @@ public class DebugReceiptPreviewActivity extends AppCompatActivity {
         // always resolves to the fixture that actually matches the
         // receipt_number being requested, never whatever was last opened.
         PaymentReceiptActivity.debugPreviewFixtures.putAll(DebugReceiptFixtures.allReceiptDetails());
+        PaymentReceiptActivity.debugPreviewAmenities.putAll(DebugReceiptFixtures.allReceiptAmenities());
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -89,6 +90,10 @@ public class DebugReceiptPreviewActivity extends AppCompatActivity {
                 startActivity(receiptIntent(DebugReceiptFixtures.officialReceipt())));
         addButton(root, "Official Receipt for FR+OR booking", v ->
                 startActivity(receiptIntent(DebugReceiptFixtures.officialReceiptForFullPaymentBooking())));
+        addButton(root, "OR - discount + long names (stress)", v ->
+                startActivity(receiptIntent(DebugReceiptFixtures.officialReceiptWithDiscountAndLongNames())));
+        addButton(root, "OR - amenities unavailable", v ->
+                startActivity(receiptIntent(DebugReceiptFixtures.officialReceiptAmenitiesUnavailable())));
         addButton(root, "Booking Details - PR + OR", v ->
                 startActivity(BookingDetailsActivity.newIntent(this, DebugReceiptFixtures.bookingWithPartialAndOfficial())));
         addButton(root, "Booking Details - FR + OR", v ->
