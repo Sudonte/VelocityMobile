@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -9,8 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
@@ -33,11 +32,6 @@ public class NotificationActivity extends BaseNavigationActivity {
             R.string.notif_filter_all_label, R.string.filter_unread, R.string.quick_action_booking, R.string.quick_action_reservation,
             R.string.payment_status, R.string.notif_filter_checkin, R.string.notif_filter_promotion,
             R.string.notif_filter_system
-    };
-    /** Position-matched with NOTIF_FILTER_KEYS/NOTIF_FILTER_LABEL_RES above - the chip view ids in the same required order. */
-    private static final int[] NOTIF_FILTER_CHIP_IDS = {
-            R.id.chipFilterAll, R.id.chipFilterUnread, R.id.chipFilterBooking, R.id.chipFilterReservation,
-            R.id.chipFilterPayment, R.id.chipFilterCheckin, R.id.chipFilterPromotion, R.id.chipFilterSystem
     };
 
     // Silent polling refresh, matching the website's 30s auto-refresh on
@@ -85,12 +79,13 @@ public class NotificationActivity extends BaseNavigationActivity {
 
     private RecyclerView rvNotifications;
     private View layoutEmptyState;
+    private View layoutInitialLoading;
     private TextView emptyTitle, emptyDesc;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearchNotifications;
-    private ChipGroup chipGroupNotificationFilter;
-    /** Position-matched with NOTIF_FILTER_KEYS/NOTIF_FILTER_CHIP_IDS - resolved once in setupSearchAndFilters(). */
-    private Chip[] filterChips;
+    private com.google.android.material.textfield.TextInputLayout layoutNotificationStatusFilter;
+    private com.google.android.material.textfield.MaterialAutoCompleteTextView dropdownNotificationStatus;
+    private NotificationFilterDropdownAdapter filterDropdownAdapter;
     private NotificationAdapter adapter;
     private RoomRepository repository;
     private List<Notification> allNotifications = new ArrayList<>();
@@ -118,9 +113,11 @@ public class NotificationActivity extends BaseNavigationActivity {
         
         rvNotifications = findViewById(R.id.rvNotifications);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
+        layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearchNotifications = findViewById(R.id.etSearchNotifications);
-        chipGroupNotificationFilter = findViewById(R.id.chipGroupNotificationFilter);
+        layoutNotificationStatusFilter = findViewById(R.id.layoutNotificationStatusFilter);
+        dropdownNotificationStatus = findViewById(R.id.dropdownNotificationStatus);
         pendingDetailId = getIntent().getStringExtra(EXTRA_NOTIFICATION_ID);
         selectedNotificationId = pendingDetailId;
         pendingScrollToSelected = selectedNotificationId != null;
@@ -139,7 +136,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         setupRecyclerView();
         setupSwipeRefresh();
         setupSearchAndFilters();
-        // Restores the previously selected filter chip if this Activity is being
+        // Restores the previously selected filter option if this Activity is being
         // recreated after process death (e.g. the OS reclaimed it while
         // Transaction History was in the foreground after "View Transaction
         // Details") - currentFilter is a plain field, not part of any View's own
@@ -151,7 +148,7 @@ public class NotificationActivity extends BaseNavigationActivity {
             String restoredFilter = savedInstanceState.getString(KEY_CURRENT_FILTER);
             if (restoredFilter != null) {
                 currentFilter = restoredFilter;
-                checkChipForFilter(restoredFilter);
+                selectDropdownFilter(restoredFilter);
             }
         }
 
@@ -242,15 +239,34 @@ public class NotificationActivity extends BaseNavigationActivity {
         outState.putString(KEY_CURRENT_FILTER, currentFilter);
     }
 
-    /** Checks the chip matching a restored filter key so the UI reflects it - setChecked(true) fires the OnCheckedStateChangeListener too, which just re-applies the same filter, harmless. */
-    private void checkChipForFilter(String filterKey) {
-        if (filterChips == null) return;
+    /**
+     * Sets the combo box's own displayed text/icon and the dropdown popup's
+     * checkmark to match filterKey, WITHOUT re-triggering applyFilters() - used
+     * wherever the filter needs to be reflected in the UI programmatically
+     * (the savedInstanceState restore above) rather than by the guest tapping a
+     * dropdown row directly (that path already calls applyFilters() itself, see
+     * setupSearchAndFilters()'s OnItemClickListener).
+     */
+    private void selectDropdownFilter(String filterKey) {
+        if (dropdownNotificationStatus == null) return;
         for (int i = 0; i < NOTIF_FILTER_KEYS.length; i++) {
-            if (NOTIF_FILTER_KEYS[i].equals(filterKey) && filterChips[i] != null) {
-                filterChips[i].setChecked(true);
+            if (NOTIF_FILTER_KEYS[i].equals(filterKey)) {
+                dropdownNotificationStatus.setText(getString(NOTIF_FILTER_LABEL_RES[i]), false);
                 break;
             }
         }
+        updateDropdownStartIcon(filterKey);
+        if (filterDropdownAdapter != null) {
+            filterDropdownAdapter.setSelectedKey(filterKey);
+        }
+    }
+
+    /** The combo box shows the selected filter's own category icon at its start when closed - kept in sync with whichever row is actually selected, the same NotificationCategoryPresenter mapping the dropdown's rows/notification cards use. */
+    private void updateDropdownStartIcon(String filterKey) {
+        if (layoutNotificationStatusFilter == null) return;
+        NotificationCategoryPresenter.Result category = NotificationCategoryPresenter.resolve(filterKey);
+        layoutNotificationStatusFilter.setStartIconDrawable(category.iconRes);
+        layoutNotificationStatusFilter.setStartIconTintList(android.content.res.ColorStateList.valueOf(getColor(category.fgColorRes)));
     }
 
     @Override
@@ -305,6 +321,18 @@ public class NotificationActivity extends BaseNavigationActivity {
             @Override
             public void onToggleReadClick(Notification notification) {
                 setReadStateOptimistic(notification, !notification.isRead());
+            }
+
+            @Override
+            public void onViewTransactionDetailsClick(Notification notification) {
+                // Marks read too, same as opening the notification's own detail
+                // screen would - the guest has now seen/acted on this update either way.
+                setReadStateOptimistic(notification, true);
+                Intent intent = new Intent(NotificationActivity.this, TransactionHistoryActivity.class);
+                intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER,
+                        NotificationPrimaryActionResolver.transactionHistoryFilterFor(notification.getType()));
+                intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, notification.getReferenceId());
+                startActivity(intent);
             }
         });
         rvNotifications.setAdapter(adapter);
@@ -381,11 +409,21 @@ public class NotificationActivity extends BaseNavigationActivity {
     }
 
     private void loadNotifications(boolean showLoadingIndicator) {
+        // The centered first-load indicator, not the swipe spinner - only for a
+        // genuine "nothing shown yet" moment (never the silent 30s poll, which
+        // passes showLoadingIndicator=false specifically to stay invisible).
+        boolean isInitialLoad = showLoadingIndicator && allNotifications.isEmpty();
+        if (isInitialLoad && layoutInitialLoading != null) {
+            layoutInitialLoading.setVisibility(View.VISIBLE);
+            rvNotifications.setVisibility(View.GONE);
+            if (layoutEmptyState != null) layoutEmptyState.setVisibility(View.GONE);
+        }
         if (showLoadingIndicator && swipeRefresh != null) swipeRefresh.setRefreshing(true);
         repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+                if (layoutInitialLoading != null) layoutInitialLoading.setVisibility(View.GONE);
                 allNotifications = result != null ? result : new ArrayList<>();
                 updateNotificationBadge();
                 updateFilterLabelsWithCounts();
@@ -396,6 +434,7 @@ public class NotificationActivity extends BaseNavigationActivity {
             @Override
             public void onError(String message) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+                if (layoutInitialLoading != null) layoutInitialLoading.setVisibility(View.GONE);
                 // A transient refresh/auto-poll failure with a list already on screen just
                 // gets a toast - replacing a working list with a scary error screen over a
                 // momentary network blip would be worse than doing nothing. Only the
@@ -479,42 +518,48 @@ public class NotificationActivity extends BaseNavigationActivity {
                 }
             });
         }
-        if (chipGroupNotificationFilter != null) {
-            filterChips = new Chip[NOTIF_FILTER_CHIP_IDS.length];
-            for (int i = 0; i < NOTIF_FILTER_CHIP_IDS.length; i++) {
-                filterChips[i] = findViewById(NOTIF_FILTER_CHIP_IDS[i]);
-            }
+        if (dropdownNotificationStatus != null) {
+            String[] labels = new String[NOTIF_FILTER_LABEL_RES.length];
+            for (int i = 0; i < NOTIF_FILTER_LABEL_RES.length; i++) labels[i] = getString(NOTIF_FILTER_LABEL_RES[i]);
+            filterDropdownAdapter = new NotificationFilterDropdownAdapter(this, labels.clone(), NOTIF_FILTER_KEYS);
+            dropdownNotificationStatus.setAdapter(filterDropdownAdapter);
+            filterDropdownAdapter.setSelectedKey(currentFilter);
+            updateDropdownStartIcon(currentFilter);
             updateFilterLabelsWithCounts();
-            chipGroupNotificationFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
-                if (checkedIds.isEmpty()) return;
-                for (int i = 0; i < filterChips.length; i++) {
-                    if (filterChips[i] != null && filterChips[i].getId() == checkedIds.get(0)) {
-                        currentFilter = NOTIF_FILTER_KEYS[i];
-                        applyFilters();
-                        break;
-                    }
-                }
+            dropdownNotificationStatus.setOnItemClickListener((parent, view, position, id) -> {
+                currentFilter = NOTIF_FILTER_KEYS[position];
+                // The CLOSED box always shows the plain label (no count suffix) - the
+                // popup rows are where counts live, see updateFilterLabelsWithCounts().
+                dropdownNotificationStatus.setText(labels[position], false);
+                updateDropdownStartIcon(currentFilter);
+                filterDropdownAdapter.setSelectedKey(currentFilter);
+                applyFilters();
             });
         }
     }
 
     /**
-     * Rebuilds each filter chip's label with an unread-count suffix, e.g.
+     * Rebuilds the dropdown popup's row labels with an unread-count suffix, e.g.
      * "Booking (3)" - omitted (no "(0)") for a filter with nothing unread, so an
-     * already-caught-up category stays visually quiet. "All" and "Unread" both show
-     * the same total-unread count; a category's count is only its own unread rows,
-     * not its total volume. Re-set on every successful load and after every optimistic
-     * read/unread mutation so the counts never visibly lag what the rows themselves
-     * show - this never disturbs which chip is currently checked.
+     * already-caught-up category stays visually quiet. "All" and "Unread" both
+     * show the guest's real backend-reported total unread count
+     * (RoomRepository#getBackendUnreadCount() - never a count of only however
+     * many notifications happen to be loaded client-side, which would under-count
+     * once a guest has more unread than fit in one loaded window); a category's
+     * own count is still the loaded-window count, since there's no backend
+     * endpoint for a true per-category unread total. Re-set on every successful
+     * load and after every optimistic read/unread mutation so the counts never
+     * visibly lag what the rows themselves show - never disturbs the combo box's
+     * own closed-state text, which is only ever set on an actual selection (see
+     * selectDropdownFilter()/the OnItemClickListener above).
      */
     private void updateFilterLabelsWithCounts() {
-        if (filterChips == null) return;
+        if (filterDropdownAdapter == null) return;
 
-        int totalUnread = 0;
+        int totalUnread = repository.getBackendUnreadCount();
         java.util.Map<String, Integer> unreadByType = new java.util.HashMap<>();
         for (Notification n : allNotifications) {
             if (n.isRead()) continue;
-            totalUnread++;
             String type = n.getType();
             // "System" filter merges TYPE_SYSTEM + TYPE_ANNOUNCEMENT - see applyFilters()'s identical rule.
             String bucket = (Notification.TYPE_SYSTEM.equals(type) || Notification.TYPE_ANNOUNCEMENT.equals(type))
@@ -522,15 +567,16 @@ public class NotificationActivity extends BaseNavigationActivity {
             unreadByType.merge(bucket, 1, Integer::sum);
         }
 
+        String[] labels = new String[NOTIF_FILTER_LABEL_RES.length];
         for (int i = 0; i < NOTIF_FILTER_LABEL_RES.length; i++) {
-            if (filterChips[i] == null) continue;
             String base = getString(NOTIF_FILTER_LABEL_RES[i]);
             String key = NOTIF_FILTER_KEYS[i];
             int count = ("All".equals(key) || FILTER_UNREAD.equals(key))
                     ? totalUnread
                     : (unreadByType.containsKey(key) ? unreadByType.get(key) : 0);
-            filterChips[i].setText(count > 0 ? getString(R.string.notif_filter_count_format, base, count) : base);
+            labels[i] = count > 0 ? getString(R.string.notif_filter_count_format, base, count) : base;
         }
+        filterDropdownAdapter.updateLabels(labels);
     }
 
     /**
@@ -579,10 +625,10 @@ public class NotificationActivity extends BaseNavigationActivity {
     private void applyFilters() {
         notificationList.clear();
         for (Notification n : allNotifications) {
-            // "System" groups both TYPE_SYSTEM and TYPE_ANNOUNCEMENT under one filter chip -
-            // there's no separate Announcement chip, and an announcement is, from the
+            // "System" groups both TYPE_SYSTEM and TYPE_ANNOUNCEMENT under one filter option -
+            // there's no separate Announcement option, and an announcement is, from the
             // guest's point of view, exactly a system-level message (matches the
-            // "System Announcements" category guests actually expect that chip to mean).
+            // "System Announcements" category guests actually expect that option to mean).
             boolean matchesFilter = "All".equals(currentFilter)
                     || (FILTER_UNREAD.equals(currentFilter) ? !n.isRead()
                         : Notification.TYPE_SYSTEM.equals(currentFilter)

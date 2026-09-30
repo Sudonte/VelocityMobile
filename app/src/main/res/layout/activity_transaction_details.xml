@@ -151,7 +151,10 @@
                 app:iconTint="@color/velocity_red_primary"
                 tools:text="View Booking Details" />
 
-            <!-- Payment Information card - built dynamically in Java. -->
+            <!-- Details card - built dynamically in Java, grouped into its own
+                 "Stay Information" / "Guest Information" / "Payment Information"
+                 addSectionDivider() headers (see buildInfoSection()) rather than
+                 one static label, since the container holds all three now. -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
@@ -164,15 +167,6 @@
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
                     android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:fontFamily="sans-serif-black"
-                        android:text="@string/details_section_payment"
-                        android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionTxDetailInfo"

@@ -43,6 +43,26 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Type chip (Booking/Reservation) in its own category color -
+                 NotificationCategoryPresenter#resolveForBooking(), the exact same
+                 mapping the "Filter by status"/notification cards use, so this
+                 transaction reads as the same color/concept everywhere. -->
+            <TextView
+                android:id="@+id/tvPtxTypeChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_bg_start"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="9sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.05"
+                tools:text="Booking" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -82,6 +102,10 @@
                     tools:text="Successful" />
             </LinearLayout>
 
+            <!-- Room name only now - the type chip above already conveys
+                 Booking-vs-Reservation, so repeating "Booking Payment •" here
+                 would just be redundant text next to the same information shown
+                 as a color/label a few dp above it. -->
             <TextView
                 android:id="@+id/tvPtxSubtitle"
                 android:layout_width="match_parent"
@@ -92,7 +116,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/velocity_text_secondary"
                 android:textSize="12sp"
-                tools:text="Booking Payment  •  Executive Room" />
+                tools:text="Executive Room" />
 
             <!-- Reference number + check-in/check-out dates - task requirement:
                  a Transaction History card must show both, not just the payment
@@ -181,16 +205,22 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 tools:text="₱2,900.00" />
 
+            <!-- Expand/details cue - a chevron, not the previous plain forward arrow,
+                 so it unambiguously reads as "more detail below" rather than
+                 "navigates to a different screen" (this still opens
+                 TransactionDetailsActivity, same as before - just a clearer icon
+                 for what tapping the card does). -->
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginTop="4dp"
+                android:id="@+id/ivPtxChevron"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="6dp"
                 android:layout_gravity="end"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_arrow_forward"
+                android:src="@drawable/ic_chevron_right"
                 app:tint="@color/velocity_inactive_gray" />
         </LinearLayout>
     </LinearLayout>

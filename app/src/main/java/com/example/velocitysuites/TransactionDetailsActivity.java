@@ -156,6 +156,26 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     }
 
     private void buildInfoSection(LinearLayout container) {
+        // Grouped into labeled sub-sections (Stay/Guest/Payment) via the same
+        // addSectionDivider() already used below for Cancelled/Timeline, rather
+        // than one flat list - the outer card no longer carries its own static
+        // "Payment Information" title (see activity_transaction_details.xml)
+        // since it now holds all three groups, not just payment fields.
+        addSectionDivider(container, getString(R.string.room_and_stay_title));
+        addInfoRow(container, getString(R.string.details_label_room_type),
+                android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()));
+        addInfoRow(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
+        addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
+
+        // New: the booking's representative/guest name wasn't shown anywhere on
+        // this screen before - addInfoRow already no-ops when it's empty, so an
+        // older/guest-less record just skips straight to Payment Information.
+        if (!TextUtils.isEmpty(booking.getRepresentativeName())) {
+            addSectionDivider(container, getString(R.string.guest_information_title));
+            addInfoRow(container, getString(R.string.details_label_representative_name), booking.getRepresentativeName());
+        }
+
+        addSectionDivider(container, getString(R.string.details_section_payment));
         String method = transaction.getMethod();
         boolean isGcash = "gcash".equalsIgnoreCase(method);
         String rawReference = transaction.getReferenceNumber() != null ? transaction.getReferenceNumber() : booking.getTransactionRef();
@@ -179,10 +199,6 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             // non-numeric placeholder here instead of digits, shown as-is).
             addInfoRow(container, getString(R.string.details_label_transaction_ref), rawReference);
         }
-        addInfoRow(container, getString(R.string.details_label_room_type),
-                android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()));
-        addInfoRow(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
-        addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
 
         if (!TextUtils.isEmpty(method)) {
             addInfoRow(container, getString(R.string.details_label_payment_method),

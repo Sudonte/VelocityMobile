@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -27,6 +26,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         void onNotificationClick(Notification notification);
         /** Tapped the per-row mark-as-read/unread toggle - distinct from the whole-card tap above. */
         void onToggleReadClick(Notification notification);
+        /** Tapped the card's own "View Transaction Details" button - distinct from the whole-card tap, which opens the notification detail screen instead. Only ever bound when NotificationPrimaryActionResolver#canViewTransaction() is true for this row (see bindActions()). */
+        void onViewTransactionDetailsClick(Notification notification);
     }
 
     public NotificationAdapter(Context context, List<Notification> notifications, OnNotificationClickListener listener) {
@@ -235,106 +236,60 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // buildRows()/Row, see that class's own doc for why this can't be
         // recomputed here by comparing to the adjacent item anymore.
         if (holder.tvDateGroup != null) {
-            if (row.isFirstInGroup) {
-                holder.tvDateGroup.setVisibility(View.VISIBLE);
-                holder.tvDateGroup.setText(row.groupLabel);
-            } else {
-                holder.tvDateGroup.setVisibility(View.GONE);
+            // Deliberately keyed only on row.isFirstInGroup (precomputed content,
+            // never `position` directly) - a DiffUtil-driven adapter can skip
+            // rebinding a row whose own compared content didn't change, so any
+            // visibility rule that depended on this row's absolute position
+            // instead could go stale the moment an insertion shifted it without
+            // otherwise changing it (the exact bug Row's own doc already covers
+            // for the header text itself). A harmless side effect: the divider
+            // also shows above the very first card in the whole list, not just
+            // above later groups - visually fine, and avoids that trap entirely.
+            int visibility = row.isFirstInGroup ? View.VISIBLE : View.GONE;
+            holder.tvDateGroup.setVisibility(visibility);
+            holder.tvDateGroup.setText(row.groupLabel);
+            if (holder.dividerDateGroup != null) {
+                holder.dividerDateGroup.setVisibility(visibility);
             }
         }
 
         holder.tvTitle.setText(notification.getTitle());
+        // Bold when unread, regular when read - alongside the unread dot/tinted
+        // background below, a second, text-level cue that doesn't rely on color
+        // alone (helps in bright sunlight or for a guest who has trouble
+        // distinguishing the background tint).
+        holder.tvTitle.setTypeface(null, notification.isRead() ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
         holder.tvMessage.setText(notification.getMessage());
         bindTime(holder, notification);
 
-        // Set icon and colors based on type
-        int iconRes = R.drawable.ic_notifications;
-        int bgColor = R.color.velocity_red_soft;
-        int iconColor = R.color.velocity_red_primary;
+        NotificationCategoryPresenter.Result category = NotificationCategoryPresenter.resolve(notification.getType());
+        holder.ivIcon.setImageResource(category.iconRes);
+        holder.iconContainer.setCardBackgroundColor(ctx.getColor(category.bgColorRes));
+        holder.ivIcon.setColorFilter(ctx.getColor(category.fgColorRes));
 
-        switch (notification.getType()) {
-            case Notification.TYPE_PAYMENT:
-                iconRes = R.drawable.ic_check_circle;
-                bgColor = R.color.velocity_green_primary;
-                iconColor = R.color.white;
-                break;
-            case Notification.TYPE_BOOKING:
-                iconRes = R.drawable.ic_booking;
-                bgColor = R.color.velocity_red_bg_start;
-                iconColor = R.color.velocity_red_primary;
-                break;
-            case Notification.TYPE_RESERVATION:
-                iconRes = R.drawable.ic_reservation;
-                bgColor = R.color.velocity_red_subtle;
-                iconColor = R.color.velocity_red_dark;
-                break;
-            case Notification.TYPE_CHECK_IN:
-                iconRes = R.drawable.ic_clock;
-                bgColor = R.color.velocity_orange_primary;
-                iconColor = R.color.white;
-                break;
-            case Notification.TYPE_PROMOTION:
-                iconRes = R.drawable.ic_star;
-                bgColor = R.color.velocity_red_dark;
-                iconColor = R.color.white;
-                break;
-            case Notification.TYPE_SMS:
-                iconRes = R.drawable.ic_info;
-                bgColor = R.color.velocity_red_soft;
-                iconColor = R.color.velocity_red_dark;
-                break;
-            case Notification.TYPE_ANNOUNCEMENT:
-                iconRes = R.drawable.ic_info;
-                bgColor = R.color.velocity_blue_soft;
-                iconColor = R.color.velocity_blue_primary;
-                break;
-            default:
-                iconRes = R.drawable.ic_notifications;
-                bgColor = R.color.velocity_red_soft;
-                iconColor = R.color.velocity_red_primary;
-                break;
-        }
-
-        holder.ivIcon.setImageResource(iconRes);
-        holder.iconContainer.setCardBackgroundColor(holder.itemView.getContext().getColor(bgColor));
-        holder.ivIcon.setColorFilter(holder.itemView.getContext().getColor(iconColor));
-
-        if (notification.isRead()) {
-            holder.unreadDot.setVisibility(View.GONE);
-            holder.card.setCardElevation(0f);
-            holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_subtle));
-            holder.card.setCardBackgroundColor(ctx.getColor(R.color.velocity_surface_elevated));
-            holder.card.setAlpha(0.7f);
-        } else {
-            holder.unreadDot.setVisibility(View.VISIBLE);
-            holder.card.setCardElevation(4f);
-            holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_primary));
-            holder.card.setCardBackgroundColor(ctx.getColor(R.color.velocity_surface_elevated));
-            holder.card.setAlpha(1.0f);
-        }
+        // Unread = a subtle brand-tinted background (no border/elevation games) - read
+        // = the card's normal surface color. Deliberately no alpha-fade on the read
+        // state anymore: dimming the whole card (including its text) hurt readability
+        // for a guest re-checking an already-read notification, and conflicts with
+        // "read cards use the normal background" - the ONLY unread-vs-read signal now
+        // is the dot, the tint, and the title weight above, each independently visible.
+        holder.unreadDot.setVisibility(notification.isRead() ? View.GONE : View.VISIBLE);
+        holder.card.setCardElevation(notification.isRead() ? 0f : 2f);
+        holder.card.setCardBackgroundColor(ctx.getColor(
+                notification.isRead() ? R.color.velocity_surface_elevated : R.color.velocity_red_bg_start));
+        holder.card.setStrokeColor(ctx.getColor(
+                notification.isRead() ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
 
         // Set on the card itself, not holder.itemView (the outer wrapper that also
         // contains the shared date-group header above - see item_notification.xml) -
-        // otherwise a tap anywhere in the header's row would also fire this, and the
-        // read/unread alpha above would dim the header text along with the card.
+        // otherwise a tap anywhere in the header's row would also fire this.
         holder.card.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onNotificationClick(notification);
             }
         });
 
-        if (holder.btnToggleReadState != null) {
-            boolean isRead = notification.isRead();
-            holder.btnToggleReadState.setContentDescription(
-                    ctx.getString(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action));
-            holder.btnToggleReadState.setColorFilter(
-                    ctx.getColor(isRead ? R.color.velocity_inactive_gray : R.color.velocity_red_primary));
-            holder.btnToggleReadState.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onToggleReadClick(notification);
-                }
-            });
-        }
+        bindActions(holder, notification, ctx);
 
         if (holder.tvCategory != null) {
             holder.tvCategory.setText(notification.getType());
@@ -353,19 +308,71 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
 
         // Deep-link highlight for a specific notification id (e.g. tapped from the
-        // dashboard's Booking, Reservation, Payment & Hotel Updates section) - outlines
-        // the exact row so it's unambiguous which update the guest tapped. Both
-        // branches set stroke width explicitly (not just the highlighted one) -
-        // otherwise a recycled ViewHolder that once held the highlighted item
-        // keeps its thick red border forever on whatever unrelated notification
-        // scrolls into that slot next, since setStrokeWidth() is stateful on the
-        // underlying View and nothing else in this method resets it.
+        // dashboard's Booking, Reservation, Payment & Hotel Updates section) - a
+        // brief, smooth flash-then-fade (see startHighlightFade()) rather than a
+        // static border that stayed until something else changed. Re-plays if the
+        // guest scrolls this exact row off-screen and back while it's still the
+        // selected one - a harmless, arguably helpful reinforcement, not a bug.
         if (highlightedNotificationId != null && highlightedNotificationId.equals(notification.getId())) {
-            holder.card.setStrokeColor(ctx.getColor(R.color.velocity_red_primary));
-            holder.card.setStrokeWidth((int) (2 * ctx.getResources().getDisplayMetrics().density));
+            startHighlightFade(holder.card, ctx, notification.isRead());
         } else {
-            holder.card.setStrokeWidth(0);
+            holder.card.setStrokeWidth((int) (1 * ctx.getResources().getDisplayMetrics().density));
+            holder.card.setStrokeColor(ctx.getColor(notification.isRead() ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
         }
+    }
+
+    /**
+     * Read/Unread toggle (always shown) and "View Transaction Details" (only for a
+     * Booking/Reservation/Payment/Check-in notification with a resolvable reference
+     * id - Promotions/Announcements/System have nothing to deep-link to). Both are
+     * real MaterialButtons now (48dp tall, matching the app-wide minimum touch
+     * target) rather than the previous bare 36dp icon-only toggle.
+     */
+    private void bindActions(ViewHolder holder, Notification notification, Context ctx) {
+        boolean isRead = notification.isRead();
+        holder.btnToggleReadState.setText(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action);
+        holder.btnToggleReadState.setIconResource(isRead ? R.drawable.ic_eye : R.drawable.ic_check_circle);
+        holder.btnToggleReadState.setOnClickListener(v -> {
+            if (listener != null) listener.onToggleReadClick(notification);
+        });
+
+        boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(notification.getType(), notification.getReferenceId());
+        holder.btnViewTransactionDetails.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
+        if (canViewTransaction) {
+            holder.btnViewTransactionDetails.setOnClickListener(v -> {
+                if (listener != null) listener.onViewTransactionDetailsClick(notification);
+            });
+        }
+    }
+
+    /**
+     * Bright red stroke -> the card's own normal stroke color, over ~1.5s (a
+     * short hold so the guest actually registers it, then a real fade, not an
+     * instant snap). Purely a stroke-color/width animation - never touches the
+     * background fill, so it layers cleanly on top of the unread/read background
+     * already set above regardless of which one this row has.
+     */
+    private void startHighlightFade(MaterialCardView card, Context ctx, boolean isRead) {
+        float density = ctx.getResources().getDisplayMetrics().density;
+        int highlightColor = ctx.getColor(R.color.velocity_red_primary);
+        int normalColor = ctx.getColor(isRead ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle);
+        int highlightWidth = (int) (2 * density);
+        int normalWidth = (int) (1 * density);
+
+        card.setStrokeColor(highlightColor);
+        card.setStrokeWidth(highlightWidth);
+
+        android.animation.ValueAnimator colorFade = android.animation.ValueAnimator.ofArgb(highlightColor, normalColor);
+        colorFade.setStartDelay(600);
+        colorFade.setDuration(900);
+        colorFade.addUpdateListener(a -> card.setStrokeColor((int) a.getAnimatedValue()));
+        colorFade.start();
+
+        android.animation.ValueAnimator widthFade = android.animation.ValueAnimator.ofInt(highlightWidth, normalWidth);
+        widthFade.setStartDelay(600);
+        widthFade.setDuration(900);
+        widthFade.addUpdateListener(a -> card.setStrokeWidth((int) a.getAnimatedValue()));
+        widthFade.start();
     }
 
     @Override
@@ -376,8 +383,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvMessage, tvTime, tvCategory, tvStatusPill, tvDateGroup;
         ImageView ivIcon;
-        ImageButton btnToggleReadState;
-        View unreadDot;
+        com.google.android.material.button.MaterialButton btnToggleReadState, btnViewTransactionDetails;
+        View unreadDot, dividerDateGroup;
         MaterialCardView card;
         MaterialCardView iconContainer;
 
@@ -389,8 +396,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvCategory = itemView.findViewById(R.id.tvNotificationCategory);
             tvStatusPill = itemView.findViewById(R.id.tvNotificationStatusPill);
             tvDateGroup = itemView.findViewById(R.id.tvNotificationDateGroup);
+            dividerDateGroup = itemView.findViewById(R.id.dividerNotificationDateGroup);
             ivIcon = itemView.findViewById(R.id.ivNotificationIcon);
             btnToggleReadState = itemView.findViewById(R.id.btnToggleReadState);
+            btnViewTransactionDetails = itemView.findViewById(R.id.btnViewTransactionDetails);
             unreadDot = itemView.findViewById(R.id.unreadDot);
             card = itemView.findViewById(R.id.cardNotification);
             iconContainer = (MaterialCardView) itemView.findViewById(R.id.iconContainer);

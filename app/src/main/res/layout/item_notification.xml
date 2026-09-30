@@ -9,15 +9,31 @@
     <!-- Date-group header ("Today"/"Yesterday"/"Earlier") - GONE by default, shown by
          NotificationAdapter only for the first row of each new group (see
          NotificationDateGrouper). Outside cardNotification's own border/background so
-         it reads as a section label above the card, not part of its content. -->
+         it reads as a section label above the card, not part of its content. A hairline
+         divider makes the separation from the previous group's last card unambiguous
+         even when the header text alone (e.g. after a long "Earlier" run) might not
+         stand out enough on its own. -->
+    <View
+        android:id="@+id/dividerNotificationDateGroup"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/velocity_divider_hairline"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/tvNotificationDateGroup"
         style="@style/TextAppearance.Velocity.Label.Section"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="sans-serif-black"
+        android:letterSpacing="0.04"
         android:textSize="12sp"
         android:visibility="gone"
         tools:visibility="visible"
@@ -29,7 +45,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="7dp"
+        android:layout_marginBottom="8dp"
         android:clickable="true"
         android:focusable="true"
         app:rippleColor="@color/velocity_red_subtle">
@@ -38,23 +54,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_glass_card_white"
-        android:padding="10dp">
+        android:padding="12dp">
 
-        <!-- Category Icon Container with soft background -->
+        <!-- Category icon in a true colored circle (40dp, 20dp corner radius). -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/iconContainer"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             app:cardBackgroundColor="@color/velocity_red_soft"
-            app:cardCornerRadius="13dp"
+            app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/ivNotificationIcon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_notifications"
@@ -65,37 +81,38 @@
             android:id="@+id/tvNotificationTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
+            android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@color/black"
-            android:textSize="13sp"
-            android:letterSpacing="-0.02"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp"
+            android:letterSpacing="-0.01"
             app:layout_constraintEnd_toStartOf="@+id/unreadDot"
             app:layout_constraintStart_toEndOf="@+id/iconContainer"
             app:layout_constraintTop_toTopOf="@+id/iconContainer"
+            tools:fontFamily="sans-serif-black"
             tools:text="Reservation Confirmation" />
 
         <TextView
             android:id="@+id/tvNotificationMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:alpha="0.85"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
             android:lineSpacingMultiplier="1.3"
+            android:maxLines="2"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="11sp"
+            android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/tvNotificationTitle"
             app:layout_constraintTop_toBottomOf="@+id/tvNotificationTitle"
-            tools:text="Your booking for Executive Suite (Ref: VS-1024) has been confirmed for Oct 12-15, 2023." />
+            tools:text="Your booking for Executive Suite (Ref: VS-1024) has been confirmed for Oct 12-15, 2023. We look forward to welcoming you." />
 
         <LinearLayout
             android:id="@+id/layoutNotificationBadges"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
@@ -143,51 +160,95 @@
                 android:layout_weight="1"
                 android:gravity="end"
                 android:fontFamily="sans-serif-bold"
-                android:letterSpacing="0.04"
+                android:letterSpacing="0.02"
                 android:textColor="@color/velocity_inactive_gray"
-                android:textSize="11sp"
-                android:textAllCaps="true"
-                tools:text="Today • 10:30 AM" />
+                android:textSize="10sp"
+                tools:text="5 minutes ago" />
         </LinearLayout>
 
-        <!-- Unread Indicator -->
+        <!-- Unread indicator - top-aligned with the title, same spot regardless of
+             whether the title wraps to a second line. -->
         <View
             android:id="@+id/unreadDot"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="4dp"
             android:background="@drawable/bg_notification_dot"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/tvNotificationTitle"
-            app:layout_constraintBottom_toBottomOf="@+id/tvNotificationTitle" />
+            app:layout_constraintTop_toTopOf="@+id/tvNotificationTitle" />
 
-        <!-- Decorative chevron - signals the whole card is tappable for full details. -->
-        <ImageView
-            android:id="@+id/ivNotificationChevron"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_arrow_forward"
-            app:tint="@color/velocity_inactive_gray"
-            app:layout_constraintBottom_toBottomOf="@+id/btnToggleReadState"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/btnToggleReadState" />
+        <!-- Bottom action row: Read/Unread toggle and "View Transaction Details" - one
+             row, per the spec. View Transaction Details is GONE for a notification with
+             nothing to deep-link to (Promotions/System - see NotificationAdapter's own
+             bindActions()); the row still renders correctly with just the toggle button
+             in that case since it's the barrierless start-anchored child, not centered. -->
+        <View
+            android:id="@+id/dividerNotificationActions"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/velocity_divider_hairline"
+            app:layout_constraintTop_toBottomOf="@+id/layoutNotificationBadges" />
 
-        <!-- Mark as read/unread toggle - separately clickable from the card's own
-             tap-for-details gesture (a nested clickable View naturally consumes its own
-             touch, see NotificationAdapter). Icon/description swapped in code based on
-             the row's current read state. -->
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnToggleReadState"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginTop="6dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:src="@drawable/ic_eye"
-            app:tint="@color/velocity_inactive_gray"
-            app:layout_constraintEnd_toStartOf="@+id/ivNotificationChevron"
-            app:layout_constraintTop_toBottomOf="@+id/layoutNotificationBadges"
-            tools:contentDescription="@string/mark_as_read_action" />
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-bold"
+            android:minWidth="0dp"
+            android:paddingHorizontal="8dp"
+            android:textAllCaps="false"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="12sp"
+            app:icon="@drawable/ic_eye"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="16dp"
+            app:iconTint="@color/velocity_red_primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dividerNotificationActions"
+            app:rippleColor="@color/velocity_red_subtle"
+            tools:text="@string/mark_as_read_action" />
+
+        <!-- 0dp width, chained off btnToggleReadState's end (rather than the
+             wrap_content+parent-end pairing this started as) - "Mark as unread"
+             plus this button's own full "View Transaction Details" label don't
+             both fit on one row at a 360dp card width, and two independently
+             wrap_content, non-chained buttons would silently overlap instead of
+             visibly failing. ellipsize+singleLine make this button shrink its
+             own text first on a narrow device rather than ever overflowing the
+             card; end gravity keeps its icon hugging the true row end exactly
+             as before whenever there's enough room to render un-truncated. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewTransactionDetails"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="4dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center_vertical|end"
+            android:minWidth="0dp"
+            android:paddingHorizontal="8dp"
+            android:singleLine="true"
+            android:text="@string/view_transaction_details_label"
+            android:textAllCaps="false"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="12sp"
+            app:icon="@drawable/ic_arrow_forward"
+            app:iconGravity="textEnd"
+            app:iconPadding="4dp"
+            app:iconSize="14dp"
+            app:iconTint="@color/velocity_red_primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btnToggleReadState"
+            app:layout_constraintTop_toBottomOf="@+id/dividerNotificationActions"
+            app:rippleColor="@color/velocity_red_subtle" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>

@@ -92,10 +92,17 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             holder.tvStatusBadge.setTextColor(ctx.getColor(fgColorRes));
         }
 
-        String typeLabel = b.isHasBooking()
-                ? ctx.getString(R.string.ptx_type_booking_payment)
-                : ctx.getString(R.string.ptx_type_reservation_payment);
-        holder.tvSubtitle.setText(ctx.getString(R.string.ptx_subtitle_format, typeLabel, b.getRoomName()));
+        // Type chip - same NotificationCategoryPresenter mapping the "Filter by
+        // status" dropdown and notification cards use, so Booking/Reservation
+        // reads as the same color/icon concept everywhere in the app.
+        if (holder.tvTypeChip != null) {
+            NotificationCategoryPresenter.Result typeCategory = NotificationCategoryPresenter.resolveForBooking(b.isHasBooking());
+            holder.tvTypeChip.setText(b.isHasBooking() ? R.string.quick_action_booking : R.string.quick_action_reservation);
+            holder.tvTypeChip.setBackgroundTintList(ctx.getColorStateList(typeCategory.bgColorRes));
+            holder.tvTypeChip.setTextColor(ctx.getColor(typeCategory.fgColorRes));
+        }
+        // Room name only - the type chip above already conveys Booking-vs-Reservation.
+        holder.tvSubtitle.setText(b.getRoomName());
 
         // Task requirement: the card itself (not just the expanded detail
         // screen) must show a reference number and check-in/check-out dates.
@@ -121,10 +128,21 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         // Booking-level Paid/Remaining - authoritative payment_summary when the
         // backend has attached one, else the legacy fields (Booking#getEffectiveTotalAmountPaid()'s
         // own fallback rule) - never this one transaction's own amount above.
+        // Task requirement: only shown when PARTIALLY paid (something paid, something
+        // still owed) - a fully-paid or still-unpaid transaction has nothing "in
+        // progress" to report, and showing "Paid PHP0.00 - Remaining PHPX" for a
+        // still-pending reservation read as confusing rather than informative.
         if (holder.tvPaymentProgress != null) {
-            holder.tvPaymentProgress.setText(ctx.getString(R.string.ptx_payment_progress_format,
-                    CURRENCY_FORMAT.format(b.getEffectiveTotalAmountPaid()),
-                    CURRENCY_FORMAT.format(b.getEffectiveRemainingBalance())));
+            double effectivePaid = b.getEffectiveTotalAmountPaid();
+            double effectiveRemaining = b.getEffectiveRemainingBalance();
+            boolean isPartiallyPaid = effectivePaid > 0.009 && effectiveRemaining > 0.009;
+            if (isPartiallyPaid) {
+                holder.tvPaymentProgress.setVisibility(View.VISIBLE);
+                holder.tvPaymentProgress.setText(ctx.getString(R.string.ptx_payment_progress_format,
+                        CURRENCY_FORMAT.format(effectivePaid), CURRENCY_FORMAT.format(effectiveRemaining)));
+            } else {
+                holder.tvPaymentProgress.setVisibility(View.GONE);
+            }
         }
 
         // "N Receipt(s) Available" - every already-issued receipt on this
@@ -147,13 +165,31 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
 
         if (holder.itemView instanceof MaterialCardView) {
             MaterialCardView card = (MaterialCardView) holder.itemView;
+            // Deep-link highlight - a brief, smooth flash-then-fade (matching
+            // NotificationAdapter's identical treatment) rather than a static
+            // border that stayed until something else changed.
             if (highlightedBookingId != null && highlightedBookingId.equals(b.getId())) {
-                card.setStrokeColor(ctx.getColor(R.color.velocity_red_primary));
-                card.setStrokeWidth((int) (2 * ctx.getResources().getDisplayMetrics().density));
+                startHighlightFade(card, ctx);
             } else {
                 card.setStrokeWidth(0);
             }
         }
+    }
+
+    /** Bright red stroke -> no stroke, over ~1.5s - see NotificationAdapter#startHighlightFade()'s identical doc for the full reasoning (short hold, then a real fade, never an instant snap). */
+    private void startHighlightFade(MaterialCardView card, Context ctx) {
+        float density = ctx.getResources().getDisplayMetrics().density;
+        int highlightColor = ctx.getColor(R.color.velocity_red_primary);
+        int highlightWidth = (int) (2 * density);
+
+        card.setStrokeColor(highlightColor);
+        card.setStrokeWidth(highlightWidth);
+
+        android.animation.ValueAnimator widthFade = android.animation.ValueAnimator.ofInt(highlightWidth, 0);
+        widthFade.setStartDelay(600);
+        widthFade.setDuration(900);
+        widthFade.addUpdateListener(a -> card.setStrokeWidth((int) a.getAnimatedValue()));
+        widthFade.start();
     }
 
     /**
@@ -254,7 +290,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvSubtitle, tvRefAndStay, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
+        TextView tvTitle, tvTypeChip, tvSubtitle, tvRefAndStay, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
         MaterialCardView iconContainer;
         ImageView ivIcon;
         View layoutReceiptsAvailable;
@@ -264,6 +300,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             iconContainer = itemView.findViewById(R.id.iconContainerPtx);
             ivIcon = itemView.findViewById(R.id.ivPtxIcon);
             tvTitle = itemView.findViewById(R.id.tvPtxTitle);
+            tvTypeChip = itemView.findViewById(R.id.tvPtxTypeChip);
             tvStatusBadge = itemView.findViewById(R.id.tvPtxStatusBadge);
             tvSubtitle = itemView.findViewById(R.id.tvPtxSubtitle);
             tvRefAndStay = itemView.findViewById(R.id.tvPtxRefAndStay);

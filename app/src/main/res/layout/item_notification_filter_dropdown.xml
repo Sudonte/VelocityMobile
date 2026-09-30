@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row of the "Filter by status" dropdown - category icon in a small colored
+     circle (same NotificationCategoryPresenter mapping the notification cards use),
+     the option's label (with its live unread-count suffix, e.g. "Booking (3)"), and
+     a trailing checkmark shown only on the currently selected option. Height is
+     56dp (Material's own list-item minimum) so all 8 rows fit comfortably within a
+     dropdown popup on a normal phone without needing to scroll; a very small screen
+     may still scroll the popup itself (framework behavior, not this layout's
+     concern) - no row is ever clipped since none of these fit anywhere near a
+     phone's minimum popup height. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/iconContainerFilterOption"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        app:cardBackgroundColor="@color/velocity_red_soft"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:id="@+id/ivFilterOptionIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_notifications"
+            app:tint="@color/velocity_red_primary" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvFilterOptionLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="14sp"
+        tools:text="Booking (3)" />
+
+    <ImageView
+        android:id="@+id/ivFilterOptionCheck"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_check_circle"
+        android:visibility="invisible"
+        app:tint="@color/velocity_red_primary"
+        tools:visibility="visible" />
+
+</LinearLayout>

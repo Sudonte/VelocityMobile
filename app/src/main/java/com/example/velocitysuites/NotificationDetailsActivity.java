@@ -80,41 +80,13 @@ public class NotificationDetailsActivity extends AppCompatActivity {
         TextView tvMessage = findViewById(R.id.tvNotifDetailMessage);
         tvMessage.setText(notification.getMessage());
 
-        int iconRes = R.drawable.ic_notifications;
-        int bgColor = R.color.velocity_red_soft;
-        int iconColor = R.color.velocity_red_primary;
-        switch (notification.getType()) {
-            case Notification.TYPE_PAYMENT:
-                iconRes = R.drawable.ic_check_circle;
-                bgColor = R.color.velocity_green_primary;
-                iconColor = R.color.white;
-                break;
-            case Notification.TYPE_BOOKING:
-                iconRes = R.drawable.ic_booking;
-                bgColor = R.color.velocity_red_bg_start;
-                iconColor = R.color.velocity_red_primary;
-                break;
-            case Notification.TYPE_RESERVATION:
-                iconRes = R.drawable.ic_reservation;
-                bgColor = R.color.velocity_red_subtle;
-                iconColor = R.color.velocity_red_dark;
-                break;
-            case Notification.TYPE_CHECK_IN:
-                iconRes = R.drawable.ic_clock;
-                bgColor = R.color.velocity_orange_primary;
-                iconColor = R.color.white;
-                break;
-            case Notification.TYPE_PROMOTION:
-                iconRes = R.drawable.ic_star;
-                bgColor = R.color.velocity_red_dark;
-                iconColor = R.color.white;
-                break;
-            case Notification.TYPE_ANNOUNCEMENT:
-                iconRes = R.drawable.ic_info;
-                bgColor = R.color.velocity_blue_soft;
-                iconColor = R.color.velocity_blue_primary;
-                break;
-        }
+        // Same NotificationCategoryPresenter mapping the notification list cards, the
+        // "Filter by status" dropdown, and Transaction History's type chip all use -
+        // a category reads as the exact same icon/color everywhere it appears.
+        NotificationCategoryPresenter.Result category = NotificationCategoryPresenter.resolve(notification.getType());
+        int iconRes = category.iconRes;
+        int bgColor = category.bgColorRes;
+        int iconColor = category.fgColorRes;
 
         MaterialCardView iconContainer = findViewById(R.id.iconContainerNotifDetail);
         ImageView ivIcon = findViewById(R.id.ivNotifDetailIcon);

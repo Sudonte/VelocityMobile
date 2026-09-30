@@ -127,6 +127,8 @@ public final class RoomRepository {
     private int notificationsPerPage = DEFAULT_NOTIFICATIONS_PER_PAGE;
     private static final int DEFAULT_NOTIFICATIONS_PER_PAGE = 200;
     private int lastNotificationsTotal = 0;
+    /** The guest's TRUE total unread count, straight from the backend (Api\NotificationController::index()'s unread_count - see PaginatedResponse's own doc) - never derived from however many of `notifications` happen to be loaded client-side, which under-counts once a guest has more unread than fit in one loaded window. */
+    private int backendUnreadCount = 0;
     private final List<BookingsChangedListener> bookingsChangedListeners = new ArrayList<>();
     /** Booking ids already run through correctPendingReservationTotal() - reset whenever refreshBookings() replaces `bookings` with fresh (uncorrected) server objects. */
     private final java.util.Set<String> correctedTotalIds = new java.util.HashSet<>();
@@ -268,6 +270,7 @@ public final class RoomRepository {
         lastReservationsTotal = 0;
         lastDirectBookingsTotal = 0;
         lastNotificationsTotal = 0;
+        backendUnreadCount = 0;
         // See accountGeneration's own doc - lets refreshBookings()/refreshNotifications()
         // detect and discard a still-in-flight previous account's response instead of
         // letting it silently repopulate these caches after this point.
@@ -838,6 +841,7 @@ public final class RoomRepository {
                     }
                     notifications = mapped;
                     lastNotificationsTotal = response.body().total;
+                    backendUnreadCount = response.body().unread_count;
                     // Single hook point for the whole app: every screen that refreshes
                     // notifications (dashboard, the Notification Module, the background
                     // poll worker) posts real system alerts for genuinely new/unread rows
@@ -859,6 +863,11 @@ public final class RoomRepository {
     /** True when the guest's real total exceeds the currently-loaded window - see NotificationActivity's scroll-near-bottom trigger. */
     public boolean hasMoreNotifications() {
         return lastNotificationsTotal > notificationsPerPage;
+    }
+
+    /** See backendUnreadCount's own doc - 0 until the first successful refreshNotifications()/pollNotifications() call of this app session. */
+    public int getBackendUnreadCount() {
+        return backendUnreadCount;
     }
 
     /**
@@ -908,6 +917,7 @@ public final class RoomRepository {
                     }
                     mergeNotifications(fetched);
                     lastNotificationsTotal = response.body().total;
+                    backendUnreadCount = response.body().unread_count;
                     NotificationHelper.maybeAlertNewNotifications(appContext, fetched);
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {

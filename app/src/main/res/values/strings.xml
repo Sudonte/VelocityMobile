@@ -156,6 +156,7 @@
     <!-- GET guest/receipts/{receiptNumber} - shown when the backend returns 404 (unknown, not-yet-available, or not owned by this guest - deliberately indistinguishable). -->
     <string name="receipt_not_available_desc">This receipt is not available.</string>
     <string name="receipt_loading_label">Loading receipt…</string>
+    <string name="loading_notifications_label">Loading notifications…</string>
     <string name="receipt_load_failed_desc">Payment receipt could not be loaded. Please try again.</string>
     <!-- receipt-number mode (PaymentReceiptActivity#renderReceiptDetail()) - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 4. -->
     <string name="receipt_payment_summary_title">Payment Summary</string>
