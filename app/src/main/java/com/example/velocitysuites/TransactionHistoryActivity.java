@@ -64,6 +64,10 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private androidx.core.util.Pair<Long, Long> selectedDateRange = null;
     private String selectedBookingId = null;
     private boolean pendingScrollToSelected = false;
+    /** Guards fetchTransactionById() (see applySelectedBookingHighlight()) to at most one attempt per deep-link, so a genuinely-missing id can't retry forever across every 30s poll/pull-to-refresh. */
+    private boolean attemptedDirectFetchForSelected = false;
+    /** Guards the scroll-near-bottom trigger against firing a second loadMoreBookings() while one is already in flight. */
+    private boolean loadingMoreTransactions = false;
 
     // Silent polling refresh, same pattern/interval as NotificationActivity's own 30s
     // auto-poll - keeps booking/payment status current without the guest needing to
@@ -219,7 +223,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
                     b.getCheckOutDate(),
                     b.getStatus(),
                     b.getTotalAmount(),
-                    b.getTransactionRef() != null ? b.getTransactionRef() : "N/A"));
+                    b.getTransactionRef() != null ? b.getTransactionRef() : ""));
         }
         os.write(csv.toString().getBytes());
     }
@@ -273,9 +277,35 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     }
 
     private void setupRecyclerView() {
-        rvTransactions.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        rvTransactions.setLayoutManager(layoutManager);
         adapter = new PaymentTransactionAdapter(new ArrayList<>(), this::showPaymentDetailsDialog);
         rvTransactions.setAdapter(adapter);
+
+        // Lazy-load the next per_page window once the guest scrolls near the end -
+        // both refreshBookings() calls used to request one large fixed window and
+        // never go further, so a guest with more transactions than that could
+        // never see the older ones. See RoomRepository#loadMoreBookings().
+        rvTransactions.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@androidx.annotation.NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy <= 0 || loadingMoreTransactions || !repository.hasMoreBookings()) return;
+                int lastVisible = layoutManager.findLastVisibleItemPosition();
+                if (lastVisible >= displayedTransactions.size() - 5) {
+                    loadingMoreTransactions = true;
+                    repository.loadMoreBookings((merged, reservationsError, directError) -> {
+                        loadingMoreTransactions = false;
+                        allBookings = merged;
+                        applyFilters();
+                        // Same "don't take over the screen for a load-more blip" rule as
+                        // loadTransactions()'s onError() - the already-visible page stays intact.
+                        if (reservationsError != null || directError != null) {
+                            Toast.makeText(TransactionHistoryActivity.this, R.string.network_error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
     }
 
     /**
@@ -692,7 +722,37 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             rvTransactions.post(() -> rvTransactions.smoothScrollToPosition(scrollPosition));
             showPaymentDetailsDialog(selected);
             pendingScrollToSelected = false;
+            return;
         }
+
+        // Not found even under "All" (applyFilters()'s own chip-fallback above
+        // already ruled out "just hidden by the wrong filter") - most likely
+        // older than the per_page window both refreshBookings() calls cap at.
+        // Fetch it directly by id instead of leaving the guest looking at a
+        // list that silently never scrolls anywhere. One attempt per deep-link
+        // (attemptedDirectFetchForSelected) - a genuine 404 must show the
+        // friendly message below exactly once, not retry on every 30s poll.
+        if (attemptedDirectFetchForSelected) return;
+        attemptedDirectFetchForSelected = true;
+        boolean preferReservation = FILTER_RESERVATIONS.equals(getIntent().getStringExtra(EXTRA_OPEN_FILTER));
+        repository.fetchTransactionById(selectedBookingId, preferReservation, new RoomRepository.RepositoryCallback<Booking>() {
+            @Override
+            public void onSuccess(Booking result) {
+                allBookings.add(result);
+                applyFilters();
+            }
+
+            @Override
+            public void onError(String message) {
+                pendingScrollToSelected = false;
+                if (isFinishing() || isDestroyed()) return;
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(TransactionHistoryActivity.this)
+                        .setTitle(R.string.deep_link_transaction_not_found_title)
+                        .setMessage(R.string.deep_link_transaction_not_found)
+                        .setPositiveButton(R.string.confirm_dialog_positive, null)
+                        .show();
+            }
+        });
     }
 
     /**

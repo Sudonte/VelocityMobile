@@ -622,6 +622,8 @@
     <string name="no_transactions_found">Transaction History is Empty</string>
     <string name="transaction_search_empty_desc">No transactions match your search. Try a different keyword or clear your search.</string>
     <string name="transaction_payment_empty_desc">No payment records are available. Completed payments will appear here.</string>
+    <string name="deep_link_transaction_not_found_title">Transaction Not Found</string>
+    <string name="deep_link_transaction_not_found">We couldn\'t find that transaction. It may have been removed or is no longer available.</string>
     <string name="view_details_label">View Details</string>
     <string name="view_transaction_details_label">View Transaction Details</string>
     <string name="announcement_published_format">Published %1$s</string>
@@ -913,6 +915,7 @@
     <string name="awaiting_verification_label">Pending Verification</string>
     <string name="pending_verification_label">Pending Verification</string>
     <string name="no_payment_yet_label">Reservation - no payment yet</string>
+    <string name="transaction_date_not_yet_paid">Not yet paid</string>
     <string name="booking_list_title">Booking List</string>
     <!-- Full list-section headings, one per Confirmed/Completed/Cancelled
          sub-tab, shown in tvListTitle (see applyListFilterLabels()) - the

@@ -2,8 +2,6 @@ package com.example.velocitysuites;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,6 +9,8 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
@@ -33,6 +33,11 @@ public class NotificationActivity extends BaseNavigationActivity {
             R.string.payment_status, R.string.notif_filter_checkin, R.string.notif_filter_promotion,
             R.string.notif_filter_system
     };
+    /** Position-matched with NOTIF_FILTER_KEYS/NOTIF_FILTER_LABEL_RES above - the chip view ids in the same required order. */
+    private static final int[] NOTIF_FILTER_CHIP_IDS = {
+            R.id.chipFilterAll, R.id.chipFilterUnread, R.id.chipFilterBooking, R.id.chipFilterReservation,
+            R.id.chipFilterPayment, R.id.chipFilterCheckin, R.id.chipFilterPromotion, R.id.chipFilterSystem
+    };
 
     // Silent polling refresh, matching the website's 30s auto-refresh on
     // its own notifications page - keeps the list current without the
@@ -54,7 +59,9 @@ public class NotificationActivity extends BaseNavigationActivity {
     private TextView emptyTitle, emptyDesc;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearchNotifications;
-    private AutoCompleteTextView dropdownNotificationStatus;
+    private ChipGroup chipGroupNotificationFilter;
+    /** Position-matched with NOTIF_FILTER_KEYS/NOTIF_FILTER_CHIP_IDS - resolved once in setupSearchAndFilters(). */
+    private Chip[] filterChips;
     private NotificationAdapter adapter;
     private RoomRepository repository;
     private List<Notification> allNotifications = new ArrayList<>();
@@ -66,6 +73,8 @@ public class NotificationActivity extends BaseNavigationActivity {
     /** Same id as pendingDetailId, but kept around (not cleared after first use) to keep the row highlighted/scrolled-to across refreshes. */
     private String selectedNotificationId;
     private boolean pendingScrollToSelected;
+    /** Guards RecyclerView's scroll-near-bottom trigger against firing a second loadMoreNotifications() while one is already in flight. */
+    private boolean loadingMoreNotifications = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +89,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearchNotifications = findViewById(R.id.etSearchNotifications);
-        dropdownNotificationStatus = findViewById(R.id.dropdownNotificationStatus);
+        chipGroupNotificationFilter = findViewById(R.id.chipGroupNotificationFilter);
         pendingDetailId = getIntent().getStringExtra(EXTRA_NOTIFICATION_ID);
         selectedNotificationId = pendingDetailId;
         pendingScrollToSelected = selectedNotificationId != null;
@@ -172,7 +181,40 @@ public class NotificationActivity extends BaseNavigationActivity {
     }
 
     private void setupRecyclerView() {
-        rvNotifications.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        rvNotifications.setLayoutManager(layoutManager);
+        // Lazy-load the next page (the API already paginates; this list used to
+        // just request one large per_page window and never go further) once the
+        // guest scrolls within 5 rows of the end - matching every other list in
+        // this app's scroll-near-bottom convention, not a hardcoded pixel offset.
+        rvNotifications.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@androidx.annotation.NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy <= 0 || loadingMoreNotifications || !repository.hasMoreNotifications()) return;
+                int lastVisible = layoutManager.findLastVisibleItemPosition();
+                if (lastVisible >= notificationList.size() - 5) {
+                    loadingMoreNotifications = true;
+                    repository.loadMoreNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+                        @Override
+                        public void onSuccess(List<Notification> result) {
+                            loadingMoreNotifications = false;
+                            allNotifications = result != null ? result : allNotifications;
+                            updateFilterLabelsWithCounts();
+                            applyFilters();
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            // A failed "load more" leaves the already-visible page intact - no
+                            // error state takeover, just a quiet toast; the guest can keep
+                            // scrolling/retry by scrolling away and back, or pull-to-refresh.
+                            loadingMoreNotifications = false;
+                            Toast.makeText(NotificationActivity.this, R.string.network_error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
         adapter = new NotificationAdapter(notificationList, new NotificationAdapter.OnNotificationClickListener() {
             @Override
             public void onNotificationClick(Notification notification) {
@@ -302,28 +344,36 @@ public class NotificationActivity extends BaseNavigationActivity {
                 }
             });
         }
-        if (dropdownNotificationStatus != null) {
+        if (chipGroupNotificationFilter != null) {
+            filterChips = new Chip[NOTIF_FILTER_CHIP_IDS.length];
+            for (int i = 0; i < NOTIF_FILTER_CHIP_IDS.length; i++) {
+                filterChips[i] = findViewById(NOTIF_FILTER_CHIP_IDS[i]);
+            }
             updateFilterLabelsWithCounts();
-            dropdownNotificationStatus.setOnItemClickListener((parent, view, position, id) -> {
-                currentFilter = NOTIF_FILTER_KEYS[position];
-                applyFilters();
+            chipGroupNotificationFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (checkedIds.isEmpty()) return;
+                for (int i = 0; i < filterChips.length; i++) {
+                    if (filterChips[i] != null && filterChips[i].getId() == checkedIds.get(0)) {
+                        currentFilter = NOTIF_FILTER_KEYS[i];
+                        applyFilters();
+                        break;
+                    }
+                }
             });
         }
     }
 
     /**
-     * Rebuilds the filter dropdown's option labels with an unread-count suffix, e.g.
+     * Rebuilds each filter chip's label with an unread-count suffix, e.g.
      * "Booking (3)" - omitted (no "(0)") for a filter with nothing unread, so an
      * already-caught-up category stays visually quiet. "All" and "Unread" both show
      * the same total-unread count; a category's count is only its own unread rows,
      * not its total volume. Re-set on every successful load and after every optimistic
      * read/unread mutation so the counts never visibly lag what the rows themselves
-     * show. Rebuilding the AutoCompleteTextView's suggestion adapter doesn't change
-     * whatever text is currently displayed in the box, so this never disturbs the
-     * guest's active filter selection.
+     * show - this never disturbs which chip is currently checked.
      */
     private void updateFilterLabelsWithCounts() {
-        if (dropdownNotificationStatus == null) return;
+        if (filterChips == null) return;
 
         int totalUnread = 0;
         java.util.Map<String, Integer> unreadByType = new java.util.HashMap<>();
@@ -337,16 +387,15 @@ public class NotificationActivity extends BaseNavigationActivity {
             unreadByType.merge(bucket, 1, Integer::sum);
         }
 
-        String[] labels = new String[NOTIF_FILTER_LABEL_RES.length];
         for (int i = 0; i < NOTIF_FILTER_LABEL_RES.length; i++) {
+            if (filterChips[i] == null) continue;
             String base = getString(NOTIF_FILTER_LABEL_RES[i]);
             String key = NOTIF_FILTER_KEYS[i];
             int count = ("All".equals(key) || FILTER_UNREAD.equals(key))
                     ? totalUnread
                     : (unreadByType.containsKey(key) ? unreadByType.get(key) : 0);
-            labels[i] = count > 0 ? getString(R.string.notif_filter_count_format, base, count) : base;
+            filterChips[i].setText(count > 0 ? getString(R.string.notif_filter_count_format, base, count) : base);
         }
-        dropdownNotificationStatus.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, labels));
     }
 
     /**

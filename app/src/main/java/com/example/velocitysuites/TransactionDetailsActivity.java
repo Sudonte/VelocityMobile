@@ -128,7 +128,10 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
         TextView tvDate = findViewById(R.id.tvTxDetailDate);
         String date = transaction.getDate();
-        tvDate.setText(date != null && !date.isEmpty() ? date : getString(R.string.label_not_available));
+        // Same "synthetic summary row for an unpaid Reservation" case as
+        // PaymentTransactionAdapter's identical fallback - "Not yet paid" is
+        // accurate here; the generic "N/A" this used to show wasn't.
+        tvDate.setText(date != null && !date.isEmpty() ? date : getString(R.string.transaction_date_not_yet_paid));
 
         TextView tvAmount = findViewById(R.id.tvTxDetailAmount);
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
@@ -241,8 +244,8 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         TextView tvAmount = row.findViewById(R.id.tvHistoryAmount);
         TextView tvStatus = row.findViewById(R.id.tvHistoryStatus);
 
-        tvMethod.setText(record.method != null ? record.method : getString(R.string.label_not_available));
-        tvDate.setText(record.date != null ? record.date : getString(R.string.label_not_available));
+        tvMethod.setText(record.method != null ? record.method : getString(R.string.filter_status_unavailable));
+        tvDate.setText(record.date != null ? record.date : getString(R.string.filter_status_unavailable));
         try {
             tvAmount.setText(currencyFormat.format(Double.parseDouble(record.amount)));
         } catch (NumberFormatException | NullPointerException e) {

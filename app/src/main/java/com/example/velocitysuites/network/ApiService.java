@@ -206,6 +206,10 @@ public interface ApiService {
     @GET("guest/bookings")
     Call<PaginatedResponse<DirectBookingResponseDto>> getDirectBookings(@Query("per_page") int perPage, @Header("X-Request-Id") String requestId);
 
+    /** Single direct-Booking fetch by id - used when a deep-linked transaction (e.g. from a notification) isn't in the already-loaded getDirectBookings() page. */
+    @GET("guest/bookings/{id}")
+    Call<DirectBookingResponseDto> getDirectBooking(@Path("id") String id);
+
     /**
      * Payment is submitted as part of this same request (fields + optional
      * idCardImage/receipt file parts) - no Booking row exists on the server
@@ -334,6 +338,10 @@ public interface ApiService {
     /** per_page defaults to 20 server-side (Api\NotificationController::index()) - see getReservations(int) above for why a high explicit cap is requested here too. */
     @GET("notifications")
     Call<PaginatedResponse<NotificationDto>> getNotifications(@Query("per_page") int perPage);
+
+    /** Explicit page overload for infinite-scroll beyond the first per_page window - see RoomRepository#loadMoreNotifications(). */
+    @GET("notifications")
+    Call<PaginatedResponse<NotificationDto>> getNotifications(@Query("per_page") int perPage, @Query("page") int page);
 
     @PUT("notifications/{id}/read")
     Call<NotificationDto> markNotificationRead(@Path("id") String id);

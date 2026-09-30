@@ -40,7 +40,7 @@ public final class DebugReceiptFixtures {
                 "PARTIAL_RECEIPT", "PR-20260920-000501"
         );
         Booking.PaymentSummary summary = new Booking.PaymentSummary(
-                10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false);
+                10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false, 0);
         ReceiptDetail.AnchorPayment anchor = new ReceiptDetail.AnchorPayment(
                 5000.0, "gcash", 50, "09171234567", "4136202609205",
                 "2026-09-20T14:30:00+08:00", "Maria Santos");
@@ -48,7 +48,7 @@ public final class DebugReceiptFixtures {
         return new ReceiptDetail("PARTIAL_RECEIPT", "PR-20260920-000501", "250", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Deluxe Room", null,
                 "Sep 25, 2026", "Sep 27, 2026", 2,
-                Arrays.asList("204"), summary, Arrays.asList(tx), anchor,
+                Arrays.asList("204"), 2, 0, summary, Arrays.asList(tx), anchor,
                 "2026-09-20T14:30:00+08:00");
     }
 
@@ -65,7 +65,7 @@ public final class DebugReceiptFixtures {
                 "FULL_PAYMENT_RECEIPT", "FR-20260921-000502"
         );
         Booking.PaymentSummary summary = new Booking.PaymentSummary(
-                10000.0, 10000.0, 0.0, "PAID", 100, false);
+                10000.0, 10000.0, 0.0, "PAID", 100, false, 0);
         ReceiptDetail.AnchorPayment anchor = new ReceiptDetail.AnchorPayment(
                 10000.0, "gcash", 100, "09181234567", "4136202609215",
                 "2026-09-21T09:10:00+08:00", "Maria Santos");
@@ -73,7 +73,7 @@ public final class DebugReceiptFixtures {
         return new ReceiptDetail("FULL_PAYMENT_RECEIPT", "FR-20260921-000502", "251", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Suite Room", null,
                 "Sep 28, 2026", "Sep 30, 2026", 2,
-                Arrays.asList("305"), summary, Arrays.asList(tx), anchor,
+                Arrays.asList("305"), 2, 0, summary, Arrays.asList(tx), anchor,
                 "2026-09-21T09:10:00+08:00");
     }
 
@@ -99,12 +99,12 @@ public final class DebugReceiptFixtures {
                 null, null
         );
         Booking.PaymentSummary summary = new Booking.PaymentSummary(
-                10000.0, 10000.0, 0.0, "PAID", 100, true);
+                10000.0, 10000.0, 0.0, "PAID", 100, true, 0);
 
         return new ReceiptDetail("OFFICIAL_RECEIPT", "OR-20260923-000210", "250", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Deluxe Room", null,
                 "Sep 25, 2026", "Sep 27, 2026", 2,
-                Arrays.asList("204"), summary, Arrays.asList(gcashTx, cashTx), null,
+                Arrays.asList("204"), 2, 0, summary, Arrays.asList(gcashTx, cashTx), null,
                 "2026-09-23T11:00:00+08:00");
     }
 
@@ -120,12 +120,12 @@ public final class DebugReceiptFixtures {
                 "FULL_PAYMENT_RECEIPT", "FR-20260921-000502"
         );
         Booking.PaymentSummary summary = new Booking.PaymentSummary(
-                10000.0, 10000.0, 0.0, "PAID", 100, true);
+                10000.0, 10000.0, 0.0, "PAID", 100, true, 0);
 
         return new ReceiptDetail("OFFICIAL_RECEIPT", "OR-20260924-000211", "251", null,
                 "Juan Dela Cruz", "Juan Dela Cruz", "Suite Room", null,
                 "Sep 28, 2026", "Sep 30, 2026", 2,
-                Arrays.asList("305"), summary, Arrays.asList(gcashTx), null,
+                Arrays.asList("305"), 2, 0, summary, Arrays.asList(gcashTx), null,
                 "2026-09-24T10:00:00+08:00");
     }
 
@@ -152,7 +152,7 @@ public final class DebugReceiptFixtures {
         b.setConvertedBookingId("250");
         b.setStaffVerified(true);
         b.setAmountPaid(5000.0);
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false, 0));
         b.setPaymentTransactions(Arrays.asList(new Booking.PaymentTransactionRecord(
                 501L, "gcash", "deposit", "PARTIAL_PAYMENT",
                 5000.0, "completed", "verified",
@@ -174,7 +174,7 @@ public final class DebugReceiptFixtures {
         b.setDirectBooking(false);
         b.setStaffVerified(true);
         b.setAmountPaid(10000.0);
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true, 0));
         List<Booking.PaymentTransactionRecord> txs = new ArrayList<>();
         txs.add(new Booking.PaymentTransactionRecord(
                 501L, "gcash", "deposit", "PARTIAL_PAYMENT",
@@ -217,7 +217,7 @@ public final class DebugReceiptFixtures {
         b.setDirectBooking(true);
         b.setStaffVerified(true);
         b.setAmountPaid(10000.0);
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true, 0));
         b.setPaymentTransactions(Arrays.asList(new Booking.PaymentTransactionRecord(
                 502L, "gcash", "final", "FULL_PAYMENT",
                 10000.0, "completed", "verified",

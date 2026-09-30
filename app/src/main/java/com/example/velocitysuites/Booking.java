@@ -264,15 +264,19 @@ public class Booking implements Serializable {
         public final String paymentStatus;
         public final Integer paymentPercentage;
         public final boolean officialReceiptAvailable;
+        /** Locked Billing discount amount once billed, 0 before that - see PaymentSummaryDto's own doc. */
+        public final double discount;
 
         public PaymentSummary(double grandTotal, double totalAmountPaid, double remainingBalance,
-                               String paymentStatus, Integer paymentPercentage, boolean officialReceiptAvailable) {
+                               String paymentStatus, Integer paymentPercentage, boolean officialReceiptAvailable,
+                               double discount) {
             this.grandTotal = grandTotal;
             this.totalAmountPaid = totalAmountPaid;
             this.remainingBalance = remainingBalance;
             this.paymentStatus = paymentStatus;
             this.paymentPercentage = paymentPercentage;
             this.officialReceiptAvailable = officialReceiptAvailable;
+            this.discount = discount;
         }
     }
 

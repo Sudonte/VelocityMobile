@@ -204,32 +204,125 @@
                             android:textSize="12sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Filter by Status: single combo box replacing the old 7-way category
-                         chip row (All/Unread/Booking/Payment/CheckIn/Promotion/System) - same
-                         ExposedDropdown pattern already used by transactionhistory.xml and
-                         bookingandreservation.xml's own status filters. -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layoutNotificationStatusFilter"
-                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
-                        android:layout_width="match_parent"
+                    <!-- Filter by Status: horizontally scrollable single-select chip row
+                         (All/Unread/Booking/Reservation/Payment Status/Check-in/Promotions &amp;
+                         Discounts/System, in that exact order) - a HorizontalScrollView so all
+                         8 filters are always reachable by swiping instead of wrapping/
+                         overflowing on a small screen, matching the existing scrollable chip
+                         row pattern already used for transactionhistory.xml's Room Type/Date/
+                         Booking Status filters. Each chip's checked/unchecked colors are set
+                         in code (NotificationActivity#updateFilterChipAppearance()) since the
+                         label text also needs a live unread-count suffix. -->
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="24dp"
-                        android:layout_marginBottom="12dp"
-                        android:hint="@string/filter_by_status_label">
+                        android:layout_marginBottom="6dp"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="@string/filter_by_status_label"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="11sp" />
 
-                        <AutoCompleteTextView
-                            android:id="@+id/dropdownNotificationStatus"
-                            android:layout_width="match_parent"
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:paddingHorizontal="24dp"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupNotificationFilter"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-bold"
-                            android:includeFontPadding="false"
-                            android:inputType="none"
-                            android:paddingVertical="8dp"
-                            android:text="@string/notif_filter_all_label"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="12sp"
-                            tools:ignore="LabelFor" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            app:chipSpacingHorizontal="8dp"
+                            app:selectionRequired="true"
+                            app:singleLine="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterAll"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:checked="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/notif_filter_all_label"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterUnread"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/filter_unread"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterBooking"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/quick_action_booking"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterReservation"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/quick_action_reservation"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterPayment"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/payment_status"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterCheckin"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/notif_filter_checkin"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterPromotion"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/notif_filter_promotion"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipFilterSystem"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checkable="true"
+                                android:fontFamily="sans-serif-bold"
+                                android:text="@string/notif_filter_system"
+                                android:textSize="12sp" />
+                        </com.google.android.material.chip.ChipGroup>
+                    </HorizontalScrollView>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvNotifications"

@@ -680,7 +680,8 @@ public final class ApiMapper {
                 dto.remaining_balance,
                 dto.payment_status,
                 dto.payment_percentage,
-                dto.official_receipt_available
+                dto.official_receipt_available,
+                dto.discount
         );
     }
 
@@ -748,6 +749,8 @@ public final class ApiMapper {
                 reformatDate(dto.check_out),
                 dto.number_of_nights,
                 dto.assigned_room_numbers,
+                dto.adults,
+                dto.children,
                 toPaymentSummary(dto.payment_summary),
                 toPaymentTransactions(dto.payment_transactions),
                 anchor,

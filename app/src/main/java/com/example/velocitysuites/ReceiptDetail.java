@@ -35,6 +35,8 @@ public class ReceiptDetail implements Serializable {
     @Nullable private final String checkOut;
     private final int numberOfNights;
     private final List<String> assignedRoomNumbers;
+    private final int adults;
+    private final int children;
     @Nullable private final Booking.PaymentSummary paymentSummary;
     private final List<Booking.PaymentTransactionRecord> paymentTransactions;
     @Nullable private final AnchorPayment anchorPayment;
@@ -43,7 +45,7 @@ public class ReceiptDetail implements Serializable {
     public ReceiptDetail(String receiptType, String receiptNumber, String bookingId, @Nullable String reservationId,
                           @Nullable String guestAccountName, @Nullable String representativeName, @Nullable String roomType,
                           @Nullable List<BookingRoom> roomLines, @Nullable String checkIn, @Nullable String checkOut,
-                          int numberOfNights, @Nullable List<String> assignedRoomNumbers,
+                          int numberOfNights, @Nullable List<String> assignedRoomNumbers, int adults, int children,
                           @Nullable Booking.PaymentSummary paymentSummary,
                           @Nullable List<Booking.PaymentTransactionRecord> paymentTransactions,
                           @Nullable AnchorPayment anchorPayment, @Nullable String issuedAt) {
@@ -59,6 +61,8 @@ public class ReceiptDetail implements Serializable {
         this.checkOut = checkOut;
         this.numberOfNights = numberOfNights;
         this.assignedRoomNumbers = assignedRoomNumbers != null ? assignedRoomNumbers : new ArrayList<>();
+        this.adults = adults;
+        this.children = children;
         this.paymentSummary = paymentSummary;
         this.paymentTransactions = paymentTransactions != null ? paymentTransactions : new ArrayList<>();
         this.anchorPayment = anchorPayment;
@@ -77,6 +81,8 @@ public class ReceiptDetail implements Serializable {
     @Nullable public String getCheckOut() { return checkOut; }
     public int getNumberOfNights() { return numberOfNights; }
     public List<String> getAssignedRoomNumbers() { return assignedRoomNumbers; }
+    public int getAdults() { return adults; }
+    public int getChildren() { return children; }
     @Nullable public Booking.PaymentSummary getPaymentSummary() { return paymentSummary; }
     public List<Booking.PaymentTransactionRecord> getPaymentTransactions() { return paymentTransactions; }
     @Nullable public AnchorPayment getAnchorPayment() { return anchorPayment; }

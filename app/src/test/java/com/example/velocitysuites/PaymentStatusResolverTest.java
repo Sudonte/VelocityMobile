@@ -26,7 +26,7 @@ public class PaymentStatusResolverTest {
         // Legacy fields deliberately say "not fully paid" - only the
         // authoritative payment_summary.payment_status should decide.
         b.setAmountPaid(2000.0);
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true, 0));
 
         assertEquals(PaymentStatusResolver.StatusKey.FULLY_PAID, PaymentStatusResolver.resolveStatusKey(b));
     }
@@ -35,7 +35,7 @@ public class PaymentStatusResolverTest {
     public void authoritativePartiallyPaid_resolvesToPartialState() {
         Booking b = booking();
         b.setAmountPaid(10000.0); // legacy says fully paid - authoritative status must still win
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false, 0));
 
         assertEquals(PaymentStatusResolver.StatusKey.PARTIALLY_PAID, PaymentStatusResolver.resolveStatusKey(b));
     }
@@ -44,7 +44,7 @@ public class PaymentStatusResolverTest {
     public void authoritativePending_resolvesToPendingState() {
         Booking b = booking();
         b.setAmountPaid(0.0);
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 0.0, 10000.0, "PENDING", null, false));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 0.0, 10000.0, "PENDING", null, false, 0));
 
         assertEquals(PaymentStatusResolver.StatusKey.PENDING, PaymentStatusResolver.resolveStatusKey(b));
     }
@@ -77,7 +77,7 @@ public class PaymentStatusResolverTest {
     public void cancelledBooking_alwaysWinsRegardlessOfPaymentSummary() {
         Booking b = booking();
         b.setStatus("Cancelled");
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 10000.0, 0.0, "PAID", 100, true, 0));
 
         assertEquals(PaymentStatusResolver.StatusKey.CANCELLED, PaymentStatusResolver.resolveStatusKey(b));
     }
@@ -86,7 +86,7 @@ public class PaymentStatusResolverTest {
     public void rejectedPayment_winsOverAuthoritativePaymentSummary() {
         Booking b = booking();
         b.setPaymentVerificationStatus("rejected");
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false, 0));
 
         assertEquals(PaymentStatusResolver.StatusKey.REJECTED, PaymentStatusResolver.resolveStatusKey(b));
     }
@@ -95,7 +95,7 @@ public class PaymentStatusResolverTest {
     public void effectiveTotals_preferAuthoritativePaymentSummaryOverLegacyFields() {
         Booking b = booking();
         b.setAmountPaid(2000.0);
-        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 7000.0, 3000.0, "PARTIALLY_PAID", 70, false));
+        b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 7000.0, 3000.0, "PARTIALLY_PAID", 70, false, 0));
 
         assertEquals(7000.0, b.getEffectiveTotalAmountPaid(), 0.001);
         assertEquals(3000.0, b.getEffectiveRemainingBalance(), 0.001);

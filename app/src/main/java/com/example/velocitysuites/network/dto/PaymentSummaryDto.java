@@ -39,4 +39,6 @@ public class PaymentSummaryDto {
      * ever becomes true).
      */
     public boolean official_receipt_available;
+    /** Locked Billing discount amount once billed, 0 before that - see ReceiptService::paymentSummary()'s own doc. */
+    public double discount;
 }

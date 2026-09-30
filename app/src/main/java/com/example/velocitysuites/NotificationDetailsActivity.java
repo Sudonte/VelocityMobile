@@ -174,26 +174,22 @@ public class NotificationDetailsActivity extends AppCompatActivity {
     private void bindPrimaryAction() {
         String referenceId = notification.getReferenceId();
         String type = notification.getType();
-        // Booking/Reservation/Check-in notifications go straight to the richer Booking/
-        // Reservation Details screen when the linked record is still resolvable
-        // (relatedBooking, set by bindRelatedRecord() above) - a more direct destination
-        // than the Transaction History filter below, which stays the destination for
-        // Payment notifications (paired with the separate View Receipt button) and as
-        // the fallback for a Booking/Reservation/Check-in notification whose record has
-        // since fallen out of cache. See NotificationPrimaryActionResolver for the full
-        // per-type rule (unit-tested there).
-        boolean canViewBookingDetails = NotificationPrimaryActionResolver.canViewBookingDetails(type, relatedBooking != null);
+        // Every Booking/Reservation/Payment/Check-in notification with a
+        // reference id opens Transaction History, scrolled to and
+        // highlighted on that exact record with its full details expanded -
+        // see TransactionHistoryActivity#applySelectedBookingHighlight() and
+        // NotificationPrimaryActionResolver for the per-type rule
+        // (unit-tested there). Promotions/Announcements/System notifications
+        // have no transaction to show and get no button.
         boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(type, referenceId);
 
         MaterialButton btnPrimary = findViewById(R.id.btnNotifPrimaryAction);
-        if (canViewBookingDetails) {
-            btnPrimary.setVisibility(View.VISIBLE);
-            btnPrimary.setOnClickListener(v -> startActivity(BookingDetailsActivity.newIntent(this, relatedBooking)));
-        } else if (canViewTransaction) {
+        if (canViewTransaction) {
             btnPrimary.setVisibility(View.VISIBLE);
             btnPrimary.setOnClickListener(v -> {
                 Intent intent = new Intent(this, TransactionHistoryActivity.class);
-                intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER, TransactionHistoryActivity.FILTER_PAYMENTS);
+                intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER,
+                        NotificationPrimaryActionResolver.transactionHistoryFilterFor(type));
                 intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, referenceId);
                 startActivity(intent);
             });

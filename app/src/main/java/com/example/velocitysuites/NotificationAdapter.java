@@ -26,8 +26,20 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public NotificationAdapter(List<Notification> notifications, OnNotificationClickListener listener) {
+        setHasStableIds(true);
         this.notifications = notifications;
         this.listener = listener;
+    }
+
+    /** Notification#getId() is already the backend's own unique row id - a real stable key RecyclerView can track a row by across a refresh/load-more, instead of treating every position as a brand-new view every time notifyDataSetChanged() runs. */
+    @Override
+    public long getItemId(int position) {
+        String id = notifications.get(position).getId();
+        try {
+            return Long.parseLong(id);
+        } catch (NumberFormatException | NullPointerException e) {
+            return id != null ? id.hashCode() : RecyclerView.NO_ID;
+        }
     }
 
     public void setHighlightedNotificationId(String notificationId) {

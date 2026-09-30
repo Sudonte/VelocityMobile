@@ -36,6 +36,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
     }
 
     public PaymentTransactionAdapter(List<PaymentTransaction> transactions, OnTransactionClickListener listener) {
+        setHasStableIds(true);
         this.transactions = transactions;
         this.listener = listener;
     }
@@ -95,7 +96,12 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         holder.tvSubtitle.setText(ctx.getString(R.string.ptx_subtitle_format, typeLabel, b.getRoomName()));
 
         String date = tx.getDate();
-        holder.tvDate.setText(date != null && !date.isEmpty() ? date : ctx.getString(R.string.label_not_available));
+        // A synthetic summary row for a Cash Pay-Later Reservation nobody has
+        // paid against yet (see PaymentTransaction#getDate()'s own fallback to
+        // parentBooking.getPaymentDate(), which is genuinely null in that
+        // case) has no payment date to show - "Not yet paid" states that
+        // honestly instead of the generic, alarming "N/A" this used to show.
+        holder.tvDate.setText(date != null && !date.isEmpty() ? date : ctx.getString(R.string.transaction_date_not_yet_paid));
 
         holder.tvAmount.setText(CURRENCY_FORMAT.format(tx.getAmount()));
 
@@ -141,6 +147,23 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         this.transactions.clear();
         this.transactions.addAll(newList);
         notifyDataSetChanged();
+    }
+
+    /**
+     * A stable per-row identity (parentBooking id + this specific payment's
+     * own referenceNumber/date/amount, since Booking.PaymentRecord itself
+     * has no numeric id) - lets RecyclerView's default item animator and
+     * saved-state logic track a row correctly across a refresh/load-more
+     * instead of treating every position as a brand-new view every time
+     * notifyDataSetChanged() runs.
+     */
+    @Override
+    public long getItemId(int position) {
+        PaymentTransaction tx = transactions.get(position);
+        int recordKey = tx.record != null
+                ? java.util.Objects.hash(tx.record.referenceNumber, tx.record.date, tx.record.amount)
+                : 0;
+        return java.util.Objects.hash(tx.parentBooking.getId(), recordKey);
     }
 
     public void setHighlightedBookingId(String bookingId) {

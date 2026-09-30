@@ -391,9 +391,12 @@
                          (Booking#getRoomCharge() etc.) - never fabricated for a still-
                          pending Reservation or a direct Booking, neither of which carries
                          this breakdown. See PAYMENT_RECEIPT_BACKEND_SPEC.md. -->
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomRate" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowRoomCharge" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowAmenityCharge" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowAdditionalGuestFee" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowSubtotal" />
+                    <include layout="@layout/item_receipt_row" android:id="@+id/rowDiscount" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowTotalAmount" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowAmountPaid" />
                     <include layout="@layout/item_receipt_row" android:id="@+id/rowRemainingBalance" />

@@ -335,8 +335,16 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         addDivider(content, dp(16));
         addRow(content, getString(R.string.receipt_reference_label), detail.getReceiptNumber());
-        addRow(content, getString(R.string.receipt_issued_date_label),
-                detail.getIssuedAt() != null ? TimeUtils.formatDateTime(detail.getIssuedAt()) : null);
+        // detail.getIssuedAt() is already a display-formatted string (or "")
+        // - ApiMapper.toReceiptDetail() reformats the raw ISO issued_at via
+        // reformatDateTime() before it ever reaches this model. Re-running it
+        // through TimeUtils.formatDateTime() here (the previous code) fed an
+        // already-formatted string back in as if it were a raw timestamp,
+        // which TimeUtils can't parse - it silently fell back to its own
+        // literal "N/A" on every single receipt, real date or not. addRow()
+        // already hides the row for a null/empty value, so no ternary is
+        // needed here.
+        addRow(content, getString(R.string.receipt_issued_date_label), detail.getIssuedAt());
     }
 
     /** Stay/Booking Information - item 7. */
@@ -353,6 +361,8 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             addRow(content, getString(R.string.details_label_room_number),
                     android.text.TextUtils.join(", ", detail.getAssignedRoomNumbers()));
         }
+        int totalGuests = detail.getAdults() + detail.getChildren();
+        addRow(content, getString(R.string.details_label_total_guests), totalGuests > 0 ? String.valueOf(totalGuests) : null);
     }
 
     private String formatRoomLinesValue(ReceiptDetail detail) {
@@ -366,6 +376,18 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return sb.toString();
         }
         return detail.getRoomType();
+    }
+
+    /** One "RoomType: ₱X,XXX.XX/night" line per room line - null when room_lines wasn't returned (a transaction predating that feature), rather than guessing a rate from the total. */
+    @Nullable
+    private String formatRoomRateValue(List<BookingRoom> lines) {
+        if (lines == null || lines.isEmpty()) return null;
+        StringBuilder sb = new StringBuilder();
+        for (BookingRoom room : lines) {
+            if (sb.length() > 0) sb.append('\n');
+            sb.append(room.getRoomTypeName()).append(": ").append(formatPrice(room.getPricePerNight())).append("/night");
+        }
+        return sb.toString();
     }
 
     /** Guest Information - item 6. */
@@ -390,6 +412,19 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return;
         }
 
+        addRow(content, getString(R.string.room_rate_label), formatRoomRateValue(detail.getRoomLines()));
+        // subtotal = grandTotal + discount: Billing::total_amount (the
+        // backend source of grandTotal) is already discount-inclusive (see
+        // ReceiptService::grandTotal()'s own doc), so adding the discount
+        // back recovers the pre-discount subtotal without needing a
+        // separate backend field for it. This system has no tax/service-
+        // charge concept anywhere (Billing/Payment models both confirmed to
+        // have no such column) - there is deliberately no "taxes and fees"
+        // row here, since fabricating one would show data that was never
+        // actually collected.
+        double subtotal = summary.grandTotal + summary.discount;
+        addRow(content, getString(R.string.subtotal_label), subtotal > 0.009 ? formatPrice(subtotal) : null);
+        addRow(content, getString(R.string.details_label_discount), summary.discount > 0.009 ? formatPrice(summary.discount) : null);
         addRow(content, getString(R.string.details_label_total_amount), formatPrice(summary.grandTotal));
         if (summary.paymentPercentage != null) {
             addRow(content, getString(R.string.receipt_payment_percentage_label),
@@ -398,11 +433,20 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         if (detail.isAnchoredOnSinglePayment() && detail.getAnchorPayment() != null) {
             // PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - the frozen snapshot.
+            ReceiptDetail.AnchorPayment anchor = detail.getAnchorPayment();
             addRow(content, getString(R.string.receipt_amount_paid_this_transaction_label),
-                    formatPrice(detail.getAnchorPayment().amountPaid));
+                    formatPrice(anchor.amountPaid));
             addRow(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
             addRow(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
             addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
+            // Only ever present for a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT -
+            // an OFFICIAL_RECEIPT's checkout-recorded payment has no separate
+            // staff-verification step at all (backend's own
+            // transactionType() doc), so anchor_payment (and therefore this
+            // field) is genuinely null there, not a data gap to fix.
+            addRow(content, getString(R.string.receipt_verified_by_label), anchor.verifiedBy);
+            addRow(content, getString(R.string.receipt_verified_at_label),
+                    anchor.verifiedAt != null ? TimeUtils.formatDateTime(anchor.verifiedAt) : null);
         } else {
             // OFFICIAL_RECEIPT - final settlement; Total Amount Paid made prominent below.
             addRow(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
@@ -691,12 +735,22 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // Room Charges/Amenities/Additional Guest Fee only render when the backend's
         // Billing breakdown actually returned them (Booking#getRoomCharge() etc.) -
         // never fabricated for a still-pending Reservation or a direct Booking.
+        bindRow(R.id.rowRoomRate, getString(R.string.room_rate_label), formatLegacyRoomRateValue(roomCharge));
         bindRow(R.id.rowRoomCharge, getString(R.string.details_label_room_charge),
                 roomCharge > 0.009 ? formatPrice(roomCharge) : null);
         bindRow(R.id.rowAmenityCharge, getString(R.string.details_label_amenity_charge),
                 amenityCharge > 0.009 ? formatPrice(amenityCharge) : null);
         bindRow(R.id.rowAdditionalGuestFee, getString(R.string.details_label_additional_guest_fee),
                 additionalGuestFee > 0.009 ? formatPrice(additionalGuestFee) : null);
+        double subtotal = roomCharge + amenityCharge + additionalGuestFee;
+        bindRow(R.id.rowSubtotal, getString(R.string.subtotal_label), subtotal > 0.009 ? formatPrice(subtotal) : null);
+        // Only ever populated for a reservation-derived transaction (see
+        // Booking#getDiscountAmount()'s own doc) - a direct Booking has no
+        // discount_preview source at all, so this correctly stays 0/hidden for
+        // that path rather than showing a fabricated value.
+        double discountAmount = booking.getDiscountAmount();
+        bindRow(R.id.rowDiscount, getString(R.string.details_label_discount),
+                discountAmount > 0.009 ? formatPrice(discountAmount) : null);
         bindRow(R.id.rowTotalAmount, getString(R.string.details_label_total_amount), formatPrice(totalAmount));
         bindRow(R.id.rowAmountPaid, getString(R.string.details_label_amount_paid), formatPrice(amountPaid));
         bindRow(R.id.rowRemainingBalance, getString(R.string.details_label_remaining_balance),
@@ -848,6 +902,25 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return sb.toString();
         }
         return booking.getRoomType();
+    }
+
+    /**
+     * One "RoomType: rate/night" line per itemized room line (same data
+     * {@link #formatRoomRateValue(List)} uses for receipt-number mode) when
+     * available; falls back to roomCharge/nights - an approximation, only
+     * used for a transaction that predates the room_lines feature - when
+     * it isn't. Null (row hidden) only when neither is computable, never a
+     * guessed/fabricated rate.
+     */
+    @Nullable
+    private String formatLegacyRoomRateValue(double roomCharge) {
+        String perLine = formatRoomRateValue(booking.getRooms());
+        if (perLine != null) return perLine;
+        Long nights = StayDateCalculator.nightsBetweenOrNull(booking.getCheckInDate(), booking.getCheckOutDate());
+        if (nights != null && nights > 0 && roomCharge > 0.009) {
+            return formatPrice(roomCharge / nights) + "/night";
+        }
+        return null;
     }
 
     /**

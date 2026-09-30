@@ -36,6 +36,8 @@ public class ReceiptDetailDto {
     public String check_out;
     public int number_of_nights;
     public List<String> assigned_room_numbers;
+    public int adults;
+    public int children;
     /**
      * The point-in-time snapshot (PR/FR) or live final totals (OR) - see
      * this class's own doc. Always display exactly as returned here, never

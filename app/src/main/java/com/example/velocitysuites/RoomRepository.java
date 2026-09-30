@@ -110,6 +110,9 @@ public final class RoomRepository {
     /** View-only "frozen" reservations that have converted into a Booking - see ApiMapper#toHistoricalReservation(). Kept out of `bookings` entirely so Transaction History/Dashboard/Notifications/Calendar never double-count them; only BookingAndReservationActivity's Reservation-tab Completed list reads this. */
     private List<Booking> completedHistoricalReservations = new ArrayList<>();
     private List<Notification> notifications = new ArrayList<>();
+    /** Pagination state for loadMoreNotifications() - reset by every refreshNotifications() call (a fresh refresh always restarts from page 1, discarding any prior load-more progress along with the list itself). */
+    private int notificationsCurrentPage = 1;
+    private int notificationsLastPage = 1;
     private final List<BookingsChangedListener> bookingsChangedListeners = new ArrayList<>();
     /** Booking ids already run through correctPendingReservationTotal() - reset whenever refreshBookings() replaces `bookings` with fresh (uncorrected) server objects. */
     private final java.util.Set<String> correctedTotalIds = new java.util.HashSet<>();
@@ -459,10 +462,42 @@ public final class RoomRepository {
      * never loaded) while the other side still updates normally.
      */
     public void refreshBookingsSplit(SplitRepositoryCallback callback) {
-        refreshBookingsSplitInternal(callback, true);
+        bookingsPerPage = DEFAULT_BOOKINGS_PER_PAGE;
+        refreshBookingsSplitInternal(callback, true, bookingsPerPage);
     }
 
-    private void refreshBookingsSplitInternal(SplitRepositoryCallback callback, boolean allowRetry) {
+    /** Current per_page window for both refreshBookings() calls - grown by loadMoreBookings(), reset back to the default by every refreshBookingsSplit()/refreshBookings() call. */
+    private int bookingsPerPage = DEFAULT_BOOKINGS_PER_PAGE;
+    private static final int DEFAULT_BOOKINGS_PER_PAGE = 200;
+
+    /**
+     * "Load more" for Transaction History, for the rare guest with more
+     * transactions than the default per_page window covers. Rather than a
+     * true incremental page fetch (which would mean threading a second,
+     * independent pagination cursor through the existing per-family
+     * failure-isolation/retry logic above), this simply re-runs the exact
+     * same already-correct dual-fetch with a LARGER per_page - since
+     * refreshBookingsSplitInternal()'s merge step already fully REPLACES
+     * each family's cache slice (removeIf + addAll, never append), asking
+     * for a bigger window and replacing is exactly equivalent to "loading
+     * more," with zero changes to that delicate merge/retry logic. total
+     * from either PaginatedResponse tells the caller (TransactionHistoryActivity)
+     * whether there's genuinely more left - see hasMoreBookings().
+     */
+    public void loadMoreBookings(SplitRepositoryCallback callback) {
+        bookingsPerPage += DEFAULT_BOOKINGS_PER_PAGE;
+        refreshBookingsSplitInternal(callback, true, bookingsPerPage);
+    }
+
+    private int lastReservationsTotal = 0;
+    private int lastDirectBookingsTotal = 0;
+
+    /** True when the last fetch's own reported totals exceed the current per_page window on either side - i.e. loadMoreBookings() would actually return something new. */
+    public boolean hasMoreBookings() {
+        return lastReservationsTotal > bookingsPerPage || lastDirectBookingsTotal > bookingsPerPage;
+    }
+
+    private void refreshBookingsSplitInternal(SplitRepositoryCallback callback, boolean allowRetry, int perPage) {
         // Correlates this one refresh (both sub-calls) across the Android log and, via the
         // X-Request-Id header below, the backend's own log - see DiagnosticLog's own doc.
         // A fresh id every call (including the internal retry) is deliberate: a retry is a
@@ -510,7 +545,7 @@ public final class RoomRepository {
                 // is harmless (a second, quick, already-warm request), not incorrect.
                 com.example.velocitysuites.network.DiagnosticLog.w("refreshBookings.partialOrFullFailure.retrying",
                         "requestId=" + requestId + " reservationsFailed=" + reservationsFailed[0] + " directFailed=" + directFailed[0]);
-                refreshBookingsSplitInternal(callback, false);
+                refreshBookingsSplitInternal(callback, false, perPage);
                 return;
             }
             // Partial merge: each family's own slice of `bookings` (identified by
@@ -551,13 +586,14 @@ public final class RoomRepository {
             }
         };
 
-        api.getReservations(200, requestId).enqueue(new Callback<PaginatedResponse<ReservationDto>>() {
+        api.getReservations(perPage, requestId).enqueue(new Callback<PaginatedResponse<ReservationDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<ReservationDto>> call, Response<PaginatedResponse<ReservationDto>> response) {
                 com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.reservations.response",
                         "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
                                 + " recordCount=" + (response.body() != null ? response.body().data.size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
+                    lastReservationsTotal = response.body().total;
                     for (ReservationDto dto : response.body().data) {
                         // A single malformed/unexpected record must never take down the
                         // WHOLE list - see State F (JSON/model parsing failure) in the
@@ -593,13 +629,14 @@ public final class RoomRepository {
             }
         });
 
-        api.getDirectBookings(200, requestId).enqueue(new Callback<PaginatedResponse<DirectBookingResponseDto>>() {
+        api.getDirectBookings(perPage, requestId).enqueue(new Callback<PaginatedResponse<DirectBookingResponseDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<DirectBookingResponseDto>> call, Response<PaginatedResponse<DirectBookingResponseDto>> response) {
                 com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.directBookings.response",
                         "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
                                 + " recordCount=" + (response.body() != null ? response.body().data.size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
+                    lastDirectBookingsTotal = response.body().total;
                     for (DirectBookingResponseDto dto : response.body().data) {
                         // Same State-F protection as the reservations loop above.
                         try {
@@ -684,6 +721,8 @@ public final class RoomRepository {
                         mapped.add(ApiMapper.toNotification(dto));
                     }
                     notifications = mapped;
+                    notificationsCurrentPage = response.body().current_page > 0 ? response.body().current_page : 1;
+                    notificationsLastPage = response.body().last_page > 0 ? response.body().last_page : 1;
                     // Single hook point for the whole app: every screen that refreshes
                     // notifications (dashboard, the Notification Module, the background
                     // poll worker) posts real system alerts for genuinely new/unread rows
@@ -692,6 +731,50 @@ public final class RoomRepository {
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {
                     if (callback != null) callback.onError("Failed to load notifications.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PaginatedResponse<NotificationDto>> call, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
+    }
+
+    /** True when the last refreshNotifications()/loadMoreNotifications() page wasn't actually the last one - see NotificationActivity's scroll-near-bottom trigger. */
+    public boolean hasMoreNotifications() {
+        return notificationsCurrentPage < notificationsLastPage;
+    }
+
+    /**
+     * Fetches the next page (same per_page=200 window refreshNotifications()
+     * already uses) and appends it to the already-loaded list, for a guest
+     * with more than one page of history - see NOTIFICATIONS_BACKEND_SPEC.md's
+     * own note that the API already supports paging, only the Android list
+     * never walked past page 1. A no-op (immediate onSuccess with the
+     * unchanged list) when hasMoreNotifications() is already false, so a
+     * careless extra call from the UI can't fetch past the real last page.
+     */
+    public void loadMoreNotifications(RepositoryCallback<List<Notification>> callback) {
+        if (!hasMoreNotifications()) {
+            if (callback != null) callback.onSuccess(getNotifications());
+            return;
+        }
+        final int requestGeneration = accountGeneration;
+        final int nextPage = notificationsCurrentPage + 1;
+        api.getNotifications(200, nextPage).enqueue(new Callback<PaginatedResponse<NotificationDto>>() {
+            @Override
+            public void onResponse(Call<PaginatedResponse<NotificationDto>> call, Response<PaginatedResponse<NotificationDto>> response) {
+                if (requestGeneration != accountGeneration) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    for (NotificationDto dto : response.body().data) {
+                        notifications.add(ApiMapper.toNotification(dto));
+                    }
+                    notificationsCurrentPage = response.body().current_page > 0 ? response.body().current_page : nextPage;
+                    notificationsLastPage = response.body().last_page > 0 ? response.body().last_page : notificationsLastPage;
+                    if (callback != null) callback.onSuccess(getNotifications());
+                } else {
+                    if (callback != null) callback.onError("Failed to load more notifications.");
                 }
             }
 
@@ -2304,6 +2387,73 @@ public final class RoomRepository {
                 if (callback != null) callback.onError(networkErrorMessage(t));
             }
         });
+    }
+
+    /**
+     * Direct single-record fetch by id, used only when a deep-linked
+     * transaction (e.g. "View Transaction Details" from a notification)
+     * isn't present in the already-loaded bookings/reservations cache -
+     * most likely because it's older than the per_page window both live
+     * fetches cap at. preferReservation comes from the caller's own
+     * category-derived guess (see NotificationPrimaryActionResolver#
+     * transactionHistoryFilterFor()) - a definite 404 from the "wrong"
+     * endpoint is treated as "not found" rather than silently retried
+     * against the other table, since a guessed id could otherwise resolve
+     * to an unrelated real record on the other side.
+     */
+    public void fetchTransactionById(String id, boolean preferReservation, RepositoryCallback<Booking> callback) {
+        if (preferReservation) {
+            api.getReservation(id).enqueue(new Callback<ReservationDto>() {
+                @Override
+                public void onResponse(Call<ReservationDto> call, Response<ReservationDto> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        Booking mapped = ApiMapper.toBooking(response.body());
+                        mergeBookingIntoCache(mapped);
+                        if (callback != null) callback.onSuccess(mapped);
+                    } else if (response.code() == 404) {
+                        if (callback != null) callback.onError(appContext.getString(R.string.deep_link_transaction_not_found));
+                    } else {
+                        if (callback != null) callback.onError(errorMessage(response));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ReservationDto> call, Throwable t) {
+                    if (callback != null) callback.onError(networkErrorMessage(t));
+                }
+            });
+        } else {
+            api.getDirectBooking(id).enqueue(new Callback<DirectBookingResponseDto>() {
+                @Override
+                public void onResponse(Call<DirectBookingResponseDto> call, Response<DirectBookingResponseDto> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        Booking mapped = ApiMapper.toBooking(response.body());
+                        mergeBookingIntoCache(mapped);
+                        if (callback != null) callback.onSuccess(mapped);
+                    } else if (response.code() == 404) {
+                        if (callback != null) callback.onError(appContext.getString(R.string.deep_link_transaction_not_found));
+                    } else {
+                        if (callback != null) callback.onError(errorMessage(response));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<DirectBookingResponseDto> call, Throwable t) {
+                    if (callback != null) callback.onError(networkErrorMessage(t));
+                }
+            });
+        }
+    }
+
+    /** Replaces the cached copy of this booking (by id) if present, else appends it - keeps a fetchTransactionById() result visible to every other screen reading getBookings() too, not just the caller that fetched it. */
+    private void mergeBookingIntoCache(Booking booking) {
+        for (int i = 0; i < bookings.size(); i++) {
+            if (bookings.get(i).getId().equals(booking.getId())) {
+                bookings.set(i, booking);
+                return;
+            }
+        }
+        bookings.add(booking);
     }
 
     /**

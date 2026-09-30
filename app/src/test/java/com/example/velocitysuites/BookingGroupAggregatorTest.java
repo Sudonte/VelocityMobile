@@ -82,7 +82,7 @@ public class BookingGroupAggregatorTest {
         // undercounting an amenity paid separately) must not be summed instead.
         Booking withAuthoritativeSummary = member(10000.0, 2000.0, 10000.0, 0.0, 0.0);
         withAuthoritativeSummary.setPaymentSummary(new Booking.PaymentSummary(
-                10000.0, 7000.0, 3000.0, "PARTIALLY_PAID", 70, false));
+                10000.0, 7000.0, 3000.0, "PARTIALLY_PAID", 70, false, 0));
         Booking legacyOnly = member(16000.0, 8000.0, 16000.0, 0.0, 0.0);
 
         List<Booking> members = new ArrayList<>();
