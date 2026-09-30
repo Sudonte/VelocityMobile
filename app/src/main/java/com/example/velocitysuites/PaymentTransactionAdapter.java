@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
@@ -15,6 +16,7 @@ import com.google.android.material.card.MaterialCardView;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Compact, one-row-per-payment-event Transaction History list - separate
@@ -154,27 +156,91 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
         }
     }
 
+    /**
+     * Diffs the new list against what's currently shown (by the same
+     * identity isSameTransaction()/getItemId() use, see that method's own
+     * doc) and dispatches only the precise resulting changes - a poll that
+     * found nothing new or changed produces a DiffResult with zero
+     * operations, so this never calls any notify*() method at all in that
+     * case; an update to one existing row (e.g. a status change) rebinds
+     * only that row instead of the whole visible list.
+     */
     public void updateList(List<PaymentTransaction> newList) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new PaymentTransactionDiffCallback(this.transactions, newList));
         this.transactions.clear();
         this.transactions.addAll(newList);
-        notifyDataSetChanged();
+        diffResult.dispatchUpdatesTo(this);
+    }
+
+    /** Same identity two payment-transaction rows share when they're "the same row, possibly with updated data" - parentBooking id plus this specific payment's own referenceNumber/date/amount, since Booking.PaymentRecord itself has no numeric id. Shared by getItemId() and PaymentTransactionDiffCallback so both use the exact same notion of identity. */
+    private static boolean isSameTransaction(PaymentTransaction a, PaymentTransaction b) {
+        if (!Objects.equals(a.parentBooking.getId(), b.parentBooking.getId())) return false;
+        if (a.record == null && b.record == null) return true;
+        if (a.record == null || b.record == null) return false;
+        return Objects.equals(a.record.referenceNumber, b.record.referenceNumber)
+                && Objects.equals(a.record.date, b.record.date)
+                && Objects.equals(a.record.amount, b.record.amount);
+    }
+
+    private static class PaymentTransactionDiffCallback extends DiffUtil.Callback {
+        private final List<PaymentTransaction> oldList;
+        private final List<PaymentTransaction> newList;
+
+        PaymentTransactionDiffCallback(List<PaymentTransaction> oldList, List<PaymentTransaction> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return isSameTransaction(oldList.get(oldItemPosition), newList.get(newItemPosition));
+        }
+
+        /** Every field onBindViewHolder() above actually renders: status classification (+ pending-verification flag), type+room, reference+stay dates, payment date, amount, paid/remaining progress, and receipts-available count. */
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            PaymentTransaction a = oldList.get(oldItemPosition);
+            PaymentTransaction b = newList.get(newItemPosition);
+            Booking ba = a.parentBooking;
+            Booking bb = b.parentBooking;
+            return Objects.equals(a.getStatus(), b.getStatus())
+                    && ba.isPaymentPendingVerification() == bb.isPaymentPendingVerification()
+                    && ba.isHasBooking() == bb.isHasBooking()
+                    && Objects.equals(ba.getRoomName(), bb.getRoomName())
+                    && Objects.equals(ba.getCheckInDate(), bb.getCheckInDate())
+                    && Objects.equals(ba.getCheckOutDate(), bb.getCheckOutDate())
+                    && Objects.equals(a.getDate(), b.getDate())
+                    && a.getAmount() == b.getAmount()
+                    && ba.getEffectiveTotalAmountPaid() == bb.getEffectiveTotalAmountPaid()
+                    && ba.getEffectiveRemainingBalance() == bb.getEffectiveRemainingBalance()
+                    && ba.getReceipts().size() == bb.getReceipts().size();
+        }
     }
 
     /**
-     * A stable per-row identity (parentBooking id + this specific payment's
-     * own referenceNumber/date/amount, since Booking.PaymentRecord itself
-     * has no numeric id) - lets RecyclerView's default item animator and
+     * A stable per-row identity (see isSameTransaction()'s own doc for the
+     * exact fields) - lets RecyclerView's default item animator and
      * saved-state logic track a row correctly across a refresh/load-more
      * instead of treating every position as a brand-new view every time
-     * notifyDataSetChanged() runs.
+     * this adapter updates.
      */
     @Override
     public long getItemId(int position) {
         PaymentTransaction tx = transactions.get(position);
         int recordKey = tx.record != null
-                ? java.util.Objects.hash(tx.record.referenceNumber, tx.record.date, tx.record.amount)
+                ? Objects.hash(tx.record.referenceNumber, tx.record.date, tx.record.amount)
                 : 0;
-        return java.util.Objects.hash(tx.parentBooking.getId(), recordKey);
+        return Objects.hash(tx.parentBooking.getId(), recordKey);
     }
 
     public void setHighlightedBookingId(String bookingId) {

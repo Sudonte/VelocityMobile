@@ -68,6 +68,8 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private boolean attemptedDirectFetchForSelected = false;
     /** Guards the scroll-near-bottom trigger against firing a second loadMoreBookings() while one is already in flight. */
     private boolean loadingMoreTransactions = false;
+    /** True until this Activity instance's first onResume() has run - onCreate() already performs the initial full load, so that very first onResume (which always immediately follows onCreate in the normal lifecycle) must not reload again; every SUBSEQUENT onResume (e.g. returning from TransactionDetailsActivity/BookingDetailsActivity) checks for changes instead. */
+    private boolean isFirstResume = true;
 
     // Silent polling refresh, same pattern/interval as NotificationActivity's own 30s
     // auto-poll - keeps booking/payment status current without the guest needing to
@@ -802,11 +804,22 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Unconditional immediate refresh on every visit to this screen (pre-existing
-        // behavior, kept as-is) - the 30s silent poll below is additive, for staying
-        // current during a single, longer visit without the guest needing to leave
-        // and re-enter or pull-to-refresh.
-        loadTransactions(true);
+        // Used to unconditionally call loadTransactions(true) (a full reload,
+        // spinner and all) on EVERY visit to this screen - including returning
+        // from TransactionDetailsActivity/BookingDetailsActivity after "View
+        // Transaction Details", which re-downloaded however large bookingsPerPage
+        // had grown to and reset the SwipeRefreshLayout spinner for a navigation
+        // the guest never asked to refresh. Skipped entirely on the very first
+        // onResume (immediately follows onCreate, which already just did the real
+        // initial load) - every later one polls for changes instead, never a full
+        // reload, so returning to this screen can never re-download the whole
+        // loaded window or disturb the guest's filter/scroll position (already
+        // preserved for free since the Activity is merely paused, not destroyed).
+        if (isFirstResume) {
+            isFirstResume = false;
+        } else {
+            pollForTransactionChanges();
+        }
         autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
     }
 

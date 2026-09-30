@@ -4,20 +4,24 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
-    private final List<Notification> notifications;
+    private final Context context;
     private final OnNotificationClickListener listener;
     private String highlightedNotificationId;
+    /** The adapter's own copy of what's displayed - never the same List instance NotificationActivity mutates, so a diff against the PREVIOUS state is always possible. Replaced wholesale only inside submitList(); never mutated in place. */
+    private List<Row> rows;
 
     public interface OnNotificationClickListener {
         void onNotificationClick(Notification notification);
@@ -25,16 +29,128 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         void onToggleReadClick(Notification notification);
     }
 
-    public NotificationAdapter(List<Notification> notifications, OnNotificationClickListener listener) {
+    public NotificationAdapter(Context context, List<Notification> notifications, OnNotificationClickListener listener) {
         setHasStableIds(true);
-        this.notifications = notifications;
+        this.context = context;
         this.listener = listener;
+        this.rows = buildRows(notifications);
     }
 
-    /** Notification#getId() is already the backend's own unique row id - a real stable key RecyclerView can track a row by across a refresh/load-more, instead of treating every position as a brand-new view every time notifyDataSetChanged() runs. */
+    /**
+     * One row's full display-relevant state. The date-group header
+     * (isFirstInGroup/groupLabel) is precomputed HERE, once per submitList()
+     * call, rather than derived at bind time by comparing to the adjacent
+     * item in the list (the previous approach) - a DiffUtil-driven adapter
+     * can skip rebinding an item whose OWN content didn't change even when
+     * its NEIGHBOR did (that's the whole point of diffing), so "am I first
+     * in my date group" has to be part of this item's own comparable
+     * content, not a side-effect of whatever happened to be adjacent to it
+     * the last time onBindViewHolder() actually ran. Without this, inserting
+     * a new notification at the front could leave a stale "Today" header
+     * sitting on what used to be the first row, now duplicated under the
+     * new row's own "Today" header, because the old row's unchanged content
+     * never triggered a rebind.
+     */
+    private static class Row {
+        final Notification notification;
+        final boolean isFirstInGroup;
+        final String groupLabel;
+
+        Row(Notification notification, boolean isFirstInGroup, String groupLabel) {
+            this.notification = notification;
+            this.isFirstInGroup = isFirstInGroup;
+            this.groupLabel = groupLabel;
+        }
+    }
+
+    /** List is already newest-first (from the backend/RoomRepository) - a simple compare-to-previous pass is enough to find each group's first row, no separate sort needed. */
+    private List<Row> buildRows(List<Notification> notifications) {
+        List<Row> result = new ArrayList<>(notifications.size());
+        long now = System.currentTimeMillis();
+        String previousGroup = null;
+        for (Notification n : notifications) {
+            String group = NotificationDateGrouper.groupLabel(context, n.getCreatedAtMillis(), now);
+            boolean isFirst = !group.equals(previousGroup);
+            result.add(new Row(n, isFirst, group));
+            previousGroup = group;
+        }
+        return result;
+    }
+
+    /**
+     * Diffs the new list against what's currently shown (by id, see
+     * NotificationDiffCallback) and dispatches only the precise resulting
+     * changes - a poll that found nothing new or changed produces a
+     * DiffResult with zero operations, so this never calls any notify*()
+     * method at all in that case; an update to one existing row (e.g.
+     * is_read flipped on another device) rebinds only that row instead of
+     * the whole visible list; a genuinely new row is inserted at its real
+     * position instead of the whole list being torn down and rebuilt.
+     */
+    public void submitList(List<Notification> newList) {
+        List<Row> newRows = buildRows(newList);
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new NotificationDiffCallback(rows, newRows));
+        rows = newRows;
+        diffResult.dispatchUpdatesTo(this);
+    }
+
+    private static class NotificationDiffCallback extends DiffUtil.Callback {
+        private final List<Row> oldRows;
+        private final List<Row> newRows;
+
+        NotificationDiffCallback(List<Row> oldRows, List<Row> newRows) {
+            this.oldRows = oldRows;
+            this.newRows = newRows;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldRows.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newRows.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return Objects.equals(oldRows.get(oldItemPosition).notification.getId(), newRows.get(newItemPosition).notification.getId());
+        }
+
+        /**
+         * Every field onBindViewHolder() below actually renders, plus
+         * isFirstInGroup/groupLabel (the date-header state - see Row's own
+         * doc for why that counts as content, not just position).
+         * Deliberately excludes getTimestamp() (the "X minutes ago" relative
+         * string) - that changes purely from time passing, so comparing it
+         * would mean this method almost never reports "unchanged" even when
+         * nothing real about the notification is different, defeating the
+         * entire point of diffing.
+         */
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            Row oldRow = oldRows.get(oldItemPosition);
+            Row newRow = newRows.get(newItemPosition);
+            Notification a = oldRow.notification;
+            Notification b = newRow.notification;
+            return a.isRead() == b.isRead()
+                    && Objects.equals(a.getTitle(), b.getTitle())
+                    && Objects.equals(a.getMessage(), b.getMessage())
+                    && Objects.equals(a.getType(), b.getType())
+                    && Objects.equals(a.getReferenceId(), b.getReferenceId())
+                    && Objects.equals(a.getPublishedAt(), b.getPublishedAt())
+                    && Objects.equals(a.getReceiptNumber(), b.getReceiptNumber())
+                    && Objects.equals(a.getReceiptType(), b.getReceiptType())
+                    && oldRow.isFirstInGroup == newRow.isFirstInGroup
+                    && Objects.equals(oldRow.groupLabel, newRow.groupLabel);
+        }
+    }
+
+    /** Notification#getId() is already the backend's own unique row id - a real stable key RecyclerView can track a row by across a refresh/load-more, instead of treating every position as a brand-new view every time this adapter updates. */
     @Override
     public long getItemId(int position) {
-        String id = notifications.get(position).getId();
+        String id = rows.get(position).notification.getId();
         try {
             return Long.parseLong(id);
         } catch (NumberFormatException | NullPointerException e) {
@@ -56,20 +172,17 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Notification notification = notifications.get(position);
+        Row row = rows.get(position);
+        Notification notification = row.notification;
         Context ctx = holder.itemView.getContext();
 
-        // Date-group header ("Today"/"Yesterday"/"Earlier") - shown only above the first
-        // row of each new group; list is already newest-first from the backend, so a
-        // simple compare-to-previous-row is enough, no separate sort/grouping pass needed.
+        // Date-group header ("Today"/"Yesterday"/"Earlier") - precomputed in
+        // buildRows()/Row, see that class's own doc for why this can't be
+        // recomputed here by comparing to the adjacent item anymore.
         if (holder.tvDateGroup != null) {
-            long now = System.currentTimeMillis();
-            String group = NotificationDateGrouper.groupLabel(ctx, notification.getCreatedAtMillis(), now);
-            boolean isFirstInGroup = position == 0
-                    || !group.equals(NotificationDateGrouper.groupLabel(ctx, notifications.get(position - 1).getCreatedAtMillis(), now));
-            if (isFirstInGroup) {
+            if (row.isFirstInGroup) {
                 holder.tvDateGroup.setVisibility(View.VISIBLE);
-                holder.tvDateGroup.setText(group);
+                holder.tvDateGroup.setText(row.groupLabel);
             } else {
                 holder.tvDateGroup.setVisibility(View.GONE);
             }
@@ -132,7 +245,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 iconColor = R.color.velocity_red_primary;
                 break;
         }
-        
+
         holder.ivIcon.setImageResource(iconRes);
         holder.iconContainer.setCardBackgroundColor(holder.itemView.getContext().getColor(bgColor));
         holder.ivIcon.setColorFilter(holder.itemView.getContext().getColor(iconColor));
@@ -208,7 +321,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     @Override
     public int getItemCount() {
-        return notifications.size();
+        return rows.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

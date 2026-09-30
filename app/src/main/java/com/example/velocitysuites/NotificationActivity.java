@@ -80,6 +80,8 @@ public class NotificationActivity extends BaseNavigationActivity {
     private boolean pendingScrollToSelected;
     /** Guards RecyclerView's scroll-near-bottom trigger against firing a second loadMoreNotifications() while one is already in flight. */
     private boolean loadingMoreNotifications = false;
+    /** True until this Activity instance's first onResume() has run - onCreate() already performs the initial full load, so that very first onResume (which always immediately follows onCreate in the normal lifecycle) must not poll again; every SUBSEQUENT onResume (returning from another screen) does. */
+    private boolean isFirstResume = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,6 +193,20 @@ public class NotificationActivity extends BaseNavigationActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Skip on the very first onResume (the one that always immediately follows
+        // onCreate in the normal lifecycle) - onCreate()'s own loadNotifications(true)
+        // already just did the real initial load; polling again here would be a
+        // redundant second network call before the guest has even seen the screen.
+        // Every later onResume (e.g. returning from Transaction History after "View
+        // Transaction Details") checks for changes instead - never a full reload, so
+        // this can never re-download the whole loaded window or disturb the guest's
+        // filter/scroll position, which the Activity being merely paused (not
+        // destroyed) already preserves on its own regardless.
+        if (isFirstResume) {
+            isFirstResume = false;
+        } else {
+            pollForNewNotifications();
+        }
         autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
     }
 
@@ -253,7 +269,7 @@ public class NotificationActivity extends BaseNavigationActivity {
                 }
             }
         });
-        adapter = new NotificationAdapter(notificationList, new NotificationAdapter.OnNotificationClickListener() {
+        adapter = new NotificationAdapter(this, notificationList, new NotificationAdapter.OnNotificationClickListener() {
             @Override
             public void onNotificationClick(Notification notification) {
                 showNotificationDetails(notification);
@@ -382,6 +398,12 @@ public class NotificationActivity extends BaseNavigationActivity {
      * for; the next tick 30s later (or any real action) tries again.
      */
     private void pollForNewNotifications() {
+        // Captured BEFORE the fetch, not after - "was the guest at the top" has to
+        // reflect where they were reading, not wherever adapter.submitList() below
+        // might (correctly, precisely) leave the scroll position.
+        boolean wasAtTop = isRecyclerViewAtTop();
+        String previousTopId = allNotifications.isEmpty() ? null : allNotifications.get(0).getId();
+
         repository.pollNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
@@ -389,6 +411,21 @@ public class NotificationActivity extends BaseNavigationActivity {
                 updateNotificationBadge();
                 updateFilterLabelsWithCounts();
                 applyFilters();
+
+                // A genuinely NEW notification always lands at index 0 (see
+                // RoomRepository#mergeNotifications()) - if the top id changed, at
+                // least one arrived. Only scroll if the guest was already at the top:
+                // they're actively reading the newest items, so surfacing the new one
+                // is helpful. If they'd scrolled down into older history, leave them
+                // exactly where they are - submitList()'s precise insert-at-front
+                // (not a full rebuild) already means their scroll position isn't
+                // disturbed either way; this only decides whether to additionally
+                // pull them back to the top.
+                boolean newItemArrived = !allNotifications.isEmpty()
+                        && !java.util.Objects.equals(allNotifications.get(0).getId(), previousTopId);
+                if (wasAtTop && newItemArrived) {
+                    rvNotifications.scrollToPosition(0);
+                }
             }
 
             @Override
@@ -396,6 +433,13 @@ public class NotificationActivity extends BaseNavigationActivity {
                 // Silent by design - see this method's own doc.
             }
         });
+    }
+
+    /** True when the first item in the list is fully visible at (or above) the top of the viewport - "the guest is reading the newest items" for pollForNewNotifications()'s scroll decision. */
+    private boolean isRecyclerViewAtTop() {
+        androidx.recyclerview.widget.RecyclerView.LayoutManager lm = rvNotifications.getLayoutManager();
+        if (!(lm instanceof LinearLayoutManager)) return true;
+        return ((LinearLayoutManager) lm).findFirstVisibleItemPosition() <= 0;
     }
 
     private void setupSearchAndFilters() {
@@ -551,7 +595,11 @@ public class NotificationActivity extends BaseNavigationActivity {
             layoutEmptyState.setVisibility(View.GONE);
             applySelectedNotificationHighlight();
         }
-        adapter.notifyDataSetChanged();
+        // submitList() diffs against what's currently shown and dispatches only the
+        // precise resulting changes - see NotificationAdapter's own doc. A filter
+        // switch that leaves the same items visible in the same order (e.g. toggling
+        // back to a filter already computed) dispatches zero operations.
+        adapter.submitList(notificationList);
     }
 
     /**
