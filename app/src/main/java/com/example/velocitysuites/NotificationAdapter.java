@@ -415,6 +415,34 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             btnViewTransactionDetails = itemView.findViewById(R.id.btnViewTransactionDetails);
             card = itemView.findViewById(R.id.cardNotification);
             iconContainer = (MaterialCardView) itemView.findViewById(R.id.iconContainer);
+            expandTouchTarget(btnToggleReadState);
+        }
+
+        /**
+         * Grows btnToggleReadState's touch target to the 48dp accessibility minimum
+         * via TouchDelegate rather than its own layout bounds - the button stays a
+         * visual 40dp circle (matching iconContainer) and nothing else in the card
+         * (barrierNotificationTitleRow, tvNotificationTitle's available width) shifts,
+         * since TouchDelegate only changes hit-testing, never layout. The button's
+         * position within its parent ConstraintLayout is fixed by constraints that
+         * don't depend on notification content (top-aligned to iconContainer, end-
+         * aligned to parent), so this rect is read once, after the item's first
+         * layout pass, and reused for the ViewHolder's whole recycled lifetime -
+         * never recomputed per bind.
+         */
+        private static void expandTouchTarget(View button) {
+            View parent = (View) button.getParent();
+            if (parent == null) return;
+            parent.post(() -> {
+                int extraPx = (int) (4 * button.getResources().getDisplayMetrics().density);
+                android.graphics.Rect rect = new android.graphics.Rect();
+                button.getHitRect(rect);
+                rect.top -= extraPx;
+                rect.bottom += extraPx;
+                rect.left -= extraPx;
+                rect.right += extraPx;
+                parent.setTouchDelegate(new android.view.TouchDelegate(rect, button));
+            });
         }
     }
 }
