@@ -75,11 +75,16 @@ public class NotificationPollWorker extends Worker {
         boolean[] notificationsSucceeded = {false};
         boolean[] bookingsSucceeded = {false};
 
-        repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+        // Lightweight check-for-changes poll (RoomRepository#pollNotifications()/
+        // pollBookings()), not a full refresh - this job runs every 15 minutes
+        // purely as background maintenance, not a guest-requested reload, so it
+        // should never pay for re-fetching however large a guest's loaded-more
+        // window has grown to (see pollNotifications()'s own doc).
+        repository.pollNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
                 // NotificationHelper.maybeAlertNewNotifications() already runs inside
-                // refreshNotifications() itself (see RoomRepository) - nothing further
+                // pollNotifications() itself (see RoomRepository) - nothing further
                 // to do here beyond releasing the latch.
                 notificationsSucceeded[0] = true;
                 latch.countDown();
@@ -91,7 +96,7 @@ public class NotificationPollWorker extends Worker {
             }
         });
 
-        repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
+        repository.pollBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
                 bookingsSucceeded[0] = true;

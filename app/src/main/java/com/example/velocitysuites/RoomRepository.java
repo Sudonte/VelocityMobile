@@ -487,7 +487,7 @@ public final class RoomRepository {
      * never loaded) while the other side still updates normally.
      */
     public void refreshBookingsSplit(SplitRepositoryCallback callback) {
-        refreshBookingsSplitInternal(callback, true, bookingsPerPage);
+        refreshBookingsSplitInternal(callback, true, bookingsPerPage, false);
     }
 
     /**
@@ -520,7 +520,7 @@ public final class RoomRepository {
      */
     public void loadMoreBookings(SplitRepositoryCallback callback) {
         bookingsPerPage += DEFAULT_BOOKINGS_PER_PAGE;
-        refreshBookingsSplitInternal(callback, true, bookingsPerPage);
+        refreshBookingsSplitInternal(callback, true, bookingsPerPage, false);
     }
 
     private int lastReservationsTotal = 0;
@@ -531,7 +531,72 @@ public final class RoomRepository {
         return lastReservationsTotal > bookingsPerPage || lastDirectBookingsTotal > bookingsPerPage;
     }
 
-    private void refreshBookingsSplitInternal(SplitRepositoryCallback callback, boolean allowRetry, int perPage) {
+    /**
+     * Lightweight "check for changes" poll for Transaction History - fetches
+     * only DEFAULT_BOOKINGS_PER_PAGE of each family (never the possibly-much-
+     * larger bookingsPerPage a guest may have scrolled to) and MERGES the
+     * result into `bookings` by id (mergeMode=true below) instead of
+     * replacing each family's whole cache slice. Used by every "automatic"
+     * trigger (the 30s foreground timer, the 15-min background worker) -
+     * none of those represent the guest asking for a fresh reload, so none
+     * should pay for, or risk disturbing the guest's scroll position with, a
+     * full re-fetch of however large bookingsPerPage has grown to.
+     * refreshBookingsSplit()/loadMoreBookings() remain the "fresh load"
+     * path (initial screen load, pull-to-refresh, onResume, and the load-
+     * more growth itself) - see mergeBookingFamily()'s own doc for the
+     * one real limitation this trades away (a status change on a booking
+     * OLDER than this page isn't caught by the poll, only by a full refresh).
+     */
+    public void pollBookingsSplit(SplitRepositoryCallback callback) {
+        refreshBookingsSplitInternal(callback, true, DEFAULT_BOOKINGS_PER_PAGE, true);
+    }
+
+    public void pollBookings(RepositoryCallback<List<Booking>> callback) {
+        pollBookingsSplit((merged, reservationsError, directError) -> {
+            if (callback == null) return;
+            if (reservationsError == null && directError == null) {
+                callback.onSuccess(merged);
+            } else {
+                callback.onError(reservationsError != null ? reservationsError : directError);
+            }
+        });
+    }
+
+    /**
+     * Merges a freshly-polled family page into `bookings` by id: an id
+     * already present gets its entry replaced AT ITS EXISTING INDEX (never
+     * moved, so a RecyclerView bound to this list never sees an unrelated
+     * row jump position or the list get rebuilt from scratch); an id not
+     * yet present is appended (display order is re-sorted by date downstream
+     * anyway - see TransactionHistoryActivity#buildPaymentTransactions() -
+     * so append position doesn't matter here the way it would for
+     * notifications, which have no such re-sort). A booking whose status
+     * changed on the server but that isn't in this page (older than
+     * DEFAULT_BOOKINGS_PER_PAGE) keeps its stale in-memory copy until the
+     * next full refresh - the same accepted trade-off mergeNotifications()
+     * documents, for the same reason (a real-time push would be needed to
+     * close this gap completely; polling can only check what it actually
+     * fetched).
+     */
+    private void mergeBookingFamily(List<Booking> fetched, boolean directFamily) {
+        for (Booking fresh : fetched) {
+            int existingIndex = -1;
+            for (int i = 0; i < bookings.size(); i++) {
+                Booking existing = bookings.get(i);
+                if (existing.isDirectBooking() == directFamily && existing.getId().equals(fresh.getId())) {
+                    existingIndex = i;
+                    break;
+                }
+            }
+            if (existingIndex >= 0) {
+                bookings.set(existingIndex, fresh);
+            } else {
+                bookings.add(fresh);
+            }
+        }
+    }
+
+    private void refreshBookingsSplitInternal(SplitRepositoryCallback callback, boolean allowRetry, int perPage, boolean mergeMode) {
         // Correlates this one refresh (both sub-calls) across the Android log and, via the
         // X-Request-Id header below, the backend's own log - see DiagnosticLog's own doc.
         // A fresh id every call (including the internal retry) is deliberate: a retry is a
@@ -579,18 +644,23 @@ public final class RoomRepository {
                 // is harmless (a second, quick, already-warm request), not incorrect.
                 com.example.velocitysuites.network.DiagnosticLog.w("refreshBookings.partialOrFullFailure.retrying",
                         "requestId=" + requestId + " reservationsFailed=" + reservationsFailed[0] + " directFailed=" + directFailed[0]);
-                refreshBookingsSplitInternal(callback, false, perPage);
+                refreshBookingsSplitInternal(callback, false, perPage, mergeMode);
                 return;
             }
             // Partial merge: each family's own slice of `bookings` (identified by
             // isDirectBooking() - true only for getDirectBookings()-sourced items, false for
             // every getReservations()-sourced item regardless of conversion status) is only
-            // ever replaced when THAT family's own fetch just succeeded. A failure on one
+            // ever touched when THAT family's own fetch just succeeded. A failure on one
             // side leaves its slice - and therefore that tab's data - exactly as it was;
-            // it never blocks or hides the other side's fresh data.
+            // it never blocks or hides the other side's fresh data. mergeMode (pollBookingsSplit())
+            // merges by id instead of replacing the whole slice - see mergeBookingFamily()'s own doc.
             if (!reservationsFailed[0]) {
-                bookings.removeIf(b -> !b.isDirectBooking());
-                bookings.addAll(reservationDerived);
+                if (mergeMode) {
+                    mergeBookingFamily(reservationDerived, false);
+                } else {
+                    bookings.removeIf(b -> !b.isDirectBooking());
+                    bookings.addAll(reservationDerived);
+                }
                 completedHistoricalReservations = historicalReservations;
                 // Fresh Booking objects from the server are room-cost-only again until
                 // corrected - see correctPendingReservationTotal(). Only this family's own
@@ -600,8 +670,12 @@ public final class RoomRepository {
                 for (Booking b : reservationDerived) correctedTotalIds.remove(b.getId());
             }
             if (!directFailed[0]) {
-                bookings.removeIf(Booking::isDirectBooking);
-                bookings.addAll(direct);
+                if (mergeMode) {
+                    mergeBookingFamily(direct, true);
+                } else {
+                    bookings.removeIf(Booking::isDirectBooking);
+                    bookings.addAll(direct);
+                }
             }
             boolean anySucceeded = !reservationsFailed[0] || !directFailed[0];
             if (anySucceeded) {
@@ -803,6 +877,87 @@ public final class RoomRepository {
         }
         notificationsPerPage += DEFAULT_NOTIFICATIONS_PER_PAGE;
         refreshNotifications(callback);
+    }
+
+    /**
+     * Lightweight "check for changes" poll - fetches only
+     * DEFAULT_NOTIFICATIONS_PER_PAGE (never the possibly-much-larger
+     * notificationsPerPage a guest may have scrolled to) and MERGES the
+     * result into `notifications` (see mergeNotifications()) instead of
+     * replacing the whole list. Used by every "automatic" trigger (the 30s
+     * foreground timer, the 15-min background worker, and every screen's
+     * onResume badge refresh via BaseNavigationActivity) - none of those
+     * represent the guest asking for a fresh reload, so none should pay
+     * for, or risk disturbing the guest's scroll position with, a full
+     * re-fetch of however large notificationsPerPage has grown to.
+     * refreshNotifications() remains the "fresh load" path (initial screen
+     * load, pull-to-refresh, and loadMoreNotifications()'s own growing
+     * fetch) - it still fetches and replaces the FULL current window, since
+     * those really are "start over" moments.
+     */
+    public void pollNotifications(RepositoryCallback<List<Notification>> callback) {
+        final int requestGeneration = accountGeneration;
+        api.getNotifications(DEFAULT_NOTIFICATIONS_PER_PAGE).enqueue(new Callback<PaginatedResponse<NotificationDto>>() {
+            @Override
+            public void onResponse(Call<PaginatedResponse<NotificationDto>> call, Response<PaginatedResponse<NotificationDto>> response) {
+                if (requestGeneration != accountGeneration) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Notification> fetched = new ArrayList<>();
+                    for (NotificationDto dto : response.body().data) {
+                        fetched.add(ApiMapper.toNotification(dto));
+                    }
+                    mergeNotifications(fetched);
+                    lastNotificationsTotal = response.body().total;
+                    NotificationHelper.maybeAlertNewNotifications(appContext, fetched);
+                    if (callback != null) callback.onSuccess(getNotifications());
+                } else {
+                    if (callback != null) callback.onError("Failed to check for new notifications.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PaginatedResponse<NotificationDto>> call, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
+    }
+
+    /**
+     * Merges a freshly-polled page into the existing `notifications` list:
+     * an id already present has its entry replaced AT ITS EXISTING INDEX
+     * (never moved - so a NotificationAdapter bound to this list never sees
+     * an unrelated row jump position, and no full-list rebuild is needed
+     * just to reflect one row's is_read flag changing on another device);
+     * an id not yet present is genuinely new and inserted at the front,
+     * matching the backend's own newest-first order (NotificationController::index()'s
+     * latest() query sorts by created_at, so a brand-new row always belongs
+     * before every already-loaded one).
+     * <p>
+     * Real, accepted limitation: a status change to a notification OLDER
+     * than this page (e.g. read on another device long after creation)
+     * isn't caught by this poll, only by a full refreshNotifications() call -
+     * this method only ever sees what it actually fetched. In practice this
+     * is an unlikely combination (DEFAULT_NOTIFICATIONS_PER_PAGE is a lot of
+     * history for a hotel guest), and this device's OWN read/unread taps are
+     * already reflected instantly via their own optimistic update
+     * (NotificationActivity#setReadStateOptimistic()) - they never wait on
+     * this poll at all.
+     */
+    private void mergeNotifications(List<Notification> fetched) {
+        for (Notification fresh : fetched) {
+            int existingIndex = -1;
+            for (int i = 0; i < notifications.size(); i++) {
+                if (notifications.get(i).getId().equals(fresh.getId())) {
+                    existingIndex = i;
+                    break;
+                }
+            }
+            if (existingIndex >= 0) {
+                notifications.set(existingIndex, fresh);
+            } else {
+                notifications.add(0, fresh);
+            }
+        }
     }
 
     // ---- Mutations ----

@@ -191,13 +191,19 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
     }
 
     /**
-     * Pulls the latest notifications and repaints the header's unread badge.
-     * Shown on every guest screen that includes guest_header.xml; a no-op
-     * on screens without the badge view.
+     * Checks for new notifications and repaints the header's unread badge.
+     * Shown on every guest screen that includes guest_header.xml, fired from
+     * every one of their onResume() calls - this is the single highest-
+     * frequency notification-fetch trigger in the app (every screen
+     * navigation, not just a 30s timer), so it deliberately uses the
+     * lightweight pollNotifications() rather than a full refreshNotifications()
+     * - see that method's own doc for why a full re-fetch here would risk
+     * silently truncating a guest's loaded-more Notification list every
+     * single time they switched screens.
      */
     protected void refreshNotificationBadge() {
         updateNotificationBadge();
-        RoomRepository.getInstance(this).refreshNotifications(
+        RoomRepository.getInstance(this).pollNotifications(
                 new RoomRepository.RepositoryCallback<java.util.List<Notification>>() {
                     @Override
                     public void onSuccess(java.util.List<Notification> result) {

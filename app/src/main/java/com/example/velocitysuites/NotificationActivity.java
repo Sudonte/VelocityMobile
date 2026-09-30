@@ -48,9 +48,13 @@ public class NotificationActivity extends BaseNavigationActivity {
     private final Runnable autoRefreshRunnable = new Runnable() {
         @Override
         public void run() {
-            // Silent - no visible spinner - so the auto-poll doesn't flash the
-            // pull-to-refresh indicator every 30s while the guest is reading.
-            loadNotifications(false);
+            // Lightweight check-for-changes (see pollForNewNotifications()) rather
+            // than a full loadNotifications() reload - this timer fires every 30s
+            // for as long as the guest stays on this screen, so a full re-fetch of
+            // however large notificationsPerPage has grown to (via scrolling/load-
+            // more) would mean repeatedly re-downloading the guest's entire loaded
+            // history just to check for one new row.
+            pollForNewNotifications();
             autoRefreshHandler.postDelayed(this, AUTO_REFRESH_MS);
         }
     };
@@ -363,6 +367,33 @@ public class NotificationActivity extends BaseNavigationActivity {
                 } else {
                     Toast.makeText(NotificationActivity.this, getString(R.string.error_load_notifications_format, message), Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+    }
+
+    /**
+     * The 30s timer's own check - repository.pollNotifications() only fetches
+     * and merges the first page rather than replacing the whole (possibly
+     * grown, via loadMoreNotifications()) list loadNotifications() would
+     * re-fetch in full. Fully silent on failure (no toast, unlike
+     * loadNotifications()'s) - this is a background timer the guest never
+     * directly triggered, so a transient miss should be invisible rather
+     * than interrupting them with a message about a check they didn't ask
+     * for; the next tick 30s later (or any real action) tries again.
+     */
+    private void pollForNewNotifications() {
+        repository.pollNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+            @Override
+            public void onSuccess(List<Notification> result) {
+                allNotifications = result != null ? result : allNotifications;
+                updateNotificationBadge();
+                updateFilterLabelsWithCounts();
+                applyFilters();
+            }
+
+            @Override
+            public void onError(String message) {
+                // Silent by design - see this method's own doc.
             }
         });
     }

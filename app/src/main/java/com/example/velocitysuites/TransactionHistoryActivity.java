@@ -77,7 +77,13 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private final Runnable autoRefreshRunnable = new Runnable() {
         @Override
         public void run() {
-            loadTransactions(false);
+            // Lightweight check-for-changes (see pollForTransactionChanges()) rather
+            // than a full loadTransactions() reload - this timer fires every 30s for
+            // as long as the guest stays on this screen, so a full re-fetch of
+            // however large bookingsPerPage has grown to (via scrolling/load-more)
+            // would mean repeatedly re-downloading the guest's entire loaded history
+            // just to check for a status change.
+            pollForTransactionChanges();
             autoRefreshHandler.postDelayed(this, AUTO_REFRESH_MS);
         }
     };
@@ -449,6 +455,31 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
                 } else {
                     Toast.makeText(TransactionHistoryActivity.this, getString(R.string.error_load_transactions_format, message), Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+    }
+
+    /**
+     * The 30s timer's own check - repository.pollBookings() only fetches and
+     * merges DEFAULT_BOOKINGS_PER_PAGE per family rather than replacing the
+     * whole (possibly grown, via loadMoreBookings()) list loadTransactions()
+     * would re-fetch in full. Fully silent on failure (no toast, unlike
+     * loadTransactions()'s) - this is a background timer the guest never
+     * directly triggered, so a transient miss should be invisible rather
+     * than interrupting them with a message about a check they didn't ask
+     * for; the next tick 30s later (or any real action) tries again.
+     */
+    private void pollForTransactionChanges() {
+        repository.pollBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
+            @Override
+            public void onSuccess(List<Booking> result) {
+                allBookings = result;
+                applyFilters();
+            }
+
+            @Override
+            public void onError(String message) {
+                // Silent by design - see this method's own doc.
             }
         });
     }
