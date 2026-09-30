@@ -239,6 +239,7 @@
     <string name="ptx_type_booking_payment">Booking Payment</string>
     <string name="ptx_type_reservation_payment">Reservation Payment</string>
     <string name="ptx_subtitle_format">%1$s  •  %2$s</string>
+    <string name="ptx_ref_and_stay_format">%1$s  •  %2$s – %3$s</string>
     <string name="ptx_payment_progress_format">Paid %1$s  •  Remaining %2$s</string>
     <plurals name="ptx_receipts_available">
         <item quantity="one">%1$d Receipt Available</item>
@@ -622,6 +623,8 @@
     <string name="no_transactions_found">Transaction History is Empty</string>
     <string name="transaction_search_empty_desc">No transactions match your search. Try a different keyword or clear your search.</string>
     <string name="transaction_payment_empty_desc">No payment records are available. Completed payments will appear here.</string>
+    <string name="view_booking_details_button">View Booking Details</string>
+    <string name="view_reservation_details_button">View Reservation Details</string>
     <string name="deep_link_transaction_not_found_title">Transaction Not Found</string>
     <string name="deep_link_transaction_not_found">We couldn\'t find that transaction. It may have been removed or is no longer available.</string>
     <string name="view_details_label">View Details</string>

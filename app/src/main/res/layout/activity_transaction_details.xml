@@ -129,6 +129,28 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Opens the full Booking/Reservation Details screen for this transaction's
+                 parent booking - restores the access this screen's own notification
+                 deep-link used to give directly (see NotificationPrimaryActionResolver),
+                 now that "View Transaction Details" always lands here first instead. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewBookingDetails"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="sans-serif-black"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_arrow_forward"
+                app:iconGravity="textEnd"
+                app:strokeColor="@color/velocity_red_primary"
+                app:rippleColor="@color/velocity_red_subtle"
+                android:textColor="@color/velocity_red_primary"
+                app:iconTint="@color/velocity_red_primary"
+                tools:text="View Booking Details" />
+
             <!-- Payment Information card - built dynamically in Java. -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Velocity.Card.Glass"

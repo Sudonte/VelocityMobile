@@ -21,6 +21,7 @@ public class NotificationActivity extends BaseNavigationActivity {
 
     /** Optional: when set, only this notification's detail dialog is auto-opened on load. */
     public static final String EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID";
+    private static final String KEY_CURRENT_FILTER = "KEY_CURRENT_FILTER";
     private static final String FILTER_UNREAD = "Unread";
 
     /** Internal filter keys, position-matched with NOTIF_FILTER_LABEL_RES below - the dropdown's selection maps back to the correct key regardless of locale. Required order: All, Unread, Booking, Reservation, Payment, Check-in, Promotions, System. */
@@ -108,6 +109,21 @@ public class NotificationActivity extends BaseNavigationActivity {
         setupRecyclerView();
         setupSwipeRefresh();
         setupSearchAndFilters();
+        // Restores the previously selected filter chip if this Activity is being
+        // recreated after process death (e.g. the OS reclaimed it while
+        // Transaction History was in the foreground after "View Transaction
+        // Details") - currentFilter is a plain field, not part of any View's own
+        // state, so it needs its own explicit save/restore (see
+        // onSaveInstanceState() below). The ordinary "just paused, not destroyed"
+        // back-navigation case already preserves both the filter and the
+        // RecyclerView's scroll position for free, with no code needed here.
+        if (savedInstanceState != null) {
+            String restoredFilter = savedInstanceState.getString(KEY_CURRENT_FILTER);
+            if (restoredFilter != null) {
+                currentFilter = restoredFilter;
+                checkChipForFilter(restoredFilter);
+            }
+        }
 
         View btnRefreshEmpty = findViewById(R.id.btnEmptyAction);
         if (btnRefreshEmpty != null) {
@@ -172,6 +188,24 @@ public class NotificationActivity extends BaseNavigationActivity {
     protected void onResume() {
         super.onResume();
         autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
+    }
+
+    /** Pairs with onCreate()'s savedInstanceState restore above - see that block's own doc. */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_CURRENT_FILTER, currentFilter);
+    }
+
+    /** Checks the chip matching a restored filter key so the UI reflects it - setChecked(true) fires the OnCheckedStateChangeListener too, which just re-applies the same filter, harmless. */
+    private void checkChipForFilter(String filterKey) {
+        if (filterChips == null) return;
+        for (int i = 0; i < NOTIF_FILTER_KEYS.length; i++) {
+            if (NOTIF_FILTER_KEYS[i].equals(filterKey) && filterChips[i] != null) {
+                filterChips[i].setChecked(true);
+                break;
+            }
+        }
     }
 
     @Override

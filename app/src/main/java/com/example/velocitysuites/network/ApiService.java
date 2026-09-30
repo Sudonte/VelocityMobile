@@ -335,13 +335,9 @@ public interface ApiService {
     @POST("guest/account/restore")
     Call<ApiMessage> restoreAccount();
 
-    /** per_page defaults to 20 server-side (Api\NotificationController::index()) - see getReservations(int) above for why a high explicit cap is requested here too. */
+    /** per_page defaults to 20 server-side (Api\NotificationController::index()) - see getReservations(int) above for why a high explicit cap is requested here too. RoomRepository#loadMoreNotifications() grows perPage and re-calls this rather than paging via a page= param - see that method's own doc. */
     @GET("notifications")
     Call<PaginatedResponse<NotificationDto>> getNotifications(@Query("per_page") int perPage);
-
-    /** Explicit page overload for infinite-scroll beyond the first per_page window - see RoomRepository#loadMoreNotifications(). */
-    @GET("notifications")
-    Call<PaginatedResponse<NotificationDto>> getNotifications(@Query("per_page") int perPage, @Query("page") int page);
 
     @PUT("notifications/{id}/read")
     Call<NotificationDto> markNotificationRead(@Path("id") String id);

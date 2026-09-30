@@ -94,6 +94,23 @@
                 android:textSize="12sp"
                 tools:text="Booking Payment  •  Executive Room" />
 
+            <!-- Reference number + check-in/check-out dates - task requirement:
+                 a Transaction History card must show both, not just the payment
+                 date below. Always the Booking/Reservation's own reference
+                 (Booking #.../Reservation #...), never a GCash-specific reference
+                 that's absent for a Cash payment. -->
+            <TextView
+                android:id="@+id/tvPtxRefAndStay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="11sp"
+                tools:text="Booking #250  •  Sep 25 – Sep 27, 2026" />
+
             <TextView
                 android:id="@+id/tvPtxDate"
                 android:layout_width="match_parent"

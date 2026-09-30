@@ -95,6 +95,17 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
                 : ctx.getString(R.string.ptx_type_reservation_payment);
         holder.tvSubtitle.setText(ctx.getString(R.string.ptx_subtitle_format, typeLabel, b.getRoomName()));
 
+        // Task requirement: the card itself (not just the expanded detail
+        // screen) must show a reference number and check-in/check-out dates.
+        // Always the Booking/Reservation's own reference (Booking #.../
+        // Reservation #...), never the payment-specific GCash reference -
+        // that's absent for a Cash payment, and this line must never be
+        // blank for a Cash transaction just because of that.
+        if (holder.tvRefAndStay != null) {
+            String ref = ctx.getString(b.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, b.getId());
+            holder.tvRefAndStay.setText(ctx.getString(R.string.ptx_ref_and_stay_format, ref, b.getCheckInDate(), b.getCheckOutDate()));
+        }
+
         String date = tx.getDate();
         // A synthetic summary row for a Cash Pay-Later Reservation nobody has
         // paid against yet (see PaymentTransaction#getDate()'s own fallback to
@@ -177,7 +188,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvSubtitle, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
+        TextView tvTitle, tvSubtitle, tvRefAndStay, tvDate, tvAmount, tvPaymentProgress, tvReceiptsAvailable, tvStatusBadge;
         MaterialCardView iconContainer;
         ImageView ivIcon;
         View layoutReceiptsAvailable;
@@ -189,6 +200,7 @@ public class PaymentTransactionAdapter extends RecyclerView.Adapter<PaymentTrans
             tvTitle = itemView.findViewById(R.id.tvPtxTitle);
             tvStatusBadge = itemView.findViewById(R.id.tvPtxStatusBadge);
             tvSubtitle = itemView.findViewById(R.id.tvPtxSubtitle);
+            tvRefAndStay = itemView.findViewById(R.id.tvPtxRefAndStay);
             tvDate = itemView.findViewById(R.id.tvPtxDate);
             tvAmount = itemView.findViewById(R.id.tvPtxAmount);
             tvPaymentProgress = itemView.findViewById(R.id.tvPtxPaymentProgress);

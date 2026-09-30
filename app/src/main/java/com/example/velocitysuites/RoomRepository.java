@@ -110,9 +110,23 @@ public final class RoomRepository {
     /** View-only "frozen" reservations that have converted into a Booking - see ApiMapper#toHistoricalReservation(). Kept out of `bookings` entirely so Transaction History/Dashboard/Notifications/Calendar never double-count them; only BookingAndReservationActivity's Reservation-tab Completed list reads this. */
     private List<Booking> completedHistoricalReservations = new ArrayList<>();
     private List<Notification> notifications = new ArrayList<>();
-    /** Pagination state for loadMoreNotifications() - reset by every refreshNotifications() call (a fresh refresh always restarts from page 1, discarding any prior load-more progress along with the list itself). */
-    private int notificationsCurrentPage = 1;
-    private int notificationsLastPage = 1;
+    /**
+     * Growing per_page window for refreshNotifications() - same "grow and
+     * refetch as one shot" strategy as bookingsPerPage (see
+     * refreshBookingsSplit()'s own doc for why). Deliberately NOT reset by
+     * refreshNotifications() itself - every screen extending
+     * BaseNavigationActivity calls refreshNotifications() on its own
+     * onResume() (refreshNotificationBadge()), and the 30s foreground poll
+     * and 15-min background poll both call it too; if any of those reset
+     * this back to the default, a guest who scrolled past page 1 would see
+     * their loaded-more notifications silently disappear the next time
+     * ANY of those fired - not just on this screen, on literally any guest
+     * screen. Only reset at the actual account boundary - see
+     * clearAccountSpecificCache().
+     */
+    private int notificationsPerPage = DEFAULT_NOTIFICATIONS_PER_PAGE;
+    private static final int DEFAULT_NOTIFICATIONS_PER_PAGE = 200;
+    private int lastNotificationsTotal = 0;
     private final List<BookingsChangedListener> bookingsChangedListeners = new ArrayList<>();
     /** Booking ids already run through correctPendingReservationTotal() - reset whenever refreshBookings() replaces `bookings` with fresh (uncorrected) server objects. */
     private final java.util.Set<String> correctedTotalIds = new java.util.HashSet<>();
@@ -243,6 +257,17 @@ public final class RoomRepository {
         completedHistoricalReservations.clear();
         notifications.clear();
         correctedTotalIds.clear();
+        // The actual account boundary for both "grow and replace" pagination
+        // windows (bookingsPerPage/notificationsPerPage) - a new account
+        // logging in has no relationship to how far the PREVIOUS account had
+        // scrolled, so both windows go back to their defaults here rather
+        // than staying grown (or, worse, than being reset on every ordinary
+        // refresh - see each field's own doc for why that would be wrong).
+        bookingsPerPage = DEFAULT_BOOKINGS_PER_PAGE;
+        notificationsPerPage = DEFAULT_NOTIFICATIONS_PER_PAGE;
+        lastReservationsTotal = 0;
+        lastDirectBookingsTotal = 0;
+        lastNotificationsTotal = 0;
         // See accountGeneration's own doc - lets refreshBookings()/refreshNotifications()
         // detect and discard a still-in-flight previous account's response instead of
         // letting it silently repopulate these caches after this point.
@@ -462,11 +487,20 @@ public final class RoomRepository {
      * never loaded) while the other side still updates normally.
      */
     public void refreshBookingsSplit(SplitRepositoryCallback callback) {
-        bookingsPerPage = DEFAULT_BOOKINGS_PER_PAGE;
         refreshBookingsSplitInternal(callback, true, bookingsPerPage);
     }
 
-    /** Current per_page window for both refreshBookings() calls - grown by loadMoreBookings(), reset back to the default by every refreshBookingsSplit()/refreshBookings() call. */
+    /**
+     * Current per_page window for both refreshBookings() calls - grown by
+     * loadMoreBookings(). Deliberately NOT reset on every refreshBookingsSplit()/
+     * refreshBookings() call (the original design here) - TransactionHistoryActivity's
+     * own onResume() unconditionally calls loadTransactions(true) on every
+     * visit, and the 30s foreground poll does too; resetting this window on
+     * either would silently discard a guest's loaded-more progress the next
+     * time they left and returned to this screen, or every 30 seconds while
+     * they stayed on it. Only reset at the actual account boundary - see
+     * clearAccountSpecificCache().
+     */
     private int bookingsPerPage = DEFAULT_BOOKINGS_PER_PAGE;
     private static final int DEFAULT_BOOKINGS_PER_PAGE = 200;
 
@@ -704,10 +738,18 @@ public final class RoomRepository {
         });
     }
 
+    /**
+     * Re-fetches the current notificationsPerPage window in one shot and
+     * REPLACES `notifications` with it - this is both the "normal refresh"
+     * every screen/poller calls AND, via loadMoreNotifications() growing
+     * the window first, the "load more" mechanism. Deliberately does not
+     * reset notificationsPerPage itself - see that field's own doc for why
+     * (every BaseNavigationActivity's onResume calls this).
+     */
     public void refreshNotifications(RepositoryCallback<List<Notification>> callback) {
         // See accountGeneration's own doc - captured before the network call fires.
         final int requestGeneration = accountGeneration;
-        api.getNotifications(200).enqueue(new Callback<PaginatedResponse<NotificationDto>>() {
+        api.getNotifications(notificationsPerPage).enqueue(new Callback<PaginatedResponse<NotificationDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<NotificationDto>> call, Response<PaginatedResponse<NotificationDto>> response) {
                 if (requestGeneration != accountGeneration) {
@@ -721,8 +763,7 @@ public final class RoomRepository {
                         mapped.add(ApiMapper.toNotification(dto));
                     }
                     notifications = mapped;
-                    notificationsCurrentPage = response.body().current_page > 0 ? response.body().current_page : 1;
-                    notificationsLastPage = response.body().last_page > 0 ? response.body().last_page : 1;
+                    lastNotificationsTotal = response.body().total;
                     // Single hook point for the whole app: every screen that refreshes
                     // notifications (dashboard, the Notification Module, the background
                     // poll worker) posts real system alerts for genuinely new/unread rows
@@ -741,48 +782,27 @@ public final class RoomRepository {
         });
     }
 
-    /** True when the last refreshNotifications()/loadMoreNotifications() page wasn't actually the last one - see NotificationActivity's scroll-near-bottom trigger. */
+    /** True when the guest's real total exceeds the currently-loaded window - see NotificationActivity's scroll-near-bottom trigger. */
     public boolean hasMoreNotifications() {
-        return notificationsCurrentPage < notificationsLastPage;
+        return lastNotificationsTotal > notificationsPerPage;
     }
 
     /**
-     * Fetches the next page (same per_page=200 window refreshNotifications()
-     * already uses) and appends it to the already-loaded list, for a guest
-     * with more than one page of history - see NOTIFICATIONS_BACKEND_SPEC.md's
-     * own note that the API already supports paging, only the Android list
-     * never walked past page 1. A no-op (immediate onSuccess with the
-     * unchanged list) when hasMoreNotifications() is already false, so a
-     * careless extra call from the UI can't fetch past the real last page.
+     * Grows the per_page window and re-fetches it in one shot (same "grow
+     * and replace" strategy as loadMoreBookings() - see that method's own
+     * doc for why this is preferred over threading a second, independent
+     * pagination cursor through refreshNotifications()). A no-op (immediate
+     * onSuccess with the unchanged list) when hasMoreNotifications() is
+     * already false, so a careless extra call from the UI can't fetch past
+     * the real total.
      */
     public void loadMoreNotifications(RepositoryCallback<List<Notification>> callback) {
         if (!hasMoreNotifications()) {
             if (callback != null) callback.onSuccess(getNotifications());
             return;
         }
-        final int requestGeneration = accountGeneration;
-        final int nextPage = notificationsCurrentPage + 1;
-        api.getNotifications(200, nextPage).enqueue(new Callback<PaginatedResponse<NotificationDto>>() {
-            @Override
-            public void onResponse(Call<PaginatedResponse<NotificationDto>> call, Response<PaginatedResponse<NotificationDto>> response) {
-                if (requestGeneration != accountGeneration) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    for (NotificationDto dto : response.body().data) {
-                        notifications.add(ApiMapper.toNotification(dto));
-                    }
-                    notificationsCurrentPage = response.body().current_page > 0 ? response.body().current_page : nextPage;
-                    notificationsLastPage = response.body().last_page > 0 ? response.body().last_page : notificationsLastPage;
-                    if (callback != null) callback.onSuccess(getNotifications());
-                } else {
-                    if (callback != null) callback.onError("Failed to load more notifications.");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<PaginatedResponse<NotificationDto>> call, Throwable t) {
-                if (callback != null) callback.onError(networkErrorMessage(t));
-            }
-        });
+        notificationsPerPage += DEFAULT_NOTIFICATIONS_PER_PAGE;
+        refreshNotifications(callback);
     }
 
     // ---- Mutations ----

@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 import java.text.NumberFormat;
@@ -52,6 +53,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         bindHeader();
+        bindViewBookingDetailsButton();
 
         LinearLayout sectionInfo = findViewById(R.id.sectionTxDetailInfo);
         buildInfoSection(sectionInfo);
@@ -85,6 +87,21 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         }
         legacyCard.setVisibility(View.VISIBLE);
         ReceiptCardHelper.bindLegacyReceiptActionCard(this, legacyCard, booking);
+    }
+
+    /**
+     * "View Transaction Details" from a notification always lands here now
+     * (see NotificationPrimaryActionResolver) rather than sometimes going
+     * straight to BookingDetailsActivity - this button restores that access
+     * from within Transaction History's own detail screen instead, so a
+     * guest never loses the ability to see the richer Booking/Reservation
+     * Details view for a transaction they're already looking at.
+     */
+    private void bindViewBookingDetailsButton() {
+        MaterialButton btn = findViewById(R.id.btnViewBookingDetails);
+        if (btn == null) return;
+        btn.setText(booking.isHasBooking() ? R.string.view_booking_details_button : R.string.view_reservation_details_button);
+        btn.setOnClickListener(v -> startActivity(BookingDetailsActivity.newIntent(this, booking)));
     }
 
     private void bindHeader() {
