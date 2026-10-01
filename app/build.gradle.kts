@@ -70,8 +70,16 @@ android {
         // own UI displays. versionName is the human-facing "1.1.0"-style label; bump its
         // patch/minor/major segment per normal semver judgement, versionCode always by
         // exactly 1 regardless of how big the versionName jump is.
-        versionCode = 7
-        versionName = "1.2.3"
+        versionCode = 8
+        versionName = "1.3.0"
+
+        // The Secrets Gradle Plugin (see the `secrets` block above) puts the real MAPS_API_KEY
+        // into every app variant's manifest placeholders, but not into the unit-test manifest
+        // merge that Robolectric needs (testOptions.unitTests.isIncludeAndroidResources) - that
+        // merge fails on the unresolved ${MAPS_API_KEY}. This inert default only fills that gap:
+        // the plugin's value for the debug/release variants replaces it, so it never reaches an
+        // installable build.
+        manifestPlaceholders["MAPS_API_KEY"] = "unit-test-placeholder"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "GIT_COMMIT", "\"$gitCommitHash\"")
@@ -113,6 +121,14 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+    testOptions {
+        unitTests {
+            // Lets the Robolectric layout/screen tests (src/test, JVM only - no device/emulator)
+            // inflate the app's real merged resources and manifest. The plain-JUnit tests are
+            // unaffected: they never load an Android runtime at all.
+            isIncludeAndroidResources = true
+        }
     }
     lint {
         // Every Activity is deliberately locked to portrait (see AndroidManifest.xml) -
@@ -164,6 +180,11 @@ dependencies {
     implementation(libs.work.runtime)
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.55")
     testImplementation(libs.junit)
+    // JVM-side layout/screen tests (inflate + measure + bind with fake data, no device needed) -
+    // see src/test/.../ui. Test-only: none of this ships in the app.
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.ext.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 }

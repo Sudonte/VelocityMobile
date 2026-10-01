@@ -3,10 +3,14 @@ package com.example.velocitysuites;
 import android.content.Context;
 
 /**
- * Single source of truth for the "current" payment status label/colors shown
- * across dashboard.xml, transactionhistory.xml, and the payment details
- * dialog. Priority (highest first): Cancelled booking > Rejected payment >
- * No payment yet > Fully paid > Partially paid > Pending.
+ * The payment-status pill shown on the dashboard, the upcoming-transactions list and the booking cards.
+ * <p>
+ * It no longer decides anything itself: the status is {@link TransactionStatusHelper}'s - the same rule
+ * Transaction History, the detail screen, the receipt and the notifications use (Pending until a
+ * receptionist verifies a payment; Paid / Partially Paid by the VERIFIED amount against the grand total;
+ * Cancelled; Rejected) - so one transaction can't read "Paid" here and "Pending" there. This class keeps the
+ * finer-grained {@link StatusKey} some callers branch on (a Pending transaction may be "payment under
+ * verification" or "no payment yet") and hands out the helper's label, colors and icon.
  */
 public final class PaymentStatusResolver {
 
@@ -14,130 +18,35 @@ public final class PaymentStatusResolver {
     }
 
     /**
-     * The pure, Context-free decision this whole class exists to make -
-     * separated from resolve() purely so it's JVM-unit-testable (this
-     * project has no Robolectric, so anything touching Context/R.string
-     * directly can't be - see PaymentStatusResolverTest). resolve() below is
-     * a thin Context-string/color lookup over this result; keep the two in
-     * lockstep if either changes.
+     * The pure, Context-free decision - separated from resolve() purely so it's JVM-unit-testable (see
+     * PaymentStatusResolverTest). PENDING_VERIFICATION / NO_PAYMENT_YET / PENDING are all the helper's single
+     * Pending status, told apart only for callers that care whether a payment was submitted.
      */
     public enum StatusKey {
         CANCELLED, REJECTED, PENDING_VERIFICATION, NO_PAYMENT_YET, FULLY_PAID, PARTIALLY_PAID, PENDING
     }
 
     public static StatusKey resolveStatusKey(Booking booking) {
-        if ("Cancelled".equalsIgnoreCase(booking.getStatus())) {
-            return StatusKey.CANCELLED;
-        } else if (booking.isPaymentRejected()) {
-            return StatusKey.REJECTED;
-        } else if (booking.isPaymentPendingVerification()) {
-            // Must be checked before the plain !isHasBooking() branch below -
-            // a GCash payment already submitted on a not-yet-converted
-            // Reservation previously fell through to "No Payment Yet" here,
-            // contradicting the separate "Awaiting Verification" pill shown
-            // alongside it (see DashboardActivity's tvVerification).
-            return StatusKey.PENDING_VERIFICATION;
-        } else if (!booking.isHasBooking() && !hasRecordedPayment(booking)) {
-            return StatusKey.NO_PAYMENT_YET;
-        } else if (isFullyPaid(booking)) {
-            return StatusKey.FULLY_PAID;
-        } else if (isPartiallyPaid(booking)) {
-            return StatusKey.PARTIALLY_PAID;
+        TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(booking);
+        switch (summary.status) {
+            case CANCELLED:
+                return StatusKey.CANCELLED;
+            case REJECTED:
+                return StatusKey.REJECTED;
+            case PAID:
+                return StatusKey.FULLY_PAID;
+            case PARTIALLY_PAID:
+                return StatusKey.PARTIALLY_PAID;
+            case PENDING:
+            default:
+                if (summary.hasPendingPayment) return StatusKey.PENDING_VERIFICATION;
+                return !booking.isHasBooking() ? StatusKey.NO_PAYMENT_YET : StatusKey.PENDING;
         }
-        return StatusKey.PENDING;
     }
 
     public static Result resolve(Context ctx, Booking booking) {
-        String label;
-        int bgColorRes;
-        int fgColorRes;
-        int iconRes;
-
-        switch (resolveStatusKey(booking)) {
-            case CANCELLED:
-                label = ctx.getString(R.string.status_cancelled);
-                bgColorRes = R.color.velocity_gray_soft;
-                fgColorRes = R.color.velocity_gray_primary;
-                iconRes = R.drawable.ic_close;
-                break;
-            case REJECTED:
-                label = ctx.getString(R.string.status_rejected);
-                bgColorRes = R.color.velocity_red_subtle;
-                fgColorRes = R.color.velocity_red_dark;
-                iconRes = R.drawable.ic_close;
-                break;
-            case PENDING_VERIFICATION:
-                label = ctx.getString(R.string.status_payment_verification_label);
-                bgColorRes = R.color.velocity_orange_soft;
-                fgColorRes = R.color.velocity_orange_primary;
-                iconRes = R.drawable.ic_info;
-                break;
-            case NO_PAYMENT_YET:
-                label = ctx.getString(R.string.no_payment_yet_label);
-                bgColorRes = R.color.velocity_gray_soft;
-                fgColorRes = R.color.velocity_inactive_gray;
-                iconRes = R.drawable.ic_clock;
-                break;
-            case FULLY_PAID:
-                label = ctx.getString(R.string.status_fully_paid);
-                bgColorRes = R.color.velocity_green_soft;
-                fgColorRes = R.color.velocity_green_dark;
-                iconRes = R.drawable.ic_check_circle;
-                break;
-            case PARTIALLY_PAID:
-                label = ctx.getString(R.string.status_partial_paid);
-                bgColorRes = R.color.velocity_blue_soft;
-                fgColorRes = R.color.velocity_blue_primary;
-                iconRes = R.drawable.ic_clock;
-                break;
-            case PENDING:
-            default:
-                label = ctx.getString(R.string.status_pending_label);
-                bgColorRes = R.color.velocity_red_subtle;
-                fgColorRes = R.color.velocity_red_primary;
-                iconRes = R.drawable.ic_clock;
-                break;
-        }
-
-        return new Result(label, bgColorRes, fgColorRes, iconRes);
-    }
-
-    /**
-     * Fully Paid/Partially Paid/Pending - the backend's own
-     * payment_summary.payment_status (PAID/PARTIALLY_PAID/PENDING) when the
-     * backend has attached one, taken as authoritative and never locally
-     * reinterpreted from raw transaction sums; only falls back to the legacy
-     * getRemainingBalance()/getAmountPaid() comparison when no payment_summary
-     * is present at all (an older/not-yet-migrated response) - see
-     * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §13/§15.
-     */
-    private static boolean isFullyPaid(Booking booking) {
-        if (booking.hasAuthoritativePaymentSummary()) {
-            return "PAID".equals(booking.getPaymentSummary().paymentStatus);
-        }
-        return booking.getRemainingBalance() <= 0.009;
-    }
-
-    private static boolean isPartiallyPaid(Booking booking) {
-        if (booking.hasAuthoritativePaymentSummary()) {
-            return "PARTIALLY_PAID".equals(booking.getPaymentSummary().paymentStatus);
-        }
-        return booking.getAmountPaid() > 0;
-    }
-
-    /**
-     * True once real money has actually been recorded against this
-     * Booking/Reservation - lets a not-yet-converted Reservation that
-     * already received a payment (e.g. a PR-anchored partial payment made
-     * before conversion) resolve to its real FULLY_PAID/PARTIALLY_PAID/
-     * PENDING state above instead of the !isHasBooking() branch forcing
-     * NO_PAYMENT_YET regardless of what was actually paid.
-     */
-    private static boolean hasRecordedPayment(Booking booking) {
-        if (booking.hasAuthoritativePaymentSummary()) {
-            return booking.getPaymentSummary().totalAmountPaid > 0.009;
-        }
-        return booking.getAmountPaid() > 0.009;
+        TransactionStatusHelper.Style style = TransactionStatusHelper.styleFor(TransactionStatusHelper.statusOf(booking));
+        return new Result(ctx.getString(style.labelRes), style.bgColorRes, style.fgColorRes, style.iconRes);
     }
 
     /**

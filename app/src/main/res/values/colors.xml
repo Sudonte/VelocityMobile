@@ -51,6 +51,30 @@
     <color name="gcash_blue">#D32F2F</color>
     <color name="gcash_blue_soft">#FDECEC</color>
 
+    <!-- Payment-status badge colors (TransactionStatusHelper) - the ONE place a transaction's
+         status gets its color, shared by Transaction History, the detail screen, the receipt
+         and the notification cards. Unlike the velocity_green_*/blue_*/orange_* names above
+         (kept as red aliases so the rest of the app stays red & white), these are real
+         amber / green / blue / gray / red so a guest can tell the states apart at a glance.
+         Every bg/fg pair is >= 4.5:1 (WCAG AA) in both themes - enforced by
+         StatusColorContrastTest. The brand red stays the chrome/accent color everywhere else. -->
+    <color name="status_pending_bg">#FFF1CC</color>
+    <color name="status_pending_fg">#7A4F00</color>
+    <color name="status_paid_bg">#DDF3E1</color>
+    <color name="status_paid_fg">#176B2C</color>
+    <color name="status_partial_bg">#DCEBFB</color>
+    <color name="status_partial_fg">#0B569E</color>
+    <color name="status_cancelled_bg">#E6E6E6</color>
+    <color name="status_cancelled_fg">#4D4D4D</color>
+    <color name="status_rejected_bg">#FADADA</color>
+    <color name="status_rejected_fg">#9B1C1C</color>
+
+    <!-- Brand-red TEXT for small actions/chips on light or tinted cards (e.g. "View Transaction",
+         "Mark as read", the category chip). velocity_red_primary is fine for fills and large text
+         but only ~4.2:1 on the pale chip/unread tints (and ~3:1 on dark surfaces) - too low for
+         11-12sp labels. Darker in light mode, lighter in dark mode (values-night). -->
+    <color name="velocity_action_text">#B71C1C</color>
+
     <!-- Alpha Reds for effects -->
     <color name="velocity_red_alpha_40">#66D32F2F</color>
     <color name="velocity_red_alpha_20">#33D32F2F</color>

@@ -22,7 +22,7 @@
             android:background="@android:color/transparent"
             app:elevation="0dp"
             app:liftOnScroll="true"
-            app:liftOnScrollTargetViewId="@id/swipeRefresh">
+            app:liftOnScrollTargetViewId="@id/rvTransactions">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
@@ -143,19 +143,26 @@
                                     tools:ignore="LabelFor" />
                             </com.google.android.material.textfield.TextInputLayout>
 
-                            <!-- Remaining filters: Room Type, Date, and Booking Status -
-                                 Reservation Status removed entirely per spec. -->
+                            <!-- Remaining filters: Room Type, Date, and Booking Status - a horizontally
+                                 scrollable row. clipToPadding=false + the row's own end padding means the
+                                 LAST chip can always be scrolled fully clear of the card edge (it used to
+                                 end flush against it and read as cut off: "Bookin..."), whatever the
+                                 screen width or font size. -->
                             <HorizontalScrollView
+                                android:id="@+id/scrollFilterChips"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="10dp"
+                                android:clipToPadding="false"
                                 android:overScrollMode="never"
                                 android:scrollbars="none">
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    android:paddingStart="0dp"
+                                    android:paddingEnd="24dp">
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipRoomType"
@@ -173,8 +180,7 @@
                                         app:chipIconTint="@color/chip_sort_icon_tint"
                                         app:chipMinHeight="36dp"
                                         app:chipStrokeColor="@color/velocity_red_subtle"
-                                        app:chipStrokeWidth="1.2dp"
-                                        app:ensureMinTouchTargetSize="false" />
+                                        app:chipStrokeWidth="1.2dp" />
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipDateFilter"
@@ -192,8 +198,7 @@
                                         app:chipIconTint="@color/chip_sort_icon_tint"
                                         app:chipMinHeight="36dp"
                                         app:chipStrokeColor="@color/velocity_red_subtle"
-                                        app:chipStrokeWidth="1.2dp"
-                                        app:ensureMinTouchTargetSize="false" />
+                                        app:chipStrokeWidth="1.2dp" />
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipBookingStatus"
@@ -210,8 +215,7 @@
                                         app:chipIconTint="@color/chip_sort_icon_tint"
                                         app:chipMinHeight="36dp"
                                         app:chipStrokeColor="@color/velocity_red_subtle"
-                                        app:chipStrokeWidth="1.2dp"
-                                        app:ensureMinTouchTargetSize="false" />
+                                        app:chipStrokeWidth="1.2dp" />
                                 </LinearLayout>
                             </HorizontalScrollView>
                         </LinearLayout>
@@ -293,73 +297,75 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <!-- The list is the direct scrolling child: a RecyclerView that recycles its rows (it used to sit
+             in a NestedScrollView at wrap_content height, which inflated EVERY row at once and meant it
+             never scrolled by itself - so scroll-based paging could never fire). The collapsing header
+             still collapses, through the standard nested-scroll chain. -->
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <androidx.core.widget.NestedScrollView
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:overScrollMode="never">
+                android:layout_height="match_parent">
 
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvTransactions"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingTop="20dp"
-                    android:paddingBottom="100dp">
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="100dp"
+                    tools:itemCount="4"
+                    tools:listitem="@layout/item_transaction_history_card" />
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvTransactions"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        tools:itemCount="4"
-                        tools:listitem="@layout/item_transaction_card" />
+                <!-- Empty / load-error state (scrolls on its own so a short screen or a big font
+                     can still reach its button). -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:overScrollMode="never"
+                    android:visibility="gone"
+                    tools:visibility="gone">
 
-                    <!-- Improved Empty State -->
                     <include
                         android:id="@+id/layoutEmptyState"
                         layout="@layout/view_empty_state"
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </androidx.core.widget.NestedScrollView>
+
+                <!-- First-load-only indicator: shown in place of (never alongside) the list and the
+                     empty state, exactly once per screen open while nothing has loaded yet. -->
+                <LinearLayout
+                    android:id="@+id/layoutInitialLoading"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <ProgressBar
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:indeterminateTint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="48dp"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-
-                    <!-- First-load-only indicator, same as the Notifications screen's: shown in
-                         place of (never alongside) the list and the empty state, exactly once per
-                         screen open while nothing has loaded yet - so a slow first fetch reads as
-                         "loading", not as a blank screen. Fixed height so nothing shifts when
-                         real content replaces it. -->
-                    <LinearLayout
-                        android:id="@+id/layoutInitialLoading"
-                        android:layout_width="match_parent"
-                        android:layout_height="280dp"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        tools:visibility="gone">
-
-                        <ProgressBar
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:indeterminateTint="@color/velocity_red_primary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/loading_transactions_label"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/loading_transactions_label"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="13sp" />
                 </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
+            </FrameLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -83,12 +83,44 @@ public class PaymentStatusResolverTest {
     }
 
     @Test
-    public void rejectedPayment_winsOverAuthoritativePaymentSummary() {
+    public void rejectedLatestPayment_doesNotUndoAlreadyVerifiedMoney() {
+        // The status now follows the receptionist-VERIFIED amount (TransactionStatusHelper): 5,000 of 10,000 is
+        // verified, so the transaction is Partially Paid even though the latest payment attempt was rejected.
+        // (It used to read "Rejected", hiding the money that had already been verified.)
         Booking b = booking();
         b.setPaymentVerificationStatus("rejected");
         b.setPaymentSummary(new Booking.PaymentSummary(10000.0, 5000.0, 5000.0, "PARTIALLY_PAID", 50, false, 0));
 
+        assertEquals(PaymentStatusResolver.StatusKey.PARTIALLY_PAID, PaymentStatusResolver.resolveStatusKey(b));
+    }
+
+    @Test
+    public void rejectedOnlyPayment_isRejected() {
+        Booking b = booking();
+        b.setAmountPaid(0.0);
+        b.setPaymentVerificationStatus("rejected");
+
         assertEquals(PaymentStatusResolver.StatusKey.REJECTED, PaymentStatusResolver.resolveStatusKey(b));
+    }
+
+    @Test
+    public void submittedButUnverifiedPayment_isPendingVerification_notPaid() {
+        Booking b = booking();
+        b.setAmountPaid(10000.0); // a direct booking counts what was SUBMITTED here
+        b.setPaymentHistory(new java.util.ArrayList<>(java.util.Collections.singletonList(
+                new Booking.PaymentRecord("10000.00", "GCASH", "1234567890123", "Sep 30, 2026 • 10:09 PM", "pending"))));
+        b.setPaymentPendingVerification(true);
+
+        assertEquals(PaymentStatusResolver.StatusKey.PENDING_VERIFICATION, PaymentStatusResolver.resolveStatusKey(b));
+    }
+
+    @Test
+    public void reservationWithNothingSubmitted_isNoPaymentYet() {
+        Booking b = booking();
+        b.setHasBooking(false);
+        b.setAmountPaid(0.0);
+
+        assertEquals(PaymentStatusResolver.StatusKey.NO_PAYMENT_YET, PaymentStatusResolver.resolveStatusKey(b));
     }
 
     @Test

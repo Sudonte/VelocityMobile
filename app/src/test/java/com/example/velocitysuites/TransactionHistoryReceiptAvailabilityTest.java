@@ -13,11 +13,10 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Pure-JVM coverage for the receipt-availability data
- * PaymentTransactionAdapter#onBindViewHolder() reads off booking.getReceipts()
- * for the Transaction History "N Receipt(s) Available" indicator (Phase 5
- * §10/§11/§20) - the adapter itself is a RecyclerView.Adapter (needs a real
- * Context to bind), so isn't unit-testable here; this covers the exact data
- * contract it reads instead.
+ * TransactionHistoryAdapter reads off booking.getReceipts() for the Transaction
+ * History "N Receipt(s) Available" indicator (Phase 5 §10/§11/§20) - covers the
+ * exact data contract it reads (the adapter itself is bound in the Robolectric
+ * TransactionCardLayoutTest).
  */
 public class TransactionHistoryReceiptAvailabilityTest {
 

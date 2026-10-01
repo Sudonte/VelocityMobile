@@ -25,7 +25,6 @@ import com.google.android.material.button.MaterialButton;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Read-only official payment receipt - the guest-facing counterpart to
@@ -60,6 +59,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      */
     public static final String EXTRA_RECEIPT_NUMBER = "EXTRA_RECEIPT_NUMBER";
 
+    private final ClickGuard clickGuard = new ClickGuard();
     private Booking booking;
     private View receiptCard;
     /** Receipt-number mode only (see EXTRA_RECEIPT_NUMBER) - null in legacy Booking-snapshot mode. */
@@ -155,7 +155,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         // ---- LEGACY MODE - unchanged from before Phase 4 ----
         booking = (Booking) getIntent().getSerializableExtra(EXTRA_BOOKING);
-        if (booking == null || !booking.isStaffVerified() || booking.getAmountPaid() <= 0.009) {
+        if (booking == null || !booking.isStaffVerified() || !MoneyFormat.isPositive(TransactionStatusHelper.verifiedPaidOf(booking))) {
             Toast.makeText(this, R.string.receipt_pending_desc, Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -168,7 +168,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         populateReceipt();
 
         MaterialButton btnDownload = findViewById(R.id.btnReceiptDownload);
-        btnDownload.setOnClickListener(v -> downloadReceiptAsPdf());
+        btnDownload.setOnClickListener(v -> {
+            if (clickGuard.tryAcquire()) downloadReceiptAsPdf();
+        });
         if (getIntent().getBooleanExtra(EXTRA_AUTO_DOWNLOAD, false)) {
             receiptCard.post(this::downloadReceiptAsPdf);
         }
@@ -208,7 +210,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     public static final java.util.Map<String, List<BookingAmenity>> debugPreviewAmenities = new java.util.HashMap<>();
 
     private void initReceiptNumberMode() {
-        findViewById(R.id.btnReceiptRetry).setOnClickListener(v -> loadReceiptByNumber());
+        findViewById(R.id.btnReceiptRetry).setOnClickListener(v -> {
+            if (clickGuard.tryAcquire()) loadReceiptByNumber();
+        });
         // Download is wired once a receipt actually loads (see renderReceiptDetail()) -
         // hidden until then so it can never be tapped against stale/absent data
         // (item 22 of the Phase 4 checklist).
@@ -366,8 +370,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         MaterialButton btnDownload = findViewById(R.id.btnReceiptDownload);
         btnDownload.setVisibility(View.VISIBLE);
-        btnDownload.setOnClickListener(v -> downloadReceiptAsPdf(activeReceiptView,
-                detail.getReceiptNumber() != null ? detail.getReceiptNumber() : detail.getBookingId()));
+        btnDownload.setOnClickListener(v -> {
+            if (!clickGuard.tryAcquire()) return;
+            downloadReceiptAsPdf(activeReceiptView,
+                    detail.getReceiptNumber() != null ? detail.getReceiptNumber() : detail.getBookingId());
+        });
 
         showContentState();
     }
@@ -388,27 +395,15 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         content.addView(centeredText(getString(R.string.welcome_tagline), 11, false, R.color.velocity_text_secondary, dp(2)));
         content.addView(centeredText(typeLabel, 15, true, R.color.velocity_text_primary, dp(14)));
 
-        String statusText = "OFFICIAL_RECEIPT".equals(detail.getReceiptType())
-                ? getString(R.string.receipt_status_official_paid)
-                : getString(R.string.status_verified);
-        LinearLayout badge = new LinearLayout(this);
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        badgeParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
-        badgeParams.topMargin = dp(8);
-        badge.setLayoutParams(badgeParams);
-        badge.setBackgroundResource(R.drawable.shape_intro_pill);
-        badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.velocity_green_soft)));
-        badge.setPadding(dp(14), dp(6), dp(14), dp(6));
-        TextView badgeText = new TextView(this);
-        badgeText.setText(statusText);
-        badgeText.setTextColor(getColor(R.color.velocity_green_dark));
-        badgeText.setTypeface(badgeText.getTypeface(), android.graphics.Typeface.BOLD);
-        badgeText.setTextSize(12);
-        badge.addView(badgeText);
-        content.addView(badge);
+        // The status badge is the SAME status Transaction History shows for this transaction
+        // (TransactionStatusHelper, the receptionist-verified amount vs the grand total), applied to the
+        // figures this receipt prints: a Partial Receipt reads "Partially Paid" right above its remaining
+        // balance, a Full/Official Receipt reads "Paid" - never a fixed "Verified".
+        TransactionStatusHelper.Summary statusSummary = TransactionStatusHelper.summarize(detail);
+        content.addView(newStatusBadge(statusSummary.status));
 
         addDivider(content, dp(16));
-        addRow(content, getString(R.string.receipt_reference_label), detail.getReceiptNumber());
+        addRowOrDash(content, getString(R.string.receipt_reference_label), detail.getReceiptNumber());
         // detail.getIssuedAt() is already a display-formatted string (or "")
         // - ApiMapper.toReceiptDetail() reformats the raw ISO issued_at via
         // reformatDateTime() before it ever reaches this model. Re-running it
@@ -418,18 +413,45 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // literal "N/A" on every single receipt, real date or not. addRow()
         // already hides the row for a null/empty value, so no ternary is
         // needed here.
-        addRow(content, getString(R.string.receipt_issued_date_label), detail.getIssuedAt());
+        addRowOrDash(content, getString(R.string.receipt_issued_date_label), detail.getIssuedAt());
     }
 
-    /** Stay/Booking Information - item 7. */
+    /** The centered status pill of the receipt header - text, colors and icon all from the shared status style. */
+    private TextView newStatusBadge(TransactionStatusHelper.Status status) {
+        TextView badge = new TextView(this);
+        badge.setBackgroundResource(R.drawable.shape_intro_pill);
+        badge.setPadding(dp(14), dp(6), dp(14), dp(6));
+        badge.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        badge.setCompoundDrawablePadding(dp(6));
+        badge.setAllCaps(true);
+        badge.setMaxLines(1);
+        badge.setTextSize(12);
+        badge.setLetterSpacing(0.04f);
+        badge.setTypeface(badge.getTypeface(), android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        params.topMargin = dp(8);
+        badge.setLayoutParams(params);
+        StatusBadges.bind(badge, status);
+        return badge;
+    }
+
+    /**
+     * Stay/Booking Information. The transaction's id(s), room type, stay dates and nights are always shown -
+     * a value the payload didn't carry reads "—", never a blank or "null". Rows that simply don't apply (the
+     * original reservation of a direct booking, an unassigned room number) are omitted.
+     */
     private void buildStaySection(ViewGroup parent, ReceiptDetail detail) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_booking_information_title));
-        addRow(content, getString(R.string.receipt_label_booking_id), detail.getBookingId());
+        // Reservation-derived receipts name the original reservation (the id guests know the transaction by);
+        // a direct booking has none.
         addRow(content, getString(R.string.receipt_original_reservation_id_label), detail.getReservationId());
-        addRow(content, getString(R.string.details_label_room_type), formatRoomLinesValue(detail));
-        addRow(content, getString(R.string.details_label_check_in), detail.getCheckIn());
-        addRow(content, getString(R.string.details_label_check_out), detail.getCheckOut());
-        addRow(content, getString(R.string.receipt_number_of_nights_label),
+        addRowOrDash(content, getString(R.string.receipt_label_booking_id), detail.getBookingId());
+        addRowOrDash(content, getString(R.string.details_label_room_type), formatRoomLinesValue(detail));
+        addRowOrDash(content, getString(R.string.receipt_room_rate_label), formatRateValue(detail));
+        addRowOrDash(content, getString(R.string.details_label_check_in), detail.getCheckIn());
+        addRowOrDash(content, getString(R.string.details_label_check_out), detail.getCheckOut());
+        addRowOrDash(content, getString(R.string.receipt_number_of_nights_label),
                 detail.getNumberOfNights() > 0 ? String.valueOf(detail.getNumberOfNights()) : null);
         if (!detail.getAssignedRoomNumbers().isEmpty()) {
             addRow(content, getString(R.string.details_label_room_number),
@@ -439,15 +461,26 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         addRow(content, getString(R.string.details_label_total_guests), totalGuests > 0 ? String.valueOf(totalGuests) : null);
     }
 
+    /** "₱2,500.00 / night" for one room type; "Varies by room type" for several; null (shown as "—") when the payload has no room lines to read a rate from. */
+    @Nullable
+    private String formatRateValue(ReceiptDetail detail) {
+        List<BookingRoom> lines = detail.getRoomLines();
+        if (lines.isEmpty()) return null;
+        if (lines.size() > 1) return getString(R.string.receipt_rate_varies);
+        ReceiptBreakdown.RoomLine line = ReceiptBreakdown.roomLineOf(lines.get(0), Math.max(1, detail.getNumberOfNights()));
+        return getString(R.string.receipt_rate_per_night_format, formatPrice(line.ratePerNight));
+    }
+
     private String formatRoomLinesValue(ReceiptDetail detail) {
         List<BookingRoom> lines = detail.getRoomLines();
         if (!lines.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (BookingRoom room : lines) {
+                if (room == null || room.getRoomTypeName() == null || room.getRoomTypeName().trim().isEmpty()) continue;
                 if (sb.length() > 0) sb.append('\n');
-                sb.append(room.getRoomTypeName()).append(" ×").append(room.getQuantity());
+                sb.append(room.getRoomTypeName().trim()).append(" ×").append(Math.max(1, room.getQuantity()));
             }
-            return sb.toString();
+            if (sb.length() > 0) return sb.toString();
         }
         return detail.getRoomType();
     }
@@ -455,7 +488,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     /** Guest Information - item 6. */
     private void buildGuestSection(ViewGroup parent, ReceiptDetail detail) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_guest_information_title));
-        addRow(content, getString(R.string.receipt_guest_account_name_label), detail.getGuestAccountName());
+        addRowOrDash(content, getString(R.string.receipt_guest_account_name_label), detail.getGuestAccountName());
         addRow(content, getString(R.string.details_label_representative_name), detail.getRepresentativeName());
     }
 
@@ -483,6 +516,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_summary_title));
         Booking.PaymentSummary summary = detail.getPaymentSummary();
         if (summary == null) {
+            // The payload carried no payment summary: say so field by field ("—") instead of leaving an empty card.
+            addRowOrDash(content, getString(R.string.receipt_grand_total_label), null);
+            addRowOrDash(content, getString(R.string.details_label_amount_paid), null);
+            addRowOrDash(content, getString(R.string.details_label_remaining_balance), null);
             return;
         }
 
@@ -499,6 +536,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      */
     private void buildPaymentDetailsSection(ViewGroup parent, ReceiptDetail detail, Booking.PaymentSummary summary) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_information_title));
+        TransactionStatusHelper.Summary statusSummary = TransactionStatusHelper.summarize(detail);
+        String statusLabel = getString(TransactionStatusHelper.styleFor(statusSummary.status).labelRes);
+        Booking.PaymentTransactionRecord paymentRecord = anchorTransactionOf(detail);
+
         if (summary.paymentPercentage != null) {
             addRow(content, getString(R.string.receipt_payment_percentage_label),
                     PaymentPercentageUtil.formatApiPercentageForDisplay(summary.paymentPercentage));
@@ -507,26 +548,54 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         if (detail.isAnchoredOnSinglePayment() && detail.getAnchorPayment() != null) {
             // PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - the frozen snapshot.
             ReceiptDetail.AnchorPayment anchor = detail.getAnchorPayment();
-            addRow(content, getString(R.string.receipt_amount_paid_this_transaction_label),
-                    formatPrice(anchor.amountPaid));
-            addRow(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
-            addRow(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
-            addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
-            // Only ever present for a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT -
-            // an OFFICIAL_RECEIPT's checkout-recorded payment has no separate
-            // staff-verification step at all (backend's own
-            // transactionType() doc), so anchor_payment (and therefore this
-            // field) is genuinely null there, not a data gap to fix.
+            addRowOrDash(content, getString(R.string.receipt_amount_paid_this_transaction_label), formatPrice(anchor.amountPaid));
+            addRowOrDash(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
+            addRowOrDash(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
+            addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
+            addPaymentMethodDateTime(content, anchor.paymentMethod, paymentRecord);
+            // Only ever present for a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - an OFFICIAL_RECEIPT's
+            // checkout-recorded payment has no separate staff-verification step at all (backend's own
+            // transactionType() doc), so anchor_payment (and therefore this field) is genuinely null there.
             addRow(content, getString(R.string.receipt_verified_by_label), anchor.verifiedBy);
             addRow(content, getString(R.string.receipt_verified_at_label),
                     anchor.verifiedAt != null ? TimeUtils.formatDateTime(anchor.verifiedAt) : null);
         } else {
             // OFFICIAL_RECEIPT - final settlement; Total Amount Paid made prominent below.
-            addRow(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
-            addRow(content, getString(R.string.receipt_payment_status_label), ReceiptCardHelper.statusLabelFor(this, summary.paymentStatus));
+            addRowOrDash(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
+            addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
+            addPaymentMethodDateTime(content, paymentRecord != null ? paymentRecord.paymentMethod : null, paymentRecord);
             addDivider(content, dp(12));
             addProminentTotal(content, getString(R.string.receipt_total_amount_paid_label), formatPrice(summary.totalAmountPaid));
         }
+    }
+
+    /** The payment transaction this receipt is about: the one that carries its own receipt number, else the most recent. */
+    @Nullable
+    private Booking.PaymentTransactionRecord anchorTransactionOf(ReceiptDetail detail) {
+        List<Booking.PaymentTransactionRecord> transactions = detail.getPaymentTransactions();
+        if (transactions.isEmpty()) return null;
+        String number = detail.getReceiptNumber();
+        if (number != null) {
+            for (Booking.PaymentTransactionRecord tx : transactions) {
+                if (number.equals(tx.receiptNumber)) return tx;
+            }
+        }
+        return transactions.get(transactions.size() - 1);
+    }
+
+    /** Payment Method, Payment Date and Payment Time - each "—" when the payload can't tell (never a blank or "N/A"). */
+    private void addPaymentMethodDateTime(ViewGroup content, @Nullable String method, @Nullable Booking.PaymentTransactionRecord record) {
+        String methodLabel = method == null || method.trim().isEmpty() ? null
+                : "cash".equalsIgnoreCase(method.trim()) ? getString(R.string.payment_method_cash)
+                : "gcash".equalsIgnoreCase(method.trim()) ? getString(R.string.payment_method_gcash)
+                : method.trim();
+        addRowOrDash(content, getString(R.string.details_label_payment_method), methodLabel);
+
+        String rawDate = record != null ? record.paymentDate : null;
+        String date = rawDate == null ? null : TimeUtils.formatDate(rawDate);
+        String time = rawDate == null ? null : TimeUtils.formatTime(rawDate);
+        addRowOrDash(content, getString(R.string.details_label_payment_date), "N/A".equals(date) ? null : date);
+        addRowOrDash(content, getString(R.string.details_label_payment_time), "N/A".equals(time) ? null : time);
     }
 
     /**
@@ -602,6 +671,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         ((TextView) row.findViewById(R.id.tvRowLabel)).setText(label);
         ((TextView) row.findViewById(R.id.tvRowValue)).setText(value);
         parent.addView(row);
+    }
+
+    /** A row for a field the receipt is expected to show: a missing value reads "—" instead of the row vanishing or printing "null". */
+    private void addRowOrDash(ViewGroup parent, String label, @Nullable String value) {
+        addRow(parent, label, value == null || value.trim().isEmpty() ? getString(R.string.value_missing) : value);
     }
 
     private void addDivider(ViewGroup parent, int topMarginPx) {
@@ -710,18 +784,24 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         if (groupMembers != null && !groupMembers.isEmpty()) {
             BookingGroupAggregator.Totals totals = BookingGroupAggregator.sum(groupMembers);
             totalAmount = totals.totalAmount;
-            amountPaid = totals.amountPaid;
+            // Receptionist-verified money only (see TransactionStatusHelper) - a direct booking's own
+            // amountPaid also counts payments still awaiting verification.
+            amountPaid = 0;
+            for (Booking member : groupMembers) amountPaid += TransactionStatusHelper.verifiedPaidOf(member);
             roomCharge = totals.roomCharge;
             amenityCharge = totals.amenityCharge;
             additionalGuestFee = totals.additionalGuestFee;
         } else {
-            totalAmount = booking.getTotalAmount();
-            amountPaid = booking.getAmountPaid();
+            totalAmount = TransactionStatusHelper.grandTotalOf(booking);
+            amountPaid = TransactionStatusHelper.verifiedPaidOf(booking);
             roomCharge = booking.getRoomCharge();
             amenityCharge = booking.getAmenityCharge();
             additionalGuestFee = booking.getAdditionalGuestFee();
         }
         double remainingBalance = Math.max(0, totalAmount - amountPaid);
+        // The status badge: the same rule Transaction History applies, on this receipt's own figures.
+        TransactionStatusHelper.Status status = TransactionStatusHelper.resolve(booking.getStatus(), false, totalAmount, amountPaid);
+        StatusBadges.bind(findViewById(R.id.tvReceiptStatusBadge), status);
         // paymentId is the system-generated internal payment id (Payment
         // Reference) - never to be confused with the guest-entered GCash
         // reference number bound to rowGcashReference below, which is a
@@ -752,7 +832,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // may legitimately be someone else - each has its own distinct label so the
         // two are never confused for one another.
         android.content.SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
-        bindRow(R.id.rowGuestName, getString(R.string.receipt_guest_account_name_label),
+        bindRowOrDash(R.id.rowGuestName, getString(R.string.receipt_guest_account_name_label),
                 prefs.getString("userName", null));
         bindRow(R.id.rowRepresentativeName, getString(R.string.details_label_representative_name), booking.getRepresentativeName());
         bindRow(R.id.rowGuestEmail, getString(R.string.receipt_guest_email_label),
@@ -760,7 +840,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         bindRow(R.id.rowGuestMobile, getString(R.string.mobile_label), prefs.getString("userMobile", null));
 
         // --- Booking Information ---
-        bindRow(R.id.rowBookingId,
+        bindRowOrDash(R.id.rowBookingId,
                 getString(booking.isHasBooking() ? R.string.receipt_label_booking_id : R.string.receipt_label_reservation_id),
                 booking.getId());
         // Itemized multi-room-type breakdown (Booking#getRooms()) only ever
@@ -770,20 +850,20 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // Type value below, which remains correct either way. The value
         // TextView already wraps rather than truncating (item_receipt_row.xml
         // has no maxLines/ellipsize), so a multi-line list is fully readable.
-        bindRow(R.id.rowRoomType, getString(R.string.details_label_room_type), formatRoomTypeValue());
+        bindRowOrDash(R.id.rowRoomType, getString(R.string.details_label_room_type), formatRoomTypeValue());
         // Only renders once a room is actually assigned at check-in - null/hidden
         // beforehand, never fabricated (Booking#getRoomNumber()).
         bindRow(R.id.rowRoomNumber, getString(R.string.details_label_room_number), booking.getRoomNumber());
-        bindRow(R.id.rowCheckIn, getString(R.string.details_label_check_in), booking.getCheckInDate());
-        bindRow(R.id.rowCheckOut, getString(R.string.details_label_check_out), booking.getCheckOutDate());
-        bindRow(R.id.rowNights, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
+        bindRowOrDash(R.id.rowCheckIn, getString(R.string.details_label_check_in), booking.getCheckInDate());
+        bindRowOrDash(R.id.rowCheckOut, getString(R.string.details_label_check_out), booking.getCheckOutDate());
+        bindRowOrDash(R.id.rowNights, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
         bindRow(R.id.rowAdults, getString(R.string.details_label_adults), booking.getAdults() > 0 ? String.valueOf(booking.getAdults()) : null);
         bindRow(R.id.rowChildren, getString(R.string.details_label_children), booking.getChildren() > 0 ? String.valueOf(booking.getChildren()) : null);
         bindRow(R.id.rowTotalGuests, getString(R.string.details_label_total_guests), String.valueOf(booking.getGuests()));
 
         // --- Transaction Information ---
-        boolean fullyPaid = remainingBalance <= 0.009;
-        bindRow(R.id.rowPaymentMethod, getString(R.string.details_label_payment_method),
+        boolean fullyPaid = status == TransactionStatusHelper.Status.PAID;
+        bindRowOrDash(R.id.rowPaymentMethod, getString(R.string.details_label_payment_method),
                 getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash));
         bindGcashMobileRow(gcash);
         bindGcashReferenceRow(gcash);
@@ -805,12 +885,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         Double selectedPercentage = booking.getSelectedPaymentPercentage();
         bindRow(R.id.rowPaymentPercentage, getString(R.string.receipt_payment_percentage_label),
                 selectedPercentage != null ? PaymentPercentageUtil.formatApiPercentageForDisplay(selectedPercentage) : null);
-        // This screen only ever renders once isStaffVerified() is true (see the
-        // onCreate() gate above), so "Verified" is always an accurate, non-fabricated
-        // value here - never shown for a pending/rejected payment.
-        bindRow(R.id.rowPaymentStatus, getString(R.string.receipt_payment_status_label), getString(R.string.status_verified));
-        bindRow(R.id.rowPaymentDate, getString(R.string.details_label_payment_date), booking.getPaymentDateOnly());
-        bindRow(R.id.rowPaymentTime, getString(R.string.details_label_payment_time), booking.getPaymentTimeOnly());
+        // The shared payment status (Paid / Partially Paid ...) - the same word Transaction History shows.
+        bindRow(R.id.rowPaymentStatus, getString(R.string.receipt_payment_status_label),
+                getString(TransactionStatusHelper.styleFor(status).labelRes));
+        bindRowOrDash(R.id.rowPaymentDate, getString(R.string.details_label_payment_date), booking.getPaymentDateOnly());
+        bindRowOrDash(R.id.rowPaymentTime, getString(R.string.details_label_payment_time), booking.getPaymentTimeOnly());
 
         // --- Payment Summary ---
         TextView paymentTypeBadge = findViewById(R.id.tvPaymentTypeBadge);
@@ -830,8 +909,8 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         // Payment PROGRESS - moved out of the Payment Summary (see the layout) so the Grand Total closes it.
         bindRow(R.id.rowAmountPaid, getString(R.string.details_label_amount_paid), formatPrice(amountPaid));
-        bindRow(R.id.rowRemainingBalance, getString(R.string.details_label_remaining_balance),
-                remainingBalance > 0.009 ? formatPrice(remainingBalance) : null);
+        // Always shown - a settled receipt reads "₱0.00" remaining rather than the row vanishing.
+        bindRowOrDash(R.id.rowRemainingBalance, getString(R.string.details_label_remaining_balance), formatPrice(remainingBalance));
         emphasizeRowValue(R.id.rowAmountPaid);
 
         // --- Payment Verification Information ---
@@ -842,6 +921,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         bindRow(R.id.rowVerifiedAt, getString(R.string.receipt_verified_at_label), booking.getPaymentVerifiedAtDisplay());
 
         ((TextView) findViewById(R.id.tvTotalAmountPaid)).setText(formatPrice(amountPaid));
+    }
+
+    /** Like bindRow(), but a missing value reads "—" instead of the row disappearing - for the fields a receipt is expected to show. */
+    private void bindRowOrDash(int includeId, String label, @Nullable String value) {
+        bindRow(includeId, label, value == null || value.trim().isEmpty() ? getString(R.string.value_missing) : value);
     }
 
     private void bindRow(int includeId, String label, @Nullable String value) {
@@ -940,7 +1024,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     }
 
     private String formatPrice(double value) {
-        return String.format(Locale.US, "₱%,.2f", value);
+        return MoneyFormat.format(value);
     }
 
     /**
@@ -959,10 +1043,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         if (!rooms.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (BookingRoom room : rooms) {
+                if (room == null || room.getRoomTypeName() == null || room.getRoomTypeName().trim().isEmpty()) continue;
                 if (sb.length() > 0) sb.append('\n');
-                sb.append(room.getRoomTypeName()).append(" ×").append(room.getQuantity());
+                sb.append(room.getRoomTypeName().trim()).append(" ×").append(Math.max(1, room.getQuantity()));
             }
-            return sb.toString();
+            if (sb.length() > 0) return sb.toString();
         }
         if (groupMembers != null && !groupMembers.isEmpty()) {
             java.util.LinkedHashMap<String, Integer> counts = new java.util.LinkedHashMap<>();
@@ -1027,39 +1112,57 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * since it just captures the exact section content already being shown
      * on screen for whichever receipt is currently open.
      */
-    private void downloadReceiptAsPdf(View target, String idSuffix) {
-        String fileName = "VelocitySuites_Receipt_" + idSuffix + ".pdf";
+    private void downloadReceiptAsPdf(@Nullable View target, @Nullable String idSuffix) {
+        // The id ends up in a file name: keep only characters every file system accepts.
+        String safeSuffix = idSuffix == null ? "" : idSuffix.replaceAll("[^A-Za-z0-9._-]", "_");
+        String fileName = "VelocitySuites_Receipt_" + (safeSuffix.isEmpty() ? String.valueOf(System.currentTimeMillis()) : safeSuffix) + ".pdf";
 
-        int width = target.getWidth();
-        int height = target.getHeight();
-        if (width <= 0 || height <= 0) {
+        if (target == null || target.getWidth() <= 0 || target.getHeight() <= 0) {
             Toast.makeText(this, R.string.receipt_download_failed, Toast.LENGTH_LONG).show();
             return;
         }
 
-        PdfDocument document = new PdfDocument();
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(width, height, 1).create();
-        PdfDocument.Page page = document.startPage(pageInfo);
-        Canvas canvas = page.getCanvas();
-        canvas.drawColor(android.graphics.Color.WHITE);
-        target.draw(canvas);
-        document.finishPage(page);
-
+        // EVERYTHING that can throw is inside the try: drawing a very tall view, the PDF writer, the
+        // MediaStore insert, the write itself. The guest gets "could not save" - never a crash - and a
+        // half-written file is removed rather than left in Downloads looking like a real receipt.
+        PdfDocument document = null;
+        android.net.Uri uri = null;
         try {
+            document = new PdfDocument();
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(target.getWidth(), target.getHeight(), 1).create();
+            PdfDocument.Page page = document.startPage(pageInfo);
+            Canvas canvas = page.getCanvas();
+            canvas.drawColor(android.graphics.Color.WHITE);
+            target.draw(canvas);
+            document.finishPage(page);
+
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-            android.net.Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+            // Invisible to other apps until fully written.
+            values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+            uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
             if (uri == null) throw new java.io.IOException("MediaStore did not return a Uri");
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                if (out == null) throw new java.io.IOException("No output stream for " + uri);
                 document.writeTo(out);
             }
+            ContentValues done = new ContentValues();
+            done.put(MediaStore.MediaColumns.IS_PENDING, 0);
+            getContentResolver().update(uri, done, null, null);
             Toast.makeText(this, R.string.receipt_download_success, Toast.LENGTH_LONG).show();
         } catch (Exception e) {
+            if (uri != null) {
+                try {
+                    getContentResolver().delete(uri, null, null);
+                } catch (Exception ignored) {
+                    // best effort
+                }
+            }
             Toast.makeText(this, R.string.receipt_download_failed, Toast.LENGTH_LONG).show();
         } finally {
-            document.close();
+            if (document != null) document.close();
         }
     }
 }

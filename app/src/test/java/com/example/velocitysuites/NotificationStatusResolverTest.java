@@ -48,4 +48,56 @@ public class NotificationStatusResolverTest {
     public void nullTitle_resolvesToNull() {
         assertNull(NotificationStatusResolver.resolveKey(null));
     }
+
+    @Test
+    public void paymentPendingValidation_isPending() {
+        assertEquals(NotificationStatusResolver.StatusKey.PENDING,
+                NotificationStatusResolver.resolveKey("Payment Pending Validation"));
+    }
+
+    @Test
+    public void paymentVerified_withoutReceiptInfo_isVerified() {
+        // "Payment Verified" used to resolve to no status at all (no pill, the category's green check).
+        assertEquals(NotificationStatusResolver.StatusKey.VERIFIED,
+                NotificationStatusResolver.resolveKey("Payment Verified"));
+    }
+
+    @Test
+    public void paymentVerified_withPartialReceipt_isPartiallyPaid() {
+        assertEquals(NotificationStatusResolver.StatusKey.PARTIALLY_PAID,
+                NotificationStatusResolver.resolveKey("Payment Verified", "PARTIAL_RECEIPT"));
+    }
+
+    @Test
+    public void paymentVerified_withFullOrOfficialReceipt_isPaid() {
+        assertEquals(NotificationStatusResolver.StatusKey.FULLY_PAID,
+                NotificationStatusResolver.resolveKey("Payment Verified", "FULL_PAYMENT_RECEIPT"));
+        assertEquals(NotificationStatusResolver.StatusKey.FULLY_PAID,
+                NotificationStatusResolver.resolveKey("Checked Out", "OFFICIAL_RECEIPT"));
+    }
+
+    @Test
+    public void paymentRejected_isRejected_evenIfAReceiptTypeIsPresent() {
+        assertEquals(NotificationStatusResolver.StatusKey.REJECTED,
+                NotificationStatusResolver.resolveKey("Payment Rejected", "PARTIAL_RECEIPT"));
+    }
+
+    @Test
+    public void pendingVerificationTitle_staysPending_notVerified() {
+        // "pending" must win over "verif..." words in the same title.
+        assertEquals(NotificationStatusResolver.StatusKey.PENDING,
+                NotificationStatusResolver.resolveKey("Payment Pending Verification"));
+    }
+
+    @Test
+    public void americanSpellingCanceled_isCancelled() {
+        assertEquals(NotificationStatusResolver.StatusKey.CANCELLED,
+                NotificationStatusResolver.resolveKey("Reservation Canceled"));
+    }
+
+    @Test
+    public void aReceiptTypeAloneDecidesWhenTheTitleSaysNothing() {
+        assertEquals(NotificationStatusResolver.StatusKey.PARTIALLY_PAID,
+                NotificationStatusResolver.resolveKey(null, "PARTIAL_RECEIPT"));
+    }
 }

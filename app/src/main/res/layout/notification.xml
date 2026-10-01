@@ -20,7 +20,7 @@
             android:background="@android:color/transparent"
             app:elevation="0dp"
             app:liftOnScroll="true"
-            app:liftOnScrollTargetViewId="@id/swipeRefresh">
+            app:liftOnScrollTargetViewId="@id/rvNotifications">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
@@ -35,7 +35,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingTop="92dp"
-                    android:paddingBottom="28dp"
+                    android:paddingBottom="14dp"
                     app:layout_collapseMode="parallax">
 
                     <!-- Premium Background Accent -->
@@ -80,6 +80,62 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="@+id/screenTitle"
                         app:layout_constraintTop_toBottomOf="@+id/titleUnderline" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilSearchNotifications"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginEnd="24dp"
+                        android:hint="@string/search_notifications_hint"
+                        app:endIconMode="clear_text"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/screenDescription"
+                        app:startIconDrawable="@drawable/ic_room_search"
+                        app:startIconTint="@color/velocity_red_primary">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSearchNotifications"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:imeOptions="actionSearch"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:textSize="12sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Filter by status: a single full-width combo box (Material's exposed dropdown
+                         menu - TextInputLayout + non-editable MaterialAutoCompleteTextView) showing all
+                         8 options with their category icon and a checkmark on the selected one. -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/layoutNotificationStatusFilter"
+                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginEnd="24dp"
+                        android:hint="@string/filter_by_status_label"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tilSearchNotifications">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/dropdownNotificationStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:fontFamily="sans-serif-bold"
+                            android:includeFontPadding="false"
+                            android:inputType="none"
+                            android:paddingVertical="8dp"
+                            android:text="@string/notif_filter_all_label"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -177,135 +233,74 @@
             </com.google.android.material.card.MaterialCardView>
         </com.google.android.material.appbar.AppBarLayout>
 
+        <!-- The list is the direct scrolling child: a RecyclerView that recycles its rows (it used to sit
+             in a NestedScrollView at wrap_content height, which inflated every row at once and meant it
+             never scrolled by itself - so scroll-based paging could never fire). The collapsing header
+             still collapses, through the standard nested-scroll chain. -->
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/screenContent"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true"
-                android:overScrollMode="never">
+                android:layout_height="match_parent">
 
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvNotifications"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingTop="16dp"
-                    android:paddingBottom="100dp">
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="100dp"
+                    tools:listitem="@layout/item_notification" />
 
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Label.Section"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginBottom="6dp"
-                        android:text="@string/search_notifications_label"
-                        android:textSize="12sp" />
+                <!-- Empty / load-error state (scrolls on its own so a short screen or a big font can
+                     still reach its button). -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:overScrollMode="never"
+                    android:visibility="gone"
+                    tools:visibility="gone">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilSearchNotifications"
-                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginBottom="14dp"
-                        android:hint="@string/search_notifications_hint"
-                        app:startIconDrawable="@drawable/ic_room_search"
-                        app:startIconTint="@color/velocity_red_primary">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSearchNotifications"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="text"
-                            android:maxLines="1"
-                            android:textSize="12sp" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Filter by status: a single full-width combo box (Material's exposed
-                         dropdown menu - TextInputLayout + non-editable MaterialAutoCompleteTextView,
-                         this project already uses Material Components everywhere else) rather
-                         than the chip row this replaces. The guest picks from a dropdown list
-                         (NotificationFilterDropdownAdapter, item_notification_filter_dropdown.xml)
-                         showing all 8 options with their category icon and a checkmark on
-                         whichever is currently selected - never editable free text. -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/layoutNotificationStatusFilter"
-                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginBottom="14dp"
-                        android:hint="@string/filter_by_status_label">
-
-                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                            android:id="@+id/dropdownNotificationStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="56dp"
-                            android:fontFamily="sans-serif-bold"
-                            android:includeFontPadding="false"
-                            android:inputType="none"
-                            android:paddingVertical="8dp"
-                            android:text="@string/notif_filter_all_label"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="13sp"
-                            tools:ignore="LabelFor" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvNotifications"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clipToPadding="false"
-                        android:nestedScrollingEnabled="false"
-                        tools:listitem="@layout/item_notification" />
-
-                    <!-- Empty State Design -->
                     <include
                         android:id="@+id/layoutEmptyState"
                         layout="@layout/view_empty_state"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
+                        android:layout_height="wrap_content" />
+                </androidx.core.widget.NestedScrollView>
 
-                    <!-- First-load-only indicator - shown in place of (never alongside) both
-                         the list and the empty state above, exactly once per screen open,
-                         while allNotifications is still empty and nothing has failed yet.
-                         A single centered spinner rather than a shimmer/skeleton (this
-                         project has no shimmer library and the task's own instruction is
-                         not to add a new dependency for something a plain loader already
-                         satisfies) - fixed height so it never shifts whatever renders
-                         underneath it once real content replaces it. -->
-                    <LinearLayout
-                        android:id="@+id/layoutInitialLoading"
-                        android:layout_width="match_parent"
-                        android:layout_height="280dp"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        tools:visibility="visible">
+                <!-- First-load-only indicator - shown in place of (never alongside) both the list and
+                     the empty state, exactly once per screen open, while nothing has loaded yet. -->
+                <LinearLayout
+                    android:id="@+id/layoutInitialLoading"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="gone">
 
-                        <ProgressBar
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:indeterminateTint="@color/velocity_red_primary" />
+                    <ProgressBar
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:indeterminateTint="@color/velocity_red_primary" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/loading_notifications_label"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/loading_notifications_label"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="13sp" />
                 </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
+            </FrameLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

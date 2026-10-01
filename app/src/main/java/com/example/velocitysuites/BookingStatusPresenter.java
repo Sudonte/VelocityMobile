@@ -74,72 +74,25 @@ public final class BookingStatusPresenter {
     }
 
     /**
-     * Plain payment-status word for the dedicated Payment Status pill (no
-     * "Payment: " prefix). Prefers the backend's own authoritative
-     * payment_summary.payment_status (PAID/PARTIALLY_PAID/PENDING) over the
-     * legacy billingStatus string when available, so this pill can never
-     * disagree with the authoritative Paid/Remaining figures shown right
-     * next to it on BookingDetailsActivity/TransactionDetailsActivity - see
-     * PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1.
+     * Plain payment-status word for the dedicated Payment Status pill (no "Payment: " prefix) - the shared
+     * status every transaction screen uses (TransactionStatusHelper): Pending / Paid / Partially Paid /
+     * Cancelled / Rejected, decided by the receptionist-verified amount against the grand total.
      */
     public static String paymentStatusPillText(Context context, Booking b) {
-        if (!b.isHasBooking() && b.getEffectiveTotalAmountPaid() <= 0.009) {
-            return context.getString(R.string.no_payment_yet_label);
-        }
-        if (b.isPaymentPendingVerification()) {
-            return context.getString(R.string.awaiting_verification_label);
-        }
-        if (b.hasAuthoritativePaymentSummary()) {
-            String authoritative = b.getPaymentSummary().paymentStatus;
-            if ("PAID".equals(authoritative)) return context.getString(R.string.status_fully_paid);
-            if ("PARTIALLY_PAID".equals(authoritative)) return context.getString(R.string.status_partial_paid);
-            if ("PENDING".equals(authoritative)) return context.getString(R.string.status_pending_label);
-        }
-        String status = b.getBillingStatus() != null ? b.getBillingStatus() : "pending";
-        switch (status.toLowerCase(Locale.US)) {
-            case "paid": return context.getString(R.string.status_fully_paid);
-            case "partial": return context.getString(R.string.status_partial_paid);
-            default: return context.getString(R.string.status_pending_label);
-        }
+        return context.getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.statusOf(b)).labelRes);
     }
 
     public static void stylePaymentStatusPill(Context context, TextView pill, Booking b) {
-        int bg, fg, iconRes;
-        if (!b.isHasBooking() && b.getEffectiveTotalAmountPaid() <= 0.009) {
-            bg = R.color.velocity_gray_soft;
-            fg = R.color.velocity_inactive_gray;
-            iconRes = R.drawable.ic_clock;
-        } else if (b.isPaymentPendingVerification()) {
-            bg = R.color.velocity_blue_soft;
-            fg = R.color.velocity_blue_primary;
-            iconRes = R.drawable.ic_info;
-        } else if (isAuthoritativelyPaid(b) || (!b.hasAuthoritativePaymentSummary() && "paid".equalsIgnoreCase(b.getBillingStatus()))) {
-            bg = R.color.velocity_green_soft;
-            fg = R.color.velocity_green_dark;
-            iconRes = R.drawable.ic_check_circle;
-        } else if (b.getEffectiveTotalAmountPaid() > 0) {
-            bg = R.color.velocity_blue_soft;
-            fg = R.color.velocity_blue_primary;
-            iconRes = R.drawable.ic_clock;
-        } else {
-            bg = R.color.velocity_red_subtle;
-            fg = R.color.velocity_red_primary;
-            iconRes = R.drawable.ic_clock;
-        }
-        pill.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(bg)));
-        pill.setTextColor(context.getResources().getColor(fg));
-        Drawable icon = ContextCompat.getDrawable(context, iconRes);
+        TransactionStatusHelper.Style style = TransactionStatusHelper.styleFor(TransactionStatusHelper.statusOf(b));
+        pill.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(style.bgColorRes)));
+        pill.setTextColor(context.getResources().getColor(style.fgColorRes));
+        Drawable icon = ContextCompat.getDrawable(context, style.iconRes);
         if (icon != null) {
             int size = (int) (12 * context.getResources().getDisplayMetrics().density);
             icon.setBounds(0, 0, size, size);
-            icon.setTint(context.getResources().getColor(fg));
+            icon.setTint(context.getResources().getColor(style.fgColorRes));
         }
         pill.setCompoundDrawables(icon, null, null, null);
         pill.setCompoundDrawablePadding((int) (4 * context.getResources().getDisplayMetrics().density));
-    }
-
-    /** Same authoritative-first rule as {@link #paymentStatusPillText}, isolated so stylePaymentStatusPill's color branch can share it. */
-    private static boolean isAuthoritativelyPaid(Booking b) {
-        return b.hasAuthoritativePaymentSummary() && "PAID".equals(b.getPaymentSummary().paymentStatus);
     }
 }

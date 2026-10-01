@@ -256,22 +256,9 @@
     <string name="timeline_pending">Pending</string>
     <string name="member_since_format">Member since %1$s</string>
     <string name="account_last_updated_format">Last updated %1$s</string>
-    <string name="ptx_title_successful">Payment Successful</string>
-    <string name="ptx_title_pending">Payment Under Verification</string>
-    <string name="ptx_title_cancelled">Cancelled</string>
-    <string name="ptx_title_unpaid">No Payment Yet</string>
-    <!-- Short color-coded status badge on each Transaction History card (PaymentTransactionStatus). -->
-    <string name="ptx_status_paid">Paid</string>
-    <string name="ptx_status_pending">Pending</string>
-    <string name="ptx_status_cancelled">Cancelled</string>
-    <string name="ptx_status_unpaid">Unpaid</string>
+    <!-- Transaction History card: stay dates and "N Receipts Available". -->
     <string name="ptx_stay_label">Stay</string>
-    <string name="ptx_payment_date_label">Payment</string>
     <string name="ptx_stay_dates_format">%1$s – %2$s</string>
-    <string name="ptx_type_booking_payment">Booking Payment</string>
-    <string name="ptx_type_reservation_payment">Reservation Payment</string>
-    <string name="ptx_subtitle_format">%1$s  •  %2$s</string>
-    <string name="ptx_payment_progress_format">Paid %1$s  •  Remaining %2$s</string>
     <plurals name="ptx_receipts_available">
         <item quantity="one">%1$d Receipt Available</item>
         <item quantity="other">%1$d Receipts Available</item>
@@ -456,7 +443,6 @@
     <string name="upcoming_event_booking_prefix">Booking</string>
     <string name="upcoming_event_reservation_prefix">Reservation</string>
     <string name="upcoming_event_title_format">%1$s: %2$s</string>
-    <string name="search_notifications_label">Search Notifications</string>
     <string name="search_notifications_hint">Search notifications, reference number, room type, payment status, or keyword</string>
     <string name="notif_filter_all_label">All Notifications</string>
     <string name="notif_filter_checkin">Check-in</string>
@@ -474,7 +460,6 @@
     <string name="room_type_filter_title">Filter by Room Type</string>
     <string name="booking_status_filter_label">Booking Status</string>
     <string name="booking_status_filter_title">Filter by Booking Status</string>
-    <string name="filter_pending_payment">Pending Payment</string>
 
     <string name="booking_detail_room_type">Room Type: %1$s</string>
     <string name="profile_completion_format">Profile %1$d%% Complete</string>
@@ -506,8 +491,6 @@
     <string name="booking_item_format">%1$s (%2$s)</string>
     <string name="status_pending">PENDING</string>
     <string name="status_modified">MODIFIED</string>
-    <string name="status_fully_paid">Fully Paid</string>
-    <string name="status_partial_paid">Partial Paid</string>
     <string name="status_booking_pending">Booking Pending</string>
     <string name="status_payment_verification_label">Paid - Pending Verification</string>
     <string name="status_validated">Validated</string>
@@ -644,14 +627,12 @@
     <string name="filter_bookings">Bookings</string>
     <string name="filter_payments">Payments</string>
     <string name="filter_reservations">Reservations</string>
-    <string name="filter_cancelled">Cancelled</string>
     <string name="filter_stays">Check-in/Out</string>
     <string name="date_filter_label">Date Filter</string>
     <string name="export_label">Export</string>
     <string name="recent_transactions">Recent Transactions</string>
     <string name="total_paid_label">Total Paid</string>
     <string name="booking_id_format">Booking ID: %1$s</string>
-    <string name="no_transactions_found">Transaction History is Empty</string>
     <string name="transaction_search_empty_desc">No transactions match your search. Try a different keyword or clear your search.</string>
     <string name="transaction_payment_empty_desc">No payment records are available. Completed payments will appear here.</string>
     <string name="view_booking_details_button">View Booking Details</string>
@@ -659,7 +640,6 @@
     <string name="deep_link_transaction_not_found_title">Transaction Not Found</string>
     <string name="deep_link_transaction_not_found">We couldn\'t find that transaction. It may have been removed or is no longer available.</string>
     <string name="view_details_label">View Details</string>
-    <string name="view_transaction_details_label">View Transaction Details</string>
     <string name="announcement_published_format">Published %1$s</string>
     <string name="promo_bundle_badge_label">Free Add-Ons Included</string>
     <string name="promo_active_label">ACTIVE</string>
@@ -690,8 +670,6 @@
     <string name="gcash_instruction_text">Click \'Proceed to GCash\' to securely pay using your GCash account. You will be redirected to the GCash portal.</string>
     <string name="gcash_mobile_hint">GCash Registered Mobile Number</string>
     <string name="processing_payment">Processing secure payment…</string>
-    <string name="downloading_receipt">Downloading receipt…</string>
-    <string name="receipt_saved_path">Receipt saved to /Downloads/VelocitySuites/</string>
     <string name="payment_success_title">Payment Successful!</string>
 
     <!-- dialog_transaction_created.xml - shown once per successful Booking/Reservation
@@ -963,7 +941,6 @@
     <string name="awaiting_verification_label">Pending Verification</string>
     <string name="pending_verification_label">Pending Verification</string>
     <string name="no_payment_yet_label">Reservation - no payment yet</string>
-    <string name="transaction_date_not_yet_paid">Not yet paid</string>
     <string name="booking_list_title">Booking List</string>
     <!-- Full list-section headings, one per Confirmed/Completed/Cancelled
          sub-tab, shown in tvListTitle (see applyListFilterLabels()) - the
@@ -1294,7 +1271,6 @@
     <string name="msg_export_error">Failed to export file</string>
     <string name="downloads_folder_name">Downloads</string>
     <string name="error_load_transactions_format">Couldn\'t load transactions: %1$s</string>
-    <string name="empty_transactions_no_activity_desc">Your transaction history is empty. Completed bookings and payments will appear here.</string>
     <string name="no_transactions_load_error_title">Unable to Load Transactions</string>
     <string name="no_transactions_load_error_desc">Please check your internet connection and try again.</string>
     <string name="msg_mark_all_read">All notifications marked as read</string>
@@ -1565,6 +1541,76 @@
         <item quantity="one">%d guest</item>
         <item quantity="other">%d guests</item>
     </plurals>
+
+    <!-- ===== Shared transaction payment status (TransactionStatusHelper) ===== -->
+    <string name="txn_status_pending">Pending</string>
+    <string name="txn_status_paid">Paid</string>
+    <string name="txn_status_partially_paid">Partially Paid</string>
+    <string name="txn_status_cancelled">Cancelled</string>
+    <string name="txn_status_rejected">Rejected</string>
+    <string name="txn_headline_pending_payment">Awaiting Payment</string>
+    <string name="txn_headline_pending_verification">Payment Awaiting Verification</string>
+    <string name="txn_headline_paid">Payment Complete</string>
+    <string name="txn_headline_partially_paid">Partial Payment Received</string>
+    <string name="txn_headline_cancelled">Transaction Cancelled</string>
+    <string name="txn_headline_rejected">Transaction Rejected</string>
+
+    <!-- Shown wherever a field has no value, instead of a blank, "null" or "N/A". -->
+    <string name="value_missing">—</string>
+
+    <!-- ===== Transaction History card / detail header ===== -->
+    <string name="txn_payment_label">Payment</string>
+    <string name="txn_payment_paid_balance_format">%1$s paid • %2$s balance</string>
+    <string name="txn_payment_submitted_format">%1$s submitted • awaiting verification</string>
+    <string name="txn_payment_submitted_unknown">Payment submitted • awaiting verification</string>
+    <string name="txn_payment_paid_only_format">%1$s paid</string>
+    <string name="txn_payment_none">No payment made</string>
+    <string name="txn_empty_title">No transactions yet</string>
+    <string name="txn_empty_desc">Your bookings, reservations and payments will show up here.</string>
+    <string name="txn_filtered_empty_title">No matching transactions</string>
+    <string name="txn_cd_open_format">%1$s, %2$s. Opens the transaction details.</string>
+    <string name="txn_partial_load_warning">Some transactions couldn\'t be loaded. Pull down to try again.</string>
+    <string name="txn_filter_no_options">Nothing to choose from yet.</string>
+    <string name="txn_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
+    <string name="txn_chip_clear_cd">Clear this filter</string>
+
+    <!-- Payment receipt additions -->
+    <string name="receipt_room_rate_label">Room Rate</string>
+    <string name="receipt_rate_per_night_format">%1$s / night</string>
+    <string name="receipt_rate_varies">Varies by room type</string>
+    <string name="receipt_no_fees_discounts">No additional fees or discounts</string>
+
+    <!-- Transaction detail header + payment history -->
+    <string name="txn_last_payment_format">Last payment: %1$s</string>
+    <string name="txn_no_payment_yet">No payment made yet</string>
+    <string name="txn_amount_paid_verified_label">Amount Paid (verified)</string>
+    <string name="txn_submitted_label">Submitted (awaiting verification)</string>
+    <string name="txn_history_status_verified">Verified</string>
+    <string name="txn_history_status_awaiting">Awaiting verification</string>
+    <string name="txn_history_status_rejected">Rejected</string>
+
+    <!-- Export -->
+    <string name="msg_export_nothing">There are no transactions to export.</string>
+    <string name="msg_export_error_write">Couldn\'t save the file. Check that the location has free space and try again.</string>
+    <string name="msg_export_error_unexpected">Something went wrong while creating the report. Please try again.</string>
+
+    <!-- ===== Notification card ===== -->
+    <string name="view_transaction_label">View Transaction</string>
+    <string name="cd_view_transaction_format">View transaction for %1$s</string>
+    <string name="cd_mark_read_format">Mark as read: %1$s</string>
+    <string name="cd_mark_unread_format">Mark as unread: %1$s</string>
+    <string name="notif_category_booking">Booking</string>
+    <string name="notif_category_reservation">Reservation</string>
+    <string name="notif_category_payment">Payment</string>
+    <string name="notif_category_check_in">Check-in</string>
+    <string name="notif_category_promotion">Promotion</string>
+    <string name="notif_category_sms">SMS</string>
+    <string name="notif_category_system">System</string>
+    <string name="notif_category_announcement">Announcement</string>
+    <!-- Header summary while the first load is still in flight / has failed: the unread count is
+         UNKNOWN then, so "You're all caught up" (a claim that it is 0) must not be shown. -->
+    <string name="notif_unread_checking">Checking for new alerts…</string>
+    <string name="notif_unread_unavailable">Couldn\'t check for new alerts</string>
 </resources>
 
 

@@ -175,6 +175,7 @@ public final class NotificationHelper {
             intent = new Intent(context, TransactionHistoryActivity.class);
             intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER, TransactionHistoryActivity.FILTER_PAYMENTS);
             intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, n.getReferenceId());
+            intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_TYPE_HINT, n.getType());
         } else {
             intent = new Intent(context, NotificationActivity.class);
             intent.putExtra(NotificationActivity.EXTRA_NOTIFICATION_ID, n.getId());

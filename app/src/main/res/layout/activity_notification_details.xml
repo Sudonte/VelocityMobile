@@ -180,7 +180,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:fontFamily="sans-serif-black"
-                android:text="@string/view_transaction_details_label"
+                android:text="@string/view_transaction_label"
                 android:textAllCaps="false"
                 android:textSize="14sp"
                 android:visibility="gone"

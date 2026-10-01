@@ -245,35 +245,25 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp" />
 
-                    <LinearLayout
-                        android:id="@+id/layoutVerifiedBadge"
+                    <!-- Payment status badge - bound in PaymentReceiptActivity#populateReceipt() from
+                         TransactionStatusHelper, the same status Transaction History shows. -->
+                    <TextView
+                        android:id="@+id/tvReceiptStatusBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="10dp"
                         android:background="@drawable/shape_intro_pill"
-                        android:backgroundTint="@color/velocity_green_soft"
+                        android:drawablePadding="6dp"
+                        android:fontFamily="sans-serif-black"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal"
+                        android:letterSpacing="0.04"
+                        android:maxLines="1"
                         android:paddingHorizontal="14dp"
-                        android:paddingVertical="6dp">
-
-                        <ImageView
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
-                            android:layout_marginEnd="6dp"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_check_circle"
-                            app:tint="@color/velocity_green_dark" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="@string/receipt_verified_title"
-                            android:textColor="@color/velocity_green_dark"
-                            android:textSize="12sp" />
-                    </LinearLayout>
+                        android:paddingVertical="6dp"
+                        android:textAllCaps="true"
+                        android:textSize="12sp"
+                        tools:text="Paid" />
 
                     <!-- Guest Information -->
                     <View

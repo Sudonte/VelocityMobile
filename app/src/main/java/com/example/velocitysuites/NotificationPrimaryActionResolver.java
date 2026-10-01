@@ -1,11 +1,11 @@
 package com.example.velocitysuites;
 
 /**
- * Resolves whether NotificationDetailsActivity#bindPrimaryAction() should
- * offer a "View Transaction Details" button for a notification - every
+ * Resolves whether a notification offers the "View Transaction" action (its
+ * card footer, and NotificationDetailsActivity#bindPrimaryAction()) - every
  * Booking/Reservation/Payment/Check-in notification with a reference id
- * deep-links into Transaction History (scrolled to and highlighted on the
- * exact record); Promotions/Announcements/System notifications have no
+ * opens that exact transaction (see TransactionNavigator);
+ * Promotions/Announcements/System notifications have no
  * transaction to show and get no button at all. Extracted into a pure
  * static resolver (no Context needed, mirroring NotificationStatusResolver's
  * pattern) so adding a new notification type here is a one-line,
@@ -23,15 +23,19 @@ public final class NotificationPrimaryActionResolver {
      * History with. Every transaction-linked category routes through the
      * same destination now - a prior version of this app sent Booking/
      * Reservation/Check-in straight to BookingDetailsActivity instead,
-     * which disagreed with this button's own "View Transaction Details"
+     * which disagreed with this button's own "View Transaction"
      * label for exactly those three types.
      */
     public static boolean canViewTransaction(String type, String referenceId) {
-        return referenceId != null
-                && (Notification.TYPE_BOOKING.equals(type)
-                    || Notification.TYPE_RESERVATION.equals(type)
-                    || Notification.TYPE_PAYMENT.equals(type)
-                    || Notification.TYPE_CHECK_IN.equals(type));
+        return referenceId != null && !referenceId.trim().isEmpty() && isTransactionCategory(type);
+    }
+
+    /** True for the categories whose notifications are about a specific transaction (Booking/Reservation/Payment/Check-in). */
+    public static boolean isTransactionCategory(String type) {
+        return Notification.TYPE_BOOKING.equals(type)
+                || Notification.TYPE_RESERVATION.equals(type)
+                || Notification.TYPE_PAYMENT.equals(type)
+                || Notification.TYPE_CHECK_IN.equals(type);
     }
 
     /**

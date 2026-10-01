@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     One Transaction History card = one reservation or booking, top to bottom:
+
+       [● PENDING]  RESERVATION #588                          ›     <- status badge, reference, chevron
+       Deluxe                                          ₱1,800.00    <- room type | grand total
+       ─────────────────────────────────────────────────────────
+       Stay       Oct 01, 2026 – Oct 02, 2026
+       Payment    ₱900.00 paid • ₱900.00 balance
+                  ₱900.00 submitted • awaiting verification        <- only while a payment awaits verification
+       ⟳ 2 Receipts Available                                       <- only when receipts exist
+
+     A plain vertical stack of rows - each row a horizontal box whose flexible child (the reference, the
+     room text, the value column) takes what the fixed-size children leave - so nothing can overlap: a long
+     value wraps or ellipsizes instead. No absolute positioning, no negative margins, no Flow/Barrier (the
+     previous ConstraintLayout version let a wrapped badge row spill over the divider and the Stay row at
+     large system fonts). TransactionCardLayoutTest measures it at 320/360/411dp x 1.0-1.5x font.
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardTransaction"
+    style="@style/Widget.Velocity.Card.Glass.Compact"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginBottom="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="@color/velocity_surface_elevated"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:rippleColor="@color/velocity_red_subtle">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp">
+
+        <!-- Row 1: status badge, then the reference right next to it, chevron far right. The
+             reference takes the remaining width and wraps onto a second line (never clips the id)
+             when a large font leaves it too little. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTxnStatusBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_intro_pill"
+                android:drawablePadding="4dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-black"
+                android:gravity="center_vertical"
+                android:letterSpacing="0.04"
+                android:maxLines="1"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textAllCaps="true"
+                android:textSize="11sp"
+                tools:text="Pending" />
+
+            <TextView
+                android:id="@+id/tvTxnRef"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.03"
+                android:maxLines="2"
+                android:textAllCaps="true"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="11sp"
+                tools:text="Reservation #588" />
+
+            <ImageView
+                android:id="@+id/ivTxnChevron"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="6dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="@color/velocity_text_secondary" />
+        </LinearLayout>
+
+        <!-- Row 2: room type (wraps, up to 2 lines) | grand total (never wraps or shrinks). -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTxnRoom"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-black"
+                android:maxLines="2"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="15sp"
+                tools:text="Deluxe" />
+
+            <TextView
+                android:id="@+id/tvTxnTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-black"
+                android:gravity="end"
+                android:textColor="@color/velocity_action_text"
+                android:textSize="16sp"
+                tools:text="₱1,800.00" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/dividerTxn"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/velocity_divider_hairline" />
+
+        <!-- Stay / Payment: a two-column table so both values start at the same x whatever the
+             label widths or font scale; the value column stretches and wraps. -->
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:shrinkColumns="1"
+            android:stretchColumns="1">
+
+            <TableRow>
+
+                <TextView
+                    android:id="@+id/tvTxnStayLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/ptx_stay_label"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvTxnStay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="12sp"
+                    tools:text="Oct 01, 2026 – Oct 02, 2026" />
+            </TableRow>
+
+            <TableRow android:layout_marginTop="4dp">
+
+                <TextView
+                    android:id="@+id/tvTxnPaymentLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="14dp"
+                    android:text="@string/txn_payment_label"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvTxnPayment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="12sp"
+                    tools:text="₱900.00 paid • ₱900.00 balance\n₱900.00 submitted • awaiting verification" />
+            </TableRow>
+        </TableLayout>
+
+        <!-- "N Receipt(s) Available" - only when the backend has issued receipts for this transaction.
+             The leading icon is attached in code (TransactionHistoryAdapter -> TextIcons) so it is sized
+             with the text; this is one TextView rather than an ImageView + TextView row. -->
+        <TextView
+            android:id="@+id/tvTxnReceipts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:drawablePadding="4dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center_vertical"
+            android:textColor="@color/velocity_action_text"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:drawableStart="@drawable/ic_transaction_history"
+            tools:text="2 Receipts Available"
+            tools:visibility="visible" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

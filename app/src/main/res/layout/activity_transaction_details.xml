@@ -47,92 +47,113 @@
             android:orientation="vertical"
             android:padding="14dp">
 
-            <!-- Header card: the selected payment's own summary. -->
+            <!-- Header card: status badge + reference, the headline, and the money at a glance
+                 (grand total, verified paid, balance, anything awaiting verification - filled in by
+                 TransactionDetailsActivity#bindHeader() from TransactionStatusHelper, the same source the
+                 Transaction History card uses, so the two can never disagree). -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Glass.Compact"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/velocity_surface_elevated"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
-                    android:orientation="horizontal"
-                    android:padding="14dp"
-                    android:gravity="center_vertical">
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/iconContainerTxDetail"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="14dp"
-                        app:cardCornerRadius="24dp"
-                        app:cardElevation="0dp"
-                        app:cardBackgroundColor="@color/velocity_green_soft">
-
-                        <ImageView
-                            android:id="@+id/ivTxDetailIcon"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_check_circle"
-                            app:tint="@color/velocity_green_dark" />
-                    </com.google.android.material.card.MaterialCardView>
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/tvTxDetailTitle"
-                            android:layout_width="match_parent"
+                            android:id="@+id/tvTxDetailStatusBadge"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:background="@drawable/shape_intro_pill"
+                            android:drawablePadding="4dp"
+                            android:ellipsize="end"
                             android:fontFamily="sans-serif-black"
-                            android:textColor="@color/black"
-                            android:textSize="16sp"
-                            tools:text="Payment Successful" />
-
-                        <TextView
-                            android:id="@+id/tvTxDetailRoom"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp"
-                            tools:text="Booking Payment  •  Executive Room" />
-
-                        <TextView
-                            android:id="@+id/tvTxDetailDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textColor="@color/velocity_inactive_gray"
+                            android:gravity="center_vertical"
+                            android:letterSpacing="0.04"
+                            android:maxLines="1"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:textAllCaps="true"
                             android:textSize="11sp"
-                            tools:text="Sep 02, 2026  •  10:24 AM" />
+                            tools:text="Pending" />
+
+                        <TextView
+                            android:id="@+id/tvTxDetailRef"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:fontFamily="sans-serif-black"
+                            android:letterSpacing="0.03"
+                            android:maxLines="2"
+                            android:textAllCaps="true"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="11sp"
+                            tools:text="Reservation #588" />
                     </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvTxDetailAmount"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvTxDetailTitle"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="sans-serif-black"
-                        android:textColor="@color/velocity_red_primary"
-                        android:textSize="16sp"
-                        tools:text="₱2,900.00" />
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="17sp"
+                        tools:text="Payment Awaiting Verification" />
+
+                    <TextView
+                        android:id="@+id/tvTxDetailRoom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="13sp"
+                        tools:text="Deluxe" />
+
+                    <TextView
+                        android:id="@+id/tvTxDetailDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp"
+                        tools:text="Last payment: Sep 30, 2026 • 10:09 PM" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/velocity_divider_hairline" />
+
+                    <LinearLayout
+                        android:id="@+id/sectionTxDetailMoney"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Opens the full Booking/Reservation Details screen for this transaction's
                  parent booking - restores the access this screen's own notification
                  deep-link used to give directly (see NotificationPrimaryActionResolver),
-                 now that "View Transaction Details" always lands here first instead. -->
+                 now that "View Transaction" always lands here first instead. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnViewBookingDetails"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"

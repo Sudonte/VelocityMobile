@@ -132,6 +132,27 @@ public final class TimeUtils {
         return DATE_FORMAT.format(instant.atZone(ZONE_MANILA));
     }
 
+    private static final DateTimeFormatter COMPACT_SAME_YEAR =
+            DateTimeFormatter.ofPattern("MMM d • h:mm a", Locale.ENGLISH);
+
+    /**
+     * The short, always-one-line timestamp a dense card shows: "Just now", "5m ago", "2h ago" for the
+     * last day, then "Sep 30 • 10:09 PM" (this year) or "Sep 30, 2025" (an earlier year) in Asia/Manila.
+     * Empty for an unknown instant (epochMillis &lt;= 0) so the caller can fall back to another field.
+     * Takes the clock as a parameter so the day/year boundaries are unit-testable.
+     */
+    public static String formatCompact(long epochMillis, long nowMillis) {
+        if (epochMillis <= 0) return "";
+        long minutes = Math.max(0, nowMillis - epochMillis) / (60 * 1000);
+        if (minutes < 1) return "Just now";
+        if (minutes < 60) return minutes + "m ago";
+        long hours = minutes / 60;
+        if (hours < 24) return hours + "h ago";
+        ZonedDateTime then = Instant.ofEpochMilli(epochMillis).atZone(ZONE_MANILA);
+        ZonedDateTime now = Instant.ofEpochMilli(nowMillis).atZone(ZONE_MANILA);
+        return then.getYear() == now.getYear() ? COMPACT_SAME_YEAR.format(then) : DATE_FORMAT.format(then);
+    }
+
     /** ZonedDateTime for the current instant in Asia/Manila - for one-off "now" comparisons against Manila's calendar day. */
     public static ZonedDateTime nowInManila() {
         return ZonedDateTime.now(ZONE_MANILA);

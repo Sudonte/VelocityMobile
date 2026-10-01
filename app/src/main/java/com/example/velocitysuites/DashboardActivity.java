@@ -513,13 +513,12 @@ public class DashboardActivity extends BaseNavigationActivity {
             applyPillIcon(tvTypePill, lifecycleResult.iconRes, lifecycleResult.fgColorRes);
         }
 
-        double total = b.getTotalAmount();
-        // Backend-authoritative payment_summary totals when attached, else the
-        // legacy fields - see Booking#getEffectiveTotalAmountPaid()'s own doc
-        // (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1) - must never
-        // disagree with the PaymentStatusResolver pill shown right below.
-        double paid = b.getEffectiveTotalAmountPaid();
-        double remaining = b.getEffectiveRemainingBalance();
+        // Receptionist-verified money only, from the same helper that decides the status pill shown right
+        // below (TransactionStatusHelper) - so "Paid" can never read a submitted-but-unverified amount next
+        // to a "Pending" pill.
+        double total = TransactionStatusHelper.grandTotalOf(b);
+        double paid = TransactionStatusHelper.verifiedPaidOf(b);
+        double remaining = Math.max(0, total - paid);
 
         tvTotal.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), total));
         tvPaid.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), paid));
@@ -1254,6 +1253,8 @@ public class DashboardActivity extends BaseNavigationActivity {
                 ? TransactionHistoryActivity.FILTER_BOOKINGS
                 : TransactionHistoryActivity.FILTER_RESERVATIONS);
         intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, booking.getId());
+        // The exact family (a reservation and a direct booking can share an id).
+        intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_DIRECT, booking.isDirectBooking());
         startActivity(intent);
     }
 
@@ -1262,6 +1263,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         android.content.Intent intent = new android.content.Intent(this, TransactionHistoryActivity.class);
         intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER, TransactionHistoryActivity.FILTER_BOOKINGS);
         intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, booking.getId());
+        intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_DIRECT, booking.isDirectBooking());
         startActivity(intent);
     }
 

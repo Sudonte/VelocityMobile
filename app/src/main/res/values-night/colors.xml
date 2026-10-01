@@ -63,4 +63,20 @@
          pairs found on a real device in Dark Mode. -->
     <color name="velocity_red_soft">#3D1F1F</color>
     <color name="velocity_red_subtle">#4A2424</color>
+
+    <!-- Payment-status badge colors - dark-surface pairs (light text on a deep tint of the same
+         hue). See the light values/colors.xml comment; contrast enforced by StatusColorContrastTest. -->
+    <color name="status_pending_bg">#4A3710</color>
+    <color name="status_pending_fg">#FFD98A</color>
+    <color name="status_paid_bg">#16351F</color>
+    <color name="status_paid_fg">#9DE3AE</color>
+    <color name="status_partial_bg">#12324F</color>
+    <color name="status_partial_fg">#9CCBFF</color>
+    <color name="status_cancelled_bg">#3A3A3A</color>
+    <color name="status_cancelled_fg">#D6D6D6</color>
+    <color name="status_rejected_bg">#4D2424</color>
+    <color name="status_rejected_fg">#FFADAD</color>
+
+    <!-- Brand-red text for small actions/chips on dark cards - see the light values/colors.xml comment. -->
+    <color name="velocity_action_text">#FF8A80</color>
 </resources>

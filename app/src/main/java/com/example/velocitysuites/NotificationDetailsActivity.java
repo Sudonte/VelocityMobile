@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
-import java.util.List;
 
 /**
  * Full-detail screen for a single Notification, replacing
@@ -38,6 +37,9 @@ public class NotificationDetailsActivity extends AppCompatActivity {
     public static final String EXTRA_NOTIFICATION = "EXTRA_NOTIFICATION";
 
     private Notification notification;
+    private final ClickGuard clickGuard = new ClickGuard();
+    /** A by-id lookup of the transaction is running - further taps on "View Transaction" are ignored until it lands (no duplicate request). */
+    private boolean lookupInFlight = false;
     /** Resolved once in bindRelatedRecord() and reused by bindPrimaryAction() for the "View Payment Receipt" gate - null when the notification has no linked record still resident in RoomRepository's cache. */
     @Nullable
     private Booking relatedBooking;
@@ -87,6 +89,14 @@ public class NotificationDetailsActivity extends AppCompatActivity {
         int iconRes = category.iconRes;
         int bgColor = category.bgColorRes;
         int iconColor = category.fgColorRes;
+        // The same status icon the list card shows (clock = pending, check = paid/verified/confirmed, X =
+        // cancelled/rejected) - so "Payment Pending Validation" never wears a checkmark here either.
+        NotificationStatusResolver.Result status = NotificationStatusResolver.resolve(this, notification);
+        if (status != null) {
+            iconRes = status.iconRes;
+            bgColor = status.bgColorRes;
+            iconColor = status.fgColorRes;
+        }
 
         MaterialCardView iconContainer = findViewById(R.id.iconContainerNotifDetail);
         ImageView ivIcon = findViewById(R.id.ivNotifDetailIcon);
@@ -103,16 +113,10 @@ public class NotificationDetailsActivity extends AppCompatActivity {
             return;
         }
 
-        Booking booking = null;
-        List<Booking> allBookings = RoomRepository.getInstance(this).getBookings();
-        if (allBookings != null) {
-            for (Booking candidate : allBookings) {
-                if (referenceId.equals(candidate.getId())) {
-                    booking = candidate;
-                    break;
-                }
-            }
-        }
+        // The exact transaction this notification is about - a reservation and a direct booking can share an id,
+        // so this is not simply "the first booking with that id" (see TransactionNavigator#pick()).
+        Booking booking = TransactionNavigator.pick(RoomRepository.getInstance(this).getBookings(), referenceId, null,
+                notification.getType(), notification.getReceiptNumber());
 
         relatedBooking = booking;
         if (booking == null) {
@@ -136,6 +140,9 @@ public class NotificationDetailsActivity extends AppCompatActivity {
         addInfoRow(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
         addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
         addInfoRow(container, getString(R.string.details_label_status), BookingStatusPresenter.computeStatusLabel(this, booking));
+        // The shared payment status - the same word Transaction History shows for this transaction.
+        addInfoRow(container, getString(R.string.payment_status),
+                getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.statusOf(booking)).labelRes));
 
         boolean isCancelledOrRejected = "Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus());
         if (isCancelledOrRejected && !TextUtils.isEmpty(booking.getTransactionRejectionReason())) {
@@ -159,11 +166,29 @@ public class NotificationDetailsActivity extends AppCompatActivity {
         if (canViewTransaction) {
             btnPrimary.setVisibility(View.VISIBLE);
             btnPrimary.setOnClickListener(v -> {
-                Intent intent = new Intent(this, TransactionHistoryActivity.class);
-                intent.putExtra(TransactionHistoryActivity.EXTRA_OPEN_FILTER,
-                        NotificationPrimaryActionResolver.transactionHistoryFilterFor(type));
-                intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, referenceId);
-                startActivity(intent);
+                if (lookupInFlight || !clickGuard.tryAcquire()) return;
+                TransactionNavigator.openFromNotification(this, notification, new TransactionNavigator.Listener() {
+                    @Override
+                    public void onLookupStarted() {
+                        lookupInFlight = true;
+                    }
+
+                    @Override
+                    public void onLookupFinished() {
+                        lookupInFlight = false;
+                    }
+
+                    @Override
+                    public void onNotFound() {
+                        TransactionNavigator.showNotFoundDialog(NotificationDetailsActivity.this);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        android.widget.Toast.makeText(NotificationDetailsActivity.this,
+                                getString(R.string.txn_lookup_error_format, message), android.widget.Toast.LENGTH_LONG).show();
+                    }
+                });
             });
         } else {
             btnPrimary.setVisibility(View.GONE);

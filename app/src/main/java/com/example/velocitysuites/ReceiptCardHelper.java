@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Single shared home for the Payment Receipt card/row-building logic that
@@ -39,7 +38,8 @@ final class ReceiptCardHelper {
      * Reservation with no payment involved gets no card.
      */
     static boolean hasLegacyReceiptCandidate(Booking booking) {
-        return booking.getAmountPaid() > 0.009 || booking.isPaymentPendingVerification() || booking.isPaymentRejected();
+        return booking.getAmountPaid() > 0.009 || booking.isPaymentPendingVerification() || booking.isPaymentRejected()
+                || MoneyFormat.isPositive(TransactionStatusHelper.verifiedPaidOf(booking));
     }
 
     /**
@@ -50,7 +50,9 @@ final class ReceiptCardHelper {
      * card shows.
      */
     static boolean isLegacyReceiptVerified(Booking booking) {
-        return booking.isStaffVerified() && booking.getAmountPaid() > 0.009;
+        // Receptionist-verified money only: a direct booking's getAmountPaid() also counts payments still
+        // awaiting verification, which must never unlock an "official" receipt.
+        return booking.isStaffVerified() && MoneyFormat.isPositive(TransactionStatusHelper.verifiedPaidOf(booking));
     }
 
     /**
@@ -251,16 +253,16 @@ final class ReceiptCardHelper {
         ((TextView) row.findViewById(R.id.tvRowValue)).setText(value);
     }
 
-    /** PAID -> "Paid", PARTIALLY_PAID -> "Partially Paid", PENDING -> "Pending"; anything else (incl. a lowercase legacy status/receipt status like "verified"/"rejected") passed through as-is/title-cased by the caller. */
+    /** PAID -> "Paid", PARTIALLY_PAID -> "Partially Paid", PENDING -> "Pending" (the shared status words); anything else (incl. a lowercase legacy status/receipt status like "verified"/"rejected") passed through as-is/title-cased by the caller. */
     static String statusLabelFor(Activity activity, @Nullable String paymentStatus) {
         if (paymentStatus == null) return activity.getString(R.string.status_verified);
         switch (paymentStatus) {
             case "PAID":
-                return activity.getString(R.string.receipt_status_official_paid);
+                return activity.getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.Status.PAID).labelRes);
             case "PARTIALLY_PAID":
-                return activity.getString(R.string.status_partial_paid);
+                return activity.getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.Status.PARTIALLY_PAID).labelRes);
             case "PENDING":
-                return activity.getString(R.string.status_pending_label);
+                return activity.getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.Status.PENDING).labelRes);
             case "verified":
                 return activity.getString(R.string.status_verified);
             case "rejected":
@@ -271,6 +273,6 @@ final class ReceiptCardHelper {
     }
 
     static String formatPrice(double value) {
-        return String.format(Locale.US, "₱%,.2f", value);
+        return MoneyFormat.format(value);
     }
 }

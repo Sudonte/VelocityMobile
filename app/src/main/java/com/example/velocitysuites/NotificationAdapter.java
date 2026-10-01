@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,7 +27,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         void onNotificationClick(Notification notification);
         /** Tapped the per-row mark-as-read/unread toggle - distinct from the whole-card tap above. */
         void onToggleReadClick(Notification notification);
-        /** Tapped the card's own "View Transaction Details" button - distinct from the whole-card tap, which opens the notification detail screen instead. Only ever bound when NotificationPrimaryActionResolver#canViewTransaction() is true for this row (see bindActions()). */
+        /** Tapped the card's own "View Transaction" button - distinct from the whole-card tap, which opens the notification detail screen instead. Only ever bound when NotificationPrimaryActionResolver#canViewTransaction() is true for this row (see bindActions()). */
         void onViewTransactionDetailsClick(Notification notification);
     }
 
@@ -203,19 +204,21 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     /**
-     * Time text only - always the absolute "Sep 9, 2026 • 2:37 AM" when the
-     * backend provided one, since that never goes stale; falls back to a
-     * FRESHLY computed relative string (never the cached, potentially
-     * minutes/hours-stale Notification#getTimestamp() field - see
-     * TimeUtils#formatRelative(long)'s own doc) for the rare older
-     * notification with no publishedAt at all. Shared by the full bind
-     * below and the payload-only partial bind, so both always agree.
+     * Time text only - the short, always-one-line form from TimeUtils#formatCompact() ("Just now", "5m
+     * ago", "2h ago", then "Sep 30 • 10:09 PM"), computed FRESH from the row's created-at instant on every
+     * call (never from the cached, potentially stale Notification#getTimestamp() string), which is what lets
+     * the once-a-minute refreshVisibleTimestamps() tick "5m ago" into "6m ago". Only a row with no created-at
+     * at all (the oldest shape a backend row can have) falls back to its stored relative/absolute string.
+     * Shared by the full bind below and the payload-only partial bind, so both always agree.
      */
     private void bindTime(ViewHolder holder, Notification notification) {
-        String absoluteTime = notification.getPublishedAt();
-        holder.tvTime.setText(absoluteTime != null && !absoluteTime.isEmpty()
-                ? absoluteTime
-                : TimeUtils.formatRelative(notification.getCreatedAtMillis()));
+        String text = TimeUtils.formatCompact(notification.getCreatedAtMillis(), System.currentTimeMillis());
+        if (text.isEmpty()) {
+            String relative = notification.getTimestamp();
+            String absolute = notification.getPublishedAt();
+            text = relative != null && !relative.isEmpty() ? relative : (absolute != null ? absolute : "");
+        }
+        holder.tvTime.setText(text);
     }
 
     @NonNull
@@ -286,9 +289,21 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         bindTime(holder, notification);
 
         NotificationCategoryPresenter.Result category = NotificationCategoryPresenter.resolve(notification.getType());
-        holder.ivIcon.setImageResource(category.iconRes);
-        holder.iconContainer.setCardBackgroundColor(ctx.getColor(category.bgColorRes));
-        holder.ivIcon.setColorFilter(ctx.getColor(category.fgColorRes));
+        NotificationStatusResolver.Result status = NotificationStatusResolver.resolve(ctx, notification);
+        // The circle shows the STATUS icon (amber clock = pending, green check = paid/verified/confirmed,
+        // X = cancelled/rejected) whenever the notification announces an outcome - so "Payment Pending
+        // Validation" no longer wears the Payment category's green checkmark. A notification with no status
+        // keeps its category icon.
+        holder.boundIconRes = status != null ? status.iconRes : category.iconRes;
+        if (status != null) {
+            holder.ivIcon.setImageResource(status.iconRes);
+            holder.iconContainer.setCardBackgroundColor(ctx.getColor(status.bgColorRes));
+            holder.ivIcon.setColorFilter(ctx.getColor(status.fgColorRes));
+        } else {
+            holder.ivIcon.setImageResource(category.iconRes);
+            holder.iconContainer.setCardBackgroundColor(ctx.getColor(category.bgColorRes));
+            holder.ivIcon.setColorFilter(ctx.getColor(category.fgColorRes));
+        }
 
         // Unread = a subtle brand-tinted background (no border/elevation games) - read
         // = the card's normal surface color. Deliberately no alpha-fade on the read
@@ -297,7 +312,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // "read cards use the normal background" - the unread-vs-read signal is
         // the tint, the title weight, and the unread dot above, each independently
         // visible.
-        holder.card.setCardElevation(isRead ? 0f : 2f);
+        holder.card.setCardElevation(isRead ? 0f : 1f);
         holder.card.setCardBackgroundColor(ctx.getColor(
                 isRead ? R.color.velocity_surface_elevated : R.color.velocity_red_bg_start));
         holder.card.setStrokeColor(ctx.getColor(
@@ -315,11 +330,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         bindActions(holder, notification, isRead);
 
         if (holder.tvCategory != null) {
-            holder.tvCategory.setText(notification.getType());
+            holder.tvCategory.setText(category.labelRes);
         }
 
         if (holder.tvStatusPill != null) {
-            NotificationStatusResolver.Result status = NotificationStatusResolver.resolve(ctx, notification);
             if (status != null) {
                 holder.tvStatusPill.setVisibility(View.VISIBLE);
                 holder.tvStatusPill.setText(status.label);
@@ -352,15 +366,20 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
      * convention as a mail client's own mark-as-read action). Tapping it only
      * reports the tap (onToggleReadClick) - NotificationActivity owns the
      * confirmation dialog, the write, and the success/failure message, so this
-     * adapter never mutates read state itself. "View Transaction Details" only
+     * adapter never mutates read state itself. "View Transaction" only
      * shows for a Booking/Reservation/Payment/Check-in notification with a
      * resolvable reference id - Promotions/Announcements/System have nothing to
-     * deep-link to; item_notification.xml's Flow skips it (GONE) and the
-     * remaining button simply takes the row.
+     * deep-link to; the button is then GONE and the toggle simply stays on
+     * the right of the one-row footer.
      */
     private void bindActions(ViewHolder holder, Notification notification, boolean isRead) {
+        Context ctx = holder.itemView.getContext();
+        String title = notification.getTitle() != null ? notification.getTitle() : "";
+
         holder.btnToggleReadState.setText(isRead ? R.string.mark_as_unread_action : R.string.mark_as_read_action);
-        holder.btnToggleReadState.setIconResource(isRead ? R.drawable.ic_email : R.drawable.ic_email_open);
+        setCompoundIcons(holder.btnToggleReadState, isRead ? R.drawable.ic_email : R.drawable.ic_email_open, 0);
+        holder.btnToggleReadState.setContentDescription(ctx.getString(
+                isRead ? R.string.cd_mark_unread_format : R.string.cd_mark_read_format, title));
         holder.btnToggleReadState.setOnClickListener(v -> {
             if (listener != null) listener.onToggleReadClick(notification);
         });
@@ -368,10 +387,23 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(notification.getType(), notification.getReferenceId());
         holder.btnViewTransactionDetails.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
         if (canViewTransaction) {
+            setCompoundIcons(holder.btnViewTransactionDetails, 0, R.drawable.ic_arrow_forward);
+            holder.btnViewTransactionDetails.setContentDescription(ctx.getString(R.string.cd_view_transaction_format, title));
             holder.btnViewTransactionDetails.setOnClickListener(v -> {
                 if (listener != null) listener.onViewTransactionDetailsClick(notification);
             });
+        } else {
+            // Not a stale listener on a recycled, hidden view.
+            holder.btnViewTransactionDetails.setOnClickListener(null);
         }
+    }
+
+    /**
+     * Start/end icons for a footer action, sized to its text (1.3x the text size, so they grow with the
+     * guest's system font like the label does) and tinted like the label - see {@link TextIcons}.
+     */
+    private static void setCompoundIcons(TextView view, @DrawableRes int startRes, @DrawableRes int endRes) {
+        TextIcons.setRelative(view, startRes, endRes, 1.3f);
     }
 
     /**
@@ -412,10 +444,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvMessage, tvTime, tvCategory, tvStatusPill, tvDateGroup;
         ImageView ivIcon;
-        com.google.android.material.button.MaterialButton btnToggleReadState, btnViewTransactionDetails;
+        TextView btnToggleReadState, btnViewTransactionDetails;
         View dividerDateGroup, viewUnreadDot;
         MaterialCardView card;
         MaterialCardView iconContainer;
+        /** The drawable resource currently shown in the icon circle - the status icon when there is a status, else the category icon. */
+        int boundIconRes;
+
+        /** Test hook: which icon resource this row is showing (a vector drawable has no comparable identity once loaded). */
+        @androidx.annotation.VisibleForTesting
+        public int getBoundIconRes() {
+            return boundIconRes;
+        }
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

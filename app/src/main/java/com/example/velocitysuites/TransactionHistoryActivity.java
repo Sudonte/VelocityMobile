@@ -1,104 +1,168 @@
 package com.example.velocitysuites;
 
-import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.text.NumberFormat;
+
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+/**
+ * Transaction History: one card per reservation/booking with its status, grand total, stay dates and what has
+ * been paid (see {@link TransactionHistoryAdapter}).
+ * <p>
+ * How it stays honest and responsive:
+ * <ul>
+ *   <li><b>Status</b> is always {@link TransactionStatusHelper}'s, derived from receptionist-verified
+ *       payments - never from what the guest submitted.</li>
+ *   <li><b>Fresh</b>: painted at once from the shared cache, then refreshed on open; refreshed again on
+ *       pull-to-refresh, every 30s, on return to the screen, and the moment a notification about a
+ *       booking/reservation/payment arrives - so a receptionist's verification shows up without a manual
+ *       reload. At most one refresh and one poll run at a time; an arrival that lands mid-flight queues one
+ *       more rather than being lost.</li>
+ *   <li><b>Cheap</b>: rows are immutable snapshots built once per data change; search is debounced; the
+ *       list is a real recycling RecyclerView (the screen's scroll container), so paging by scrolling works.</li>
+ *   <li><b>Safe</b>: no UI work after the screen is gone, handlers/executors released in onDestroy, repeated
+ *       taps swallowed ({@link ClickGuard}), and Export can only end in a saved file or a clear message.</li>
+ * </ul>
+ */
 public class TransactionHistoryActivity extends BaseNavigationActivity {
 
-    /** Intent extra key + values used by DashboardActivity's Payment Status/Recent Bookings sections to land directly on a given chip. */
+    /** Intent extra key + values used by DashboardActivity's Payment Status/Recent Bookings sections to land directly on a given filter. */
     public static final String EXTRA_OPEN_FILTER = "OPEN_FILTER";
     public static final String FILTER_PAYMENTS = "Payments";
     public static final String FILTER_BOOKINGS = "Bookings";
-    /** Booking-vs-Reservation Payment Status routing (DashboardActivity#openTransactionHistoryForPaymentItem): a still-unconverted Reservation-type transaction opens under this chip. */
+    /** Booking-vs-Reservation Payment Status routing (DashboardActivity#openTransactionHistoryForPaymentItem): a still-unconverted Reservation-type transaction opens under this filter. */
     public static final String FILTER_RESERVATIONS = "Reservations";
-    /** Optional Booking ID to scroll to and highlight, passed when a specific dashboard payment/booking item is tapped. */
+    /** Optional transaction id to scroll to, highlight and open, passed when a specific dashboard/notification item is tapped. */
     public static final String EXTRA_SELECTED_BOOKING_ID = "SELECTED_BOOKING_ID";
+    /** Optional: true when the id is a direct booking, false when it is a reservation-derived transaction - only for callers that KNOW (they hold the Booking). Absent = unknown. */
+    public static final String EXTRA_SELECTED_DIRECT = "SELECTED_DIRECT";
+    /** Optional: the Notification.TYPE_* that linked here - disambiguates an id shared by a reservation and a direct booking. */
+    public static final String EXTRA_SELECTED_TYPE_HINT = "SELECTED_TYPE_HINT";
+
+    private static final long AUTO_REFRESH_MS = 30_000;
+    private static final long SEARCH_DEBOUNCE_MS = 300;
+
+    /** "Filter by Status" options, position-matched with STATUS_LABEL_RES (selection maps back by position, so it works in any locale). */
+    private static final TransactionFilter.Type[] STATUS_TYPES = {
+            TransactionFilter.Type.ALL, TransactionFilter.Type.BOOKINGS, TransactionFilter.Type.RESERVATIONS,
+            TransactionFilter.Type.PAYMENTS, TransactionFilter.Type.PENDING, TransactionFilter.Type.PAID,
+            TransactionFilter.Type.PARTIALLY_PAID, TransactionFilter.Type.CANCELLED, TransactionFilter.Type.REJECTED,
+            TransactionFilter.Type.STAYS
+    };
+    private static final int[] STATUS_LABEL_RES = {
+            R.string.filter_all_transactions_label, R.string.filter_bookings, R.string.filter_reservations,
+            R.string.filter_payments, R.string.txn_status_pending, R.string.txn_status_paid,
+            R.string.txn_status_partially_paid, R.string.txn_status_cancelled, R.string.txn_status_rejected,
+            R.string.filter_stays
+    };
 
     private RecyclerView rvTransactions;
-    private View layoutEmptyState;
-    private View layoutInitialLoading;
+    private View scrollEmptyState, layoutEmptyState, layoutInitialLoading;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearch;
-    private android.widget.AutoCompleteTextView dropdownTransactionStatus;
-    private TextView tvEmptyTitle, tvEmptyDesc;
+    private AutoCompleteTextView dropdownTransactionStatus;
+    private Chip chipRoomType, chipDateFilter, chipBookingStatus;
+    private TextView tvEmptyTitle, tvEmptyDesc, tvTransactionHeader;
     private MaterialButton btnEmptyAction;
 
-    private PaymentTransactionAdapter adapter;
+    private TransactionHistoryAdapter adapter;
     private RoomRepository repository;
-    private List<Booking> allBookings = new ArrayList<>();
-    private List<Booking> filteredBookings = new ArrayList<>();
-    /** Payment-level rows rendered by rvTransactions - flattened from filteredBookings every time applyFilters() runs, see buildPaymentTransactions(). Booking-level filtering itself is completely unchanged. */
-    private List<PaymentTransaction> displayedTransactions = new ArrayList<>();
-    private String currentFilter = "All";
-    private String searchQuery = "";
-    private String selectedRoomType = null;
-    private String selectedBookingStatus = null;
-    private String exportFormat = "PDF";
-    private boolean isExportingReport = true;
-    private androidx.core.util.Pair<Long, Long> selectedDateRange = null;
-    private String selectedBookingId = null;
-    private boolean pendingScrollToSelected = false;
-    /** Guards fetchTransactionById() (see applySelectedBookingHighlight()) to at most one attempt per deep-link, so a genuinely-missing id can't retry forever across every 30s poll/pull-to-refresh. */
-    private boolean attemptedDirectFetchForSelected = false;
-    /** Guards the scroll-near-bottom trigger against firing a second loadMoreBookings() while one is already in flight. */
-    private boolean loadingMoreTransactions = false;
-    /** True until this Activity instance's first onResume() has run - onCreate() already performs the initial full load, so that very first onResume (which always immediately follows onCreate in the normal lifecycle) must not reload again; every SUBSEQUENT onResume (e.g. returning from TransactionDetailsActivity/BookingDetailsActivity) checks for changes instead. */
+    private List<TransactionRow> allRows = new ArrayList<>();
+    private List<TransactionRow> displayedRows = new ArrayList<>();
+    private final TransactionFilter.Criteria criteria = new TransactionFilter.Criteria();
+
+    /** A fetch has succeeded (or the cache already had data) - until then an empty list means "not loaded yet", not "no transactions". */
+    private boolean loadedOnce = false;
+    private boolean refreshInFlight = false;
+    private boolean pollInFlight = false;
+    private boolean pollQueued = false;
+    private boolean notificationPollInFlight = false;
+    private boolean loadingMore = false;
+    /** True until this instance's first onResume(): onCreate() already loaded, so that first resume must not poll again. */
     private boolean isFirstResume = true;
 
-    // Silent polling refresh, same pattern/interval as NotificationActivity's own 30s
-    // auto-poll - keeps booking/payment status current without the guest needing to
-    // pull-to-refresh or leave and re-enter the screen.
-    private static final long AUTO_REFRESH_MS = 30000;
-    private final android.os.Handler autoRefreshHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    // Deep link (dashboard tap / notification) - resolved to an EXACT row by TransactionNavigator.pick().
+    @Nullable private String selectedId;
+    @Nullable private Boolean selectedDirect;
+    @Nullable private String selectedTypeHint;
+    private boolean pendingOpenSelected = false;
+    private boolean attemptedLookupForSelected = false;
+
+    private final ClickGuard clickGuard = new ClickGuard();
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable applyFiltersRunnable = this::applyFilters;
     private final Runnable autoRefreshRunnable = new Runnable() {
         @Override
         public void run() {
-            // Lightweight check-for-changes (see pollForTransactionChanges()) rather
-            // than a full loadTransactions() reload - this timer fires every 30s for
-            // as long as the guest stays on this screen, so a full re-fetch of
-            // however large bookingsPerPage has grown to (via scrolling/load-more)
-            // would mean repeatedly re-downloading the guest's entire loaded history
-            // just to check for a status change.
-            pollForTransactionChanges();
-            autoRefreshHandler.postDelayed(this, AUTO_REFRESH_MS);
+            // Light "anything changed?" checks - never a full reload of however far the list has been
+            // scrolled. The notification poll is what lets an arrival trigger an immediate status refresh.
+            requestPoll();
+            pollNotificationsForArrivals();
+            handler.postDelayed(this, AUTO_REFRESH_MS);
         }
     };
 
-    private final ActivityResultLauncher<String> createDocumentLauncher = registerForActivityResult(
-            new ActivityResultContracts.CreateDocument(),
-            uri -> {
-                if (uri != null) {
-                    saveFileToUri(uri);
-                }
+    /** A notification about a booking/reservation/payment arrived: the receptionist just did something - refresh now. */
+    private final RoomRepository.NotificationArrivalListener arrivalListener = arrived -> {
+        if (!isUiAlive()) return;
+        for (Notification n : arrived) {
+            if (NotificationPrimaryActionResolver.isTransactionCategory(n.getType())) {
+                requestPoll();
+                return;
             }
-    );
+        }
+    };
+
+    // Export. Two launchers (one per MIME type) so the saved file is typed correctly; the rows to export are
+    // the snapshot of what was on screen when Export was tapped, even if a poll changes the list while the
+    // system file picker is open.
+    private final ExecutorService exportExecutor = Executors.newSingleThreadExecutor();
+    @Nullable private List<TransactionRow> pendingExportRows;
+    @Nullable private AlertDialog exportProgressDialog;
+    private final ActivityResultLauncher<String> createCsvLauncher = registerForActivityResult(
+            new ActivityResultContracts.CreateDocument("text/csv"), uri -> {
+                if (uri != null) exportTo(uri, false);
+            });
+    private final ActivityResultLauncher<String> createPdfLauncher = registerForActivityResult(
+            new ActivityResultContracts.CreateDocument("application/pdf"), uri -> {
+                if (uri != null) exportTo(uri, true);
+            });
+
+    // ---- Lifecycle ----
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,207 +172,118 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         animateScreenContent();
 
         repository = RoomRepository.getInstance(this);
-        
+        bindViews();
+        setupRecyclerView();
+        setupFilters();
+        setupSearch();
+        setupSwipeRefresh();
+        findViewById(R.id.btnExport).setOnClickListener(v -> onExportClicked());
+
+        readDeepLink();
+
+        // Stale-while-revalidate: the dashboard has usually already loaded the bookings into the shared
+        // cache, so paint those immediately and refresh behind them - the list is never blank for the
+        // length of a network round trip.
+        List<Booking> cached = repository.getBookings();
+        if (!cached.isEmpty()) {
+            allRows = TransactionRow.fromAll(cached);
+            loadedOnce = true;
+            applyFilters();
+        }
+        loadTransactions(true);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        repository.addNotificationArrivalListener(arrivalListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        repository.removeNotificationArrivalListener(arrivalListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // The very first onResume immediately follows onCreate, which already loaded; every later one
+        // (returning from a details screen, the app coming back) checks for changes instead - never a full
+        // reload, so the guest's scroll position and filters are untouched.
+        if (isFirstResume) {
+            isFirstResume = false;
+        } else {
+            requestPoll();
+        }
+        handler.removeCallbacks(autoRefreshRunnable);
+        handler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(autoRefreshRunnable);
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        dismissSafely(exportProgressDialog);
+        exportProgressDialog = null;
+        // Let a write already in progress finish (interrupting it would leave a half-written file).
+        exportExecutor.shutdown();
+        super.onDestroy();
+    }
+
+    private boolean isUiAlive() {
+        return !isFinishing() && !isDestroyed();
+    }
+
+    // ---- Setup ----
+
+    private void bindViews() {
         rvTransactions = findViewById(R.id.rvTransactions);
+        scrollEmptyState = findViewById(R.id.scrollEmptyState);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearch = findViewById(R.id.etSearch);
         dropdownTransactionStatus = findViewById(R.id.dropdownTransactionStatus);
+        chipRoomType = findViewById(R.id.chipRoomType);
+        chipDateFilter = findViewById(R.id.chipDateFilter);
+        chipBookingStatus = findViewById(R.id.chipBookingStatus);
+        tvTransactionHeader = findViewById(R.id.tvTransactionHeader);
 
-        // The empty state is a shared include (view_empty_state.xml) whose title/description/
-        // action are populated in code - without this it renders as a blank card (icon only).
-        tvEmptyTitle = layoutEmptyState != null ? layoutEmptyState.findViewById(R.id.emptyTitle) : null;
-        tvEmptyDesc = layoutEmptyState != null ? layoutEmptyState.findViewById(R.id.emptyDesc) : null;
-        ImageView emptyIcon = layoutEmptyState != null ? layoutEmptyState.findViewById(R.id.emptyIcon) : null;
-        btnEmptyAction = layoutEmptyState != null ? layoutEmptyState.findViewById(R.id.btnEmptyAction) : null;
+        // The empty state is a shared include whose title/description/action are filled in here.
+        tvEmptyTitle = layoutEmptyState.findViewById(R.id.emptyTitle);
+        tvEmptyDesc = layoutEmptyState.findViewById(R.id.emptyDesc);
+        btnEmptyAction = layoutEmptyState.findViewById(R.id.btnEmptyAction);
+        ImageView emptyIcon = layoutEmptyState.findViewById(R.id.emptyIcon);
         if (emptyIcon != null) emptyIcon.setImageResource(R.drawable.ic_transaction_history);
-        resetEmptyActionToClearFilters();
-
-        setupRecyclerView();
-        setupFilters();
-        setupSearch();
-        setupSwipeRefresh();
-
-        String openFilter = getIntent().getStringExtra(EXTRA_OPEN_FILTER);
-        if (FILTER_PAYMENTS.equals(openFilter)) {
-            setStatusFilter("Payments");
-        } else if (FILTER_BOOKINGS.equals(openFilter)) {
-            setStatusFilter("Bookings");
-        } else if (FILTER_RESERVATIONS.equals(openFilter)) {
-            setStatusFilter("Reservations");
-        }
-
-        selectedBookingId = getIntent().getStringExtra(EXTRA_SELECTED_BOOKING_ID);
-        pendingScrollToSelected = selectedBookingId != null;
-
-        loadTransactions(true);
-
-        View btnExport = findViewById(R.id.btnExport);
-        if (btnExport != null) {
-            btnExport.setOnClickListener(v -> showExportOptions());
-        }
-    }
-
-    private void showExportOptions() {
-        String[] options = {getString(R.string.export_as_pdf), getString(R.string.export_as_csv)};
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.export_options_title)
-                .setItems(options, (dialog, which) -> {
-                    String format = which == 0 ? "PDF" : "CSV";
-                    performExport(format);
-                })
-                .show();
-    }
-
-    private void performExport(String format) {
-        this.exportFormat = format;
-        this.isExportingReport = true;
-        String mimeType = format.equals("PDF") ? "application/pdf" : "text/csv";
-        String fileName = "Transactions_" + System.currentTimeMillis() + (format.equals("PDF") ? ".pdf" : ".csv");
-        createDocumentLauncher.launch(fileName);
-    }
-
-    private void saveFileToUri(Uri uri) {
-        com.google.android.material.dialog.MaterialAlertDialogBuilder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_loading, null);
-        TextView tvMsg = dialogView.findViewById(R.id.loadingMessage);
-        
-        if (isExportingReport) {
-            tvMsg.setText(getString(R.string.msg_exporting_format, exportFormat));
-        } else {
-            tvMsg.setText(R.string.downloading_receipt);
-        }
-        
-        builder.setView(dialogView);
-        builder.setCancelable(false);
-        androidx.appcompat.app.AlertDialog dialog = builder.create();
-        dialog.show();
-
-        new Thread(() -> {
-            boolean success = false;
-            try (OutputStream os = getContentResolver().openOutputStream(uri)) {
-                if (isExportingReport) {
-                    if (exportFormat.equals("PDF")) {
-                        generatePdf(os);
-                    } else {
-                        generateCsv(os);
-                    }
-                }
-                success = true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            final boolean finalSuccess = success;
-            runOnUiThread(() -> {
-                // The file write itself already completed (or didn't) - that real
-                // outcome isn't undone by the guest having navigated away in the
-                // meantime; only the now-pointless dialog/Toast UI is skipped.
-                dismissSafely(dialog);
-                if (isFinishing() || isDestroyed()) return;
-                if (finalSuccess) {
-                    Toast.makeText(this, isExportingReport ?
-                            getString(R.string.msg_export_success, getString(R.string.downloads_folder_name)) :
-                            getString(R.string.receipt_saved_path), Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, R.string.msg_export_error, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }).start();
-    }
-
-    private void generateCsv(OutputStream os) throws IOException {
-        StringBuilder csv = new StringBuilder();
-        csv.append("Booking ID,Room,Type,Check-In,Check-Out,Status,Amount,Transaction Ref\n");
-        for (Booking b : filteredBookings) {
-            csv.append(String.format("%s,%s,%s,%s,%s,%s,%s,%s\n",
-                    b.getId(),
-                    b.getRoomName().replace(",", " "),
-                    // Every room type, not just the first (see
-                    // Booking#getAllRoomTypeNames()'s own doc) - joined with
-                    // "; " since a single CSV cell can't hold a line break.
-                    String.join("; ", b.getAllRoomTypeNames()).replace(",", " "),
-                    b.getCheckInDate(),
-                    b.getCheckOutDate(),
-                    b.getStatus(),
-                    b.getTotalAmount(),
-                    b.getTransactionRef() != null ? b.getTransactionRef() : ""));
-        }
-        os.write(csv.toString().getBytes());
-    }
-
-    private void generatePdf(OutputStream os) throws IOException {
-        PdfDocument document = new PdfDocument();
-        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
-        PdfDocument.Page page = document.startPage(pageInfo);
-        Canvas canvas = page.getCanvas();
-        Paint paint = new Paint();
-        
-        paint.setTextSize(18f);
-        paint.setFakeBoldText(true);
-        canvas.drawText("Velocity Suites - Transaction History", 50, 50, paint);
-        
-        paint.setTextSize(12f);
-        paint.setFakeBoldText(false);
-        canvas.drawText("Generated on: " + new java.util.Date().toString(), 50, 80, paint);
-        canvas.drawText("Total Records: " + filteredBookings.size(), 50, 100, paint);
-
-        int y = 140;
-        paint.setFakeBoldText(true);
-        canvas.drawText("ID", 50, y, paint);
-        canvas.drawText("Room", 120, y, paint);
-        canvas.drawText("Check-In", 300, y, paint);
-        canvas.drawText("Status", 420, y, paint);
-        canvas.drawText("Amount", 500, y, paint);
-        
-        paint.setFakeBoldText(false);
-        y += 20;
-        canvas.drawLine(50, y-10, 550, y-10, paint);
-
-        for (Booking b : filteredBookings) {
-            if (y > 800) {
-                document.finishPage(page);
-                page = document.startPage(pageInfo);
-                canvas = page.getCanvas();
-                y = 50;
-            }
-            canvas.drawText(b.getId(), 50, y, paint);
-            canvas.drawText(b.getRoomName(), 120, y, paint);
-            canvas.drawText(b.getCheckInDate(), 300, y, paint);
-            canvas.drawText(b.getStatus(), 420, y, paint);
-            canvas.drawText(String.valueOf(b.getTotalAmount()), 500, y, paint);
-            y += 20;
-        }
-
-        document.finishPage(page);
-        document.writeTo(os);
-        document.close();
     }
 
     private void setupRecyclerView() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         rvTransactions.setLayoutManager(layoutManager);
-        adapter = new PaymentTransactionAdapter(new ArrayList<>(), this::showPaymentDetailsDialog);
+        adapter = new TransactionHistoryAdapter(this::onTransactionClicked);
         rvTransactions.setAdapter(adapter);
 
-        // Lazy-load the next per_page window once the guest scrolls near the end -
-        // both refreshBookings() calls used to request one large fixed window and
-        // never go further, so a guest with more transactions than that could
-        // never see the older ones. See RoomRepository#loadMoreBookings().
+        // Page in older transactions as the guest nears the end of what is loaded (the API pages; this list
+        // used to ask for one big window and never go further). Only fires because the RecyclerView is now
+        // the real scroll container.
         rvTransactions.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@androidx.annotation.NonNull RecyclerView recyclerView, int dx, int dy) {
-                if (dy <= 0 || loadingMoreTransactions || !repository.hasMoreBookings()) return;
-                int lastVisible = layoutManager.findLastVisibleItemPosition();
-                if (lastVisible >= displayedTransactions.size() - 5) {
-                    loadingMoreTransactions = true;
+                if (dy <= 0 || loadingMore || !repository.hasMoreBookings()) return;
+                if (layoutManager.findLastVisibleItemPosition() >= displayedRows.size() - 5) {
+                    loadingMore = true;
                     repository.loadMoreBookings((merged, reservationsError, directError) -> {
-                        loadingMoreTransactions = false;
-                        allBookings = merged;
+                        loadingMore = false;
+                        if (!isUiAlive()) return;
+                        allRows = TransactionRow.fromAll(merged);
                         applyFilters();
-                        // Same "don't take over the screen for a load-more blip" rule as
-                        // loadTransactions()'s onError() - the already-visible page stays intact.
+                        // A failed "load more" leaves the visible page intact - a quiet toast, no error takeover.
                         if (reservationsError != null || directError != null) {
                             Toast.makeText(TransactionHistoryActivity.this, R.string.network_error, Toast.LENGTH_SHORT).show();
                         }
@@ -318,82 +293,69 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         });
     }
 
-    /**
-     * Flattens filteredBookings (Booking-level, already filtered by every
-     * existing chip/search/picker predicate unchanged) into one row per
-     * individual payment event, newest first. A Booking with no itemized
-     * paymentHistory yet (e.g. a Cash Pay-Later reservation nobody has paid
-     * against) still gets exactly one synthetic summary row built from its
-     * own current-snapshot fields, so it's never silently dropped from
-     * history just for predating itemized payment tracking.
-     */
-    private List<PaymentTransaction> buildPaymentTransactions(List<Booking> bookings) {
-        List<PaymentTransaction> result = new ArrayList<>();
-        for (Booking b : bookings) {
-            List<Booking.PaymentRecord> history = b.getPaymentHistory();
-            if (history != null && !history.isEmpty()) {
-                for (Booking.PaymentRecord record : history) {
-                    result.add(new PaymentTransaction(b, record));
-                }
-            } else {
-                result.add(new PaymentTransaction(b, null));
-            }
-        }
-        java.util.Collections.sort(result, (a, c) -> Long.compare(c.getDateMillis(), a.getDateMillis()));
-        return result;
+    private void onTransactionClicked(TransactionRow row) {
+        if (!clickGuard.tryAcquire()) return;
+        startActivity(TransactionNavigator.detailsIntent(this, row.booking));
     }
 
-    /** Internal filter keys (used by applyFilters()'s switch), in the same order as STATUS_FILTER_LABEL_RES below - position-matched, not string-matched, so the dropdown's selection maps back to the correct key regardless of locale. */
-    private static final String[] STATUS_FILTER_KEYS = {
-            "All", "Bookings", "Reservations", "Payments", "Cancelled", "Stays", "FullyPaid", "PartiallyPaid", "PendingPayment"
-    };
-    private static final int[] STATUS_FILTER_LABEL_RES = {
-            R.string.filter_all_transactions_label, R.string.filter_bookings, R.string.filter_reservations,
-            R.string.filter_payments, R.string.filter_cancelled, R.string.filter_stays,
-            R.string.status_fully_paid, R.string.status_partial_paid, R.string.filter_pending_payment
-    };
-
     private void setupFilters() {
-        String[] labels = new String[STATUS_FILTER_LABEL_RES.length];
-        for (int i = 0; i < STATUS_FILTER_LABEL_RES.length; i++) labels[i] = getString(STATUS_FILTER_LABEL_RES[i]);
-        dropdownTransactionStatus.setAdapter(new android.widget.ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, labels));
+        String[] labels = new String[STATUS_LABEL_RES.length];
+        for (int i = 0; i < labels.length; i++) labels[i] = getString(STATUS_LABEL_RES[i]);
+        dropdownTransactionStatus.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, labels));
         dropdownTransactionStatus.setOnItemClickListener((parent, view, position, id) -> {
-            currentFilter = STATUS_FILTER_KEYS[position];
+            criteria.type = STATUS_TYPES[position];
             applyFilters();
         });
 
-        findViewById(R.id.chipRoomType).setOnClickListener(v -> showRoomTypeFilterDialog());
-        findViewById(R.id.chipBookingStatus).setOnClickListener(v -> showBookingStatusFilterDialog());
+        chipRoomType.setOnClickListener(v -> showRoomTypeFilterDialog());
+        chipBookingStatus.setOnClickListener(v -> showBookingStatusFilterDialog());
+        chipDateFilter.setOnClickListener(v -> showDateRangePicker());
 
-        findViewById(R.id.chipDateFilter).setOnClickListener(v -> {
-            if (selectedDateRange != null) {
-                selectedDateRange = null;
-                ((com.google.android.material.chip.Chip)v).setText(R.string.date_filter_label);
-                applyFilters();
-                return;
-            }
-
-            MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = MaterialDatePicker.Builder.dateRangePicker()
-                    .setTitleText(R.string.date_filter_label)
-                    .build();
-            picker.show(getSupportFragmentManager(), "DATE_PICKER");
-            picker.addOnPositiveButtonClickListener(selection -> {
-                selectedDateRange = selection;
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd", Locale.US);
-                String rangeText = sdf.format(new java.util.Date(selection.first)) + " - " + sdf.format(new java.util.Date(selection.second));
-                ((com.google.android.material.chip.Chip)v).setText(rangeText);
-                applyFilters();
-            });
+        chipRoomType.setOnCloseIconClickListener(v -> {
+            criteria.roomType = null;
+            updateChips();
+            applyFilters();
         });
+        chipBookingStatus.setOnCloseIconClickListener(v -> {
+            criteria.bookingStatus = null;
+            updateChips();
+            applyFilters();
+        });
+        chipDateFilter.setOnCloseIconClickListener(v -> {
+            criteria.from = null;
+            criteria.to = null;
+            updateChips();
+            applyFilters();
+        });
+        for (Chip chip : new Chip[]{chipRoomType, chipBookingStatus, chipDateFilter}) {
+            chip.setCloseIconContentDescription(getString(R.string.txn_chip_clear_cd));
+        }
+        updateChips();
     }
 
-    /** Sets currentFilter and reflects it in the dropdown's displayed text - used wherever the status filter needs to be changed programmatically (deep-link extras, Clear Filters, the deep-linked-booking-not-in-current-filter fallback) rather than by the guest tapping a dropdown item directly. */
-    private void setStatusFilter(String key) {
-        currentFilter = key;
-        if (dropdownTransactionStatus == null) return;
-        for (int i = 0; i < STATUS_FILTER_KEYS.length; i++) {
-            if (STATUS_FILTER_KEYS[i].equals(key)) {
-                dropdownTransactionStatus.setText(getString(STATUS_FILTER_LABEL_RES[i]), false);
+    /** The chips show their active value and a clear (x) button only while a filter is set. */
+    private void updateChips() {
+        chipRoomType.setText(criteria.roomType != null ? criteria.roomType : getString(R.string.room_type_filter_label));
+        chipRoomType.setCloseIconVisible(criteria.roomType != null);
+        chipBookingStatus.setText(criteria.bookingStatus != null ? criteria.bookingStatus : getString(R.string.booking_status_filter_label));
+        chipBookingStatus.setCloseIconVisible(criteria.bookingStatus != null);
+        if (criteria.hasDateRange()) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM dd", Locale.US);
+            String from = criteria.from != null ? fmt.format(criteria.from) : "…";
+            String to = criteria.to != null ? fmt.format(criteria.to) : "…";
+            chipDateFilter.setText(getString(R.string.date_range_format, from, to));
+        } else {
+            chipDateFilter.setText(R.string.date_filter_label);
+        }
+        chipDateFilter.setCloseIconVisible(criteria.hasDateRange());
+    }
+
+    /** Sets the status filter and shows it in the dropdown - for deep links and Clear Filters (a guest's own pick goes through the item-click listener). */
+    private void setStatusFilter(TransactionFilter.Type type) {
+        criteria.type = type;
+        for (int i = 0; i < STATUS_TYPES.length; i++) {
+            if (STATUS_TYPES[i] == type) {
+                dropdownTransactionStatus.setText(getString(STATUS_LABEL_RES[i]), false);
                 break;
             }
         }
@@ -401,444 +363,431 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
 
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchQuery = s.toString().toLowerCase(Locale.US).trim();
-                applyFilters();
+            public void afterTextChanged(Editable s) {
+                criteria.query = s.toString();
+                // Debounced: filtering on every keystroke re-ran the whole list per letter.
+                handler.removeCallbacks(applyFiltersRunnable);
+                handler.postDelayed(applyFiltersRunnable, SEARCH_DEBOUNCE_MS);
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+        });
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) return false;
+            handler.removeCallbacks(applyFiltersRunnable);
+            applyFilters();
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            return true;
         });
     }
 
     private void setupSwipeRefresh() {
         swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
-        // The pull gesture already shows the spinner itself, so this listener doesn't
-        // need to turn it on again - loadTransactions() turns it off once done.
+        // The list is wrapped in a FrameLayout (with the empty/loading states), so tell the layout whether the
+        // LIST can still scroll up - otherwise pulling down mid-list would start a refresh.
+        swipeRefresh.setOnChildScrollUpCallback((parent, child) ->
+                rvTransactions.getVisibility() == View.VISIBLE && rvTransactions.canScrollVertically(-1));
         swipeRefresh.setOnRefreshListener(() -> loadTransactions(false));
     }
 
+    private void readDeepLink() {
+        TransactionFilter.Type openFilter = TransactionFilter.Type.fromKey(getIntent().getStringExtra(EXTRA_OPEN_FILTER));
+        if (openFilter != TransactionFilter.Type.ALL) setStatusFilter(openFilter);
+
+        selectedId = getIntent().getStringExtra(EXTRA_SELECTED_BOOKING_ID);
+        selectedTypeHint = getIntent().getStringExtra(EXTRA_SELECTED_TYPE_HINT);
+        selectedDirect = getIntent().hasExtra(EXTRA_SELECTED_DIRECT)
+                ? Boolean.valueOf(getIntent().getBooleanExtra(EXTRA_SELECTED_DIRECT, false)) : null;
+        pendingOpenSelected = selectedId != null && !selectedId.trim().isEmpty();
+        if (!pendingOpenSelected) selectedId = null;
+    }
+
+    // ---- Loading ----
+
     /**
-     * @param showLoadingIndicator whether to show the pull-to-refresh spinner while this
-     *                             fetch is in flight. False for the silent 30s auto-poll
-     *                             (see autoRefreshRunnable) and pull-to-refresh (which
-     *                             already shows its own spinner) so neither flashes it a
-     *                             second time; true for the initial load and any explicit
-     *                             user-triggered retry.
+     * Full refresh (open, pull-to-refresh, retry). Reports each transaction family separately: if only
+     * one of them fails, what did load is still shown, with a warning - instead of hiding good data
+     * behind an error screen (or, worse, silently showing half the list as if it were all of it).
+     *
+     * @param showIndicator show the pull-to-refresh spinner (true for open/retry; a pull already shows it)
      */
-    private void loadTransactions(boolean showLoadingIndicator) {
-        // The centered first-load indicator, not the swipe spinner - only for a genuine
-        // "nothing shown yet" moment (never the silent 30s poll, which doesn't come through
-        // here at all, nor a pull-to-refresh, which passes false and shows its own spinner).
-        boolean isInitialLoad = showLoadingIndicator && allBookings.isEmpty();
-        if (isInitialLoad && layoutInitialLoading != null) {
+    private void loadTransactions(boolean showIndicator) {
+        if (refreshInFlight) return; // the in-flight one will stop the spinner when it lands
+        refreshInFlight = true;
+        if (showIndicator) swipeRefresh.setRefreshing(true);
+        boolean firstPaint = allRows.isEmpty() && !loadedOnce;
+        if (firstPaint) {
             layoutInitialLoading.setVisibility(View.VISIBLE);
             rvTransactions.setVisibility(View.GONE);
-            layoutEmptyState.setVisibility(View.GONE);
+            scrollEmptyState.setVisibility(View.GONE);
         }
-        if (showLoadingIndicator && swipeRefresh != null) swipeRefresh.setRefreshing(true);
-        repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
-            @Override
-            public void onSuccess(List<Booking> result) {
-                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                if (layoutInitialLoading != null) layoutInitialLoading.setVisibility(View.GONE);
-                allBookings = result;
-                applyFilters();
-            }
 
-            @Override
-            public void onError(String message) {
-                if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                if (layoutInitialLoading != null) layoutInitialLoading.setVisibility(View.GONE);
-                // Same rule as NotificationActivity's identical guard: a transient
-                // refresh/auto-poll failure with a list already on screen just gets a
-                // toast - replacing a working list with a scary error screen over a
-                // momentary network blip would be worse than doing nothing. Only the
-                // genuine "never successfully loaded anything yet" case gets the full
-                // error state, with a real retry action (not "Clear Filters", which
-                // would do nothing useful against an empty allBookings).
-                if (allBookings.isEmpty()) {
-                    rvTransactions.setVisibility(View.GONE);
-                    layoutEmptyState.setVisibility(View.VISIBLE);
-                    if (tvEmptyTitle != null) tvEmptyTitle.setText(R.string.no_transactions_load_error_title);
-                    if (tvEmptyDesc != null) tvEmptyDesc.setText(R.string.no_transactions_load_error_desc);
-                    setEmptyActionButton(R.string.refresh_label, R.drawable.ic_clock, v -> loadTransactions(true));
-                } else {
-                    Toast.makeText(TransactionHistoryActivity.this, getString(R.string.error_load_transactions_format, message), Toast.LENGTH_LONG).show();
+        repository.refreshBookingsSplit((merged, reservationsError, directError) -> {
+            refreshInFlight = false;
+            if (!isUiAlive()) return;
+            swipeRefresh.setRefreshing(false);
+            layoutInitialLoading.setVisibility(View.GONE);
+
+            boolean bothFailed = reservationsError != null && directError != null;
+            if (bothFailed && allRows.isEmpty() && merged.isEmpty()) {
+                showLoadError(reservationsError);
+            } else {
+                if (!bothFailed) loadedOnce = true;
+                else loadedOnce = loadedOnce || !merged.isEmpty();
+                allRows = TransactionRow.fromAll(merged);
+                applyFilters();
+                if (reservationsError != null || directError != null) {
+                    Toast.makeText(this, bothFailed
+                            ? getString(R.string.error_load_transactions_format, reservationsError)
+                            : getString(R.string.txn_partial_load_warning), Toast.LENGTH_LONG).show();
                 }
             }
+            runQueuedPoll();
         });
     }
 
-    /**
-     * The 30s timer's own check - repository.pollBookings() only fetches and
-     * merges DEFAULT_BOOKINGS_PER_PAGE per family rather than replacing the
-     * whole (possibly grown, via loadMoreBookings()) list loadTransactions()
-     * would re-fetch in full. Fully silent on failure (no toast, unlike
-     * loadTransactions()'s) - this is a background timer the guest never
-     * directly triggered, so a transient miss should be invisible rather
-     * than interrupting them with a message about a check they didn't ask
-     * for; the next tick 30s later (or any real action) tries again.
-     */
-    private void pollForTransactionChanges() {
-        repository.pollBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
-            @Override
-            public void onSuccess(List<Booking> result) {
-                allBookings = result;
+    /** Asks for a "what changed?" poll - runs now if nothing is in flight, else once after the current one (an arrival mid-flight is never lost). */
+    private void requestPoll() {
+        if (!isUiAlive()) return;
+        if (pollInFlight || refreshInFlight) {
+            pollQueued = true;
+            return;
+        }
+        pollInFlight = true;
+        repository.pollBookingsSplit((merged, reservationsError, directError) -> {
+            pollInFlight = false;
+            if (!isUiAlive()) return;
+            // Silent by design: a background check the guest didn't ask for must not interrupt them with an
+            // error, and a failed family keeps its last good data (the repository merges per family).
+            if (reservationsError == null || directError == null) {
+                loadedOnce = true;
+                allRows = TransactionRow.fromAll(merged);
                 applyFilters();
+            }
+            runQueuedPoll();
+        });
+    }
+
+    private void runQueuedPoll() {
+        if (pollQueued && !pollInFlight && !refreshInFlight) {
+            pollQueued = false;
+            requestPoll();
+        }
+    }
+
+    /** Checks for new notifications so a booking/reservation/payment one can trigger {@link #arrivalListener}. */
+    private void pollNotificationsForArrivals() {
+        if (notificationPollInFlight) return;
+        notificationPollInFlight = true;
+        repository.pollNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+            @Override
+            public void onSuccess(List<Notification> result) {
+                notificationPollInFlight = false;
+                if (isUiAlive()) updateNotificationBadge();
             }
 
             @Override
             public void onError(String message) {
-                // Silent by design - see this method's own doc.
+                notificationPollInFlight = false;
             }
         });
     }
 
-    /**
-     * Re-wires the shared empty-state action button - used both for the load-error retry
-     * above and to restore "Clear Filters" mode (resetEmptyActionToClearFilters()) so a
-     * prior error-state wiring never leaks into a later filtered-empty state or vice versa.
-     */
-    private void setEmptyActionButton(int textRes, int iconRes, View.OnClickListener listener) {
-        if (btnEmptyAction == null) return;
+    // ---- Filtering / rendering ----
+
+    private void applyFilters() {
+        handler.removeCallbacks(applyFiltersRunnable);
+        displayedRows = TransactionFilter.apply(allRows, criteria);
+        render();
+    }
+
+    private void render() {
+        adapter.submit(displayedRows);
+        if (tvTransactionHeader != null) {
+            tvTransactionHeader.setText(displayedRows.isEmpty() || displayedRows.size() == allRows.size()
+                    ? getString(R.string.recent_transactions)
+                    : getString(R.string.recent_transactions) + " (" + displayedRows.size() + ")");
+        }
+
+        if (displayedRows.isEmpty()) {
+            if (loadedOnce) showEmptyState();
+            // Not loaded yet: the loader / error state that loadTransactions() manages stays as it is.
+        } else {
+            scrollEmptyState.setVisibility(View.GONE);
+            layoutInitialLoading.setVisibility(View.GONE);
+            rvTransactions.setVisibility(View.VISIBLE);
+        }
+        if (loadedOnce) applySelectedHighlight();
+    }
+
+    private void showEmptyState() {
+        rvTransactions.setVisibility(View.GONE);
+        scrollEmptyState.setVisibility(View.VISIBLE);
+        if (allRows.isEmpty()) {
+            tvEmptyTitle.setText(R.string.txn_empty_title);
+            tvEmptyDesc.setText(R.string.txn_empty_desc);
+            setEmptyAction(R.string.refresh_label, R.drawable.ic_clock, v -> {
+                if (clickGuard.tryAcquire()) loadTransactions(true);
+            });
+        } else {
+            tvEmptyTitle.setText(R.string.txn_filtered_empty_title);
+            tvEmptyDesc.setText(!criteria.query.trim().isEmpty() ? R.string.transaction_search_empty_desc
+                    : criteria.type == TransactionFilter.Type.PAYMENTS ? R.string.transaction_payment_empty_desc
+                    : R.string.empty_transactions_desc);
+            setEmptyAction(R.string.clear_filters, R.drawable.ic_filter, v -> clearAllFiltersAndSearch());
+        }
+    }
+
+    /** First load failed and there is nothing to show: the error state, with a Retry that actually re-runs the load. */
+    private void showLoadError(@Nullable String message) {
+        rvTransactions.setVisibility(View.GONE);
+        scrollEmptyState.setVisibility(View.VISIBLE);
+        tvEmptyTitle.setText(R.string.no_transactions_load_error_title);
+        tvEmptyDesc.setText(message != null && !message.trim().isEmpty() ? message : getString(R.string.no_transactions_load_error_desc));
+        setEmptyAction(R.string.retry_label, R.drawable.ic_clock, v -> {
+            if (clickGuard.tryAcquire()) loadTransactions(true);
+        });
+    }
+
+    private void setEmptyAction(int textRes, int iconRes, View.OnClickListener listener) {
+        btnEmptyAction.setVisibility(View.VISIBLE);
         btnEmptyAction.setText(textRes);
         btnEmptyAction.setIconResource(iconRes);
         btnEmptyAction.setOnClickListener(listener);
     }
 
-    private void resetEmptyActionToClearFilters() {
-        setEmptyActionButton(R.string.clear_filters, R.drawable.ic_filter, v -> clearAllFiltersAndSearch());
-    }
-
-    /** Resets search text, filter chip, and date range, then re-applies - wired to the
-     *  empty state's action button so guests can recover from an over-filtered view. */
+    /** Resets search, status, room type, booking status and date range - the way out of an over-filtered list. */
     private void clearAllFiltersAndSearch() {
-        if (etSearch != null) etSearch.setText("");
-        setStatusFilter("All");
-        if (selectedDateRange != null) {
-            selectedDateRange = null;
-            Chip dateChip = findViewById(R.id.chipDateFilter);
-            if (dateChip != null) dateChip.setText(R.string.date_filter_label);
+        criteria.query = "";
+        criteria.roomType = null;
+        criteria.bookingStatus = null;
+        criteria.from = null;
+        criteria.to = null;
+        if (etSearch.getText() != null && etSearch.getText().length() > 0) {
+            etSearch.setText(""); // the watcher sets criteria.query again (to "") and queues a harmless re-apply
         }
-        if (selectedRoomType != null) {
-            selectedRoomType = null;
-            Chip roomTypeChip = findViewById(R.id.chipRoomType);
-            if (roomTypeChip != null) roomTypeChip.setText(R.string.room_type_filter_label);
-        }
-        if (selectedBookingStatus != null) {
-            selectedBookingStatus = null;
-            Chip statusChip = findViewById(R.id.chipBookingStatus);
-            if (statusChip != null) statusChip.setText(R.string.booking_status_filter_label);
-        }
+        setStatusFilter(TransactionFilter.Type.ALL);
+        updateChips();
         applyFilters();
     }
 
-    /** Single-choice picker over the distinct statuses present among the guest's paid Bookings
-     *  (isHasBooking() == true), e.g. Pending, Confirmed, Checked-In, Checked-Out, Cancelled. */
-    private void showBookingStatusFilterDialog() {
-        List<String> statuses = new ArrayList<>();
-        for (Booking b : allBookings) {
-            if (b.isHasBooking() && b.getStatus() != null && !statuses.contains(b.getStatus())) {
-                statuses.add(b.getStatus());
-            }
-        }
-        if (statuses.isEmpty()) {
-            Toast.makeText(this, R.string.no_transactions_found, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String[] options = statuses.toArray(new String[0]);
-        int checkedIndex = selectedBookingStatus != null ? statuses.indexOf(selectedBookingStatus) : -1;
+    // ---- Filter pickers ----
 
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.booking_status_filter_title)
-                .setSingleChoiceItems(options, checkedIndex, (dialog, which) -> {
-                    selectedBookingStatus = options[which];
-                    Chip statusChip = findViewById(R.id.chipBookingStatus);
-                    if (statusChip != null) statusChip.setText(selectedBookingStatus);
-                    applyFilters();
-                    dialog.dismiss();
-                })
-                .setNegativeButton(R.string.clear_filters, (dialog, which) -> {
-                    selectedBookingStatus = null;
-                    Chip statusChip = findViewById(R.id.chipBookingStatus);
-                    if (statusChip != null) statusChip.setText(R.string.booking_status_filter_label);
-                    applyFilters();
-                })
-                .show();
-    }
-
-    /** Single-choice picker over the distinct room types present in the guest's own bookings. */
     private void showRoomTypeFilterDialog() {
-        // Every distinct room type across every transaction, including every
-        // line of a multi-room-type one - not just each transaction's first/
-        // legacy room type (see Booking#getAllRoomTypeNames()'s own doc for
-        // why getRoomType() alone would silently omit a second/third type
-        // from this list, e.g. "Suite" in a "Deluxe + Suite" booking).
+        // Every distinct room type across every transaction, including each line of a multi-room one.
         List<String> types = new ArrayList<>();
-        for (Booking b : allBookings) {
-            for (String roomTypeName : b.getAllRoomTypeNames()) {
-                if (!types.contains(roomTypeName)) {
-                    types.add(roomTypeName);
-                }
+        for (TransactionRow row : allRows) {
+            for (String type : row.roomTypes) {
+                if (!types.contains(type)) types.add(type);
             }
         }
         if (types.isEmpty()) {
-            Toast.makeText(this, R.string.no_transactions_found, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.txn_filter_no_options, Toast.LENGTH_SHORT).show();
             return;
         }
+        Collections.sort(types, String.CASE_INSENSITIVE_ORDER);
         String[] options = types.toArray(new String[0]);
-        int checkedIndex = selectedRoomType != null ? types.indexOf(selectedRoomType) : -1;
-
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        int checked = criteria.roomType != null ? types.indexOf(criteria.roomType) : -1;
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.room_type_filter_title)
-                .setSingleChoiceItems(options, checkedIndex, (dialog, which) -> {
-                    selectedRoomType = options[which];
-                    Chip roomTypeChip = findViewById(R.id.chipRoomType);
-                    if (roomTypeChip != null) roomTypeChip.setText(selectedRoomType);
+                .setSingleChoiceItems(options, checked, (dialog, which) -> {
+                    criteria.roomType = options[which];
+                    updateChips();
                     applyFilters();
                     dialog.dismiss();
                 })
                 .setNegativeButton(R.string.clear_filters, (dialog, which) -> {
-                    selectedRoomType = null;
-                    Chip roomTypeChip = findViewById(R.id.chipRoomType);
-                    if (roomTypeChip != null) roomTypeChip.setText(R.string.room_type_filter_label);
+                    criteria.roomType = null;
+                    updateChips();
                     applyFilters();
                 })
                 .show();
     }
 
-    /** Lowercased human-readable payment status, so keyword search matches "fully"/"partial"/"pending". */
-    private String paymentStatusSearchLabel(Booking b) {
-        if (!b.isHasBooking()) return getString(R.string.no_payment_yet_label).toLowerCase(Locale.US);
-        String status = b.getBillingStatus();
-        if ("paid".equalsIgnoreCase(status)) return getString(R.string.status_fully_paid).toLowerCase(Locale.US);
-        if ("partial".equalsIgnoreCase(status)) return getString(R.string.status_partial_paid).toLowerCase(Locale.US);
-        return getString(R.string.status_pending_label).toLowerCase(Locale.US);
-    }
-
-    /** Same Cancelled+Rejected grouping TransactionCategorizer uses everywhere else. */
-    private boolean isCancelledOrRejected(Booking b) {
-        String status = b.getStatus();
-        return "Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status);
-    }
-
-    private void applyFilters() {
-        filteredBookings.clear();
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
-
-        for (Booking b : allBookings) {
-            String paymentStatusLabel = paymentStatusSearchLabel(b);
-            boolean matchesSearch = b.getId().toLowerCase(Locale.US).contains(searchQuery) ||
-                                   b.getRoomName().toLowerCase(Locale.US).contains(searchQuery) ||
-                                   b.anyRoomTypeContains(searchQuery) ||
-                                   (b.getStatus() != null && b.getStatus().toLowerCase(Locale.US).contains(searchQuery)) ||
-                                   (b.getTransactionRef() != null && b.getTransactionRef().toLowerCase(Locale.US).contains(searchQuery)) ||
-                                   paymentStatusLabel.contains(searchQuery);
-
-            boolean matchesFilter = false;
-            switch (currentFilter) {
-                case "All": matchesFilter = true; break;
-                // Reservations = no payment made; Bookings = paid (even if
-                // still pending staff verification) - same split as the
-                // website's My Reservations / My Bookings. Rejected is folded
-                // into the same bucket as Cancelled everywhere else in the app
-                // (see TransactionCategorizer.categorize()) - kept consistent
-                // here so a Rejected reservation shows up under "Cancelled"
-                // instead of lingering in "Reservations" with no way to find it.
-                case "Reservations": matchesFilter = !b.isHasBooking() && !isCancelledOrRejected(b); break;
-                case "Bookings": matchesFilter = b.isHasBooking() && !isCancelledOrRejected(b); break;
-                case "Payments": matchesFilter = b.getTransactionRef() != null; break;
-                case "Cancelled": matchesFilter = isCancelledOrRejected(b); break;
-                case "Stays": matchesFilter = "Checked-Out".equalsIgnoreCase(b.getStatus()) || "Checked-In".equalsIgnoreCase(b.getStatus()); break;
-                case "FullyPaid": matchesFilter = b.isHasBooking() && "paid".equalsIgnoreCase(b.getBillingStatus()); break;
-                case "PartiallyPaid": matchesFilter = b.isHasBooking() && "partial".equalsIgnoreCase(b.getBillingStatus()); break;
-                case "PendingPayment": matchesFilter = b.isHasBooking() && (b.getBillingStatus() == null || "pending".equalsIgnoreCase(b.getBillingStatus())); break;
-            }
-
-            boolean matchesRoomType = selectedRoomType == null || b.hasRoomType(selectedRoomType);
-            boolean matchesBookingStatus = selectedBookingStatus == null
-                    || (b.isHasBooking() && selectedBookingStatus.equalsIgnoreCase(b.getStatus()));
-
-            boolean matchesDate = true;
-            if (selectedDateRange != null) {
-                try {
-                    long bookingTime = sdf.parse(b.getCheckInDate()).getTime();
-                    matchesDate = bookingTime >= selectedDateRange.first && bookingTime <= selectedDateRange.second;
-                } catch (Exception e) {
-                    matchesDate = false;
-                }
-            }
-
-            if (matchesSearch && matchesFilter && matchesRoomType && matchesBookingStatus
-                    && matchesDate) {
-                filteredBookings.add(b);
+    /** Single-choice picker over the distinct statuses present among the guest's Bookings (Pending, Confirmed, Checked-In, ...). */
+    private void showBookingStatusFilterDialog() {
+        List<String> statuses = new ArrayList<>();
+        for (TransactionRow row : allRows) {
+            if (row.kind == TransactionRow.Kind.BOOKING && !row.lifecycleStatus.isEmpty() && !statuses.contains(row.lifecycleStatus)) {
+                statuses.add(row.lifecycleStatus);
             }
         }
+        if (statuses.isEmpty()) {
+            Toast.makeText(this, R.string.txn_filter_no_options, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String[] options = statuses.toArray(new String[0]);
+        int checked = criteria.bookingStatus != null ? statuses.indexOf(criteria.bookingStatus) : -1;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.booking_status_filter_title)
+                .setSingleChoiceItems(options, checked, (dialog, which) -> {
+                    criteria.bookingStatus = options[which];
+                    updateChips();
+                    applyFilters();
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.clear_filters, (dialog, which) -> {
+                    criteria.bookingStatus = null;
+                    updateChips();
+                    applyFilters();
+                })
+                .show();
+    }
 
-        // A deep-linked booking (e.g. tapped from the dashboard) must always be
-        // reachable even if it doesn't match the chip it was opened on - e.g. a
-        // Cancelled record opened on the Bookings chip, which excludes Cancelled.
-        // Falls back to All so the highlight/scroll in applySelectedBookingHighlight()
-        // never silently fails to find it.
-        if (selectedBookingId != null && pendingScrollToSelected && !"All".equals(currentFilter)) {
-            boolean selectedPresent = false;
-            for (Booking b : filteredBookings) {
-                if (selectedBookingId.equals(b.getId())) {
-                    selectedPresent = true;
+    /** Date range over the CHECK-IN date. The picker speaks UTC-midnight millis; they are turned into calendar dates right away so no time zone can shift a day. */
+    private void showDateRangePicker() {
+        MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker()
+                .setTitleText(R.string.date_filter_label);
+        if (criteria.from != null && criteria.to != null) {
+            builder.setSelection(new androidx.core.util.Pair<>(
+                    criteria.from.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+                    criteria.to.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()));
+        }
+        MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = builder.build();
+        picker.addOnPositiveButtonClickListener(selection -> {
+            if (selection == null || selection.first == null || selection.second == null) return;
+            criteria.from = Instant.ofEpochMilli(selection.first).atZone(ZoneOffset.UTC).toLocalDate();
+            criteria.to = Instant.ofEpochMilli(selection.second).atZone(ZoneOffset.UTC).toLocalDate();
+            updateChips();
+            applyFilters();
+        });
+        picker.show(getSupportFragmentManager(), "DATE_PICKER");
+    }
+
+    // ---- Deep link: highlight + open the EXACT transaction ----
+
+    private void applySelectedHighlight() {
+        if (selectedId == null) return;
+
+        List<Booking> pool = new ArrayList<>(allRows.size());
+        for (TransactionRow row : allRows) pool.add(row.booking);
+        Booking pick = TransactionNavigator.pick(pool, selectedId, selectedDirect, selectedTypeHint, null);
+        TransactionRow target = null;
+        if (pick != null) {
+            for (TransactionRow row : allRows) {
+                if (row.booking == pick) {
+                    target = row;
                     break;
                 }
             }
-            if (!selectedPresent) {
-                // setStatusFilter() only updates the dropdown's displayed text - it doesn't
-                // fire an item-click listener the way checking a Chip used to, so the
-                // re-filter has to be triggered explicitly here.
-                setStatusFilter("All");
-                applyFilters();
+        }
+
+        if (target != null) {
+            // Reachable whatever filter the link opened on (a Cancelled record opened on Bookings, say):
+            // if the current filters hide it, show everything.
+            if (!displayedRows.contains(target) && criteria.isActive()) {
+                clearAllFiltersAndSearch();
                 return;
             }
-        }
-
-        if (filteredBookings.isEmpty()) {
-            rvTransactions.setVisibility(View.GONE);
-            layoutEmptyState.setVisibility(View.VISIBLE);
-
-            // Distinguish "nothing matches your filters/search" (recoverable via Clear
-            // Filters) from "no transactions on the account yet" (nothing to clear) -
-            // and give search vs. filter/payments its own wording per the empty-state spec.
-            boolean filtersActive = !"All".equals(currentFilter) || !searchQuery.isEmpty() || selectedDateRange != null
-                    || selectedRoomType != null || selectedBookingStatus != null;
-            int descRes;
-            if (allBookings.isEmpty()) {
-                descRes = R.string.empty_transactions_no_activity_desc;
-            } else if (!searchQuery.isEmpty()) {
-                descRes = R.string.transaction_search_empty_desc;
-            } else if ("Payments".equals(currentFilter)) {
-                descRes = R.string.transaction_payment_empty_desc;
-            } else {
-                descRes = R.string.empty_transactions_desc;
+            adapter.setHighlightedStableId(target.stableId());
+            if (pendingOpenSelected) {
+                pendingOpenSelected = false;
+                int position = adapter.positionOfStableId(target.stableId());
+                if (position >= 0) {
+                    rvTransactions.post(() -> {
+                        if (isUiAlive()) rvTransactions.smoothScrollToPosition(position);
+                    });
+                }
+                startActivity(TransactionNavigator.detailsIntent(this, target.booking));
             }
-            // Same title everywhere a filter/search/sort yields nothing - the description
-            // is what tells the guest why (no history yet vs. no match for their filter).
-            if (tvEmptyTitle != null) tvEmptyTitle.setText(R.string.no_transactions_found);
-            if (tvEmptyDesc != null) tvEmptyDesc.setText(descRes);
-            if (btnEmptyAction != null) {
-                // Always restore "Clear Filters" mode here, even if the button is about to
-                // be hidden - a prior load failure (see loadTransactions()'s onError) can
-                // leave it wired to "Refresh"/retry, which must never survive into this,
-                // unrelated, filtered-empty state.
-                resetEmptyActionToClearFilters();
-                btnEmptyAction.setVisibility(filtersActive ? View.VISIBLE : View.GONE);
-            }
-        } else {
-            rvTransactions.setVisibility(View.VISIBLE);
-            layoutEmptyState.setVisibility(View.GONE);
-            displayedTransactions = buildPaymentTransactions(filteredBookings);
-            adapter.updateList(displayedTransactions);
-            applySelectedBookingHighlight();
-        }
-    }
-
-    /**
-     * Highlights the Booking ID passed via {@link #EXTRA_SELECTED_BOOKING_ID} (e.g. from a
-     * dashboard Recent Bookings/Payment Status item tap), scrolls to it, and automatically
-     * opens its full detail dialog - all once on initial load, so the guest lands directly on
-     * the exact record's complete details without hunting for it. Highlight is re-applied on
-     * every refresh (live-sync, pull-to-refresh) so it survives status changes, but the
-     * scroll/auto-open only fire once so they don't fight the guest's own scrolling afterwards.
-     */
-    private void applySelectedBookingHighlight() {
-        if (selectedBookingId == null) return;
-        adapter.setHighlightedBookingId(selectedBookingId);
-        if (!pendingScrollToSelected) return;
-        int position = -1;
-        for (int i = 0; i < displayedTransactions.size(); i++) {
-            if (selectedBookingId.equals(displayedTransactions.get(i).parentBooking.getId())) {
-                position = i;
-                break;
-            }
-        }
-        if (position >= 0) {
-            final int scrollPosition = position;
-            final PaymentTransaction selected = displayedTransactions.get(position);
-            rvTransactions.post(() -> rvTransactions.smoothScrollToPosition(scrollPosition));
-            showPaymentDetailsDialog(selected);
-            pendingScrollToSelected = false;
             return;
         }
 
-        // Not found even under "All" (applyFilters()'s own chip-fallback above
-        // already ruled out "just hidden by the wrong filter") - most likely
-        // older than the per_page window both refreshBookings() calls cap at.
-        // Fetch it directly by id instead of leaving the guest looking at a
-        // list that silently never scrolls anywhere. One attempt per deep-link
-        // (attemptedDirectFetchForSelected) - a genuine 404 must show the
-        // friendly message below exactly once, not retry on every 30s poll.
-        if (attemptedDirectFetchForSelected) return;
-        attemptedDirectFetchForSelected = true;
-        boolean preferReservation = FILTER_RESERVATIONS.equals(getIntent().getStringExtra(EXTRA_OPEN_FILTER));
-        repository.fetchTransactionById(selectedBookingId, preferReservation, new RoomRepository.RepositoryCallback<Booking>() {
+        // Not among the loaded rows (older than the loaded window). Ask for it by id ONCE - a genuine
+        // 404 must show the friendly message exactly once, not retry on every poll.
+        if (attemptedLookupForSelected) return;
+        attemptedLookupForSelected = true;
+        List<RoomRepository.TransactionFamily> order = selectedDirect != null
+                ? Collections.singletonList(selectedDirect ? RoomRepository.TransactionFamily.DIRECT_BOOKING : RoomRepository.TransactionFamily.RESERVATION)
+                : TransactionNavigator.lookupOrder(selectedTypeHint);
+        repository.lookupTransaction(selectedId, order, new RoomRepository.TransactionLookupCallback() {
             @Override
-            public void onSuccess(Booking result) {
-                allBookings.add(result);
-                applyFilters();
+            public void onFound(Booking booking) {
+                if (!isUiAlive()) return;
+                allRows = TransactionRow.fromAll(repository.getBookings());
+                applyFilters(); // re-enters applySelectedHighlight(), which now finds it
+            }
+
+            @Override
+            public void onNotFound() {
+                pendingOpenSelected = false;
+                TransactionNavigator.showNotFoundDialog(TransactionHistoryActivity.this);
             }
 
             @Override
             public void onError(String message) {
-                pendingScrollToSelected = false;
-                if (isFinishing() || isDestroyed()) return;
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(TransactionHistoryActivity.this)
-                        .setTitle(R.string.deep_link_transaction_not_found_title)
-                        .setMessage(R.string.deep_link_transaction_not_found)
-                        .setPositiveButton(R.string.confirm_dialog_positive, null)
-                        .show();
+                pendingOpenSelected = false;
+                if (isUiAlive()) {
+                    Toast.makeText(TransactionHistoryActivity.this,
+                            getString(R.string.txn_lookup_error_format, message), Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
 
-    /**
-     * "View Details" for a payment transaction row - opens TransactionDetailsActivity
-     * (replaces the old inline dialog_payment_details.xml dialog; that layout's
-     * field-binding logic was moved wholesale into the new Activity).
-     */
-    private void showPaymentDetailsDialog(PaymentTransaction transaction) {
-        startActivity(TransactionDetailsActivity.newIntent(this, transaction));
-    }
+    // ---- Export ----
 
-    private void simulateDownload() {
-        // Method kept for compatibility or removed if not needed elsewhere
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Used to unconditionally call loadTransactions(true) (a full reload,
-        // spinner and all) on EVERY visit to this screen - including returning
-        // from TransactionDetailsActivity/BookingDetailsActivity after "View
-        // Transaction Details", which re-downloaded however large bookingsPerPage
-        // had grown to and reset the SwipeRefreshLayout spinner for a navigation
-        // the guest never asked to refresh. Skipped entirely on the very first
-        // onResume (immediately follows onCreate, which already just did the real
-        // initial load) - every later one polls for changes instead, never a full
-        // reload, so returning to this screen can never re-download the whole
-        // loaded window or disturb the guest's filter/scroll position (already
-        // preserved for free since the Activity is merely paused, not destroyed).
-        if (isFirstResume) {
-            isFirstResume = false;
-        } else {
-            pollForTransactionChanges();
+    private void onExportClicked() {
+        if (!clickGuard.tryAcquire()) return;
+        if (displayedRows.isEmpty()) {
+            Toast.makeText(this, R.string.msg_export_nothing, Toast.LENGTH_SHORT).show();
+            return;
         }
-        autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
+        String[] options = {getString(R.string.export_as_pdf), getString(R.string.export_as_csv)};
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.export_options_title)
+                .setItems(options, (dialog, which) -> {
+                    pendingExportRows = new ArrayList<>(displayedRows);
+                    long now = System.currentTimeMillis();
+                    try {
+                        if (which == 0) {
+                            createPdfLauncher.launch(TransactionExporter.fileName("pdf", now));
+                        } else {
+                            createCsvLauncher.launch(TransactionExporter.fileName("csv", now));
+                        }
+                    } catch (RuntimeException e) {
+                        // No app on the device can create documents (a stripped-down ROM): say so.
+                        Toast.makeText(this, R.string.msg_export_error, Toast.LENGTH_LONG).show();
+                    }
+                })
+                .show();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
+    private void exportTo(Uri uri, boolean pdf) {
+        final List<TransactionRow> rows = pendingExportRows != null ? pendingExportRows : new ArrayList<>(displayedRows);
+        pendingExportRows = null;
+        final String format = pdf ? "PDF" : "CSV";
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_loading, null);
+        TextView message = dialogView.findViewById(R.id.loadingMessage);
+        if (message != null) message.setText(getString(R.string.msg_exporting_format, format));
+        exportProgressDialog = new MaterialAlertDialogBuilder(this).setView(dialogView).setCancelable(false).create();
+        exportProgressDialog.show();
+        final AlertDialog progress = exportProgressDialog;
+
+        // Application context: the worker must not keep this Activity alive, and only needs strings and the resolver.
+        final android.content.Context appContext = getApplicationContext();
+        final String generatedOn = TimeUtils.formatDateTime(Instant.now().toString());
+        try {
+            exportExecutor.execute(() -> {
+                final String failureMessage = TransactionExporter.exportToUri(appContext, uri, pdf, rows, generatedOn);
+                runOnUiThread(() -> {
+                    // The file was written (or not) regardless of the guest having left; only the dialog and
+                    // toast are skipped once the screen is gone.
+                    dismissSafely(progress);
+                    if (progress == exportProgressDialog) exportProgressDialog = null;
+                    if (!isUiAlive()) return;
+                    Toast.makeText(this, failureMessage == null
+                            ? getString(R.string.msg_export_success, getString(R.string.downloads_folder_name))
+                            : failureMessage, Toast.LENGTH_LONG).show();
+                });
+            });
+        } catch (RuntimeException rejected) {
+            // The executor was shut down (screen closing) - nothing left to do but drop the dialog.
+            dismissSafely(progress);
+        }
     }
 }

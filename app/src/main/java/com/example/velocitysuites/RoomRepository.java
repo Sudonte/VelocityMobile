@@ -64,6 +64,33 @@ public final class RoomRepository {
     }
 
     /**
+     * Outcome of {@link #lookupTransaction} - unlike RepositoryCallback it tells "there is no such
+     * transaction" (a definite 404 - show a friendly message) apart from "couldn't ask" (offline/server
+     * error - offer a retry), which a single error string can't do reliably.
+     */
+    public interface TransactionLookupCallback {
+        void onFound(Booking booking);
+
+        /** Every endpoint tried answered 404: the record was removed or was never this guest's. */
+        void onNotFound();
+
+        void onError(String message);
+    }
+
+    /** Which table a transaction id belongs to - reservations and direct bookings are separate tables with independent id sequences. */
+    public enum TransactionFamily { RESERVATION, DIRECT_BOOKING }
+
+    /**
+     * Same-process pub/sub for "genuinely NEW notifications just arrived" (an id newer than every one
+     * already known - never the older rows a load-more brings in, never the first load of a session).
+     * Lets a screen that shows data a notification is about (Transaction History) refresh that data
+     * right away instead of waiting for its own next poll. Always called on the main thread.
+     */
+    public interface NotificationArrivalListener {
+        void onNewNotifications(List<Notification> arrived);
+    }
+
+    /**
      * Same-process pub/sub for "the shared bookings cache changed" - lets
      * BookingAndReservationActivity and DashboardActivity stay in sync in
      * real time (delete/cancel/pay on one screen instantly refreshes the
@@ -141,6 +168,13 @@ public final class RoomRepository {
      */
     private final Map<String, Boolean> pendingReadStates = new java.util.HashMap<>();
     private final List<BookingsChangedListener> bookingsChangedListeners = new ArrayList<>();
+    private final List<NotificationArrivalListener> notificationArrivalListeners = new ArrayList<>();
+    /**
+     * True once a notifications fetch has succeeded for the current account. Until then the unread count is
+     * UNKNOWN rather than zero - the header must not claim "You're all caught up" on a cold start or while
+     * offline, which it did when it read the (still empty) cache. Reset at the account boundary.
+     */
+    private boolean notificationsLoaded = false;
     /** Booking ids already run through correctPendingReservationTotal() - reset whenever refreshBookings() replaces `bookings` with fresh (uncorrected) server objects. */
     private final java.util.Set<String> correctedTotalIds = new java.util.HashSet<>();
 
@@ -181,6 +215,57 @@ public final class RoomRepository {
 
     public void removeBookingsChangedListener(BookingsChangedListener listener) {
         bookingsChangedListeners.remove(listener);
+    }
+
+    public void addNotificationArrivalListener(NotificationArrivalListener listener) {
+        if (!notificationArrivalListeners.contains(listener)) notificationArrivalListeners.add(listener);
+    }
+
+    public void removeNotificationArrivalListener(NotificationArrivalListener listener) {
+        notificationArrivalListeners.remove(listener);
+    }
+
+    private void notifyNotificationsArrived(List<Notification> arrived) {
+        if (arrived.isEmpty()) return;
+        // Iterate a copy - a listener may unregister itself while handling this.
+        for (NotificationArrivalListener listener : new ArrayList<>(notificationArrivalListeners)) {
+            listener.onNewNotifications(arrived);
+        }
+    }
+
+    /**
+     * The notifications in {@code fresh} that genuinely just arrived: newer (higher id - the backend's ids
+     * are an auto-increment, so monotonic with creation) than everything already known. Empty on the very first
+     * load (nothing to be newer than - everything would look "new") and for older rows a load-more pulls in.
+     * Non-numeric ids fall back to "not seen before".
+     */
+    List<Notification> findArrivals(List<Notification> known, List<Notification> fresh) {
+        List<Notification> arrived = new ArrayList<>();
+        if (!notificationsLoaded) return arrived;
+        long maxKnown = Long.MIN_VALUE;
+        java.util.Set<String> knownIds = new java.util.HashSet<>();
+        for (Notification n : known) {
+            knownIds.add(n.getId());
+            try {
+                maxKnown = Math.max(maxKnown, Long.parseLong(n.getId()));
+            } catch (NumberFormatException ignored) {
+                // falls back to id membership below
+            }
+        }
+        for (Notification n : fresh) {
+            if (knownIds.contains(n.getId())) continue;
+            try {
+                if (Long.parseLong(n.getId()) > maxKnown) arrived.add(n);
+            } catch (NumberFormatException e) {
+                arrived.add(n);
+            }
+        }
+        return arrived;
+    }
+
+    /** See {@link #notificationsLoaded}: false means the unread count is not known yet, which is not the same as zero. */
+    public boolean hasLoadedNotifications() {
+        return notificationsLoaded;
     }
 
     private void notifyBookingsChanged() {
@@ -282,6 +367,7 @@ public final class RoomRepository {
         lastDirectBookingsTotal = 0;
         lastNotificationsTotal = 0;
         backendUnreadCount = 0;
+        notificationsLoaded = false;
         pendingReadStates.clear();
         // See accountGeneration's own doc - lets refreshBookings()/refreshNotifications()
         // detect and discard a still-in-flight previous account's response instead of
@@ -309,6 +395,7 @@ public final class RoomRepository {
     void setNotificationsForTesting(List<Notification> notifications, int backendUnreadCount) {
         this.notifications = notifications != null ? new ArrayList<>(notifications) : new ArrayList<>();
         this.backendUnreadCount = backendUnreadCount;
+        this.notificationsLoaded = true;
         this.pendingReadStates.clear();
     }
 
@@ -875,14 +962,17 @@ public final class RoomRepository {
                         mapped.add(ApiMapper.toNotification(dto));
                     }
                     int unreadCount = reconcilePendingReadStates(mapped, response.body().unread_count);
+                    List<Notification> arrived = findArrivals(notifications, mapped);
                     notifications = mapped;
                     lastNotificationsTotal = response.body().total;
                     backendUnreadCount = unreadCount;
+                    notificationsLoaded = true;
                     // Single hook point for the whole app: every screen that refreshes
                     // notifications (dashboard, the Notification Module, the background
                     // poll worker) posts real system alerts for genuinely new/unread rows
                     // through here - see NotificationHelper for the dedup/grouping rules.
                     NotificationHelper.maybeAlertNewNotifications(appContext, mapped);
+                    notifyNotificationsArrived(arrived);
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {
                     if (callback != null) callback.onError("Failed to load notifications.");
@@ -1017,10 +1107,13 @@ public final class RoomRepository {
                         fetched.add(ApiMapper.toNotification(dto));
                     }
                     int unreadCount = reconcilePendingReadStates(fetched, response.body().unread_count);
+                    List<Notification> arrived = findArrivals(notifications, fetched);
                     mergeNotifications(fetched);
                     lastNotificationsTotal = response.body().total;
                     backendUnreadCount = unreadCount;
+                    notificationsLoaded = true;
                     NotificationHelper.maybeAlertNewNotifications(appContext, fetched);
+                    notifyNotificationsArrived(arrived);
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {
                     if (callback != null) callback.onError("Failed to check for new notifications.");
@@ -2728,7 +2821,7 @@ public final class RoomRepository {
 
     /**
      * Direct single-record fetch by id, used only when a deep-linked
-     * transaction (e.g. "View Transaction Details" from a notification)
+     * transaction (e.g. "View Transaction" from a notification)
      * isn't present in the already-loaded bookings/reservations cache -
      * most likely because it's older than the per_page window both live
      * fetches cap at. preferReservation comes from the caller's own
@@ -2771,6 +2864,75 @@ public final class RoomRepository {
                         if (callback != null) callback.onError(appContext.getString(R.string.deep_link_transaction_not_found));
                     } else {
                         if (callback != null) callback.onError(errorMessage(response));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<DirectBookingResponseDto> call, Throwable t) {
+                    if (callback != null) callback.onError(networkErrorMessage(t));
+                }
+            });
+        }
+    }
+
+    /**
+     * Finds one transaction by id for a deep link (a notification's "View Transaction") when it is not in the
+     * loaded window. {@code order} is the tables to try, most likely first - a reservation's id and a direct
+     * booking's id are different records, so the caller's category hint decides which to ask first; only a
+     * definite 404 moves on to the next table, any other failure stops and reports an error. All 404 =
+     * {@link TransactionLookupCallback#onNotFound()}. Found records are merged into the shared cache, like
+     * fetchTransactionById().
+     */
+    public void lookupTransaction(String id, List<TransactionFamily> order, TransactionLookupCallback callback) {
+        lookupTransactionAt(id, order, 0, callback);
+    }
+
+    private void lookupTransactionAt(String id, List<TransactionFamily> order, int index, TransactionLookupCallback callback) {
+        if (id == null || id.trim().isEmpty() || index >= order.size()) {
+            if (callback != null) callback.onNotFound();
+            return;
+        }
+        final String trimmedId = id.trim();
+        if (order.get(index) == TransactionFamily.RESERVATION) {
+            api.getReservation(trimmedId).enqueue(new Callback<ReservationDto>() {
+                @Override
+                public void onResponse(Call<ReservationDto> call, Response<ReservationDto> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            Booking mapped = ApiMapper.toBooking(response.body());
+                            mergeBookingIntoCache(mapped);
+                            if (callback != null) callback.onFound(mapped);
+                        } catch (RuntimeException e) {
+                            if (callback != null) callback.onError(appContext.getString(R.string.error_unexpected_response));
+                        }
+                    } else if (response.code() == 404) {
+                        lookupTransactionAt(id, order, index + 1, callback);
+                    } else if (callback != null) {
+                        callback.onError(errorMessage(response));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ReservationDto> call, Throwable t) {
+                    if (callback != null) callback.onError(networkErrorMessage(t));
+                }
+            });
+        } else {
+            api.getDirectBooking(trimmedId).enqueue(new Callback<DirectBookingResponseDto>() {
+                @Override
+                public void onResponse(Call<DirectBookingResponseDto> call, Response<DirectBookingResponseDto> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            Booking mapped = ApiMapper.toBooking(response.body());
+                            mergeBookingIntoCache(mapped);
+                            if (callback != null) callback.onFound(mapped);
+                        } catch (RuntimeException e) {
+                            if (callback != null) callback.onError(appContext.getString(R.string.error_unexpected_response));
+                        }
+                    } else if (response.code() == 404) {
+                        lookupTransactionAt(id, order, index + 1, callback);
+                    } else if (callback != null) {
+                        callback.onError(errorMessage(response));
                     }
                 }
 

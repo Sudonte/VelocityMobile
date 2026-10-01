@@ -20,7 +20,7 @@ import java.util.List;
  * Regression coverage for the crash reported after the combo-box/card-redesign/
  * envelope-toggle/TouchDelegate commits: opening the Notifications screen crashed
  * immediately (bell icon -> app closes to the home screen). Plain JUnit tests never
- * open the screen at all (this project has no Robolectric), so that regression
+ * open the screen at all (when this was written the project had no Robolectric; src/test/.../ui now covers the same ground on the JVM), so that regression
  * shipped with a fully green test suite - these instrumented tests actually inflate
  * item_notification.xml and drive NotificationAdapter/NotificationActivity on a
  * device/emulator, the same class of check that would have caught it.
@@ -30,8 +30,8 @@ public class NotificationScreenInstrumentedTest {
 
     /**
      * Exercises NotificationAdapter directly - onCreateViewHolder (inflates
-     * item_notification.xml, including its unread dot and the Flow-laid-out
-     * Mark as read/unread + View Transaction Details buttons), and onBindViewHolder
+     * item_notification.xml, including its unread dot and the one-row footer's
+     * View Transaction + Mark as read/unread actions), and onBindViewHolder
      * for one representative notification per category plus every read/unread and
      * with/without-referenceId combination - all with zero login/network
      * dependency, so this fails the same way whether or not a real backend session
@@ -98,7 +98,7 @@ public class NotificationScreenInstrumentedTest {
         for (String type : types) {
             // Alternates read/unread and with/without a referenceId (drives
             // NotificationPrimaryActionResolver.canViewTransaction() both ways, so
-            // "View Transaction Details" is exercised both visible and GONE) and
+            // "View Transaction" is exercised both visible and GONE) and
             // titles chosen to also exercise NotificationStatusResolver's pill.
             boolean isRead = i % 2 == 0;
             String referenceId = i % 3 == 0 ? null : "REF-" + i;

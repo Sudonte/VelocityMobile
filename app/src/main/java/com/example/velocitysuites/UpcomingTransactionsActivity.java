@@ -292,13 +292,11 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             cardCancellation.setVisibility(View.GONE);
         }
 
-        double total = booking.getTotalAmount();
-        // Backend-authoritative payment_summary totals when attached, else the
-        // legacy fields - see Booking#getEffectiveTotalAmountPaid()'s own doc
-        // (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 6 §1) - must never
-        // disagree with the PaymentStatusResolver pill shown right above.
-        double paid = booking.getEffectiveTotalAmountPaid();
-        double remaining = Math.max(0, booking.getEffectiveRemainingBalance());
+        // Receptionist-verified money only, from the same helper that decides the status pill shown right
+        // above (TransactionStatusHelper).
+        double total = TransactionStatusHelper.grandTotalOf(booking);
+        double paid = TransactionStatusHelper.verifiedPaidOf(booking);
+        double remaining = Math.max(0, total - paid);
         tvTotal.setText(currencyFormat.format(total));
         tvPaid.setText(currencyFormat.format(paid));
         tvRemaining.setText(currencyFormat.format(remaining));

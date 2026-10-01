@@ -76,21 +76,7 @@ public class PaymentTransaction implements java.io.Serializable {
      * (sorts last) only when the parent has no creation time either.
      */
     public long getDateMillis() {
-        String date = getDate();
-        if (date != null) {
-            String[] patterns = {
-                    "MMM d, yyyy • h:mm a",
-                    "MMM dd, yyyy h:mm a",
-                    "MMM dd, yyyy"
-            };
-            for (String pattern : patterns) {
-                try {
-                    java.util.Date parsed = new java.text.SimpleDateFormat(pattern, java.util.Locale.ENGLISH).parse(date);
-                    if (parsed != null) return parsed.getTime();
-                } catch (Exception ignored) {
-                }
-            }
-        }
-        return parentBooking.getCreatedAtMillis();
+        long parsed = PaymentDates.parseMillis(getDate());
+        return parsed > 0 ? parsed : parentBooking.getCreatedAtMillis();
     }
 }

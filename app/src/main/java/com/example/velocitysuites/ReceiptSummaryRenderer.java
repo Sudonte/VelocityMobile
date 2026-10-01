@@ -77,9 +77,16 @@ final class ReceiptSummaryRenderer {
                 break;
         }
 
-        // ---- Charges & Adjustments: only what actually applies ----
+        // ---- Charges & Adjustments: what applies - or an explicit statement that nothing does ----
         boolean hasOther = Math.abs(b.otherCharges) > 0.009;
-        if (b.additionalGuestFee > 0.009 || b.discount > 0.009 || hasOther) {
+        boolean anyCharge = b.additionalGuestFee > 0.009 || b.discount > 0.009 || hasOther;
+        if (!anyCharge) {
+            // The itemized lines already add up to the Grand Total (otherCharges would be non-zero
+            // otherwise), so "no additional fees or discounts" is a fact, not a guess.
+            addSubheading(context, container, R.string.receipt_charges_adjustments_title);
+            addNote(context, container, R.string.receipt_no_fees_discounts);
+        }
+        if (anyCharge) {
             addSubheading(context, container, R.string.receipt_charges_adjustments_title);
             if (b.additionalGuestFee > 0.009) {
                 addLine(context, container, context.getString(R.string.details_label_additional_guest_fee),
