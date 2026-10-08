@@ -38,6 +38,24 @@ public class CheckInWindowTest {
     }
 
     @Test
+    public void earliestCheckIn_acrossMonthYearAndLeapBoundaries() {
+        assertEquals("month boundary", LocalDate.of(2026, 11, 1), CheckInWindow.earliest(at("2026-10-30T02:00:00Z")));
+        assertEquals("year boundary", LocalDate.of(2027, 1, 1), CheckInWindow.earliest(at("2026-12-30T02:00:00Z")));
+        assertEquals("leap year", LocalDate.of(2028, 2, 29), CheckInWindow.earliest(at("2028-02-27T02:00:00Z")));
+        assertEquals("non-leap year", LocalDate.of(2027, 3, 1), CheckInWindow.earliest(at("2027-02-27T02:00:00Z")));
+    }
+
+    @Test
+    public void advanceDays_isTwo() {
+        assertEquals(2, CheckInWindow.ADVANCE_DAYS);
+    }
+
+    @Test
+    public void formatForDisplay_spellsOutWeekdayAndDate() {
+        assertEquals("Sat, Oct 10, 2026", CheckInWindow.formatForDisplay(LocalDate.of(2026, 10, 10)));
+    }
+
+    @Test
     public void checkOutMustBeAtLeastOneDayAfterCheckIn() {
         LocalDate in = LocalDate.of(2026, 10, 10);
         assertEquals(LocalDate.of(2026, 10, 11), CheckInWindow.earliestCheckOut(in));

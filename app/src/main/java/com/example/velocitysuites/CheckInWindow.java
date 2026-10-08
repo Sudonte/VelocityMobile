@@ -4,11 +4,13 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * Single source of truth for which check-in / check-out dates a guest may pick (mirrors the backend's
- * App\\Support\\CheckInWindow): the earliest check-in is {@link #MIN_DAYS_AHEAD} days from today, "today" always
+ * App\\Support\\CheckInWindow): the earliest check-in is {@link #ADVANCE_DAYS} days from today, "today" always
  * being the hotel's local date (Asia/Manila - never the phone's own time zone); there is no upper limit; and
  * check-out must be at least one day after check-in. Every date picker that chooses a check-in (wizard step 1,
  * room browsing, the legacy inline form) and every validator goes through this class.
@@ -17,7 +19,17 @@ public final class CheckInWindow {
 
     public static final ZoneId HOTEL_ZONE = ZoneId.of("Asia/Manila");
     /** The earliest check-in is today + 2 days. */
-    public static final int MIN_DAYS_AHEAD = 2;
+    public static final int ADVANCE_DAYS = 2;
+
+    /** "Sat, Oct 10, 2026" - how the earliest allowed check-in is spelled out in the notice and the inline error. */
+    public static String formatForDisplay(LocalDate date) {
+        return date.format(DateTimeFormatter.ofPattern("EEE, MMM d, yyyy", Locale.US));
+    }
+
+    /** The earliest allowed check-in as shown to the guest, computed from the hotel's current date (never hard-coded). */
+    public static String earliestForDisplay() {
+        return formatForDisplay(earliest());
+    }
 
     private CheckInWindow() {
     }
@@ -36,7 +48,7 @@ public final class CheckInWindow {
     }
 
     public static LocalDate earliest(Clock clock) {
-        return today(clock).plusDays(MIN_DAYS_AHEAD);
+        return today(clock).plusDays(ADVANCE_DAYS);
     }
 
     public static LocalDate earliest() {

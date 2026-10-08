@@ -67,12 +67,7 @@
     <string name="profile_picture_selected">Photo selected</string>
     <string name="remove_photo">Remove photo</string>
     <string name="sign_up_now">Sign Up Now</string>
-    <string name="view_terms_button_label">View Velocity Suites Terms and Agreement</string>
-    <string name="terms_status_hint">Please open and read the full Terms and Agreement before you can agree to it.</string>
-    <string name="terms_checkbox_label">I have read, understood, and agree to the Velocity Suites Terms and Agreement and Privacy Policy.</string>
     <string name="terms_and_agreement_title">Velocity Suites Terms and Agreement</string>
-    <string name="terms_scroll_hint">Scroll to the end to continue</string>
-    <string name="terms_scroll_complete">You\'ve reached the end. You may now check the agreement box.</string>
     <string name="msg_terms_not_viewed">Please read the Terms and Agreement before proceeding.</string>
     <string name="msg_terms_not_checked">You must accept the Terms and Agreement to continue.</string>
     <string name="terms_and_agreement_body">Welcome to Velocity Suites.\n\nBy creating an account, you acknowledge that you have read, understood, and agreed to comply with the following Terms and Agreement.\n\n1. You agree that all personal information provided during registration is accurate, complete, and truthful. Providing false or misleading information may result in the suspension or termination of your account.\n\n2. You are responsible for maintaining the confidentiality of your account credentials, including your email address, mobile number, and password. Do not share your login information with other individuals.\n\n3. Velocity Suites collects your personal information solely for account management, room reservations, payment processing, customer support, security, and other hotel-related services. Your information will be handled in accordance with applicable privacy laws and will not be disclosed to unauthorized third parties without your consent unless required by law.\n\n4. You agree to use the Velocity Suites application only for lawful purposes. Any fraudulent booking, unauthorized access, abusive behavior, or misuse of the system may result in account suspension or permanent termination.\n\n5. Room availability, reservation confirmation, promotional offers, prices, and hotel services are subject to change without prior notice.\n\n6. Reservation cancellations, refunds, modifications, and payment processing are subject to the hotel\'s cancellation and payment policies.\n\n7. Velocity Suites reserves the right to reject, suspend, or terminate accounts that violate these Terms and Agreement or any applicable laws and regulations.\n\n8. Users are responsible for ensuring that all booking details and personal information remain accurate and up to date.\n\n9. Velocity Suites implements reasonable security measures to protect user information; however, users are also responsible for protecting their own account credentials.\n\n10. By selecting the agreement checkbox and continuing with the registration process, you confirm that you voluntarily agree to these Terms and Agreement and consent to the collection and processing of your personal information for hotel management purposes.</string>
@@ -1288,9 +1283,6 @@
          supplied programmatically instead of the XML defaults. -->
     <string name="terms_policy_section_title">Terms, Conditions, and Policy</string>
     <string name="terms_policy_section_desc">Please review the hotel\'s policies before confirming your transaction.</string>
-    <string name="view_hotel_terms_button_label">View Terms, Conditions, and Policy</string>
-    <string name="hotel_terms_agreement_checkbox_label">I have read, understood, and agree to the Velocity Suites Hotel Terms, Conditions, and Policy.</string>
-    <string name="hotel_terms_policy_title">Velocity Suites Hotel Terms, Conditions, and Policy</string>
     <string name="hotel_terms_policy_body_general">By proceeding with this transaction, you acknowledge that you have read, understood, and agree to the following Velocity Suites hotel policies.\n\n1. Check-In Window\nThe earliest Check-In date of a Booking or Reservation is two (2) days from today (hotel time); any later date is allowed. Check-Out must be at least one (1) day after Check-In.\n\n2. Room Availability Policy\nRoom types shown during creation reflect availability at the time of your request. Availability is re-verified before your transaction is confirmed, and again immediately before submission is completed, to prevent overbooking.\n\n3. Duplicate/Overlapping Date Prevention\nA guest may not hold more than one active Booking or Reservation with overlapping stay dates, regardless of room type. Overlapping requests will be rejected.\n\n4. Check-In and Check-Out Policy\nStandard Check-In and Check-Out times apply as posted at the property. Early Check-In or late Check-Out is subject to availability and may incur additional charges.\n\n5. Guest Information and Capacity Policy\nThe representative guest named on the transaction is responsible for the accuracy of all guest information provided. The declared number of guests must not exceed the selected room\'s stated capacity.\n\n6. Guest Responsibility Policy\nThe representative guest is responsible for the conduct of all guests under the transaction and for any damage caused during the stay.\n\n7. Reservation Policy\nA Reservation provisionally holds your requested dates and room type pending confirmation and, where applicable, payment verification.\n\n8. Booking Policy\nA Booking is confirmed once payment has been submitted and, for GCash payments, verified by hotel staff.\n\n9. Reservation Modification Policy\nReservation details may be modified once prior to conversion or Check-In, subject to room availability for the newly requested dates. A confirmed Booking\'s room or primary guest can no longer be changed.\n\n10. Reservation-to-Booking Conversion Policy\nA Reservation may be converted into a Booking by Velocity Suites once payment requirements are satisfied. Conversion preserves the original stay dates and guest details and does not create a duplicate transaction.\n\n11. Cancellation Policy\nA Booking or Reservation with no payment, or with only a partial payment, may be cancelled subject to the hotel\'s cancellation rules. A fully paid Booking cannot be cancelled by the guest.\n\n12. Non-Refundable Policy\nAny amount already paid toward a Booking is non-refundable upon cancellation, except where required by law or expressly approved by hotel management.\n\n13. No-Show Policy\nIf a guest fails to arrive within the hotel\'s allowed Check-In window on the scheduled Check-In date, the transaction may be marked as a No-Show and moved to Cancelled status. Amounts already paid remain non-refundable.\n\n14. Payment Verification Policy\nGCash payments are reviewed by hotel staff before a transaction is marked Confirmed. Cash payments are settled and verified directly at the property.\n\n15. Partial and Full Payment Policy\nWhere offered, guests may pay a partial percentage of the total amount or the full amount at the time of transaction. Any remaining balance is due according to the hotel\'s payment schedule.\n\n16. Hotel\'s Right to Reject or Cancel\nVelocity Suites reserves the right to reject, cancel, or reschedule a Booking or Reservation in cases of suspected fraud, data errors, room unavailability beyond the hotel\'s control, or violation of these policies.\n\n17. Other Applicable Policies\nAdditional house rules and applicable local regulations apply throughout the stay and are available at the property.</string>
     <string name="hotel_terms_policy_gcash_addendum">GCash Payment Policy (this transaction)\nThis transaction is set to be paid via GCash. Your payment is held as Pending until verified by hotel staff, which is typically completed within the hotel\'s standard processing time. A rejected or unverifiable GCash payment will not confirm the transaction, and any amount already paid remains subject to the Non-Refundable Policy above.</string>
     <string name="hotel_terms_policy_cash_addendum">Cash Payment Policy (this transaction)\nThis transaction is set to be paid in Cash. Cash payments are settled and verified directly at the property, at or before Check-In. The Cancellation, No-Show, and Non-Refundable Policies above apply equally once any payment has been made.</string>
@@ -1590,7 +1582,9 @@
     <string name="confirm_booking_label">Confirm Booking</string>
     <string name="error_select_checkin_first">Please select your check-in date first</string>
     <string name="helper_checkin_window">Earliest check-in is 2 days from today (no latest date)</string>
-    <string name="error_checkin_outside_window">Check-in must be at least 2 days from today.</string>
+    <string name="error_checkin_outside_window">Check-in must be at least 2 days (48 hours) from today. Earliest available check-in: %1$s.</string>
+    <string name="checkin_advance_notice">Check-in must be booked at least %1$d days (%2$d hours) in advance. Earliest available check-in: %3$s.</string>
+    <string name="checkin_advance_notice_icon_desc">Information</string>
     <string name="helper_checkout_after_checkin">At least 1 night after check-in</string>
     <string name="title_select_checkin">Select Check-in Date</string>
     <string name="title_select_checkout">Select Check-out Date</string>
@@ -1605,6 +1599,7 @@
     <string name="step_label_confirm">Confirm</string>
     <string name="step_done_mark">✓</string>
     <string name="summary_dates_format">%1$s – %2$s</string>
+    <string name="summary_dates_nights_format">%1$s – %2$s · %3$s</string>
     <string name="summary_dates_placeholder">Select your stay dates</string>
     <string name="summary_guests_default">1 Guest</string>
     <plurals name="summary_guest_count">
@@ -1681,6 +1676,30 @@
          UNKNOWN then, so "You're all caught up" (a claim that it is 0) must not be shown. -->
     <string name="notif_unread_checking">Checking for new alerts…</string>
     <string name="notif_unread_unavailable">Couldn\'t check for new alerts</string>
+
+    <!-- Shared Terms and Policy consent (TermsConsentView / TermsPolicyDialog / TermsContent): one wording for
+         Booking, Reservation and Registration. The privacy + 48-hour sections are new plain-language drafts and
+         should be reviewed by the hotel's team/legal before release. -->
+    <string name="terms_guidance_title">Before you continue:</string>
+    <string name="terms_guidance_step1">1. Tap \"View Terms and Policy\" and read it.</string>
+    <string name="terms_guidance_step2">2. Check the box to confirm you agree.</string>
+    <string name="terms_guidance_step3_format">3. Tap \"%1$s\".</string>
+    <string name="terms_view_button">View Terms and Policy</string>
+    <string name="terms_agree_checkbox">I agree to the Terms and Policy</string>
+    <string name="terms_checkbox_locked_helper">Open and read the Terms and Policy first to enable this box.</string>
+    <string name="terms_missing_open">Still needed: open and read the Terms and Policy, then check the box.</string>
+    <string name="terms_missing_check">Still needed: check the box to confirm you agree.</string>
+    <string name="terms_done">Done</string>
+    <string name="terms_dialog_title">Terms and Policy</string>
+    <string name="terms_dialog_close_desc">Close Terms and Policy</string>
+    <string name="terms_part_account">Account Terms and Agreement</string>
+    <string name="terms_part_advance">48-Hour Advance Check-In Policy</string>
+    <string name="terms_part_hotel">Hotel Policies</string>
+    <string name="terms_part_privacy">Privacy and Data Handling (Data Privacy Act of 2012, RA 10173)</string>
+    <string name="terms_advance_body">1. Earliest check-in date\nThe earliest check-in date you can choose for a Booking or Reservation is two (2) calendar days after today - 48 hours in advance - using the hotel\'s local date (Philippine Time).\n\n2. Example\nIf today is October 8, check-in on October 8 or 9 is not available. October 10 and any later date can be booked.\n\n3. Check-out\nCheck-out must be at least one (1) day after check-in.\n\n4. Bookings made at the front desk\nBookings made in person by hotel staff are not covered by this online advance-booking rule.</string>
+    <string name="terms_privacy_body">Velocity Suites respects your privacy and processes your personal information in line with the Data Privacy Act of 2012 (Republic Act No. 10173) and its implementing rules.\n\n1. What we collect\nThe details you give when you create an account, make a Booking or Reservation, upload an ID, or pay: your name, birth date, gender, email, mobile number, address, guest details, ID image (only to verify a discount), and payment records such as GCash references.\n\n2. Why we collect it\nOnly to manage your account, process Bookings and Reservations, verify discounts and payments, send OTPs and notifications, give you customer support, keep the property secure, and meet legal obligations.\n\n3. Your consent\nBy checking the agreement box you consent to this collection and use. You may withdraw your consent by contacting the hotel, but some services may then no longer be available.\n\n4. Sharing\nYour information is shared only with hotel staff who need it to serve you, with payment providers to process payments, and with authorities when required by law. It is not sold.\n\n5. Storage and security\nWe use reasonable organizational, physical, and technical safeguards, and keep your information only as long as needed for the purposes above or as the law requires.\n\n6. Your rights\nUnder RA 10173 you have the right to be informed, to access, to correct, to object, to request erasure or blocking, to data portability, and to be compensated for damages caused by inaccurate, incomplete, outdated, false, or unlawfully obtained data. You may also file a complaint with the National Privacy Commission.\n\n7. Contact\nTo use your rights or ask about your data, contact the Velocity Suites front desk.</string>
+    <string name="registration_terms_section_title">Terms and Policy</string>
+    <string name="password_requirements">Password requirements: at least 8 characters. Re-enter it below to confirm.</string>
 </resources>
 
 

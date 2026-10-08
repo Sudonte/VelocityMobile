@@ -66,6 +66,8 @@ public class Step2DatesFragment extends WizardStepFragment {
         cardNightsSummary = view.findViewById(R.id.cardNightsSummary);
         tvNightsSummary = view.findViewById(R.id.tvNightsSummary);
 
+        ((android.widget.TextView) view.findViewById(R.id.tvCheckInAdvanceNotice)).setText(CheckInNotice.notice(requireContext()));
+
         etCheckIn.setOnClickListener(v -> showDatePicker(true));
         etCheckOut.setOnClickListener(v -> showDatePicker(false));
 
@@ -76,6 +78,12 @@ public class Step2DatesFragment extends WizardStepFragment {
             etCheckOut.setText(dateFormat.format(getState().checkOut.getTime()));
         }
         updateNightsSummary();
+
+        // Arriving here from the final review (it sends the guest back when the window has moved on, e.g. the
+        // screen was left open past midnight) or restoring a stale selection: show the problem inline right away.
+        if (getState().checkIn != null && !getState().isCheckInWithinWindow(getWizardActivity().isEditMode())) {
+            tilCheckIn.setError(CheckInNotice.outsideWindowError(requireContext()));
+        }
     }
 
     /** Auto-calculated nights + selected date range, shown directly on this step per spec (previously only ever shown later, in Step 7's summary). */
@@ -104,13 +112,9 @@ public class Step2DatesFragment extends WizardStepFragment {
             if (state.checkOut == null) tilCheckOut.setError(getString(R.string.select_date_hint));
             return false;
         }
-        // A fresh run must start inside the window. A Modify keeps the
-        // reservation's existing check-in untouched (it may legitimately be
-        // today/past by now), so it is only re-checked if the guest changed it.
-        boolean checkInUnchangedOnEdit = getWizardActivity().isEditMode() && state.originalCheckIn != null
-                && CheckInWindow.toLocalDate(state.originalCheckIn).equals(CheckInWindow.toLocalDate(state.checkIn));
-        if (!checkInUnchangedOnEdit && !CheckInWindow.isAllowed(state.checkIn)) {
-            tilCheckIn.setError(getString(R.string.error_checkin_outside_window));
+        // A fresh run must start inside the window (a Modify only re-checks a changed check-in).
+        if (!state.isCheckInWithinWindow(getWizardActivity().isEditMode())) {
+            tilCheckIn.setError(CheckInNotice.outsideWindowError(requireContext()));
             return false;
         }
         if (!state.checkOut.after(state.checkIn)) {
