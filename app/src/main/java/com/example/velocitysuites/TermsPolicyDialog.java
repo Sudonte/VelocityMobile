@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -19,9 +20,10 @@ public final class TermsPolicyDialog {
 
     /**
      * @param addendum optional transaction-specific text appended to the shared document
-     * @param onOpened called as soon as the Terms are on screen - opening them is what unlocks the agreement checkbox
+     * @param onRead called once the guest has scrolled to the end of the Terms (or immediately if the whole
+     *               document fits on screen) - this is what unlocks the agreement checkbox
      */
-    public static void show(Context context, @Nullable CharSequence addendum, @Nullable Runnable onOpened) {
+    public static void show(Context context, @Nullable CharSequence addendum, @Nullable Runnable onRead) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_terms_agreement, null);
         AlertDialog dialog = new MaterialAlertDialogBuilder(context).setView(dialogView).create();
 
@@ -29,10 +31,22 @@ public final class TermsPolicyDialog {
         dialogView.findViewById(R.id.termsCloseButton).setOnClickListener(v -> dialog.dismiss());
         dialogView.findViewById(R.id.termsDoneButton).setOnClickListener(v -> dialog.dismiss());
 
+        NestedScrollView scrollView = dialogView.findViewById(R.id.termsScrollView);
+        boolean[] reported = {false};
+        Runnable checkEnd = () -> {
+            View content = scrollView.getChildAt(0);
+            if (reported[0] || content == null) return;
+            if (TermsGate.hasReachedEnd(scrollView.getScrollY(), scrollView.getHeight(), content.getHeight())) {
+                reported[0] = true;
+                if (onRead != null) onRead.run();
+            }
+        };
+        scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, x, y, oldX, oldY) -> checkEnd.run());
+        scrollView.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> checkEnd.run());
+
         dialog.show();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
-        if (onOpened != null) onOpened.run();
     }
 }

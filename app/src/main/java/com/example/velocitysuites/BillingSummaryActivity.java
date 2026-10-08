@@ -172,7 +172,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
         btnConfirmBilling.setOnClickListener(v -> confirmAndProceedToPayment());
     }
 
-    /** Read-only Terms and Policy viewer - the same shared one every consent screen uses. Opening it unlocks the box. */
+    /** Read-only Terms and Policy viewer - the same shared one every consent screen uses. Reading it to the end unlocks the box. */
     private void showTermsDialog() {
         TermsPolicyDialog.show(this, null, () -> cbAcceptBillingTerms.setEnabled(true));
     }

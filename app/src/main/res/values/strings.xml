@@ -1681,13 +1681,13 @@
          Booking, Reservation and Registration. The privacy + 48-hour sections are new plain-language drafts and
          should be reviewed by the hotel's team/legal before release. -->
     <string name="terms_guidance_title">Before you continue:</string>
-    <string name="terms_guidance_step1">1. Tap \"View Terms and Policy\" and read it.</string>
+    <string name="terms_guidance_step1">1. Tap \"View Terms and Policy\" and scroll to the end.</string>
     <string name="terms_guidance_step2">2. Check the box to confirm you agree.</string>
     <string name="terms_guidance_step3_format">3. Tap \"%1$s\".</string>
     <string name="terms_view_button">View Terms and Policy</string>
     <string name="terms_agree_checkbox">I agree to the Terms and Policy</string>
-    <string name="terms_checkbox_locked_helper">Open and read the Terms and Policy first to enable this box.</string>
-    <string name="terms_missing_open">Still needed: open and read the Terms and Policy, then check the box.</string>
+    <string name="terms_checkbox_locked_helper">Open the Terms and Policy and scroll to the end to enable this box.</string>
+    <string name="terms_missing_open">Still needed: open the Terms and Policy and scroll to the end, then check the box.</string>
     <string name="terms_missing_check">Still needed: check the box to confirm you agree.</string>
     <string name="terms_done">Done</string>
     <string name="terms_dialog_title">Terms and Policy</string>

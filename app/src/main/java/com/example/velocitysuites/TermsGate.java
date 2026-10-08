@@ -12,7 +12,19 @@ public final class TermsGate {
     private TermsGate() {
     }
 
-    /** The agreement checkbox is enabled only after the guest has opened the Terms. */
+    /** Slack, in px, for sub-pixel rounding when judging whether the bottom of the document is visible. */
+    private static final int END_SLACK_PX = 8;
+
+    /**
+     * True once the whole document has been seen: the guest scrolled to the end, or it fits on screen without
+     * scrolling (then opening it is reading it).
+     */
+    public static boolean hasReachedEnd(int scrollY, int viewportHeight, int contentHeight) {
+        if (viewportHeight <= 0 || contentHeight <= 0) return false; // not laid out yet
+        return contentHeight <= viewportHeight || scrollY + viewportHeight >= contentHeight - END_SLACK_PX;
+    }
+
+    /** The agreement checkbox is enabled only after the guest has read the Terms to the end. */
     public static boolean isCheckboxEnabled(boolean viewed) {
         return viewed;
     }

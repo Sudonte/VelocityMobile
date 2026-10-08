@@ -11,6 +11,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.core.widget.NestedScrollView;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.example.velocitysuites.R;
@@ -57,7 +58,7 @@ public class TermsConsentViewTest {
     }
 
     @Test
-    public void openingTheTermsUnlocksTheBox_butNeverChecksIt() {
+    public void theBoxStaysLockedUntilTheGuestScrollsToTheEnd_andIsNeverAutoChecked() {
         Activity activity = activity();
         TermsConsentView view = newView(activity);
         boolean[] last = new boolean[2];
@@ -68,6 +69,16 @@ public class TermsConsentViewTest {
 
         Dialog dialog = ShadowDialog.getLatestDialog();
         assertTrue("the Terms dialog is shown", dialog != null && dialog.isShowing());
+        assertFalse("opening alone does not unlock the box", view.findViewById(R.id.cbTermsAgree).isEnabled());
+        assertFalse(view.isViewed());
+
+        // the document is long: scroll to the very end
+        NestedScrollView scroll = dialog.findViewById(R.id.termsScrollView);
+        View content = scroll.getChildAt(0);
+        assertTrue("the full Terms need scrolling here", content.getHeight() > scroll.getHeight());
+        scroll.scrollTo(0, content.getHeight() - scroll.getHeight());
+        shadowOf(Looper.getMainLooper()).idle();
+
         assertTrue(view.findViewById(R.id.cbTermsAgree).isEnabled());
         assertEquals(View.GONE, view.findViewById(R.id.tvTermsLockedHelper).getVisibility());
         assertTrue(view.isViewed());
@@ -88,6 +99,10 @@ public class TermsConsentViewTest {
         Activity activity = activity();
         TermsConsentView view = newView(activity);
         view.findViewById(R.id.btnViewTerms).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        NestedScrollView scroll = ShadowDialog.getLatestDialog().findViewById(R.id.termsScrollView);
+        scroll.scrollTo(0, scroll.getChildAt(0).getHeight());
+        shadowOf(Looper.getMainLooper()).idle();
         view.findViewById(R.id.cbTermsAgree).performClick();
         assertTrue(view.isAccepted());
 
