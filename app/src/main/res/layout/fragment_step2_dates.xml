@@ -33,32 +33,19 @@
             android:textSize="12sp" />
 
         <!-- 48-hour advance check-in policy; text is computed in Step2DatesFragment (CheckInNotice) so the earliest date is never hard-coded. -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvCheckInAdvanceNotice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:background="@color/velocity_red_bg_end"
-            android:gravity="top"
-            android:orientation="horizontal"
-            android:padding="12dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="@string/checkin_advance_notice_icon_desc"
-                android:src="@drawable/ic_info"
-                app:tint="@color/velocity_red_primary" />
-
-            <TextView
-                android:id="@+id/tvCheckInAdvanceNotice"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="13sp"
-                tools:text="Check-in must be booked at least 2 days (48 hours) in advance. Earliest available check-in: Sat, Oct 10, 2026." />
-        </LinearLayout>
+            android:drawablePadding="8dp"
+            android:padding="12dp"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            app:drawableStartCompat="@drawable/ic_info"
+            app:drawableTint="@color/velocity_red_primary"
+            tools:text="Check-in must be booked at least 2 days (48 hours) in advance. Earliest available check-in: Sat, Oct 10, 2026." />
 
         <LinearLayout
             android:layout_width="match_parent"

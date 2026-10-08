@@ -73,7 +73,7 @@ public class BookingWizardState {
         return unchangedOnEdit || CheckInWindow.isAllowed(checkIn);
     }
 
-    /** True once the guest has scrolled the Terms, Conditions, and Policy dialog to the bottom - gates cbTermsAgreement's enabled state (see Step8ReviewPaymentFragment#showHotelTermsDialog()). Lives here rather than as a fragment-local field so it survives Step 8 being recreated on every Back/Next through the wizard. */
+    /** True once the guest has scrolled the Terms, Conditions, and Policy dialog to the bottom - gates the agreement checkbox's enabled state (see TermsConsentView). Lives here rather than as a fragment-local field so it survives Step 8 being recreated on every Back/Next through the wizard. */
     public boolean termsViewed = false;
     public boolean termsAccepted = false;
 

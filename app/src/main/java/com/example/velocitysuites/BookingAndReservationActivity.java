@@ -103,9 +103,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private TextView tvCapacityIndicator, tvRoomsSelectedCount;
     private ChipGroup cgIdType;
     private MaterialButton btnUploadId, btnAddGuest, btnConfirmBooking, btnCancelEdit, btnExpandList;
-    private View layoutTermsAgreement;
-    private MaterialCheckBox cbTermsAgreement;
-    private View tvViewTerms;
     private LinearLayout layoutSummaryAmenities, layoutSummaryAmenitiesRows;
     private View layoutAmenitiesSection;
     private LinearLayout layoutAmenitiesItemsContainer;
@@ -498,11 +495,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         btnExpandList = findViewById(R.id.btnExpandList);
         rvItemList = findViewById(R.id.rvItemList);
 
-        layoutTermsAgreement = findViewById(R.id.layoutTermsAgreement);
-        cbTermsAgreement = findViewById(R.id.cbTermsAgreement);
-        tvViewTerms = findViewById(R.id.tvViewTerms);
-        tvViewTerms.setOnClickListener(v -> showTermsAgreementDialog());
-        cbTermsAgreement.setOnCheckedChangeListener((buttonView, isChecked) -> updateConfirmButtonEnabledState());
 
         layoutSummaryAmenities = findViewById(R.id.layoutSummaryAmenities);
         layoutSummaryAmenitiesRows = findViewById(R.id.layoutSummaryAmenitiesRows);
@@ -779,15 +771,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (cardCancellationPolicy != null) {
             cardCancellationPolicy.setVisibility(reservation ? View.GONE : View.VISIBLE);
         }
-        // The Terms/Cancellation-Policy gate only applies to the Booking tab -
-        // the Reservation tab has no payment step to gate.
-        if (layoutTermsAgreement != null) {
-            layoutTermsAgreement.setVisibility(reservation ? View.GONE : View.VISIBLE);
-        }
         if (tvNoRoomsSelected != null) {
             tvNoRoomsSelected.setText(reservation ? R.string.no_rooms_selected_hint_reservation : R.string.no_rooms_selected_hint);
         }
-        updateConfirmButtonEnabledState();
         applyListFilterLabels();
         listExpanded = false;
         // Switching between New Booking/New Reservation is a pure, instant
@@ -2711,29 +2697,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
         }
 
-        // Defense-in-depth: btnConfirmBooking is already disabled until this is
-        // checked (Booking tab only, see updateConfirmButtonEnabledState()), but
-        // guard here too in case state ever drifts.
-        if (editingBookingId == null && !isReservationMode() && cbTermsAgreement != null && !cbTermsAgreement.isChecked()) {
-            Toast.makeText(this, R.string.error_terms_not_accepted, Toast.LENGTH_LONG).show();
-            isValid = false;
-        }
-
         return isValid;
-    }
-
-    /**
-     * The Booking tab's Confirm/Proceed-to-Payment button stays disabled until
-     * the Terms/Cancellation-Policy checkbox is checked; the Reservation tab
-     * has no payment step so nothing to gate, and an in-progress edit is
-     * always allowed to save (it already went through this gate when created).
-     */
-    private void updateConfirmButtonEnabledState() {
-        if (btnConfirmBooking == null) return;
-        boolean enabled = editingBookingId != null
-                || isReservationMode()
-                || (cbTermsAgreement != null && cbTermsAgreement.isChecked());
-        btnConfirmBooking.setEnabled(enabled);
     }
 
     /** Fetches the admin-managed, active-only Paid/Additional amenity catalog and inflates one row per item. */
@@ -2824,11 +2788,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
             layoutAmenitiesItemsContainer.addView(row);
         }
-    }
-
-    /** Read-only Terms and Policy viewer - the same shared one every consent screen uses. */
-    private void showTermsAgreementDialog() {
-        TermsPolicyDialog.show(this, null, null);
     }
 
     /** True when {@code cal}'s calendar day is strictly before today's. */
@@ -3330,7 +3289,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (btnCancelEdit != null) btnCancelEdit.setVisibility(View.GONE);
         selectedRooms.clear();
         renderSelectedRooms();
-        if (cbTermsAgreement != null) cbTermsAgreement.setChecked(false);
         renderAmenityCatalog();
         updateCapacityIndicator();
         tilCheckIn.setEnabled(false);
@@ -3362,7 +3320,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         btnConfirmBooking.setText(isReservationMode() ? R.string.confirm_reservation_label : R.string.confirm_booking_label);
         btnConfirmBooking.setIconResource(isReservationMode() ? R.drawable.ic_reservation : R.drawable.ic_payment_card);
         screenTitle.setText(R.string.title_booking_reservation);
-        updateConfirmButtonEnabledState();
         updateSummary();
     }
 
@@ -3377,8 +3334,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         screenTitle.setText(R.string.modify_reservation_label);
         btnConfirmBooking.setText(R.string.modify_reservation_label);
         if (btnCancelEdit != null) btnCancelEdit.setVisibility(View.VISIBLE);
-        if (layoutTermsAgreement != null) layoutTermsAgreement.setVisibility(View.GONE);
-        updateConfirmButtonEnabledState();
 
         // Set Room: a pending reservation only has a room TYPE recorded
         // (no specific room_id - that's assigned by a receptionist at

@@ -152,6 +152,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             });
         }
         etCheckIn = findViewById(R.id.etCheckIn);
+        ((android.widget.TextView) findViewById(R.id.tvCheckInAdvanceNotice)).setText(CheckInNotice.notice(this));
         etCheckOut = findViewById(R.id.etCheckOut);
         checkInLayout = findViewById(R.id.checkInLayout);
         checkOutLayout = findViewById(R.id.checkOutLayout);

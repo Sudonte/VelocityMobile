@@ -1176,43 +1176,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Terms &amp; Cancellation Policy gate: Booking tab only (Reservation
-                     tab has no payment step, so nothing to gate here). Visibility and
-                     btnConfirmBooking's enabled state are both driven by applyMode()/
-                     the checkbox listener in the Activity. -->
-                <LinearLayout
-                    android:id="@+id/layoutTermsAgreement"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/shape_tab_background"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbTermsAgreement"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/terms_agreement_label"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="12sp"
-                        android:lineSpacingExtra="2dp"
-                        app:buttonTint="@color/velocity_red_primary" />
-
-                    <TextView
-                        android:id="@+id/tvViewTerms"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginStart="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:fontFamily="sans-serif-black"
-                        android:padding="2dp"
-                        android:text="@string/view_terms_link_label"
-                        android:textColor="@color/velocity_red_primary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnConfirmBooking"
                     style="@style/Widget.Velocity.Flat.Button"

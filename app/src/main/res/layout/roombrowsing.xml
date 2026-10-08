@@ -244,6 +244,21 @@
                                 </LinearLayout>
                             </LinearLayout>
 
+                            <!-- 48-hour advance check-in note; text from CheckInNotice so the date is never hard-coded. -->
+                            <TextView
+                                android:id="@+id/tvCheckInAdvanceNotice"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:background="@color/velocity_red_bg_end"
+                                android:drawablePadding="8dp"
+                                android:padding="12dp"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp"
+                                app:drawableStartCompat="@drawable/ic_info"
+                                app:drawableTint="@color/velocity_red_primary"
+                                app:layout_constraintTop_toBottomOf="@id/dateFieldsRow" />
+
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSearchAvailability"
                                 style="@style/Widget.Velocity.Button"
@@ -252,7 +267,7 @@
                                 android:layout_marginTop="12dp"
                                 android:text="@string/search_availability"
                                 android:textSize="13sp"
-                                app:layout_constraintTop_toBottomOf="@id/dateFieldsRow"
+                                app:layout_constraintTop_toBottomOf="@id/tvCheckInAdvanceNotice"
                                 app:icon="@drawable/ic_room_search"
                                 app:iconGravity="textStart"
                                 app:iconPadding="10dp"

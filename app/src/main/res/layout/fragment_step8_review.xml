@@ -19,137 +19,148 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <TextView
-            style="@style/TextAppearance.Velocity.Label.Section"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/bill_summary_title"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tvSummaryDates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tvSummaryGuests"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tvSummaryAdultsChildren"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tvSummaryRepresentative"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="13sp"
-            tools:text="Representative: Juan Dela Cruz" />
-
+        <!-- Booking summary card: a 1dp border and no elevation, like every other flat box in the app. -->
         <LinearLayout
-            android:id="@+id/layoutSummaryRooms"
+            android:id="@+id/cardBookingSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical" />
-
-        <LinearLayout
-            android:id="@+id/layoutSummaryAmenities"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:background="@drawable/bg_flat_box"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:padding="16dp">
+
+            <TextView
+                style="@style/TextAppearance.Velocity.Label.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/bill_summary_title"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvSummaryDates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvSummaryGuests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvSummaryAdultsChildren"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvSummaryRepresentative"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp"
+                tools:text="Representative: Juan Dela Cruz" />
+
+            <LinearLayout
+                android:id="@+id/layoutSummaryRooms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+
+            <LinearLayout
+                android:id="@+id/layoutSummaryAmenities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="8dp"
+                    android:background="@color/velocity_red_soft" />
+
+                <LinearLayout
+                    android:id="@+id/layoutSummaryAmenitiesRows"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/summary_amenities_subtotal_label"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-bold" />
+
+                    <TextView
+                        android:id="@+id/tvSummaryAmenitiesSubtotal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-bold" />
+                </LinearLayout>
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginVertical="8dp"
+                android:layout_marginVertical="16dp"
                 android:background="@color/velocity_red_soft" />
 
             <LinearLayout
-                android:id="@+id/layoutSummaryAmenitiesRows"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/summary_amenities_subtotal_label"
+                    android:text="@string/total_label"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-bold" />
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-black" />
 
                 <TextView
-                    android:id="@+id/tvSummaryAmenitiesSubtotal"
+                    android:id="@+id/tvSummaryTotal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-bold" />
+                    android:text="@string/zero_price"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-black" />
             </LinearLayout>
-        </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="16dp"
-            android:background="@color/velocity_red_soft" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
+            <!-- A claimed discount: its estimated value (from the Discount module), applied after the receptionist verifies the ID. -->
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/tvSummaryDiscountNote"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/total_label"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-black" />
+                android:layout_marginTop="8dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/tvSummaryTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/zero_price"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-black" />
         </LinearLayout>
-
-        <!-- A claimed discount: its estimated value (from the Discount module), applied after the receptionist verifies the ID. -->
-        <TextView
-            android:id="@+id/tvSummaryDiscountNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="12sp"
-            android:visibility="gone" />
 
         <!-- Edit Reservation only: previous total, new total, already paid, and the balance due
              (or excess) - filled in by Step8ReviewPaymentFragment#renderEditTotals(). -->
@@ -253,7 +264,8 @@
                     android:id="@+id/chipEditGcash"
                     style="@style/Widget.Velocity.Flat.Chip"
                     android:layout_width="wrap_content"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
                     android:textSize="14sp"
                     android:text="@string/payment_method_gcash"
                     app:chipIcon="@drawable/ic_payment"
@@ -264,7 +276,8 @@
                     android:id="@+id/chipEditCash"
                     style="@style/Widget.Velocity.Flat.Chip"
                     android:layout_width="wrap_content"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
                     android:textSize="14sp"
                     android:text="@string/payment_method_cash"
                     app:chipIcon="@drawable/ic_cash"
