@@ -38,8 +38,8 @@ public final class BookingStatusPresenter {
         boolean pendingVerification = b.isPaymentPendingVerification() && !b.isStaffVerified();
         int iconRes = R.drawable.ic_clock;
         if (b.getStatus().equalsIgnoreCase("Cancelled")) {
-            badge.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(android.R.color.darker_gray)));
-            badge.setTextColor(context.getResources().getColor(android.R.color.white));
+            badge.setBackgroundTintList(ColorStateList.valueOf(context.getColor(R.color.status_cancelled_bg)));
+            badge.setTextColor(context.getColor(R.color.status_cancelled_fg));
             iconRes = R.drawable.ic_close;
         } else if (b.getStatus().equalsIgnoreCase("Rejected")) {
             // Distinct from Cancelled (guest-initiated, neutral gray) -
@@ -47,20 +47,20 @@ public final class BookingStatusPresenter {
             // error red rather than being visually indistinguishable from
             // a plain cancellation (see class doc: "different semantic
             // appearances for each status").
-            badge.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.velocity_red_subtle)));
-            badge.setTextColor(context.getResources().getColor(R.color.velocity_red_dark));
+            badge.setBackgroundTintList(ColorStateList.valueOf(context.getColor(R.color.status_rejected_bg)));
+            badge.setTextColor(context.getColor(R.color.status_rejected_fg));
             iconRes = R.drawable.ic_close;
         } else if (pendingVerification) {
             badge.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.velocity_blue_soft)));
             badge.setTextColor(context.getResources().getColor(R.color.velocity_blue_primary));
             iconRes = R.drawable.ic_info;
         } else if (b.getStatus().equalsIgnoreCase("Confirmed")) {
-            badge.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.velocity_green_subtle)));
-            badge.setTextColor(context.getResources().getColor(R.color.velocity_green_primary));
+            badge.setBackgroundTintList(ColorStateList.valueOf(context.getColor(R.color.status_paid_bg)));
+            badge.setTextColor(context.getColor(R.color.status_paid_fg));
             iconRes = R.drawable.ic_check_circle;
         } else if (b.getStatus().equalsIgnoreCase("Pending")) {
-            badge.setBackgroundTintList(ColorStateList.valueOf(context.getResources().getColor(R.color.velocity_red_subtle)));
-            badge.setTextColor(context.getResources().getColor(R.color.velocity_red_primary));
+            badge.setBackgroundTintList(ColorStateList.valueOf(context.getColor(R.color.status_pending_bg)));
+            badge.setTextColor(context.getColor(R.color.status_pending_fg));
             iconRes = R.drawable.ic_clock;
         }
         Drawable icon = ContextCompat.getDrawable(context, iconRes);

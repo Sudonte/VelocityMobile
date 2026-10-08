@@ -51,12 +51,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:background="@drawable/shape_flat_badge"
-                        android:backgroundTint="@color/velocity_inactive_gray"
+                        android:backgroundTint="@color/status_cancelled_bg"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="3dp"
                         android:text="@string/status_modified"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:textAppearance="@style/TextAppearance.Velocity.Caption"
+                        android:textColor="@color/status_cancelled_fg"
                         android:fontFamily="sans-serif-black"
                         android:visibility="gone"
                         tools:visibility="visible" />
@@ -68,8 +68,7 @@
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-black"
                         android:textAllCaps="true"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
+                        android:textAppearance="@style/TextAppearance.Velocity.SectionHeader"
                         tools:text="Booking #164" />
                 </LinearLayout>
 
@@ -89,8 +88,7 @@
                     android:layout_marginTop="3dp"
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/executive_suite"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="12sp" />
+                    android:textAppearance="@style/TextAppearance.Velocity.Caption" />
 
                 <!-- Level 3: Stay dates. -->
                 <TextView
@@ -100,8 +98,7 @@
                     android:layout_marginTop="3dp"
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/loading_date"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.Velocity.BodyText" />
 
                 <!-- Level 4: Status badge - the one status indicator on the
                      compact card (payment method/status/amount-paid detail all
@@ -150,8 +147,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/summary_guests_default"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="12sp" />
+                android:textAppearance="@style/TextAppearance.Velocity.Caption" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -208,7 +204,6 @@
                     android:layout_height="wrap_content"
         android:minHeight="48dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
                     android:text="@string/view_details"
                     android:textAllCaps="false"
                     android:textSize="12sp"
@@ -222,6 +217,7 @@
                     android:layout_height="wrap_content"
         android:minHeight="48dp"
                     android:layout_weight="1"
+                    android:layout_marginStart="8dp"
                     android:text="@string/pay_now"
                     android:textAllCaps="false"
                     android:textSize="12sp"
@@ -253,7 +249,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancel"
-                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
@@ -261,7 +257,8 @@
                     android:text="@string/cancel_label"
                     android:textAllCaps="false"
                     android:textSize="12sp"
-                    android:textColor="@color/velocity_text_secondary" />
+                    app:strokeColor="?attr/colorError"
+                    android:textColor="?attr/colorError" />
             </LinearLayout>
 
             <!-- Book/Reserve Again + Delete: only Completed/Cancelled transactions
