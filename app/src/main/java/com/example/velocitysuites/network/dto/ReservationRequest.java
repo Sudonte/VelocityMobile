@@ -25,6 +25,8 @@ public class ReservationRequest {
     public String guest_middle_name;
     public String guest_last_name;
     public String id_card_type;
+    /** The admin-created discount the guest picked (Api\\ReservationController resolves + validates it as active). */
+    public Long discount_id;
     public String payment_method;
     public Integer selected_payment_percentage;
     public List<AdditionalGuestDto> additional_guests;

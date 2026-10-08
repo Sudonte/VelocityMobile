@@ -40,9 +40,15 @@ public class BookingWizardState {
     public int children = 0;
     public final List<BookingAndReservationActivity.AdditionalGuest> additionalGuests = new ArrayList<>();
 
-    /** "None" | "Senior Citizen" | "PWD" */
+    /** The discount name the guest claimed ("None" when no discount) - what the API's id_card_type carries. Always kept in sync with {@link #discount} via {@link #setDiscount}. */
     public String idCardType = "None";
+    /** The admin-created discount the guest picked on the ID-verification step; null = no discount. */
+    public Discount discount;
     public Uri idCardImageUri;
+    /** Edit mode only: an ID image is already stored on the server for this reservation. It stays untouched unless the guest replaces it ({@link #idCardImageUri}) or removes it ({@link #removeIdCard}). */
+    public boolean idCardOnFile;
+    /** Edit mode only: the guest asked to delete the stored ID (only honored server-side after the update itself succeeds). */
+    public boolean removeIdCard;
 
     /** Booking mode: fixed GCash-only, chosen on payment.xml. Reservation mode (fresh, non-edit): chosen by the guest on Step7PaymentMethodFragment - see paymentMethodChosen. Edit mode: changed via Step8ReviewPaymentFragment's own chip picker. */
     public String paymentMethod = "cash";
@@ -58,6 +64,32 @@ public class BookingWizardState {
 
     public BookingWizardState(Mode mode) {
         this.mode = mode;
+    }
+
+    /** Picks (or, with null, clears) the claimed discount, keeping the legacy idCardType string in step. Clearing a discount also drops any newly chosen ID image. */
+    public void setDiscount(Discount chosen) {
+        discount = chosen;
+        idCardType = chosen != null ? chosen.getName() : "None";
+        if (chosen == null) {
+            idCardImageUri = null;
+        } else {
+            removeIdCard = false;
+        }
+    }
+
+    /** The claimed discount's numeric id for the API, or null when none / not parseable. */
+    public Long discountIdOrNull() {
+        if (discount == null || discount.getId() == null) return null;
+        try {
+            return Long.parseLong(discount.getId());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** True when a claimed discount still lacks any ID: nothing stored on the server (or the stored one was removed) and no new image picked. */
+    public boolean discountNeedsId() {
+        return discount != null && idCardImageUri == null && (!idCardOnFile || removeIdCard);
     }
 
     public boolean isBookingMode() {

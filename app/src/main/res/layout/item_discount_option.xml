@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One selectable row in the ID-verification step's discount list: name, value
+     and a short description. Tapping it opens the discount's full details. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rowDiscountOption"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_flat_box"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/ivDiscountSelected"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="12dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_check_circle"
+        android:visibility="invisible"
+        app:tint="@color/velocity_red_primary"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvDiscountName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="15sp"
+            tools:text="Senior Citizen" />
+
+        <TextView
+            android:id="@+id/tvDiscountShortDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="A guest who is 60 years old or above and has a valid Senior Citizen ID." />
+
+        <TextView
+            android:id="@+id/tvDiscountNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="No longer available" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvDiscountValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/bg_flat_box_selected"
+        android:fontFamily="sans-serif-black"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
+        android:textColor="@color/velocity_red_dark"
+        android:textSize="13sp"
+        tools:text="20%" />
+</LinearLayout>

@@ -463,7 +463,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         repository.createReservation(groups, state.checkIn, state.checkOut,
                 state.adults, state.children,
                 state.guestFirstName, state.guestMiddleName, state.guestLastName,
-                state.idCardType, state.additionalGuests, state.selectedAmenities, state.paymentMethod,
+                state.idCardType, state.discountIdOrNull(), state.additionalGuests, state.selectedAmenities, state.paymentMethod,
                 UUID.randomUUID().toString(),
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override

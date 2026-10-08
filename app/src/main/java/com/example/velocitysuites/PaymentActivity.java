@@ -1536,7 +1536,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.createReservation(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
                 pendingWizardState.adults, pendingWizardState.children,
                 pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
-                pendingWizardState.idCardType, pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
+                pendingWizardState.idCardType, pendingWizardState.discountIdOrNull(), pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
                 "gcash", UUID.randomUUID().toString(),
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
@@ -1612,7 +1612,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             repository.createReservation(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
                     pendingWizardState.adults, pendingWizardState.children,
                     pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
-                    pendingWizardState.idCardType, pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
+                    pendingWizardState.idCardType, pendingWizardState.discountIdOrNull(), pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
                     "cash", UUID.randomUUID().toString(),
                     new RoomRepository.RepositoryCallback<Booking>() {
                         @Override
@@ -2467,7 +2467,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.createDirectBooking(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
                 pendingWizardState.adults, pendingWizardState.children,
                 pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
-                pendingWizardState.idCardType, idCardForThisCall,
+                pendingWizardState.idCardType, pendingWizardState.discountIdOrNull(), idCardForThisCall,
                 pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
                 "gcash", referenceNumber, gcashNumber, receiptUri,
                 payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(),
@@ -2545,7 +2545,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.createReservationWithPayment(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
                 pendingWizardState.adults, pendingWizardState.children,
                 pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
-                pendingWizardState.idCardType, pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
+                pendingWizardState.idCardType, pendingWizardState.discountIdOrNull(), pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
                 referenceNumber, gcashNumber, receiptUri,
                 payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(),
                 new RoomRepository.RepositoryCallback<Booking>() {

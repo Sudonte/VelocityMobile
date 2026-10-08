@@ -1,17 +1,19 @@
 package com.example.velocitysuites;
 
+import androidx.annotation.Nullable;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
- * A standing, non-expiring discount category (Senior Citizen, PWD, Student,
- * etc.) that a receptionist applies manually at billing time after
- * verifying a guest's ID - genuinely separate from Promotion (no image, no
- * validity dates, no room type), but shown to guests in the same "Ongoing
- * Promotions & Special Offers" section as an informational card, exactly
- * matching how the web public Home page renders Promotion and Discount
- * cards side by side in one unified grid (Api\CatalogController::discounts(),
- * same active-only rows the web side uses - never a separate mobile copy).
+ * A standing discount category created by the System Administrator in the
+ * Discount module (Senior Citizen, PWD, VIP, ...) that a guest can claim on
+ * the ID-verification step and a receptionist verifies and applies at
+ * billing. Genuinely separate from Promotion (no image, no room type). The
+ * Discount module stores exactly: name, type (percentage/fixed), value,
+ * description and status - this model mirrors those fields and nothing else.
  */
 public class Discount implements Serializable {
     private final String id;
@@ -19,35 +21,82 @@ public class Discount implements Serializable {
     private final String discountType;
     private final double value;
     private final String description;
+    private final String status;
+    private final String createdAt;
+    private final String updatedAt;
 
     public Discount(String id, String name, String discountType, double value, String description) {
+        this(id, name, discountType, value, description, null, null, null);
+    }
+
+    public Discount(String id, String name, String discountType, double value, String description,
+                    @Nullable String status, @Nullable String createdAt, @Nullable String updatedAt) {
         this.id = id;
         this.name = name;
         this.discountType = discountType;
         this.value = value;
         this.description = description;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public static Discount fromDto(com.example.velocitysuites.network.dto.DiscountDto dto) {
-        return new Discount(String.valueOf(dto.id), dto.name, dto.discount_type, dto.valueAsDouble(), dto.description);
+        return new Discount(String.valueOf(dto.id), dto.name, dto.discount_type, dto.valueAsDouble(),
+                dto.description, dto.status, dto.created_at, dto.updated_at);
+    }
+
+    /**
+     * Only discounts the admin currently offers. The API already filters on
+     * status = active, but a stale/odd row (explicitly inactive, or no id/name)
+     * must never reach the guest's list.
+     */
+    public static List<Discount> activeOnly(@Nullable List<Discount> all) {
+        List<Discount> result = new ArrayList<>();
+        if (all == null) return result;
+        for (Discount d : all) {
+            if (d != null && d.isActive() && d.id != null && d.name != null && !d.name.trim().isEmpty()) {
+                result.add(d);
+            }
+        }
+        return result;
     }
 
     public String getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
+    public String getDiscountType() { return discountType; }
+    public double getValue() { return value; }
+    @Nullable public String getStatus() { return status; }
+    @Nullable public String getCreatedAt() { return createdAt; }
+    @Nullable public String getUpdatedAt() { return updatedAt; }
 
-    /** Mirrors welcome.blade.php's exact badge formatting: percentage values drop
-     *  trailing zeros ("20.00" -> "20% OFF", "12.50" -> "12.5% OFF"); fixed-amount
-     *  values always keep 2 decimals ("500.00" -> "₱500.00 OFF"). */
-    public String getBadgeLabel() {
-        if ("percentage".equals(discountType)) {
+    /** A missing status (older payloads) counts as active - the endpoint only ever returns active rows. */
+    public boolean isActive() {
+        return status == null || "active".equalsIgnoreCase(status.trim());
+    }
+
+    public boolean isPercentage() {
+        return "percentage".equals(discountType);
+    }
+
+    /** "20%" / "12.5%" / "₱500.00" - the value alone, without "OFF". */
+    public String getValueLabel() {
+        if (isPercentage()) {
             String formatted = String.format(Locale.US, "%.2f", value);
             if (formatted.contains(".")) {
                 formatted = formatted.replaceAll("0+$", "");
                 formatted = formatted.replaceAll("\\.$", "");
             }
-            return formatted + "% OFF";
+            return formatted + "%";
         }
-        return "₱" + String.format(Locale.US, "%,.2f", value) + " OFF";
+        return "₱" + String.format(Locale.US, "%,.2f", value);
+    }
+
+    /** Mirrors welcome.blade.php's exact badge formatting: percentage values drop
+     *  trailing zeros ("20.00" -> "20% OFF", "12.50" -> "12.5% OFF"); fixed-amount
+     *  values always keep 2 decimals ("500.00" -> "₱500.00 OFF"). */
+    public String getBadgeLabel() {
+        return getValueLabel() + " OFF";
     }
 }

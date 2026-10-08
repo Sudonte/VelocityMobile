@@ -1251,7 +1251,7 @@ public final class RoomRepository {
      */
     public void createReservation(List<List<Room>> roomGroups, Calendar checkIn, Calendar checkOut, int adults, int children,
                                    String guestFirstName, String guestMiddleName, String guestLastName,
-                                   String idCardType, List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
+                                   String idCardType, @Nullable Long discountId, List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
                                    List<AddOnAmenity> amenities, String paymentMethod, @Nullable String idempotencyKey,
                                    RepositoryCallback<Booking> callback) {
         List<Room> firstGroup = roomGroups.get(0);
@@ -1278,6 +1278,7 @@ public final class RoomRepository {
         if (idCardType != null && !idCardType.equals("None")) {
             request.id_card_type = idCardType;
         }
+        request.discount_id = discountId;
         if (additionalGuests != null && !additionalGuests.isEmpty()) {
             List<AdditionalGuestDto> guestDtos = new ArrayList<>();
             for (BookingAndReservationActivity.AdditionalGuest g : additionalGuests) {
@@ -1334,7 +1335,7 @@ public final class RoomRepository {
      */
     public void createReservationWithPayment(List<List<Room>> roomGroups, Calendar checkIn, Calendar checkOut, int adults, int children,
                                               String guestFirstName, String guestMiddleName, String guestLastName,
-                                              String idCardType, List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
+                                              String idCardType, @Nullable Long discountId, List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
                                               List<AddOnAmenity> amenities, String referenceNumber, String gcashNumber, Uri receiptUri,
                                               double amountPaid, Integer selectedPaymentPercentage, @Nullable String idempotencyKey,
                                               RepositoryCallback<Booking> callback) {
@@ -1384,6 +1385,9 @@ public final class RoomRepository {
             putText(fields, "guest_last_name", guestLastName);
             if (idCardType != null && !idCardType.equals("None")) {
                 putText(fields, "id_card_type", idCardType);
+            }
+            if (discountId != null) {
+                putText(fields, "discount_id", String.valueOf(discountId));
             }
             putText(fields, "payment_method", "gcash");
             putText(fields, "reference_number", referenceNumber != null ? referenceNumber : "");
@@ -1465,7 +1469,7 @@ public final class RoomRepository {
      */
     public void createDirectBooking(List<List<Room>> roomGroups, Calendar checkIn, Calendar checkOut, int adults, int children,
                                      String guestFirstName, String guestMiddleName, String guestLastName,
-                                     String idCardType, Uri idCardImageUri,
+                                     String idCardType, @Nullable Long discountId, Uri idCardImageUri,
                                      List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
                                      List<AddOnAmenity> amenities,
                                      String paymentMethod, String referenceNumber, String gcashNumber, Uri receiptUri,
@@ -1528,6 +1532,9 @@ public final class RoomRepository {
             }
             putText(fields, "guest_last_name", guestLastName);
             putText(fields, "id_card_type", idCardType != null ? idCardType : "None");
+            if (discountId != null) {
+                putText(fields, "discount_id", String.valueOf(discountId));
+            }
             putText(fields, "payment_method", paymentMethod);
             putText(fields, "amount_paid", String.valueOf(amountPaid));
             if (selectedPaymentPercentage != null) {

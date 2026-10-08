@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full details of one discount, shown in a bottom sheet from the ID-verification
+     step. Every field the Discount module stores is listed (name, type, value,
+     description, status, date added); rows with no data are hidden by the code. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/velocity_surface_elevated"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="4dp">
+
+        <TextView
+            android:id="@+id/tvDetailTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="18sp"
+            tools:text="Senior Citizen" />
+
+        <ImageButton
+            android:id="@+id/btnDetailClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close_label"
+            android:src="@drawable/ic_close"
+            app:tint="@color/velocity_text_primary"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="false">
+
+        <LinearLayout
+            android:id="@+id/layoutDetailRows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp" />
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_flat_box"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDetailBack"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/velocity_red_primary"
+            app:strokeColor="@color/velocity_red_primary"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDetailSelect"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:minHeight="48dp"
+            android:text="@string/discount_select_this"
+            android:textAllCaps="false"
+            app:backgroundTint="@color/velocity_red_primary"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+    </LinearLayout>
+</LinearLayout>

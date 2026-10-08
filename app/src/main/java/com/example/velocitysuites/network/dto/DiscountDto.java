@@ -6,6 +6,9 @@ public class DiscountDto {
     public String discount_type;
     public String value;
     public String description;
+    public String status;
+    public String created_at;
+    public String updated_at;
 
     public double valueAsDouble() {
         try {
