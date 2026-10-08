@@ -25,6 +25,21 @@
         <item name="textAppearanceCaption">@style/TextAppearance.MaterialComponents.Caption</item>
         <item name="textAppearanceButton">@style/TextAppearance.MaterialComponents.Button</item>
         <item name="textAppearanceOverline">@style/TextAppearance.MaterialComponents.Overline</item>
+        <!-- Flat, square UI app-wide: every component shape is 0dp and nothing casts a shadow.
+             Sections separate with 1dp hairline borders (see Widget.Velocity.Card.Flat). -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="materialButtonStyle">@style/Widget.Velocity.Flat.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Velocity.Flat.Button.Outlined</item>
+        <item name="borderlessButtonStyle">@style/Widget.Velocity.Flat.Button.Text</item>
+        <item name="materialCardViewStyle">@style/Widget.Velocity.Card.Flat</item>
+        <item name="chipStyle">@style/Widget.Velocity.Flat.Chip</item>
+        <item name="textInputStyle">@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square</item>
+        <item name="snackbarStyle">@style/Widget.Velocity.Flat.Snackbar</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Velocity.Flat.AlertDialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Velocity.Flat.BottomSheetDialog</item>
+        <item name="android:windowElevation">0dp</item>
     </style>
 
     <!-- Login/Registration only - the status bar now sits directly over the
@@ -46,7 +61,7 @@
 
     <style name="ShapeAppearance.Material3.Corner.Pill" parent="ShapeAppearance.MaterialComponents.LargeComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">28dp</item>
+        <item name="cornerSize">0dp</item>
     </style>
 
 
@@ -54,8 +69,8 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopRight">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
-        <item name="cornerSizeTopLeft">24dp</item>
-        <item name="cornerSizeBottomLeft">24dp</item>
+        <item name="cornerSizeTopLeft">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
     </style>
 
     <style name="NavMenuItemText" parent="TextAppearance.MaterialComponents.Subtitle2">
@@ -87,10 +102,11 @@
         <item name="itemTextAppearanceActive">@style/NavMenuItemText.Active</item>
         <item name="itemTextAppearanceInactive">@style/NavMenuItemText.Inactive</item>
         <item name="headerLayout">@layout/nav_header_guest</item>
-        <item name="elevation">8dp</item>
+        <item name="elevation">0dp</item>
     </style>
 
     <style name="VelocityDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowElevation">0dp</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowMinWidthMajor">90%</item>
         <item name="android:windowMinWidthMinor">90%</item>
@@ -124,8 +140,8 @@
     <!-- Velocity Suites Glassmorphic Styles -->
     <style name="Widget.Velocity.Card.Glass" parent="Widget.MaterialComponents.CardView">
         <item name="cardBackgroundColor">@android:color/transparent</item>
-        <item name="cardCornerRadius">32dp</item>
-        <item name="cardElevation">8dp</item>
+        <item name="cardCornerRadius">0dp</item>
+        <item name="cardElevation">0dp</item>
         <item name="strokeColor">@color/velocity_red_alpha_20</item>
         <item name="strokeWidth">1dp</item>
         <item name="android:clickable">true</item>
@@ -134,8 +150,8 @@
     </style>
 
     <style name="Widget.Velocity.Card.Glass.Elevated">
-        <item name="cardElevation">12dp</item>
-        <item name="strokeWidth">1.5dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
     </style>
 
     <!-- Compact variants for dashboard.xml - same glass-card look, but a
@@ -143,19 +159,19 @@
          "pill" rounding, matching a denser summary-screen density without
          touching the base style used by the taller hero cards elsewhere. -->
     <style name="Widget.Velocity.Card.Glass.Compact">
-        <item name="cardCornerRadius">16dp</item>
+        <item name="cardCornerRadius">0dp</item>
     </style>
 
     <style name="Widget.Velocity.Card.Glass.Compact.Elevated">
-        <item name="cardElevation">12dp</item>
-        <item name="strokeWidth">1.5dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
     </style>
 
     <style name="Widget.Velocity.TextInputLayout.OutlinedBox.Rounded" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="boxCornerRadiusBottomEnd">32dp</item>
-        <item name="boxCornerRadiusBottomStart">32dp</item>
-        <item name="boxCornerRadiusTopEnd">32dp</item>
-        <item name="boxCornerRadiusTopStart">32dp</item>
+        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxCornerRadiusBottomStart">0dp</item>
+        <item name="boxCornerRadiusTopEnd">0dp</item>
+        <item name="boxCornerRadiusTopStart">0dp</item>
         <item name="boxStrokeColor">@color/velocity_red_primary</item>
         <item name="boxStrokeWidth">1.5dp</item>
         <item name="boxStrokeWidthFocused">2dp</item>
@@ -167,10 +183,10 @@
 
     <!-- Modern exposed dropdown (combo box) used for Sort By / Room Type filter -->
     <style name="Widget.Velocity.TextInputLayout.ExposedDropdown" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-        <item name="boxCornerRadiusBottomEnd">16dp</item>
-        <item name="boxCornerRadiusBottomStart">16dp</item>
-        <item name="boxCornerRadiusTopEnd">16dp</item>
-        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxCornerRadiusBottomStart">0dp</item>
+        <item name="boxCornerRadiusTopEnd">0dp</item>
+        <item name="boxCornerRadiusTopStart">0dp</item>
         <item name="boxStrokeColor">@color/velocity_red_primary</item>
         <item name="boxStrokeWidth">1.2dp</item>
         <item name="boxStrokeWidthFocused">2dp</item>
@@ -231,8 +247,8 @@
         <item name="android:textAllCaps">true</item>
         <item name="android:textSize">15sp</item>
         <item name="backgroundTint">@color/velocity_red_primary</item>
-        <item name="cornerRadius">32dp</item>
-        <item name="elevation">4dp</item>
+        <item name="cornerRadius">0dp</item>
+        <item name="elevation">0dp</item>
         <item name="rippleColor">@color/white</item>
     </style>
 
@@ -245,7 +261,7 @@
         <item name="android:textAllCaps">true</item>
         <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/velocity_red_primary</item>
-        <item name="cornerRadius">32dp</item>
+        <item name="cornerRadius">0dp</item>
         <item name="strokeColor">@color/velocity_red_primary</item>
         <item name="strokeWidth">2dp</item>
         <item name="rippleColor">@color/velocity_red_alpha_20</item>

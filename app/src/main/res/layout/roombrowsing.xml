@@ -24,10 +24,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            android:elevation="6dp"
+            android:elevation="0dp"
             android:outlineProvider="bounds"
-            android:translationZ="6dp"
-            app:elevation="6dp"
+            android:translationZ="0dp"
+            app:elevation="0dp"
             app:liftOnScroll="true"
             app:liftOnScrollTargetViewId="@id/swipeRefresh">
 
@@ -101,7 +101,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="24dp"
                         android:layout_marginBottom="16dp"
-                        app:cardElevation="10dp">
+                        app:cardElevation="0dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
@@ -114,7 +114,7 @@
                                 android:layout_width="36dp"
                                 android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="18dp"
+                                app:cardCornerRadius="0dp"
                                 app:cardElevation="0dp"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
@@ -304,12 +304,12 @@
                 android:id="@+id/stickyControlBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:elevation="6dp"
+                android:elevation="0dp"
                 android:outlineProvider="bounds"
-                android:translationZ="6dp"
+                android:translationZ="0dp"
                 app:cardBackgroundColor="@android:color/transparent"
                 app:cardCornerRadius="0dp"
-                app:cardElevation="8dp"
+                app:cardElevation="0dp"
                 app:strokeWidth="0dp">
 
                 <LinearLayout
@@ -527,7 +527,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/velocity_overlay_scrim_dark"
-            android:elevation="100dp"
+            android:elevation="0dp"
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone">
@@ -536,10 +536,11 @@
                 android:layout_width="240dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                app:cardCornerRadius="32dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:strokeWidth="0dp">
+                app:strokeColor="@color/velocity_divider_hairline"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -557,7 +558,7 @@
                         app:trackThickness="8dp"
                         app:indicatorColor="@color/velocity_red_primary"
                         app:trackColor="@color/velocity_red_soft"
-                        app:trackCornerRadius="4dp" />
+                        app:trackCornerRadius="0dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -626,7 +627,7 @@
             tools:visibility="visible"
             app:cardBackgroundColor="@color/velocity_surface_elevated"
             app:cardCornerRadius="0dp"
-            app:cardElevation="12dp"
+            app:cardElevation="0dp"
             app:strokeColor="@color/velocity_red_subtle"
             app:strokeWidth="1dp">
 
@@ -718,7 +719,7 @@
                         android:singleLine="true"
                         android:ellipsize="end"
                         android:fontFamily="sans-serif-bold"
-                        app:cornerRadius="20dp"
+                        app:cornerRadius="0dp"
                         app:strokeColor="@color/velocity_red_soft" />
 
                     <com.google.android.material.button.MaterialButton
@@ -738,7 +739,7 @@
                         android:ellipsize="end"
                         android:fontFamily="sans-serif-bold"
                         app:backgroundTint="@color/velocity_red_primary"
-                        app:cornerRadius="20dp"
+                        app:cornerRadius="0dp"
                         app:elevation="0dp" />
                 </LinearLayout>
             </LinearLayout>

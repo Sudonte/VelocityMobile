@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:outlineProvider="none"
-            android:translationZ="6dp"
+            android:translationZ="0dp"
             app:elevation="0dp"
             app:liftOnScroll="true"
             app:liftOnScrollTargetViewId="@id/screenContent">
@@ -130,7 +130,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="260dp"
                     android:layout_marginBottom="10dp"
-                    app:cardElevation="6dp">
+                    app:cardElevation="0dp">
 
                     <FrameLayout
                         android:layout_width="match_parent"
@@ -207,7 +207,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardElevation="3dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
@@ -319,7 +319,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="4dp"
+                            app:cardElevation="0dp"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -362,7 +362,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="4dp"
+                            app:cardElevation="0dp"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -412,7 +412,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="4dp"
+                            app:cardElevation="0dp"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -455,7 +455,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="4dp"
+                            app:cardElevation="0dp"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -496,7 +496,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    app:cardElevation="5dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -692,7 +692,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="6dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
 
                     <LinearLayout
@@ -715,7 +715,7 @@
                                 android:layout_width="36dp"
                                 android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_green_soft"
-                                app:cardCornerRadius="12dp"
+                                app:cardCornerRadius="0dp"
                                 app:cardElevation="0dp">
                                 <ImageView
                                     android:layout_width="18dp"
@@ -783,7 +783,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="4dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -920,7 +920,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="4dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1027,7 +1027,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="4dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1133,7 +1133,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="4dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1240,7 +1240,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="32dp"
-                    app:cardElevation="6dp"
+                    app:cardElevation="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1308,7 +1308,7 @@
                                 android:layout_width="46dp"
                                 android:layout_height="46dp"
                                 app:cardCornerRadius="23dp"
-                                app:cardElevation="4dp"
+                                app:cardElevation="0dp"
                                 app:strokeColor="@color/velocity_red_primary"
                                 app:strokeWidth="2dp">
                                 <ImageView
@@ -1426,8 +1426,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
                     app:cardBackgroundColor="@color/velocity_red_primary"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="6dp">
+                    app:cardCornerRadius="0dp"
+                    app:cardElevation="0dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1439,7 +1439,7 @@
                             android:layout_width="44dp"
                             android:layout_height="44dp"
                             app:cardBackgroundColor="#26FFFFFF"
-                            app:cardCornerRadius="22dp"
+                            app:cardCornerRadius="0dp"
                             app:cardElevation="0dp">
                             <ImageView
                                 android:layout_width="22dp"
@@ -1486,7 +1486,7 @@
                             android:textColor="@color/white"
                             android:textSize="12sp"
                             android:fontFamily="sans-serif-bold"
-                            app:cornerRadius="22dp"
+                            app:cornerRadius="0dp"
                             app:elevation="0dp"
                             app:icon="@drawable/ic_headset"
                             app:iconGravity="textStart"

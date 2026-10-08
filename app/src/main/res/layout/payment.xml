@@ -21,8 +21,8 @@
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:stateListAnimator="@null"
-            android:translationZ="8dp"
-            app:elevation="8dp"
+            android:translationZ="0dp"
+            app:elevation="0dp"
             app:liftOnScroll="true"
             app:liftOnScrollTargetViewId="@id/screenContent">
 
@@ -80,7 +80,7 @@
                         android:layout_marginHorizontal="24dp"
                         android:layout_marginTop="20dp"
                         app:cardBackgroundColor="#26000000"
-                        app:cardCornerRadius="16dp"
+                        app:cardCornerRadius="0dp"
                         app:cardElevation="0dp"
                         app:strokeColor="#1AFFFFFF"
                         app:strokeWidth="1dp">
@@ -120,7 +120,7 @@
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="72dp"
-                    android:elevation="8dp"
+                    android:elevation="0dp"
                     app:contentInsetStart="0dp"
                     app:layout_collapseMode="pin">
                     <include
@@ -330,7 +330,7 @@
                                 android:textColor="@color/white"
                                 android:fontFamily="sans-serif-black"
                                 android:textSize="14sp"
-                                android:elevation="4dp"/>
+                                android:elevation="0dp"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -384,8 +384,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="20dp"
                         app:cardBackgroundColor="@color/velocity_red_primary"
-                        app:cardCornerRadius="28dp"
-                        app:cardElevation="12dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardElevation="0dp"
                         app:strokeColor="#4DFFFFFF"
                         app:strokeWidth="1.5dp">
 
@@ -596,7 +596,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="12dp"
-                                app:trackCornerRadius="6dp"
+                                app:trackCornerRadius="0dp"
                                 app:trackThickness="8dp"
                                 app:indicatorColor="@color/velocity_green_primary"
                                 app:trackColor="@color/velocity_red_soft"
@@ -856,7 +856,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 app:cardBackgroundColor="@color/velocity_gray_soft"
-                                app:cardCornerRadius="16dp"
+                                app:cardCornerRadius="0dp"
                                 app:cardElevation="0dp"
                                 app:strokeWidth="0dp">
 
@@ -1025,7 +1025,7 @@
                                     android:text="@string/cancel_payment_button"
                                     android:textAllCaps="false"
                                     android:textColor="@color/velocity_red_primary"
-                                    app:cornerRadius="24dp"
+                                    app:cornerRadius="0dp"
                                     app:strokeColor="@color/velocity_red_primary" />
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnConvertToReservation"
@@ -1035,7 +1035,7 @@
                                     android:text="@string/convert_to_reservation_button"
                                     android:textAllCaps="false"
                                     app:backgroundTint="@color/velocity_red_primary"
-                                    app:cornerRadius="24dp" />
+                                    app:cornerRadius="0dp" />
                             </LinearLayout>
 
                             <com.google.android.material.button.MaterialButton
@@ -1171,7 +1171,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginBottom="24dp"
                                         app:cardBackgroundColor="@color/gcash_blue_soft"
-                                        app:cardCornerRadius="16dp"
+                                        app:cardCornerRadius="0dp"
                                         app:cardElevation="0dp"
                                         app:strokeColor="@color/velocity_red_subtle"
                                         app:strokeWidth="1dp">
@@ -1224,8 +1224,8 @@
                                         android:layout_height="368dp"
                                         android:layout_gravity="center_horizontal"
                                         app:cardBackgroundColor="@color/white"
-                                        app:cardCornerRadius="24dp"
-                                        app:cardElevation="6dp"
+                                        app:cardCornerRadius="0dp"
+                                        app:cardElevation="0dp"
                                         app:strokeColor="@color/gcash_blue"
                                         app:strokeWidth="2dp">
 
@@ -1480,7 +1480,7 @@
                                         android:layout_height="240dp"
                                         android:layout_marginTop="16dp"
                                         android:visibility="gone"
-                                        app:cardCornerRadius="20dp"
+                                        app:cardCornerRadius="0dp"
                                         app:cardElevation="0dp"
                                         app:strokeColor="@color/velocity_red_subtle"
                                         app:strokeWidth="1dp">
@@ -1522,7 +1522,7 @@
                                             android:text="@string/btn_replace_receipt"
                                             android:textAllCaps="false"
                                             android:textColor="@color/gcash_blue"
-                                            app:cornerRadius="22dp"
+                                            app:cornerRadius="0dp"
                                             app:icon="@drawable/ic_edit"
                                             app:iconGravity="textStart"
                                             app:iconTint="@color/gcash_blue"
@@ -1536,7 +1536,7 @@
                                             android:text="@string/btn_remove_receipt"
                                             android:textAllCaps="false"
                                             android:textColor="@color/velocity_red_primary"
-                                            app:cornerRadius="22dp"
+                                            app:cornerRadius="0dp"
                                             app:icon="@drawable/ic_delete"
                                             app:iconGravity="textStart"
                                             app:iconTint="@color/velocity_red_primary"
@@ -1605,7 +1605,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginBottom="12dp"
                                         app:cardBackgroundColor="@color/velocity_red_bg_end"
-                                        app:cardCornerRadius="14dp"
+                                        app:cardCornerRadius="0dp"
                                         app:cardElevation="0dp"
                                         app:strokeColor="@color/velocity_red_subtle"
                                         app:strokeWidth="1dp">
@@ -1684,7 +1684,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginBottom="12dp"
                                         app:cardBackgroundColor="@color/velocity_red_bg_end"
-                                        app:cardCornerRadius="14dp"
+                                        app:cardCornerRadius="0dp"
                                         app:cardElevation="0dp"
                                         app:strokeColor="@color/velocity_red_subtle"
                                         app:strokeWidth="1dp">
@@ -1752,7 +1752,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginBottom="0dp"
                                         app:cardBackgroundColor="@color/velocity_red_bg_end"
-                                        app:cardCornerRadius="14dp"
+                                        app:cardCornerRadius="0dp"
                                         app:cardElevation="0dp"
                                         app:strokeColor="@color/velocity_red_subtle"
                                         app:strokeWidth="1dp">
@@ -1790,7 +1790,7 @@
                                                     android:textAllCaps="false"
                                                     android:textColor="@color/velocity_red_dark"
                                                     android:textSize="13sp"
-                                                    app:cornerRadius="12dp"
+                                                    app:cornerRadius="0dp"
                                                     app:icon="@drawable/ic_eye"
                                                     app:iconGravity="textStart"
                                                     app:iconSize="16dp"

@@ -63,7 +63,7 @@
         android:layout_marginBottom="8dp"
         android:clickable="true"
         android:focusable="true"
-        app:cardCornerRadius="16dp"
+        app:cardCornerRadius="0dp"
         app:cardElevation="0dp"
         app:rippleColor="@color/velocity_red_subtle">
 
@@ -94,7 +94,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         app:cardBackgroundColor="@color/velocity_red_soft"
-                        app:cardCornerRadius="20dp"
+                        app:cardCornerRadius="0dp"
                         app:cardElevation="0dp"
                         app:strokeWidth="0dp">
 

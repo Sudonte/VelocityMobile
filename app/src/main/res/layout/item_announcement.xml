@@ -8,7 +8,7 @@
     android:clickable="true"
     android:focusable="true"
     app:cardBackgroundColor="@color/velocity_surface_elevated"
-    app:cardCornerRadius="22dp"
+    app:cardCornerRadius="0dp"
     app:cardElevation="0dp"
     app:rippleColor="@color/velocity_red_subtle"
     app:strokeColor="@color/velocity_red_subtle"

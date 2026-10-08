@@ -6,5 +6,5 @@
         android:startColor="@color/velocity_red_deep"
         android:centerColor="@color/velocity_red_medium"
         android:endColor="@color/velocity_red_primary" />
-    <corners android:bottomLeftRadius="20dp" android:bottomRightRadius="20dp" />
+    <corners android:radius="0dp" />
 </shape>

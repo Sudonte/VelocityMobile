@@ -19,7 +19,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             app:cardBackgroundColor="@color/velocity_red_soft"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="0dp"
             app:cardElevation="0dp">
             <ImageView
                 android:id="@+id/ivTransactionIcon"

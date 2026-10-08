@@ -6,7 +6,7 @@
      unread card (see NotificationAdapter), whose background is exactly that tint - and
      velocity_red_bg_start is overridden for dark mode in values-night, so the ring
      follows the card in both themes. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="@color/velocity_red_primary" />
     <stroke
         android:width="2dp"

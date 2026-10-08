@@ -29,7 +29,7 @@
                     android:layout_width="44dp"
                     android:layout_height="44dp"
                     app:cardBackgroundColor="@color/velocity_red_soft"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="0dp"
                     app:cardElevation="0dp">
 
                     <ImageView
@@ -293,10 +293,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="18dp"
-                    app:boxCornerRadiusTopStart="32dp"
-                    app:boxCornerRadiusTopEnd="32dp"
-                    app:boxCornerRadiusBottomStart="32dp"
-                    app:boxCornerRadiusBottomEnd="32dp"
+                    app:boxCornerRadiusTopStart="0dp"
+                    app:boxCornerRadiusTopEnd="0dp"
+                    app:boxCornerRadiusBottomStart="0dp"
+                    app:boxCornerRadiusBottomEnd="0dp"
                     app:boxStrokeColor="@color/velocity_red_primary"
                     app:boxStrokeWidth="1.5dp"
                     app:boxStrokeWidthFocused="2dp">

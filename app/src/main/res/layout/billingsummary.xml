@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/velocity_surface_elevated"
-        android:elevation="4dp"
+        android:elevation="0dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="4dp"
@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/velocity_red_primary"
-                app:cardCornerRadius="20dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -671,7 +671,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/velocity_surface_elevated"
-        android:elevation="12dp"
+        android:elevation="0dp"
         android:gravity="center_vertical|end"
         android:orientation="horizontal"
         android:padding="16dp">

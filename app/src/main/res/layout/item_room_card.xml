@@ -6,8 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/room_list_card_spacing"
-    app:cardCornerRadius="@dimen/room_list_card_corner_radius"
-    app:cardElevation="3dp"
+    app:cardCornerRadius="0dp"
+    app:cardElevation="0dp"
     app:cardUseCompatPadding="true">
 
     <LinearLayout
@@ -31,7 +31,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="@dimen/room_list_card_image_width"
                 android:layout_height="@dimen/room_list_card_image_height"
-                app:cardCornerRadius="@dimen/room_list_card_image_corner_radius"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp">
 
                 <FrameLayout
@@ -76,8 +76,8 @@
                         android:layout_gravity="top|end"
                         android:layout_margin="6dp"
                         app:cardBackgroundColor="@color/white"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="2dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardElevation="0dp"
                         app:strokeColor="@color/velocity_red_subtle"
                         app:strokeWidth="1dp">
 
@@ -99,8 +99,8 @@
                         android:layout_gravity="bottom|start"
                         android:layout_margin="8dp"
                         app:cardBackgroundColor="@color/velocity_red_primary"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="3dp">
+                        app:cardCornerRadius="0dp"
+                        app:cardElevation="0dp">
 
                         <TextView
                             android:id="@+id/roomPrice"
@@ -295,7 +295,7 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:backgroundTint="@color/velocity_red_soft"
-                app:cornerRadius="11dp"
+                app:cornerRadius="0dp"
                 app:icon="@drawable/ic_remove"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
@@ -325,7 +325,7 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:backgroundTint="@color/velocity_red_primary"
-                app:cornerRadius="11dp"
+                app:cornerRadius="0dp"
                 app:icon="@drawable/ic_add"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
@@ -408,7 +408,7 @@
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-bold"
                 android:includeFontPadding="false"
-                app:cornerRadius="12dp"
+                app:cornerRadius="0dp"
                 app:icon="@drawable/ic_eye"
                 app:iconGravity="textStart"
                 app:iconSize="12dp"
@@ -434,7 +434,7 @@
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-bold"
                 android:includeFontPadding="false"
-                app:cornerRadius="12dp"
+                app:cornerRadius="0dp"
                 app:icon="@drawable/ic_calendar"
                 app:iconGravity="textStart"
                 app:iconSize="12dp"
@@ -459,7 +459,7 @@
                 android:fontFamily="sans-serif-bold"
                 android:includeFontPadding="false"
                 app:backgroundTint="@color/velocity_red_primary"
-                app:cornerRadius="12dp"
+                app:cornerRadius="0dp"
                 app:elevation="0dp"
                 app:icon="@drawable/ic_booking"
                 app:iconGravity="textStart"

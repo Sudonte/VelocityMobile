@@ -13,6 +13,21 @@
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/velocity_red_primary</item>
+        <!-- Flat, square UI app-wide: every component shape is 0dp and nothing casts a shadow.
+             Sections separate with 1dp hairline borders (see Widget.Velocity.Card.Flat). -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="materialButtonStyle">@style/Widget.Velocity.Flat.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Velocity.Flat.Button.Outlined</item>
+        <item name="borderlessButtonStyle">@style/Widget.Velocity.Flat.Button.Text</item>
+        <item name="materialCardViewStyle">@style/Widget.Velocity.Card.Flat</item>
+        <item name="chipStyle">@style/Widget.Velocity.Flat.Chip</item>
+        <item name="textInputStyle">@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square</item>
+        <item name="snackbarStyle">@style/Widget.Velocity.Flat.Snackbar</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Velocity.Flat.AlertDialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Velocity.Flat.BottomSheetDialog</item>
+        <item name="android:windowElevation">0dp</item>
     </style>
 
     <style name="Theme.VelocitySuites.Introduction" parent="Theme.MaterialComponents.DayNight.NoActionBar">

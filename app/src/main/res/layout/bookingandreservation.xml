@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:outlineProvider="none"
-            android:translationZ="6dp"
+            android:translationZ="0dp"
             app:liftOnScroll="true"
             app:liftOnScrollTargetViewId="@id/screenContent">
 

@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="0dp"
-        app:cardElevation="10dp">
+        app:cardElevation="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -30,8 +30,8 @@
                 android:layout_width="38dp"
                 android:layout_height="38dp"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="13dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
@@ -75,8 +75,8 @@
                 android:text="@string/sign_in_sign_up_label"
                 android:textSize="7sp"
                 app:backgroundTint="@color/white"
-                app:cornerRadius="18dp"
-                app:elevation="2dp"
+                app:cornerRadius="0dp"
+                app:elevation="0dp"
                 app:icon="@drawable/ic_person"
                 app:iconGravity="textEnd"
                 app:iconPadding="6dp"
@@ -111,8 +111,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="8dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
 
@@ -199,8 +199,8 @@
                                 android:text="@string/landing_banner_cta"
                                 android:textSize="13sp"
                                 app:backgroundTint="@color/velocity_red_primary"
-                                app:cornerRadius="22dp"
-                                app:elevation="4dp"
+                                app:cornerRadius="0dp"
+                                app:elevation="0dp"
                                 app:icon="@drawable/ic_chevron_right"
                                 app:iconGravity="textEnd"
                                 app:iconTint="@color/white"
@@ -262,7 +262,7 @@
                                     android:layout_width="52dp"
                                     android:layout_height="52dp"
                                     app:cardBackgroundColor="@color/velocity_red_soft"
-                                    app:cardCornerRadius="26dp"
+                                    app:cardCornerRadius="0dp"
                                     app:cardElevation="0dp">
 
                                     <ImageView
@@ -311,8 +311,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="7dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
 
@@ -333,7 +333,7 @@
                             android:layout_height="36dp"
                             android:layout_marginEnd="10dp"
                             app:cardBackgroundColor="@color/velocity_red_soft"
-                            app:cardCornerRadius="18dp"
+                            app:cardCornerRadius="0dp"
                             app:cardElevation="0dp">
 
                             <ImageView
@@ -454,7 +454,7 @@
                                 android:layout_width="96dp"
                                 android:layout_height="96dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="48dp"
+                                app:cardCornerRadius="0dp"
                                 app:cardElevation="0dp"
                                 app:strokeColor="@color/velocity_red_subtle"
                                 app:strokeWidth="1.5dp">
@@ -526,7 +526,7 @@
                                 android:layout_width="96dp"
                                 android:layout_height="96dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="48dp"
+                                app:cardCornerRadius="0dp"
                                 app:cardElevation="0dp"
                                 app:strokeColor="@color/velocity_red_subtle"
                                 app:strokeWidth="1.5dp">
@@ -576,7 +576,7 @@
                             android:textAllCaps="true"
                             android:textSize="13sp"
                             app:backgroundTint="@color/velocity_red_primary"
-                            app:cornerRadius="22dp"
+                            app:cornerRadius="0dp"
                             app:rippleColor="@color/white" />
                     </LinearLayout>
 
@@ -618,8 +618,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="7dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
 
@@ -673,8 +673,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="7dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
 
@@ -728,8 +728,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="7dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
 
@@ -794,8 +794,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:cardCornerRadius="30dp"
-                app:cardElevation="7dp"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
 
@@ -841,7 +841,7 @@
                         android:clickable="true"
                         android:focusable="true"
                         app:cardBackgroundColor="@color/velocity_red_soft"
-                        app:cardCornerRadius="24dp"
+                        app:cardCornerRadius="0dp"
                         app:cardElevation="0dp"
                         app:rippleColor="@color/velocity_red_subtle"
                         app:strokeColor="@color/velocity_red_subtle"
@@ -893,7 +893,7 @@
                         android:textAllCaps="false"
                         android:textSize="13sp"
                         app:backgroundTint="@color/velocity_red_primary"
-                        app:cornerRadius="16dp"
+                        app:cornerRadius="0dp"
                         app:icon="@drawable/ic_location"
                         app:iconGravity="textStart"
                         app:iconTint="@color/white"
@@ -955,7 +955,7 @@
         tools:visibility="visible"
         app:cardBackgroundColor="@color/velocity_surface_elevated"
         app:cardCornerRadius="0dp"
-        app:cardElevation="12dp"
+        app:cardElevation="0dp"
         app:strokeColor="@color/velocity_red_subtle"
         app:strokeWidth="1dp">
 
@@ -1047,7 +1047,7 @@
                     android:singleLine="true"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-bold"
-                    app:cornerRadius="20dp"
+                    app:cornerRadius="0dp"
                     app:strokeColor="@color/velocity_red_soft" />
 
                 <com.google.android.material.button.MaterialButton
@@ -1067,7 +1067,7 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif-bold"
                     app:backgroundTint="@color/velocity_red_primary"
-                    app:cornerRadius="20dp"
+                    app:cornerRadius="0dp"
                     app:elevation="0dp" />
             </LinearLayout>
         </LinearLayout>

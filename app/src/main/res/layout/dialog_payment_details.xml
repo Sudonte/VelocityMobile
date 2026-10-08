@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/velocity_red_primary"
-                app:cardCornerRadius="20dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp">
 
                 <TextView
@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/velocity_red_bg_end"
-                app:cardCornerRadius="32dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
@@ -146,7 +146,7 @@
                 android:layout_marginBottom="16dp"
                 android:visibility="gone"
                 app:cardBackgroundColor="@color/velocity_red_subtle"
-                app:cardCornerRadius="20dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
                 tools:visibility="visible">
 
@@ -183,7 +183,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/velocity_red_bg_end"
-                app:cardCornerRadius="32dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
@@ -236,7 +236,7 @@
                         android:id="@+id/detailPaymentProgress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:trackCornerRadius="6dp"
+                        app:trackCornerRadius="0dp"
                         app:trackThickness="8dp"
                         app:indicatorColor="@color/velocity_green_primary"
                         app:trackColor="@color/velocity_red_soft"
@@ -250,7 +250,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/velocity_red_bg_end"
-                app:cardCornerRadius="32dp"
+                app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_subtle"
                 app:strokeWidth="1dp">
@@ -300,7 +300,7 @@
                 android:text="@string/download_receipt"
                 android:textAllCaps="false"
                 android:textSize="14sp"
-                app:cornerRadius="26dp"
+                app:cornerRadius="0dp"
                 app:strokeColor="@color/velocity_red_primary"
                 android:textColor="@color/velocity_red_primary" />
 
@@ -314,7 +314,7 @@
                 android:text="@string/request_additional_amenities_button"
                 android:textAllCaps="false"
                 android:textSize="14sp"
-                app:cornerRadius="26dp"
+                app:cornerRadius="0dp"
                 app:strokeColor="@color/velocity_red_primary"
                 android:textColor="@color/velocity_red_primary" />
 
@@ -328,7 +328,7 @@
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 app:backgroundTint="@color/velocity_red_primary"
-                app:cornerRadius="32dp" />
+                app:cornerRadius="0dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

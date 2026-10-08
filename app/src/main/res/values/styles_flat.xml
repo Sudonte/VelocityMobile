@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Flat / square look for the Booking and Reservation screens (creation wizards, booking and
-    reservation lists, details, Edit Reservation, discount details, cancel dialogs):
+    Flat / square look for the whole app (originally the Booking and Reservation screens):
       - no shadows: elevation 0 on cards, buttons, dialogs and bottom sheets, and no button press
         shadow (stateListAnimator @null);
       - every box fully square: corner radius 0 on cards, buttons, text fields, chips, image
         previews, badges, dialogs and bottom sheets;
       - sections are separated by thin 1dp borders and spacing instead of shadows;
       - touch targets are at least 48dp.
-    It is applied as ONE theme (Theme.VelocitySuites.Flat) on exactly those Activities in the
-    manifest, so every widget and dialog they create picks it up - other screens keep the app's
-    normal look. Brand colors and fonts are untouched (this file only sets shape/elevation).
+    It is wired once into the base Theme.VelocitySuites (day and night), so every widget and
+    dialog picks it up. Brand colors and fonts are untouched (this file only sets shape/elevation).
 -->
 <resources>
 
@@ -143,19 +141,12 @@
         <item name="textInputStyle">@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square</item>
     </style>
 
-    <!-- THE theme for the Booking / Reservation screens -->
-    <style name="Theme.VelocitySuites.Flat" parent="Theme.VelocitySuites">
-        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Velocity.Square</item>
-        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Velocity.Square</item>
-        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Velocity.Square</item>
-        <item name="materialButtonStyle">@style/Widget.Velocity.Flat.Button</item>
-        <item name="materialButtonOutlinedStyle">@style/Widget.Velocity.Flat.Button.Outlined</item>
-        <item name="borderlessButtonStyle">@style/Widget.Velocity.Flat.Button.Text</item>
-        <item name="materialCardViewStyle">@style/Widget.Velocity.Card.Flat</item>
-        <item name="chipStyle">@style/Widget.Velocity.Flat.Chip</item>
-        <item name="textInputStyle">@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Velocity.Flat.AlertDialog</item>
-        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Velocity.Flat.BottomSheetDialog</item>
-        <item name="android:windowElevation">0dp</item>
+    <!-- Snackbars: square, no shadow, hairline border -->
+    <style name="Widget.Velocity.Flat.Snackbar" parent="Widget.MaterialComponents.Snackbar">
+        <item name="android:background">@drawable/bg_snackbar_flat</item>
+        <item name="android:elevation">0dp</item>
     </style>
+
+    <!-- Kept as a named alias: the flat look now lives in the base Theme.VelocitySuites. -->
+    <style name="Theme.VelocitySuites.Flat" parent="Theme.VelocitySuites" />
 </resources>

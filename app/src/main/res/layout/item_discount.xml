@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="14dp"
     app:cardBackgroundColor="@color/velocity_surface_elevated"
-    app:cardCornerRadius="22dp"
+    app:cardCornerRadius="0dp"
     app:cardElevation="0dp"
     app:strokeColor="@color/velocity_red_subtle"
     app:strokeWidth="1dp">

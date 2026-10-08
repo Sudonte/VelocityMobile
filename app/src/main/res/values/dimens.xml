@@ -5,7 +5,7 @@
          is already shared via style Widget.Velocity.Card.Glass (32dp) on both cards. -->
     <dimen name="room_card_image_height">172dp</dimen>
     <dimen name="room_card_content_padding">16dp</dimen>
-    <dimen name="room_card_corner_radius">24dp</dimen>
+    <dimen name="room_card_corner_radius">0dp</dimen>
 
     <!-- Compact horizontal list-card sizing (item_room_card.xml only - landing.xml
          Available Rooms + roombrowsing.xml results). Deliberately separate from
@@ -13,8 +13,8 @@
          untouched by the list card's compactness pass. -->
     <dimen name="room_list_card_image_width">140dp</dimen>
     <dimen name="room_list_card_image_height">136dp</dimen>
-    <dimen name="room_list_card_image_corner_radius">12dp</dimen>
-    <dimen name="room_list_card_corner_radius">14dp</dimen>
+    <dimen name="room_list_card_image_corner_radius">0dp</dimen>
+    <dimen name="room_list_card_corner_radius">0dp</dimen>
     <dimen name="room_list_card_content_padding">9dp</dimen>
     <dimen name="room_list_card_spacing">8dp</dimen>
 

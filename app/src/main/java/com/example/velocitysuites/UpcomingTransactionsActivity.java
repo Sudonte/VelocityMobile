@@ -407,7 +407,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         if (isNext) {
             cardView.setStrokeColor(getColor(R.color.velocity_red_primary));
             cardView.setStrokeWidth((int) (2 * getResources().getDisplayMetrics().density));
-            cardView.setCardElevation(8f);
+            cardView.setCardElevation(0f);
         }
 
         card.setOnClickListener(v -> {
