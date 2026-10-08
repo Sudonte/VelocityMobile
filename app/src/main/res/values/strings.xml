@@ -1102,6 +1102,7 @@
     <string name="cancel_failed_format">Couldn\'t cancel: %1$s</string>
     <string name="booking_cancellation_policy_notice">Cancellation Policy: Fully paid bookings cannot be cancelled. Bookings with only a partial payment can be cancelled, but the partial payment already made is non-refundable and will not be returned.</string>
     <string name="cancel_not_allowed_title">Cancellation Not Allowed</string>
+    <string name="cancel_not_allowed_already_verified_msg">This booking has already been verified by the front desk and can no longer be cancelled.</string>
     <string name="cancel_not_allowed_verified_msg">This booking is fully paid, so it can no longer be cancelled here. If you have concerns, please contact the front desk for assistance.</string>
     <string name="cancel_partial_payment_confirm">This booking will be cancelled permanently. Since only a partial payment was made, that amount is non-refundable and will not be returned. Do you want to proceed?</string>
     <string name="additional_guest_age">Age</string>

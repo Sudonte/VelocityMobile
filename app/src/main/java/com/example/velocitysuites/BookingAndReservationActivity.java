@@ -3781,35 +3781,23 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 if (holder.btnBookAgain != null) {
                     holder.btnBookAgain.setVisibility(View.GONE);
                 }
-                boolean staffVerified = b.isStaffVerified();
-                // A fully-paid active Booking may only be View Details'd from
-                // here on - cancellation/refund/rescheduling for it becomes a
-                // Receptionist-handled request instead (btnModify is already
-                // never shown for a Booking-tab item, see canModify below, so
-                // this Cancel guard is the only piece needed to satisfy that).
-                // Fully paid -> cancellation is never allowed (see
-                // PaymentStateUtil#isFullyPaid()'s dual status/amount check) -
-                // both branches explicitly set every piece of state a
-                // recycled ViewHolder could have inherited from a previous,
-                // differently-eligible item (visibility, enabled, alpha, and
-                // the click listener itself), not just visibility, so a
-                // stale listener/alpha can never survive a rebind.
-                boolean fullyPaid = PaymentStateUtil.isFullyPaid(b);
-                if (fullyPaid) {
+                // Cancel visibility has exactly one rule - BookingActionPolicy.canCancel():
+                // hidden (GONE, not merely disabled) once the booking is fully paid or
+                // the receptionist has verified it (Booking::verified_at, mirrored by
+                // the backend's own cancel gate). Every piece of recycled-ViewHolder
+                // state (visibility, enabled, alpha, listener) is reset on both
+                // branches so a stale listener can never survive a rebind.
+                if (!BookingActionPolicy.canCancel(b)) {
                     holder.btnCancel.setVisibility(View.GONE);
                     holder.btnCancel.setEnabled(false);
                     holder.btnCancel.setAlpha(1f);
                     holder.btnCancel.setOnClickListener(null);
                 } else {
-                    // Stays clickable even once staff-verified - showCancelDialog()
-                    // already shows a clear "our staff already verified this"
-                    // explanation in that case; setEnabled(false) would make this
-                    // a dead, unexplained control instead of a clear indication.
                     holder.btnCancel.setVisibility(View.VISIBLE);
                     holder.btnCancel.setText(b.isHasBooking() ? R.string.cancel_booking_button : R.string.cancel_reservation_button);
                     holder.btnCancel.setEnabled(true);
-                    holder.btnCancel.setAlpha(staffVerified ? 0.4f : 1f);
-                    holder.btnCancel.setOnClickListener(v -> showCancelDialog(b));
+                    holder.btnCancel.setAlpha(1f);
+                    holder.btnCancel.setOnClickListener(v -> onCancelTapped(b));
                 }
 
                 // Booking List (a payment already exists) only ever shows
@@ -3932,16 +3920,57 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
     }
 
+    /**
+     * Re-checks the latest server state before offering the cancel dialog: the
+     * list may be stale if the receptionist verified the booking after it was
+     * last loaded. If the policy no longer allows cancelling, explains why and
+     * refreshes the list (the Cancel button then disappears); if the re-check
+     * itself fails (offline), falls through to the dialog - the backend still
+     * enforces the same rule on the actual cancel request.
+     */
+    private void onCancelTapped(Booking tapped) {
+        if (!NavUtils.allowClick()) return;
+        repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
+            @Override
+            public void onSuccess(List<Booking> latest) {
+                if (isFinishing() || isDestroyed()) return;
+                Booking current = null;
+                if (latest != null) {
+                    for (Booking candidate : latest) {
+                        if (candidate.getId().equals(tapped.getId())
+                                && candidate.isHasBooking() == tapped.isHasBooking()
+                                && candidate.isDirectBooking() == tapped.isDirectBooking()) {
+                            current = candidate;
+                            break;
+                        }
+                    }
+                }
+                if (current != null && !BookingActionPolicy.canCancel(current)) {
+                    new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                            .setTitle(R.string.cancel_not_allowed_title)
+                            .setMessage(R.string.cancel_not_allowed_already_verified_msg)
+                            .setPositiveButton(R.string.close_label, null)
+                            .show();
+                    refreshMyBookings();
+                    return;
+                }
+                showCancelDialog(current != null ? current : tapped);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                showCancelDialog(tapped);
+            }
+        });
+    }
+
     private void showCancelDialog(Booking booking) {
         boolean isBooking = booking.isHasBooking();
 
-        // Only a fully paid booking is locked in - mirrors the server-side
-        // gate in Api\BookingController::cancel()/ReservationWorkflowService::
-        // cancelConvertedBooking(), both keyed off Booking.isFullyPaid(), not
-        // verified_at. Staff verifying a partial/deposit payment doesn't make
-        // it a full payment, so a verified-but-partial booking must still
-        // reach the confirmation dialog below rather than being refused
-        // outright here.
+        // Fully paid is locked in here as a last line of defense; a receptionist-
+        // verified booking is blocked earlier, by BookingActionPolicy in
+        // onCancelTapped() (and again server-side).
         if (PaymentStateUtil.isFullyPaid(booking)) {
             new MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.cancel_not_allowed_title)
@@ -4020,6 +4049,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                         negative.setEnabled(true);
                         positive.setText(isBooking ? R.string.yes_cancel_booking : R.string.yes_cancel_reservation);
                         Toast.makeText(BookingAndReservationActivity.this, getString(R.string.cancel_failed_format, message), Toast.LENGTH_LONG).show();
+                        // A rejection may mean the receptionist just verified it - sync the row.
+                        refreshMyBookings();
                     }
                 });
             });
