@@ -2826,15 +2826,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
     }
 
-    /** Read-only Terms &amp; Agreement viewer, same dialog/pattern RegistrationActivity uses. */
+    /** Read-only Terms and Policy viewer - the same shared one every consent screen uses. */
     private void showTermsAgreementDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_terms_agreement, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogView)
-                .create();
-        View closeButton = dialogView.findViewById(R.id.termsCloseButton);
-        closeButton.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
+        TermsPolicyDialog.show(this, null, null);
     }
 
     /** True when {@code cal}'s calendar day is strictly before today's. */

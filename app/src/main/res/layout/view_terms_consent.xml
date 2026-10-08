@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:orientation="vertical"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <!-- Guidance box: the three steps, with the screen's own action label in step 3. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_red_bg_end"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:text="@string/terms_guidance_title"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/terms_guidance_step1"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/terms_guidance_step2"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvTermsGuidanceStep3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="3. Tap &quot;Confirm Booking&quot;." />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnViewTerms"
+        style="@style/Widget.Velocity.Flat.Button.Outlined"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:minHeight="48dp"
+        android:text="@string/terms_view_button"
+        android:textColor="@color/velocity_red_primary"
+        android:textSize="13sp"
+        app:icon="@drawable/ic_lock"
+        app:iconTint="@color/velocity_red_primary" />
+
+    <!-- The whole row is the checkbox, so the entire row is the tap target (>= 48dp tall). -->
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/cbTermsAgree"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:enabled="false"
+        android:minHeight="48dp"
+        android:text="@string/terms_agree_checkbox"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="14sp"
+        app:buttonTint="@color/velocity_red_primary"
+        app:useMaterialThemeColors="false" />
+
+    <TextView
+        android:id="@+id/tvTermsLockedHelper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/terms_checkbox_locked_helper"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp" />
+</merge>

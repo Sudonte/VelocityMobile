@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:clipToPadding="false">
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:clipToPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -322,45 +328,46 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/terms_policy_section_desc"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="12sp" />
 
-        <!-- Must be tapped (and scrolled to the bottom of the dialog it opens)
-             before cbTermsAgreement becomes enabled - see
-             Step8ReviewPaymentFragment#showHotelTermsDialog(). -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnViewHotelTerms"
-            style="@style/Widget.Velocity.Flat.Button.Outlined"
+        <!-- Shared consent block (guidance, View Terms and Policy, agreement checkbox) - see TermsConsentView. -->
+        <com.example.velocitysuites.TermsConsentView
+            android:id="@+id/termsConsent"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-        android:minHeight="48dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/view_hotel_terms_button_label"
-            android:textAllCaps="false"
-            android:textColor="@color/velocity_red_primary"
-            android:textSize="13sp"
-            app:icon="@drawable/ic_lock"
-            app:iconTint="@color/velocity_red_primary" />
+            android:layout_height="wrap_content" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/cbTermsAgreement"
+    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Pinned so Confirm is always visible; the hint says what is still missing. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_surface_elevated"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/tvConfirmHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
-            android:text="@string/hotel_terms_agreement_checkbox_label"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="12sp" />
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="Still needed: open and read the Terms and Policy, then check the box." />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConfirmTransaction"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="wrap_content"
+            android:minHeight="52dp"
             android:enabled="false"
             android:text="@string/confirm_booking_button"
             app:backgroundTint="@color/velocity_red_primary" />
-
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

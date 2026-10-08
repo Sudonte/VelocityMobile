@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
-import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -85,8 +82,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private View layoutEditPaymentMethod;
     private com.google.android.material.chip.ChipGroup cgEditPaymentMethod;
 
-    private MaterialButton btnViewHotelTerms;
-    private MaterialCheckBox cbTerms;
+    private TermsConsentView termsConsent;
+    private TextView tvConfirmHint;
     private MaterialButton btnConfirm;
 
     private boolean submitting = false;
@@ -121,8 +118,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         layoutEditPaymentMethod = view.findViewById(R.id.layoutEditPaymentMethod);
         cgEditPaymentMethod = view.findViewById(R.id.cgEditPaymentMethod);
 
-        btnViewHotelTerms = view.findViewById(R.id.btnViewHotelTerms);
-        cbTerms = view.findViewById(R.id.cbTermsAgreement);
+        termsConsent = view.findViewById(R.id.termsConsent);
+        tvConfirmHint = view.findViewById(R.id.tvConfirmHint);
         btnConfirm = view.findViewById(R.id.btnConfirmTransaction);
 
         BookingWizardState state = getState();
@@ -160,11 +157,13 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         // checked, and re-disable Confirm even though nothing actually
         // changed. setChecked() runs before the listener is attached below so
         // restoring it doesn't re-trigger side effects.
-        btnViewHotelTerms.setOnClickListener(v -> showHotelTermsDialog());
-        cbTerms.setEnabled(state.termsViewed);
-        cbTerms.setChecked(state.termsAccepted);
-        cbTerms.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            state.termsAccepted = isChecked;
+        termsConsent.setActionLabel(btnConfirm.getText());
+        termsConsent.setAddendum(() -> getString("gcash".equalsIgnoreCase(getState().paymentMethod)
+                ? R.string.hotel_terms_policy_gcash_addendum : R.string.hotel_terms_policy_cash_addendum));
+        termsConsent.restore(state.termsViewed, state.termsAccepted);
+        termsConsent.setListener((viewed, accepted) -> {
+            state.termsViewed = viewed;
+            state.termsAccepted = accepted;
             updateConfirmButtonEnabled();
         });
         updateConfirmButtonEnabled();
@@ -199,7 +198,10 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private void updateConfirmButtonEnabled() {
         if (btnConfirm == null) return;
         BookingWizardState state = getState();
-        btnConfirm.setEnabled(state.termsViewed && state.termsAccepted && !submitting);
+        btnConfirm.setEnabled(TermsGate.isActionEnabled(state.termsViewed, state.termsAccepted) && !submitting);
+        int missing = TermsGate.missingHintRes(state.termsViewed, state.termsAccepted);
+        tvConfirmHint.setVisibility(missing == 0 ? View.GONE : View.VISIBLE);
+        if (missing != 0) tvConfirmHint.setText(missing);
     }
 
     private long nights() {
@@ -219,7 +221,10 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
         if (state.checkIn != null && state.checkOut != null) {
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
-            tvSummaryDates.setText(getString(R.string.summary_dates_format, fmt.format(state.checkIn.getTime()), fmt.format(state.checkOut.getTime())));
+            int nights = (int) nights();
+            tvSummaryDates.setText(getString(R.string.summary_dates_nights_format,
+                    fmt.format(state.checkIn.getTime()), fmt.format(state.checkOut.getTime()),
+                    getResources().getQuantityString(R.plurals.nights_count_plain, nights, nights)));
         } else {
             tvSummaryDates.setText(R.string.summary_dates_placeholder);
         }
@@ -350,6 +355,15 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         }
 
         boolean isEditMode = getWizardActivity().isEditMode();
+
+        // The guest may have left this screen open past midnight: re-validate the check-in against the live
+        // hotel date and, if it is no longer allowed, send them back to the Dates step, which shows the inline error.
+        if (!state.isCheckInWithinWindow(isEditMode)) {
+            Toast.makeText(requireContext(), CheckInNotice.outsideWindowError(requireContext()), Toast.LENGTH_LONG).show();
+            getWizardActivity().goToStep(1);
+            return;
+        }
+
         int confirmMessageRes = isEditMode
                 ? R.string.confirm_update_reservation_msg
                 : (state.isBookingMode() ? R.string.confirm_create_booking_msg : R.string.confirm_create_reservation_msg);
@@ -759,64 +773,5 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private void setSubmitting(boolean value) {
         submitting = value;
         updateConfirmButtonEnabled();
-    }
-
-    /**
-     * Shows the full Velocity Suites Hotel Terms, Conditions, and Policy as a
-     * full-screen scrollable dialog - same dialog_terms_agreement.xml layout
-     * and scroll-to-bottom-marks-viewed interaction RegistrationActivity
-     * already uses for its own account Terms and Agreement (see
-     * RegistrationActivity#showTermsDialog()), just with this step's own
-     * title/body substituted in and a payment-method-specific addendum
-     * (GCash vs. Cash) appended. The agreement checkbox only becomes
-     * enabled once the guest actually scrolls this to the end - opening and
-     * immediately dismissing it does not count as having viewed it.
-     */
-    private void showHotelTermsDialog() {
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_terms_agreement, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setView(dialogView)
-                .create();
-
-        TextView title = dialogView.findViewById(R.id.termsDialogTitle);
-        if (title != null) title.setText(R.string.hotel_terms_policy_title);
-
-        TextView bodyText = dialogView.findViewById(R.id.termsBodyText);
-        boolean gcash = "gcash".equalsIgnoreCase(getState().paymentMethod);
-        bodyText.setText(getString(R.string.hotel_terms_policy_body_general) + "\n\n"
-                + getString(gcash ? R.string.hotel_terms_policy_gcash_addendum : R.string.hotel_terms_policy_cash_addendum));
-
-        NestedScrollView scrollView = dialogView.findViewById(R.id.termsScrollView);
-        TextView scrollHintText = dialogView.findViewById(R.id.termsScrollHintText);
-        ImageView scrollHintIcon = dialogView.findViewById(R.id.termsScrollHintIcon);
-        View closeButton = dialogView.findViewById(R.id.termsCloseButton);
-        closeButton.setOnClickListener(v -> dialog.dismiss());
-
-        Runnable markViewedIfAtBottom = () -> {
-            if (!isAdded()) return;
-            View content = scrollView.getChildAt(0);
-            if (content == null) return;
-            boolean atBottom = scrollView.getScrollY() + scrollView.getHeight() >= content.getHeight() - 8;
-            if (atBottom && !getState().termsViewed) {
-                getState().termsViewed = true;
-                cbTerms.setEnabled(true);
-                scrollHintText.setText(R.string.terms_scroll_complete);
-                scrollHintIcon.setImageResource(R.drawable.ic_check_circle);
-            }
-        };
-
-        scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> markViewedIfAtBottom.run());
-        scrollView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                markViewedIfAtBottom.run();
-                scrollView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-        });
-
-        dialog.show();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        }
     }
 }

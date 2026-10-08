@@ -36,9 +36,11 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:fillViewport="true"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toTopOf="@id/bottomActionBar"
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -1009,6 +1011,15 @@
                             android:layout_marginBottom="8dp"
                             android:text="@string/password_label" />
 
+                        <TextView
+                            android:id="@+id/passwordRequirementsText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/password_requirements"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp" />
+
                         <com.google.android.material.textfield.TextInputLayout
                             style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                             android:layout_width="match_parent"
@@ -1192,65 +1203,25 @@
                                 android:textSize="13sp" />
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:id="@+id/viewTermsButton"
+                        <View
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="1dp"
                             android:layout_marginTop="24dp"
-                            android:background="@drawable/shape_intro_pill"
-                            android:backgroundTint="@color/velocity_red_soft"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:foreground="?attr/selectableItemBackground"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:padding="14dp">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_marginEnd="10dp"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_lock"
-                                app:tint="@color/velocity_red_primary" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="@string/view_terms_button_label"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp" />
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_chevron_right"
-                                app:tint="@color/velocity_text_secondary" />
-                        </LinearLayout>
+                            android:background="@color/velocity_red_soft" />
 
                         <TextView
-                            android:id="@+id/termsStatusText"
-                            android:layout_width="match_parent"
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/terms_status_hint"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp" />
+                            android:layout_marginTop="16dp"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/registration_terms_section_title" />
 
-                        <com.google.android.material.checkbox.MaterialCheckBox
-                            android:id="@+id/termsCheckBox"
+                        <!-- Shared consent block (guidance, View Terms and Policy, agreement checkbox) - see TermsConsentView. -->
+                        <com.example.velocitysuites.TermsConsentView
+                            android:id="@+id/termsConsent"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:enabled="false"
-                            android:text="@string/terms_checkbox_label"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp"
-                            app:buttonTint="@color/velocity_red_primary"
-                            app:useMaterialThemeColors="false" />
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
 
                     <!-- Step 4 Content: OTP Verification -->
@@ -1362,13 +1333,73 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Navigation Buttons -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="24dp"
-                        android:layout_marginBottom="20dp"
-                        android:background="@color/velocity_red_soft" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Footer Redirect -->
+            <LinearLayout
+                android:id="@+id/loginRedirect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/registrationCard">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/already_have_account"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/signInLink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:padding="4dp"
+                    android:text="@string/sign_in"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Pinned action bar: the main button stays visible while the form scrolls. -->
+    <LinearLayout
+        android:id="@+id/bottomActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_surface_elevated"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/velocity_red_soft" />
+
+        <TextView
+            android:id="@+id/submitHintText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Still needed: open and read the Terms and Policy, then check the box."
+            tools:visibility="visible" />
+
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1413,44 +1444,7 @@
                         android:text="@string/back_step_hint"
                         android:textColor="@color/velocity_text_secondary"
                         android:textSize="12sp" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Footer Redirect -->
-            <LinearLayout
-                android:id="@+id/loginRedirect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/registrationCard">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/already_have_account"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/signInLink"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
-                    android:padding="4dp"
-                    android:text="@string/sign_in"
-                    android:textColor="@color/velocity_red_primary"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
     <!-- Floating Back Button (returns to Welcome) -->
     <com.google.android.material.button.MaterialButton

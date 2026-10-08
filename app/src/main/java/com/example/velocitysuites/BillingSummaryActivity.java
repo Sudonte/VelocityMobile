@@ -172,18 +172,9 @@ public class BillingSummaryActivity extends AppCompatActivity {
         btnConfirmBilling.setOnClickListener(v -> confirmAndProceedToPayment());
     }
 
-    /** Read-only Terms & Cancellation Policy viewer - same dialog/pattern BookingAndReservationActivity uses. */
+    /** Read-only Terms and Policy viewer - the same shared one every consent screen uses. Opening it unlocks the box. */
     private void showTermsDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_terms_agreement, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogView)
-                .create();
-        View closeButton = dialogView.findViewById(R.id.termsCloseButton);
-        closeButton.setOnClickListener(v -> dialog.dismiss());
-        // Any way the guest leaves the dialog (close button, back press, or
-        // tapping outside) counts as having viewed it.
-        dialog.setOnDismissListener(d -> cbAcceptBillingTerms.setEnabled(true));
-        dialog.show();
+        TermsPolicyDialog.show(this, null, () -> cbAcceptBillingTerms.setEnabled(true));
     }
 
     private void loadReservation() {

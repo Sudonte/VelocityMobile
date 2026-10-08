@@ -74,9 +74,8 @@ public class RegistrationActivity extends AppCompatActivity {
     private View stepDot1, stepDot2, stepDot3, stepDot4;
     private View headerSection, registrationCard, loginRedirect, stepIndicatorContainer;
     private Animation flipLeft, fadeInSlideUp;
-    private View viewTermsButton;
-    private MaterialCheckBox termsCheckBox;
-    private TextView termsStatusText;
+    private TermsConsentView termsConsent;
+    private TextView submitHintText;
     private AddressHierarchyController addressController;
     private View ageValidationErrorContainer;
     private TextInputLayout mobileInputLayout;
@@ -84,14 +83,16 @@ public class RegistrationActivity extends AppCompatActivity {
     private View regSelectPhotoButton;
     private TextView regPhotoStatusText, regRemovePhotoLink;
 
+    private static final String STATE_STEP = "currentStep";
+    private static final String STATE_OTP_STEP = "isOtpStep";
     private static final int MIN_REGISTRATION_AGE = 18;
+    private static final int PASSWORD_MIN_LENGTH = 8;
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int CAPTURE_IMAGE_REQUEST = 2;
     private static final int PERMISSION_REQUEST_CODE = 100;
 
     private int currentStep = 1;
     private boolean isOtpStep = false;
-    private boolean termsViewed = false;
     /** Picked during registration but not uploaded until after OTP verification,
      *  since the profile-picture endpoint requires the account/token that only
      *  exists once verifyOtp() succeeds. Null means the guest skipped it. */
@@ -107,6 +108,11 @@ public class RegistrationActivity extends AppCompatActivity {
         setupDatePicker();
         addressController = AddressHierarchyController.attach(this, step3Layout);
         addressController.setOnCountryChangeListener(this::updateMobileHelperText);
+        if (savedInstanceState != null) {
+            // Rotation / configuration change: stay on the step the guest was on instead of restarting at step 1.
+            currentStep = savedInstanceState.getInt(STATE_STEP, 1);
+            isOtpStep = savedInstanceState.getBoolean(STATE_OTP_STEP, false);
+        }
         updateStepUI();
         startIntroAnimations();
 
@@ -121,10 +127,9 @@ public class RegistrationActivity extends AppCompatActivity {
 
         resendOtpLink.setOnClickListener(v -> resendOtp());
 
-        viewTermsButton.setOnClickListener(v -> showTermsDialog());
-        termsCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!isOtpStep && currentStep == 3) signUpButton.setEnabled(isChecked);
-        });
+        termsConsent.setActionLabel(getString(R.string.sign_up_now));
+        termsConsent.setListener((viewed, accepted) -> updateSignUpEnabledState());
+        setupInlineValidation();
 
         regSelectPhotoButton.setOnClickListener(v -> selectProfilePicture());
         regRemovePhotoLink.setOnClickListener(v -> clearSelectedProfilePicture());
@@ -158,9 +163,8 @@ public class RegistrationActivity extends AppCompatActivity {
         confirmPasswordEdit = findViewById(R.id.confirmPasswordEditText);
         otpEdit = findViewById(R.id.otpEditText);
         genderDropdown = findViewById(R.id.genderDropdown);
-        viewTermsButton = findViewById(R.id.viewTermsButton);
-        termsCheckBox = findViewById(R.id.termsCheckBox);
-        termsStatusText = findViewById(R.id.termsStatusText);
+        termsConsent = findViewById(R.id.termsConsent);
+        submitHintText = findViewById(R.id.submitHintText);
         ageValidationErrorContainer = findViewById(R.id.ageValidationErrorContainer);
         regProfileImage = findViewById(R.id.regProfileImage);
         regSelectPhotoButton = findViewById(R.id.regSelectPhotoButton);
@@ -285,52 +289,6 @@ public class RegistrationActivity extends AppCompatActivity {
             age--;
         }
         return age;
-    }
-
-    /**
-     * Shows the Terms and Agreement as a full-screen dialog. The agreement
-     * checkbox stays disabled until the user scrolls the text to the bottom,
-     * which is what actually flips {@link #termsViewed}.
-     */
-    private void showTermsDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_terms_agreement, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogView)
-                .create();
-
-        NestedScrollView scrollView = dialogView.findViewById(R.id.termsScrollView);
-        TextView scrollHintText = dialogView.findViewById(R.id.termsScrollHintText);
-        ImageView scrollHintIcon = dialogView.findViewById(R.id.termsScrollHintIcon);
-        View closeButton = dialogView.findViewById(R.id.termsCloseButton);
-
-        closeButton.setOnClickListener(v -> dialog.dismiss());
-
-        Runnable markViewedIfAtBottom = () -> {
-            View content = scrollView.getChildAt(0);
-            if (content == null) return;
-            boolean atBottom = scrollView.getScrollY() + scrollView.getHeight() >= content.getHeight() - 8;
-            if (atBottom && !termsViewed) {
-                termsViewed = true;
-                termsCheckBox.setEnabled(true);
-                termsStatusText.setText(R.string.terms_scroll_complete);
-                scrollHintText.setText(R.string.terms_scroll_complete);
-                scrollHintIcon.setImageResource(R.drawable.ic_check_circle);
-            }
-        };
-
-        scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> markViewedIfAtBottom.run());
-        scrollView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                markViewedIfAtBottom.run();
-                scrollView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-        });
-
-        dialog.show();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        }
     }
 
     /** Optional profile picture: same take-photo/choose-from-gallery chooser as
@@ -505,6 +463,13 @@ public class RegistrationActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_STEP, currentStep);
+        outState.putBoolean(STATE_OTP_STEP, isOtpStep);
+    }
+
     private void updateStepUI() {
         // Reset visibility
         step1Layout.setVisibility(View.GONE);
@@ -522,6 +487,7 @@ public class RegistrationActivity extends AppCompatActivity {
         stepProgressBar.setLayoutParams(params);
         updateStepDots();
 
+        submitHintText.setVisibility(View.GONE);
         if (isOtpStep) {
             otpLayout.setVisibility(View.VISIBLE);
             nextButton.setVisibility(View.GONE);
@@ -548,7 +514,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 nextButton.setVisibility(View.GONE);
                 signUpButton.setVisibility(View.VISIBLE);
                 signUpButton.setText(R.string.sign_up_now);
-                signUpButton.setEnabled(termsCheckBox.isChecked());
+                updateSignUpEnabledState();
                 break;
         }
     }
@@ -793,7 +759,7 @@ public class RegistrationActivity extends AppCompatActivity {
         if (!isValidEmail(emailEdit.getText()))
             return showError(emailEdit, getString(R.string.valid_email_required));
         
-        if (isEmpty(passwordEdit) || (passwordEdit.getText() != null && passwordEdit.getText().length() < 8))
+        if (isEmpty(passwordEdit) || (passwordEdit.getText() != null && passwordEdit.getText().length() < PASSWORD_MIN_LENGTH))
             return showError(passwordEdit, getString(R.string.password_min_length));
         
         if (passwordEdit.getText() != null && confirmPasswordEdit.getText() != null &&
@@ -801,14 +767,10 @@ public class RegistrationActivity extends AppCompatActivity {
             return showError(confirmPasswordEdit, getString(R.string.passwords_do_not_match));
         }
 
-        // The signUpButton is already disabled until these are satisfied; these are
-        // a defense-in-depth backup in case handleRegistration() is ever reached otherwise.
-        if (!termsViewed) {
-            Toast.makeText(this, R.string.msg_terms_not_viewed, Toast.LENGTH_LONG).show();
-            return false;
-        }
-        if (!termsCheckBox.isChecked()) {
-            Toast.makeText(this, R.string.msg_terms_not_checked, Toast.LENGTH_LONG).show();
+        // The signUpButton is already disabled until the Terms are opened and agreed to; this is a
+        // defense-in-depth backup in case handleRegistration() is ever reached otherwise.
+        if (!TermsGate.isActionEnabled(termsConsent.isViewed(), termsConsent.isAccepted())) {
+            Toast.makeText(this, termsConsent.isViewed() ? R.string.msg_terms_not_checked : R.string.msg_terms_not_viewed, Toast.LENGTH_LONG).show();
             return false;
         }
         return true;
@@ -818,10 +780,91 @@ public class RegistrationActivity extends AppCompatActivity {
         return TextUtils.isEmpty(et.getText());
     }
 
+    /** Shows the error inline, under the field, when the field sits in a TextInputLayout (every text field here does). */
     private boolean showError(TextInputEditText et, String message) {
-        et.setError(message);
+        TextInputLayout layout = layoutOf(et);
+        if (layout != null) {
+            layout.setError(message);
+        } else {
+            et.setError(message);
+        }
         et.requestFocus();
         return false;
+    }
+
+    @Nullable
+    private TextInputLayout layoutOf(View field) {
+        android.view.ViewParent parent = field.getParent();
+        while (parent != null && !(parent instanceof TextInputLayout)) {
+            parent = parent.getParent();
+        }
+        return (TextInputLayout) parent;
+    }
+
+    private void clearError(TextInputEditText et) {
+        TextInputLayout layout = layoutOf(et);
+        if (layout != null) layout.setError(null);
+        et.setError(null);
+    }
+
+    /**
+     * Each field is validated when it loses focus (not while the guest is still typing) and its error clears as
+     * soon as they edit it again. Confirm-password also re-checks live so the match status stays current.
+     */
+    private void setupInlineValidation() {
+        TextInputEditText[] all = {firstNameEdit, lastNameEdit, mobileEdit, emailEdit, passwordEdit, confirmPasswordEdit};
+        for (TextInputEditText field : all) {
+            field.addTextChangedListener(new SimpleTextWatcher(() -> clearError(field)));
+            field.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) validateFieldOnBlur(field);
+            });
+        }
+        passwordEdit.addTextChangedListener(new SimpleTextWatcher(() -> {
+            if (!isEmpty(confirmPasswordEdit)) validateConfirmPassword();
+        }));
+        confirmPasswordEdit.addTextChangedListener(new SimpleTextWatcher(() -> {
+            if (!isEmpty(confirmPasswordEdit)) validateConfirmPassword();
+        }));
+    }
+
+    private void validateFieldOnBlur(TextInputEditText field) {
+        TextInputLayout layout = layoutOf(field);
+        if (layout == null) return;
+        String error = null;
+        if (field == firstNameEdit) {
+            if (isEmpty(field)) error = getString(R.string.first_name_required);
+        } else if (field == lastNameEdit) {
+            if (isEmpty(field)) error = getString(R.string.last_name_required);
+        } else if (field == emailEdit) {
+            if (!isValidEmail(field.getText())) error = getString(R.string.valid_email_required);
+        } else if (field == mobileEdit) {
+            String country = addressController.getSelectedCountry();
+            if (!PhoneNumberValidator.isValid(country, textOf(field))) error = PhoneNumberValidator.errorMessage(this, country);
+        } else if (field == passwordEdit) {
+            if (isEmpty(field) || textOf(field).length() < PASSWORD_MIN_LENGTH) error = getString(R.string.password_min_length);
+        } else if (field == confirmPasswordEdit) {
+            validateConfirmPassword();
+            return;
+        }
+        layout.setError(error);
+    }
+
+    private void validateConfirmPassword() {
+        TextInputLayout layout = layoutOf(confirmPasswordEdit);
+        if (layout == null) return;
+        boolean matches = textOf(passwordEdit).equals(textOf(confirmPasswordEdit));
+        layout.setError(matches ? null : getString(R.string.passwords_do_not_match));
+    }
+
+    /** Sign Up Now needs the Terms opened and agreed to; while it is locked, a line under it says what is missing. */
+    private void updateSignUpEnabledState() {
+        if (isOtpStep || currentStep != 3) return;
+        boolean viewed = termsConsent.isViewed();
+        boolean accepted = termsConsent.isAccepted();
+        signUpButton.setEnabled(TermsGate.isActionEnabled(viewed, accepted));
+        int missing = TermsGate.missingHintRes(viewed, accepted);
+        submitHintText.setVisibility(missing == 0 ? View.GONE : View.VISIBLE);
+        if (missing != 0) submitHintText.setText(missing);
     }
 
     private boolean isValidEmail(CharSequence target) {
