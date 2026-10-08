@@ -27,6 +27,8 @@ public class BookingWizardState {
 
     public Calendar checkIn;
     public Calendar checkOut;
+    /** Edit mode only: the reservation's check-in before editing began, so an untouched check-in isn't re-judged against the current check-in window. */
+    public Calendar originalCheckIn;
 
     public final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
 

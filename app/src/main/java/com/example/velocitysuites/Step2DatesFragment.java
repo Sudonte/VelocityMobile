@@ -22,7 +22,7 @@ import java.util.Locale;
 /**
  * Step 1: Check-In/Check-Out dates - the very first thing the guest picks,
  * before any room is chosen. Checkout must always be later than checkin, and
- * checkin can't be earlier than tomorrow (the hotel's minimum lead time).
+ * checkin must fall inside CheckInWindow (hotel-local today through today+2).
  * Room availability (cross-guest inventory for a room TYPE) is deliberately
  * NOT checked here any more (this step used to run after Room Selection and
  * had to protect whatever room was already staged) - now that Room Selection
@@ -103,6 +103,16 @@ public class Step2DatesFragment extends WizardStepFragment {
             Toast.makeText(requireContext(), R.string.select_date_hint, Toast.LENGTH_SHORT).show();
             return false;
         }
+        // A fresh run must start inside the window. A Modify keeps the
+        // reservation's existing check-in untouched (it may legitimately be
+        // today/past by now), so it is only re-checked if the guest changed it.
+        boolean checkInUnchangedOnEdit = getWizardActivity().isEditMode() && state.originalCheckIn != null
+                && CheckInWindow.toLocalDate(state.originalCheckIn).equals(CheckInWindow.toLocalDate(state.checkIn));
+        if (!checkInUnchangedOnEdit && !CheckInWindow.isAllowed(state.checkIn)) {
+            tilCheckIn.setError(getString(R.string.error_checkin_outside_window));
+            Toast.makeText(requireContext(), R.string.error_checkin_outside_window, Toast.LENGTH_SHORT).show();
+            return false;
+        }
         if (!state.checkOut.after(state.checkIn)) {
             Toast.makeText(requireContext(), R.string.error_invalid_dates, Toast.LENGTH_SHORT).show();
             return false;
@@ -157,10 +167,13 @@ public class Step2DatesFragment extends WizardStepFragment {
 
         Calendar activeCal = (isCheckIn ? state.checkIn : state.checkOut);
         if (activeCal == null) {
-            activeCal = Calendar.getInstance();
-            // Matches the one-day-advance minDate below for check-in, so the
-            // picker doesn't open already showing an out-of-range initial date.
-            activeCal.add(Calendar.DAY_OF_YEAR, 1);
+            // Opens on the earliest allowed check-in (today, hotel time) so the
+            // picker never starts on an out-of-range date.
+            activeCal = CheckInWindow.toDeviceMidnight(CheckInWindow.today());
+            if (!isCheckIn && state.checkIn != null) {
+                activeCal = (Calendar) state.checkIn.clone();
+                activeCal.add(Calendar.DAY_OF_YEAR, 1);
+            }
         }
         Calendar activeCalFinal = activeCal;
 
@@ -204,20 +217,21 @@ public class Step2DatesFragment extends WizardStepFragment {
             }
         }, activeCalFinal.get(Calendar.YEAR), activeCalFinal.get(Calendar.MONTH), activeCalFinal.get(Calendar.DAY_OF_MONTH));
 
-        Calendar minDate = Calendar.getInstance();
         if (isCheckIn) {
-            // One-day advance rule: same-day Check-In is not accepted - the
-            // earliest selectable Check-In is today+1.
+            // Check-in window: hotel-local today through today+2 - dates
+            // outside it are disabled in the picker itself.
+            picker.getDatePicker().setMinDate(CheckInWindow.earliestDeviceMillis());
+            picker.getDatePicker().setMaxDate(CheckInWindow.latestDeviceMillis());
+        } else {
+            // Check-out keeps its existing rule: at least one night after check-in.
+            Calendar minDate = (Calendar) state.checkIn.clone();
             minDate.add(Calendar.DAY_OF_YEAR, 1);
-        } else if (state.checkIn != null) {
-            minDate.setTime(state.checkIn.getTime());
-            minDate.add(Calendar.DAY_OF_YEAR, 1);
+            minDate.set(Calendar.HOUR_OF_DAY, 0);
+            minDate.set(Calendar.MINUTE, 0);
+            minDate.set(Calendar.SECOND, 0);
+            minDate.set(Calendar.MILLISECOND, 0);
+            picker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         }
-        minDate.set(Calendar.HOUR_OF_DAY, 0);
-        minDate.set(Calendar.MINUTE, 0);
-        minDate.set(Calendar.SECOND, 0);
-        minDate.set(Calendar.MILLISECOND, 0);
-        picker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         picker.show();
     }
 }

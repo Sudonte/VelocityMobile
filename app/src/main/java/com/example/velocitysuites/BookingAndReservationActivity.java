@@ -234,11 +234,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
         // Initialize dates early to avoid nulls during room loading. The
         // fields themselves stay empty - the guest must pick check-in first,
-        // and the earliest allowed check-in is tomorrow.
-        checkInCal = Calendar.getInstance();
-        checkInCal.add(Calendar.DAY_OF_YEAR, 1);
-        checkOutCal = Calendar.getInstance();
-        checkOutCal.add(Calendar.DAY_OF_YEAR, 2);
+        // and the earliest allowed check-in is today (hotel time).
+        checkInCal = CheckInWindow.toDeviceMidnight(CheckInWindow.today());
+        checkOutCal = CheckInWindow.toDeviceMidnight(CheckInWindow.today().plusDays(1));
 
         initViews();
 
@@ -2275,20 +2273,21 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
         }, activeCal.get(Calendar.YEAR), activeCal.get(Calendar.MONTH), activeCal.get(Calendar.DAY_OF_MONTH));
 
-        // Check-in can start no earlier than tomorrow; check-out no earlier
-        // than one night after the chosen check-in
-        Calendar minDate = Calendar.getInstance();
+        // Check-in: hotel-local today through today+2 (CheckInWindow);
+        // check-out no earlier than one night after the chosen check-in
         if (isCheckIn) {
-            minDate.add(Calendar.DAY_OF_YEAR, 1);
+            picker.getDatePicker().setMinDate(CheckInWindow.earliestDeviceMillis());
+            picker.getDatePicker().setMaxDate(CheckInWindow.latestDeviceMillis());
         } else {
+            Calendar minDate = Calendar.getInstance();
             minDate.setTime(checkInCal.getTime());
             minDate.add(Calendar.DAY_OF_YEAR, 1);
+            minDate.set(Calendar.HOUR_OF_DAY, 0);
+            minDate.set(Calendar.MINUTE, 0);
+            minDate.set(Calendar.SECOND, 0);
+            minDate.set(Calendar.MILLISECOND, 0);
+            picker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         }
-        minDate.set(Calendar.HOUR_OF_DAY, 0);
-        minDate.set(Calendar.MINUTE, 0);
-        minDate.set(Calendar.SECOND, 0);
-        minDate.set(Calendar.MILLISECOND, 0);
-        picker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         picker.show();
     }
 

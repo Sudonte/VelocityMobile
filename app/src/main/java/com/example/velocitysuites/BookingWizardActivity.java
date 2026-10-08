@@ -242,6 +242,7 @@ public class BookingWizardActivity extends AppCompatActivity {
             Calendar checkIn = Calendar.getInstance();
             checkIn.setTime(displayFormat.parse(booking.getCheckInDate()));
             state.checkIn = checkIn;
+            state.originalCheckIn = (Calendar) checkIn.clone();
             Calendar checkOut = Calendar.getInstance();
             checkOut.setTime(displayFormat.parse(booking.getCheckOutDate()));
             state.checkOut = checkOut;

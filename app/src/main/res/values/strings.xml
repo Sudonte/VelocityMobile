@@ -1520,7 +1520,8 @@
     <string name="step_booking_details_title">Booking Details</string>
     <string name="confirm_booking_label">Confirm Booking</string>
     <string name="error_select_checkin_first">Please select your check-in date first</string>
-    <string name="helper_checkin_from_tomorrow">Earliest check-in is tomorrow</string>
+    <string name="helper_checkin_window">Check-in can be today or within the next 2 days</string>
+    <string name="error_checkin_outside_window">Check-in must be today or within the next 2 days.</string>
     <string name="helper_checkout_after_checkin">At least 1 night after check-in</string>
     <string name="title_select_checkin">Select Check-in Date</string>
     <string name="title_select_checkout">Select Check-out Date</string>

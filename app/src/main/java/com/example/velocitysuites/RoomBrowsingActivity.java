@@ -386,15 +386,21 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private static final long ONE_DAY_MS = 24L * 60 * 60 * 1000;
 
     private void showCheckInPicker() {
-        // Stays start no earlier than tomorrow - same-day check-in is not allowed
-        long earliestCheckInUtc = MaterialDatePicker.todayInUtcMilliseconds() + ONE_DAY_MS;
+        // Check-in window: hotel-local today through today+2 (see CheckInWindow)
+        long earliestCheckInUtc = CheckInWindow.earliestUtcMillis();
+        long latestCheckInUtc = CheckInWindow.latestUtcMillis();
+        java.util.List<com.google.android.material.datepicker.CalendarConstraints.DateValidator> validators = new java.util.ArrayList<>();
+        validators.add(com.google.android.material.datepicker.DateValidatorPointForward.from(earliestCheckInUtc));
+        validators.add(com.google.android.material.datepicker.DateValidatorPointBackward.before(latestCheckInUtc));
         com.google.android.material.datepicker.CalendarConstraints constraints =
                 new com.google.android.material.datepicker.CalendarConstraints.Builder()
-                        .setValidator(com.google.android.material.datepicker.DateValidatorPointForward.from(earliestCheckInUtc))
+                        .setStart(earliestCheckInUtc)
+                        .setEnd(latestCheckInUtc)
+                        .setValidator(com.google.android.material.datepicker.CompositeDateValidator.allOf(validators))
                         .build();
 
         long initialSelection = checkInDate != null
-                ? Math.max(toUtcMidnight(checkInDate), earliestCheckInUtc)
+                ? Math.min(Math.max(toUtcMidnight(checkInDate), earliestCheckInUtc), latestCheckInUtc)
                 : earliestCheckInUtc;
 
         MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
