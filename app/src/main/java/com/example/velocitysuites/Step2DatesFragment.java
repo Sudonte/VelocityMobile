@@ -22,7 +22,7 @@ import java.util.Locale;
 /**
  * Step 1: Check-In/Check-Out dates - the very first thing the guest picks,
  * before any room is chosen. Checkout must always be later than checkin, and
- * checkin must fall inside CheckInWindow (hotel-local today through today+2).
+ * checkin must be CheckInWindow.earliest() (hotel-local today + 2 days) or later.
  * Room availability (cross-guest inventory for a room TYPE) is deliberately
  * NOT checked here any more (this step used to run after Room Selection and
  * had to protect whatever room was already staged) - now that Room Selection
@@ -170,7 +170,7 @@ public class Step2DatesFragment extends WizardStepFragment {
         if (activeCal == null) {
             // Opens on the earliest allowed check-in (today, hotel time) so the
             // picker never starts on an out-of-range date.
-            activeCal = CheckInWindow.toDeviceMidnight(CheckInWindow.today());
+            activeCal = CheckInWindow.toDeviceMidnight(CheckInWindow.earliest());
             if (!isCheckIn && state.checkIn != null) {
                 activeCal = (Calendar) state.checkIn.clone();
                 activeCal.add(Calendar.DAY_OF_YEAR, 1);
@@ -219,10 +219,9 @@ public class Step2DatesFragment extends WizardStepFragment {
         }, activeCalFinal.get(Calendar.YEAR), activeCalFinal.get(Calendar.MONTH), activeCalFinal.get(Calendar.DAY_OF_MONTH));
 
         if (isCheckIn) {
-            // Check-in window: hotel-local today through today+2 - dates
-            // outside it are disabled in the picker itself.
+            // Earliest check-in is hotel-local today + 2 days; earlier dates are disabled in the picker
+            // itself, later ones are all selectable (no upper limit).
             picker.getDatePicker().setMinDate(CheckInWindow.earliestDeviceMillis());
-            picker.getDatePicker().setMaxDate(CheckInWindow.latestDeviceMillis());
         } else {
             // Check-out keeps its existing rule: at least one night after check-in.
             Calendar minDate = (Calendar) state.checkIn.clone();

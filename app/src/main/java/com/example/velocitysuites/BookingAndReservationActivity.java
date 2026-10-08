@@ -234,9 +234,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
         // Initialize dates early to avoid nulls during room loading. The
         // fields themselves stay empty - the guest must pick check-in first,
-        // and the earliest allowed check-in is today (hotel time).
-        checkInCal = CheckInWindow.toDeviceMidnight(CheckInWindow.today());
-        checkOutCal = CheckInWindow.toDeviceMidnight(CheckInWindow.today().plusDays(1));
+        // and the earliest allowed check-in is today + 2 days (hotel time).
+        checkInCal = CheckInWindow.toDeviceMidnight(CheckInWindow.earliest());
+        checkOutCal = CheckInWindow.toDeviceMidnight(CheckInWindow.earliestCheckOut(CheckInWindow.earliest()));
 
         initViews();
 
@@ -2274,11 +2274,10 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
         }, activeCal.get(Calendar.YEAR), activeCal.get(Calendar.MONTH), activeCal.get(Calendar.DAY_OF_MONTH));
 
-        // Check-in: hotel-local today through today+2 (CheckInWindow);
+        // Check-in: hotel-local today + 2 days or later (CheckInWindow);
         // check-out no earlier than one night after the chosen check-in
         if (isCheckIn) {
             picker.getDatePicker().setMinDate(CheckInWindow.earliestDeviceMillis());
-            picker.getDatePicker().setMaxDate(CheckInWindow.latestDeviceMillis());
         } else {
             Calendar minDate = Calendar.getInstance();
             minDate.setTime(checkInCal.getTime());

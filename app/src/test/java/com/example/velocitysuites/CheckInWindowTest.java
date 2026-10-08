@@ -18,34 +18,48 @@ public class CheckInWindowTest {
         return Clock.fixed(Instant.parse(isoInstant), ZoneId.of("UTC"));
     }
 
+    private static final Clock OCT_8 = at("2026-10-08T02:00:00Z"); // 10:00 in Manila
+
     @Test
-    public void window_isTodayThroughTwoDaysAhead() {
-        Clock oct8 = at("2026-10-08T02:00:00Z"); // 10:00 in Manila
-        assertEquals(LocalDate.of(2026, 10, 8), CheckInWindow.earliest(oct8));
-        assertEquals(LocalDate.of(2026, 10, 10), CheckInWindow.latest(oct8));
+    public void earliestCheckIn_isTwoDaysFromToday() {
+        assertEquals(LocalDate.of(2026, 10, 10), CheckInWindow.earliest(OCT_8));
     }
 
     @Test
-    public void edgeDates() {
-        Clock oct8 = at("2026-10-08T02:00:00Z");
-        assertFalse("yesterday", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 7), oct8));
-        assertTrue("today", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 8), oct8));
-        assertTrue("tomorrow", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 9), oct8));
-        assertTrue("day after tomorrow", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 10), oct8));
-        assertFalse("three days out", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 11), oct8));
-        assertFalse("null", CheckInWindow.isAllowed((LocalDate) null, oct8));
+    public void checkInEdges() {
+        assertFalse("yesterday", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 7), OCT_8));
+        assertFalse("today", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 8), OCT_8));
+        assertFalse("tomorrow", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 9), OCT_8));
+        assertTrue("today+2", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 10), OCT_8));
+        assertTrue("today+3", CheckInWindow.isAllowed(LocalDate.of(2026, 10, 11), OCT_8));
+        assertTrue("months ahead - no upper limit", CheckInWindow.isAllowed(LocalDate.of(2027, 2, 14), OCT_8));
+        assertTrue("a year ahead", CheckInWindow.isAllowed(LocalDate.of(2027, 10, 8), OCT_8));
+        assertFalse("null", CheckInWindow.isAllowed((LocalDate) null, OCT_8));
+    }
+
+    @Test
+    public void checkOutMustBeAtLeastOneDayAfterCheckIn() {
+        LocalDate in = LocalDate.of(2026, 10, 10);
+        assertEquals(LocalDate.of(2026, 10, 11), CheckInWindow.earliestCheckOut(in));
+        assertFalse("same day", CheckInWindow.isValidCheckOut(in, in));
+        assertFalse("before check-in", CheckInWindow.isValidCheckOut(in, in.minusDays(1)));
+        assertTrue("check-in + 1", CheckInWindow.isValidCheckOut(in, in.plusDays(1)));
+        assertTrue("later", CheckInWindow.isValidCheckOut(in, in.plusDays(30)));
+        // a later check-in moves the earliest check-out with it: Oct 15 -> Oct 16
+        LocalDate late = LocalDate.of(2026, 10, 15);
+        assertEquals(LocalDate.of(2026, 10, 16), CheckInWindow.earliestCheckOut(late));
+        assertFalse(CheckInWindow.isValidCheckOut(late, late));
     }
 
     @Test
     public void today_followsManilaNotUtc() {
-        // 20:00 UTC on Oct 8 is already 04:00 on Oct 9 in Manila.
+        // 20:00 UTC on Oct 8 is already 04:00 on Oct 9 in Manila -> earliest check-in Oct 11
         Clock lateUtc = at("2026-10-08T20:00:00Z");
         assertEquals(LocalDate.of(2026, 10, 9), CheckInWindow.today(lateUtc));
-        assertFalse(CheckInWindow.isAllowed(LocalDate.of(2026, 10, 8), lateUtc));
-        assertTrue(CheckInWindow.isAllowed(LocalDate.of(2026, 10, 11), lateUtc));
-        // 15:59 UTC is still 23:59 on Oct 8 in Manila.
-        Clock beforeMidnight = at("2026-10-08T15:59:59Z");
-        assertEquals(LocalDate.of(2026, 10, 8), CheckInWindow.today(beforeMidnight));
+        assertEquals(LocalDate.of(2026, 10, 11), CheckInWindow.earliest(lateUtc));
+        assertFalse(CheckInWindow.isAllowed(LocalDate.of(2026, 10, 10), lateUtc));
+        // 15:59 UTC is still 23:59 on Oct 8 in Manila -> Oct 10
+        assertEquals(LocalDate.of(2026, 10, 10), CheckInWindow.earliest(at("2026-10-08T15:59:59Z")));
     }
 
     @Test
