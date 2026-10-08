@@ -49,6 +49,15 @@ public class DiscountTest {
     }
 
     @Test
+    public void estimateOff_followsTheModuleValueAndNeverExceedsTheBase() {
+        assertEquals(400.0, d("1", "Senior Citizen", "percentage", 20, "active").estimateOff(2000), 0.001);
+        assertEquals(500.0, d("1", "Senior Citizen", "percentage", 25, "active").estimateOff(2000), 0.001);
+        assertEquals(150.0, d("1", "PWD", "fixed", 150, "active").estimateOff(2000), 0.001);
+        assertEquals(100.0, d("1", "PWD", "fixed", 150, "active").estimateOff(100), 0.001);
+        assertEquals("a discount known only by name has no value yet", 0.0, new Discount(null, "VIP", null, 0, null).estimateOff(2000), 0.0);
+    }
+
+    @Test
     public void wizardState_setDiscountKeepsLegacyIdTypeInSync() {
         BookingWizardState state = new BookingWizardState(BookingWizardState.Mode.BOOKING);
         assertEquals("None", state.idCardType);

@@ -1120,6 +1120,7 @@
         <item quantity="other">%1$d rooms</item>
     </plurals>
     <string name="edit_reservation_button">Edit Reservation</string>
+    <string name="summary_discount_estimate_format">Estimated %1$s discount (%2$s): -%3$s, applied after the receptionist verifies your ID. Your payment is based on the total above.</string>
     <string name="edit_totals_title">Changes to your total</string>
     <string name="edit_old_total">Previous total</string>
     <string name="edit_new_total">New total</string>

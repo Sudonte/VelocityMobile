@@ -80,6 +80,13 @@ public class Discount implements Serializable {
         return "percentage".equals(discountType);
     }
 
+    /** Peso amount this discount would take off {@code base} (never more than base) - the same rule as the backend's Discount::amountOff(). 0 when its type/value are unknown (e.g. a discount only remembered by name). */
+    public double estimateOff(double base) {
+        if (discountType == null || base <= 0) return 0;
+        double amount = isPercentage() ? Math.round(base * value) / 100.0 : value;
+        return Math.max(0, Math.min(amount, base));
+    }
+
     /** "20%" / "12.5%" / "₱500.00" - the value alone, without "OFF". */
     public String getValueLabel() {
         if (isPercentage()) {

@@ -343,6 +343,30 @@ public class WizardStepsScreenTest {
     }
 
     @Test
+    public void reviewStepShowsTheClaimedDiscountsEstimatedValueFromTheModule() {
+        BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
+        BookingWizardState s = activity.getState();
+        s.selectedRooms.add(room("R1", 4));
+        Calendar in = Calendar.getInstance();
+        Calendar out = (Calendar) in.clone();
+        out.add(Calendar.DAY_OF_YEAR, 2);
+        s.checkIn = in;
+        s.checkOut = out; // 2 nights x 2,500 = 5,000
+        s.setDiscount(new com.example.velocitysuites.Discount("3", "Senior Citizen", "percentage", 20, "d", "active", null, null));
+        activity.goToStep(7);
+        idle();
+        TextView note = find(activity, R.id.tvSummaryDiscountNote);
+        assertEquals(View.VISIBLE, note.getVisibility());
+        assertTrue(text(note), text(note).contains("Senior Citizen"));
+        assertTrue(text(note), text(note).contains("20%"));
+        assertTrue(text(note), text(note).contains("-₱1,000.00"));
+        s.setDiscount(null);
+        activity.goToStep(7);
+        idle();
+        assertEquals(View.GONE, ((TextView) find(activity, R.id.tvSummaryDiscountNote)).getVisibility());
+    }
+
+    @Test
     public void aDoubleTapOnNextMovesExactlyOneStep() {
         BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
         activity.getState().selectedRooms.add(room("R1", 4));

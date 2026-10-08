@@ -73,6 +73,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private TextView tvSummaryAmenitiesSubtotal;
     private TextView tvSummaryTotal;
     private View layoutEditTotals;
+    private TextView tvSummaryDiscountNote;
     private LinearLayout layoutEditTotalsRows;
     /** The server's old/new/paid/balance for the edit that was just saved (the payment-method switch response doesn't carry it). */
     private Booking.EditSummary lastEditSummary;
@@ -111,6 +112,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         tvSummaryAmenitiesSubtotal = view.findViewById(R.id.tvSummaryAmenitiesSubtotal);
         tvSummaryTotal = view.findViewById(R.id.tvSummaryTotal);
         layoutEditTotals = view.findViewById(R.id.layoutEditTotals);
+        tvSummaryDiscountNote = view.findViewById(R.id.tvSummaryDiscountNote);
         layoutEditTotalsRows = view.findViewById(R.id.layoutEditTotalsRows);
         cardPaymentNextNotice = view.findViewById(R.id.cardPaymentNextNotice);
         cardPaymentMethodSummary = view.findViewById(R.id.cardPaymentMethodSummary);
@@ -260,7 +262,20 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         }
 
         tvSummaryTotal.setText(String.format(Locale.US, getString(R.string.price_format), roomsTotal() + amenitiesTotal()));
+        renderDiscountEstimate(state);
         renderEditTotals();
+    }
+
+    /** Shows the claimed discount's estimated value - read from the Discount module values the app loaded on Step 6, never a number of its own. */
+    private void renderDiscountEstimate(BookingWizardState state) {
+        double off = state.discount != null ? state.discount.estimateOff(roomsTotal()) : 0;
+        if (off <= 0) {
+            tvSummaryDiscountNote.setVisibility(View.GONE);
+            return;
+        }
+        tvSummaryDiscountNote.setText(getString(R.string.summary_discount_estimate_format,
+                state.discount.getName(), state.discount.getValueLabel(), money(off)));
+        tvSummaryDiscountNote.setVisibility(View.VISIBLE);
     }
 
     /** Edit Reservation: previous total, new total, already paid, and balance due / excess - before the guest confirms. */

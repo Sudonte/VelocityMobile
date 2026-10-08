@@ -135,6 +135,16 @@
                 android:fontFamily="sans-serif-black" />
         </LinearLayout>
 
+        <!-- A claimed discount: its estimated value (from the Discount module), applied after the receptionist verifies the ID. -->
+        <TextView
+            android:id="@+id/tvSummaryDiscountNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
         <!-- Edit Reservation only: previous total, new total, already paid, and the balance due
              (or excess) - filled in by Step8ReviewPaymentFragment#renderEditTotals(). -->
         <LinearLayout
