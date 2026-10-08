@@ -84,6 +84,23 @@ public class BookingWizardState {
         return total;
     }
 
+    /** Max adults + children for the current room selection (see {@link GuestCapacity}). */
+    public int maxGuests() {
+        return GuestCapacity.effectiveMax(totalSelectedCapacity());
+    }
+
+    /**
+     * Lowers adults/children to fit the current room selection (e.g. after the
+     * guest went back and picked a smaller room). Returns true when anything changed.
+     */
+    public boolean clampGuestsToCapacity() {
+        int[] fitted = GuestCapacity.clamp(adults, children, totalSelectedCapacity());
+        boolean changed = fitted[0] != adults || fitted[1] != children;
+        adults = fitted[0];
+        children = fitted[1];
+        return changed;
+    }
+
     /**
      * A guest may stage more than one distinct room type in one transaction
      * (e.g. 2 Deluxe + 1 Suite) - same as the existing booking flow. Since

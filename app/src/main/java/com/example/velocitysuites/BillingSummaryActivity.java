@@ -236,7 +236,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
             tvBillingRepresentativeName.setText(representativeName == null || representativeName.trim().isEmpty()
                     ? getString(R.string.not_provided_label) : representativeName);
         }
-        tvBillingGuestCount.setText(getString(R.string.guests_count_format, booking.getGuests()));
+        tvBillingGuestCount.setText(getResources().getQuantityString(R.plurals.guests_count, booking.getGuests(), booking.getGuests()));
 
         String idType = booking.getIdCardType();
         tvBillingIdType.setText(idType == null || idType.equalsIgnoreCase("None")

@@ -3687,7 +3687,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             // Info/Payment tabs - the compact card no longer shows them
             // directly (see showBookingDetails() below and section 3 of the
             // simplified-card requirement this card now follows).
-            holder.tvBookingGuests.setText(getString(R.string.guests_count_format, b.getGuests()));
+            holder.tvBookingGuests.setText(getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
             // Three mutually-exclusive cases, deliberately kept isolated (see
             // MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md's "Temporary legacy
             // compatibility" section). tvBookingRoomName is always visible -

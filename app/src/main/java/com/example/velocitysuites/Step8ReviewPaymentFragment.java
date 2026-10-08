@@ -217,8 +217,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
         int guestCount = state.adults + state.children;
         tvSummaryGuests.setText(getResources().getQuantityString(R.plurals.summary_guest_count, guestCount, guestCount));
-        tvSummaryAdultsChildren.setText(getString(R.string.summary_adults_format, state.adults)
-                + "   " + getString(R.string.summary_children_format, state.children));
+        tvSummaryAdultsChildren.setText(getResources().getQuantityString(R.plurals.adults_count, state.adults, state.adults)
+                + "   " + getResources().getQuantityString(R.plurals.children_count, state.children, state.children));
 
         String representative = buildRepresentativeName(state);
         if (representative != null) {

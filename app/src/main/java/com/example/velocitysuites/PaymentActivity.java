@@ -553,7 +553,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             int guestCount = currentBooking != null
                     ? currentBooking.getGuests()
                     : (pendingWizardState != null ? pendingWizardState.adults + pendingWizardState.children : 0);
-            tvReviewGuestCount.setText(getString(R.string.guests_count_format, guestCount));
+            tvReviewGuestCount.setText(getResources().getQuantityString(R.plurals.guests_count, guestCount, guestCount));
         }
         if (tvReviewRepresentativeName != null) {
             String repName = currentBooking != null ? currentBooking.getRepresentativeName() : null;

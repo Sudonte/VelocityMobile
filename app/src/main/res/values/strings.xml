@@ -281,8 +281,6 @@
     <string name="payment_method_cash_note">Pay at the hotel through walk-in payment. No online payment is required at this time.</string>
     <string name="payment_method_gcash_note">You can complete your GCash payment later by selecting Pay Now from your reservation.</string>
 
-    <string name="summary_adults_format">Adults: %1$d</string>
-    <string name="summary_children_format">Children: %1$d</string>
     <string name="summary_amenities_subtotal_label">Amenities Subtotal</string>
     <string name="reservation_created_cash_title">Reservation Created</string>
     <string name="reservation_created_cash_msg">Your reservation has been submitted successfully. You selected Cash as your payment method. Payment can be completed through walk-in payment at the hotel.</string>
@@ -294,15 +292,33 @@
     <string name="additional_guest_info_title">Additional Guest Information</string>
     <string name="adults_label">Adults</string>
     <string name="children_label">Children</string>
-    <string name="child_age_notice">You may add up to 3 children. Each child\'s age must be 7 years old or below.</string>
+    <string name="child_age_notice">Each child\'s age must be 7 years old or below.</string>
     <string name="child_age_field_format">Child %1$d Age</string>
     <string name="stepper_decrement_symbol">—</string>
     <string name="stepper_increment_symbol">+</string>
     <string name="default_adults_count_display">1</string>
     <string name="default_children_count_display">0</string>
-    <string name="capacity_hint_format">Maximum %1$d guest(s) for the room(s) you selected.</string>
+    <string name="capacity_hint_format">The rooms you selected fit up to %1$d guests in total. At least 1 adult is required.</string>
+    <string name="guest_capacity_reached_hint">Room capacity reached. Remove a guest or add a room to bring in more.</string>
+    <string name="guest_counter_format">%1$d of %2$s</string>
+    <string name="guest_count_adjusted_to_capacity">Guest count lowered to fit your rooms (up to %1$d guests).</string>
+    <plurals name="guests_noun">
+        <item quantity="one">%1$d guest</item>
+        <item quantity="other">%1$d guests</item>
+    </plurals>
+    <plurals name="guests_count">
+        <item quantity="one">%1$d Guest</item>
+        <item quantity="other">%1$d Guests</item>
+    </plurals>
+    <plurals name="adults_count">
+        <item quantity="one">%1$d Adult</item>
+        <item quantity="other">%1$d Adults</item>
+    </plurals>
+    <plurals name="children_count">
+        <item quantity="one">%1$d Child</item>
+        <item quantity="other">%1$d Children</item>
+    </plurals>
     <string name="error_guests_exceed_capacity">Adults + children can\'t exceed the room capacity.</string>
-    <string name="error_children_exceed_max">You can add up to 3 children.</string>
     <string name="error_child_age_too_young">Please enter a valid age.</string>
     <string name="error_child_age_too_old">Every child\'s age must be 7 years old or younger.</string>
     <string name="error_child_age_required">Please enter every child\'s age.</string>
@@ -1063,7 +1079,6 @@
     <string name="reservation_ref_format">Reservation #%1$s</string>
     <string name="reservation_details_screen_title">Reservation Details</string>
     <string name="date_range_format">%1$s - %2$s</string>
-    <string name="guests_count_format">%1$d Guests</string>
     <string name="modify_reservation_label">Update Reservation</string>
     <string name="reservation_updated_title">Reservation Updated</string>
     <string name="reservation_updated_msg">Your reservation %1$s has been successfully updated.</string>
@@ -1537,7 +1552,7 @@
     <string name="step_done_mark">✓</string>
     <string name="summary_dates_format">%1$s – %2$s</string>
     <string name="summary_dates_placeholder">Select your stay dates</string>
-    <string name="summary_guests_default">1 guest</string>
+    <string name="summary_guests_default">1 Guest</string>
     <plurals name="summary_guest_count">
         <item quantity="one">%d guest</item>
         <item quantity="other">%d guests</item>

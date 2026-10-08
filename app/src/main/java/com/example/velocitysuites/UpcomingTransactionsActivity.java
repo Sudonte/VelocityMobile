@@ -370,7 +370,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         tvCheckInTime.setText(R.string.check_in_time);
         tvCheckOut.setText(b.getCheckOutDate());
         tvCheckOutTime.setText(R.string.check_out_time);
-        tvGuests.setText(getString(R.string.guests_count_format, b.getGuests()));
+        tvGuests.setText(getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
 
         java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
         tvTotal.setText(currencyFormat.format(b.getTotalAmount()));

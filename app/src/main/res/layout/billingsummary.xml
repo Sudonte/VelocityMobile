@@ -163,7 +163,7 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_guests_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingGuestCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/guests_count_format" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:id="@+id/tvBillingGuestCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/summary_guests_default" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout

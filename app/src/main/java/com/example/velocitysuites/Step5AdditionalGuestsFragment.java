@@ -27,8 +27,11 @@ import java.util.List;
  * the selected room's stated capacity") and BookingAndReservationActivity's
  * own Modify-guest-count check. The live +/- steppers enforce the same
  * not-exceed guard as it's adjusted (changeAdults()/changeChildren()).
- * Children are additionally, independently capped at MAX_CHILDREN
- * regardless of capacity. (BookingAndReservationActivity only ever derived
+ * There is no separate cap on children - only the shared room-capacity
+ * limit (see GuestCapacity); at least 1 adult is always required, and once
+ * the total reaches capacity both + buttons are disabled. If the rooms
+ * changed since the counts were set, they're lowered to fit on entry.
+ * (BookingAndReservationActivity only ever derived
  * adults/children after the fact from a flat guest list's ages - see
  * finalizeBooking()); this step collects the counts up front instead, per
  * spec.
@@ -37,9 +40,13 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
 
     private static final int MIN_CHILD_AGE = 0;
     private static final int MAX_CHILD_AGE = 7;
-    private static final int MAX_CHILDREN = 3;
 
     private TextView tvCapacityHint;
+    private TextView tvGuestCounter;
+    private View btnAdultsMinus;
+    private View btnAdultsPlus;
+    private View btnChildrenMinus;
+    private View btnChildrenPlus;
     private TextView tvAdultsCount;
     private TextView tvChildrenCount;
     private TextView tvChildAgeNotice;
@@ -63,12 +70,23 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         tvChildAgeNotice = view.findViewById(R.id.tvChildAgeNotice);
         layoutChildAgeFields = view.findViewById(R.id.layoutChildAgeFields);
 
-        view.findViewById(R.id.btnAdultsMinus).setOnClickListener(v -> changeAdults(-1));
-        view.findViewById(R.id.btnAdultsPlus).setOnClickListener(v -> changeAdults(1));
-        view.findViewById(R.id.btnChildrenMinus).setOnClickListener(v -> changeChildren(-1));
-        view.findViewById(R.id.btnChildrenPlus).setOnClickListener(v -> changeChildren(1));
+        tvGuestCounter = view.findViewById(R.id.tvGuestCounter);
+        btnAdultsMinus = view.findViewById(R.id.btnAdultsMinus);
+        btnAdultsPlus = view.findViewById(R.id.btnAdultsPlus);
+        btnChildrenMinus = view.findViewById(R.id.btnChildrenMinus);
+        btnChildrenPlus = view.findViewById(R.id.btnChildrenPlus);
+        btnAdultsMinus.setOnClickListener(v -> changeAdults(-1));
+        btnAdultsPlus.setOnClickListener(v -> changeAdults(1));
+        btnChildrenMinus.setOnClickListener(v -> changeChildren(-1));
+        btnChildrenPlus.setOnClickListener(v -> changeChildren(1));
 
-        tvCapacityHint.setText(getString(R.string.capacity_hint_format, getState().totalSelectedCapacity()));
+        // The guest may have gone back and swapped to a smaller room since
+        // these counts were set - never let an over-capacity count through.
+        if (getState().clampGuestsToCapacity()) {
+            Toast.makeText(requireContext(),
+                    getString(R.string.guest_count_adjusted_to_capacity, getState().maxGuests()),
+                    Toast.LENGTH_LONG).show();
+        }
         refreshCounts();
         rebuildChildAgeFields();
     }
@@ -82,9 +100,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         BookingWizardState state = getState();
         int next = state.adults + delta;
         if (next < 1) return;
-        // Adults + children combined can't exceed the selected rooms' total
-        // capacity (see Step 5's class doc / spec).
-        if (next + state.children > state.totalSelectedCapacity()) {
+        if (delta > 0 && !GuestCapacity.canAddGuest(state.adults, state.children, state.totalSelectedCapacity())) {
             Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -96,14 +112,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         BookingWizardState state = getState();
         int next = state.children + delta;
         if (next < 0) return;
-        // Independent cap regardless of capacity.
-        if (next > MAX_CHILDREN) {
-            Toast.makeText(requireContext(), R.string.error_children_exceed_max, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // Adults + children combined can't exceed the selected rooms' total
-        // capacity (see Step 5's class doc / spec).
-        if (state.adults + next > state.totalSelectedCapacity()) {
+        if (delta > 0 && !GuestCapacity.canAddGuest(state.adults, state.children, state.totalSelectedCapacity())) {
             Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -112,9 +121,23 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         rebuildChildAgeFields();
     }
 
+    /** Re-renders the counts, the "N of M guests" counter, and enables/disables each stepper button. */
     private void refreshCounts() {
-        tvAdultsCount.setText(String.valueOf(getState().adults));
-        tvChildrenCount.setText(String.valueOf(getState().children));
+        BookingWizardState state = getState();
+        tvAdultsCount.setText(String.valueOf(state.adults));
+        tvChildrenCount.setText(String.valueOf(state.children));
+        int total = state.adults + state.children;
+        int max = state.maxGuests();
+        tvGuestCounter.setText(getString(R.string.guest_counter_format, total,
+                getResources().getQuantityString(R.plurals.guests_noun, max, max)));
+        boolean atCapacity = !GuestCapacity.canAddGuest(state.adults, state.children, state.totalSelectedCapacity());
+        btnAdultsPlus.setEnabled(!atCapacity);
+        btnChildrenPlus.setEnabled(!atCapacity);
+        btnAdultsMinus.setEnabled(state.adults > 1);
+        btnChildrenMinus.setEnabled(state.children > 0);
+        tvCapacityHint.setText(atCapacity
+                ? getString(R.string.guest_capacity_reached_hint)
+                : getString(R.string.capacity_hint_format, max));
     }
 
     private void rebuildChildAgeFields() {
@@ -166,11 +189,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
     @Override
     public boolean validateBeforeNext() {
         BookingWizardState state = getState();
-        if (state.children > MAX_CHILDREN) {
-            Toast.makeText(requireContext(), R.string.error_children_exceed_max, Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        if (state.adults + state.children > state.totalSelectedCapacity()) {
+        if (!GuestCapacity.isValid(state.adults, state.children, state.totalSelectedCapacity())) {
             Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
             return false;
         }
