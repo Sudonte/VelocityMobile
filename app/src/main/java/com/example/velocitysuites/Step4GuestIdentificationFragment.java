@@ -68,6 +68,15 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
     }
 
     @Override
+    protected void saveDraft() {
+        if (etFirstName == null) return;
+        BookingWizardState state = getState();
+        state.guestFirstName = etFirstName.getText() != null ? etFirstName.getText().toString().trim() : "";
+        state.guestMiddleName = etMiddleName.getText() != null ? etMiddleName.getText().toString().trim() : "";
+        state.guestLastName = etLastName.getText() != null ? etLastName.getText().toString().trim() : "";
+    }
+
+    @Override
     public String stepTitle() {
         return "Guest and Identification";
     }

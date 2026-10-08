@@ -169,10 +169,11 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
             input.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            List<BookingAndReservationActivity.AdditionalGuest> savedChildren = childEntries(getState());
             if (i < previousAges.size() && !previousAges.get(i).isEmpty()) {
                 input.setText(previousAges.get(i));
-            } else if (i < getState().additionalGuests.size()) {
-                input.setText(String.valueOf(getState().additionalGuests.get(i).age));
+            } else if (i < savedChildren.size() && savedChildren.get(i).age >= 0) {
+                input.setText(String.valueOf(savedChildren.get(i).age));
             }
             til.addView(input);
 
@@ -180,6 +181,48 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
             childAgeInputLayouts.add(til);
             childAgeInputs.add(input);
         }
+    }
+
+    private static boolean isChildEntry(BookingAndReservationActivity.AdditionalGuest g) {
+        return "Child".equalsIgnoreCase(g.relationship);
+    }
+
+    private static List<BookingAndReservationActivity.AdditionalGuest> childEntries(BookingWizardState state) {
+        List<BookingAndReservationActivity.AdditionalGuest> result = new ArrayList<>();
+        for (BookingAndReservationActivity.AdditionalGuest g : state.additionalGuests) {
+            if (isChildEntry(g)) result.add(g);
+        }
+        return result;
+    }
+
+    private static List<BookingAndReservationActivity.AdditionalGuest> nonChildEntries(BookingWizardState state) {
+        List<BookingAndReservationActivity.AdditionalGuest> result = new ArrayList<>();
+        for (BookingAndReservationActivity.AdditionalGuest g : state.additionalGuests) {
+            if (!isChildEntry(g)) result.add(g);
+        }
+        return result;
+    }
+
+    /** Going Back keeps the ages typed so far (blank or invalid ones are remembered as "not entered yet" = -1 and shown empty). */
+    @Override
+    protected void saveDraft() {
+        if (childAgeInputs.isEmpty() && tvAdultsCount == null) return;
+        BookingWizardState state = getState();
+        List<BookingAndReservationActivity.AdditionalGuest> draft = new ArrayList<>();
+        for (int i = 0; i < childAgeInputs.size(); i++) {
+            String text = childAgeInputs.get(i).getText() != null ? childAgeInputs.get(i).getText().toString().trim() : "";
+            int age = -1;
+            try {
+                age = Integer.parseInt(text);
+            } catch (NumberFormatException ignored) {
+                // left as "not entered"
+            }
+            draft.add(new BookingAndReservationActivity.AdditionalGuest("Child " + (i + 1), age, null, "Child"));
+        }
+        List<BookingAndReservationActivity.AdditionalGuest> kept = nonChildEntries(state);
+        state.additionalGuests.clear();
+        state.additionalGuests.addAll(kept);
+        state.additionalGuests.addAll(draft);
     }
 
     private int dp(int value) {
@@ -222,7 +265,11 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
             childGuests.add(new BookingAndReservationActivity.AdditionalGuest("Child " + (i + 1), age, null, "Child"));
         }
 
+        // Only the child entries are this step's to rewrite; any other companion already on the
+        // record (e.g. one added by an older version of the app) is carried over untouched.
+        List<BookingAndReservationActivity.AdditionalGuest> kept = nonChildEntries(state);
         state.additionalGuests.clear();
+        state.additionalGuests.addAll(kept);
         state.additionalGuests.addAll(childGuests);
 
         clampAmenityQuantitiesToGuestCount();

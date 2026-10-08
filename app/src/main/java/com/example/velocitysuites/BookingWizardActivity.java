@@ -48,6 +48,7 @@ public class BookingWizardActivity extends AppCompatActivity {
     public static final String EXTRA_EDIT_BOOKING = "EXTRA_EDIT_BOOKING";
 
     private int stepCount = 7;
+    private final ClickGuard navGuard = new ClickGuard();
 
     private BookingWizardState state;
     private int currentStepIndex = 1;
@@ -179,8 +180,14 @@ public class BookingWizardActivity extends AppCompatActivity {
         btnPrevious = findViewById(R.id.btnWizardPrevious);
         btnNext = findViewById(R.id.btnWizardNext);
         findViewById(R.id.btnWizardBack).setOnClickListener(v -> handleBackPress());
-        btnPrevious.setOnClickListener(v -> goToPreviousStep());
-        btnNext.setOnClickListener(v -> attemptGoToNextStep());
+        // A fast double-tap on Back/Next must move exactly one step - the second tap would otherwise
+        // run against the NEXT step's (often empty) validation and skip right past it.
+        btnPrevious.setOnClickListener(v -> {
+            if (navGuard.tryAcquire()) goToPreviousStep();
+        });
+        btnNext.setOnClickListener(v -> {
+            if (navGuard.tryAcquire()) attemptGoToNextStep();
+        });
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override

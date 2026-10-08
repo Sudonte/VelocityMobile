@@ -28,6 +28,20 @@ public abstract class WizardStepFragment extends Fragment {
     public void onWizardStepShown() {
     }
 
+    /**
+     * Copies whatever the guest has typed on this step into the wizard state WITHOUT validating it. Runs
+     * whenever the step's view goes away (Back, Next, or jumping to another step), so going back never
+     * throws away half-filled fields. Steps with free-text fields override it.
+     */
+    protected void saveDraft() {
+    }
+
+    @Override
+    public void onDestroyView() {
+        saveDraft();
+        super.onDestroyView();
+    }
+
     /** Validates this step's own data and blocks Next when false - implementations surface their own error UI (Toast/inline) before returning false. */
     public boolean validateBeforeNext() {
         return true;

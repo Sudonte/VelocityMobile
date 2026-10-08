@@ -40,6 +40,14 @@ final class LayoutHarness {
         return new ContextThemeWrapper(app.createConfigurationContext(config), R.style.Theme_VelocitySuites);
     }
 
+    /** Font scale AND an explicit theme (e.g. the flat Booking/Reservation theme). */
+    static Context themedContext(float fontScale, int themeRes) {
+        Context app = ApplicationProvider.getApplicationContext();
+        Configuration config = new Configuration(app.getResources().getConfiguration());
+        config.fontScale = fontScale;
+        return new ContextThemeWrapper(app.createConfigurationContext(config), themeRes);
+    }
+
     /** A parent the same width as a phone screen, so RecyclerView-style item inflation gets the right LayoutParams. */
     static FrameLayout parentOfWidth(Context context, int widthDp) {
         FrameLayout parent = new FrameLayout(context);

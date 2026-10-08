@@ -308,6 +308,66 @@ public class WizardStepsScreenTest {
         assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
     }
 
+    // ---- back navigation never loses what was typed ----
+
+    @Test
+    public void goingBackFromStep4KeepsTheTypedNames_andStep5KeepsTheTypedChildAges() {
+        for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
+            BookingWizardActivity activity = launch(mode).get();
+            activity.getState().selectedRooms.add(room("R1", 6));
+
+            activity.goToStep(4);
+            idle();
+            ((TextView) find(activity, R.id.etPrimaryGuestFirstName)).setText("Ana");
+            ((TextView) find(activity, R.id.etPrimaryGuestLastName)).setText("Cruz");
+            activity.goToStep(3); // Back
+            idle();
+            activity.goToStep(4);
+            idle();
+            assertEquals("Ana", text(find(activity, R.id.etPrimaryGuestFirstName)));
+            assertEquals("Cruz", text(find(activity, R.id.etPrimaryGuestLastName)));
+
+            activity.goToStep(5);
+            idle();
+            find(activity, R.id.btnChildrenPlus).performClick();
+            LinearLayout ages = find(activity, R.id.layoutChildAgeFields);
+            android.widget.EditText age = firstEditText(ages);
+            age.setText("5");
+            activity.goToStep(4); // Back
+            idle();
+            activity.goToStep(5);
+            idle();
+            assertEquals(1, activity.getState().children);
+            assertEquals("5", firstEditText(find(activity, R.id.layoutChildAgeFields)).getText().toString());
+        }
+    }
+
+    @Test
+    public void aDoubleTapOnNextMovesExactlyOneStep() {
+        BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
+        activity.getState().selectedRooms.add(room("R1", 4));
+        activity.goToStep(3); // amenities: nothing to validate, so a second tap would sail straight through
+        idle();
+        View next = activity.findViewById(R.id.btnWizardNext);
+        next.performClick();
+        next.performClick();
+        idle();
+        assertEquals("4 of 7 - Guest and Identification", "Step 4 of 7", text(activity.findViewById(R.id.tvWizardStepLabel)).substring(0, 11));
+        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 4 of 7"));
+    }
+
+    private static android.widget.EditText firstEditText(View v) {
+        if (v instanceof android.widget.EditText) return (android.widget.EditText) v;
+        if (v instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) v;
+            for (int i = 0; i < g.getChildCount(); i++) {
+                android.widget.EditText e = firstEditText(g.getChildAt(i));
+                if (e != null) return e;
+            }
+        }
+        return null;
+    }
+
     private static void collect(View v, StringBuilder out) {
         if (v instanceof TextView) out.append(((TextView) v).getText()).append('\n');
         if (v instanceof ViewGroup) {
