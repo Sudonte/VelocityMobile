@@ -72,6 +72,11 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private LinearLayout layoutSummaryAmenitiesRows;
     private TextView tvSummaryAmenitiesSubtotal;
     private TextView tvSummaryTotal;
+    private View layoutEditTotals;
+    private LinearLayout layoutEditTotalsRows;
+    /** The server's old/new/paid/balance for the edit that was just saved (the payment-method switch response doesn't carry it). */
+    private Booking.EditSummary lastEditSummary;
+    private boolean editIdUploadFailed;
     private View cardPaymentNextNotice;
     private View cardPaymentMethodSummary;
     private TextView tvSummaryPaymentMethod;
@@ -105,6 +110,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         layoutSummaryAmenitiesRows = view.findViewById(R.id.layoutSummaryAmenitiesRows);
         tvSummaryAmenitiesSubtotal = view.findViewById(R.id.tvSummaryAmenitiesSubtotal);
         tvSummaryTotal = view.findViewById(R.id.tvSummaryTotal);
+        layoutEditTotals = view.findViewById(R.id.layoutEditTotals);
+        layoutEditTotalsRows = view.findViewById(R.id.layoutEditTotalsRows);
         cardPaymentNextNotice = view.findViewById(R.id.cardPaymentNextNotice);
         cardPaymentMethodSummary = view.findViewById(R.id.cardPaymentMethodSummary);
         tvSummaryPaymentMethod = view.findViewById(R.id.tvSummaryPaymentMethod);
@@ -252,6 +259,30 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         }
 
         tvSummaryTotal.setText(String.format(Locale.US, getString(R.string.price_format), roomsTotal() + amenitiesTotal()));
+        renderEditTotals();
+    }
+
+    /** Edit Reservation: previous total, new total, already paid, and balance due / excess - before the guest confirms. */
+    private void renderEditTotals() {
+        boolean editMode = getWizardActivity().isEditMode();
+        layoutEditTotals.setVisibility(editMode ? View.VISIBLE : View.GONE);
+        if (!editMode) return;
+        EditTotals totals = getState().editTotals();
+        layoutEditTotalsRows.removeAllViews();
+        layoutEditTotalsRows.addView(buildRow(getString(R.string.edit_old_total), money(totals.oldTotal)));
+        layoutEditTotalsRows.addView(buildRow(getString(R.string.edit_new_total), money(totals.newTotal)));
+        layoutEditTotalsRows.addView(buildRow(getString(R.string.edit_amount_paid), money(totals.amountPaid)));
+        if (totals.excess > 0) {
+            layoutEditTotalsRows.addView(buildRow(getString(R.string.edit_excess_paid), money(totals.excess)));
+        } else if (totals.balanceDue > 0) {
+            layoutEditTotalsRows.addView(buildRow(getString(R.string.edit_balance_due), money(totals.balanceDue)));
+        } else {
+            layoutEditTotalsRows.addView(buildRow(getString(R.string.edit_balance_due), getString(R.string.edit_settled)));
+        }
+    }
+
+    private String money(double amount) {
+        return String.format(Locale.US, getString(R.string.price_format), amount);
     }
 
     @Nullable
@@ -591,52 +622,18 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         String originalMethod = getWizardActivity().getOriginalPaymentMethod();
 
         // One entry per DISTINCT room type the guest selected - same shape
-        // createReservation(List<List<Room>>, ...) already sends for a brand
-        // new reservation, now reused for the one-time Modify too (see
-        // RoomRepository#updateReservationFull(List<List<Room>>, ...) and
-        // Api\ReservationController::update()'s rooms[]/amenities[] support).
+        // createReservation(List<List<Room>>, ...) sends for a brand new reservation.
         List<List<Room>> roomGroups = new ArrayList<>(state.selectedRoomsGroupedByType().values());
 
         repository.updateReservationFull(reservationId, roomGroups, state.checkIn, state.checkOut,
-                state.adults, state.children, state.idCardType, state.additionalGuests,
-                state.selectedAmenities,
+                state.adults, state.children, state.idCardType, state.discountIdOrNull(), state.removeIdCard,
+                state.additionalGuests, state.selectedAmenities,
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
-                    public void onSuccess(Booking updated) {
-                        boolean wantsGcash = "gcash".equalsIgnoreCase(state.paymentMethod);
-                        boolean wasGcash = "GCASH".equalsIgnoreCase(originalMethod);
-                        if (wantsGcash != wasGcash) {
-                            if (wantsGcash) {
-                                repository.switchReservationToGcash(reservationId, new RoomRepository.RepositoryCallback<Booking>() {
-                                    @Override
-                                    public void onSuccess(Booking switched) {
-                                        onEditSaved(switched, true);
-                                    }
-
-                                    @Override
-                                    public void onError(String message) {
-                                        // Dates/guests/room already saved successfully - only the
-                                        // payment-method switch failed, so still report success on
-                                        // the part that worked rather than a confusing full failure.
-                                        onEditSaved(updated, false);
-                                    }
-                                });
-                            } else {
-                                repository.switchReservationToCash(reservationId, new RoomRepository.RepositoryCallback<Booking>() {
-                                    @Override
-                                    public void onSuccess(Booking switched) {
-                                        onEditSaved(switched, false);
-                                    }
-
-                                    @Override
-                                    public void onError(String message) {
-                                        onEditSaved(updated, false);
-                                    }
-                                });
-                            }
-                        } else {
-                            onEditSaved(updated, false);
-                        }
+                    public void onSuccess(Booking saved) {
+                        lastEditSummary = saved.getEditSummary();
+                        // The stored ID is only replaced now that the edit itself has saved.
+                        uploadReplacementIdThen(reservationId, () -> switchPaymentMethodThen(saved, reservationId, originalMethod));
                     }
 
                     @Override
@@ -648,23 +645,99 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 });
     }
 
-    private void onEditSaved(Booking updated, boolean offerPayNow) {
+    /** A newly picked ID replaces the stored one only after the edit saved; a failed upload never undoes the saved edit. */
+    private void uploadReplacementIdThen(String reservationId, Runnable next) {
+        BookingWizardState state = getState();
+        if (state.discount == null || state.idCardImageUri == null) {
+            next.run();
+            return;
+        }
+        repository.uploadIdCard(reservationId, state.idCardImageUri, new RoomRepository.RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                next.run();
+            }
+
+            @Override
+            public void onError(String message) {
+                editIdUploadFailed = true;
+                next.run();
+            }
+        });
+    }
+
+    /**
+     * Only if the guest changed payment method on this step, a follow-up call to the already-tested
+     * switch-to-gcash / switch-to-cash one-time-lock endpoints (reusing that logic rather than
+     * duplicating it inside update()). If the switch fails the edit itself is still reported as saved.
+     */
+    private void switchPaymentMethodThen(Booking saved, String reservationId, String originalMethod) {
+        BookingWizardState state = getState();
+        boolean wantsGcash = "gcash".equalsIgnoreCase(state.paymentMethod);
+        boolean wasGcash = "GCASH".equalsIgnoreCase(originalMethod);
+        if (wantsGcash == wasGcash) {
+            onEditSaved(false);
+            return;
+        }
+        RoomRepository.RepositoryCallback<Booking> after = new RoomRepository.RepositoryCallback<Booking>() {
+            @Override
+            public void onSuccess(Booking switched) {
+                onEditSaved(wantsGcash);
+            }
+
+            @Override
+            public void onError(String message) {
+                onEditSaved(false);
+            }
+        };
+        if (wantsGcash) {
+            repository.switchReservationToGcash(reservationId, after);
+        } else {
+            repository.switchReservationToCash(reservationId, after);
+        }
+    }
+
+    /** The edit is saved: show the server's old/new/paid/balance summary, then leave (to Pay Now if the guest just switched to GCash). */
+    private void onEditSaved(boolean offerPayNow) {
         if (!isAdded()) return;
         setSubmitting(false);
         String reservationId = getWizardActivity().getEditingReservationId();
         LocalTransactionState.markModifiedOnce(requireContext(), reservationId);
-        Toast.makeText(requireContext(), getString(R.string.reservation_updated_msg, reservationId), Toast.LENGTH_LONG).show();
 
-        Activity activity = getActivity();
-        if (activity == null) return;
-        if (offerPayNow) {
-            Intent intent = new Intent(activity, PaymentActivity.class);
-            intent.putExtra("BOOKING_ID", reservationId);
-            intent.putExtra("ALLOW_CASH", true);
-            activity.startActivity(intent);
+        StringBuilder message = new StringBuilder(getString(R.string.reservation_updated_msg, reservationId));
+        Booking.EditSummary summary = lastEditSummary;
+        if (summary != null) {
+            message.append("\n\n")
+                    .append(getString(R.string.edit_old_total)).append(": ").append(money(summary.oldTotal)).append('\n')
+                    .append(getString(R.string.edit_new_total)).append(": ").append(money(summary.newTotal)).append('\n')
+                    .append(getString(R.string.edit_amount_paid)).append(": ").append(money(summary.amountPaid)).append('\n');
+            if (summary.excess > 0) {
+                message.append(getString(R.string.edit_excess_paid)).append(": ").append(money(summary.excess));
+            } else {
+                message.append(getString(R.string.edit_balance_due)).append(": ")
+                        .append(summary.balanceDue > 0 ? money(summary.balanceDue) : getString(R.string.edit_settled));
+            }
         }
-        activity.setResult(Activity.RESULT_OK);
-        activity.finish();
+        if (editIdUploadFailed) {
+            message.append("\n\n").append(getString(R.string.edit_id_upload_failed));
+        }
+
+        Activity activity = requireActivity();
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.edit_saved_title)
+                .setMessage(message.toString())
+                .setCancelable(false)
+                .setPositiveButton(R.string.confirmed_button, (d, which) -> {
+                    if (offerPayNow) {
+                        Intent intent = new Intent(activity, PaymentActivity.class);
+                        intent.putExtra("BOOKING_ID", reservationId);
+                        intent.putExtra("ALLOW_CASH", true);
+                        activity.startActivity(intent);
+                    }
+                    activity.setResult(Activity.RESULT_OK);
+                    activity.finish();
+                })
+                .show();
     }
 
     private void setSubmitting(boolean value) {

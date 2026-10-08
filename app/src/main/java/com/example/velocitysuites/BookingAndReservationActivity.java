@@ -3823,10 +3823,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 // as an optimistic UI flag so the button disappears instantly right
                 // after a save, before the next server refresh lands.
                 boolean canModify = !isBookingTab
-                        && !b.isHasBooking()
-                        && b.getStatus().equalsIgnoreCase("Pending")
-                        && !b.isEditedOnce()
-                        && !LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId());
+                        && ReservationEditPolicy.canEdit(b, LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()));
                 if (canModify) {
                     holder.btnModify.setVisibility(View.VISIBLE);
                     holder.btnModify.setOnClickListener(v -> launchModifyWizard(b));

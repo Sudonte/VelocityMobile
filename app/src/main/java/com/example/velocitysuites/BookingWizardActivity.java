@@ -207,7 +207,11 @@ public class BookingWizardActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.wizard_progress_lost_restart, Toast.LENGTH_LONG).show();
             }
         }
-        showStep(currentStepIndex);
+        if (isEditMode() && state.selectedRooms.isEmpty()) {
+            loadRoomsForEditThenShow(editingBooking, currentStepIndex);
+        } else {
+            showStep(currentStepIndex);
+        }
     }
 
     /**
@@ -231,6 +235,14 @@ public class BookingWizardActivity extends AppCompatActivity {
         state.adults = Math.max(1, booking.getAdults());
         state.children = Math.max(0, booking.getChildren());
         state.idCardType = booking.getIdCardType() != null ? booking.getIdCardType() : "None";
+        if (!"None".equals(state.idCardType)) {
+            // The discount the guest already claimed and the ID already on file - both stay exactly
+            // as they were unless the guest changes them on Step 6.
+            state.discount = new Discount(booking.getDiscountId(), state.idCardType, null, 0, null);
+            state.idCardOnFile = booking.isHasIdCard();
+        }
+        state.editOldTotal = booking.getTotalAmount();
+        state.editAmountPaid = booking.getEffectiveTotalAmountPaid();
         if (booking.getAdditionalGuests() != null) {
             for (Booking.AdditionalGuest g : booking.getAdditionalGuests()) {
                 state.additionalGuests.add(new BookingAndReservationActivity.AdditionalGuest(g.name, g.age, g.gender, g.relationship));
@@ -250,7 +262,33 @@ public class BookingWizardActivity extends AppCompatActivity {
             // Leave state.checkIn/checkOut null - Step 1 (Dates) shows its normal empty/unset state.
         }
 
-        List<Room> cached = RoomRepository.getInstance(this).getAllRooms();
+        seedRoomsForEdit(booking, RoomRepository.getInstance(this).getAllRooms());
+
+        // Seed already-selected paid amenities too - Step3AmenitiesFragment
+        // reconciles this by id against its own freshly-fetched live catalog
+        // (see its own comment), carrying over only the quantity, so the
+        // category/description/stock placeholders here are never actually
+        // shown/used. Without this, state.selectedAmenities would start empty
+        // and Step8ReviewPaymentFragment#saveEditedReservation() would send an
+        // empty amenities[] on Save, silently deleting every amenity the guest
+        // never touched during this Modify.
+        List<BookingAmenity> itemizedAmenities = booking.getAmenities();
+        if (itemizedAmenities != null) {
+            for (BookingAmenity a : itemizedAmenities) {
+                AddOnAmenity seeded = new AddOnAmenity(a.getAmenityId(), a.getAmenityName(), "", "", a.getUnitPrice(), a.getQuantity());
+                seeded.setQuantity(a.getQuantity());
+                state.selectedAmenities.add(seeded);
+            }
+        }
+    }
+
+    /**
+     * Puts the reservation's current room selection into the wizard state, resolved against
+     * {@code cached} (the loaded room-type catalog). Called straight away when the catalog is
+     * already in memory, or again once it has been fetched (see loadRoomsForEditThenShow()).
+     */
+    private void seedRoomsForEdit(Booking booking, List<Room> cached) {
+        state.selectedRooms.clear();
         List<BookingRoom> itemizedRooms = booking.getRooms();
         if (itemizedRooms != null && !itemizedRooms.isEmpty()) {
             // Multi-room-type reservation (BookingRoom line items) - seed every
@@ -285,23 +323,39 @@ public class BookingWizardActivity extends AppCompatActivity {
                 }
             }
         }
+    }
 
-        // Seed already-selected paid amenities too - Step3AmenitiesFragment
-        // reconciles this by id against its own freshly-fetched live catalog
-        // (see its own comment), carrying over only the quantity, so the
-        // category/description/stock placeholders here are never actually
-        // shown/used. Without this, state.selectedAmenities would start empty
-        // and Step8ReviewPaymentFragment#saveEditedReservation() would send an
-        // empty amenities[] on Save, silently deleting every amenity the guest
-        // never touched during this Modify.
-        List<BookingAmenity> itemizedAmenities = booking.getAmenities();
-        if (itemizedAmenities != null) {
-            for (BookingAmenity a : itemizedAmenities) {
-                AddOnAmenity seeded = new AddOnAmenity(a.getAmenityId(), a.getAmenityName(), "", "", a.getUnitPrice(), a.getQuantity());
-                seeded.setQuantity(a.getQuantity());
-                state.selectedAmenities.add(seeded);
+    /**
+     * The room catalog wasn't in memory (cold start straight into the edit): fetch it first, then
+     * seed the reservation's rooms and open the wizard - so the guest never lands on a wizard
+     * whose rooms were silently dropped. Failure leaves nothing half-edited: tell them and close.
+     */
+    private void loadRoomsForEditThenShow(Booking booking, int stepIndex) {
+        View loading = findViewById(R.id.wizardLoading);
+        loading.setVisibility(View.VISIBLE);
+        btnNext.setEnabled(false);
+        RoomRepository.getInstance(this).refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+            @Override
+            public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed()) return;
+                loading.setVisibility(View.GONE);
+                seedRoomsForEdit(booking, result);
+                if (state.selectedRooms.isEmpty()) {
+                    Toast.makeText(BookingWizardActivity.this, R.string.edit_reservation_load_failed, Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+                showStep(stepIndex);
             }
-        }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                loading.setVisibility(View.GONE);
+                Toast.makeText(BookingWizardActivity.this, R.string.edit_reservation_load_failed, Toast.LENGTH_LONG).show();
+                finish();
+            }
+        });
     }
 
     /**
@@ -324,6 +378,9 @@ public class BookingWizardActivity extends AppCompatActivity {
         state.adults = Math.max(1, original.getAdults());
         state.children = Math.max(0, original.getChildren());
         state.idCardType = original.getIdCardType() != null ? original.getIdCardType() : "None";
+        if (!"None".equals(state.idCardType)) {
+            state.discount = new Discount(original.getDiscountId(), state.idCardType, null, 0, null);
+        }
         if (original.getAdditionalGuests() != null) {
             for (Booking.AdditionalGuest g : original.getAdditionalGuests()) {
                 state.additionalGuests.add(new BookingAndReservationActivity.AdditionalGuest(g.name, g.age, g.gender, g.relationship));

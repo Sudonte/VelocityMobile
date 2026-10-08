@@ -131,6 +131,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
                 loading = false;
                 loaded.clear();
                 loaded.addAll(Discount.activeOnly(result));
+                adoptLegacySelection();
                 renderList();
             }
 
@@ -143,6 +144,22 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
                 renderList();
             }
         });
+    }
+
+    /**
+     * A reservation made before discounts had ids only remembers the discount's NAME. Once the
+     * list is loaded, bind that selection to the real discount of the same name so its id is sent
+     * (and it shows as selected) - without touching the guest's choice or the verification state.
+     */
+    private void adoptLegacySelection() {
+        Discount selected = getState().discount;
+        if (selected == null || selected.getId() != null) return;
+        for (Discount d : loaded) {
+            if (d.getName().equals(selected.getName())) {
+                getState().discount = d;
+                return;
+            }
+        }
     }
 
     private void showState(boolean loading, boolean error, boolean empty) {

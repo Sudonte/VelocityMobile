@@ -15,6 +15,10 @@ public class ReservationUpdateRequest {
     public int adults;
     public int children;
     public String id_card_type;
+    /** The claimed discount (Discount module id); null = leave to id_card_type ("None" drops the discount). */
+    public Long discount_id;
+    /** Ask the server to delete the stored ID image once this edit has saved. */
+    public Boolean remove_id_card;
     public List<AdditionalGuestDto> additional_guests;
     /**
      * Boxed (not primitive long) so an un-set selection is genuinely omitted

@@ -155,6 +155,14 @@ public class Booking implements Serializable {
      * above exactly.
      */
     private boolean editedOnce = false;
+    /** Discount module id of the discount the guest claimed (null = none) - re-seeds the Edit Reservation wizard. */
+    private String discountId;
+    /** An ID image is stored on the server for this transaction (the edit wizard shows "ID on file" instead of an empty upload). */
+    private boolean hasIdCard;
+    /** Server-built timeline steps, in display order; empty when the server didn't send one (the screen then falls back to deriving steps). */
+    private List<TimelineEntry> timeline = new ArrayList<>();
+    /** Old/new total, paid and balance - only set on the response of an Edit Reservation save. */
+    private EditSummary editSummary;
     /**
      * Fields needed to re-seed BookingWizardActivity when a Reservation is
      * edited via Modify - only meaningful for a plain Reservation
@@ -798,6 +806,48 @@ public class Booking implements Serializable {
     public void setRequiredPaymentAmount(Double requiredPaymentAmount) { this.requiredPaymentAmount = requiredPaymentAmount; }
     public void setPaymentMethodLocked(boolean paymentMethodLocked) { this.paymentMethodLocked = paymentMethodLocked; }
     public void setEditedOnce(boolean editedOnce) { this.editedOnce = editedOnce; }
+    public String getDiscountId() { return discountId; }
+    public void setDiscountId(String discountId) { this.discountId = discountId; }
+    public boolean isHasIdCard() { return hasIdCard; }
+    public void setHasIdCard(boolean hasIdCard) { this.hasIdCard = hasIdCard; }
+    public List<TimelineEntry> getTimeline() { return timeline; }
+    public void setTimeline(List<TimelineEntry> timeline) { this.timeline = timeline != null ? timeline : new ArrayList<>(); }
+    public EditSummary getEditSummary() { return editSummary; }
+    public void setEditSummary(EditSummary editSummary) { this.editSummary = editSummary; }
+
+    /** One step of the server-built timeline: status is Verified / Pending / Rejected / Recorded; atDisplay is the Manila-formatted time, "" when not happened yet. */
+    public static class TimelineEntry implements Serializable {
+        public final String key;
+        public final String label;
+        public final String status;
+        public final String atDisplay;
+
+        public TimelineEntry(String key, String label, String status, String atDisplay) {
+            this.key = key;
+            this.label = label;
+            this.status = status;
+            this.atDisplay = atDisplay != null ? atDisplay : "";
+        }
+
+        public boolean isVerified() { return "Verified".equalsIgnoreCase(status); }
+    }
+
+    /** The old-vs-new money picture for an edit: what it cost, what it costs now, what was paid, and what is due or overpaid. */
+    public static class EditSummary implements Serializable {
+        public final double oldTotal;
+        public final double newTotal;
+        public final double amountPaid;
+        public final double balanceDue;
+        public final double excess;
+
+        public EditSummary(double oldTotal, double newTotal, double amountPaid, double balanceDue, double excess) {
+            this.oldTotal = oldTotal;
+            this.newTotal = newTotal;
+            this.amountPaid = amountPaid;
+            this.balanceDue = balanceDue;
+            this.excess = excess;
+        }
+    }
     public void setRoomTypeId(String roomTypeId) { this.roomTypeId = roomTypeId; }
     public void setRoomsRequested(int roomsRequested) { this.roomsRequested = roomsRequested; }
     public void setAdults(int adults) { this.adults = adults; }

@@ -25,6 +25,14 @@ public class ReservationDto {
     public String guest_middle_name;
     public String guest_last_name;
     public String id_card_type;
+    /** The admin-created discount the guest claimed (Discount module id), or null. */
+    public Long discount_id;
+    /** Server path of the stored ID image - only ever tested for presence (the image itself is served by an authenticated endpoint). */
+    public String id_card_image_path;
+    /** Server-built Transaction Timeline (App\\Support\\TransactionTimeline); null/empty on an older server. */
+    public java.util.List<TimelineStepDto> timeline;
+    /** Present only on an Edit Reservation response. */
+    public EditSummaryDto edit_summary;
 
     /** AWAITING_CASH_CONFIRMATION | AWAITING_GCASH_PAYMENT | TO_BE_CONVERTED | REJECTED_RESERVATION | CANCELLED_RESERVATION | CONVERTED_TO_BOOKING - see App\Support\ReservationStatus (backend) and ApiMapper#displayStatus(). */
     public String status;

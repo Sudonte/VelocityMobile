@@ -40,6 +40,11 @@
             android:textSize="18sp" />
     </LinearLayout>
 
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshDetails"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -126,6 +131,19 @@
                         tools:text="CONFIRMED" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Edit Reservation: only offered while the reservation can still be changed
+                 (see ReservationEditPolicy); hidden otherwise. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditReservation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:minHeight="48dp"
+                android:text="@string/edit_reservation_button"
+                android:textAllCaps="false"
+                android:visibility="gone"
+                app:backgroundTint="@color/velocity_red_primary" />
 
             <!-- Card/section-based layout: every section is always visible and
                  scrolls together, replacing the old 4-tab toggle switcher. Each
@@ -315,4 +333,5 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>

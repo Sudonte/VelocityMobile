@@ -27,6 +27,9 @@ public class DirectBookingResponseDto {
     public String booking_status;
     public String payment_method;
     public String id_card_type;
+    public Long discount_id;
+    /** Server-built Transaction Timeline; null/empty on an older server. */
+    public java.util.List<TimelineStepDto> timeline;
     public String id_card_image_path;
     public List<AdditionalGuestDto> additional_guest_details;
     public boolean discount_requested;

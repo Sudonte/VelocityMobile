@@ -275,6 +275,13 @@ public final class ApiMapper {
             booking.setDiscountAmount(dto.discount_preview.discount);
         }
         booking.setIdCardType(dto.id_card_type != null ? dto.id_card_type : "None");
+        booking.setDiscountId(dto.discount_id != null ? String.valueOf(dto.discount_id) : null);
+        booking.setHasIdCard(dto.id_card_image_path != null && !dto.id_card_image_path.isEmpty());
+        booking.setTimeline(toTimeline(dto.timeline));
+        if (dto.edit_summary != null) {
+            booking.setEditSummary(new Booking.EditSummary(dto.edit_summary.old_total, dto.edit_summary.new_total,
+                    dto.edit_summary.amount_paid, dto.edit_summary.balance_due, dto.edit_summary.excess));
+        }
         booking.setHasBooking(dto.booking != null);
         booking.setRoomImageUrl(dto.room_type != null ? dto.room_type.image_url : null);
         booking.setRoomTypeId(String.valueOf(dto.room_type_id));
@@ -441,6 +448,9 @@ public final class ApiMapper {
         historical.setAmountPaid(real.getAmountPaid());
         historical.setDiscountAmount(real.getDiscountAmount());
         historical.setIdCardType(real.getIdCardType());
+        historical.setDiscountId(real.getDiscountId());
+        historical.setHasIdCard(real.isHasIdCard());
+        historical.setTimeline(real.getTimeline());
         // Not copying this was the root cause of a real, reproduced bug:
         // RoomRepository#correctPendingReservationTotal()'s skip guard is
         // `isHasBooking() || isTotalIncludesAmenities()` - hasBooking is
@@ -597,6 +607,9 @@ public final class ApiMapper {
             booking.setAmenityCharge(amenityCharge);
         }
         booking.setIdCardType(dto.id_card_type != null ? dto.id_card_type : "None");
+        booking.setDiscountId(dto.discount_id != null ? String.valueOf(dto.discount_id) : null);
+        booking.setHasIdCard(dto.id_card_image_path != null && !dto.id_card_image_path.isEmpty());
+        booking.setTimeline(toTimeline(dto.timeline));
         // Representative name for this specific transaction - DirectBookingResponseDto
         // carries these same three fields as ReservationDto (see toBooking(ReservationDto)
         // above), but they were never read here, so every direct "New Booking" transaction
@@ -941,6 +954,17 @@ public final class ApiMapper {
         if (apiTimestamp == null || apiTimestamp.trim().isEmpty()) return "";
         String formatted = TimeUtils.formatDateTime(apiTimestamp);
         return "N/A".equals(formatted) ? "" : formatted;
+    }
+
+    /** The server-built timeline as display entries (labels as sent, times in the hotel's Manila format); empty when absent. */
+    static List<Booking.TimelineEntry> toTimeline(List<com.example.velocitysuites.network.dto.TimelineStepDto> steps) {
+        List<Booking.TimelineEntry> result = new ArrayList<>();
+        if (steps == null) return result;
+        for (com.example.velocitysuites.network.dto.TimelineStepDto step : steps) {
+            if (step == null || step.label == null) continue;
+            result.add(new Booking.TimelineEntry(step.key, step.label, step.status, reformatDateTime(step.at)));
+        }
+        return result;
     }
 
     /** Same instant-aware conversion as reformatDateTime(), but date-only - see Booking#getPaymentDateOnly(). */

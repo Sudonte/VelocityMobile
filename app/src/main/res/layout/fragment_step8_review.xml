@@ -135,6 +135,34 @@
                 android:fontFamily="sans-serif-black" />
         </LinearLayout>
 
+        <!-- Edit Reservation only: previous total, new total, already paid, and the balance due
+             (or excess) - filled in by Step8ReviewPaymentFragment#renderEditTotals(). -->
+        <LinearLayout
+            android:id="@+id/layoutEditTotals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_flat_box"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/edit_totals_title"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/layoutEditTotalsRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+
         <!-- Fresh (non-edit) Reservation only: read-only recap of the choice
              made on Step 7 - never editable here, and never any "Paid" text,
              since nothing has been submitted or paid yet. -->

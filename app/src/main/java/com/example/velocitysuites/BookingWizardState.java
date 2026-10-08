@@ -29,6 +29,9 @@ public class BookingWizardState {
     public Calendar checkOut;
     /** Edit mode only: the reservation's check-in before editing began, so an untouched check-in isn't re-judged against the current check-in window. */
     public Calendar originalCheckIn;
+    /** Edit mode only: what the reservation cost before this edit and what has been paid against it - the fixed side of the old-vs-new summary. */
+    public double editOldTotal;
+    public double editAmountPaid;
 
     public final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
 
@@ -90,6 +93,11 @@ public class BookingWizardState {
     /** True when a claimed discount still lacks any ID: nothing stored on the server (or the stored one was removed) and no new image picked. */
     public boolean discountNeedsId() {
         return discount != null && idCardImageUri == null && (!idCardOnFile || removeIdCard);
+    }
+
+    /** Old total, new total (with the current selection), amount paid and the resulting balance due or excess - for the Edit Reservation review. */
+    public EditTotals editTotals() {
+        return EditTotals.of(editOldTotal, roomsTotal() + amenitiesTotal(), editAmountPaid);
     }
 
     public boolean isBookingMode() {

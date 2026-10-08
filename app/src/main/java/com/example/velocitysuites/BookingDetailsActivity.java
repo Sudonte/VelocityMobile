@@ -12,12 +12,18 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -56,6 +62,10 @@ public class BookingDetailsActivity extends AppCompatActivity {
      *  buildPaymentSummarySection()'s Room Total row, so the two can never disagree. */
     private double roomTotalAmount = 0;
 
+    private SwipeRefreshLayout swipeRefresh;
+    private ActivityResultLauncher<Intent> editLauncher;
+    private final ClickGuard clickGuard = new ClickGuard();
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +80,56 @@ public class BookingDetailsActivity extends AppCompatActivity {
         ImageButton btnBack = findViewById(R.id.btnBookingDetailsBack);
         btnBack.setOnClickListener(v -> finish());
 
+        swipeRefresh = findViewById(R.id.swipeRefreshDetails);
+        swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
+        swipeRefresh.setOnRefreshListener(() -> refreshFromServer(true));
+
+        editLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK) {
+                // The edit was saved: reload so the details, totals and timeline show it right away.
+                refreshFromServer(true);
+            }
+        });
+        MaterialButton btnEdit = findViewById(R.id.btnEditReservation);
+        btnEdit.setOnClickListener(v -> {
+            if (clickGuard.tryAcquire()) editLauncher.launch(BookingWizardActivity.newEditIntent(this, booking));
+        });
+
         correctTotalAmountThenRender();
+        // "On the next open": always pick up what the receptionist verified since this record was cached.
+        refreshFromServer(false);
+    }
+
+    /**
+     * Re-fetches this one transaction (pull-to-refresh, after an edit, and silently once on open)
+     * so server-side changes - a receptionist verifying a payment / ID / check-in, a saved edit -
+     * appear without leaving the screen. A failure keeps what is already shown.
+     */
+    private void refreshFromServer(boolean userInitiated) {
+        if (booking.isHistoricalReservation()) {
+            swipeRefresh.setRefreshing(false);
+            return;
+        }
+        if (userInitiated) swipeRefresh.setRefreshing(true);
+        final String id = booking.getId();
+        RoomRepository.getInstance(this).fetchTransactionById(id, !booking.isDirectBooking(), new RoomRepository.RepositoryCallback<Booking>() {
+            @Override
+            public void onSuccess(Booking fresh) {
+                if (isFinishing() || isDestroyed()) return;
+                swipeRefresh.setRefreshing(false);
+                booking = fresh;
+                correctTotalAmountThenRender();
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                swipeRefresh.setRefreshing(false);
+                if (userInitiated) {
+                    Toast.makeText(BookingDetailsActivity.this, R.string.details_refresh_failed, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     /**
@@ -106,6 +165,15 @@ public class BookingDetailsActivity extends AppCompatActivity {
     }
 
     private void renderAllSections() {
+        // Re-rendering (after a refresh/edit) must replace, not append to, what was drawn before.
+        int[] sectionIds = {R.id.sectionBookingInfoContent, R.id.sectionGuestInfoContent, R.id.sectionRoomInfoContent,
+                R.id.sectionPaymentInfoContent, R.id.sectionPaymentSummaryContent, R.id.sectionTimelineContent};
+        for (int id : sectionIds) {
+            ((LinearLayout) findViewById(id)).removeAllViews();
+        }
+        findViewById(R.id.btnEditReservation).setVisibility(
+                ReservationEditPolicy.canEdit(booking, LocalTransactionState.hasModifiedOnce(this, booking.getId()))
+                        ? View.VISIBLE : View.GONE);
         // Resolved before bindHeader() now (previously ran after it) so the
         // header's own itemized room-selection line can use the same
         // groupMembers fallback buildRoomInfoSection() below already relies on.
@@ -611,14 +679,57 @@ public class BookingDetailsActivity extends AppCompatActivity {
         final boolean reached;
         /** Manila-formatted "MMM d, yyyy • h:mm a" from the backend, or null when reached but the backend hasn't sent a timestamp for this step yet (older cached data). */
         final String timestamp;
+        /** "Verified" / "Pending" / "Rejected" for a server-built step; null for the legacy locally-derived steps. */
+        final String statusText;
+        /** True for a step the server built (even a "Recorded" one with no status text). */
+        final boolean fromServer;
         TimelineStep(String label, boolean reached, String timestamp) {
             this.label = label;
             this.reached = reached;
             this.timestamp = timestamp;
+            this.statusText = null;
+            this.fromServer = false;
+        }
+
+        TimelineStep(String label, boolean reached, String timestamp, String statusText) {
+            this.label = label;
+            this.reached = reached;
+            this.timestamp = timestamp;
+            this.statusText = statusText;
+            this.fromServer = true;
         }
     }
 
+    /**
+     * The timeline exactly as the server built it (Api: `timeline`): every entry's own label,
+     * status (Verified / Pending / Rejected) and recorded date + time - including "Reservation
+     * modified by guest" and, once a receptionist verifies something, that entry as "Verified".
+     * Re-fetched whenever the details screen opens or is pull-to-refreshed.
+     */
+    private List<TimelineStep> serverTimelineSteps() {
+        List<TimelineStep> steps = new ArrayList<>();
+        for (Booking.TimelineEntry entry : booking.getTimeline()) {
+            boolean reached = !"Pending".equalsIgnoreCase(entry.status);
+            steps.add(new TimelineStep(entry.label, reached, entry.atDisplay, statusLabel(entry.status)));
+        }
+        return steps;
+    }
+
+    private String statusLabel(String serverStatus) {
+        if ("Verified".equalsIgnoreCase(serverStatus)) return getString(R.string.timeline_status_verified);
+        if ("Pending".equalsIgnoreCase(serverStatus)) return getString(R.string.timeline_status_pending);
+        if ("Rejected".equalsIgnoreCase(serverStatus)) return getString(R.string.timeline_status_rejected);
+        return null; // "Recorded": an event with nothing to verify - just show when it happened
+    }
+
     private void buildTimelineSection(LinearLayout container) {
+        if (!booking.getTimeline().isEmpty()) {
+            List<TimelineStep> serverSteps = serverTimelineSteps();
+            for (int i = 0; i < serverSteps.size(); i++) {
+                container.addView(buildTimelineRow(serverSteps.get(i), i == serverSteps.size() - 1));
+            }
+            return;
+        }
         List<TimelineStep> steps = new ArrayList<>();
         steps.add(new TimelineStep(
                 getString(booking.isDirectBooking() ? R.string.timeline_booking_created : R.string.timeline_created),
@@ -693,7 +804,19 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // Only a reached step can meaningfully show "when" - an unreached
         // step (e.g. Checked Out on a still-Checked-In stay) has no
         // timestamp to show and would otherwise print a misleading "N/A".
-        if (step.reached) {
+        if (step.fromServer) {
+            // Server-built step: "<status> • <date and time>", or just the status while it is still Pending.
+            TextView timeLabel = new TextView(this);
+            String when = !TextUtils.isEmpty(step.timestamp) ? step.timestamp : null;
+            String text;
+            if (step.statusText != null && when != null) text = step.statusText + " • " + when;
+            else if (step.statusText != null) text = step.statusText;
+            else text = when != null ? when : getString(R.string.timeline_pending);
+            timeLabel.setText(text);
+            timeLabel.setTextSize(11);
+            timeLabel.setTextColor(getResources().getColor(step.reached ? R.color.velocity_text_secondary : R.color.velocity_inactive_gray));
+            textColumn.addView(timeLabel);
+        } else if (step.reached) {
             TextView timeLabel = new TextView(this);
             timeLabel.setText(!TextUtils.isEmpty(step.timestamp) ? step.timestamp : getString(R.string.timeline_pending));
             timeLabel.setTextSize(11);

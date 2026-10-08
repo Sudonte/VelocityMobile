@@ -1743,7 +1743,7 @@ public final class RoomRepository {
      * ReservationUpdateRequest's own doc for why that's distinct from passing null.
      */
     public void updateReservationFull(String reservationId, List<List<Room>> roomGroups, Calendar checkIn, Calendar checkOut,
-                                       int adults, int children, String idCardType,
+                                       int adults, int children, String idCardType, @Nullable Long discountId, boolean removeIdCard,
                                        List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
                                        List<AddOnAmenity> amenities,
                                        RepositoryCallback<Booking> callback) {
@@ -1753,16 +1753,21 @@ public final class RoomRepository {
                 adults,
                 children
         );
-        if (idCardType != null && !idCardType.equals("None")) {
-            request.id_card_type = idCardType;
-        }
-        if (additionalGuests != null && !additionalGuests.isEmpty()) {
-            List<AdditionalGuestDto> guestDtos = new ArrayList<>();
+        // An edit always states the discount outright - "None" explicitly drops it (omitting
+        // the field would mean "leave it as it was", which is how an unchanged discount is
+        // kept: the same id is sent back and the server sees no change).
+        request.id_card_type = idCardType != null ? idCardType : "None";
+        request.discount_id = discountId;
+        if (removeIdCard) request.remove_id_card = Boolean.TRUE;
+        // Always sent, even when empty: the server treats a missing key as "keep the old
+        // list", which would resurrect child-age rows after the guest lowered the children count.
+        List<AdditionalGuestDto> guestDtos = new ArrayList<>();
+        if (additionalGuests != null) {
             for (BookingAndReservationActivity.AdditionalGuest g : additionalGuests) {
                 guestDtos.add(new AdditionalGuestDto(g.name, g.age, g.gender, g.relationship));
             }
-            request.additional_guests = guestDtos;
         }
+        request.additional_guests = guestDtos;
         if (roomGroups != null && !roomGroups.isEmpty()) {
             // Also populate the legacy single-room_type_id/rooms_requested pair from
             // the FIRST group - same "send both shapes together" convention

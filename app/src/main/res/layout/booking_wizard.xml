@@ -78,7 +78,17 @@
         android:id="@+id/wizardFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <!-- Shown only while an Edit Reservation is waiting for the room catalog (see BookingWizardActivity#loadRoomsForEditThenShow()). -->
+        <ProgressBar
+            android:id="@+id/wizardLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
