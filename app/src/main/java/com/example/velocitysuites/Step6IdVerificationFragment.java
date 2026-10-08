@@ -205,6 +205,9 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         TextView value = row.findViewById(R.id.tvDiscountValue);
         value.setText(d.getValueLabel());
         value.setVisibility(d.getDiscountType() == null ? View.GONE : View.VISIBLE);
+        TextView validity = row.findViewById(R.id.tvDiscountValidity);
+        validity.setText(d.validityLabel());
+        validity.setVisibility(d.getDiscountType() == null ? View.GONE : View.VISIBLE);
         TextView note = row.findViewById(R.id.tvDiscountNote);
         note.setVisibility(unavailable ? View.VISIBLE : View.GONE);
         note.setText(R.string.discount_no_longer_available);
@@ -233,6 +236,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
                 d.getDescription() != null && !d.getDescription().trim().isEmpty() ? d.getDescription().trim() : getString(R.string.discount_no_description));
         addDetailRow(rows, getString(R.string.discount_detail_status),
                 unavailable ? getString(R.string.discount_no_longer_available) : getString(R.string.discount_status_active));
+        if (d.getDiscountType() != null) addDetailRow(rows, getString(R.string.discount_detail_validity), d.validityLabel());
         String added = formatDate(d.getCreatedAt());
         if (added != null) addDetailRow(rows, getString(R.string.discount_detail_added), added);
 

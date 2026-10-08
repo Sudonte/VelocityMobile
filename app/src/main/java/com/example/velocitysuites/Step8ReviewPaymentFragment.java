@@ -266,9 +266,9 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         renderEditTotals();
     }
 
-    /** Shows the claimed discount's estimated value - read from the Discount module values the app loaded on Step 6, never a number of its own. */
+    /** Shows the claimed discount's estimated value on the WHOLE bill (rooms + add-ons) - read from the Discount module values the app loaded on Step 6, never a number of its own; the backend's BillDiscount uses the same basis. */
     private void renderDiscountEstimate(BookingWizardState state) {
-        double off = state.discount != null ? state.discount.estimateOff(roomsTotal()) : 0;
+        double off = state.discount != null ? state.discount.estimateOff(roomsTotal() + amenitiesTotal()) : 0;
         if (off <= 0) {
             tvSummaryDiscountNote.setVisibility(View.GONE);
             return;

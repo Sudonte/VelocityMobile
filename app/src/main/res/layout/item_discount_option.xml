@@ -54,6 +54,16 @@
             tools:text="A guest who is 60 years old or above and has a valid Senior Citizen ID." />
 
         <TextView
+            android:id="@+id/tvDiscountValidity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Valid until Dec 31, 2026" />
+
+        <TextView
             android:id="@+id/tvDiscountNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

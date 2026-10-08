@@ -3,6 +3,9 @@ package com.example.velocitysuites;
 import androidx.annotation.Nullable;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -24,6 +27,8 @@ public class Discount implements Serializable {
     private final String status;
     private final String createdAt;
     private final String updatedAt;
+    private final String startDate;
+    private final String endDate;
 
     public Discount(String id, String name, String discountType, double value, String description) {
         this(id, name, discountType, value, description, null, null, null);
@@ -31,6 +36,14 @@ public class Discount implements Serializable {
 
     public Discount(String id, String name, String discountType, double value, String description,
                     @Nullable String status, @Nullable String createdAt, @Nullable String updatedAt) {
+        this(id, name, discountType, value, description, status, createdAt, updatedAt, null, null);
+    }
+
+    public Discount(String id, String name, String discountType, double value, String description,
+                    @Nullable String status, @Nullable String createdAt, @Nullable String updatedAt,
+                    @Nullable String startDate, @Nullable String endDate) {
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.id = id;
         this.name = name;
         this.discountType = discountType;
@@ -43,7 +56,7 @@ public class Discount implements Serializable {
 
     public static Discount fromDto(com.example.velocitysuites.network.dto.DiscountDto dto) {
         return new Discount(String.valueOf(dto.id), dto.name, dto.discount_type, dto.valueAsDouble(),
-                dto.description, dto.status, dto.created_at, dto.updated_at);
+                dto.description, dto.status, dto.created_at, dto.updated_at, dto.start_date, dto.end_date);
     }
 
     /**
@@ -55,7 +68,7 @@ public class Discount implements Serializable {
         List<Discount> result = new ArrayList<>();
         if (all == null) return result;
         for (Discount d : all) {
-            if (d != null && d.isActive() && d.id != null && d.name != null && !d.name.trim().isEmpty()) {
+            if (d != null && d.isActive() && d.isValidOn(CheckInWindow.today()) && d.id != null && d.name != null && !d.name.trim().isEmpty()) {
                 result.add(d);
             }
         }
@@ -70,6 +83,40 @@ public class Discount implements Serializable {
     @Nullable public String getStatus() { return status; }
     @Nullable public String getCreatedAt() { return createdAt; }
     @Nullable public String getUpdatedAt() { return updatedAt; }
+
+    @Nullable public String getStartDate() { return startDate; }
+    @Nullable public String getEndDate() { return endDate; }
+
+    /** True when {@code day} (hotel-local) is inside the optional validity window; an empty side means no limit. Dates are yyyy-MM-dd and inclusive. */
+    public boolean isValidOn(LocalDate day) {
+        LocalDate start = parseDate(startDate);
+        LocalDate end = parseDate(endDate);
+        return (start == null || !day.isBefore(start)) && (end == null || !day.isAfter(end));
+    }
+
+    @Nullable
+    private static LocalDate parseDate(@Nullable String iso) {
+        if (iso == null || iso.length() < 10) return null;
+        try {
+            return LocalDate.parse(iso.substring(0, 10));
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private static String pretty(LocalDate d) {
+        return d.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US));
+    }
+
+    /** "No expiry" / "Valid until Dec 31, 2026" / "Valid from Oct 1, 2026" / "Valid Oct 1, 2026 - Dec 31, 2026" - the same wording as the web. */
+    public String validityLabel() {
+        LocalDate start = parseDate(startDate);
+        LocalDate end = parseDate(endDate);
+        if (start != null && end != null) return "Valid " + pretty(start) + " - " + pretty(end);
+        if (end != null) return "Valid until " + pretty(end);
+        if (start != null) return "Valid from " + pretty(start);
+        return "No expiry";
+    }
 
     /** A missing status (older payloads) counts as active - the endpoint only ever returns active rows. */
     public boolean isActive() {

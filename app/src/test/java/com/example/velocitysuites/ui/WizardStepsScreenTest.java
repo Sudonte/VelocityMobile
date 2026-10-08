@@ -20,6 +20,7 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.example.velocitysuites.BookingWizardActivity;
+import com.example.velocitysuites.CheckInWindow;
 import com.example.velocitysuites.BookingWizardState;
 import com.example.velocitysuites.R;
 import com.example.velocitysuites.Room;
@@ -122,21 +123,40 @@ public class WizardStepsScreenTest {
             assertTrue(checkIn.isShown() || checkIn.getVisibility() == View.VISIBLE);
             com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilCheckIn);
             assertEquals(app.getString(R.string.helper_checkin_window), String.valueOf(til.getHelperText()));
-            assertTrue(app.getString(R.string.helper_checkin_window).contains("2 days"));
+            assertTrue(app.getString(R.string.helper_checkin_window).contains("2 days from today"));
+        }
+    }
+
+    private static Calendar daysFromHotelToday(int days) {
+        return CheckInWindow.toDeviceMidnight(CheckInWindow.today().plusDays(days));
+    }
+
+    private boolean step1Accepts(BookingWizardActivity activity, int checkInDays, int checkOutDays) {
+        BookingWizardState state = activity.getState();
+        state.checkIn = daysFromHotelToday(checkInDays);
+        state.checkOut = daysFromHotelToday(checkOutDays);
+        return ((WizardStepFragment) fragment(activity)).validateBeforeNext();
+    }
+
+    @Test
+    public void step1_checkInRule_todayAndTomorrowRefused_todayPlusTwoAndMonthsAheadAccepted_bothFlows() {
+        for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
+            BookingWizardActivity activity = launch(mode).get();
+            assertFalse("today", step1Accepts(activity, 0, 2));
+            assertFalse("tomorrow", step1Accepts(activity, 1, 3));
+            assertTrue("today+2", step1Accepts(activity, 2, 3));
+            assertTrue("months ahead", step1Accepts(activity, 120, 123));
         }
     }
 
     @Test
-    public void step1_refusesACheckInOutsideTheWindowOnNext() {
+    public void step1_checkOutRule_sameDayRefused_checkInPlusOneAccepted() {
         BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
-        BookingWizardState state = activity.getState();
-        Calendar farAway = Calendar.getInstance();
-        farAway.add(Calendar.DAY_OF_YEAR, 10);
-        state.checkIn = farAway;
-        Calendar out = (Calendar) farAway.clone();
-        out.add(Calendar.DAY_OF_YEAR, 2);
-        state.checkOut = out;
-        assertFalse(((WizardStepFragment) fragment(activity)).validateBeforeNext());
+        assertFalse("same day", step1Accepts(activity, 2, 2));
+        assertFalse("before check-in", step1Accepts(activity, 5, 4));
+        assertTrue("check-in + 1", step1Accepts(activity, 2, 3));
+        assertTrue("late check-in, +1", step1Accepts(activity, 7, 8));
+        assertFalse("late check-in, same day", step1Accepts(activity, 7, 7));
     }
 
     // ---- Step 5 (guests) ----
@@ -220,8 +240,11 @@ public class WizardStepsScreenTest {
             assertEquals(View.VISIBLE, find(activity, R.id.layoutDiscountLoading).getVisibility());
 
             List<DiscountDto> items = new ArrayList<>();
-            items.add(dto(3, "Senior Citizen", "percentage", "20.00", "60 years old or above with a valid ID.", "active"));
-            items.add(dto(4, "VIP", "fixed", "500.00", "Frequent guests.", "active"));
+            DiscountDto sc = dto(3, "Senior Citizen", "percentage", "20.00", "60 years old or above with a valid ID.", "active");
+            DiscountDto vip = dto(4, "VIP", "fixed", "500.00", "Frequent guests.", "active");
+            vip.end_date = "2099-12-31";
+            items.add(sc);
+            items.add(vip);
             items.add(dto(5, "Retired Promo", "percentage", "5.00", "Old.", "inactive"));
             answerDiscounts(items);
 
@@ -233,6 +256,8 @@ public class WizardStepsScreenTest {
             assertEquals("20%", text(first.findViewById(R.id.tvDiscountValue)));
             assertEquals("60 years old or above with a valid ID.", text(first.findViewById(R.id.tvDiscountShortDesc)));
             assertEquals("₱500.00", text(list.getChildAt(1).findViewById(R.id.tvDiscountValue)));
+            assertEquals("no dates = no expiry", "No expiry", text(first.findViewById(R.id.tvDiscountValidity)));
+            assertEquals("Valid until Dec 31, 2099", text(list.getChildAt(1).findViewById(R.id.tvDiscountValidity)));
             assertEquals(View.GONE, find(activity, R.id.tvDiscountEmpty).getVisibility());
         }
     }
@@ -285,6 +310,7 @@ public class WizardStepsScreenTest {
         assertTrue(detailText, detailText.contains("20%"));
         assertTrue(detailText, detailText.contains("Full description text."));
         assertTrue(detailText, detailText.contains("Active"));
+        assertTrue(detailText, detailText.contains("No expiry"));
         assertNotNull(sheet.findViewById(R.id.btnDetailBack));
         assertNotNull(sheet.findViewById(R.id.btnDetailClose));
 
@@ -351,7 +377,10 @@ public class WizardStepsScreenTest {
         Calendar out = (Calendar) in.clone();
         out.add(Calendar.DAY_OF_YEAR, 2);
         s.checkIn = in;
-        s.checkOut = out; // 2 nights x 2,500 = 5,000
+        s.checkOut = out; // 2 nights x 2,500 = 5,000 rooms + 1,000 add-ons = 6,000 whole bill
+        com.example.velocitysuites.AddOnAmenity breakfast = new com.example.velocitysuites.AddOnAmenity("9", "Breakfast", "", "", 500.0, 2);
+        breakfast.setQuantity(2); // 1,000 of add-ons
+        s.selectedAmenities.add(breakfast);
         s.setDiscount(new com.example.velocitysuites.Discount("3", "Senior Citizen", "percentage", 20, "d", "active", null, null));
         activity.goToStep(7);
         idle();
@@ -359,7 +388,7 @@ public class WizardStepsScreenTest {
         assertEquals(View.VISIBLE, note.getVisibility());
         assertTrue(text(note), text(note).contains("Senior Citizen"));
         assertTrue(text(note), text(note).contains("20%"));
-        assertTrue(text(note), text(note).contains("-₱1,000.00"));
+        assertTrue("20% of the WHOLE bill (6,000), not just the rooms: " + text(note), text(note).contains("-₱1,200.00"));
         s.setDiscount(null);
         activity.goToStep(7);
         idle();

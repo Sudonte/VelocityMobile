@@ -7,6 +7,9 @@ public class DiscountDto {
     public String value;
     public String description;
     public String status;
+    /** Optional validity window (yyyy-MM-dd, hotel-local days, inclusive); null = no limit on that side. */
+    public String start_date;
+    public String end_date;
     public String created_at;
     public String updated_at;
 
