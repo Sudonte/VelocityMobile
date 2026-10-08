@@ -3806,6 +3806,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     // explanation in that case; setEnabled(false) would make this
                     // a dead, unexplained control instead of a clear indication.
                     holder.btnCancel.setVisibility(View.VISIBLE);
+                    holder.btnCancel.setText(b.isHasBooking() ? R.string.cancel_booking_button : R.string.cancel_reservation_button);
                     holder.btnCancel.setEnabled(true);
                     holder.btnCancel.setAlpha(staffVerified ? 0.4f : 1f);
                     holder.btnCancel.setOnClickListener(v -> showCancelDialog(b));
@@ -3956,13 +3957,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // A partially paid booking can still be cancelled, but the guest must be
         // explicitly warned that the partial payment already made is forfeited.
         int messageRes = PaymentStateUtil.isPartiallyPaid(booking)
-                ? R.string.cancel_partial_payment_confirm
+                ? (isBooking ? R.string.cancel_partial_payment_confirm : R.string.cancel_partial_payment_reservation_confirm)
                 : (isBooking ? R.string.cancel_booking_confirm : R.string.cancel_reservation_confirm);
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(isBooking ? R.string.cancel_booking_title : R.string.cancel_reservation_title)
                 .setMessage(messageRes)
-                .setPositiveButton(R.string.yes_cancel, null)
+                .setPositiveButton(isBooking ? R.string.yes_cancel_booking : R.string.yes_cancel_reservation, null)
                 .setNegativeButton(R.string.no_label, null)
                 .create();
 
@@ -4020,7 +4021,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                         // guest can retry, matching confirmDeleteTransaction().
                         positive.setEnabled(true);
                         negative.setEnabled(true);
-                        positive.setText(R.string.yes_cancel);
+                        positive.setText(isBooking ? R.string.yes_cancel_booking : R.string.yes_cancel_reservation);
                         Toast.makeText(BookingAndReservationActivity.this, getString(R.string.cancel_failed_format, message), Toast.LENGTH_LONG).show();
                     }
                 });

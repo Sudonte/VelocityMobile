@@ -484,7 +484,9 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReceiptDownload"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:paddingVertical="12dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/download_receipt_button_label"
                 android:textAllCaps="false"
