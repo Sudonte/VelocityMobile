@@ -14,10 +14,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    android:layout_marginBottom="8dp"
     app:cardBackgroundColor="@color/velocity_surface_elevated"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="0dp"
     app:strokeColor="@color/velocity_divider_hairline"
     app:strokeWidth="1dp">
 
@@ -26,13 +24,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="14dp">
+        android:padding="16dp">
 
         <ImageView
             android:id="@+id/ivReceiptCardIcon"
             android:layout_width="22dp"
             android:layout_height="22dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="16dp"
             android:importantForAccessibility="no"
             android:src="@drawable/ic_transaction_history"
             app:tint="@color/velocity_red_primary" />
@@ -60,7 +58,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/velocity_text_secondary"
                 android:textIsSelectable="true"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 tools:text="PR-20260920-000501" />
 
             <LinearLayout
@@ -74,14 +72,14 @@
                     android:id="@+id/tvReceiptCardStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_intro_pill"
+                    android:background="@drawable/shape_flat_badge"
                     android:backgroundTint="@color/velocity_green_soft"
                     android:fontFamily="sans-serif-black"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_green_dark"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     tools:text="Verified" />
 
                 <TextView

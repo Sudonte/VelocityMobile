@@ -476,6 +476,26 @@ public class BookingWizardActivity extends AppCompatActivity {
         if (current != null) {
             current.onWizardStepShown();
         }
+        updateSummaryBar();
+    }
+
+    /** One line under the step content with what is picked so far - dates, rooms, guests, running total - hidden until there is something to show. */
+    private void updateSummaryBar() {
+        TextView bar = findViewById(R.id.wizardSummaryBar);
+        if (bar == null) return;
+        if (state.checkIn == null || state.checkOut == null) {
+            bar.setVisibility(View.GONE);
+            return;
+        }
+        SimpleDateFormat fmt = new SimpleDateFormat("MMM dd", Locale.US);
+        String dates = getString(R.string.wizard_summary_dates_format, fmt.format(state.checkIn.getTime()), fmt.format(state.checkOut.getTime()));
+        int rooms = state.selectedRooms.size();
+        String roomsText = rooms > 0 ? getResources().getQuantityString(R.plurals.wizard_summary_rooms, rooms, rooms) : getString(R.string.wizard_summary_no_rooms);
+        int guests = state.adults + state.children;
+        String guestsText = getResources().getQuantityString(R.plurals.guests_count, guests, guests);
+        String total = String.format(Locale.US, getString(R.string.price_format), state.roomsTotal() + state.amenitiesTotal());
+        bar.setText(getString(R.string.wizard_summary_format, dates, roomsText, guestsText, total));
+        bar.setVisibility(View.VISIBLE);
     }
 
     @Override

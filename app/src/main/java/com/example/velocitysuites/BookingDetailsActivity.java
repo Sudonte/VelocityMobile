@@ -82,6 +82,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
         swipeRefresh = findViewById(R.id.swipeRefreshDetails);
         swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
+        FlatUi.removeSpinnerShadow(swipeRefresh);
         swipeRefresh.setOnRefreshListener(() -> refreshFromServer(true));
 
         editLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {

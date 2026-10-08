@@ -949,7 +949,7 @@
     <string name="discount_load_error">Couldn\'t load the available discounts. Check your connection and try again. You can still continue without a discount.</string>
     <string name="discount_empty">No discounts available right now</string>
     <string name="discount_select_this">Select this discount</string>
-    <string name="discount_selected_label">Selected</string>
+    <string name="summary_adults_children_format">%1$s   %2$s</string>
     <string name="discount_no_longer_available">No longer available</string>
     <string name="discount_upload_title">Upload your ID</string>
     <string name="discount_upload_for_format">Upload a valid ID for the %1$s discount.</string>
@@ -1112,6 +1112,13 @@
     <string name="reservation_details_screen_title">Reservation Details</string>
     <string name="date_range_format">%1$s - %2$s</string>
     <string name="modify_reservation_label">Edit Reservation</string>
+    <string name="wizard_summary_format">%1$s • %2$s • %3$s • %4$s</string>
+    <string name="wizard_summary_no_rooms">No rooms yet</string>
+    <string name="wizard_summary_dates_format">%1$s - %2$s</string>
+    <plurals name="wizard_summary_rooms">
+        <item quantity="one">%1$d room</item>
+        <item quantity="other">%1$d rooms</item>
+    </plurals>
     <string name="edit_reservation_button">Edit Reservation</string>
     <string name="edit_totals_title">Changes to your total</string>
     <string name="edit_old_total">Previous total</string>

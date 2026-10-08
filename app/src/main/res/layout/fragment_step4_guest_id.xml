@@ -10,10 +10,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Velocity.Card.Glass.Elevated"
+            style="@style/Widget.Velocity.Card.Flat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="false"
@@ -22,9 +22,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_glass_card_white"
+                android:background="@drawable/bg_flat_box"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -36,9 +36,7 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        app:cardBackgroundColor="@color/velocity_red_soft"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp">
+                        app:cardBackgroundColor="@color/velocity_red_soft">
                         <ImageView
                             android:layout_width="18dp"
                             android:layout_height="18dp"
@@ -51,7 +49,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -70,17 +68,17 @@
                             android:layout_marginTop="2dp"
                             android:text="@string/who_is_staying_hint"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="11sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="16dp"
                     android:text="@string/required_fields_note"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-medium" />
 
                 <!-- Last Name: static top-left label, always visible (not a
@@ -92,17 +90,17 @@
                     style="@style/TextAppearance.Velocity.Label.Section"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
+                    android:layout_marginBottom="8dp"
                     android:text="@string/guest_last_name_hint"
                     android:textColor="@color/velocity_text_primary"
                     android:textSize="12sp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilPrimaryGuestLastName"
-                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginBottom="16dp"
                     app:hintEnabled="false"
                     app:startIconDrawable="@drawable/ic_person"
                     app:startIconTint="@color/velocity_red_primary">
@@ -123,17 +121,17 @@
                     style="@style/TextAppearance.Velocity.Label.Section"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
+                    android:layout_marginBottom="8dp"
                     android:text="@string/guest_first_name_hint"
                     android:textColor="@color/velocity_text_primary"
                     android:textSize="12sp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilPrimaryGuestFirstName"
-                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginBottom="16dp"
                     app:hintEnabled="false"
                     app:startIconDrawable="@drawable/ic_person"
                     app:startIconTint="@color/velocity_red_primary">
@@ -155,14 +153,14 @@
                     style="@style/TextAppearance.Velocity.Label.Section"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
+                    android:layout_marginBottom="8dp"
                     android:text="@string/middle_name_label"
                     android:textColor="@color/velocity_text_primary"
                     android:textSize="12sp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilPrimaryGuestMiddleName"
-                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:hintEnabled="false"

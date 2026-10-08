@@ -57,11 +57,11 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_flat_box"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="16dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDetailBack"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.Velocity.Flat.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -75,6 +75,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDetailSelect"
+            style="@style/Widget.Velocity.Flat.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"

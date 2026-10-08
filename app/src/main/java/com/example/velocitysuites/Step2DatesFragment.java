@@ -100,7 +100,8 @@ public class Step2DatesFragment extends WizardStepFragment {
     public boolean validateBeforeNext() {
         BookingWizardState state = getState();
         if (state.checkIn == null || state.checkOut == null) {
-            Toast.makeText(requireContext(), R.string.select_date_hint, Toast.LENGTH_SHORT).show();
+            if (state.checkIn == null) tilCheckIn.setError(getString(R.string.select_date_hint));
+            if (state.checkOut == null) tilCheckOut.setError(getString(R.string.select_date_hint));
             return false;
         }
         // A fresh run must start inside the window. A Modify keeps the
@@ -110,13 +111,13 @@ public class Step2DatesFragment extends WizardStepFragment {
                 && CheckInWindow.toLocalDate(state.originalCheckIn).equals(CheckInWindow.toLocalDate(state.checkIn));
         if (!checkInUnchangedOnEdit && !CheckInWindow.isAllowed(state.checkIn)) {
             tilCheckIn.setError(getString(R.string.error_checkin_outside_window));
-            Toast.makeText(requireContext(), R.string.error_checkin_outside_window, Toast.LENGTH_SHORT).show();
             return false;
         }
         if (!state.checkOut.after(state.checkIn)) {
-            Toast.makeText(requireContext(), R.string.error_invalid_dates, Toast.LENGTH_SHORT).show();
+            tilCheckOut.setError(getString(R.string.error_invalid_dates));
             return false;
         }
+        tilCheckIn.setError(null);
         return validateNoGuestDateConflict();
     }
 

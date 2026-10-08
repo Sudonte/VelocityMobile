@@ -42,7 +42,7 @@
             android:gravity="center_vertical"
             android:minHeight="56dp"
             android:orientation="horizontal"
-            android:padding="12dp"
+            android:padding="16dp"
             android:visibility="gone">
 
             <ProgressBar
@@ -53,7 +53,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="16dp"
                 android:text="@string/discount_loading"
                 android:textColor="@color/velocity_text_secondary"
                 android:textSize="14sp" />
@@ -66,7 +66,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_flat_box"
             android:orientation="vertical"
-            android:padding="12dp"
+            android:padding="16dp"
             android:visibility="gone">
 
             <TextView
@@ -79,7 +79,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDiscountRetry"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -96,7 +96,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_flat_box"
-            android:padding="12dp"
+            android:padding="16dp"
             android:text="@string/discount_empty"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="14sp"
@@ -116,7 +116,7 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_flat_box"
             android:orientation="vertical"
-            android:padding="12dp"
+            android:padding="16dp"
             android:visibility="gone">
 
             <TextView
@@ -150,7 +150,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnUploadId"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -162,7 +162,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRemoveId"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.Velocity.Flat.Button.Text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="48dp"

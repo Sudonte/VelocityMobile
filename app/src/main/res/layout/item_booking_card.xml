@@ -2,7 +2,7 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.Velocity.Card.Glass.Compact"
+    style="@style/Widget.Velocity.Card.Flat"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -13,10 +13,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_glass_card_white"
+        android:background="@drawable/bg_flat_box"
         android:orientation="vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="10dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
 
         <!-- Compact summary row: status/name/type/dates, chevron - deliberately
              image-free (room images belong only in BookingDetailsActivity's
@@ -49,14 +49,14 @@
                         android:id="@+id/tvModifiedBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/shape_intro_pill"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/shape_flat_badge"
                         android:backgroundTint="@color/velocity_inactive_gray"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="3dp"
                         android:text="@string/status_modified"
                         android:textColor="@color/white"
-                        android:textSize="9sp"
+                        android:textSize="12sp"
                         android:fontFamily="sans-serif-black"
                         android:visibility="gone"
                         tools:visibility="visible" />
@@ -110,14 +110,14 @@
                     android:id="@+id/tvBookingStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:background="@drawable/shape_intro_pill"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/shape_flat_badge"
                     android:backgroundTint="@color/velocity_red_subtle"
-                    android:paddingHorizontal="9dp"
+                    android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
                     android:text="@string/status_pending"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-black" />
             </LinearLayout>
 
@@ -135,7 +135,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="7dp"
+            android:layout_marginBottom="8dp"
             android:background="@color/velocity_red_subtle"/>
 
         <LinearLayout
@@ -172,7 +172,7 @@
                     android:text="@string/details_grand_total_label"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="9sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/tvBookingPrice"
@@ -200,33 +200,33 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="5dp">
+                android:layout_marginBottom="4dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnViewDetails"
                     android:layout_width="0dp"
-                    android:layout_height="37dp"
+                    android:layout_height="wrap_content"
+        android:minHeight="48dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:text="@string/view_details"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     app:backgroundTint="@color/velocity_red_primary"
-                    app:cornerRadius="32dp"
                     android:textColor="@color/white"
                     android:fontFamily="sans-serif-black" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPayNow"
                     android:layout_width="0dp"
-                    android:layout_height="37dp"
+                    android:layout_height="wrap_content"
+        android:minHeight="48dp"
                     android:layout_weight="1"
                     android:text="@string/pay_now"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:visibility="gone"
                     app:backgroundTint="@color/velocity_green_primary"
-                    app:cornerRadius="32dp"
                     android:textColor="@color/white"
                     android:fontFamily="sans-serif-black" />
             </LinearLayout>
@@ -239,21 +239,21 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnModify"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
+                    android:layout_height="wrap_content"
+        android:minHeight="48dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:text="@string/modify_label"
                     android:textAllCaps="false"
                     android:textSize="12sp"
-                    app:cornerRadius="32dp"
                     app:strokeColor="@color/velocity_red_primary"
                     android:textColor="@color/velocity_red_primary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancel"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
@@ -273,35 +273,35 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="4dp"
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBookAgain"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
+                    android:layout_height="wrap_content"
+        android:minHeight="48dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:text="@string/book_again_button"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:visibility="gone"
-                    app:cornerRadius="32dp"
                     app:strokeColor="@color/velocity_red_primary"
                     android:textColor="@color/velocity_red_primary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnDelete"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
                     android:layout_width="0dp"
-                    android:layout_height="36dp"
+                    android:layout_height="wrap_content"
+        android:minHeight="48dp"
                     android:layout_weight="1"
                     android:text="@string/delete_permanently_button_label"
                     android:textAllCaps="false"
                     android:textSize="12sp"
                     android:visibility="gone"
-                    app:cornerRadius="32dp"
                     app:strokeColor="@color/velocity_inactive_gray"
                     android:textColor="@color/velocity_text_secondary" />
             </LinearLayout>

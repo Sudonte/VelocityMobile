@@ -218,6 +218,8 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         row.findViewById(R.id.ivDiscountSelected).setVisibility(selected ? View.VISIBLE : View.INVISIBLE);
     }
 
+    // A BottomSheetDialog's content view has no parent to inflate against until the dialog attaches it.
+    @android.annotation.SuppressLint("InflateParams")
     private void showDetails(Discount d, boolean unavailable) {
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         View content = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_discount_details, null, false);

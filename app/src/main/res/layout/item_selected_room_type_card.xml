@@ -14,10 +14,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="10dp"
+    android:layout_marginTop="8dp"
     app:cardBackgroundColor="@color/velocity_surface_elevated"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="0dp"
     app:strokeColor="@color/velocity_red_subtle"
     app:strokeWidth="1dp">
 
@@ -25,13 +23,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="8dp">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp">
+            android:layout_height="150dp">
 
             <ImageView
                 android:id="@+id/ivSelectedRoomTypeImage"
@@ -46,7 +42,7 @@
             android:id="@+id/tvSelectedRoomTypeName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/velocity_text_primary"
             android:textSize="15sp"

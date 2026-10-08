@@ -11,10 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Velocity.Card.Glass.Elevated"
+            style="@style/Widget.Velocity.Card.Flat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="false"
@@ -23,23 +23,21 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_glass_card_white"
+                android:background="@drawable/bg_flat_box"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginBottom="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cardBackgroundColor="@color/velocity_red_soft"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp">
+                        app:cardBackgroundColor="@color/velocity_red_soft">
                         <ImageView
                             android:layout_width="18dp"
                             android:layout_height="18dp"
@@ -52,7 +50,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -70,18 +68,18 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="11sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_notice_box_red"
+                    android:background="@drawable/shape_flat_notice"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="10dp"
-                    android:paddingHorizontal="14dp"
+                    android:layout_marginBottom="8dp"
+                    android:paddingHorizontal="16dp"
                     android:paddingVertical="4dp">
 
                     <TextView
@@ -95,10 +93,9 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAdultsMinus"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cornerRadius="0dp"
                         app:strokeColor="@color/velocity_red_primary"
                         android:textColor="@color/velocity_red_primary"
                         android:insetTop="0dp"
@@ -120,10 +117,9 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAdultsPlus"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cornerRadius="0dp"
                         app:strokeColor="@color/velocity_red_primary"
                         android:textColor="@color/velocity_red_primary"
                         android:insetTop="0dp"
@@ -137,10 +133,10 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_notice_box_red"
+                    android:background="@drawable/shape_flat_notice"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="14dp"
+                    android:paddingHorizontal="16dp"
                     android:paddingVertical="4dp">
 
                     <TextView
@@ -154,10 +150,9 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnChildrenMinus"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cornerRadius="0dp"
                         app:strokeColor="@color/velocity_red_primary"
                         android:textColor="@color/velocity_red_primary"
                         android:insetTop="0dp"
@@ -179,10 +174,9 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnChildrenPlus"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        app:cornerRadius="0dp"
                         app:strokeColor="@color/velocity_red_primary"
                         android:textColor="@color/velocity_red_primary"
                         android:insetTop="0dp"
@@ -197,7 +191,7 @@
                     android:id="@+id/tvGuestCounter"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-bold"
                     android:textColor="@color/velocity_red_dark"
                     android:textSize="14sp"
@@ -207,11 +201,11 @@
                     android:id="@+id/tvChildAgeNotice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/child_age_notice"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:visibility="gone" />
 
                 <LinearLayout

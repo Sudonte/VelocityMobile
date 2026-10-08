@@ -13,16 +13,15 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingTop="36dp"
-        android:paddingBottom="12dp"
-        android:background="@color/velocity_red_primary"
-        android:elevation="4dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="40dp"
+        android:paddingBottom="16dp"
+        android:background="@color/velocity_red_primary">
 
         <ImageButton
             android:id="@+id/btnWizardBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@android:color/transparent"
             android:contentDescription="@string/back"
             android:src="@drawable/ic_arrow_back"
@@ -46,8 +45,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:paddingTop="14dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/tvWizardStepLabel"
@@ -64,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:layout_marginBottom="8dp"
             tools:text="6 steps remaining" />
 
@@ -90,20 +89,35 @@
             android:visibility="gone" />
     </FrameLayout>
 
+    <!-- What the guest has picked so far: dates, rooms, guests and the running total. -->
+    <TextView
+        android:id="@+id/wizardSummaryBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_flat_box"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone"
+        tools:text="Oct 08 - Oct 10 • 2 rooms • 3 guests • ₱6,000.00"
+        tools:visibility="visible" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="14dp"
-        android:background="@color/velocity_surface_elevated"
-        android:elevation="8dp">
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp"
+        android:background="@drawable/bg_flat_box">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnWizardPrevious"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.Velocity.Flat.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+        android:minHeight="48dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:text="@string/back_label"
@@ -114,6 +128,7 @@
             android:id="@+id/btnWizardNext"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+        android:minHeight="48dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="@string/next_label"

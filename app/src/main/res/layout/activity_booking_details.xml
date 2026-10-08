@@ -16,8 +16,7 @@
         android:background="@color/velocity_red_primary"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="4dp"
-        android:elevation="4dp">
+        android:paddingHorizontal="4dp">
 
         <ImageButton
             android:id="@+id/btnBookingDetailsBack"
@@ -53,21 +52,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:padding="16dp">
 
             <!-- Header card -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <!-- No room image here by design - a room photo belongs only in
                          the Room Information section below (item_selected_room_type_card.xml,
@@ -94,7 +93,7 @@
                         android:id="@+id/tvDetailsDates"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/velocity_text_primary"
                         android:textSize="13sp"
@@ -120,13 +119,13 @@
                         android:id="@+id/tvDetailsStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:background="@drawable/shape_intro_pill"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/shape_flat_badge"
                         android:backgroundTint="@color/velocity_green_subtle"
-                        android:paddingHorizontal="10dp"
+                        android:paddingHorizontal="8dp"
                         android:paddingVertical="4dp"
                         android:textColor="@color/velocity_green_primary"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         android:fontFamily="sans-serif-black"
                         tools:text="CONFIRMED" />
                 </LinearLayout>
@@ -138,7 +137,7 @@
                 android:id="@+id/btnEditReservation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 android:minHeight="48dp"
                 android:text="@string/edit_reservation_button"
                 android:textAllCaps="false"
@@ -154,23 +153,23 @@
                  many optional fields each section can show. -->
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/section_title_booking_information"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="13sp" />
@@ -184,23 +183,23 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/receipt_guest_information_title"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="13sp" />
@@ -214,23 +213,23 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/section_title_room_information"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="13sp" />
@@ -244,23 +243,23 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/receipt_payment_information_title"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="13sp" />
@@ -274,23 +273,23 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/receipt_billing_breakdown_title"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="13sp" />
@@ -304,22 +303,22 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.Velocity.Card.Glass"
+                style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card_white"
+                    android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="16dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/section_title_transaction_timeline"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="13sp" />

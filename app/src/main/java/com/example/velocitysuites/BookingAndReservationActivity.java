@@ -1106,6 +1106,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private void setupSwipeRefresh() {
         if (swipeRefresh == null) return;
         swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
+        FlatUi.removeSpinnerShadow(swipeRefresh);
         swipeRefresh.setOnRefreshListener(this::refreshMyBookings);
     }
 

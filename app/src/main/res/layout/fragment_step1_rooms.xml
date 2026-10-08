@@ -11,14 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
         <!-- Shown only while the initial date-aware availability fetch for this step is in flight - see Step1RoomSelectionFragment#onViewCreated(). -->
         <LinearLayout
             android:id="@+id/layoutCheckingAvailability"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:visibility="gone"
@@ -27,7 +27,7 @@
             <ProgressBar
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="8dp"
                 android:indeterminateTint="@color/velocity_red_primary" />
 
             <TextView
@@ -43,18 +43,18 @@
             android:id="@+id/layoutRoomLoadError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/shape_tab_background"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
+            android:paddingHorizontal="24dp"
             android:paddingVertical="24dp"
             android:visibility="gone">
 
             <ImageView
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="8dp"
                 android:alpha="0.6"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_wifi_off"
@@ -64,7 +64,7 @@
                 style="@style/TextAppearance.Velocity.Label.Section"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="8dp"
                 android:text="@string/room_load_error_title"
                 android:textColor="@color/velocity_text_primary" />
 
@@ -80,10 +80,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRetryRoomLoad"
-                style="@style/Widget.Velocity.Button.Outlined"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
                 android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:paddingHorizontal="20dp"
+                android:layout_height="wrap_content"
+        android:minHeight="48dp"
+                android:paddingHorizontal="24dp"
                 android:text="@string/retry_label"
                 android:textColor="@color/velocity_red_primary"
                 android:textSize="13sp" />
@@ -94,18 +95,18 @@
             android:id="@+id/layoutNoRoomsAvailableForDates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/shape_tab_background"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
+            android:paddingHorizontal="24dp"
             android:paddingVertical="24dp"
             android:visibility="gone">
 
             <ImageView
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="8dp"
                 android:alpha="0.6"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_bed"
@@ -115,7 +116,7 @@
                 style="@style/TextAppearance.Velocity.Label.Section"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="8dp"
                 android:text="@string/no_available_rooms_title"
                 android:textColor="@color/velocity_text_primary" />
 
@@ -131,10 +132,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangeDates"
-                style="@style/Widget.Velocity.Button.Outlined"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
                 android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:paddingHorizontal="20dp"
+                android:layout_height="wrap_content"
+        android:minHeight="48dp"
+                android:paddingHorizontal="24dp"
                 android:text="@string/change_dates_button"
                 android:textColor="@color/velocity_red_primary"
                 android:textSize="13sp" />
@@ -150,14 +152,14 @@
             style="@style/TextAppearance.Velocity.Label.Input"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="6dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/add_room_hint"
             android:textColor="@color/velocity_text_primary"
             android:textSize="13sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddRoom"
-            style="@style/Widget.Velocity.Button.Outlined"
+            style="@style/Widget.Velocity.Flat.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:text="@string/add_room_button_label"
@@ -171,7 +173,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="16dp"
             android:lineSpacingExtra="2dp"
             android:text="@string/booking_select_room_helper_multi"
             android:textColor="@color/velocity_text_secondary"
@@ -188,17 +190,17 @@
             android:id="@+id/layoutNoRoomsSelected"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/shape_tab_background"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="18dp">
+            android:paddingVertical="16dp">
 
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="8dp"
                 android:alpha="0.6"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_bed"
@@ -219,8 +221,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             app:cardBackgroundColor="@color/velocity_red_subtle"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="0dp"
             app:strokeColor="@color/velocity_red_soft"
             app:strokeWidth="1dp">
 
@@ -229,7 +229,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="12dp">
+                android:padding="16dp">
 
                 <ImageView
                     android:layout_width="22dp"
@@ -241,7 +241,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
+                    android:layout_marginStart="16dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -251,7 +251,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/capacity_label"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/tvCapacityIndicator"
@@ -267,14 +267,14 @@
                     android:id="@+id/tvRoomsSelectedCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shape_intro_pill"
+                    android:background="@drawable/shape_flat_badge"
                     android:backgroundTint="@color/white"
-                    android:paddingHorizontal="10dp"
+                    android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     android:text="@string/no_rooms_selected_yet"
                     android:textColor="@color/velocity_red_primary"
                     android:fontFamily="sans-serif-black"
-                    android:textSize="10sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

@@ -12,12 +12,12 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingTop="8dp"
-        android:paddingBottom="20dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp">
+        android:paddingBottom="24dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
 
         <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Velocity.Card.Glass.Elevated"
+            style="@style/Widget.Velocity.Card.Flat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="false"
@@ -26,9 +26,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_glass_card_white"
+                android:background="@drawable/bg_flat_box"
                 android:orientation="vertical"
-                android:paddingTop="10dp"
+                android:paddingTop="8dp"
                 android:paddingBottom="16dp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp">
@@ -43,9 +43,7 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="28dp"
                         android:layout_height="28dp"
-                        app:cardBackgroundColor="@color/velocity_red_soft"
-                        app:cardCornerRadius="14dp"
-                        app:cardElevation="0dp">
+                        app:cardBackgroundColor="@color/velocity_red_soft">
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
@@ -58,7 +56,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="8dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -76,14 +74,15 @@
                             android:layout_marginTop="1dp"
                             android:text="@string/addon_amenities_notice"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="11sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSkipAmenities"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        style="@style/Widget.Velocity.Flat.Button.Text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+        android:minHeight="48dp"
                         android:layout_gravity="center_vertical"
                         android:maxWidth="90dp"
                         android:maxLines="1"
@@ -107,12 +106,12 @@
                     android:id="@+id/layoutAmenitiesSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/shape_notice_box_red"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/shape_flat_notice"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="10dp"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
                     android:visibility="gone"
                     tools:visibility="visible">
 
@@ -159,10 +158,11 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRetryAmenities"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+        android:minHeight="48dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/retry_label"
                         android:textAllCaps="false"
                         app:strokeColor="@color/velocity_red_primary"

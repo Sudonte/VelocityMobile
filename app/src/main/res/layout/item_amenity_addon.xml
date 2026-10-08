@@ -6,8 +6,6 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     app:cardBackgroundColor="@color/velocity_red_subtle"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="0dp"
     app:strokeColor="@color/velocity_red_soft"
     app:strokeWidth="1dp">
 
@@ -15,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,8 +27,6 @@
                 android:layout_height="28dp"
                 android:layout_marginEnd="8dp"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_soft"
                 app:strokeWidth="1dp">
 
@@ -69,10 +65,10 @@
             android:id="@+id/tvAmenityItemDesc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="36dp"
+            android:layout_marginStart="40dp"
             android:layout_marginTop="2dp"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="10sp"
+            android:textSize="12sp"
             android:alpha="0.85"
             tools:text="Complimentary or paid breakfast buffet." />
 
@@ -80,8 +76,8 @@
             android:id="@+id/layoutAmenityItemQuantity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="36dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:visibility="gone"
@@ -93,7 +89,7 @@
                 android:layout_weight="1"
                 android:text="@string/label_quantity"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAmenityQtyMinus"
@@ -107,7 +103,6 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:backgroundTint="@color/white"
-                app:cornerRadius="14dp"
                 app:icon="@drawable/ic_remove"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
@@ -136,7 +131,6 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:backgroundTint="@color/white"
-                app:cornerRadius="14dp"
                 app:icon="@drawable/ic_add"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
@@ -147,10 +141,10 @@
                 android:id="@+id/tvAmenityItemSubtotal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="8dp"
                 android:fontFamily="sans-serif-bold"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 tools:text="= &#8369;1,600" />
         </LinearLayout>
     </LinearLayout>

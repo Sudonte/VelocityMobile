@@ -14,13 +14,13 @@
     android:gravity="center_vertical"
     android:minHeight="56dp"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:padding="16dp">
 
     <ImageView
         android:id="@+id/ivDiscountSelected"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginEnd="12dp"
+        android:layout_marginEnd="16dp"
         android:importantForAccessibility="no"
         android:src="@drawable/ic_check_circle"
         android:visibility="invisible"
@@ -68,7 +68,7 @@
         android:id="@+id/tvDiscountValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="16dp"
         android:background="@drawable/bg_flat_box_selected"
         android:fontFamily="sans-serif-black"
         android:paddingHorizontal="8dp"
