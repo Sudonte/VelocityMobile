@@ -91,6 +91,8 @@ public class PaymentHeaderLayoutTest {
     }
 
     private static void layoutAgain(View decor) {
+        // what every real frame does before drawing: CoordinatorLayout repositions the views that depend on the app bar
+        decor.getViewTreeObserver().dispatchOnPreDraw();
         decor.measure(View.MeasureSpec.makeMeasureSpec(WIDTH_PX, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(HEIGHT_PX, View.MeasureSpec.EXACTLY));
         decor.layout(0, 0, WIDTH_PX, HEIGHT_PX);

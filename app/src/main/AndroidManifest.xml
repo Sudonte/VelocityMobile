@@ -128,7 +128,8 @@
         <activity
             android:name=".PaymentActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.VelocitySuites" />
+            android:theme="@style/Theme.VelocitySuites"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".RequestAmenityActivity"

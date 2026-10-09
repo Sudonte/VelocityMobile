@@ -1,5 +1,7 @@
 package com.example.velocitysuites;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,9 +9,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -21,13 +26,18 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -175,6 +185,18 @@ public class PaymentActivity extends BaseNavigationActivity {
     private View layoutReceiptActions;
     private MaterialButton btnReplaceReceipt, btnRemoveReceipt;
 
+    // Pinned action bar (see payment.xml): the amount being paid + exactly one row of step actions at a time.
+    private View paymentActionBar, paymentBarSummary;
+    private View rowActionReview, rowActionStep1, rowActionStep2, rowActionStep3, rowActionStep4, rowActionStep5;
+    private TextView tvBarAmount;
+    private AppBarLayout appBarLayout;
+
+    // Review Billing extras, GCash step 1 helpers, inline validation and the submission error banner
+    private TextView tvSummaryRooms, tvSummaryGuests, tvAdditionalGuestFee, tvPaidPercent, tvHowToPayAmountStep, tvSubmitErrorMessage;
+    private View layoutAdditionalGuestFee, layoutSubtotalRow, cardSubmitError;
+    private MaterialButton btnCopyAmount;
+    private TextInputLayout tilGcashNumber;
+
     private ActivityResultLauncher<String> receiptPickerLauncher;
 
     @Override
@@ -202,6 +224,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
 
         initViews();
+        setupActionBarInsets();
         if (freshReservation && proceedToGcashButton != null) {
             proceedToGcashButton.setText(R.string.proceed_and_pay_later);
         }
@@ -282,8 +305,34 @@ public class PaymentActivity extends BaseNavigationActivity {
         btnUploadReceipt = findViewById(R.id.btnUploadReceipt);
 
         etGcashNumber = findViewById(R.id.etGcashNumber);
+        tilGcashNumber = findViewById(R.id.tilGcashNumber);
         etGcashReferenceNumber = findViewById(R.id.etGcashReferenceNumber);
         tilGcashReferenceNumber = findViewById(R.id.tilGcashReferenceNumber);
+
+        appBarLayout = findViewById(R.id.appBarLayout);
+        paymentActionBar = findViewById(R.id.paymentActionBar);
+        paymentBarSummary = findViewById(R.id.paymentBarSummary);
+        tvBarAmount = findViewById(R.id.tvBarAmount);
+        rowActionReview = findViewById(R.id.rowActionReview);
+        rowActionStep1 = findViewById(R.id.rowActionStep1);
+        rowActionStep2 = findViewById(R.id.rowActionStep2);
+        rowActionStep3 = findViewById(R.id.rowActionStep3);
+        rowActionStep4 = findViewById(R.id.rowActionStep4);
+        rowActionStep5 = findViewById(R.id.rowActionStep5);
+
+        tvSummaryRooms = findViewById(R.id.tvSummaryRooms);
+        tvSummaryGuests = findViewById(R.id.tvSummaryGuests);
+        tvAdditionalGuestFee = findViewById(R.id.tvAdditionalGuestFee);
+        layoutAdditionalGuestFee = findViewById(R.id.layoutAdditionalGuestFee);
+        layoutSubtotalRow = findViewById(R.id.layoutSubtotalRow);
+        tvPaidPercent = findViewById(R.id.tvPaidPercent);
+        tvHowToPayAmountStep = findViewById(R.id.tvHowToPayAmountStep);
+        cardSubmitError = findViewById(R.id.cardSubmitError);
+        tvSubmitErrorMessage = findViewById(R.id.tvSubmitErrorMessage);
+        btnCopyAmount = findViewById(R.id.btnCopyAmount);
+        if (btnCopyAmount != null) {
+            btnCopyAmount.setOnClickListener(v -> copyAmountToClipboard());
+        }
 
         cgPaymentMethod = findViewById(R.id.cgPaymentMethod);
         tvCashNote = findViewById(R.id.tvCashNote);
@@ -404,40 +453,30 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     private void setupGcashStepNavigation() {
         if (btnGcashStep1Next != null) {
-            btnGcashStep1Next.setOnClickListener(v -> {
-                currentGcashStep = 2;
-                renderGcashStep();
-            });
+            btnGcashStep1Next.setOnClickListener(v -> showGcashStep(2));
         }
         if (btnGcashStep2Back != null) {
-            btnGcashStep2Back.setOnClickListener(v -> {
-                currentGcashStep = 1;
-                renderGcashStep();
-            });
+            btnGcashStep2Back.setOnClickListener(v -> showGcashStep(1));
         }
         if (btnGcashStep2Next != null) {
             btnGcashStep2Next.setOnClickListener(v -> {
-                String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
-                if (!isValidGcashNumber(number)) {
-                    if (etGcashNumber != null) etGcashNumber.setError(getString(R.string.error_invalid_gcash_number));
+                String numberError = gcashNumberErrorMessage(true);
+                if (numberError != null) {
+                    setGcashNumberError(numberError);
                     return;
                 }
-                if (etGcashNumber != null) etGcashNumber.setError(null);
-                currentGcashStep = 3;
-                renderGcashStep();
+                setGcashNumberError(null);
+                showGcashStep(3);
             });
         }
         if (btnGcashStep3Back != null) {
-            btnGcashStep3Back.setOnClickListener(v -> {
-                currentGcashStep = 2;
-                renderGcashStep();
-            });
+            btnGcashStep3Back.setOnClickListener(v -> showGcashStep(2));
         }
         if (btnGcashStep3Next != null) {
             btnGcashStep3Next.setOnClickListener(v -> {
-                Integer referenceError = gcashReferenceValidationError();
+                String referenceError = gcashReferenceErrorMessage();
                 if (referenceError != null) {
-                    setGcashReferenceError(getString(referenceError));
+                    setGcashReferenceError(referenceError);
                     if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
                     return;
                 }
@@ -455,32 +494,42 @@ public class PaymentActivity extends BaseNavigationActivity {
                     return;
                 }
                 setGcashReferenceError(null);
-                currentGcashStep = 4;
-                renderGcashStep();
+                showGcashStep(4);
             });
         }
         if (btnGcashStep4Back != null) {
-            btnGcashStep4Back.setOnClickListener(v -> {
-                currentGcashStep = 3;
-                renderGcashStep();
-            });
+            btnGcashStep4Back.setOnClickListener(v -> showGcashStep(3));
         }
         if (btnGcashStep4Next != null) {
             btnGcashStep4Next.setOnClickListener(v -> {
                 if (receiptUri == null) {
-                    Toast.makeText(this, R.string.error_attach_receipt, Toast.LENGTH_LONG).show();
+                    setReceiptStatusError(getString(R.string.error_attach_receipt));
                     return;
                 }
-                currentGcashStep = 5;
-                renderGcashStep();
+                showGcashStep(5);
             });
         }
         if (btnGcashStep5Back != null) {
-            btnGcashStep5Back.setOnClickListener(v -> {
-                currentGcashStep = 4;
-                renderGcashStep();
-            });
+            btnGcashStep5Back.setOnClickListener(v -> showGcashStep(4));
         }
+    }
+
+    /**
+     * Moves to a GCash step the guest asked for (Next/Back, or a validation error sending them back to fix
+     * something): renders it, then starts it at the top. The step buttons live in the pinned action bar, so the guest
+     * never has to scroll to a "Next" - without this they could land halfway down the next step. The header is
+     * collapsed too so the step gets the room. Data refreshes must call renderGcashStep() directly instead, so a
+     * refresh never moves the guest.
+     */
+    private void showGcashStep(int step) {
+        currentGcashStep = step;
+        renderGcashStep();
+        scrollContentToTop();
+    }
+
+    private void scrollContentToTop() {
+        if (appBarLayout != null) appBarLayout.setExpanded(false, true);
+        if (screenContent != null) screenContent.scrollTo(0, 0);
     }
 
     /** Shows only the current step's view, updates the "Step X of 5" label + WizardStepIndicatorView, and (on Step 5) refreshes the review summary. */
@@ -493,7 +542,80 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (gcashStep5Review != null) gcashStep5Review.setVisibility(currentGcashStep == 5 ? View.VISIBLE : View.GONE);
         if (tvGcashStepLabel != null) tvGcashStepLabel.setText(getString(R.string.registration_step_format, currentGcashStep, 5));
         if (gcashStepIndicator != null) gcashStepIndicator.setCurrentStep(currentGcashStep);
-        if (currentGcashStep == 5) populateGcashReviewStep();
+        if (currentGcashStep == 5) populateGcashReviewStep(); else clearSubmitError();
+        renderActionBar();
+    }
+
+    /**
+     * The pinned action bar: the amount being paid, and exactly ONE row of actions - Review Billing's Proceed, or the
+     * current GCash step's Back/Next/Submit. Hidden when there is nothing for the guest to act on (the empty state,
+     * or a GCash payment that is already pending/verified/rejected - its own status card carries the buttons).
+     * Derived purely from what is on screen, so call it after anything that changes which section or step shows.
+     */
+    private void renderActionBar() {
+        if (paymentActionBar == null) return;
+        boolean reviewShowing = checkoutSummarySection != null && checkoutSummarySection.getVisibility() == View.VISIBLE;
+        boolean gcashFormShowing = gcashPortalSection != null && gcashPortalSection.getVisibility() == View.VISIBLE
+                && cardGcashSubmissionForm != null && cardGcashSubmissionForm.getVisibility() == View.VISIBLE;
+        setVisible(rowActionReview, reviewShowing);
+        setVisible(rowActionStep1, gcashFormShowing && currentGcashStep == 1);
+        setVisible(rowActionStep2, gcashFormShowing && currentGcashStep == 2);
+        setVisible(rowActionStep3, gcashFormShowing && currentGcashStep == 3);
+        setVisible(rowActionStep4, gcashFormShowing && currentGcashStep == 4);
+        setVisible(rowActionStep5, gcashFormShowing && currentGcashStep == 5);
+        setVisible(paymentActionBar, reviewShowing || gcashFormShowing);
+    }
+
+    private static void setVisible(@Nullable View view, boolean visible) {
+        if (view != null) view.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Keeps the action bar clear of the navigation bar and, while the keyboard is open, directly above it (the amount
+     * line is dropped then, so the bar stays small). Only the bottom is handled here - the top (status bar) is left to
+     * the header exactly as on every other guest screen. When the system has already fitted the window (older
+     * Android, or windowSoftInputMode=adjustResize), the insets arrive consumed (zero) and this changes nothing.
+     */
+    private void setupActionBarInsets() {
+        View column = findViewById(R.id.paymentContentColumn);
+        if (column == null) return;
+        ViewCompat.setOnApplyWindowInsetsListener(column, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), Math.max(bars.bottom, ime.bottom));
+            setVisible(paymentBarSummary, ime.bottom <= 0);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(column);
+    }
+
+    /** Copies the exact amount to pay, as a plain number GCash's amount field accepts: no peso sign, no thousands separator. */
+    private void copyAmountToClipboard() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        if (clipboard == null) return;
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.copy_amount_clip_label),
+                String.format(Locale.US, "%.2f", payNowValue)));
+        // Android 13+ confirms a copy itself; earlier versions show nothing, so confirm it here.
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+            View anchor = findViewById(R.id.paymentRoot);
+            if (anchor != null) {
+                Snackbar.make(anchor, getString(R.string.copy_amount_done_format, MoneyFormat.format(payNowValue)),
+                        Snackbar.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /** Shows why a GCash submission failed, on the review step where the guest is; stays until the next attempt. */
+    private void showSubmitError(@Nullable String reason) {
+        if (cardSubmitError == null || tvSubmitErrorMessage == null) return;
+        tvSubmitErrorMessage.setText(reason == null || reason.trim().isEmpty() ? getString(R.string.network_error) : reason);
+        cardSubmitError.setVisibility(View.VISIBLE);
+        cardSubmitError.post(() -> cardSubmitError.requestRectangleOnScreen(
+                new android.graphics.Rect(0, 0, cardSubmitError.getWidth(), cardSubmitError.getHeight()), false));
+    }
+
+    private void clearSubmitError() {
+        if (cardSubmitError != null) cardSubmitError.setVisibility(View.GONE);
     }
 
     /** Echoes back everything the guest entered across Steps 1-4, read-only, right before the final submit. */
@@ -579,12 +701,12 @@ public class PaymentActivity extends BaseNavigationActivity {
             tvReviewPaymentPercentage.setText(getString(R.string.payment_percentage_format, selectedGcashPercentageForRequest()));
         }
         if (tvReviewTotalBookingAmount != null) {
-            tvReviewTotalBookingAmount.setText(String.format(Locale.US, "₱%,.2f", grandTotalValue));
+            tvReviewTotalBookingAmount.setText(MoneyFormat.format(grandTotalValue));
         }
-        if (tvReviewAmount != null) tvReviewAmount.setText(String.format(Locale.US, "₱%,.2f", payNowValue));
+        if (tvReviewAmount != null) tvReviewAmount.setText(MoneyFormat.format(payNowValue));
         if (tvReviewRemainingBalance != null) {
             double balanceAfterThisPayment = Math.max(0, remainingDueValue() - payNowValue);
-            tvReviewRemainingBalance.setText(String.format(Locale.US, "₱%,.2f", balanceAfterThisPayment));
+            tvReviewRemainingBalance.setText(MoneyFormat.format(balanceAfterThisPayment));
         }
         if (tvReviewGcashNumber != null) {
             String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
@@ -761,7 +883,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             // remaining balance to prevent overpayment - never recalculated
             // against a shrinking base.
             boolean hasPriorPayment = alreadyPaidValue > 0.009;
-            String dueFormatted = String.format(Locale.US, "₱%,.2f", remainingDueValue());
+            String dueFormatted = MoneyFormat.format(remainingDueValue());
             if (isFullPaymentMode) {
                 tvPaymentModeSub.setText(hasPriorPayment
                         ? getString(R.string.full_payment_hint_with_due, dueFormatted)
@@ -893,7 +1015,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             valid = due > 0 && Math.abs(payNowValue - due) <= 0.009;
             if (tvAmountError != null) {
                 tvAmountError.setText(getString(R.string.error_full_amount_mismatch,
-                        String.format(Locale.US, "₱%,.2f", due)));
+                        MoneyFormat.format(due)));
                 tvAmountError.setVisibility(valid ? View.GONE : View.VISIBLE);
             }
         } else {
@@ -928,18 +1050,24 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     private void updateAmountToPay() {
         double balance = remainingDueValue() - payNowValue;
+        String formattedPayNow = MoneyFormat.format(payNowValue);
         if (tvAmountToPay != null) {
-            tvAmountToPay.setText(String.format(Locale.US, "₱%,.2f", payNowValue));
+            tvAmountToPay.setText(formattedPayNow);
         }
         if (tvRemainingBalance != null) {
             if (balance <= 0.009) {
                 tvRemainingBalance.setText(R.string.no_balance_label);
             } else {
-                tvRemainingBalance.setText(String.format(Locale.US, "₱%,.2f", balance));
+                tvRemainingBalance.setText(MoneyFormat.format(balance));
             }
         }
         if (tvPortalAmount != null) {
-            tvPortalAmount.setText(String.format(Locale.US, "₱%,.2f", payNowValue));
+            tvPortalAmount.setText(formattedPayNow);
+        }
+        // The pinned bar and the "how to pay" step 3 always quote the same amount as everywhere else.
+        if (tvBarAmount != null) tvBarAmount.setText(formattedPayNow);
+        if (tvHowToPayAmountStep != null) {
+            tvHowToPayAmountStep.setText(getString(R.string.gcash_how_to_step_3, formattedPayNow));
         }
     }
 
@@ -955,12 +1083,12 @@ public class PaymentActivity extends BaseNavigationActivity {
                 // (GIF/BMP/HEIC...) fail later as a generic server error.
                 if (mime != null && !mime.equalsIgnoreCase("image/jpeg") && !mime.equalsIgnoreCase("image/png")
                         && !mime.equalsIgnoreCase("image/webp")) {
-                    Toast.makeText(this, R.string.error_receipt_invalid_format, Toast.LENGTH_LONG).show();
+                    setReceiptStatusError(getString(R.string.error_receipt_invalid_format));
                     return;
                 }
                 long size = queryFileSize(uri);
                 if (size > MAX_RECEIPT_SIZE_BYTES) {
-                    Toast.makeText(this, R.string.error_receipt_too_large, Toast.LENGTH_LONG).show();
+                    setReceiptStatusError(getString(R.string.error_receipt_too_large));
                     return;
                 }
                 receiptUri = uri;
@@ -987,6 +1115,13 @@ public class PaymentActivity extends BaseNavigationActivity {
                     .setNegativeButton(R.string.cancel_label, null)
                     .show());
         }
+    }
+
+    /** A receipt problem shown right under the upload button, where it stays until fixed - not a toast that disappears. */
+    private void setReceiptStatusError(String message) {
+        if (tvReceiptStatus == null) return;
+        tvReceiptStatus.setText(message);
+        tvReceiptStatus.setTextColor(getResources().getColor(R.color.velocity_action_text, getTheme()));
     }
 
     /**
@@ -1074,7 +1209,13 @@ public class PaymentActivity extends BaseNavigationActivity {
 
                 isFormattingGcashNumber = false;
                 updateSubmitButtonState();
+                updateLiveGcashNumberError();
             }
+        });
+        etGcashNumber.setOnFocusChangeListener((v, hasFocus) -> {
+            // Validate on blur only, and only once something has been typed - tapping into an empty field and back
+            // out is not an error.
+            if (!hasFocus) setGcashNumberError(gcashNumberErrorMessage(false));
         });
         if (etGcashReferenceNumber != null) {
             etGcashReferenceNumber.addTextChangedListener(new android.text.TextWatcher() {
@@ -1130,14 +1271,52 @@ public class PaymentActivity extends BaseNavigationActivity {
                 // Validate on blur only, and only once the guest has actually typed
                 // something - an untouched/empty field must not show an error just
                 // from tapping in and back out.
-                Integer error = gcashReferenceValidationError();
-                if (error != null) setGcashReferenceError(getString(error));
+                String error = gcashReferenceErrorMessage();
+                if (error != null) setGcashReferenceError(error);
             });
         }
     }
 
     private boolean isValidGcashNumber(String number) {
         return number != null && number.matches("9\\d{9}");
+    }
+
+    /**
+     * What is wrong with the GCash mobile number, in words the guest can act on - required, wrong first digit, or too
+     * short (with how many digits they have). Null when it is valid. {@code emptyIsError} is false while the guest
+     * has not typed anything yet (blur / live checks), true when they press Next.
+     */
+    @Nullable
+    private String gcashNumberErrorMessage(boolean emptyIsError) {
+        String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
+        if (number.isEmpty()) return emptyIsError ? getString(R.string.error_gcash_number_required) : null;
+        if (isValidGcashNumber(number)) return null;
+        if (number.charAt(0) != '9') return getString(R.string.error_gcash_number_prefix);
+        if (number.length() < 10) return getString(R.string.error_gcash_number_short_format, number.length());
+        return getString(R.string.error_invalid_gcash_number);
+    }
+
+    /** Inline (under the box, on the TextInputLayout), not the EditText's popup bubble. */
+    private void setGcashNumberError(@Nullable String message) {
+        if (tilGcashNumber == null) return;
+        if (message != null) {
+            tilGcashNumber.setErrorEnabled(true);
+            tilGcashNumber.setError(message);
+        } else {
+            tilGcashNumber.setError(null);
+            tilGcashNumber.setErrorEnabled(false);
+        }
+    }
+
+    /**
+     * While typing: a number that can't possibly be right (wrong first digit) is flagged at once; a number that is
+     * merely unfinished is left alone until the guest leaves the field or presses Next; a valid one clears the error.
+     */
+    private void updateLiveGcashNumberError() {
+        String message = gcashNumberErrorMessage(false);
+        String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString() : "";
+        boolean wrongFirstDigit = !number.isEmpty() && number.charAt(0) != '9';
+        setGcashNumberError(message != null && wrongFirstDigit ? message : null);
     }
 
     /**
@@ -1178,13 +1357,14 @@ public class PaymentActivity extends BaseNavigationActivity {
      * uses) rather than a second hand-rolled strip, so this can never disagree with what
      * actually gets sent to the server.
      */
-    private Integer gcashReferenceValidationError() {
+    @Nullable
+    private String gcashReferenceErrorMessage() {
         String raw = etGcashReferenceNumber != null && etGcashReferenceNumber.getText() != null
                 ? etGcashReferenceNumber.getText().toString().trim() : "";
-        if (raw.isEmpty()) return R.string.error_gcash_reference_required;
+        if (raw.isEmpty()) return getString(R.string.error_gcash_reference_required);
         String digits = gcashReferenceDigitsOnly();
-        if (digits.length() != raw.replace(" ", "").length()) return R.string.error_gcash_reference_numeric;
-        if (digits.length() != 13) return R.string.error_gcash_reference_length;
+        if (digits.length() != raw.replace(" ", "").length()) return getString(R.string.error_gcash_reference_numeric);
+        if (digits.length() != 13) return getString(R.string.error_gcash_reference_length_format, digits.length());
         return null;
     }
 
@@ -1245,12 +1425,13 @@ public class PaymentActivity extends BaseNavigationActivity {
                 if (etGcashNumber != null) etGcashNumber.setText("");
                 if (etGcashReferenceNumber != null) etGcashReferenceNumber.setText("");
                 setGcashReferenceError(null);
+                setGcashNumberError(null);
+                clearSubmitError();
                 removeReceipt();
                 if (layoutGcashMacroSteps != null) layoutGcashMacroSteps.setVisibility(View.VISIBLE);
                 if (cardGcashSubmissionForm != null) cardGcashSubmissionForm.setVisibility(View.VISIBLE);
                 if (cardPaymentStatusBanner != null) cardPaymentStatusBanner.setVisibility(View.GONE);
-                currentGcashStep = 1;
-                renderGcashStep();
+                showGcashStep(1);
             });
         }
     }
@@ -1346,6 +1527,8 @@ public class PaymentActivity extends BaseNavigationActivity {
             if (layoutGcashMacroSteps != null) layoutGcashMacroSteps.setVisibility(View.GONE);
             if (cardGcashSubmissionForm != null) cardGcashSubmissionForm.setVisibility(View.GONE);
         }
+        // the form may just have been hidden (a payment is pending/verified/rejected): the bar has nothing to act on then
+        renderActionBar();
     }
 
     private void setStatusBannerIcon(int drawableRes, int tintColorRes, int bgColorRes) {
@@ -1402,6 +1585,8 @@ public class PaymentActivity extends BaseNavigationActivity {
             backToSummaryButton.setOnClickListener(v -> {
                 gcashPortalSection.setVisibility(View.GONE);
                 checkoutSummarySection.setVisibility(View.VISIBLE);
+                renderActionBar();
+                scrollContentToTop();
             });
         }
 
@@ -1428,9 +1613,9 @@ public class PaymentActivity extends BaseNavigationActivity {
         TextView tvBalance = dialogView.findViewById(R.id.confirmRemainingBalance);
 
         tvType.setText(R.string.amount_to_pay_label);
-        tvAmount.setText(String.format(Locale.US, "₱%,.2f", payNowValue));
-        tvTotal.setText(String.format(Locale.US, "₱%,.2f", due));
-        tvBalance.setText(balance <= 0.009 ? "₱0.00" : String.format(Locale.US, "₱%,.2f", balance));
+        tvAmount.setText(MoneyFormat.format(payNowValue));
+        tvTotal.setText(MoneyFormat.format(due));
+        tvBalance.setText(MoneyFormat.format(balance <= 0.009 ? 0 : balance));
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.confirm_payment_title)
@@ -1439,8 +1624,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                     checkoutSummarySection.setVisibility(View.GONE);
                     gcashPortalSection.setVisibility(View.VISIBLE);
                     updateAmountToPay();
-                    currentGcashStep = 1;
-                    renderGcashStep();
+                    showGcashStep(1);
                 })
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
@@ -1575,9 +1759,9 @@ public class PaymentActivity extends BaseNavigationActivity {
         double balance = due - payNowValue;
 
         tvType.setText(R.string.payment_method_cash);
-        tvAmount.setText(payNowValue > 0.009 ? String.format(Locale.US, "₱%,.2f", payNowValue) : getString(R.string.no_balance_label));
-        tvTotal.setText(String.format(Locale.US, "₱%,.2f", due));
-        tvBalance.setText(balance <= 0.009 ? "₱0.00" : String.format(Locale.US, "₱%,.2f", balance));
+        tvAmount.setText(payNowValue > 0.009 ? MoneyFormat.format(payNowValue) : getString(R.string.no_balance_label));
+        tvTotal.setText(MoneyFormat.format(due));
+        tvBalance.setText(MoneyFormat.format(balance <= 0.009 ? 0 : balance));
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.confirm_payment_title)
@@ -1744,6 +1928,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.GONE);
             if (emptyStateSection != null) emptyStateSection.setVisibility(View.VISIBLE);
             updateBookReserveCtaVisibility(false);
+            renderActionBar();
             if (bookingId != null) {
                 // A specific booking was requested (e.g. via a dashboard/list "Pay
                 // Now" tap) but is no longer in the cache - most likely it was
@@ -1761,7 +1946,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         grandTotalValue = amount;
         alreadyPaidValue = currentBooking.getAmountPaid();
 
-        String formattedGrandTotal = String.format(Locale.US, "₱%,.2f", grandTotalValue);
+        String formattedGrandTotal = MoneyFormat.format(grandTotalValue);
         tvTotalAmount.setText(formattedGrandTotal);
         tvGrandTotal.setText(formattedGrandTotal);
         // A still-pending Reservation must never be labeled "Booking" here -
@@ -1781,15 +1966,20 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
         renderRepresentativeSummary(currentBooking.getRepresentativeName());
         renderExistingBookingRoomsSummary(currentBooking);
+        if (tvSummaryRooms != null) tvSummaryRooms.setText(existingBookingRoomsCommaSummary(currentBooking));
         if (tvCheckInSummary != null) {
-            tvCheckInSummary.setText(getString(R.string.payment_summary_checkin_format, currentBooking.getCheckInDate()));
+            tvCheckInSummary.setText(currentBooking.getCheckInDate());
         }
         if (tvCheckOutSummary != null) {
-            tvCheckOutSummary.setText(getString(R.string.payment_summary_checkout_format, currentBooking.getCheckOutDate()));
+            tvCheckOutSummary.setText(currentBooking.getCheckOutDate());
         }
         if (tvNightsSummary != null) {
             int nights = (int) nightsBetweenDates(currentBooking.getCheckInDate(), currentBooking.getCheckOutDate());
-            tvNightsSummary.setText(getResources().getQuantityString(R.plurals.payment_summary_nights_format, nights, nights));
+            tvNightsSummary.setText(getResources().getQuantityString(R.plurals.payment_summary_nights_value, nights, nights));
+        }
+        if (tvSummaryGuests != null) {
+            int guests = currentBooking.getGuests();
+            tvSummaryGuests.setText(getResources().getQuantityString(R.plurals.guests_count, guests, guests));
         }
         renderExistingBookingAmenitiesSummary(currentBooking);
         if (!hasBooking) {
@@ -1813,29 +2003,32 @@ public class PaymentActivity extends BaseNavigationActivity {
         double amenityCharge = currentBooking.getAmenityCharge();
         boolean hasSplitFigures = roomCharge > 0.009 || amenityCharge > 0.009;
         double roomChargeDisplay = hasSplitFigures ? roomCharge : amount;
-        if (tvRoomCharges != null) tvRoomCharges.setText(String.format(Locale.US, "₱%,.2f", roomChargeDisplay));
+        double additionalGuestFee = currentBooking.getAdditionalGuestFee();
+        if (tvRoomCharges != null) tvRoomCharges.setText(MoneyFormat.format(roomChargeDisplay));
         if (tvAmenitiesTotalSummary != null) {
-            tvAmenitiesTotalSummary.setText(String.format(Locale.US, "₱%,.2f", amenityCharge));
+            tvAmenitiesTotalSummary.setText(MoneyFormat.format(amenityCharge));
         }
+        // The fee is already part of the total below; list it so the rows add up to what is shown.
+        boolean hasGuestFee = additionalGuestFee > 0.009;
+        if (layoutAdditionalGuestFee != null) layoutAdditionalGuestFee.setVisibility(hasGuestFee ? View.VISIBLE : View.GONE);
+        if (hasGuestFee && tvAdditionalGuestFee != null) tvAdditionalGuestFee.setText(MoneyFormat.format(additionalGuestFee));
         if (tvTotalAmountSummary != null) {
-            tvTotalAmountSummary.setText(String.format(Locale.US, "₱%,.2f",
-                    roomChargeDisplay + amenityCharge + currentBooking.getAdditionalGuestFee()));
+            tvTotalAmountSummary.setText(MoneyFormat.format(roomChargeDisplay + amenityCharge + additionalGuestFee));
         }
         boolean hasDiscount = currentBooking.getDiscountAmount() > 0.009;
         if (layoutDiscountSummary != null) layoutDiscountSummary.setVisibility(hasDiscount ? View.VISIBLE : View.GONE);
+        // The pre-discount subtotal only means something next to a discount; otherwise it just repeats the total.
+        if (layoutSubtotalRow != null) layoutSubtotalRow.setVisibility(hasDiscount ? View.VISIBLE : View.GONE);
         if (hasDiscount && tvDiscountSummary != null) {
-            tvDiscountSummary.setText(String.format(Locale.US, "-₱%,.2f", currentBooking.getDiscountAmount()));
+            tvDiscountSummary.setText(MoneyFormat.format(-currentBooking.getDiscountAmount()));
         }
         if (tvAlreadyPaidSummary != null) {
-            tvAlreadyPaidSummary.setText(String.format(Locale.US, "₱%,.2f", alreadyPaidValue));
+            tvAlreadyPaidSummary.setText(MoneyFormat.format(alreadyPaidValue));
         }
         if (tvOutstandingBalanceSummary != null) {
-            tvOutstandingBalanceSummary.setText(String.format(Locale.US, "₱%,.2f", remainingDueValue()));
+            tvOutstandingBalanceSummary.setText(MoneyFormat.format(remainingDueValue()));
         }
-        if (paymentBreakdownProgress != null) {
-            int paidPercent = grandTotalValue > 0 ? (int) ((alreadyPaidValue / grandTotalValue) * 100) : 0;
-            paymentBreakdownProgress.setProgress(Math.min(100, paidPercent));
-        }
+        renderPaidProgress();
 
         applyPaymentAmountSelection();
         renderPaymentVerificationStatus(currentBooking);
@@ -1843,6 +2036,29 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.VISIBLE);
         if (emptyStateSection != null) emptyStateSection.setVisibility(View.GONE);
         updateBookReserveCtaVisibility(true);
+        renderActionBar();
+    }
+
+    /** The bar under the bill and its "x% paid" caption - same percentage the bar has always used. */
+    private void renderPaidProgress() {
+        int paidPercent = grandTotalValue > 0 ? Math.min(100, (int) ((alreadyPaidValue / grandTotalValue) * 100)) : 0;
+        if (paymentBreakdownProgress != null) paymentBreakdownProgress.setProgress(paidPercent);
+        if (tvPaidPercent != null) tvPaidPercent.setText(getString(R.string.payment_paid_percent_format, paidPercent));
+    }
+
+    /** "2× Deluxe Room, 1× Executive Room" for a transaction that already exists - the same rooms the itemized rows list. */
+    private String existingBookingRoomsCommaSummary(Booking booking) {
+        List<String> parts = new ArrayList<>();
+        if (!booking.getRooms().isEmpty()) {
+            for (BookingRoom room : booking.getRooms()) {
+                parts.add(getString(R.string.payment_summary_room_count_name_format, room.getQuantity(), room.getRoomTypeName()));
+            }
+        } else {
+            String name = booking.getRoomName() != null && !booking.getRoomName().trim().isEmpty()
+                    ? booking.getRoomName() : booking.getRoomType();
+            parts.add(getString(R.string.payment_summary_room_count_name_format, Math.max(1, booking.getRoomsRequested()), name));
+        }
+        return android.text.TextUtils.join(", ", parts);
     }
 
     private long nightsBetweenDates(String checkIn, String checkOut) {
@@ -1968,9 +2184,9 @@ public class PaymentActivity extends BaseNavigationActivity {
         // runs) - subtracting this same itemized amenities total back out
         // recovers the room-only figure without double-counting either way.
         double roomChargeOnly = Math.max(0, booking.getTotalAmount() - amenitiesTotal);
-        if (tvRoomCharges != null) tvRoomCharges.setText(String.format(Locale.US, "₱%,.2f", roomChargeOnly));
+        if (tvRoomCharges != null) tvRoomCharges.setText(MoneyFormat.format(roomChargeOnly));
         if (tvAmenitiesTotalSummary != null) {
-            tvAmenitiesTotalSummary.setText(String.format(Locale.US, "₱%,.2f", amenitiesTotal));
+            tvAmenitiesTotalSummary.setText(MoneyFormat.format(amenitiesTotal));
         }
         // Keep the Selected Room(s) block's own "Amount" line in sync with the
         // same room-only figure - it's still showing the pre-split full total
@@ -1986,50 +2202,66 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
     }
 
-    /** One vertical "• Room Name / Quantity: N Room(s) / Amount: ₱X,XXX.XX" block - see the Payment Summary card's own doc comment on why this is never a horizontal label/value row. */
+    /**
+     * One line item: the room's name and quantity on the left (wrapping freely, so a long name can never squeeze the
+     * figure), its amount on the right, right-aligned. The amount is a short, fixed-format peso value, so it is safe
+     * to give it a column of its own; the long, dynamic text is what gets the flexible space.
+     */
     private View buildRoomSummaryRow(String roomName, int quantity, double amount) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.bottomMargin = convertDpToPx(10);
-        row.setLayoutParams(lp);
+        LinearLayout left = new LinearLayout(this);
+        left.setOrientation(LinearLayout.VERTICAL);
+        left.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView tvName = new TextView(this);
         tvName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        tvName.setText(getString(R.string.payment_summary_room_name_bullet_format, roomName));
-        tvName.setTextSize(14f);
+        tvName.setText(roomName);
+        tvName.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
         tvName.setTypeface(Typeface.DEFAULT_BOLD);
         tvName.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
 
         TextView tvQty = new TextView(this);
         tvQty.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         tvQty.setText(getResources().getQuantityString(R.plurals.room_qty_format, quantity, quantity));
-        tvQty.setTextSize(13f);
+        tvQty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
         tvQty.setTextColor(getResources().getColor(R.color.velocity_text_secondary, getTheme()));
+        left.addView(tvName);
+        left.addView(tvQty);
 
-        TextView tvAmount = new TextView(this);
-        tvAmount.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        tvAmount.setText(getString(R.string.payment_summary_room_amount_format, String.format(Locale.US, "₱%,.2f", amount)));
-        tvAmount.setTextSize(13f);
-        tvAmount.setTextColor(getResources().getColor(R.color.velocity_text_secondary, getTheme()));
-
-        row.addView(tvName);
-        row.addView(tvQty);
-        row.addView(tvAmount);
-        return row;
+        return buildAmountRow(left, amount, convertDpToPx(12));
     }
 
-    /** One "• Amenity Name (×N) — ₱X,XXX.XX" line, full card width so a long amenity name wraps naturally instead of being squeezed. */
+    /** One line item: "Amenity Name (×N)" on the left (wrapping freely), its amount on the right, right-aligned. */
     private View buildAmenitySummaryRow(String amenityName, int quantity, double amount) {
-        TextView tv = new TextView(this);
+        TextView tvName = new TextView(this);
+        tvName.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        tvName.setText(getString(R.string.payment_summary_amenity_name_format, amenityName, quantity));
+        tvName.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+        tvName.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
+        return buildAmountRow(tvName, amount, convertDpToPx(8));
+    }
+
+    /** A horizontal row: {@code description} takes the free width, the formatted amount sits at the far right. */
+    private View buildAmountRow(View description, double amount, int bottomMarginPx) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.bottomMargin = convertDpToPx(6);
-        tv.setLayoutParams(lp);
-        tv.setText(getString(R.string.payment_summary_amenity_line_format, amenityName, quantity,
-                String.format(Locale.US, "₱%,.2f", amount)));
-        tv.setTextSize(13f);
-        tv.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
-        return tv;
+        lp.bottomMargin = bottomMarginPx;
+        row.setLayoutParams(lp);
+
+        TextView tvAmount = new TextView(this);
+        LinearLayout.LayoutParams amountLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        amountLp.setMarginStart(convertDpToPx(16));
+        tvAmount.setLayoutParams(amountLp);
+        tvAmount.setText(MoneyFormat.format(amount));
+        tvAmount.setGravity(Gravity.END);
+        tvAmount.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END);
+        tvAmount.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+        tvAmount.setTypeface(Typeface.DEFAULT_BOLD);
+        tvAmount.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
+
+        row.addView(description);
+        row.addView(tvAmount);
+        return row;
     }
 
     // ---- Pending Booking/Reservation mode: no row exists yet, so the summary is computed straight from the reviewed wizard state instead of a repository lookup ----
@@ -2108,7 +2340,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         grandTotalValue = amount;
         alreadyPaidValue = 0;
 
-        String formattedGrandTotal = String.format(Locale.US, "₱%,.2f", grandTotalValue);
+        String formattedGrandTotal = MoneyFormat.format(grandTotalValue);
         if (tvTotalAmount != null) tvTotalAmount.setText(formattedGrandTotal);
         if (tvGrandTotal != null) tvGrandTotal.setText(formattedGrandTotal);
         if (tvBookingRef != null) tvBookingRef.setText(R.string.pending_booking_ref_label);
@@ -2120,28 +2352,35 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
         renderRepresentativeSummary(pendingWizardRepresentativeName());
         renderPendingWizardRoomsSummary();
+        if (tvSummaryRooms != null) tvSummaryRooms.setText(pendingWizardRoomTypeCommaSummary());
         if (pendingWizardState.checkIn != null && pendingWizardState.checkOut != null) {
             SimpleDateFormat fmt = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
             if (tvCheckInSummary != null) {
-                tvCheckInSummary.setText(getString(R.string.payment_summary_checkin_format, fmt.format(pendingWizardState.checkIn.getTime())));
+                tvCheckInSummary.setText(fmt.format(pendingWizardState.checkIn.getTime()));
             }
             if (tvCheckOutSummary != null) {
-                tvCheckOutSummary.setText(getString(R.string.payment_summary_checkout_format, fmt.format(pendingWizardState.checkOut.getTime())));
+                tvCheckOutSummary.setText(fmt.format(pendingWizardState.checkOut.getTime()));
             }
         }
         if (tvNightsSummary != null) {
             int nights = (int) pendingWizardNights();
-            tvNightsSummary.setText(getResources().getQuantityString(R.plurals.payment_summary_nights_format, nights, nights));
+            tvNightsSummary.setText(getResources().getQuantityString(R.plurals.payment_summary_nights_value, nights, nights));
+        }
+        if (tvSummaryGuests != null) {
+            int guests = pendingWizardState.adults + pendingWizardState.children;
+            tvSummaryGuests.setText(getResources().getQuantityString(R.plurals.guests_count, guests, guests));
         }
         renderPendingWizardAmenitiesSummary();
 
-        if (tvRoomCharges != null) tvRoomCharges.setText(String.format(Locale.US, "₱%,.2f", roomsTotal));
-        if (tvAmenitiesTotalSummary != null) tvAmenitiesTotalSummary.setText(String.format(Locale.US, "₱%,.2f", amenitiesTotal));
+        if (tvRoomCharges != null) tvRoomCharges.setText(MoneyFormat.format(roomsTotal));
+        if (tvAmenitiesTotalSummary != null) tvAmenitiesTotalSummary.setText(MoneyFormat.format(amenitiesTotal));
         if (tvTotalAmountSummary != null) tvTotalAmountSummary.setText(formattedGrandTotal);
         if (layoutDiscountSummary != null) layoutDiscountSummary.setVisibility(View.GONE);
-        if (tvAlreadyPaidSummary != null) tvAlreadyPaidSummary.setText(String.format(Locale.US, "₱%,.2f", 0.0));
+        if (layoutSubtotalRow != null) layoutSubtotalRow.setVisibility(View.GONE);
+        if (layoutAdditionalGuestFee != null) layoutAdditionalGuestFee.setVisibility(View.GONE);
+        if (tvAlreadyPaidSummary != null) tvAlreadyPaidSummary.setText(MoneyFormat.format(0.0));
         if (tvOutstandingBalanceSummary != null) tvOutstandingBalanceSummary.setText(formattedGrandTotal);
-        if (paymentBreakdownProgress != null) paymentBreakdownProgress.setProgress(0);
+        renderPaidProgress();
 
         // Direct-booking creation (DirectBookingService on the server) now
         // accepts a partial/deposit amount_paid the same way Reservation
@@ -2156,6 +2395,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.VISIBLE);
         if (emptyStateSection != null) emptyStateSection.setVisibility(View.GONE);
         updateBookReserveCtaVisibility(true);
+        renderActionBar();
     }
 
     /**
@@ -2218,20 +2458,22 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
 
         String number = etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
-        if (!isValidGcashNumber(number)) {
-            etGcashNumber.setError(getString(R.string.error_invalid_gcash_number));
+        String numberError = gcashNumberErrorMessage(true);
+        if (numberError != null) {
+            setGcashNumberError(numberError);
+            showGcashStep(2);
+            etGcashNumber.requestFocus();
             return;
         }
-        etGcashNumber.setError(null);
+        setGcashNumberError(null);
 
         // The reference/transaction number from the guest's actual GCash
         // receipt - required so the receptionist can cross-check it against
         // the uploaded receipt image, rather than a client-fabricated value.
-        Integer referenceError = gcashReferenceValidationError();
+        String referenceError = gcashReferenceErrorMessage();
         if (referenceError != null) {
-            setGcashReferenceError(getString(referenceError));
-            currentGcashStep = 3;
-            renderGcashStep();
+            setGcashReferenceError(referenceError);
+            showGcashStep(3);
             if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
             return;
         }
@@ -2241,8 +2483,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // re-typed a different, already-used reference after first passing Step 3.
         if (findBookingByReference(repository.getBookings(), gcashReferenceDigitsOnly()) != null) {
             setGcashReferenceError(getString(R.string.error_gcash_reference_duplicate));
-            currentGcashStep = 3;
-            renderGcashStep();
+            showGcashStep(3);
             if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
             return;
         }
@@ -2253,11 +2494,8 @@ public class PaymentActivity extends BaseNavigationActivity {
 
         // Receipt image is mandatory so the receptionist can validate the GCash payment.
         if (receiptUri == null) {
-            Toast.makeText(this, R.string.error_attach_receipt, Toast.LENGTH_LONG).show();
-            if (tvReceiptStatus != null) {
-                tvReceiptStatus.setText(R.string.error_attach_receipt);
-                tvReceiptStatus.setTextColor(getResources().getColor(R.color.velocity_red_primary, getTheme()));
-            }
+            setReceiptStatusError(getString(R.string.error_attach_receipt));
+            showGcashStep(4);
             return;
         }
 
@@ -2273,7 +2511,7 @@ public class PaymentActivity extends BaseNavigationActivity {
     private void showFinalGcashConfirmationDialog(String number, String referenceNumber) {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.confirm_payment_title)
-                .setMessage(getString(R.string.confirm_submit_gcash_payment_msg, String.format(Locale.US, "₱%,.2f", payNowValue)))
+                .setMessage(getString(R.string.confirm_submit_gcash_payment_msg, MoneyFormat.format(payNowValue)))
                 .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> submitPaymentToServer(number, referenceNumber))
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
@@ -2287,9 +2525,10 @@ public class PaymentActivity extends BaseNavigationActivity {
         // guest sit through the full connect timeout before Retrofit's own failure
         // handling (RoomRepository#networkErrorMessage()) eventually reports it.
         if (!NetworkUtils.isOnline(this)) {
-            Toast.makeText(this, R.string.error_no_internet_connection, Toast.LENGTH_LONG).show();
+            showSubmitError(getString(R.string.error_no_internet_connection));
             return;
         }
+        clearSubmitError();
         isSubmittingPayment = true;
         // Explicit disable on top of the isSubmittingPayment guard + modal loading dialog
         // below - defense-in-depth against a duplicate tap landing before the dialog paints.
@@ -2348,7 +2587,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                     isSubmittingPayment = false;
                     dismissSafely(dialog);
                     restoreSubmitButtonAfterError();
-                    Toast.makeText(PaymentActivity.this, getString(R.string.error_payment_submission_failed_format, message), Toast.LENGTH_LONG).show();
+                    showSubmitError(message);
                 }
             }
         });
@@ -2425,8 +2664,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     /** The one place a genuine (not self-caused) duplicate-reference rejection is surfaced - sends the guest back to Step 3 to fix it. */
     private void showGenuineDuplicateReferenceError() {
-        currentGcashStep = 3;
-        renderGcashStep();
+        showGcashStep(3);
         setGcashReferenceError(getString(R.string.error_gcash_reference_duplicate));
         if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
         Toast.makeText(PaymentActivity.this, R.string.error_gcash_reference_duplicate, Toast.LENGTH_LONG).show();
@@ -2501,7 +2739,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                         dismissSafely(dialog);
                         isSubmittingPayment = false;
                         restoreSubmitButtonAfterError();
-                        Toast.makeText(PaymentActivity.this, getString(R.string.error_payment_submission_failed_format, message), Toast.LENGTH_LONG).show();
+                        showSubmitError(message);
                     }
                 });
     }
@@ -2571,7 +2809,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                         isSubmittingPayment = false;
                         dismissSafely(dialog);
                         restoreSubmitButtonAfterError();
-                        Toast.makeText(PaymentActivity.this, message, Toast.LENGTH_LONG).show();
+                        showSubmitError(message);
                     }
                 });
     }
@@ -2605,10 +2843,13 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (currentBooking != null) {
             currentBooking.setTransactionRef(transactionRef);
         }
+        clearSubmitError();
 
+        // Says what was submitted - the amount and the reference the guest typed - not just "success".
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.payment_success_title)
-                .setMessage(R.string.payment_submitted_msg)
+                .setMessage(getString(R.string.gcash_payment_success_message_format,
+                        MoneyFormat.format(amountPaid), GcashReferenceFormatter.format(transactionRef)))
                 .setPositiveButton(R.string.close_label, (dialog, which) -> finalizePayment())
                 .setCancelable(false)
                 .show();
