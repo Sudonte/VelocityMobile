@@ -161,6 +161,38 @@ public class FlatStyleTest {
     }
 
     @Test
+    public void landingPageHasNoShadowsAndNoRoundedCorners() {
+        ScreenTestSupport.FakeApi api = new ScreenTestSupport.FakeApi();
+        ScreenTestSupport.freshRepository(app, api);
+        ActivityController<com.example.velocitysuites.LandingActivity> controller =
+                Robolectric.buildActivity(com.example.velocitysuites.LandingActivity.class);
+        controller.setup();
+        idle();
+        // Give every section real content so room cards (with amenity chips), offers, announcements and amenity
+        // tiles are all inflated and checked, not just the empty shell.
+        com.example.velocitysuites.network.dto.RoomTypeDto deluxe = LandingFixtures.roomType(1, "Deluxe", "1800.00", 3);
+        com.example.velocitysuites.network.dto.RoomAmenityDto wifi = new com.example.velocitysuites.network.dto.RoomAmenityDto();
+        wifi.name = "Wi-Fi";
+        deluxe.amenities.add(wifi);
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>call("getRoomsFresh", 0).succeed(LandingFixtures.rooms(deluxe));
+        api.<List<com.example.velocitysuites.network.dto.AnnouncementDto>>call("getAnnouncementsFresh", 0)
+                .succeed(LandingFixtures.announcements(LandingFixtures.announcement(1, "Pool closed")));
+        api.<List<com.example.velocitysuites.network.dto.AmenityDto>>call("getAmenitiesFresh", 0)
+                .succeed(LandingFixtures.amenities(LandingFixtures.amenity(1, "Wi-Fi", "Connectivity")));
+        api.<List<com.example.velocitysuites.network.dto.PromotionDto>>call("getPromotionsFresh", 0)
+                .succeed(LandingFixtures.promotions(LandingFixtures.promotion(1, "Weekend Escape")));
+        api.<List<com.example.velocitysuites.network.dto.DiscountDto>>call("getDiscountsFresh", 0)
+                .succeed(LandingFixtures.discounts(LandingFixtures.discount(1, "Senior Citizen")));
+        idle();
+
+        List<String> problems = new ArrayList<>();
+        collect(controller.get().getWindow().getDecorView(), problems, "landing");
+        // The Google map is a platform view that draws its own chrome; it is not ours to restyle.
+        problems.removeIf(p -> p.contains("MapView"));
+        assertTrue(problems.toString(), problems.isEmpty());
+    }
+
+    @Test
     public void dialogsAndBottomSheetsAreSquareAndShadowless() {
         ActivityController<BookingWizardActivity> controller =
                 Robolectric.buildActivity(BookingWizardActivity.class, BookingWizardActivity.newIntent(app, BookingWizardState.Mode.BOOKING));

@@ -434,11 +434,25 @@ public final class RoomRepository {
      * near-term window.
      */
     public void refreshRooms(Calendar checkIn, Calendar checkOut, RepositoryCallback<List<Room>> callback) {
+        loadRooms(checkIn, checkOut, false, callback);
+    }
+
+    /**
+     * The landing page's version of refreshRooms(): identical result, but the request carries
+     * no-cache headers (see ApiService#getRoomsFresh) so a cache in front of the server can't
+     * hand back an old list. refresh*() never reads this repository's own copy either - it always
+     * goes to the network and only replaces the copy on success - so nothing here can be stale.
+     */
+    public void refreshRoomsFresh(RepositoryCallback<List<Room>> callback) {
+        loadRooms(null, null, true, callback);
+    }
+
+    private void loadRooms(Calendar checkIn, Calendar checkOut, boolean fresh, RepositoryCallback<List<Room>> callback) {
         java.util.Map<String, String> filters = new java.util.HashMap<>();
         if (checkIn != null) filters.put("check_in", ApiMapper.toApiDate(checkIn));
         if (checkOut != null) filters.put("check_out", ApiMapper.toApiDate(checkOut));
 
-        api.getRooms(filters).enqueue(new Callback<RoomsResponse>() {
+        (fresh ? api.getRoomsFresh(filters) : api.getRooms(filters)).enqueue(new Callback<RoomsResponse>() {
             @Override
             public void onResponse(Call<RoomsResponse> call, Response<RoomsResponse> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().room_types != null) {
@@ -467,7 +481,16 @@ public final class RoomRepository {
      * page - shows everything).
      */
     public void refreshAmenities(String pricingType, RepositoryCallback<List<AddOnAmenity>> callback) {
-        api.getAmenities(pricingType).enqueue(new Callback<List<com.example.velocitysuites.network.dto.AmenityDto>>() {
+        loadAmenities(pricingType, false, callback);
+    }
+
+    /** The landing page's no-cache version of refreshAmenities(null, ...) - see refreshRoomsFresh(). */
+    public void refreshAmenitiesFresh(RepositoryCallback<List<AddOnAmenity>> callback) {
+        loadAmenities(null, true, callback);
+    }
+
+    private void loadAmenities(String pricingType, boolean fresh, RepositoryCallback<List<AddOnAmenity>> callback) {
+        (fresh ? api.getAmenitiesFresh(pricingType) : api.getAmenities(pricingType)).enqueue(new Callback<List<com.example.velocitysuites.network.dto.AmenityDto>>() {
             @Override
             public void onResponse(Call<List<com.example.velocitysuites.network.dto.AmenityDto>> call, Response<List<com.example.velocitysuites.network.dto.AmenityDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -490,7 +513,16 @@ public final class RoomRepository {
 
     /** Active, currently-in-date-range promotions - see Api\CatalogController::promotions(). */
     public void refreshPromotions(RepositoryCallback<List<Promotion>> callback) {
-        api.getPromotions().enqueue(new Callback<List<com.example.velocitysuites.network.dto.PromotionDto>>() {
+        loadPromotions(false, callback);
+    }
+
+    /** The landing page's no-cache version of refreshPromotions() - see refreshRoomsFresh(). */
+    public void refreshPromotionsFresh(RepositoryCallback<List<Promotion>> callback) {
+        loadPromotions(true, callback);
+    }
+
+    private void loadPromotions(boolean fresh, RepositoryCallback<List<Promotion>> callback) {
+        (fresh ? api.getPromotionsFresh() : api.getPromotions()).enqueue(new Callback<List<com.example.velocitysuites.network.dto.PromotionDto>>() {
             @Override
             public void onResponse(Call<List<com.example.velocitysuites.network.dto.PromotionDto>> call, Response<List<com.example.velocitysuites.network.dto.PromotionDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -513,7 +545,16 @@ public final class RoomRepository {
 
     /** Active standing discounts - see Api\CatalogController::discounts(). */
     public void refreshDiscounts(RepositoryCallback<List<Discount>> callback) {
-        api.getDiscounts().enqueue(new Callback<List<com.example.velocitysuites.network.dto.DiscountDto>>() {
+        loadDiscounts(false, callback);
+    }
+
+    /** The landing page's no-cache version of refreshDiscounts() - see refreshRoomsFresh(). */
+    public void refreshDiscountsFresh(RepositoryCallback<List<Discount>> callback) {
+        loadDiscounts(true, callback);
+    }
+
+    private void loadDiscounts(boolean fresh, RepositoryCallback<List<Discount>> callback) {
+        (fresh ? api.getDiscountsFresh() : api.getDiscounts()).enqueue(new Callback<List<com.example.velocitysuites.network.dto.DiscountDto>>() {
             @Override
             public void onResponse(Call<List<com.example.velocitysuites.network.dto.DiscountDto>> call, Response<List<com.example.velocitysuites.network.dto.DiscountDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -536,7 +577,16 @@ public final class RoomRepository {
 
     /** Published, guest-audience announcements - see Api\CatalogController::announcements(). */
     public void refreshAnnouncements(RepositoryCallback<List<Announcement>> callback) {
-        api.getAnnouncements().enqueue(new Callback<List<com.example.velocitysuites.network.dto.AnnouncementDto>>() {
+        loadAnnouncements(false, callback);
+    }
+
+    /** The landing page's no-cache version of refreshAnnouncements() - see refreshRoomsFresh(). */
+    public void refreshAnnouncementsFresh(RepositoryCallback<List<Announcement>> callback) {
+        loadAnnouncements(true, callback);
+    }
+
+    private void loadAnnouncements(boolean fresh, RepositoryCallback<List<Announcement>> callback) {
+        (fresh ? api.getAnnouncementsFresh() : api.getAnnouncements()).enqueue(new Callback<List<com.example.velocitysuites.network.dto.AnnouncementDto>>() {
             @Override
             public void onResponse(Call<List<com.example.velocitysuites.network.dto.AnnouncementDto>> call, Response<List<com.example.velocitysuites.network.dto.AnnouncementDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {

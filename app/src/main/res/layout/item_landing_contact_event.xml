@@ -26,7 +26,7 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_gravity="center"
-                android:contentDescription="@string/landing_hotel_event_booking_label"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_calendar"
                 app:tint="@color/velocity_red_primary" />
         </FrameLayout>
@@ -44,7 +44,7 @@
                 android:fontFamily="sans-serif-black"
                 android:text="@string/landing_hotel_event_booking_label"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -54,7 +54,7 @@
                 android:lineSpacingExtra="3dp"
                 android:text="@string/landing_hotel_event_booking"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

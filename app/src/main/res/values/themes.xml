@@ -303,7 +303,7 @@
         <item name="android:gravity">center</item>
         <item name="android:padding">10dp</item>
         <item name="android:textColor">@color/velocity_text_primary</item>
-        <item name="android:textSize">11sp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:drawablePadding">8dp</item>
         <item name="android:drawableTint">@color/velocity_red_primary</item>
     </style>

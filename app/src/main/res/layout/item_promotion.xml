@@ -52,7 +52,7 @@
                     android:paddingVertical="6dp"
                     android:text="@string/promo_bundle_badge_label"
                     android:textColor="@color/white"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     app:drawableStartCompat="@drawable/ic_star"
                     app:drawableTint="@color/white" />
 
@@ -68,7 +68,7 @@
                     android:paddingVertical="6dp"
                     android:text="@string/promo_active_label"
                     android:textColor="@color/velocity_green_dark"
-                    android:textSize="10sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <TextView
@@ -130,7 +130,7 @@
                 android:drawablePadding="6dp"
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/velocity_inactive_gray"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 app:drawableStartCompat="@drawable/ic_calendar"
                 app:drawableTint="@color/velocity_inactive_gray"
                 tools:text="Valid Aug 14 - Aug 15, 2026" />

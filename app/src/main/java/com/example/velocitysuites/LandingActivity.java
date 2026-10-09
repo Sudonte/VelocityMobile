@@ -20,6 +20,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.velocitysuites.network.SessionManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class LandingActivity extends AppCompatActivity implements RoomAdapter.OnRoomClickListener, OnMapReadyCallback {
 
@@ -49,10 +52,8 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     private RecyclerView rvLandingRooms;
     private ProgressBar landingRoomsLoading;
     private View landingRoomsEmpty;
-    private TextView landingRoomsEmptyTitle;
-    private TextView landingRoomsEmptyDesc;
     private View layoutRoomError;
-    private TextView tvRoomErrorMessage;
+    private View roomErrorState;
     private TextView tvLandingRoomsCount;
     private RoomAdapter roomAdapter;
     private RecyclerView rvLandingAnnouncements;
@@ -68,20 +69,42 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     private OffersAdapter offersAdapter;
     // Promotions and Discounts load independently (two separate endpoints,
     // same as the web Home page's own two Eloquent queries) and are merged
-    // into one combined list once both have returned - see loadPromotions().
+    // into one combined list once both have returned - see refreshOffers().
+    // The merged list is built from the LATEST SUCCESSFUL copy of each half, so
+    // a refresh where only one of the two fails keeps showing the other half's
+    // previous content instead of silently dropping it.
     private List<Promotion> loadedPromotions;
     private List<Discount> loadedDiscounts;
     private boolean promotionsLoadFailed;
     private boolean discountsLoadFailed;
+    private List<Promotion> lastPromotions = new ArrayList<>();
+    private List<Discount> lastDiscounts = new ArrayList<>();
     private AutoCompleteTextView dropdownRoomTypeFilter;
     private MaterialButton btnToggleRooms;
     private MapView hotelMapView;
     private GoogleMap hotelGoogleMap;
     private List<Room> rooms = new ArrayList<>();
     private List<Room> allAvailableRooms = new ArrayList<>();
+    private List<String> roomTypeFilterOptions = new ArrayList<>();
     private String currentTypeFilter = "All";
     private boolean roomsExpanded = false;
-    private boolean hasLoadedRoomsOnce = false;
+
+    // ---- Refresh ----
+    // Pull-to-refresh, the silent catch-up when the page comes back on screen, and the 30s beat while it stays
+    // there all go through one LandingRefreshCoordinator, so they can never overlap or double-fetch.
+    private SwipeRefreshLayout landingSwipeRefresh;
+    private LandingRefreshCoordinator refreshCoordinator;
+    private VisiblePoller visiblePoller;
+    private Snackbar refreshFailedSnackbar;
+    /** onCreate() starts the first load itself, so the very first onResume() must not start a second one. */
+    private boolean firstResume = true;
+    // A section that has never loaded has nothing to show, so it shows its own spinner and, if it fails, its own
+    // error panel. A section that has loaded keeps its content on screen through every later refresh - a failed
+    // refresh only reports the failure (see beginSectionLoad() and the refresh*() methods).
+    private boolean roomsLoaded;
+    private boolean announcementsLoaded;
+    private boolean amenitiesLoaded;
+    private boolean offersLoaded;
 
     /** Multi-room cart: ids checked via each card's selection checkbox (see RoomAdapter). */
     /** Room id -> selected quantity (never left at 0 - see RoomAdapter's selectedQuantities docblock). */
@@ -110,21 +133,20 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         setupActions();
         setupHotelMap(savedInstanceState);
         animateLanding();
-        loadRooms();
-        loadAnnouncements();
-        loadAmenities();
-        loadPromotions();
+        setupRefresh();
+        // The first load: silent (no pull spinner) - each section shows its own spinner until it has content.
+        refreshCoordinator.poll();
     }
 
     private void initializeViews() {
         rvLandingRooms = findViewById(R.id.rvLandingRooms);
         landingRoomsLoading = findViewById(R.id.landingRoomsLoading);
         landingRoomsEmpty = findViewById(R.id.landingRoomsEmpty);
-        landingRoomsEmptyTitle = findViewById(R.id.landingRoomsEmptyTitle);
-        landingRoomsEmptyDesc = findViewById(R.id.landingRoomsEmptyDesc);
         layoutRoomError = findViewById(R.id.layoutRoomError);
-        tvRoomErrorMessage = findViewById(R.id.tvRoomErrorMessage);
-        findViewById(R.id.btnRetryRooms).setOnClickListener(v -> loadRooms());
+        roomErrorState = findViewById(R.id.roomErrorState);
+        // Retry on the rooms error panel: a silent refresh of the page (the rooms section shows its own spinner,
+        // no pull spinner). Ignored while a refresh is already running - that one will settle the panel anyway.
+        findViewById(R.id.btnRetryRooms).setOnClickListener(v -> refreshCoordinator.poll());
         tvLandingRoomsCount = findViewById(R.id.tvLandingRoomsCount);
         rvLandingAnnouncements = findViewById(R.id.rvLandingAnnouncements);
         announcementsLoading = findViewById(R.id.announcementsLoading);
@@ -141,6 +163,84 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         cardSelectionSummaryBar = findViewById(R.id.cardSelectionSummaryBar);
         tvSelectionSummaryCount = findViewById(R.id.tvSelectionSummaryCount);
         tvSelectionSummaryTotal = findViewById(R.id.tvSelectionSummaryTotal);
+    }
+
+    /**
+     * Pull-to-refresh, plus the silent refreshes (back on the page, and the 30s beat while it stays on screen).
+     * <p>
+     * What the page loads from the server: Available Rooms (GET rooms), Promotions and Discounts (GET promotions +
+     * GET discounts, merged), Announcements (GET announcements) and Amenities (GET amenities). Everything else
+     * - the hero, the hotel details/contact card, the map pin, the footer - is fixed text in the app: the backend
+     * has no endpoint for it, so there is nothing to refresh there.
+     * <p>
+     * LandingRefreshCoordinator owns the rules (one refresh at a time, report once when every section has
+     * answered); this method only turns its two events into UI: the pull spinner and the failure message belong
+     * to the guest's own refresh, a silent one stays invisible unless a section has nothing to show yet.
+     */
+    private void setupRefresh() {
+        landingSwipeRefresh = findViewById(R.id.landingSwipeRefresh);
+        landingSwipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
+        FlatUi.removeSpinnerShadow(landingSwipeRefresh);
+
+        Map<String, LandingRefreshCoordinator.Section> sections = new LinkedHashMap<>();
+        sections.put("rooms", this::refreshRooms);
+        sections.put("announcements", this::refreshAnnouncements);
+        sections.put("amenities", this::refreshAmenities);
+        sections.put("offers", this::refreshOffers);
+        final int sectionCount = sections.size();
+
+        refreshCoordinator = new LandingRefreshCoordinator(sections, new LandingRefreshCoordinator.Listener() {
+            @Override
+            public void onRefreshStarted(boolean userInitiated) {
+                if (!userInitiated) return;
+                // The guest asked for fresh data: pictures are downloaded again too, not served from Glide's cache.
+                ImageFreshness.bump();
+                dismissRefreshFailure();
+                // Already true after a pull gesture; this is what shows it for the Retry button.
+                landingSwipeRefresh.setRefreshing(true);
+            }
+
+            @Override
+            public void onRefreshFinished(boolean userInitiated, List<String> failed) {
+                if (!userInitiated || !isUiAlive()) return;
+                landingSwipeRefresh.setRefreshing(false);
+                if (!failed.isEmpty()) showRefreshFailure(failed.size() >= sectionCount);
+            }
+        });
+
+        // While a refresh is running the layout ignores further pulls itself; the coordinator also ignores a second
+        // request (e.g. a Retry tap) so nothing can start twice.
+        landingSwipeRefresh.setOnRefreshListener(() -> refreshCoordinator.refresh());
+
+        // TalkBack users cannot pull down, so the page offers the same refresh as an accessibility action.
+        ViewCompat.addAccessibilityAction(findViewById(R.id.landingScroll), getString(R.string.landing_refresh_action),
+                (view, arguments) -> {
+                    if (refreshCoordinator.refresh()) landingSwipeRefresh.setRefreshing(true);
+                    return true;
+                });
+
+        visiblePoller = new VisiblePoller(() -> refreshCoordinator.poll());
+    }
+
+    /** The guest's own refresh failed in at least one section: say so, offer Retry, and leave the old content alone. */
+    private void showRefreshFailure(boolean everythingFailed) {
+        Snackbar snackbar = Snackbar.make(findViewById(R.id.landingRoot),
+                everythingFailed ? R.string.landing_refresh_failed_all : R.string.landing_refresh_failed_some,
+                Snackbar.LENGTH_LONG);
+        snackbar.setAction(R.string.retry_label, v -> refreshCoordinator.refresh());
+        // Keep clear of the Reserve/Book bar when it is showing.
+        if (cardSelectionSummaryBar != null && cardSelectionSummaryBar.getVisibility() == View.VISIBLE) {
+            snackbar.setAnchorView(cardSelectionSummaryBar);
+        }
+        refreshFailedSnackbar = snackbar;
+        snackbar.show();
+    }
+
+    private void dismissRefreshFailure() {
+        if (refreshFailedSnackbar != null) {
+            refreshFailedSnackbar.dismiss();
+            refreshFailedSnackbar = null;
+        }
     }
 
     private void setupHotelMap(Bundle savedInstanceState) {
@@ -224,26 +324,32 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
      * drive this guest's Notification-module entries and the web public Home page's
      * own Announcements section - never a separate mobile-only record.
      */
-    private void loadAnnouncements() {
-        announcementsLoading.setVisibility(View.VISIBLE);
-        rvLandingAnnouncements.setVisibility(View.GONE);
-        announcementsStateView.setVisibility(View.GONE);
-        RoomRepository.getInstance(this).refreshAnnouncements(new RoomRepository.RepositoryCallback<List<Announcement>>() {
+    private void refreshAnnouncements(Consumer<Boolean> onDone) {
+        beginSectionLoad(announcementsLoaded, announcementsLoading, rvLandingAnnouncements, announcementsStateView);
+        RoomRepository.getInstance(this).refreshAnnouncementsFresh(new RoomRepository.RepositoryCallback<List<Announcement>>() {
             @Override
             public void onSuccess(List<Announcement> result) {
+                if (!isUiAlive()) return;
+                announcementsLoaded = true;
                 if (result == null || result.isEmpty()) {
                     showSectionEmpty(announcementsLoading, rvLandingAnnouncements, announcementsStateView,
                             getString(R.string.announcements_empty_title), getString(R.string.announcements_empty_desc));
-                    return;
+                } else {
+                    announcementAdapter.updateList(result);
+                    showSectionContent(announcementsLoading, rvLandingAnnouncements, announcementsStateView);
                 }
-                announcementAdapter.updateList(result);
-                showSectionContent(announcementsLoading, rvLandingAnnouncements, announcementsStateView);
+                onDone.accept(true);
             }
 
             @Override
             public void onError(String message) {
-                showSectionError(announcementsLoading, rvLandingAnnouncements, announcementsStateView,
-                        getString(R.string.announcements_error_title), getString(R.string.announcements_error_desc));
+                if (!isUiAlive()) return;
+                // Nothing on screen yet -> say so. Something already there -> leave it exactly as it is.
+                if (!announcementsLoaded) {
+                    showSectionError(announcementsLoading, rvLandingAnnouncements, announcementsStateView,
+                            getString(R.string.announcements_error_title), getString(R.string.announcements_error_desc));
+                }
+                onDone.accept(false);
             }
         });
     }
@@ -255,31 +361,36 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
      * Administrator adds/edits/activates/deactivates is reflected here automatically
      * on next load, with no separate mobile-only copy to keep in sync.
      */
-    private void loadAmenities() {
-        amenitiesLoading.setVisibility(View.VISIBLE);
-        gridLandingAmenities.setVisibility(View.GONE);
-        amenitiesStateView.setVisibility(View.GONE);
-        RoomRepository.getInstance(this).refreshAmenities(null, new RoomRepository.RepositoryCallback<List<AddOnAmenity>>() {
+    private void refreshAmenities(Consumer<Boolean> onDone) {
+        beginSectionLoad(amenitiesLoaded, amenitiesLoading, gridLandingAmenities, amenitiesStateView);
+        RoomRepository.getInstance(this).refreshAmenitiesFresh(new RoomRepository.RepositoryCallback<List<AddOnAmenity>>() {
             @Override
             public void onSuccess(List<AddOnAmenity> result) {
+                if (!isUiAlive()) return;
+                amenitiesLoaded = true;
                 amenitiesLoading.setVisibility(View.GONE);
                 if (result == null || result.isEmpty()) {
                     gridLandingAmenities.setVisibility(View.GONE);
                     applyStateMessage(amenitiesStateView, getString(R.string.landing_amenities_empty_title),
                             getString(R.string.landing_amenities_empty_desc), false);
-                    return;
+                } else {
+                    renderAmenities(result);
+                    gridLandingAmenities.setVisibility(View.VISIBLE);
+                    amenitiesStateView.setVisibility(View.GONE);
                 }
-                renderAmenities(result);
-                gridLandingAmenities.setVisibility(View.VISIBLE);
-                amenitiesStateView.setVisibility(View.GONE);
+                onDone.accept(true);
             }
 
             @Override
             public void onError(String message) {
-                amenitiesLoading.setVisibility(View.GONE);
-                gridLandingAmenities.setVisibility(View.GONE);
-                applyStateMessage(amenitiesStateView, getString(R.string.landing_amenities_error_title),
-                        getString(R.string.landing_amenities_error_desc), true);
+                if (!isUiAlive()) return;
+                if (!amenitiesLoaded) {
+                    amenitiesLoading.setVisibility(View.GONE);
+                    gridLandingAmenities.setVisibility(View.GONE);
+                    applyStateMessage(amenitiesStateView, getString(R.string.landing_amenities_error_title),
+                            getString(R.string.landing_amenities_error_desc), true);
+                }
+                onDone.accept(false);
             }
         });
     }
@@ -340,68 +451,98 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
      * shows an error if BOTH fail (a lone hiccup on one endpoint still shows
      * whatever the other one loaded).
      */
-    private void loadPromotions() {
-        promotionsLoading.setVisibility(View.VISIBLE);
-        rvLandingPromotions.setVisibility(View.GONE);
-        promotionsStateView.setVisibility(View.GONE);
+    private void refreshOffers(Consumer<Boolean> onDone) {
+        beginSectionLoad(offersLoaded, promotionsLoading, rvLandingPromotions, promotionsStateView);
         loadedPromotions = null;
         loadedDiscounts = null;
         promotionsLoadFailed = false;
         discountsLoadFailed = false;
 
-        RoomRepository.getInstance(this).refreshPromotions(new RoomRepository.RepositoryCallback<List<Promotion>>() {
+        RoomRepository.getInstance(this).refreshPromotionsFresh(new RoomRepository.RepositoryCallback<List<Promotion>>() {
             @Override
             public void onSuccess(List<Promotion> result) {
                 loadedPromotions = result != null ? result : new ArrayList<>();
-                tryRenderOffers();
+                tryRenderOffers(onDone);
             }
 
             @Override
             public void onError(String message) {
                 promotionsLoadFailed = true;
                 loadedPromotions = new ArrayList<>();
-                tryRenderOffers();
+                tryRenderOffers(onDone);
             }
         });
 
-        RoomRepository.getInstance(this).refreshDiscounts(new RoomRepository.RepositoryCallback<List<Discount>>() {
+        RoomRepository.getInstance(this).refreshDiscountsFresh(new RoomRepository.RepositoryCallback<List<Discount>>() {
             @Override
             public void onSuccess(List<Discount> result) {
                 loadedDiscounts = result != null ? result : new ArrayList<>();
-                tryRenderOffers();
+                tryRenderOffers(onDone);
             }
 
             @Override
             public void onError(String message) {
                 discountsLoadFailed = true;
                 loadedDiscounts = new ArrayList<>();
-                tryRenderOffers();
+                tryRenderOffers(onDone);
             }
         });
     }
 
-    /** Called after each of the two offer calls finishes - only actually renders once both have returned. */
-    private void tryRenderOffers() {
+    /**
+     * Called after each of the two offer calls finishes - only actually renders once both have returned.
+     * <p>
+     * The list shown is the latest successful copy of each half, so a refresh where one call fails keeps that
+     * half's previous content. A list that came back empty because one half FAILED is not "no offers" (it is
+     * unknown), so it never replaces content and never shows the friendly empty message on its own.
+     * Reports success to the coordinator only when both calls succeeded.
+     */
+    private void tryRenderOffers(Consumer<Boolean> onDone) {
         if (loadedPromotions == null || loadedDiscounts == null) return;
+        if (!isUiAlive()) return;
 
-        if (promotionsLoadFailed && discountsLoadFailed) {
-            showSectionError(promotionsLoading, rvLandingPromotions, promotionsStateView,
-                    getString(R.string.promotions_error_title), getString(R.string.promotions_error_desc));
+        boolean bothLoaded = !promotionsLoadFailed && !discountsLoadFailed;
+        if (!promotionsLoadFailed) lastPromotions = loadedPromotions;
+        if (!discountsLoadFailed) lastDiscounts = loadedDiscounts;
+
+        List<Object> combined = new ArrayList<>();
+        combined.addAll(lastPromotions);
+        combined.addAll(lastDiscounts);
+
+        if (combined.isEmpty() && !bothLoaded) {
+            // Nothing to show, and at least one half is unknown: an error, unless something is already on screen.
+            if (!offersLoaded) {
+                showSectionError(promotionsLoading, rvLandingPromotions, promotionsStateView,
+                        getString(R.string.promotions_error_title), getString(R.string.promotions_error_desc));
+            }
+            onDone.accept(false);
             return;
         }
 
-        List<Object> combined = new ArrayList<>();
-        combined.addAll(loadedPromotions);
-        combined.addAll(loadedDiscounts);
-
+        offersLoaded = true;
         if (combined.isEmpty()) {
             showSectionEmpty(promotionsLoading, rvLandingPromotions, promotionsStateView,
                     getString(R.string.promotions_empty_title), getString(R.string.promotions_empty_desc));
-            return;
+        } else {
+            offersAdapter.updateList(combined);
+            showSectionContent(promotionsLoading, rvLandingPromotions, promotionsStateView);
         }
+        onDone.accept(bothLoaded);
+    }
 
-        offersAdapter.updateList(combined);
-        showSectionContent(promotionsLoading, rvLandingPromotions, promotionsStateView);
+    /**
+     * A section that already has something on screen (content, or its friendly "nothing here" message) keeps it
+     * untouched while it refreshes. A section with nothing yet shows its own spinner.
+     */
+    private void beginSectionLoad(boolean hasContent, ProgressBar loading, View content, View stateView) {
+        if (hasContent) return;
+        loading.setVisibility(View.VISIBLE);
+        content.setVisibility(View.GONE);
+        stateView.setVisibility(View.GONE);
+    }
+
+    private boolean isUiAlive() {
+        return !isFinishing() && !isDestroyed();
     }
 
     /** Loading finished, real content to show - hide the spinner and the empty/error message, reveal the list. */
@@ -456,7 +597,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         String imageUrl = announcement.getFirstImageUrl();
         if (imageUrl != null && !imageUrl.isEmpty()) {
             imageContainer.setVisibility(View.VISIBLE);
-            com.bumptech.glide.Glide.with(this).load(imageUrl).centerCrop().into(ivImage);
+            ImageFreshness.apply(com.bumptech.glide.Glide.with(this).load(imageUrl).centerCrop()).into(ivImage);
         } else {
             imageContainer.setVisibility(View.GONE);
         }
@@ -563,13 +704,18 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
 
         String previousSelection = dropdownRoomTypeFilter.getText() != null
                 ? dropdownRoomTypeFilter.getText().toString() : null;
-        dropdownRoomTypeFilter.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
-        dropdownRoomTypeFilter.setOnItemClickListener((parent, view, position, id) -> {
-            String selected = options.get(position);
-            currentTypeFilter = selected.equals(getString(R.string.all_categories)) ? "All" : selected;
-            roomsExpanded = false;
-            updateRoomsDisplay();
-        });
+        // The silent refresh runs every 30 seconds: only touch the dropdown when its choices really changed, so a
+        // guest who has it open (or is part-way through picking) isn't interrupted by an identical new adapter.
+        if (!options.equals(roomTypeFilterOptions)) {
+            roomTypeFilterOptions = options;
+            dropdownRoomTypeFilter.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
+            dropdownRoomTypeFilter.setOnItemClickListener((parent, view, position, id) -> {
+                String selected = options.get(position);
+                currentTypeFilter = selected.equals(getString(R.string.all_categories)) ? "All" : selected;
+                roomsExpanded = false;
+                updateRoomsDisplay();
+            });
+        }
 
         if (previousSelection != null && options.contains(previousSelection)) {
             dropdownRoomTypeFilter.setText(previousSelection, false);
@@ -595,30 +741,46 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
                 .start();
     }
 
-    private void loadRooms() {
-        landingRoomsLoading.setVisibility(View.VISIBLE);
-        landingRoomsEmpty.setVisibility(View.GONE);
-        layoutRoomError.setVisibility(View.GONE);
-        rvLandingRooms.setVisibility(View.GONE);
-        RoomRepository.getInstance(this).refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+    private void refreshRooms(Consumer<Boolean> onDone) {
+        if (!roomsLoaded) {
+            // Nothing on screen yet (first load, or retry after an error panel): show this section's spinner.
+            // Once rooms HAVE loaded, a refresh leaves the list exactly where it is until fresh data replaces it.
+            landingRoomsLoading.setVisibility(View.VISIBLE);
+            landingRoomsEmpty.setVisibility(View.GONE);
+            layoutRoomError.setVisibility(View.GONE);
+            rvLandingRooms.setVisibility(View.GONE);
+        }
+        RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
+                if (!isUiAlive()) return;
+                roomsLoaded = true;
                 landingRoomsLoading.setVisibility(View.GONE);
                 layoutRoomError.setVisibility(View.GONE);
                 allAvailableRooms = filterAvailableRooms(result);
                 setupRoomTypeFilterDynamic(allAvailableRooms);
+                // A room that sold out (or has fewer left) since the guest picked it must not stay in their cart.
+                if (CartSelectionReconciler.reconcile(selectedQuantities, allAvailableRooms)) {
+                    updateSelectionSummaryBar();
+                }
                 updateRoomsDisplay();
+                onDone.accept(true);
             }
 
             @Override
             public void onError(String message) {
-                landingRoomsLoading.setVisibility(View.GONE);
-                rvLandingRooms.setVisibility(View.GONE);
-                landingRoomsEmpty.setVisibility(View.GONE);
-                if (tvLandingRoomsCount != null) tvLandingRoomsCount.setVisibility(View.GONE);
-                btnToggleRooms.setVisibility(View.GONE);
-                tvRoomErrorMessage.setText(getString(R.string.room_error_message));
-                layoutRoomError.setVisibility(View.VISIBLE);
+                if (!isUiAlive()) return;
+                if (!roomsLoaded) {
+                    landingRoomsLoading.setVisibility(View.GONE);
+                    rvLandingRooms.setVisibility(View.GONE);
+                    landingRoomsEmpty.setVisibility(View.GONE);
+                    if (tvLandingRoomsCount != null) tvLandingRoomsCount.setVisibility(View.GONE);
+                    btnToggleRooms.setVisibility(View.GONE);
+                    applyStateMessage(roomErrorState, getString(R.string.room_error_title),
+                            getString(R.string.room_error_message), true);
+                    layoutRoomError.setVisibility(View.VISIBLE);
+                }
+                onDone.accept(false);
             }
         });
     }
@@ -639,14 +801,17 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         boolean hasRooms = !typeFiltered.isEmpty();
 
         rvLandingRooms.setVisibility(hasRooms ? View.VISIBLE : View.GONE);
-        landingRoomsEmpty.setVisibility(hasRooms ? View.GONE : View.VISIBLE);
+        if (hasRooms) {
+            landingRoomsEmpty.setVisibility(View.GONE);
+        } else {
+            boolean noRoomsAtAll = allAvailableRooms.isEmpty();
+            applyStateMessage(landingRoomsEmpty, getString(R.string.landing_empty_title),
+                    getString(noRoomsAtAll ? R.string.landing_no_available_rooms : R.string.landing_no_rooms_for_filter), false);
+        }
         if (tvLandingRoomsCount != null) {
             tvLandingRoomsCount.setVisibility(hasRooms ? View.VISIBLE : View.GONE);
             tvLandingRoomsCount.setText(getString(R.string.landing_rooms_count_badge, typeFiltered.size()));
         }
-        boolean noRoomsAtAll = allAvailableRooms.isEmpty();
-        landingRoomsEmptyTitle.setText(R.string.landing_empty_title);
-        landingRoomsEmptyDesc.setText(noRoomsAtAll ? R.string.landing_no_available_rooms : R.string.landing_no_rooms_for_filter);
 
         boolean canCollapse = typeFiltered.size() > COLLAPSED_ROOM_COUNT;
         rooms = (canCollapse && !roomsExpanded)
@@ -685,19 +850,23 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     protected void onResume() {
         super.onResume();
         if (hotelMapView != null) hotelMapView.onResume();
-        // onCreate() already triggered the initial loadRooms() - skip that first resume
-        // and only re-fetch on subsequent returns to Landing (e.g. after completing a
-        // booking elsewhere) so a now-unavailable room drops off the list.
         isNavigatingToBookingFlow = false;
-        if (hasLoadedRoomsOnce) {
-            loadRooms();
+        // onCreate() already started the first load - skip that first resume. Every later return to the page (after
+        // a booking elsewhere, a sign-in, another app) catches up silently, so a now-unavailable room drops off the
+        // list and a new announcement appears without the guest doing anything - and without blanking the page.
+        if (firstResume) {
+            firstResume = false;
         } else {
-            hasLoadedRoomsOnce = true;
+            refreshCoordinator.poll();
         }
+        // Then keep it current for as long as the page stays on screen.
+        visiblePoller.start();
     }
 
     @Override
     protected void onPause() {
+        // Nothing polls while the page is covered or the app is in the background.
+        visiblePoller.stop();
         if (hotelMapView != null) hotelMapView.onPause();
         super.onPause();
     }
@@ -710,6 +879,10 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
 
     @Override
     protected void onDestroy() {
+        // Belt and braces: onPause() already stopped the poller; cancel() silences any request still in flight.
+        visiblePoller.stop();
+        refreshCoordinator.cancel();
+        dismissRefreshFailure();
         if (hotelMapView != null) hotelMapView.onDestroy();
         super.onDestroy();
     }

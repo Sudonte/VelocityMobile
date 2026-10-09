@@ -19,7 +19,6 @@
     <string name="introduction_error_no_internet_desc">Please connect to Wi-Fi or mobile data and try again.</string>
     <string name="introduction_error_backend_desc">Velocity Suites is temporarily unavailable. Please try again.</string>
     <string name="sign_in_sign_up_label">Sign In / Sign Up</string>
-    <string name="welcome_title">Welcome, Guest!</string>
     <string name="welcome_tagline">Your Comfort is our Service</string>
     <!-- Welcome screen: what the app is and does, then what to do next. Only describes what the app itself does. -->
     <string name="welcome_headline">Book your stay with Velocity Suites</string>
@@ -1598,6 +1597,12 @@
          encoding can ever turn it into mojibake again. Exact text required: no space after the sign. -->
     <string name="landing_footer_copyright">&#169;2026 Velocity Suites Surallah. All rights reserved.</string>
     <string name="cd_landing_banner">Featured hotel banner</string>
+    <!-- Pull-to-refresh on the landing page. Shown (with a Retry button) only when the guest's own refresh failed;
+         whatever was on the page before stays on screen. -->
+    <string name="landing_refresh_failed_all">Couldn\'t refresh. Check your connection and try again.</string>
+    <string name="landing_refresh_failed_some">Some sections couldn\'t be refreshed. Try again.</string>
+    <!-- Spoken by TalkBack as an action on the page: a screen-reader user cannot pull down to refresh. -->
+    <string name="landing_refresh_action">Refresh page</string>
     <string name="landing_no_available_rooms">No available rooms at the moment. Please check back later or adjust your search criteria.</string>
     <string name="expand_label">Expand</string>
     <string name="collapse_label">Collapse</string>

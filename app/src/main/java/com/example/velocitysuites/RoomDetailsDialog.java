@@ -67,14 +67,15 @@ final class RoomDetailsDialog {
         if (room.isAvailable()) {
             tvStatusBadge.setText(R.string.available_label);
             tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_success);
-            tvStatusBadge.setTextColor(ContextCompat.getColor(activity, R.color.white));
+            // dark text on the pale success fill (white on it was about 1.1:1 - unreadable)
+            tvStatusBadge.setTextColor(ContextCompat.getColor(activity, R.color.velocity_green_primary));
             if (layoutActions != null) layoutActions.setVisibility(View.VISIBLE);
             if (layoutOccupiedInfo != null) layoutOccupiedInfo.setVisibility(View.GONE);
             configureDetailActionButtons(btnBook, btnReserve, action);
         } else {
             tvStatusBadge.setText(R.string.unavailable_label);
             tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_neutral);
-            tvStatusBadge.setTextColor(activity.getResources().getColor(R.color.velocity_inactive_gray, activity.getTheme()));
+            tvStatusBadge.setTextColor(ContextCompat.getColor(activity, R.color.velocity_red_dark));
             // Unavailable rooms may still be viewed in full, but must not be
             // bookable/reservable here, and only the occupancy window is shown -
             // no guest/booking identity.
@@ -150,7 +151,7 @@ final class RoomDetailsDialog {
         tvStatusBadge.setBackgroundResource(availableCount > 0 ? R.drawable.bg_badge_success : R.drawable.bg_badge_neutral);
         tvStatusBadge.setTextColor(availableCount > 0
                 ? ContextCompat.getColor(activity, R.color.velocity_green_primary)
-                : activity.getResources().getColor(R.color.velocity_inactive_gray, activity.getTheme()));
+                : ContextCompat.getColor(activity, R.color.velocity_red_dark));
 
         if (layoutActions != null) layoutActions.setVisibility(View.GONE);
         if (layoutOccupiedInfo != null) layoutOccupiedInfo.setVisibility(View.GONE);
@@ -257,10 +258,10 @@ final class RoomDetailsDialog {
             galleryCountCard.setOnClickListener(v -> activity.startActivity(RoomGalleryActivity.createIntent(
                     activity, new ArrayList<>(galleryUrls), new ArrayList<>(galleryLabels), pagerRoomImages.getCurrentItem(), room.getName())));
         } else if (room.getImageUrl() != null && !room.getImageUrl().isEmpty()) {
-            Glide.with(activity)
+            ImageFreshness.apply(Glide.with(activity)
                     .load(room.getImageUrl())
                     .placeholder(fallbackImage)
-                    .error(fallbackImage)
+                    .error(fallbackImage))
                     .into(ivRoomImage);
         } else if (room.getImageResId() != 0) {
             ivRoomImage.setImageResource(room.getImageResId());

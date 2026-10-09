@@ -45,6 +45,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -113,6 +114,33 @@ public interface ApiService {
     /** Active standing discounts (Admin\DiscountManagementController, same rows/query the web Home page's "Promotions & Discounts" section uses). */
     @GET("discounts")
     Call<List<DiscountDto>> getDiscounts();
+
+    // ---- "Fresh" reads for the landing page ----
+    // The same five catalog endpoints as above, same responses, plus request headers that tell any HTTP cache
+    // between the app and the server (a CDN, a reverse proxy, the host's page cache) to revalidate instead of
+    // answering from its stored copy. The app's own OkHttp client has no cache, so a header is the only way to
+    // reach one that lives elsewhere. Used by the landing page's pull-to-refresh and its silent refresh, where
+    // "no stale copy" is the whole point; every other screen keeps using the plain versions.
+
+    @Headers({"Cache-Control: no-cache", "Pragma: no-cache"})
+    @GET("rooms")
+    Call<RoomsResponse> getRoomsFresh(@QueryMap Map<String, String> filters);
+
+    @Headers({"Cache-Control: no-cache", "Pragma: no-cache"})
+    @GET("amenities")
+    Call<List<AmenityDto>> getAmenitiesFresh(@Query("pricing_type") String pricingType);
+
+    @Headers({"Cache-Control: no-cache", "Pragma: no-cache"})
+    @GET("announcements")
+    Call<List<AnnouncementDto>> getAnnouncementsFresh();
+
+    @Headers({"Cache-Control: no-cache", "Pragma: no-cache"})
+    @GET("promotions")
+    Call<List<PromotionDto>> getPromotionsFresh();
+
+    @Headers({"Cache-Control: no-cache", "Pragma: no-cache"})
+    @GET("discounts")
+    Call<List<DiscountDto>> getDiscountsFresh();
 
     /**
      * per_page defaults to 15 server-side (Api\ReservationController::index()) - explicitly

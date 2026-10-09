@@ -46,6 +46,6 @@
         android:fontFamily="sans-serif-medium"
         android:gravity="center"
         android:textColor="@color/velocity_text_secondary"
-        android:textSize="11sp"
+        android:textSize="12sp"
         tools:text="Check back soon for new special offers." />
 </LinearLayout>

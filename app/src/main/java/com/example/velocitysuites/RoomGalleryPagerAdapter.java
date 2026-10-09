@@ -61,10 +61,10 @@ public class RoomGalleryPagerAdapter extends RecyclerView.Adapter<RoomGalleryPag
     @Override
     public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
         String url = imageUrls.get(position);
-        Glide.with(holder.imageView)
+        ImageFreshness.apply(Glide.with(holder.imageView)
                 .load(url)
                 .placeholder(fallbackImageResId)
-                .error(fallbackImageResId)
+                .error(fallbackImageResId))
                 .into(holder.imageView);
 
         String label = (imageLabels != null && position < imageLabels.size()) ? imageLabels.get(position) : null;

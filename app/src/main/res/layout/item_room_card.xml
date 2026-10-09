@@ -18,8 +18,12 @@
         android:padding="@dimen/room_list_card_content_padding">
 
         <!-- Image column + info column. Info column is centered vertically
-             against the image so shorter content doesn't sit top-heavy. -->
+             against the image so shorter content doesn't sit top-heavy.
+             On a narrow screen or with a large system font this row (and the action row below) is
+             restacked top-to-bottom by RoomAdapter#applyRoomyLayout(): a 140dp photo beside a column
+             that is only ~80dp wide leaves the text breaking in the middle of words. -->
         <LinearLayout
+            android:id="@+id/roomCardTopRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -29,6 +33,7 @@
                  toggle, and price badge live on the photo. Amenities live in
                  their own full-width section below (see amenitiesChipGroup). -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/roomImageCard"
                 android:layout_width="@dimen/room_list_card_image_width"
                 android:layout_height="@dimen/room_list_card_image_height"
                 app:cardCornerRadius="0dp"
@@ -49,7 +54,8 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/gradient_overlay" />
+                        android:background="@drawable/gradient_overlay"
+                        android:importantForAccessibility="no" />
 
                     <!-- Availability status pill - top-left of the image. Self-styled
                          via bg_badge_* drawables set in RoomAdapter#bindRoom(). -->
@@ -65,7 +71,7 @@
                         android:paddingVertical="3dp"
                         android:text="@string/available_label"
                         android:textColor="@color/velocity_green_primary"
-                        android:textSize="8sp"
+                        android:textSize="10sp"
                         android:textAllCaps="true"
                         android:letterSpacing="0.05" />
 
@@ -118,8 +124,10 @@
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Info column -->
+            <!-- Info column. The three facts are 12sp and may wrap onto a second line (they used to be 10sp
+                 and cut off with an ellipsis), so a large font or a long bed description is still readable. -->
             <LinearLayout
+                android:id="@+id/roomInfoColumn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="9dp"
@@ -148,8 +156,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="13dp"
-                        android:layout_height="13dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_people"
                         app:tint="@color/velocity_red_primary" />
@@ -160,10 +168,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5dp"
                         android:fontFamily="sans-serif-bold"
-                        android:singleLine="true"
+                        android:maxLines="2"
                         android:ellipsize="end"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         tools:text="2 Guests" />
                 </LinearLayout>
 
@@ -176,8 +184,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="13dp"
-                        android:layout_height="13dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_bed"
                         app:tint="@color/velocity_red_primary" />
@@ -188,10 +196,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5dp"
                         android:fontFamily="sans-serif-bold"
-                        android:singleLine="true"
+                        android:maxLines="2"
                         android:ellipsize="end"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         tools:text="King Bed" />
                 </LinearLayout>
 
@@ -204,8 +212,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="13dp"
-                        android:layout_height="13dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_area"
                         app:tint="@color/velocity_red_primary" />
@@ -216,10 +224,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5dp"
                         android:fontFamily="sans-serif-bold"
-                        android:singleLine="true"
+                        android:maxLines="2"
                         android:ellipsize="end"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         tools:text="42 sqm" />
                 </LinearLayout>
 
@@ -229,10 +237,10 @@
                     android:id="@+id/tvRoomsLeftHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-bold"
-                    android:textColor="@color/velocity_orange_primary"
-                    android:textSize="9sp"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="12sp"
                     android:visibility="gone"
                     tools:text="Only 2 room(s) left"
                     tools:visibility="visible" />
@@ -250,7 +258,7 @@
             android:id="@+id/amenitiesChipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="6dp"
             app:chipSpacingHorizontal="4dp"
             app:chipSpacingVertical="4dp" />
 
@@ -260,7 +268,8 @@
              (landing.xml/roombrowsing.xml summary bar) without leaving the
              list, capped at Room#getAvailableCount(). Hidden entirely for
              unavailable rooms and in details-only mode - see
-             RoomAdapter#bindRoom(). -->
+             RoomAdapter#bindRoom(). The - and + buttons are 40dp (they were 22dp)
+             and the label and count are readable sizes. -->
         <LinearLayout
             android:id="@+id/cardRoomQtyStepper"
             android:layout_width="match_parent"
@@ -271,7 +280,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp">
+            android:paddingVertical="4dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -280,56 +289,60 @@
                 android:fontFamily="sans-serif-bold"
                 android:text="@string/room_quantity_label"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="10sp" />
+                android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRoomQtyMinus"
                 style="@style/Widget.MaterialComponents.Button.Icon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginEnd="6dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="4dp"
                 android:contentDescription="@string/cd_decrease_quantity"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:stateListAnimator="@null"
                 app:backgroundTint="@color/velocity_red_soft"
                 app:cornerRadius="0dp"
+                app:elevation="0dp"
                 app:icon="@drawable/ic_remove"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="11dp"
-                app:iconTint="@color/velocity_red_primary" />
+                app:iconSize="18dp"
+                app:iconTint="@color/velocity_action_text" />
 
             <TextView
                 android:id="@+id/tvRoomQty"
-                android:layout_width="20dp"
+                android:layout_width="28dp"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="11sp"
+                android:textSize="14sp"
                 tools:text="0" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRoomQtyPlus"
                 style="@style/Widget.MaterialComponents.Button.Icon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginStart="6dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
                 android:contentDescription="@string/cd_increase_quantity"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                android:stateListAnimator="@null"
                 app:backgroundTint="@color/velocity_red_primary"
                 app:cornerRadius="0dp"
+                app:elevation="0dp"
                 app:icon="@drawable/ic_add"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="11dp"
+                app:iconSize="18dp"
                 app:iconTint="@color/white" />
         </LinearLayout>
 
@@ -354,7 +367,7 @@
                 android:layout_height="16dp"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_calendar"
-                app:tint="@color/velocity_inactive_gray" />
+                app:tint="@color/velocity_text_secondary" />
 
             <TextView
                 android:id="@+id/tvOccupiedRange"
@@ -362,11 +375,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:ellipsize="end"
                 android:fontFamily="sans-serif-bold"
-                android:singleLine="true"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 tools:text="Occupied: Aug 10, 2026 – Aug 14, 2026" />
         </LinearLayout>
 
@@ -375,97 +388,117 @@
             android:layout_height="1dp"
             android:layout_marginTop="6dp"
             android:background="@color/velocity_red_subtle"
-            android:alpha="0.5" />
+            android:alpha="0.5"
+            android:importantForAccessibility="no" />
 
-        <!-- Full-width action row: View Details / Reserve Now / Book Now.
-             Every room card always offers all three actions - a fully-booked
-             room keeps them visible but disabled rather than hiding them. -->
+        <!-- Action area: Reserve Now / Book Now side by side (Book Now, the filled one, is the main action),
+             View Details underneath. Every room card always offers all three - a fully-booked room keeps them
+             visible but disabled rather than hiding them. Each is a real 48dp touch target with 13sp text that
+             can wrap onto a second line; in one cramped 9sp row (the old layout) the labels were unreadable
+             and cut off at a large font size. -->
         <LinearLayout
             android:id="@+id/layoutRoomActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <!-- All three buttons share identical width (equal weight), height,
-                 corner radius, padding, icon size, and text size - only the
-                 color/border styling differs between them. -->
+            <LinearLayout
+                android:id="@+id/layoutRoomActionsPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReserveNow"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:includeFontPadding="false"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:maxLines="2"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="6dp"
+                    android:stateListAnimator="@null"
+                    android:text="@string/reserve_now"
+                    android:textAllCaps="false"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="13sp"
+                    app:cornerRadius="0dp"
+                    app:elevation="0dp"
+                    app:icon="@drawable/ic_calendar"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconSize="16dp"
+                    app:iconTint="@color/velocity_action_text"
+                    app:strokeColor="@color/velocity_red_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnQuickBook"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:includeFontPadding="false"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:maxLines="2"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="6dp"
+                    android:stateListAnimator="@null"
+                    android:text="@string/book_now"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    app:backgroundTint="@color/velocity_red_primary"
+                    app:cornerRadius="0dp"
+                    app:elevation="0dp"
+                    app:icon="@drawable/ic_booking"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconSize="16dp"
+                    app:iconTint="@color/white" />
+            </LinearLayout>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnViewDetails"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-bold"
+                android:includeFontPadding="false"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
-                android:paddingHorizontal="2dp"
+                android:insetBottom="0dp"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:paddingHorizontal="6dp"
+                android:stateListAnimator="@null"
                 android:text="@string/view_details"
                 android:textAllCaps="false"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="9sp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-bold"
-                android:includeFontPadding="false"
-                app:cornerRadius="0dp"
-                app:icon="@drawable/ic_eye"
-                app:iconGravity="textStart"
-                app:iconSize="12dp"
-                app:iconPadding="2dp"
-                app:iconTint="@color/velocity_text_primary"
-                app:strokeColor="@color/velocity_red_soft" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnReserveNow"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="5dp"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:paddingHorizontal="2dp"
-                android:text="@string/reserve_now"
-                android:textAllCaps="false"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="9sp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-bold"
-                android:includeFontPadding="false"
-                app:cornerRadius="0dp"
-                app:icon="@drawable/ic_calendar"
-                app:iconGravity="textStart"
-                app:iconSize="12dp"
-                app:iconPadding="2dp"
-                app:iconTint="@color/velocity_red_primary"
-                app:strokeColor="@color/velocity_red_primary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnQuickBook"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:paddingHorizontal="2dp"
-                android:text="@string/book_now"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="9sp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-bold"
-                android:includeFontPadding="false"
-                app:backgroundTint="@color/velocity_red_primary"
+                android:textSize="13sp"
                 app:cornerRadius="0dp"
                 app:elevation="0dp"
-                app:icon="@drawable/ic_booking"
+                app:icon="@drawable/ic_eye"
                 app:iconGravity="textStart"
-                app:iconSize="12dp"
-                app:iconPadding="2dp"
-                app:iconTint="@color/white" />
+                app:iconPadding="6dp"
+                app:iconSize="16dp"
+                app:iconTint="@color/velocity_text_primary"
+                app:strokeColor="@color/velocity_red_subtle" />
         </LinearLayout>
 
     </LinearLayout>

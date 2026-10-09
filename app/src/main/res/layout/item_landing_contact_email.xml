@@ -30,7 +30,7 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_gravity="center"
-                android:contentDescription="@string/landing_hotel_email_label"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_email"
                 app:tint="@color/velocity_red_primary" />
         </FrameLayout>
@@ -48,7 +48,7 @@
                 android:fontFamily="sans-serif-black"
                 android:text="@string/landing_hotel_email_label"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -57,7 +57,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:text="@string/landing_hotel_email"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -65,8 +65,8 @@
                 android:layout_marginTop="2dp"
                 android:fontFamily="sans-serif-bold"
                 android:text="@string/landing_hotel_tap_email"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="10sp" />
+                android:textColor="@color/velocity_action_text"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <ImageView

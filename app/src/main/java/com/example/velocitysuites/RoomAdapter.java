@@ -2,10 +2,7 @@ package com.example.velocitysuites;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Rect;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
@@ -236,10 +233,10 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         int fallbackImage = RoomVisuals.getRoomImage(room.getType());
         if (room.getImageUrl() != null && !room.getImageUrl().isEmpty()) {
-            Glide.with(context)
+            ImageFreshness.apply(Glide.with(context)
                     .load(room.getImageUrl())
                     .placeholder(fallbackImage)
-                    .error(fallbackImage)
+                    .error(fallbackImage))
                     .into(holder.roomImage);
         } else if (room.getImageResId() != 0) {
             holder.roomImage.setImageResource(room.getImageResId());
@@ -250,21 +247,24 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         boolean available = room.isAvailable();
         RoomAvailabilityStatus status = RoomAvailabilityStatus.of(room);
         switch (status) {
+            // The badge fills are fixed pale colours (they do not change in dark mode), so the text colours must be
+            // fixed dark ones too: the "available" badge used to be white text on a pale pink fill (about 1.1:1),
+            // and the other two were under 4.5:1.
             case LIMITED:
                 holder.roomStatusBadge.setText(R.string.limited_label);
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_warning);
-                holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_orange_primary));
+                holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_green_primary));
                 break;
             case FULLY_BOOKED:
                 holder.roomStatusBadge.setText(R.string.unavailable_label);
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_neutral);
-                holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_inactive_gray));
+                holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_red_dark));
                 break;
             case AVAILABLE:
             default:
                 holder.roomStatusBadge.setText(R.string.available_label);
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_success);
-                holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.white));
+                holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_green_primary));
                 break;
         }
 
@@ -323,95 +323,10 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.btnReserveNow.setContentDescription(context.getString(R.string.cd_reserve_now_format, room.getName()));
         holder.btnQuickBook.setContentDescription(context.getString(R.string.cd_book_now_format, room.getName()));
 
-        expandActionButtonTouchTargets(holder);
+        // The three action buttons are 48dp tall in item_room_card.xml, so they are full-size touch targets on
+        // their own (an earlier version widened their tap areas with a TouchDelegate because they were 40dp).
 
         animateItemEntrance(holder.itemView, position);
-    }
-
-    private static final int TOUCH_TARGET_EXPANSION_DP = 6;
-
-    /**
-     * Grows the effective tap area of the three 40dp-tall action buttons
-     * toward Android's ~48dp minimum touch target guidance, without growing
-     * the buttons themselves - reclaims the dead space already present
-     * around them (the divider gap above the row, the card's own padding
-     * below it, and the small gaps between buttons) via a composite
-     * TouchDelegate on the card, instead of enlarging the visible card.
-     */
-    private void expandActionButtonTouchTargets(RoomViewHolder holder) {
-        View card = holder.itemView;
-        View[] buttons = {holder.btnViewDetails, holder.btnReserveNow, holder.btnQuickBook};
-        card.post(() -> {
-            if (card.getWidth() == 0 || card.getHeight() == 0) return;
-            int extra = dpToPx(card.getContext(), TOUCH_TARGET_EXPANSION_DP);
-            List<View> targets = new ArrayList<>();
-            List<Rect> rects = new ArrayList<>();
-            for (View button : buttons) {
-                if (button == null || button.getWidth() == 0 || button.getHeight() == 0) continue;
-                Rect rect = new Rect();
-                offsetRectToAncestor(button, card, rect);
-                rect.inset(-extra, -extra);
-                targets.add(button);
-                rects.add(rect);
-            }
-            if (targets.isEmpty()) return;
-            Rect cardBounds = new Rect(0, 0, card.getWidth(), card.getHeight());
-            card.setTouchDelegate(new CompositeTouchDelegate(cardBounds, rects, targets));
-        });
-    }
-
-    private static void offsetRectToAncestor(View view, View ancestor, Rect outRect) {
-        outRect.set(0, 0, view.getWidth(), view.getHeight());
-        View current = view;
-        while (current != ancestor && current.getParent() instanceof View) {
-            outRect.offset(current.getLeft(), current.getTop());
-            current = (View) current.getParent();
-        }
-    }
-
-    /**
-     * A TouchDelegate that can forward to one of several candidate views
-     * depending on where ACTION_DOWN lands, unlike the platform TouchDelegate
-     * which only ever supports a single delegate target. Mirrors the
-     * platform implementation's own trick of relocating each forwarded event
-     * to the delegate's center rather than translating exact coordinates,
-     * since only click/ripple firing correctly matters here.
-     */
-    private static final class CompositeTouchDelegate extends TouchDelegate {
-        private final List<Rect> rects;
-        private final List<View> targets;
-        private View activeTarget;
-
-        CompositeTouchDelegate(Rect bounds, List<Rect> rects, List<View> targets) {
-            super(bounds, targets.get(0));
-            this.rects = rects;
-            this.targets = targets;
-        }
-
-        @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            int x = (int) event.getX();
-            int y = (int) event.getY();
-            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                activeTarget = null;
-                for (int i = 0; i < rects.size(); i++) {
-                    if (rects.get(i).contains(x, y)) {
-                        activeTarget = targets.get(i);
-                        break;
-                    }
-                }
-            }
-            if (activeTarget == null) {
-                return false;
-            }
-            event.setLocation(activeTarget.getWidth() / 2f, activeTarget.getHeight() / 2f);
-            boolean handled = activeTarget.dispatchTouchEvent(event);
-            int action = event.getActionMasked();
-            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                activeTarget = null;
-            }
-            return handled;
-        }
     }
 
     /**
@@ -508,15 +423,16 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private com.google.android.material.chip.Chip newAmenityChip(Context context, String text, int iconRes) {
         com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(context);
         chip.setText(text);
-        chip.setTextSize(8f);
+        // 12sp (it was 8sp) and square like every other control in the app (it was a 10dp rounded corner).
+        chip.setTextSize(12f);
         chip.setTextColor(ContextCompat.getColor(context, R.color.velocity_text_secondary));
         chip.setChipBackgroundColorResource(R.color.velocity_surface_elevated);
         chip.setChipStrokeColorResource(R.color.velocity_red_subtle);
         chip.setChipStrokeWidth(dpToPx(context, 1));
-        chip.setChipCornerRadius(dpToPx(context, 10));
-        chip.setChipMinHeight(dpToPx(context, 24));
-        chip.setChipStartPadding(dpToPx(context, 4));
-        chip.setChipEndPadding(dpToPx(context, 4));
+        chip.setChipCornerRadius(0f);
+        chip.setChipMinHeight(dpToPx(context, 28));
+        chip.setChipStartPadding(dpToPx(context, 6));
+        chip.setChipEndPadding(dpToPx(context, 6));
         chip.setTextStartPadding(dpToPx(context, 2));
         chip.setTextEndPadding(dpToPx(context, 2));
         chip.setEnsureMinTouchTargetSize(false);
@@ -527,7 +443,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             chip.setChipIconResource(iconRes);
             chip.setChipIconTint(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.velocity_red_primary)));
             chip.setChipIconVisible(true);
-            chip.setChipIconSize(dpToPx(context, 9));
+            chip.setChipIconSize(dpToPx(context, 14));
             chip.setIconStartPadding(dpToPx(context, 2));
             chip.setIconEndPadding(dpToPx(context, 2));
         } else {
@@ -565,6 +481,66 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return items.size();
     }
 
+    /** The system font scale from which the card is restacked (see {@link #needsRoomyLayout}). */
+    static final float ROOMY_FONT_SCALE = 1.3f;
+    /** Below this screen width (dp) the card is restacked, whatever the font size. */
+    static final int ROOMY_BELOW_WIDTH_DP = 340;
+
+    /**
+     * Whether this phone is too narrow, or its font too large, for the compact side-by-side card.
+     * The card puts a 140dp photo next to the room's details; on a 320dp screen, or with a large font, that
+     * leaves the details a column so thin that words break in the middle ("Exec/utive", "Quee/n") and the
+     * half-width Reserve / Book buttons cut their labels off. Those phones get the roomy arrangement instead:
+     * photo across the top, details below it, every action full width.
+     */
+    public static boolean needsRoomyLayout(android.content.res.Configuration configuration) {
+        return configuration.fontScale >= ROOMY_FONT_SCALE
+                || (configuration.screenWidthDp > 0 && configuration.screenWidthDp < ROOMY_BELOW_WIDTH_DP);
+    }
+
+    /**
+     * Restacks a freshly inflated item_room_card for {@link #needsRoomyLayout}: the photo goes across the top, the
+     * details sit below it at full width, and Reserve Now / Book Now / View Details are three full-width rows.
+     * Only layout parameters change - every view, id and click behaviour is the same as in the compact card.
+     * A copy of the layout that lacks any of these parts is left exactly as it is.
+     */
+    static void applyRoomyLayout(View card) {
+        View topRowView = card.findViewById(R.id.roomCardTopRow);
+        View imageCard = card.findViewById(R.id.roomImageCard);
+        View infoColumn = card.findViewById(R.id.roomInfoColumn);
+        View actionsRowView = card.findViewById(R.id.layoutRoomActionsPrimary);
+        View reserve = card.findViewById(R.id.btnReserveNow);
+        View book = card.findViewById(R.id.btnQuickBook);
+        if (!(topRowView instanceof LinearLayout) || !(actionsRowView instanceof LinearLayout)
+                || imageCard == null || infoColumn == null || reserve == null || book == null) {
+            return;
+        }
+        int gap = dpToPx(card.getContext(), 8);
+
+        LinearLayout topRow = (LinearLayout) topRowView;
+        topRow.setOrientation(LinearLayout.VERTICAL);
+        topRow.setGravity(android.view.Gravity.START);
+        fullWidthRow(imageCard, 0, 0);
+        fullWidthRow(infoColumn, gap, 0);
+
+        LinearLayout actionsRow = (LinearLayout) actionsRowView;
+        actionsRow.setOrientation(LinearLayout.VERTICAL);
+        fullWidthRow(reserve, 0, gap);
+        fullWidthRow(book, 0, 0);
+    }
+
+    /** Makes a view of a horizontal row fill the width of a vertical one: no weight, no side margins. */
+    private static void fullWidthRow(View view, int topMargin, int bottomMargin) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) view.getLayoutParams();
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        params.weight = 0f;
+        params.setMarginStart(0);
+        params.setMarginEnd(0);
+        params.topMargin = topMargin;
+        params.bottomMargin = bottomMargin;
+        view.setLayoutParams(params);
+    }
+
     static class RoomViewHolder extends RecyclerView.ViewHolder {
         ImageView roomImage;
         ImageButton btnFavorite;
@@ -579,6 +555,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         RoomViewHolder(@NonNull View itemView) {
             super(itemView);
+            if (needsRoomyLayout(itemView.getResources().getConfiguration())) {
+                applyRoomyLayout(itemView);
+            }
             btnFavorite = itemView.findViewById(R.id.btnFavorite);
             cardRoomQtyStepper = itemView.findViewById(R.id.cardRoomQtyStepper);
             tvRoomQty = itemView.findViewById(R.id.tvRoomQty);
@@ -653,9 +632,54 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             RoomListItem o = oldList.get(oldItemPosition);
             RoomListItem n = newList.get(newItemPosition);
             if (o.viewType == TYPE_HEADER || o.viewType == TYPE_MESSAGE) return Objects.equals(o.headerText, n.headerText);
-            return o.room.isAvailable() == n.room.isAvailable()
-                    && o.room.getPricePerNight() == n.room.getPricePerNight()
-                    && Objects.equals(o.occupiedRangeText, n.occupiedRangeText);
+            return sameRoom(o.room, n.room) && Objects.equals(o.occupiedRangeText, n.occupiedRangeText);
         }
+    }
+
+    /**
+     * True when the two copies of a room are the same in everything the card - or what its buttons open - uses.
+     * This used to compare only availability and price, so after a refresh a visible card kept showing the old
+     * name, capacity, bed type, picture, "rooms left" count or amenities (RecyclerView only re-draws rows the
+     * diff calls changed) and its buttons kept opening the old copy's description and gallery. Every field of
+     * the model is compared; a refresh that changed nothing still re-draws nothing.
+     */
+    static boolean sameRoom(Room a, Room b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        return a.isAvailable() == b.isAvailable()
+                && a.getAvailableCount() == b.getAvailableCount()
+                && a.getCapacity() == b.getCapacity()
+                && a.getImageResId() == b.getImageResId()
+                && a.getRoomTypeId() == b.getRoomTypeId()
+                && Double.compare(a.getPricePerNight(), b.getPricePerNight()) == 0
+                && Objects.equals(a.getId(), b.getId())
+                && Objects.equals(a.getName(), b.getName())
+                && Objects.equals(a.getType(), b.getType())
+                && Objects.equals(a.getDescription(), b.getDescription())
+                && Objects.equals(a.getBedType(), b.getBedType())
+                && Objects.equals(a.getRoomSize(), b.getRoomSize())
+                && Objects.equals(a.getPolicies(), b.getPolicies())
+                && Objects.equals(a.getImageUrl(), b.getImageUrl())
+                && Objects.equals(a.getImageUrls(), b.getImageUrls())
+                && Objects.equals(a.getImageLabels(), b.getImageLabels())
+                && sameAmenities(a.getAmenities(), b.getAmenities());
+    }
+
+    private static boolean sameAmenities(List<RoomAmenity> a, List<RoomAmenity> b) {
+        int sizeA = a == null ? 0 : a.size();
+        int sizeB = b == null ? 0 : b.size();
+        if (sizeA != sizeB) return false;
+        for (int i = 0; i < sizeA; i++) {
+            RoomAmenity x = a.get(i);
+            RoomAmenity y = b.get(i);
+            if (!Objects.equals(x.getName(), y.getName())
+                    || !Objects.equals(x.getCategory(), y.getCategory())
+                    || !Objects.equals(x.getDescription(), y.getDescription())
+                    || !Objects.equals(x.getPricingType(), y.getPricingType())
+                    || !Objects.equals(x.getFee(), y.getFee())) {
+                return false;
+            }
+        }
+        return true;
     }
 }
