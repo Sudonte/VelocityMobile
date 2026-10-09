@@ -1593,7 +1593,10 @@
 
     <!-- Footer -->
     <string name="landing_footer_tagline">Your Comfort is our Service</string>
-    <string name="landing_footer_copyright">Â© 2026 Velocity Suites Hotel. All rights reserved.</string>
+    <!-- The copyright sign is written as the character reference &#169; (pure ASCII, like &#8369; for the peso sign
+         elsewhere in this file) rather than the literal character, so no editor or tool that mis-reads this file's
+         encoding can ever turn it into mojibake again. Exact text required: no space after the sign. -->
+    <string name="landing_footer_copyright">&#169;2026 Velocity Suites Surallah. All rights reserved.</string>
     <string name="cd_landing_banner">Featured hotel banner</string>
     <string name="landing_no_available_rooms">No available rooms at the moment. Please check back later or adjust your search criteria.</string>
     <string name="expand_label">Expand</string>
