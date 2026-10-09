@@ -124,7 +124,7 @@ public class ScrollerClippingTest {
     @Test
     public void reworkedScreensNeverLetAScrollerOverflowItsBounds() throws Exception {
         List<String> problems = new ArrayList<>();
-        for (String name : new String[]{"landing.xml", "payment.xml"}) {
+        for (String name : new String[]{"welcome.xml", "landing.xml", "payment.xml"}) {
             File file = new File(layoutDir(), "layout/" + name);
             assertTrue(file + " exists", file.isFile());
             problems.addAll(overflowingScrollers(name, parse(new String(

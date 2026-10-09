@@ -21,9 +21,21 @@
     <string name="sign_in_sign_up_label">Sign In / Sign Up</string>
     <string name="welcome_title">Welcome, Guest!</string>
     <string name="welcome_tagline">Your Comfort is our Service</string>
-    <string name="welcome_description">Velocity Suites Hotel is a modern hotel that offers comfortable accommodations, quality amenities, and excellent service for both business and leisure travelers. With its convenient location and welcoming atmosphere, it provides guests with a relaxing and enjoyable stay.</string>
-    <string name="login">Sign In</string>
-    <string name="registration">Sign Up</string>
+    <!-- Welcome screen: what the app is and does, then what to do next. Only describes what the app itself does. -->
+    <string name="welcome_headline">Book your stay with Velocity Suites</string>
+    <string name="welcome_support">Create an account to book, pay and keep track of your stay, all from your phone.</string>
+    <string name="welcome_point_rooms_title">Browse rooms</string>
+    <string name="welcome_point_rooms_desc">See available rooms and their rates.</string>
+    <string name="welcome_point_book_title">Book or reserve</string>
+    <string name="welcome_point_book_desc">Book now, or reserve and pay later.</string>
+    <string name="welcome_point_pay_title">Pay with GCash</string>
+    <string name="welcome_point_pay_desc">Pay by GCash and upload the receipt.</string>
+    <string name="welcome_point_track_title">Track your stay</string>
+    <string name="welcome_point_track_desc">Follow every booking and payment.</string>
+    <string name="welcome_point_notify_title">Get notifications</string>
+    <string name="welcome_point_notify_desc">Get updates on bookings and payments.</string>
+    <string name="welcome_action_create_account">Create an Account</string>
+    <string name="welcome_action_sign_in">Already have an account? Sign In</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
     <string name="login_heading">Welcome Back</string>

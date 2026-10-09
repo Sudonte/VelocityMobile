@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Welcome screen: what the app is, what it does, and what to do next, in that order.
+      logo -> headline -> one supporting line -> value points  (all in the scroller)
+      primary action + secondary action                        (pinned bar, always reachable)
+    The content scrolls on a small screen, with a large font size or in a short window; the actions never scroll away.
+    Spacing is on the app's 8dp grid (8 / 16 / 24), text is in sp, and every touch target is at least 48dp.
+    No rounded corners and no shadows; the logo is meaningful (described), everything else decorative is hidden from
+    accessibility services.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/welcomeRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_welcome"
-    android:clipChildren="false">
+    android:background="@drawable/bg_welcome">
 
-    <!-- Atmospheric Glow Background Elements (kept behind all content) -->
+    <!-- Atmospheric glow and faint room-sketch watermarks: decoration only, kept behind all content -->
 
     <View
         android:id="@+id/glowTop"
@@ -21,20 +28,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <View
-        android:id="@+id/bottomFade"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:alpha="0.8"
-        android:background="@drawable/bg_intro_bottom_fade"
-        android:importantForAccessibility="no"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
-    <!-- Subtle hotel-room line-art watermarks, very low alpha so they read as
-         background texture rather than competing with the logo/content cards
-         on top of them - matching the reference's faint room-sketch motif
-         without needing a brand-new illustration asset (reuses the existing
-         bed icon at a much larger size/opacity than its normal icon use). -->
     <ImageView
         android:layout_width="220dp"
         android:layout_height="220dp"
@@ -52,179 +45,427 @@
     <ImageView
         android:layout_width="180dp"
         android:layout_height="180dp"
-        android:layout_marginBottom="-30dp"
         android:layout_marginStart="-50dp"
+        android:layout_marginBottom="-30dp"
         android:alpha="0.05"
         android:contentDescription="@null"
         android:importantForAccessibility="no"
         android:rotation="14"
         android:src="@drawable/ic_bed"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:tint="@color/velocity_red_primary" />
 
-    <!-- Scrollable Main Content Container: prevents buttons from being
-         clipped on short screens or when the user has scaled up font size -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="24dp"
-        android:clipToPadding="false"
-        android:fillViewport="true">
+    <!-- Back: outside the scroller so it is always reachable -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnWelcomeBack"
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/back_label"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:padding="0dp"
+        android:stateListAnimator="@null"
+        app:backgroundTint="@color/white"
+        app:cornerRadius="0dp"
+        app:elevation="0dp"
+        app:icon="@drawable/ic_arrow_back"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="20dp"
+        app:iconTint="@color/velocity_red_primary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:rippleColor="@color/velocity_red_soft" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/welcomeScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:overScrollMode="ifContentScrolls"
+        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnWelcomeBack">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="32dp"
-            android:paddingVertical="24dp">
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="16dp">
 
-            <!-- Back Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnWelcomeBack"
-                style="@style/Widget.MaterialComponents.Button.Icon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:contentDescription="@string/back_label"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:padding="0dp"
-                app:backgroundTint="@color/white"
-                app:cornerRadius="0dp"
-                app:elevation="0dp"
-                app:icon="@drawable/ic_arrow_back"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="20dp"
-                app:iconTint="@color/velocity_red_primary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:rippleColor="@color/velocity_red_soft" />
-
-            <!-- Logo Section -->
+            <!-- 1. Brand -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/logoBorder"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_marginTop="16dp"
+                android:layout_width="112dp"
+                android:layout_height="112dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/velocity_red_primary"
-                app:strokeWidth="2dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/welcomeMainCard"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintVertical_bias="0.4">
+                app:strokeWidth="2dp">
 
                 <ImageView
                     android:id="@+id/welcomeLogoImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:contentDescription="@string/app_logo"
-                    android:padding="22dp"
+                    android:padding="16dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/velocity_suites_logo" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Main Info Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/welcomeMainCard"
-                style="@style/Widget.Velocity.Card.Glass"
+            <!-- 2. Headline -->
+            <TextView
+                android:id="@+id/welcomeTitleText"
+                style="@style/TextAppearance.Velocity.ScreenTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:layout_constraintTop_toBottomOf="@id/logoBorder"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/buttonContainer">
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:gravity="center"
+                android:text="@string/welcome_headline"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="28sp" />
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="2dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_primary"
+                android:importantForAccessibility="no" />
+
+            <!-- 3. One supporting line -->
+            <TextView
+                android:id="@+id/welcomeDescriptionText"
+                style="@style/TextAppearance.Velocity.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:alpha="1"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.2"
+                android:text="@string/welcome_support"
+                android:textSize="16sp" />
+
+            <!-- 4. What the app does: five short value points -->
+            <LinearLayout
+                android:id="@+id/welcomePoints"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="24dp"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="24dp">
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:screenReaderFocusable="true">
 
-                    <TextView
-                        android:id="@+id/welcomeTitleText"
-                        style="@style/TextAppearance.Velocity.ScreenTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/welcome_title"
-                        android:textColor="@color/velocity_red_primary"
-                        android:textSize="22sp" />
-
-                    <TextView
-                        android:id="@+id/welcomeTaglineText"
-                        style="@style/TextAppearance.Velocity.Label.Section"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/welcome_tagline"
-                        android:textColor="@color/velocity_text_secondary" />
-
-                    <View
+                    <FrameLayout
                         android:layout_width="40dp"
-                        android:layout_height="2dp"
-                        android:layout_marginTop="16dp"
-                        android:background="@drawable/shape_intro_pill"
-                        android:backgroundTint="@color/velocity_red_primary"
-                        android:importantForAccessibility="no" />
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_circle_badge"
+                        android:importantForAccessibility="no">
 
-                    <TextView
-                        android:id="@+id/welcomeDescriptionText"
-                        style="@style/TextAppearance.Velocity.Body"
-                        android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_room_search"
+                            app:tint="@color/velocity_action_text" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center"
-                        android:lineSpacingMultiplier="1.25"
-                        android:text="@string/welcome_description" />
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/welcome_point_rooms_title"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/welcome_point_rooms_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Action Buttons -->
-            <LinearLayout
-                android:id="@+id/buttonContainer"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:screenReaderFocusable="true">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_circle_badge"
+                        android:importantForAccessibility="no">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_calendar"
+                            app:tint="@color/velocity_action_text" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/welcome_point_book_title"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/welcome_point_book_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:screenReaderFocusable="true">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_circle_badge"
+                        android:importantForAccessibility="no">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_payment"
+                            app:tint="@color/velocity_action_text" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/welcome_point_pay_title"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/welcome_point_pay_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:screenReaderFocusable="true">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_circle_badge"
+                        android:importantForAccessibility="no">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_transaction_history"
+                            app:tint="@color/velocity_action_text" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/welcome_point_track_title"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/welcome_point_track_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:screenReaderFocusable="true">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_icon_circle_badge"
+                        android:importantForAccessibility="no">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_notifications"
+                            app:tint="@color/velocity_action_text" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/welcome_point_notify_title"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/welcome_point_notify_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- 5. Actions: one obvious primary (filled), one clearly secondary (outlined, lighter). Same ids and
+         destinations as before: Sign Up -> RegistrationActivity, Sign In -> LoginActivity. -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_surface_elevated"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/velocity_red_subtle"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/registrationButton"
+                style="@style/Widget.Velocity.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="vertical"
-                app:layout_constraintTop_toBottomOf="@id/welcomeMainCard"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
+                android:minHeight="56dp"
+                android:stateListAnimator="@null"
+                android:text="@string/welcome_action_create_account"
+                app:icon="@drawable/ic_person"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/loginButton"
-                    style="@style/Widget.Velocity.Button"
-                    android:layout_width="match_parent"
-                    android:text="@string/login"
-                    app:icon="@drawable/ic_logout"
-                    app:iconGravity="textStart"
-                    app:iconTint="@color/white" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/registrationButton"
-                    style="@style/Widget.Velocity.Button.Outlined"
-                    android:layout_width="match_parent"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/registration"
-                    app:icon="@drawable/ic_logout"
-                    app:iconGravity="textStart"
-                    app:iconTint="@color/velocity_red_primary" />
-
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/loginButton"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="48dp"
+                android:text="@string/welcome_action_sign_in"
+                android:textColor="@color/velocity_action_text"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
