@@ -8,23 +8,31 @@
     android:background="@color/velocity_red_bg_end"
     tools:context=".PaymentActivity">
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area.
+         The guest header (AppBarLayout below) must stay on top while the content scrolls UNDER it. Three things
+         guarantee that, and each one alone was missing at some point - keep all three:
+           1. Clipping: this layout must NOT set clipChildren="false" and the scroller below must NOT set
+              clipToPadding="false". With both off, nothing clipped the scrolled cards to the scroller's viewport,
+              so they painted above its top edge, straight into the header's strip.
+           2. Z order: the AppBar is raised above the scroller with translationZ (8dp) so it paints after it, with
+              outlineProvider="none" so the raise casts NO shadow (flat design). Its Z used to be 8dp and was
+              set to 0 by the no-shadow pass, which exposed (1). translationZ rather than elevation on purpose:
+              app:elevation installs Material's lift animator, which holds the elevation at 0 until the bar is
+              "lifted" - so do not add app:elevation / liftOnScroll / a state-list animator back here.
+           3. Opaque background: nothing may show through the header. -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/paymentRoot"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipChildren="false">
+        android:layout_height="match_parent">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
+            android:background="@color/velocity_red_bg_end"
+            android:outlineProvider="none"
             android:stateListAnimator="@null"
-            android:translationZ="0dp"
-            app:elevation="0dp"
-            app:liftOnScroll="true"
-            app:liftOnScrollTargetViewId="@id/screenContent">
+            android:translationZ="8dp">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
@@ -133,12 +141,13 @@
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Payment Content -->
+        <!-- Payment Content: starts at the AppBar's bottom edge (appbar_scrolling_view_behavior) and clips
+             to its own viewport - never add clipToPadding="false" here (see the note on paymentRoot). The
+             bottom breathing room is the inner LinearLayout's own paddingBottom, which scrolls with the content. -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/screenContent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
             android:overScrollMode="never"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
