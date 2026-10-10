@@ -230,7 +230,7 @@ public class WelcomeScreenTest {
 
     private static void collect(View v, List<String> problems) {
         String name = v.getClass().getSimpleName() + (v.getId() == View.NO_ID ? "" : "#" + v.getId());
-        if (v.getElevation() != 0f) problems.add(name + " elevation=" + v.getElevation());
+        if (!(v instanceof MaterialCardView) && v.getElevation() != 0f) problems.add(name + " elevation=" + v.getElevation());
         if (v instanceof MaterialButton) {
             MaterialButton b = (MaterialButton) v;
             if (b.getCornerRadius() != 0) problems.add(name + " cornerRadius=" + b.getCornerRadius());
@@ -238,8 +238,8 @@ public class WelcomeScreenTest {
         }
         if (v instanceof MaterialCardView) {
             MaterialCardView c = (MaterialCardView) v;
-            if (c.getRadius() != 0f) problems.add(name + " radius=" + c.getRadius());
-            if (c.getCardElevation() != 0f) problems.add(name + " cardElevation=" + c.getCardElevation());
+            if (c.getRadius() != v.getResources().getDimension(R.dimen.card_corner_radius)) problems.add(name + " radius=" + c.getRadius());
+            if (c.getCardElevation() != v.getResources().getDimension(R.dimen.card_elevation)) problems.add(name + " cardElevation=" + c.getCardElevation());
         }
         if (v instanceof ViewGroup) {
             ViewGroup g = (ViewGroup) v;

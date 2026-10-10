@@ -558,6 +558,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             // PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - the frozen snapshot.
             ReceiptDetail.AnchorPayment anchor = detail.getAnchorPayment();
             addRowOrDash(content, getString(R.string.receipt_amount_paid_this_transaction_label), formatPrice(anchor.amountPaid));
+            // Cash only: what was handed over and the change returned (the amount above is what was applied).
+            if ("cash".equalsIgnoreCase(anchor.paymentMethod) && anchor.cashReceived != null) {
+                addRowOrDash(content, getString(R.string.receipt_cash_received_label), formatPrice(anchor.cashReceived));
+                addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(anchor.changeGiven != null ? anchor.changeGiven : 0));
+            }
             addRowOrDash(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
             addRowOrDash(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
             addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
@@ -573,6 +578,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             addRowOrDash(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
             addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
             addPaymentMethodDateTime(content, paymentRecord != null ? paymentRecord.paymentMethod : null, paymentRecord);
+            if (paymentRecord != null && "cash".equalsIgnoreCase(paymentRecord.paymentMethod) && paymentRecord.cashReceived != null) {
+                addRowOrDash(content, getString(R.string.receipt_cash_received_label), formatPrice(paymentRecord.cashReceived));
+                addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(paymentRecord.changeGiven != null ? paymentRecord.changeGiven : 0));
+            }
             addDivider(content, dp(12));
             addProminentTotal(content, getString(R.string.receipt_total_amount_paid_label), formatPrice(summary.totalAmountPaid));
         }
@@ -645,8 +654,8 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         cardParams.bottomMargin = dp(14);
         card.setLayoutParams(cardParams);
-        card.setRadius(dp(16));
-        card.setCardElevation(0);
+        card.setRadius(getResources().getDimension(R.dimen.card_corner_radius));
+        card.setCardElevation(getResources().getDimension(R.dimen.card_elevation));
         card.setStrokeWidth(dp(1));
         card.setStrokeColor(getColor(R.color.velocity_red_soft));
         card.setCardBackgroundColor(getColor(R.color.velocity_surface_elevated));

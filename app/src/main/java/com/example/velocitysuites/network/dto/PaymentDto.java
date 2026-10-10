@@ -11,6 +11,9 @@ public class PaymentDto {
     public BillingDto billing;
     /** Registered GCash mobile number the guest paid from - new as of the receipt-verification workflow. */
     public String gcash_number;
+    /** Cash only: what the guest handed over, and the change returned (amount_paid is what was applied). null for GCash. */
+    public String cash_received;
+    public String change_given;
     /** Absolute URL to the uploaded GCash receipt image, pre-built by the server (Payment::getReceiptUrlAttribute). */
     public String receipt_url;
     /** Reason a receptionist rejected this payment, if any. */

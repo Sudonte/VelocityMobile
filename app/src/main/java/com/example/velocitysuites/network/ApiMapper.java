@@ -366,13 +366,16 @@ public final class ApiMapper {
         if (paymentDtos != null) {
             List<Booking.PaymentRecord> history = new ArrayList<>();
             for (com.example.velocitysuites.network.dto.PaymentDto p : paymentDtos) {
-                history.add(new Booking.PaymentRecord(
+                Booking.PaymentRecord record = new Booking.PaymentRecord(
                         p.amount_paid,
                         p.payment_method != null ? p.payment_method.toUpperCase(Locale.US) : null,
                         p.reference_number,
                         reformatDateTime(p.payment_date),
                         p.payment_status,
-                        p.gcash_number));
+                        p.gcash_number);
+                record.cashReceived = p.cash_received;
+                record.changeGiven = p.change_given;
+                history.add(record);
             }
             booking.setPaymentHistory(history);
         }
@@ -637,6 +640,7 @@ public final class ApiMapper {
         booking.setStaffVerified(dto.verified_at != null && !dto.verified_at.isEmpty());
         booking.setHiddenAt(dto.hidden_at);
         booking.setHiddenByGuest(dto.hidden_by_guest);
+        booking.setDiscountVerificationStatus(dto.discount_verification_status);
         booking.setTransactionRejectionReason(dto.rejection_reason);
         booking.setCancellationDate(dto.cancelled_at != null && !dto.cancelled_at.isEmpty() ? reformatDateTime(dto.cancelled_at) : null);
         booking.setCancellationReason(dto.rejection_reason);
@@ -716,7 +720,7 @@ public final class ApiMapper {
         if (dtos == null || dtos.isEmpty()) return Collections.emptyList();
         List<Booking.PaymentTransactionRecord> out = new ArrayList<>(dtos.size());
         for (PaymentTransactionDto dto : dtos) {
-            out.add(new Booking.PaymentTransactionRecord(
+            Booking.PaymentTransactionRecord record = new Booking.PaymentTransactionRecord(
                     dto.id, dto.payment_method, dto.payment_stage, dto.transaction_type,
                     dto.amount_paid, dto.payment_status, dto.verification_status,
                     dto.gcash_number, dto.gcash_reference_number, dto.reference_number,
@@ -724,7 +728,10 @@ public final class ApiMapper {
                     dto.rejection_reason, dto.payment_date,
                     dto.total_paid_after_transaction, dto.remaining_balance_after_transaction,
                     dto.receipt_type, dto.receipt_number
-            ));
+            );
+            record.cashReceived = dto.cash_received;
+            record.changeGiven = dto.change_given;
+            out.add(record);
         }
         return out;
     }
@@ -761,6 +768,8 @@ public final class ApiMapper {
                     dto.anchor_payment.verified_at,
                     dto.anchor_payment.verified_by
             );
+            anchor.cashReceived = dto.anchor_payment.cash_received;
+            anchor.changeGiven = dto.anchor_payment.change_given;
         }
         ReceiptDetail receiptDetail = new ReceiptDetail(
                 dto.receipt_type,

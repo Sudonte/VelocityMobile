@@ -102,6 +102,9 @@ public class ReceiptDetail implements Serializable {
     /** The specific payment a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT is anchored on - null for an OFFICIAL_RECEIPT. */
     public static class AnchorPayment implements Serializable {
         public final double amountPaid;
+        /** Cash only (null for GCash): the cash handed over and the change returned. */
+        @Nullable public Double cashReceived;
+        @Nullable public Double changeGiven;
         public final String paymentMethod;
         @Nullable public final Integer paymentPercentage;
         @Nullable public final String gcashNumber;

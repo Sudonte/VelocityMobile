@@ -130,7 +130,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="260dp"
                     android:layout_marginBottom="10dp"
-                    app:cardElevation="0dp">
+                    app:cardElevation="@dimen/card_elevation">
 
                     <FrameLayout
                         android:layout_width="match_parent"
@@ -197,82 +197,95 @@
                     </FrameLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Modern Date/Time Widget - tap to open the Calendar -->
+                <!-- Next Hotel Transaction -->
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/dateTimeCard"
+                    android:id="@+id/nextTransactionCard"
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    app:cardElevation="0dp"
+                    android:layout_marginBottom="11dp"
+                    app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
-
-                        <ImageView
-                            android:id="@+id/clockIcon"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/shape_intro_pill"
-                            android:backgroundTint="@color/velocity_red_soft"
-                            android:padding="10dp"
-                            android:src="@drawable/ic_clock"
-                            android:contentDescription="@string/system_clock_label"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:tint="@color/velocity_red_primary" />
+                        android:orientation="vertical"
+                        android:padding="11dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:orientation="vertical"
-                            app:layout_constraintBottom_toBottomOf="@id/clockIcon"
-                            app:layout_constraintEnd_toStartOf="@id/dateTimeChevron"
-                            app:layout_constraintStart_toEndOf="@id/clockIcon"
-                            app:layout_constraintTop_toTopOf="@id/clockIcon">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                app:cardBackgroundColor="@color/velocity_green_soft"
+                                app:cardCornerRadius="@dimen/card_corner_radius"
+                                app:cardElevation="@dimen/card_elevation">
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_clock"
+                                    app:tint="@color/velocity_green_dark" />
+                            </com.google.android.material.card.MaterialCardView>
 
                             <TextView
-                                android:id="@+id/timeText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-black"
-                                android:text="@string/time_placeholder"
-                                android:textColor="@color/black"
-                                android:textSize="30sp" />
-
-                            <TextView
-                                android:id="@+id/dateText"
                                 style="@style/TextAppearance.Velocity.Label.Section"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.8"
-                                android:text="@string/loading_date"
-                                android:textColor="@color/velocity_text_secondary"
-                                android:textSize="13sp" />
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif-black"
+                                android:textSize="14sp"
+                                android:text="@string/next_hotel_transaction_label" />
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:alpha="0.45"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
 
-                        <ImageView
-                            android:id="@+id/dateTimeChevron"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:alpha="0.45"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_chevron_right"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:tint="@color/velocity_text_secondary" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:alpha="0.7"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/next_hotel_transaction_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/nextHotelTransactionText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="11dp"
+                            android:gravity="center"
+                            android:paddingVertical="10dp"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="@string/no_next_transaction"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp" />
+
+                        <LinearLayout
+                            android:id="@+id/nextTransactionListContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical" />
+                    </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Section: Quick Actions -->
@@ -319,7 +332,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="0dp"
+                            app:cardElevation="@dimen/card_elevation"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -362,7 +375,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="0dp"
+                            app:cardElevation="@dimen/card_elevation"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -412,7 +425,7 @@
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="0dp"
+                            app:cardElevation="@dimen/card_elevation"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -455,7 +468,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:minHeight="88dp"
-                            app:cardElevation="0dp"
+                            app:cardElevation="@dimen/card_elevation"
                             app:strokeColor="@color/velocity_red_subtle">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -489,6 +502,112 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- 3. Notifications & Payments Status -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/notificationsCard"
+                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="11dp"
+                    app:cardElevation="@dimen/card_elevation"
+                    app:strokeColor="@color/velocity_red_subtle">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="11dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_blue_soft"
+                                android:importantForAccessibility="no"
+                                android:padding="8dp"
+                                android:src="@drawable/ic_notifications"
+                                app:tint="@color/velocity_blue_primary" />
+                            <TextView
+                                android:id="@+id/notificationsTitle"
+                                style="@style/TextAppearance.Velocity.Label.Section"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:text="@string/notifications" />
+                            <TextView
+                                android:id="@+id/notificationCountBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_blue_primary"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:minWidth="22dp"
+                                android:paddingHorizontal="7dp"
+                                android:paddingVertical="2dp"
+                                android:text="@string/zero"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                tools:visibility="visible"
+                                tools:text="3" />
+                            <TextView
+                                android:id="@+id/btnViewAllNotifications"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center"
+                                android:minHeight="40dp"
+                                android:paddingHorizontal="16dp"
+                                android:paddingVertical="8dp"
+                                android:text="@string/see_all"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-bold"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="11dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/notifications_dashboard_desc"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp"
+                            android:alpha="0.72" />
+
+                        <LinearLayout
+                            android:id="@+id/notificationListContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <TextView
+                            android:id="@+id/noNotificationsText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/no_notifications"
+                            android:gravity="center"
+                            android:paddingVertical="12dp"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:fontFamily="sans-serif-medium"
+                            android:visibility="gone"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Booking and Reservation Summary -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/bookingReservationSummaryCard"
@@ -496,7 +615,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -685,97 +804,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Next Hotel Transaction -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/nextTransactionCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/velocity_red_subtle">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:orientation="vertical"
-                        android:padding="11dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_green_soft"
-                                app:cardCornerRadius="0dp"
-                                app:cardElevation="0dp">
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_clock"
-                                    app:tint="@color/velocity_green_dark" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <TextView
-                                style="@style/TextAppearance.Velocity.Label.Section"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:layout_weight="1"
-                                android:fontFamily="sans-serif-black"
-                                android:textSize="14sp"
-                                android:text="@string/next_hotel_transaction_label" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:alpha="0.45"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_chevron_right"
-                                app:tint="@color/velocity_text_secondary" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:alpha="0.7"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/next_hotel_transaction_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/nextHotelTransactionText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="11dp"
-                            android:gravity="center"
-                            android:paddingVertical="10dp"
-                            android:fontFamily="sans-serif-bold"
-                            android:text="@string/no_next_transaction"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-
-                        <LinearLayout
-                            android:id="@+id/nextTransactionListContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:orientation="vertical" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
                 <!-- 1. Booking Details & Payment Status -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/bookingDetailsCard"
@@ -783,7 +811,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -920,7 +948,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1020,112 +1048,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- 3. Notifications & Payments Status -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/notificationsCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/velocity_red_subtle">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_blue_soft"
-                                android:importantForAccessibility="no"
-                                android:padding="8dp"
-                                android:src="@drawable/ic_notifications"
-                                app:tint="@color/velocity_blue_primary" />
-                            <TextView
-                                android:id="@+id/notificationsTitle"
-                                style="@style/TextAppearance.Velocity.Label.Section"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:text="@string/notifications" />
-                            <TextView
-                                android:id="@+id/notificationCountBadge"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_blue_primary"
-                                android:fontFamily="sans-serif-black"
-                                android:gravity="center"
-                                android:minWidth="22dp"
-                                android:paddingHorizontal="7dp"
-                                android:paddingVertical="2dp"
-                                android:text="@string/zero"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
-                                android:visibility="gone"
-                                tools:visibility="visible"
-                                tools:text="3" />
-                            <TextView
-                                android:id="@+id/btnViewAllNotifications"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:gravity="center"
-                                android:minHeight="40dp"
-                                android:paddingHorizontal="16dp"
-                                android:paddingVertical="8dp"
-                                android:text="@string/see_all"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif-bold"/>
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="11dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/notifications_dashboard_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp"
-                            android:alpha="0.72" />
-
-                        <LinearLayout
-                            android:id="@+id/notificationListContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-
-                        <TextView
-                            android:id="@+id/noNotificationsText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/no_notifications"
-                            android:gravity="center"
-                            android:paddingVertical="12dp"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:fontFamily="sans-serif-medium"
-                            android:visibility="gone"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
                 <!-- 4. Payment Status Summary -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/paymentStatusCard"
@@ -1133,7 +1055,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1233,6 +1155,84 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Modern Date/Time Widget - tap to open the Calendar -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/dateTimeCard"
+                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:cardElevation="@dimen/card_elevation"
+                    app:strokeColor="@color/velocity_red_subtle">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="11dp">
+
+                        <ImageView
+                            android:id="@+id/clockIcon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/shape_intro_pill"
+                            android:backgroundTint="@color/velocity_red_soft"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_clock"
+                            android:contentDescription="@string/system_clock_label"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:tint="@color/velocity_red_primary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:orientation="vertical"
+                            app:layout_constraintBottom_toBottomOf="@id/clockIcon"
+                            app:layout_constraintEnd_toStartOf="@id/dateTimeChevron"
+                            app:layout_constraintStart_toEndOf="@id/clockIcon"
+                            app:layout_constraintTop_toTopOf="@id/clockIcon">
+
+                            <TextView
+                                android:id="@+id/timeText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-black"
+                                android:text="@string/time_placeholder"
+                                android:textColor="@color/black"
+                                android:textSize="30sp" />
+
+                            <TextView
+                                android:id="@+id/dateText"
+                                style="@style/TextAppearance.Velocity.Label.Section"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:alpha="0.8"
+                                android:text="@string/loading_date"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/dateTimeChevron"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:alpha="0.45"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_chevron_right"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="@color/velocity_text_secondary" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- 5. Account Summary -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/accountSummaryCard"
@@ -1240,7 +1240,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="32dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1308,7 +1308,7 @@
                                 android:layout_width="46dp"
                                 android:layout_height="46dp"
                                 app:cardCornerRadius="23dp"
-                                app:cardElevation="0dp"
+                                app:cardElevation="@dimen/card_elevation"
                                 app:strokeColor="@color/velocity_red_primary"
                                 app:strokeWidth="2dp">
                                 <ImageView
@@ -1426,8 +1426,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="11dp"
                     app:cardBackgroundColor="@color/velocity_red_primary"
-                    app:cardCornerRadius="0dp"
-                    app:cardElevation="0dp">
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1439,8 +1439,8 @@
                             android:layout_width="44dp"
                             android:layout_height="44dp"
                             app:cardBackgroundColor="@color/velocity_white_15"
-                            app:cardCornerRadius="0dp"
-                            app:cardElevation="0dp">
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="@dimen/card_elevation">
                             <ImageView
                                 android:layout_width="22dp"
                                 android:layout_height="22dp"

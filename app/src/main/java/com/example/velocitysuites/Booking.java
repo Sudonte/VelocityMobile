@@ -308,6 +308,9 @@ public class Booking implements Serializable {
         public final String paymentStage;
         public final String transactionType;
         public final double amountPaid;
+        /** Cash only (null for GCash and older payments): the cash handed over and the change returned. */
+        @Nullable public Double cashReceived;
+        @Nullable public Double changeGiven;
         public final String paymentStatus;
         @Nullable public final String verificationStatus;
         @Nullable public final String gcashNumber;
@@ -381,6 +384,14 @@ public class Booking implements Serializable {
         public String status;
         /** GCash mobile number entered for this specific payment - null for a Cash payment. */
         public String gcashNumber;
+        /** Cash only: the cash handed over and the change returned (amount is what was applied); null for GCash and older payments. */
+        public String cashReceived;
+        public String changeGiven;
+
+        /** True for a cash payment that recorded what was handed over (so "Cash received" / "Change" can be shown). */
+        public boolean hasCashTender() {
+            return method != null && "CASH".equalsIgnoreCase(method.trim()) && cashReceived != null && !cashReceived.trim().isEmpty();
+        }
 
         public PaymentRecord(String amount, String method, String referenceNumber, String date, String status) {
             this(amount, method, referenceNumber, date, status, null);

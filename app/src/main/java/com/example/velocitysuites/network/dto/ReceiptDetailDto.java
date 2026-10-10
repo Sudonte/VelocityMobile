@@ -55,6 +55,9 @@ public class ReceiptDetailDto {
 
     public static class AnchorPaymentDto {
         public double amount_paid;
+        /** Cash only (null for GCash). */
+        public Double cash_received;
+        public Double change_given;
         public String payment_method;
         public Integer payment_percentage;
         public String gcash_number;

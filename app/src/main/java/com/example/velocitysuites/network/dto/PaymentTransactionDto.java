@@ -24,6 +24,9 @@ public class PaymentTransactionDto {
     /** PARTIAL_PAYMENT | FULL_PAYMENT | CHECKOUT_PAYMENT - see ReceiptService::transactionType() (backend). Unknown future values must be handled gracefully, never crash. */
     public String transaction_type;
     public double amount_paid;
+    /** Cash only (null for GCash): the cash handed over and the change returned; amount_paid is what was applied. */
+    public Double cash_received;
+    public Double change_given;
     /** pending | completed | failed | rejected. */
     public String payment_status;
     /** pending_verification | verified | rejected | null - only meaningful for a guest-submitted GCash payment; always null for a receptionist-recorded checkout row. */

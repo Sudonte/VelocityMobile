@@ -44,4 +44,7 @@
     <dimen name="guest_header_notification_size">34dp</dimen>
     <dimen name="guest_header_notification_badge_circle_radius">16dp</dimen>
     <dimen name="guest_header_profile_size">34dp</dimen>
+    <!-- One card look app-wide: 12dp corners, subtle elevation. -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
 </resources>

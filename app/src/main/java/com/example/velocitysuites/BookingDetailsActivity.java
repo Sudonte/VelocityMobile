@@ -229,6 +229,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         buildRoomInfoSection(findViewById(R.id.sectionRoomInfoContent));
         buildPaymentInfoSection(findViewById(R.id.sectionPaymentInfoContent));
         buildPaymentSummarySection(findViewById(R.id.sectionPaymentSummaryContent));
+        buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
     }
 
@@ -529,6 +530,26 @@ public class BookingDetailsActivity extends AppCompatActivity {
         }
     }
 
+    // ---- Discount ID section ----
+
+    /**
+     * The guest's discount ID check (Senior / PWD / ...), decided by the front desk separately from the transaction
+     * itself. Shown only when a discount was asked for (status pending / approved / rejected).
+     */
+    private void buildDiscountIdSection(android.view.View card, LinearLayout container) {
+        String status = booking.getDiscountVerificationStatus();
+        int label;
+        if ("approved".equalsIgnoreCase(status)) label = R.string.discount_id_status_approved;
+        else if ("rejected".equalsIgnoreCase(status)) label = R.string.discount_id_status_rejected;
+        else if ("pending".equalsIgnoreCase(status)) label = R.string.discount_id_status_pending;
+        else {
+            card.setVisibility(android.view.View.GONE);
+            return;
+        }
+        card.setVisibility(android.view.View.VISIBLE);
+        addInfoRow(container, getString(R.string.discount_id_status_label), getString(label));
+    }
+
     // ---- Payment Summary section ----
 
     private void buildPaymentSummarySection(LinearLayout container) {
@@ -715,19 +736,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
     private View buildPaymentHistoryRow(ViewGroup parent, Booking.PaymentRecord record, NumberFormat currencyFormat) {
         View row = LayoutInflater.from(this).inflate(R.layout.item_payment_history_entry, parent, false);
-        TextView tvMethod = row.findViewById(R.id.tvHistoryMethod);
-        TextView tvDate = row.findViewById(R.id.tvHistoryDate);
-        TextView tvAmount = row.findViewById(R.id.tvHistoryAmount);
-        TextView tvStatus = row.findViewById(R.id.tvHistoryStatus);
-
-        tvMethod.setText(record.method != null ? record.method : getString(R.string.label_not_available));
-        tvDate.setText(record.date != null ? record.date : getString(R.string.label_not_available));
-        try {
-            tvAmount.setText(currencyFormat.format(Double.parseDouble(record.amount)));
-        } catch (NumberFormatException | NullPointerException e) {
-            tvAmount.setText(record.amount != null ? record.amount : "");
-        }
-        tvStatus.setText(record.status != null ? record.status : "");
+        PaymentCardBinder.bind(row, record, this);
         return row;
     }
 

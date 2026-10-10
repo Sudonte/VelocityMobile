@@ -43,9 +43,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The Booking / Reservation screens are flat and square: across every wizard step of both flows and the
- * Booking Details screen, no card, button, text field, chip, bar, dialog or bottom sheet has a shadow
- * (elevation 0, no press animator) or a rounded corner (radius 0). Checked on the real, themed views.
+ * One look across the app: controls (buttons, text fields, chips, bars) stay flat and square - elevation 0, no press
+ * animator, radius 0 - while every card is rounded (12dp) with a subtle elevation (2dp). Checked across every wizard
+ * step of both flows, Booking Details, the Booking/Reservation lists and Landing, on the real, themed views.
  */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
@@ -66,7 +66,8 @@ public class FlatStyleTest {
 
     private static void collect(View v, List<String> problems, String where) {
         String name = v.getClass().getSimpleName() + idName(v);
-        if (v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
+        // Controls stay flat; only cards carry the app-wide subtle elevation (checked below).
+        if (!(v instanceof MaterialCardView) && v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
         if (v instanceof MaterialButton) {
             MaterialButton b = (MaterialButton) v;
             if (b.getCornerRadius() != 0) problems.add(where + " " + name + " cornerRadius=" + b.getCornerRadius());
@@ -74,8 +75,11 @@ public class FlatStyleTest {
         }
         if (v instanceof MaterialCardView) {
             MaterialCardView c = (MaterialCardView) v;
-            if (c.getRadius() != 0f) problems.add(where + " " + name + " radius=" + c.getRadius());
-            if (c.getCardElevation() != 0f) problems.add(where + " " + name + " cardElevation=" + c.getCardElevation());
+            // One card look app-wide: 12dp corners and a subtle 2dp elevation (dimens card_corner_radius / card_elevation).
+            float radius = v.getResources().getDimension(R.dimen.card_corner_radius);
+            float elevation = v.getResources().getDimension(R.dimen.card_elevation);
+            if (c.getRadius() != radius) problems.add(where + " " + name + " radius=" + c.getRadius() + " (expected " + radius + ")");
+            if (c.getCardElevation() != elevation) problems.add(where + " " + name + " cardElevation=" + c.getCardElevation() + " (expected " + elevation + ")");
         }
         if (v instanceof TextInputLayout) {
             TextInputLayout t = (TextInputLayout) v;
@@ -107,7 +111,7 @@ public class FlatStyleTest {
     }
 
     @Test
-    public void everyWizardStepOfBothFlowsHasNoShadowsAndNoRoundedCorners() {
+    public void everyWizardStepOfBothFlowsHasFlatControlsAndRoundedCards() {
         List<String> problems = new ArrayList<>();
         for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
             ActivityController<BookingWizardActivity> controller =
@@ -127,7 +131,7 @@ public class FlatStyleTest {
     }
 
     @Test
-    public void bookingDetailsScreenHasNoShadowsAndNoRoundedCorners() {
+    public void bookingDetailsScreenHasFlatControlsAndRoundedCards() {
         Booking b = new Booking("5", "1", "Deluxe", "Deluxe", "Oct 09, 2026", "Oct 11, 2026", 2, 4000.0, "Pending", "Oct 08, 2026");
         b.setTotalIncludesAmenities(true);
         ActivityController<BookingDetailsActivity> controller = Robolectric.buildActivity(BookingDetailsActivity.class,
@@ -140,7 +144,7 @@ public class FlatStyleTest {
     }
 
     @Test
-    public void bookingAndReservationListsHaveNoShadowsAndNoRoundedCorners() {
+    public void bookingAndReservationListsHaveFlatControlsAndRoundedCards() {
         ActivityController<com.example.velocitysuites.BookingAndReservationActivity> controller =
                 Robolectric.buildActivity(com.example.velocitysuites.BookingAndReservationActivity.class,
                         new Intent(app, com.example.velocitysuites.BookingAndReservationActivity.class));
@@ -161,7 +165,7 @@ public class FlatStyleTest {
     }
 
     @Test
-    public void landingPageHasNoShadowsAndNoRoundedCorners() {
+    public void landingPageHasFlatControlsAndRoundedCards() {
         ScreenTestSupport.FakeApi api = new ScreenTestSupport.FakeApi();
         ScreenTestSupport.freshRepository(app, api);
         ActivityController<com.example.velocitysuites.LandingActivity> controller =
@@ -193,7 +197,7 @@ public class FlatStyleTest {
     }
 
     @Test
-    public void dialogsAndBottomSheetsAreSquareAndShadowless() {
+    public void dialogsAndBottomSheetsAreShadowless() {
         ActivityController<BookingWizardActivity> controller =
                 Robolectric.buildActivity(BookingWizardActivity.class, BookingWizardActivity.newIntent(app, BookingWizardState.Mode.BOOKING));
         controller.setup();

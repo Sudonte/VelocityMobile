@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Flat / square look for the whole app (originally the Booking and Reservation screens):
+    Flat controls with ROUNDED CARDS for the whole app (originally the flat/square Booking and Reservation screens; cards are now 12dp with a subtle 2dp elevation, see dimens card_corner_radius / card_elevation):
       - no shadows: elevation 0 on cards, buttons, dialogs and bottom sheets, and no button press
         shadow (stateListAnimator @null);
       - every box fully square: corner radius 0 on cards, buttons, text fields, chips, image
@@ -11,6 +11,12 @@
     dialog picks it up. Brand colors and fonts are untouched (this file only sets shape/elevation).
 -->
 <resources>
+
+    <!-- Cards (and dialogs / sheets that share the medium-component shape): 12dp corners, app-wide. -->
+    <style name="ShapeAppearance.Velocity.Card" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/card_corner_radius</item>
+    </style>
 
     <style name="ShapeAppearance.Velocity.Square" parent="">
         <item name="cornerFamily">rounded</item>
@@ -56,12 +62,12 @@
 
     <!-- Cards: 1dp hairline border instead of a shadow -->
     <style name="Widget.Velocity.Card.Flat" parent="Widget.MaterialComponents.CardView">
-        <item name="cardElevation">0dp</item>
-        <item name="cardCornerRadius">0dp</item>
+        <item name="cardElevation">@dimen/card_elevation</item>
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
         <item name="cardBackgroundColor">@color/velocity_surface_elevated</item>
         <item name="strokeColor">@color/velocity_divider_hairline</item>
         <item name="strokeWidth">1dp</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Velocity.Card</item>
     </style>
 
     <!-- Choice chips -->

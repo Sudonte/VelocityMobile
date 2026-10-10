@@ -9,5 +9,5 @@
         android:startColor="@color/velocity_red_soft"
         android:endColor="@color/velocity_surface_elevated"
         android:angle="135"/>
-    <corners android:radius="0dp" />
+    <corners android:radius="@dimen/card_corner_radius" />
 </shape>

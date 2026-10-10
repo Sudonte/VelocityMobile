@@ -312,7 +312,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // "read cards use the normal background" - the unread-vs-read signal is
         // the tint, the title weight, and the unread dot above, each independently
         // visible.
-        holder.card.setCardElevation(0f);
+        holder.card.setCardElevation(ctx.getResources().getDimension(R.dimen.card_elevation));
         holder.card.setCardBackgroundColor(ctx.getColor(
                 isRead ? R.color.velocity_surface_elevated : R.color.velocity_red_bg_start));
         holder.card.setStrokeColor(ctx.getColor(

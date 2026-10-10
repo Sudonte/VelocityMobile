@@ -16,7 +16,7 @@
         <!-- Flat, square UI app-wide: every component shape is 0dp and nothing casts a shadow.
              Sections separate with 1dp hairline borders (see Widget.Velocity.Card.Flat). -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Velocity.Square</item>
-        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Velocity.Card</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Velocity.Square</item>
         <item name="materialButtonStyle">@style/Widget.Velocity.Flat.Button</item>
         <item name="materialButtonOutlinedStyle">@style/Widget.Velocity.Flat.Button.Outlined</item>
