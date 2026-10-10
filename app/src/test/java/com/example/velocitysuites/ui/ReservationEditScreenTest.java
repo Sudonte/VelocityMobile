@@ -403,6 +403,6 @@ public class ReservationEditScreenTest {
         BookingWizardActivity activity = controller.get();
         assertEquals("the wizard waits for the catalog", View.VISIBLE, activity.findViewById(R.id.wizardLoading).getVisibility());
         assertTrue(activity.getState().selectedRooms.isEmpty());
-        assertEquals(1, api.count("getRooms"));
+        assertEquals(1, api.count("getRoomsFresh"));
     }
 }

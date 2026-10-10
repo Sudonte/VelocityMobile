@@ -180,6 +180,38 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         // before completing GCash) must not leave Confirm permanently
         // disabled - re-evaluate against the still-accepted T&C checkbox.
         setSubmitting(false);
+        String rejection = PendingBookingPayload.takeRoomsUnavailable();
+        if (rejection != null) sendBackAfterRoomRejected(rejection);
+    }
+
+    /**
+     * The server refused the booking because a room is no longer free (see AvailabilityRejection). Read what is free
+     * now, drop only the rooms that are gone from the selection, say so, and open Room Selection - dates, guest
+     * details, amenities and the rest of what was entered stay as they are.
+     */
+    private void sendBackAfterRoomRejected(String serverMessage) {
+        BookingWizardState state = getState();
+        Runnable goBack = () -> {
+            if (!isAdded()) return;
+            Toast.makeText(requireContext(), getString(R.string.error_booking_room_rejected, serverMessage), Toast.LENGTH_LONG).show();
+            getWizardActivity().goToStep(2);
+        };
+        if (state.checkIn == null || state.checkOut == null) {
+            goBack.run();
+            return;
+        }
+        repository.refreshRoomsFresh(state.checkIn, state.checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
+            @Override
+            public void onSuccess(List<Room> freshRooms) {
+                RoomAvailabilityReconciler.reconcile(state.selectedRooms, freshRooms);
+                goBack.run();
+            }
+
+            @Override
+            public void onError(String message) {
+                goBack.run(); // Room Selection re-reads availability itself
+            }
+        });
     }
 
     @Override
@@ -410,39 +442,16 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             return;
         }
 
-        repository.refreshRooms(state.checkIn, state.checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
+        repository.refreshRoomsFresh(state.checkIn, state.checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> freshRooms) {
                 if (!isAdded()) return;
 
-                java.util.Map<String, Integer> freshAvailableById = new java.util.HashMap<>();
-                for (Room r : freshRooms) {
-                    freshAvailableById.put(r.getId(), r.getAvailableCount());
-                }
+                List<RoomAvailabilityReconciler.Shortfall> shortfalls = RoomAvailabilityReconciler.reconcile(state.selectedRooms, freshRooms);
+                String issues = getWizardActivity().describeShortfalls(shortfalls);
 
-                StringBuilder issues = new StringBuilder();
-                for (java.util.Map.Entry<String, List<Room>> entry : state.selectedRoomsGroupedByType().entrySet()) {
-                    List<Room> group = entry.getValue();
-                    Room representative = group.get(0);
-                    Integer fresh = freshAvailableById.get(entry.getKey());
-                    int available = fresh != null ? fresh : 0;
-
-                    if (available < group.size()) {
-                        if (issues.length() > 0) issues.append("\n");
-                        if (available <= 0) {
-                            issues.append(getString(R.string.error_room_no_longer_available_format, representative.getName()));
-                            state.selectedRooms.removeAll(group);
-                        } else {
-                            issues.append(getString(R.string.error_room_availability_decreased_format, available, representative.getName()));
-                            for (int i = group.size() - 1; i >= available; i--) {
-                                state.selectedRooms.remove(group.get(i));
-                            }
-                        }
-                    }
-                }
-
-                if (issues.length() > 0) {
-                    Toast.makeText(requireContext(), issues.toString(), Toast.LENGTH_LONG).show();
+                if (!shortfalls.isEmpty()) {
+                    Toast.makeText(requireContext(), issues, Toast.LENGTH_LONG).show();
                     // Aborting without ever reaching proceedAfterConfirm() - undo the guard
                     // armed in onConfirmClicked() so btnConfirm is usable again once the
                     // guest comes back through Step 8 after adjusting their room selection.

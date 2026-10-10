@@ -159,6 +159,113 @@ public class WizardStepsScreenTest {
         assertFalse("late check-in, same day", step1Accepts(activity, 7, 7));
     }
 
+    // ---- availability is re-read when the guest comes back ----
+
+    private static com.example.velocitysuites.network.dto.RoomsResponse roomsResponse(long id, int available) {
+        com.example.velocitysuites.network.dto.RoomTypeDto type = new com.example.velocitysuites.network.dto.RoomTypeDto();
+        type.id = id;
+        type.name = "Room " + id;
+        type.capacity = 2;
+        type.rate = "2500.00";
+        type.available_count = available;
+        com.example.velocitysuites.network.dto.RoomsResponse response = new com.example.velocitysuites.network.dto.RoomsResponse();
+        response.room_types = ScreenTestSupport.page(Collections.singletonList(type));
+        return response;
+    }
+
+    private ActivityController<BookingWizardActivity> wizardAtAmenitiesWithRoom1() {
+        ActivityController<BookingWizardActivity> controller = launch(BookingWizardState.Mode.BOOKING);
+        BookingWizardActivity activity = controller.get();
+        BookingWizardState state = activity.getState();
+        state.checkIn = daysFromHotelToday(5);
+        state.checkOut = daysFromHotelToday(7);
+        state.selectedRooms.add(room("1", 2));
+        activity.goToStep(3);
+        idle();
+        return controller;
+    }
+
+    private static void leaveAndComeBack(ActivityController<BookingWizardActivity> controller) {
+        controller.pause().stop();
+        idle();
+        controller.start().resume();
+        idle();
+    }
+
+    @Test
+    public void comingBack_readsAvailabilityFresh_andKeepsAWorkingSelection() {
+        ActivityController<BookingWizardActivity> controller = wizardAtAmenitiesWithRoom1();
+        leaveAndComeBack(controller);
+
+        assertEquals("uses the no-cache path", 1, api.count("getRoomsFresh"));
+        assertEquals("never the cacheable one", 0, api.count("getRooms"));
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>last("getRoomsFresh").succeed(roomsResponse(1, 3));
+        idle();
+
+        assertEquals("still on the same step", "wizard_step_3", fragment(controller.get()).getTag());
+        assertEquals(1, controller.get().getState().selectedRooms.size());
+    }
+
+    @Test
+    public void comingBack_whenTheRoomIsGone_dropsOnlyThatRoom_andOpensRoomSelection() {
+        ActivityController<BookingWizardActivity> controller = wizardAtAmenitiesWithRoom1();
+        BookingWizardState state = controller.get().getState();
+        state.adults = 2;
+        leaveAndComeBack(controller);
+
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>last("getRoomsFresh").succeed(roomsResponse(1, 0));
+        idle();
+
+        assertTrue("the gone room is out of the selection", state.selectedRooms.isEmpty());
+        assertEquals("Room Selection is open", "wizard_step_2", fragment(controller.get()).getTag());
+        assertNotNull("the dates were kept", state.checkIn);
+        assertEquals("other entered data was kept", 2, state.adults);
+    }
+
+    @Test
+    public void comingBack_whenTheCheckFails_saysNothingAndChangesNothing() {
+        ActivityController<BookingWizardActivity> controller = wizardAtAmenitiesWithRoom1();
+        leaveAndComeBack(controller);
+
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>last("getRoomsFresh").offline();
+        idle();
+
+        assertEquals("wizard_step_3", fragment(controller.get()).getTag());
+        assertEquals(1, controller.get().getState().selectedRooms.size());
+    }
+
+    @Test
+    public void afterTheServerRefusedTheBooking_reviewStepSendsTheGuestBackToRooms_keepingTheirData() throws Exception {
+        ActivityController<BookingWizardActivity> controller = launch(BookingWizardState.Mode.BOOKING);
+        BookingWizardState state = controller.get().getState();
+        state.checkIn = daysFromHotelToday(5);
+        state.checkOut = daysFromHotelToday(7);
+        state.adults = 2;
+        state.selectedRooms.add(room("1", 2));
+        controller.get().goToStep(7); // Booking mode: the review step
+        idle();
+
+        // PaymentActivity records the refusal, finishes, and the review step comes back to the front
+        Class<?> payload = Class.forName("com.example.velocitysuites.PendingBookingPayload");
+        java.lang.reflect.Method mark = payload.getDeclaredMethod("markRoomsUnavailable", String.class);
+        mark.setAccessible(true);
+        mark.invoke(null, "Room 1 is fully booked for these dates.");
+        controller.pause();
+        controller.resume();
+        idle();
+
+        assertEquals("the fresh, no-cache read", 1, api.count("getRoomsFresh"));
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>last("getRoomsFresh").succeed(roomsResponse(1, 0));
+        idle();
+
+        assertEquals("Room Selection is open", "wizard_step_2", fragment(controller.get()).getTag());
+        assertTrue("only the gone room was dropped", state.selectedRooms.isEmpty());
+        assertEquals("dates and guests kept", 2, state.adults);
+        assertNotNull(state.checkIn);
+        assertTrue("the server's own sentence is shown",
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("Room 1 is fully booked for these dates."));
+    }
+
     // ---- Step 5 (guests) ----
 
     private BookingWizardActivity openStep5(BookingWizardState.Mode mode, int roomCapacity, int roomCount) {

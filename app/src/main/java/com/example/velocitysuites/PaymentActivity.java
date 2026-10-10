@@ -2925,11 +2925,20 @@ public class PaymentActivity extends BaseNavigationActivity {
                 pendingWizardState.additionalGuests, pendingWizardState.selectedAmenities,
                 "gcash", referenceNumber, gcashNumber, receiptUri,
                 payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(),
-                new RoomRepository.RepositoryCallback<Booking>() {
+                new RoomRepository.AvailabilityAwareCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking booking) {
                         dismissSafely(dialog);
                         onPendingBookingCreated(booking, referenceNumber);
+                    }
+
+                    @Override
+                    public void onRoomsUnavailable(String message) {
+                        dismissSafely(dialog);
+                        isSubmittingPayment = false;
+                        restoreSubmitButtonAfterError();
+                        if (isFinishing() || isDestroyed()) return;
+                        showRoomsUnavailableDialog(message);
                     }
 
                     @Override
@@ -2958,6 +2967,23 @@ public class PaymentActivity extends BaseNavigationActivity {
                         showSubmitError(message);
                     }
                 });
+    }
+
+    /**
+     * The server refused the booking because a room is no longer free. Nothing was created. The guest either goes
+     * back to Room Selection (the wizard keeps their dates, details and amenities and drops only the rooms that are
+     * gone) or stays here with what they typed.
+     */
+    private void showRoomsUnavailableDialog(String serverMessage) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.rooms_unavailable_title)
+                .setMessage(getString(R.string.rooms_unavailable_message, serverMessage))
+                .setPositiveButton(R.string.rooms_unavailable_choose_another, (d, w) -> {
+                    PendingBookingPayload.markRoomsUnavailable(serverMessage);
+                    finish();
+                })
+                .setNegativeButton(R.string.rooms_unavailable_stay, null)
+                .show();
     }
 
     private void onPendingBookingCreated(Booking booking, String transactionRef) {

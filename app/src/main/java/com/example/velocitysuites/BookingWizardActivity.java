@@ -114,6 +114,68 @@ public class BookingWizardActivity extends AppCompatActivity {
         }
     }
 
+    private boolean wasStopped;
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        wasStopped = true;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (wasStopped) {
+            wasStopped = false;
+            recheckAvailabilityOnReturn();
+        }
+    }
+
+    /**
+     * The guest left the app (or came back from the payment screen) and may have been away long enough for
+     * another guest to take their room: read availability again, fresh. Rooms that are gone are dropped from the
+     * selection and Room Selection opens with a message; everything else they entered stays. Silent when nothing
+     * changed or the check fails - Confirm re-checks again before anything is sent.
+     */
+    private void recheckAvailabilityOnReturn() {
+        if (state == null || state.checkIn == null || state.checkOut == null || currentStepIndex < 2) return;
+        // Coming back from a refused booking: the review step handles that itself, with the server's own words.
+        if (PendingBookingPayload.hasRoomsUnavailable()) return;
+        RoomRepository.getInstance(this).refreshRoomsFresh(state.checkIn, state.checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
+            @Override
+            public void onSuccess(List<Room> fresh) {
+                if (isFinishing() || isDestroyed()) return;
+                List<RoomAvailabilityReconciler.Shortfall> lost = RoomAvailabilityReconciler.reconcile(state.selectedRooms, fresh);
+                if (!lost.isEmpty()) {
+                    Toast.makeText(BookingWizardActivity.this, describeShortfalls(lost), Toast.LENGTH_LONG).show();
+                    goToStep(2);
+                    return;
+                }
+                WizardStepFragment current = currentFragment();
+                if (current instanceof Step1RoomSelectionFragment) {
+                    ((Step1RoomSelectionFragment) current).onFreshRoomsAfterReturn(fresh);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                // silent
+            }
+        });
+    }
+
+    /** One line per room type that had to be trimmed - the same words wherever the wizard reports it. */
+    String describeShortfalls(List<RoomAvailabilityReconciler.Shortfall> shortfalls) {
+        StringBuilder text = new StringBuilder();
+        for (RoomAvailabilityReconciler.Shortfall shortfall : shortfalls) {
+            if (text.length() > 0) text.append('\n');
+            text.append(shortfall.isGone()
+                    ? getString(R.string.error_room_no_longer_available_format, shortfall.room.getName())
+                    : getString(R.string.error_room_availability_decreased_format, shortfall.available, shortfall.room.getName()));
+        }
+        return text.toString();
+    }
+
     /** Jumps directly to an arbitrary step - e.g. Step 7's fresh availability recheck sending the guest back to Step 2 to adjust a room quantity that's no longer available. */
     public void goToStep(int stepIndex) {
         showStep(stepIndex);
@@ -341,7 +403,7 @@ public class BookingWizardActivity extends AppCompatActivity {
         View loading = findViewById(R.id.wizardLoading);
         loading.setVisibility(View.VISIBLE);
         btnNext.setEnabled(false);
-        RoomRepository.getInstance(this).refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+        RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 if (isFinishing() || isDestroyed()) return;

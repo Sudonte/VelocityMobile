@@ -58,6 +58,10 @@ final class ScreenTestSupport {
         boolean pending() { return callback != null; }
         void succeed(T body) { callback.onResponse(this, Response.success(body)); }
         void http(int code) { callback.onResponse(this, Response.<T>error(code, emptyBody())); }
+        void httpWithBody(int code, String json) {
+            callback.onResponse(this, Response.<T>error(code,
+                    ResponseBody.create(json, MediaType.parse("application/json"))));
+        }
         void offline() { callback.onFailure(this, new java.net.UnknownHostException("offline")); }
     }
 

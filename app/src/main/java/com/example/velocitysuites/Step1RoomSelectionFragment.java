@@ -34,7 +34,7 @@ import java.util.Map;
  * now reading/writing BookingWizardState instead of Activity fields.
  * Dates are already chosen by the time this step is shown (step 1, see
  * Step2DatesFragment), so every availability fetch here is date-range-aware
- * (repository.refreshRooms(checkIn, checkOut, ...)) instead of the plain
+ * (repository.refreshRoomsFresh(checkIn, checkOut, ...)) instead of the plain
  * undated availableCount this step used to show back when it ran first.
  * Any room selection carried over from a previous pass through this step (or
  * seeded before the wizard even opened, via PendingWizardRooms/Book Again) is
@@ -123,7 +123,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         layoutRoomSelectionContent.setVisibility(View.GONE);
         layoutNoRoomsAvailableForDates.setVisibility(View.GONE);
         layoutRoomLoadError.setVisibility(View.GONE);
-        repository.refreshRooms(getState().checkIn, getState().checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
+        repository.refreshRoomsFresh(getState().checkIn, getState().checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 if (!isAdded()) return;
@@ -152,6 +152,14 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
                 }
             }
         });
+    }
+
+    /** The wizard re-read availability after the guest came back to the app: show the fresh list, quietly. */
+    void onFreshRoomsAfterReturn(List<Room> fresh) {
+        if (!isAdded() || layoutRoomSelectionContent == null) return;
+        allRooms = fresh;
+        roomsLoadedSuccessfullyOnce = true;
+        showRoomAvailabilityResult();
     }
 
     /** Switches between the normal Add Room UI and the "No Available Rooms" empty state, based on whether any room type has availableCount > 0 for the current dates. */
@@ -242,7 +250,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
     }
 
     private void onAddRoomClicked() {
-        repository.refreshRooms(getState().checkIn, getState().checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
+        repository.refreshRoomsFresh(getState().checkIn, getState().checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 allRooms = result;

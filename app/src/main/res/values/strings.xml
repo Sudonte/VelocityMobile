@@ -1236,6 +1236,11 @@
     <string name="no_more_rooms_available_toast">No more %1$s available for these dates.</string>
     <string name="error_room_no_longer_available_format">%1$s is no longer available for your chosen dates. Please select another room.</string>
     <string name="error_room_availability_decreased_format">Room availability has changed. Only %1$d room(s) of %2$s are currently available.</string>
+    <string name="error_booking_room_rejected">%1$s Your dates and other details were kept - please choose another room or change your dates.</string>
+    <string name="rooms_unavailable_title">Room no longer available</string>
+    <string name="rooms_unavailable_message">%1$s\n\nYour booking was not created. Your dates, guest details and amenities are kept - choose another room or change your dates and try again.</string>
+    <string name="rooms_unavailable_choose_another">Choose another room</string>
+    <string name="rooms_unavailable_stay">Stay here</string>
     <string name="error_room_no_longer_available_for_dates">Your previously selected room is no longer available for the updated dates. Please select another available room.</string>
     <string name="checking_available_rooms_message">Checking available rooms…</string>
     <string name="no_available_rooms_title">No Available Rooms</string>

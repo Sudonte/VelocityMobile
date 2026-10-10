@@ -64,6 +64,15 @@ public final class RoomRepository {
     }
 
     /**
+     * A callback that also wants to hear "the server says the room is no longer available" (see
+     * {@link AvailabilityRejection}) as its own outcome, so the screen can send the guest back to pick another
+     * room instead of showing an error banner. A callback that doesn't implement it gets onError() as before.
+     */
+    public interface AvailabilityAwareCallback<T> extends RepositoryCallback<T> {
+        void onRoomsUnavailable(String message);
+    }
+
+    /**
      * Outcome of {@link #lookupTransaction} - unlike RepositoryCallback it tells "there is no such
      * transaction" (a definite 404 - show a friendly message) apart from "couldn't ask" (offline/server
      * error - offer a retry), which a single error string can't do reliably.
@@ -1648,7 +1657,14 @@ public final class RoomRepository {
                         notifyBookingsChanged();
                         if (callback != null) callback.onSuccess(booking);
                     } else {
-                        if (callback != null) callback.onError(errorMessage(response));
+                        if (callback == null) return;
+                        String body = readErrorBody(response);
+                        String unavailable = AvailabilityRejection.messageOf(response.code(), body);
+                        if (unavailable != null && callback instanceof AvailabilityAwareCallback) {
+                            ((AvailabilityAwareCallback<Booking>) callback).onRoomsUnavailable(unavailable);
+                        } else {
+                            callback.onError(errorMessage(response.code(), body));
+                        }
                     }
                 }
 
@@ -2746,10 +2762,23 @@ public final class RoomRepository {
         context.startActivity(intent);
     }
 
+    /** The error body as text (an error body can only be read once), or null if there is none. */
+    private static String readErrorBody(Response<?> response) {
+        if (response.errorBody() == null) return null;
+        try {
+            return response.errorBody().string();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private String errorMessage(Response<?> response) {
-        if (response.errorBody() != null) {
+        return errorMessage(response.code(), readErrorBody(response));
+    }
+
+    private String errorMessage(int code, String body) {
+        if (body != null) {
             try {
-                String body = response.errorBody().string();
                 com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
                 String fieldError = firstFieldError(json);
                 if (fieldError != null && !fieldError.trim().isEmpty()) return fieldError;
@@ -2764,7 +2793,6 @@ public final class RoomRepository {
                 android.util.Log.e("RoomRepository", "Failed to parse error response body", e);
             }
         }
-        int code = response.code();
         if (code == 401 || code == 419) {
             forceSessionExpiredLogout(appContext);
             return appContext.getString(R.string.error_session_expired);

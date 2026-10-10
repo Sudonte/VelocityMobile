@@ -21,6 +21,24 @@ final class PendingBookingPayload {
         pendingState = state;
     }
 
+    private static String roomsUnavailableMessage;
+
+    /** PaymentActivity: the server refused the booking because a room is gone - the review step reads this when it comes back. */
+    static void markRoomsUnavailable(String serverMessage) {
+        roomsUnavailableMessage = serverMessage;
+    }
+
+    static boolean hasRoomsUnavailable() {
+        return roomsUnavailableMessage != null;
+    }
+
+    /** The server's message if the last submit was refused for availability (consume-once), else null. */
+    static String takeRoomsUnavailable() {
+        String result = roomsUnavailableMessage;
+        roomsUnavailableMessage = null;
+        return result;
+    }
+
     /** Returns the pending state and clears it so a stale review can never leak into a later, unrelated payment. */
     static BookingWizardState consume() {
         BookingWizardState result = pendingState;
