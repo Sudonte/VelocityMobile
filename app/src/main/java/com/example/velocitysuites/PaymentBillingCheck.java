@@ -22,19 +22,26 @@ public final class PaymentBillingCheck {
         public final double paid;
         /** A discount is waiting for the receptionist's ID check - deposits only (PaymentRules). */
         public final boolean discountPending;
+        /** The server's deposit cap while the discount is pending (see PaymentRules), else null. */
+        public final Double depositCap;
 
         public Bill(double total, double paid) {
-            this(total, paid, false);
+            this(total, paid, false, null);
         }
 
         public Bill(double total, double paid, boolean discountPending) {
+            this(total, paid, discountPending, null);
+        }
+
+        public Bill(double total, double paid, boolean discountPending, Double depositCap) {
             this.total = total;
             this.paid = paid;
             this.discountPending = discountPending;
+            this.depositCap = depositCap;
         }
 
         public static Bill of(Booking booking) {
-            return new Bill(booking.getTotalAmount(), booking.getAmountPaid(), booking.isDiscountPending());
+            return new Bill(booking.getTotalAmount(), booking.getAmountPaid(), booking.isDiscountPending(), booking.getDepositCap());
         }
 
         /** What is still owed; never negative. */
@@ -46,7 +53,9 @@ public final class PaymentBillingCheck {
             return other != null
                     && Math.abs(total - other.total) < EPSILON
                     && Math.abs(paid - other.paid) < EPSILON
-                    && discountPending == other.discountPending;
+                    && discountPending == other.discountPending
+                    && ((depositCap == null && other.depositCap == null)
+                        || (depositCap != null && other.depositCap != null && Math.abs(depositCap - other.depositCap) < EPSILON));
         }
     }
 
@@ -86,7 +95,7 @@ public final class PaymentBillingCheck {
         if (latest == null) return SubmitVerdict.CHECK_FAILED;
         if (!latest.sameAs(shown)) return SubmitVerdict.BILL_CHANGED;
         if (typedAmount > latest.balanceDue() + EPSILON) return SubmitVerdict.OVER_BALANCE;
-        PaymentRules.Verdict rule = PaymentRules.check(PaymentRules.of(latest.total, latest.paid, latest.discountPending), fullPayment, typedAmount);
+        PaymentRules.Verdict rule = PaymentRules.check(PaymentRules.of(latest.total, latest.paid, latest.discountPending, latest.depositCap), fullPayment, typedAmount);
         if (rule != PaymentRules.Verdict.OK) return SubmitVerdict.AMOUNT_NOT_ALLOWED;
         return SubmitVerdict.PROCEED;
     }

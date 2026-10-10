@@ -1332,6 +1332,8 @@
     <string name="front_desk_title">Pay at the front desk</string>
     <string name="discount_pending_line">Your discount is being verified. You can pay a deposit now and the rest after it\'s applied.</string>
     <string name="discount_on_hold">Your discount is being verified. Payment is on hold until it is applied: the remaining balance (%1$s) is below the minimum deposit (%2$s).</string>
+    <string name="discount_pending_cash_line">Your discount is being verified. Pay a cash deposit at the front desk now. The rest is settled at checkout after the discount is applied.</string>
+    <string name="max_deposit_reached">You\'ve paid the maximum deposit while your discount is being verified. The rest is settled at the front desk.</string>
     <string name="retry_label">Retry</string>
     <string name="bill_changed_title">Your bill has changed</string>
     <string name="bill_changed_message">The amount due on this reservation changed while you were away.\n\nBalance due: %1$s → %2$s\nAmount to pay: %3$s → %4$s\n\nYour GCash number, reference number and receipt were kept. Please check the new amount before you submit.</string>

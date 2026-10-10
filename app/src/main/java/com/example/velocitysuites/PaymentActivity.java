@@ -813,16 +813,21 @@ public class PaymentActivity extends BaseNavigationActivity {
     private void applyCashPartialInterlock() {
         if (cgPaymentAmount == null) return;
         int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
+        // A guest whose discount is still being verified may choose Cash as a DEPOSIT (the same 20-50% options as GCash);
+        // otherwise Cash is paid in full.
+        boolean cashIsFull = isCashSelected && !isDiscountPending();
         for (int id : partialChipIds) {
             com.google.android.material.chip.Chip chip = findViewById(id);
-            if (chip != null) chip.setVisibility(isCashSelected ? View.GONE : View.VISIBLE);
+            if (chip != null) chip.setVisibility(cashIsFull ? View.GONE : View.VISIBLE);
         }
-        if (isCashSelected) {
+        if (cashIsFull) {
             if (cgPaymentAmount.getCheckedChipId() != R.id.chipPercentFull) {
                 cgPaymentAmount.check(R.id.chipPercentFull);
             } else {
                 applyPaymentAmountSelection();
             }
+        } else {
+            applyPaymentAmountSelection();
         }
     }
 
@@ -893,7 +898,8 @@ public class PaymentActivity extends BaseNavigationActivity {
             String dueFormatted = MoneyFormat.format(remainingDueValue());
             PaymentRules.Range rulesRange = rulesRange();
             if (rulesRange.discountPending && grandTotalValue > 0 && !rulesRange.isSettled()) {
-                tvPaymentModeSub.setText(R.string.discount_pending_line);
+                tvPaymentModeSub.setText(rulesRange.capReached() ? R.string.max_deposit_reached
+                        : isCashSelected ? R.string.discount_pending_cash_line : R.string.discount_pending_line);
             } else if (isFullPaymentMode && grandTotalValue > 0 && !isCashSelected && !rulesRange.isSettled() && !rulesRange.canPartial()) {
                 // The 20% minimum no longer fits inside what is left: only Full is possible, and the guest is told why.
                 tvPaymentModeSub.setText(getString(R.string.partial_unavailable_hint, dueFormatted, MoneyFormat.format(rulesRange.min)));
@@ -937,8 +943,9 @@ public class PaymentActivity extends BaseNavigationActivity {
      * owed rather than the original total again.
      */
     private void applySelectedPartialPercent() {
-        double percentOfGrandTotal = Math.round(grandTotalValue * selectedPartialPercent * 100.0) / 100.0;
-        payNowValue = Math.min(percentOfGrandTotal, remainingDueValue());
+        // A share of the ORIGINAL total, capped at what is left to pay and at what the deposit cap leaves while a
+        // discount is being verified (PaymentRules.partialAmount).
+        payNowValue = PaymentRules.partialAmount(rulesRange(), selectedPartialPercent);
         if (etAmountToPay != null) {
             etAmountToPay.setText(String.format(Locale.US, "%.2f", payNowValue));
         }
@@ -1039,7 +1046,9 @@ public class PaymentActivity extends BaseNavigationActivity {
             case SETTLED:
                 return getString(R.string.error_payment_settled);
             case DISCOUNT_PENDING_FULL:
-                return getString(R.string.discount_pending_line);
+                return getString(isCashSelected ? R.string.discount_pending_cash_line : R.string.discount_pending_line);
+            case MAX_DEPOSIT_REACHED:
+                return getString(R.string.max_deposit_reached);
             case DISCOUNT_ON_HOLD:
                 return getString(R.string.discount_on_hold, MoneyFormat.format(range.remaining), MoneyFormat.format(range.min));
             case FULL_REQUIRED:
@@ -1063,7 +1072,8 @@ public class PaymentActivity extends BaseNavigationActivity {
     private boolean enforcePartialAvailability() {
         if (cgPaymentAmount == null || grandTotalValue <= 0) return false;
         PaymentRules.Range range = rulesRange();
-        boolean partialAllowed = !isCashSelected && range.canPartial();
+        // Cash is paid in full - except as a deposit while the discount is being verified.
+        boolean partialAllowed = (!isCashSelected || range.discountPending) && range.canPartial();
         // While a discount waits for the ID check only a deposit may be paid, so Full Payment is not offered.
         boolean fullAllowed = !range.discountPending;
         int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
@@ -1088,7 +1098,8 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     /** The server's payment rule for what is on screen right now - including a discount still waiting for its ID check. */
     private PaymentRules.Range rulesRange() {
-        return PaymentRules.of(grandTotalValue, alreadyPaidValue, isDiscountPending());
+        return PaymentRules.of(grandTotalValue, alreadyPaidValue, isDiscountPending(),
+                currentBooking != null ? currentBooking.getDepositCap() : null);
     }
 
     /** True while the discount the guest asked for is still being verified (deposits only). */
@@ -2197,8 +2208,8 @@ public class PaymentActivity extends BaseNavigationActivity {
                 switch (verdict) {
                     case AMOUNT_NOT_ALLOWED:
                         showSubmitError(ruleMessage(PaymentRules.check(
-                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending), isFullPaymentMode, payNowValue),
-                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending)));
+                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending, shownBill.depositCap), isFullPaymentMode, payNowValue),
+                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending, shownBill.depositCap)));
                         break;
                     case PROCEED:
                         submitPaymentToServer(number, referenceNumber);
@@ -2734,6 +2745,8 @@ public class PaymentActivity extends BaseNavigationActivity {
             cgPaymentMethod.check(isCash ? R.id.chipCash : R.id.chipGcash);
             isCashSelected = isCash;
             selectedPaymentMethod = isCash ? "Cash" : "GCash";
+            // A cash reservation whose discount is still being verified pays a cash DEPOSIT: refresh the options and the line under them.
+            if (isCash && isDiscountPending()) applyPaymentAmountSelection();
             return;
         }
 

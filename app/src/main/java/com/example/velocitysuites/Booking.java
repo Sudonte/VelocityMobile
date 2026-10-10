@@ -159,6 +159,8 @@ public class Booking implements Serializable {
     private String discountId;
     /** The server's discount_verification_status: not_requested / pending / approved / rejected (null when unknown). */
     private String discountVerificationStatus;
+    /** deposit_cap: the most all payments may add up to while the discount is pending (null otherwise). */
+    private Double depositCap;
     /** An ID image is stored on the server for this transaction (the edit wizard shows "ID on file" instead of an empty upload). */
     private boolean hasIdCard;
     /** Server-built timeline steps, in display order; empty when the server didn't send one (the screen then falls back to deriving steps). */
@@ -811,6 +813,8 @@ public class Booking implements Serializable {
     public String getDiscountVerificationStatus() { return discountVerificationStatus; }
     public void setDiscountVerificationStatus(String status) { this.discountVerificationStatus = status; }
     /** True while a discount waits for the receptionist's ID check - the guest may pay a deposit only (PaymentRules). */
+    public Double getDepositCap() { return depositCap; }
+    public void setDepositCap(Double depositCap) { this.depositCap = depositCap; }
     public boolean isDiscountPending() { return "pending".equalsIgnoreCase(discountVerificationStatus); }
     public String getDiscountId() { return discountId; }
     public void setDiscountId(String discountId) { this.discountId = discountId; }

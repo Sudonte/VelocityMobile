@@ -341,6 +341,62 @@ public class PaymentScreenTest {
         awaitSubmitCalls(1); // the selected deposit goes out; it is not a Full payment
     }
 
+    // ---- Cash as a deposit while the discount is being verified, and the deposit cap ----
+
+    private static ReservationDto cashReservation(ReservationDto r) {
+        r.payment_method = "cash";
+        return r;
+    }
+
+    @Test
+    public void discountPending_cashIsADeposit_withTheCashLine() {
+        PaymentActivity a = launch(cashReservation(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending")));
+        proceedToGcashPrerequisites(a);
+
+        assertTrue("the deposit options are offered for Cash too", isVisible(a, R.id.chipPercent20));
+        assertFalse("Full Payment is not", isVisible(a, R.id.chipPercentFull));
+        assertEquals(a.getString(R.string.discount_pending_cash_line), text(a, R.id.tvPaymentModeSub));
+        assertEquals("a deposit amount is selected", "₱400.00", text(a, R.id.tvAmountToPay));
+        assertTrue(a.findViewById(R.id.proceedToGcashButton).isEnabled());
+    }
+
+    @Test
+    public void withoutAPendingDiscount_cashStaysFullOnly() {
+        PaymentActivity a = launch(cashReservation(ScreenTestSupport.reservation(588, 2000)));
+        proceedToGcashPrerequisites(a);
+
+        assertTrue(isVisible(a, R.id.chipPercentFull));
+    }
+
+    @Test
+    public void whenTheDepositCapIsUsedUp_theMaximumDepositMessageShows_andPaymentIsBlocked() {
+        ReservationDto r = withDiscount(ScreenTestSupport.reservation(588, 2000,
+                ScreenTestSupport.payment(1, "1000.00", "completed", "gcash")), "pending");
+        r.deposit_cap = 1000.0;
+        PaymentActivity a = launch(r);
+        proceedToGcashPrerequisites(a);
+
+        assertFalse(a.findViewById(R.id.proceedToGcashButton).isEnabled());
+        assertEquals(a.getString(R.string.max_deposit_reached), text(a, R.id.tvAmountError));
+        assertEquals(a.getString(R.string.max_deposit_reached), text(a, R.id.tvPaymentModeSub));
+        assertFalse(isVisible(a, R.id.chipPercentFull));
+        assertFalse(isVisible(a, R.id.chipPercent20));
+    }
+
+    @Test
+    public void theDepositOptionsAreCappedByWhatIsLeftUnderTheCap() {
+        ReservationDto r = withDiscount(ScreenTestSupport.reservation(588, 2000,
+                ScreenTestSupport.payment(1, "600.00", "completed", "gcash")), "pending");
+        r.deposit_cap = 1000.0; // 400 left under the cap
+        PaymentActivity a = launch(r);
+        proceedToGcashPrerequisites(a);
+
+        a.findViewById(R.id.chipPercent50).performClick(); // 50% of 2,000 = 1,000 would overshoot the cap
+        idle();
+        assertEquals("₱400.00", text(a, R.id.tvAmountToPay));
+        assertTrue(a.findViewById(R.id.proceedToGcashButton).isEnabled());
+    }
+
     // ---- Review Billing: what is shown ----
 
     @Test

@@ -149,4 +149,66 @@ public class PaymentRulesTest {
     public void aSettledBillStaysSettledWhateverTheDiscountSays() {
         assertEquals(Verdict.SETTLED, PaymentRules.check(PaymentRules.of(2000, 2000, true), false, 500));
     }
+
+    // ---- the deposit cap while a discount is pending (same examples as the server's DepositCapWhilePendingDiscountTest) ----
+
+    /** A P2,000 bill with the 20% Senior discount pending: the server reports deposit_cap = min(1,000, 1,600) = 1,000. */
+    private static Range pending(double paid, double cap) {
+        return PaymentRules.of(2000, paid, true, cap);
+    }
+
+    @Test
+    public void depositsThatWouldAddUpPastTheDiscountedTotalAreStopped() {
+        // 1,000 + 500 + 300 on a 2,000 bill that becomes 1,600: after the first 1,000 (the cap) nothing more online
+        assertEquals(Verdict.OK, PaymentRules.check(pending(0, 1000), false, 1000));
+        Range afterFirst = pending(1000, 1000);
+        assertEquals(Verdict.MAX_DEPOSIT_REACHED, PaymentRules.check(afterFirst, false, 500));
+        assertEquals(Verdict.MAX_DEPOSIT_REACHED, PaymentRules.check(afterFirst, false, 300));
+        assertEquals(Verdict.MAX_DEPOSIT_REACHED, PaymentRules.check(afterFirst, true, 1000));
+        assertTrue(afterFirst.capReached());
+    }
+
+    @Test
+    public void aSecondDepositCanUseWhatIsLeftUnderTheCapButNotMore() {
+        Range range = pending(600, 1000); // 400 of the cap left
+        assertEquals(400, range.max, 0);
+        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(range, false, 401));
+        assertEquals(Verdict.OK, PaymentRules.check(range, false, 400));
+        assertFalse(range.capReached());
+    }
+
+    @Test
+    public void aLargeDiscountLowersTheCapBelowFiftyPercent() {
+        // 60% discount: 2,000 -> 800, cap 800
+        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(pending(0, 800), false, 800.01));
+        assertEquals(Verdict.OK, PaymentRules.check(pending(0, 800), false, 800));
+        // 50%: 2,000 -> 1,000 = the 50% cap
+        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(pending(0, 1000), false, 1000.01));
+        // 80%: 2,000 -> 400 = exactly the 20% minimum
+        assertEquals(Verdict.OK, PaymentRules.check(pending(0, 400), false, 400));
+        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(pending(0, 400), false, 401));
+    }
+
+    @Test
+    public void aDiscountSoLargeThatItIsBelowTheMinimumDepositAllowsNoDepositOnline() {
+        Range range = pending(0, 200); // 90%: 2,000 -> 200, under the 400 minimum
+        assertFalse(range.canPartial());
+        assertTrue(range.capReached());
+        assertEquals(Verdict.MAX_DEPOSIT_REACHED, PaymentRules.check(range, false, 400));
+        assertEquals(Verdict.MAX_DEPOSIT_REACHED, PaymentRules.check(range, true, 2000));
+    }
+
+    @Test
+    public void withNoCapReportedTheOrdinaryDepositRuleApplies() {
+        Range range = PaymentRules.of(2000, 600, true, null);
+        assertEquals(Verdict.OK, PaymentRules.check(range, false, 500));
+        assertEquals(Verdict.DISCOUNT_PENDING_FULL, PaymentRules.check(range, true, 1400));
+    }
+
+    @Test
+    public void theCapOnlyAppliesWhileTheDiscountIsPending() {
+        Range approved = PaymentRules.of(1600, 0, false, 1000.0);
+        assertEquals(Verdict.OK, PaymentRules.check(approved, true, 1600));
+        assertEquals(Double.MAX_VALUE, approved.capLeft, 0);
+    }
 }

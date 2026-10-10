@@ -107,4 +107,14 @@ public class PaymentBillingCheckTest {
         assertEquals(SubmitVerdict.AMOUNT_NOT_ALLOWED, PaymentBillingCheck.beforeSubmit(waiting, waiting, 1400, true));
         assertEquals(SubmitVerdict.PROCEED, PaymentBillingCheck.beforeSubmit(waiting, waiting, 500, false));
     }
+
+    @Test
+    public void aChangedDepositCapIsABillChange_andTheCapIsAppliedBeforeSending() {
+        Bill capped = new Bill(2000, 600, true, 1000.0);
+        assertTrue(PaymentBillingCheck.billChanged(capped, new Bill(2000, 600, true, 800.0)));
+        assertFalse(PaymentBillingCheck.billChanged(capped, new Bill(2000, 600, true, 1000.0)));
+        // 400 is left under the cap: 500 would be stopped before sending, 400 goes
+        assertEquals(SubmitVerdict.AMOUNT_NOT_ALLOWED, PaymentBillingCheck.beforeSubmit(capped, capped, 500, false));
+        assertEquals(SubmitVerdict.PROCEED, PaymentBillingCheck.beforeSubmit(capped, capped, 400, false));
+    }
 }
