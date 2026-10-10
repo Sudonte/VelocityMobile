@@ -7,11 +7,20 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-# Per-machine IDE and tool state (anything not already tracked stays out of git)
+# Per-machine IDE and tool state - differs between computers, never shared. The shared project settings
+# (.idea/gradle.xml, misc.xml, compiler.xml, runConfigurations.xml, .name, AndroidProjectSystem.xml) stay tracked.
 /.idea/vcs.xml
+/.idea/tasks.xml
+/.idea/usage.statistics.xml
+/.idea/dictionaries
+/.idea/shelf
+/.idea/deviceManager.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/appInsightsSettings.xml
+/.idea/studiobot.xml
+/.idea/intellij-javadocs-*.xml
 /.idea/claudeCodeEditorTabs.xml
 /.idea/claudeCodeTabState.xml
-/.idea/deploymentTargetSelector.xml
 /.claude/scheduled_tasks.lock
 .DS_Store
 /build
