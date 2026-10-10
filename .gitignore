@@ -7,6 +7,12 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+# Per-machine IDE and tool state (anything not already tracked stays out of git)
+/.idea/vcs.xml
+/.idea/claudeCodeEditorTabs.xml
+/.idea/claudeCodeTabState.xml
+/.idea/deploymentTargetSelector.xml
+/.claude/scheduled_tasks.lock
 .DS_Store
 /build
 /captures
