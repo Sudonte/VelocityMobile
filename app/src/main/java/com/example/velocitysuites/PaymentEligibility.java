@@ -40,6 +40,25 @@ public final class PaymentEligibility {
                 && !"Rejected".equalsIgnoreCase(b.getStatus());
     }
 
+    /**
+     * True for a CONFIRMED booking that still has a balance: the guest pays the rest at the front desk, not in the app
+     * (the server refuses in-app payments for a booking). Status and balance come from TransactionStatusHelper - the
+     * server's payment summary, verified payments only - so this never calculates a number of its own. A fully paid,
+     * cancelled or rejected booking has nothing to pay and gets no message.
+     */
+    public static boolean needsFrontDeskPayment(Booking b) {
+        if (b == null || !b.isHasBooking() || b.isHistoricalReservation()) return false;
+        TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
+        boolean open = summary.status == TransactionStatusHelper.Status.PENDING
+                || summary.status == TransactionStatusHelper.Status.PARTIALLY_PAID;
+        return open && MoneyFormat.isPositive(summary.balance);
+    }
+
+    /** The remaining balance to quote in the front-desk message (the server's figure, verified payments only). */
+    public static double frontDeskBalance(Booking b) {
+        return TransactionStatusHelper.summarize(b).balance;
+    }
+
     /** True when a GCash payment has been submitted and is awaiting staff review - no action button, just a status pill. */
     public static boolean isAwaitingVerification(Booking b) {
         return b != null && b.isPaymentPendingVerification();

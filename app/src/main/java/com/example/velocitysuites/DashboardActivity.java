@@ -638,6 +638,8 @@ public class DashboardActivity extends BaseNavigationActivity {
             }
         }
 
+        FrontDeskNote.bind(card.findViewById(R.id.tvFrontDeskNote), b);
+
         paymentListContainer.addView(card);
     }
     /** How many of the soonest upcoming check-ins/check-outs the Upcoming Transactions preview shows. */

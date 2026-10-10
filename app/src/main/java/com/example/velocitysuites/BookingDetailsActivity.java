@@ -598,6 +598,11 @@ public class BookingDetailsActivity extends AppCompatActivity {
         if (remainingBalance > 0.009 && (amountPaid > 0.009 || booking.isHasBooking())) {
             addInfoRow(container, getString(R.string.details_label_remaining_balance), formatPrice(remainingBalance));
         }
+        if (PaymentEligibility.needsFrontDeskPayment(booking)) {
+            TextView note = (TextView) LayoutInflater.from(this).inflate(R.layout.view_front_desk_note, container, false);
+            note.setText(FrontDeskNote.messageFor(this, booking));
+            container.addView(note);
+        }
 
         // ---- 3. Grand Total Amount: Amenities Total (same value as section 1
         // above, never recalculated), Room Total (same value already shown at

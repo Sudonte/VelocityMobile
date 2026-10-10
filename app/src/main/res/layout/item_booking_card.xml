@@ -188,6 +188,21 @@
             android:orientation="vertical"
             android:layout_marginTop="8dp">
 
+            <TextView
+                android:id="@+id/tvFrontDeskNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@color/velocity_red_soft"
+                android:fontFamily="sans-serif-medium"
+                android:lineSpacingExtra="2dp"
+                android:padding="10dp"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="Remaining balance: ₱1,400.00. Please pay at the Velocity Suites front desk."
+                tools:visibility="visible" />
+
             <!--
               Primary row: View Details always shown; Pay Now only for an active
               Reservation List card (see BookingAndReservationActivity.BookingsAdapter).

@@ -318,6 +318,64 @@
                             android:textSize="14sp" />
                     </LinearLayout>
 
+                    <!-- A confirmed Booking is never paid in the app: the rest of the balance is settled at the front desk.
+                         Stays on screen (unlike a toast) and offers a way back. -->
+                    <LinearLayout
+                        android:id="@+id/frontDeskSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <ImageView
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_marginTop="8dp"
+                            android:alpha="0.25"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_payment"
+                            app:tint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="sans-serif-black"
+                            android:letterSpacing="0.1"
+                            android:text="@string/front_desk_title"
+                            android:textAllCaps="true"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvFrontDeskMessage"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="@color/velocity_red_soft"
+                            android:gravity="center"
+                            android:lineSpacingExtra="2dp"
+                            android:padding="16dp"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="16sp"
+                            tools:text="Remaining balance: ₱1,400.00. Please pay at the Velocity Suites front desk." />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFrontDeskBack"
+                            style="@style/Widget.Velocity.Flat.Button.Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:minHeight="48dp"
+                            android:text="@string/back_label"
+                            android:textColor="@color/velocity_action_text"
+                            app:icon="@drawable/ic_arrow_back"
+                            app:iconTint="@color/velocity_action_text" />
+                    </LinearLayout>
+
                     <!-- ============ STEP 1: REVIEW BILLING ============
                          Reads top to bottom: where you are -> the amount -> what you are paying for -> the bill ->
                          how much to pay now. "Proceed" lives in the pinned action bar below the screen. -->

@@ -889,7 +889,6 @@
     <string name="error_no_booking_data">No booking data available. Please go back and select a booking to pay for.</string>
     <string name="error_booking_not_found">We couldn\'t find this booking. Please try again.</string>
     <string name="error_no_active_booking">No active booking was selected for payment.</string>
-    <string name="error_booking_not_payable">This is a confirmed booking and cannot be paid again here. Any remaining balance is settled at Velocity Suites.</string>
     <string name="error_payment_submission_failed_format">Payment submission failed: %1$s</string>
     <string name="error_no_internet_connection">No internet connection. Please check your Wi-Fi or mobile data and try again.</string>
     <string name="error_request_timed_out">The request timed out. Please check your connection and try again.</string>
@@ -1329,6 +1328,8 @@
     <string name="error_partial_unavailable">Full payment is required: the remaining balance (%1$s) is below the minimum down payment (%2$s).</string>
     <string name="error_partial_out_of_range">The payment must be between %1$s and %2$s.</string>
     <string name="partial_unavailable_hint">Only Full Payment is available: the remaining balance (%1$s) is below the minimum partial payment (%2$s).</string>
+    <string name="front_desk_balance_message">Remaining balance: %1$s. Please pay at the Velocity Suites front desk.</string>
+    <string name="front_desk_title">Pay at the front desk</string>
     <string name="retry_label">Retry</string>
     <string name="bill_changed_title">Your bill has changed</string>
     <string name="bill_changed_message">The amount due on this reservation changed while you were away.\n\nBalance due: %1$s → %2$s\nAmount to pay: %3$s → %4$s\n\nYour GCash number, reference number and receipt were kept. Please check the new amount before you submit.</string>

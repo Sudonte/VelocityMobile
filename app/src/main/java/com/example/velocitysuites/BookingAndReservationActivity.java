@@ -3702,6 +3702,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 holder.btnPayNow.setVisibility(canPayNow ? View.VISIBLE : View.GONE);
                 holder.btnPayNow.setOnClickListener(v -> showPayNowConfirmation(b));
             }
+            // A confirmed booking is paid at the front desk: the message takes the place of Pay Now.
+            FrontDeskNote.bind(holder.tvFrontDeskNote, b);
 
             // Delete is only offered for Cancelled/Rejected transactions on
             // either tab, plus Completed on the Booking tab specifically -
@@ -3809,6 +3811,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingGuests, tvBookingPrice;
             LinearLayout layoutActionButtons;
+            TextView tvFrontDeskNote;
             MaterialButton btnModify, btnCancel, btnViewDetails, btnPayNow, btnDelete, btnBookAgain;
 
             ViewHolder(View itemView) {
@@ -3825,6 +3828,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 btnCancel = itemView.findViewById(R.id.btnCancel);
                 btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
                 btnPayNow = itemView.findViewById(R.id.btnPayNow);
+                tvFrontDeskNote = itemView.findViewById(R.id.tvFrontDeskNote);
                 btnDelete = itemView.findViewById(R.id.btnDelete);
                 btnBookAgain = itemView.findViewById(R.id.btnBookAgain);
             }

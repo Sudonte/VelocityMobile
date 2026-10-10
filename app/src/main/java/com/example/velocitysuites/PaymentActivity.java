@@ -155,6 +155,8 @@ public class PaymentActivity extends BaseNavigationActivity {
     private MaterialButton btnBookNow, btnReserveNow;
     private View cardBookReserveCta;
     private View emptyStateSection;
+    private View frontDeskSection;
+    private TextView tvFrontDeskMessage;
     private NestedScrollView screenContent;
     private ImageView ivReceiptPreview;
     private MaterialButton proceedToGcashButton, completePaymentButton, backToSummaryButton, btnUploadReceipt;
@@ -345,6 +347,10 @@ public class PaymentActivity extends BaseNavigationActivity {
         btnReserveNow = findViewById(R.id.btnReserveNow);
         cardBookReserveCta = findViewById(R.id.cardBookReserveCta);
         emptyStateSection = findViewById(R.id.emptyStateSection);
+        frontDeskSection = findViewById(R.id.frontDeskSection);
+        tvFrontDeskMessage = findViewById(R.id.tvFrontDeskMessage);
+        View btnFrontDeskBack = findViewById(R.id.btnFrontDeskBack);
+        if (btnFrontDeskBack != null) btnFrontDeskBack.setOnClickListener(v -> finish());
         screenContent = findViewById(R.id.screenContent);
 
         cardPaymentStatusBanner = findViewById(R.id.cardPaymentStatusBanner);
@@ -1934,8 +1940,11 @@ public class PaymentActivity extends BaseNavigationActivity {
         // The only legitimate entry points already only ever pass a still-
         // unconverted Reservation's id, but this blocks any other/future/manual
         // deep link from bypassing that UI-level restriction.
+        // The decision (see PaymentEligibility.needsFrontDeskPayment()): a confirmed booking's balance is settled at
+        // the front desk, so instead of a toast that vanishes this screen shows that message and a way back.
+        Booking confirmedBooking = null;
         if (currentBooking != null && currentBooking.isHasBooking()) {
-            Toast.makeText(this, R.string.error_booking_not_payable, Toast.LENGTH_LONG).show();
+            confirmedBooking = currentBooking;
             currentBooking = null;
             bookingId = null;
         }
@@ -1963,7 +1972,12 @@ public class PaymentActivity extends BaseNavigationActivity {
             });
         } else {
             if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.GONE);
-            if (emptyStateSection != null) emptyStateSection.setVisibility(View.VISIBLE);
+            boolean frontDesk = PaymentEligibility.needsFrontDeskPayment(confirmedBooking);
+            if (frontDesk && tvFrontDeskMessage != null) {
+                tvFrontDeskMessage.setText(FrontDeskNote.messageFor(this, confirmedBooking));
+            }
+            if (frontDeskSection != null) frontDeskSection.setVisibility(frontDesk ? View.VISIBLE : View.GONE);
+            if (emptyStateSection != null) emptyStateSection.setVisibility(frontDesk ? View.GONE : View.VISIBLE);
             updateBookReserveCtaVisibility(false);
             renderActionBar();
             if (bookingId != null) {
@@ -2260,6 +2274,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         preselectPaymentMethod(currentBooking);
         if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.VISIBLE);
         if (emptyStateSection != null) emptyStateSection.setVisibility(View.GONE);
+        if (frontDeskSection != null) frontDeskSection.setVisibility(View.GONE);
         updateBookReserveCtaVisibility(true);
         renderActionBar();
     }
@@ -2652,6 +2667,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (cardGcashSubmissionForm != null) cardGcashSubmissionForm.setVisibility(View.VISIBLE);
         if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.VISIBLE);
         if (emptyStateSection != null) emptyStateSection.setVisibility(View.GONE);
+        if (frontDeskSection != null) frontDeskSection.setVisibility(View.GONE);
         updateBookReserveCtaVisibility(true);
         renderActionBar();
     }

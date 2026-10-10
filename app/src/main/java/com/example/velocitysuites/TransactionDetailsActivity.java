@@ -197,6 +197,11 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         if (summary.status != TransactionStatusHelper.Status.CANCELLED && summary.status != TransactionStatusHelper.Status.REJECTED) {
             addMoneyRow(money, getString(R.string.details_label_remaining_balance), MoneyFormat.format(summary.balance));
         }
+        if (PaymentEligibility.needsFrontDeskPayment(booking)) {
+            TextView note = (TextView) LayoutInflater.from(this).inflate(R.layout.view_front_desk_note, money, false);
+            note.setText(FrontDeskNote.messageFor(this, booking));
+            money.addView(note);
+        }
         if (summary.hasPendingPayment) {
             addMoneyRow(money, getString(R.string.txn_submitted_label), MoneyFormat.isPositive(summary.pendingSubmitted)
                     ? MoneyFormat.format(summary.pendingSubmitted) : getString(R.string.value_missing));
