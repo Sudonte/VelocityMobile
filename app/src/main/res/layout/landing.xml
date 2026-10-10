@@ -307,33 +307,26 @@
 
                         <!-- How many rooms, and the "Live Rates" tag. Its own row, below the title: beside the title
                              the tag took so much of a narrow or large-font row that "AVAILABLE ROOMS" broke into a
-                             column of single letters. Both are wrap_content and the count is measured first, so when
-                             the row is too tight it is the decorative tag that wraps onto two lines, never the count. -->
-                        <LinearLayout
+                             column of single letters. -->
+                        <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:layout_marginTop="10dp">
 
                             <TextView
                                 android:id="@+id/tvLandingRoomsCount"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
                                 android:fontFamily="sans-serif-bold"
                                 android:textColor="@color/velocity_text_primary"
                                 android:textSize="13sp"
                                 android:visibility="gone"
+                                app:layout_constrainedWidth="true"
                                 tools:text="8 Available"
                                 tools:visibility="visible" />
 
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
                             <TextView
+                                android:id="@+id/tvLiveRatesTag"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:background="@drawable/shape_intro_pill"
@@ -346,8 +339,26 @@
                                 android:text="@string/landing_live_rates_badge"
                                 android:textAllCaps="true"
                                 android:textColor="@color/white"
-                                android:textSize="11sp" />
-                        </LinearLayout>
+                                android:textSize="11sp"
+                                app:layout_constrainedWidth="true" />
+
+                            <!-- A Flow wraps: side by side when they fit, the tag on its own line when they don't
+                                 (a narrow phone, a large font). Nothing is squeezed or cut off either way. -->
+                            <androidx.constraintlayout.helper.widget.Flow
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                app:constraint_referenced_ids="tvLandingRoomsCount,tvLiveRatesTag"
+                                app:flow_horizontalAlign="start"
+                                app:flow_horizontalBias="0"
+                                app:flow_horizontalGap="10dp"
+                                app:flow_horizontalStyle="packed"
+                                app:flow_verticalAlign="center"
+                                app:flow_verticalGap="6dp"
+                                app:flow_wrapMode="chain"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilRoomTypeFilter"

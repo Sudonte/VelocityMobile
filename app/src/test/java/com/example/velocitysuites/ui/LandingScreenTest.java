@@ -533,19 +533,33 @@ public class LandingScreenTest {
         assertEveryFreshCallMadeTimes(1);
     }
 
+    /**
+     * Steps the clock one second at a time until the page has asked the server for its sections again, and returns
+     * how many seconds that took. (How much virtual time launching or resuming uses is not something a test should
+     * rely on, so the beat is found by looking for it, not by guessing when it falls.)
+     */
+    private int secondsUntilTheNextRefresh() {
+        int before = count("getRoomsFresh");
+        for (int seconds = 1; seconds <= 40; seconds++) {
+            advance(Duration.ofSeconds(1));
+            if (count("getRoomsFresh") > before) return seconds;
+        }
+        throw new AssertionError("the page did not refresh again within 40 seconds");
+    }
+
     @Test
-    public void whileOnScreen_itRefreshesEveryThirtySeconds_andNotBefore() {
+    public void whileOnScreen_itRefreshesEveryThirtySeconds_silently_withOneTimer() {
         launch();
         answerRoundWithTheUsualContent(0);
 
-        // The timer was started by onResume, a little before launch() returns (the harness moves the clock on by
-        // about a second while it settles), so measure from here with room to spare on both sides.
-        advance(Duration.ofSeconds(25));
-        assertEveryFreshCallMadeTimes(1);
-
-        advance(Duration.ofSeconds(10));
+        secondsUntilTheNextRefresh(); // whenever the first beat falls
         assertEveryFreshCallMadeTimes(2);
         assertFalse("a timed refresh is silent", swipe().isRefreshing());
+        answerRoundWithTheUsualContent(1);
+
+        int gap = secondsUntilTheNextRefresh();
+        assertTrue("the next beat is 30 seconds later - one timer, not two (measured " + gap + "s)", gap >= 29 && gap <= 30);
+        assertEveryFreshCallMadeTimes(3);
     }
 
     @Test
@@ -557,15 +571,21 @@ public class LandingScreenTest {
         advance(Duration.ofMinutes(10));
         assertEveryFreshCallMadeTimes(1);
 
+        long beforeResume = SystemClock.uptimeMillis();
         controller.resume();
         idle();
+        int consumed = (int) Math.ceil((SystemClock.uptimeMillis() - beforeResume) / 1000.0);
         assertEveryFreshCallMadeTimes(2); // the catch-up on return
         answerRoundWithTheUsualContent(1);
 
-        advance(Duration.ofSeconds(30));
-        assertEveryFreshCallMadeTimes(3); // exactly one timer: one tick, not two
+        int first = secondsUntilTheNextRefresh();
+        assertTrue("a fresh 30-second timer after coming back (first beat " + first + "s later; resuming itself used " + consumed + "s)",
+                first <= 30 && first >= 30 - consumed - 1);
+        assertEveryFreshCallMadeTimes(3); // exactly one request round: one timer, not two
         answerRoundWithTheUsualContent(2);
-        advance(Duration.ofSeconds(30));
+
+        int gap = secondsUntilTheNextRefresh();
+        assertTrue("and the next beat is 30 seconds later (measured " + gap + "s)", gap >= 29 && gap <= 30);
         assertEveryFreshCallMadeTimes(4);
     }
 
