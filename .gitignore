@@ -9,7 +9,6 @@
 /.idea/assetWizardSettings.xml
 # Per-machine IDE and tool state - differs between computers, never shared. The shared project settings
 # (.idea/gradle.xml, misc.xml, compiler.xml, runConfigurations.xml, .name, AndroidProjectSystem.xml) stay tracked.
-/.idea/vcs.xml
 /.idea/tasks.xml
 /.idea/usage.statistics.xml
 /.idea/dictionaries
