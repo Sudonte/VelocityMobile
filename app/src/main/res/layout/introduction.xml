@@ -120,7 +120,7 @@
             android:letterSpacing="0.12"
             android:text="@string/preparing_stay"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="10sp"
+            android:textSize="12sp"
             android:textAllCaps="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -151,7 +151,7 @@
                 android:fontFamily="sans-serif"
                 android:text="@string/introduction_loading_message"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/loadingPercentText"
@@ -161,7 +161,7 @@
                 android:fontFamily="sans-serif-black"
                 android:text="@string/introduction_loading_percent_initial"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="11sp" />
+                android:textSize="12sp" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -225,7 +225,7 @@
             android:id="@+id/btnIntroductionRetry"
             style="@style/Widget.Velocity.Button"
             android:layout_width="wrap_content"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_marginTop="18dp"
             android:minWidth="140dp"
             android:paddingHorizontal="24dp"

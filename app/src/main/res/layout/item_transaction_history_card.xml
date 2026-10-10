@@ -62,7 +62,7 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
                 android:textAllCaps="true"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 tools:text="Pending" />
 
             <TextView
@@ -77,7 +77,7 @@
                 android:maxLines="2"
                 android:textAllCaps="true"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 tools:text="Reservation #588" />
 
             <ImageView
@@ -194,7 +194,7 @@
             android:fontFamily="sans-serif-medium"
             android:text="@string/txn_removed_by_guest"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:visibility="gone"
             tools:visibility="visible" />
 
@@ -207,7 +207,7 @@
             android:fontFamily="sans-serif-black"
             android:gravity="center_vertical"
             android:textColor="@color/velocity_action_text"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:visibility="gone"
             tools:drawableStart="@drawable/ic_transaction_history"
             tools:text="2 Receipts Available"

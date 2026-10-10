@@ -2,6 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Scrims/overlays used by layouts instead of inline hex values. -->
+    <color name="velocity_scrim_40">#66000000</color>
+    <color name="velocity_scrim_60">#99000000</color>
+    <color name="velocity_white_15">#26FFFFFF</color>
+    <color name="velocity_white_20">#33FFFFFF</color>
 
     <!-- Velocity Suites Red & White Theme -->
     <!-- The whole app renders in red and white only. The resource names are kept

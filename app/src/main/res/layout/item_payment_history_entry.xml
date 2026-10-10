@@ -32,7 +32,7 @@
             android:layout_marginTop="2dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="11sp"
+            android:textSize="12sp"
             tools:text="Oct 12, 2023 3:45 PM" />
     </LinearLayout>
 
@@ -63,7 +63,7 @@
             android:fontFamily="sans-serif-black"
             android:textAllCaps="true"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="9sp"
+            android:textSize="12sp"
             tools:text="Completed" />
     </LinearLayout>
 

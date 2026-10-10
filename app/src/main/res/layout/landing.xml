@@ -187,7 +187,7 @@
                                     android:fontFamily="sans-serif-black"
                                     android:includeFontPadding="false"
                                     android:letterSpacing="-0.02"
-                                    android:shadowColor="#99000000"
+                                    android:shadowColor="@color/velocity_scrim_60"
                                     android:shadowDy="2"
                                     android:shadowRadius="8"
                                     android:text="@string/landing_banner_luxury_title"
@@ -200,7 +200,7 @@
                                     android:layout_marginTop="6dp"
                                     android:fontFamily="sans-serif-medium"
                                     android:lineSpacingExtra="2dp"
-                                    android:shadowColor="#99000000"
+                                    android:shadowColor="@color/velocity_scrim_60"
                                     android:shadowDy="1"
                                     android:shadowRadius="6"
                                     android:text="@string/landing_banner_luxury_sub"
@@ -339,7 +339,7 @@
                                 android:text="@string/landing_live_rates_badge"
                                 android:textAllCaps="true"
                                 android:textColor="@color/white"
-                                android:textSize="11sp"
+                                android:textSize="12sp"
                                 app:layout_constrainedWidth="true" />
 
                             <!-- A Flow wraps: side by side when they fit, the tag on its own line when they don't

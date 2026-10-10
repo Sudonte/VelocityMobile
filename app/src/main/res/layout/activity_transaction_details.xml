@@ -86,7 +86,7 @@
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="3dp"
                             android:textAllCaps="true"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             tools:text="Pending" />
 
                         <TextView
@@ -101,7 +101,7 @@
                             android:maxLines="2"
                             android:textAllCaps="true"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             tools:text="Reservation #588" />
                     </LinearLayout>
 

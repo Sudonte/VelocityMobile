@@ -176,7 +176,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:letterSpacing="-0.02"
                                 android:maxLines="1"
-                                android:shadowColor="#66000000"
+                                android:shadowColor="@color/velocity_scrim_40"
                                 android:shadowDy="1"
                                 android:shadowRadius="4"
                                 android:text="@string/guest_first_last_name"
@@ -564,7 +564,7 @@
                                     android:src="@drawable/ic_booking"
                                     app:tint="@color/velocity_green_dark" />
                                 <TextView android:id="@+id/activeBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_green_dark"/>
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_active_bookings" android:textSize="10sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_active_bookings" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -587,7 +587,7 @@
                                     android:src="@drawable/ic_reservation"
                                     app:tint="@color/velocity_red_primary" />
                                 <TextView android:id="@+id/activeReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_primary"/>
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_active_reservations" android:textSize="10sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_active_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -610,7 +610,7 @@
                                     android:src="@drawable/ic_check_circle"
                                     app:tint="@color/velocity_blue_primary" />
                                 <TextView android:id="@+id/pastBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_blue_primary"/>
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_past_bookings" android:textSize="10sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_past_bookings" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -633,7 +633,7 @@
                                     android:src="@drawable/ic_check_circle"
                                     app:tint="@color/velocity_red_status_dark" />
                                 <TextView android:id="@+id/pastReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_status_dark"/>
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_past_reservations" android:textSize="10sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_past_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -656,7 +656,7 @@
                                     android:src="@drawable/ic_close"
                                     app:tint="@color/velocity_inactive_gray" />
                                 <TextView android:id="@+id/cancelBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_inactive_gray"/>
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_bookings" android:textSize="10sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_bookings" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
                             <LinearLayout
@@ -679,7 +679,7 @@
                                     android:src="@drawable/ic_close"
                                     app:tint="@color/velocity_orange_primary" />
                                 <TextView android:id="@+id/cancelReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_orange_primary"/>
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_reservations" android:textSize="10sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
                         </GridLayout>
                     </LinearLayout>
@@ -753,7 +753,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/next_hotel_transaction_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="11sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:id="@+id/nextHotelTransactionText"
@@ -830,7 +830,7 @@
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
-                                android:textSize="11sp"
+                                android:textSize="12sp"
                                 android:visibility="gone"
                                 tools:visibility="visible"
                                 tools:text="5" />
@@ -967,7 +967,7 @@
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
-                                android:textSize="11sp"
+                                android:textSize="12sp"
                                 android:visibility="gone"
                                 tools:visibility="visible"
                                 tools:text="3" />
@@ -1073,7 +1073,7 @@
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
-                                android:textSize="11sp"
+                                android:textSize="12sp"
                                 android:visibility="gone"
                                 tools:visibility="visible"
                                 tools:text="3" />
@@ -1180,7 +1180,7 @@
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
-                                android:textSize="11sp"
+                                android:textSize="12sp"
                                 android:visibility="gone"
                                 tools:visibility="visible"
                                 tools:text="5" />
@@ -1388,7 +1388,7 @@
                                 android:paddingVertical="6dp"
                                 android:text="@string/profile_complete"
                                 android:textColor="@color/velocity_green_primary"
-                                android:textSize="11sp"
+                                android:textSize="12sp"
                                 android:fontFamily="sans-serif-black"
                                 android:textAllCaps="true" />
                         </LinearLayout>
@@ -1438,7 +1438,7 @@
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="44dp"
                             android:layout_height="44dp"
-                            app:cardBackgroundColor="#26FFFFFF"
+                            app:cardBackgroundColor="@color/velocity_white_15"
                             app:cardCornerRadius="0dp"
                             app:cardElevation="0dp">
                             <ImageView
@@ -1477,9 +1477,9 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnContactSupport"
                             android:layout_width="wrap_content"
-                            android:layout_height="44dp"
+                            android:layout_height="48dp"
                             android:layout_marginStart="12dp"
-                            android:backgroundTint="#33FFFFFF"
+                            android:backgroundTint="@color/velocity_white_20"
                             android:paddingHorizontal="16dp"
                             android:text="@string/contact_support_button"
                             android:textAllCaps="false"
