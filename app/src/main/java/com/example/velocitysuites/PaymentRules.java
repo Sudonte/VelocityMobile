@@ -10,7 +10,10 @@ package com.example.velocitysuites;
  *   <li>Partial = 20% to 50% of the ORIGINAL total (config hotel.minimum/maximum_payment_ratio), never more than the
  *       remaining balance;</li>
  *   <li>remaining below the 20% minimum: no partial payment is possible, only Full;</li>
- *   <li>remaining zero: nothing can be paid.</li>
+ *   <li>remaining zero: nothing can be paid;</li>
+ *   <li>while a Senior/PWD discount waits for the receptionist's ID check, only a deposit: Full payment is refused
+ *       (and with too little left for a deposit, payment is on hold until the discount is decided). Once the discount
+ *       is approved the server's total already includes it; rejected or not requested: the normal rules.</li>
  * </ul>
  */
 public final class PaymentRules {
@@ -33,7 +36,11 @@ public final class PaymentRules {
         /** The balance is under the minimum, so only a Full payment of it is possible. */
         FULL_REQUIRED,
         /** A partial payment outside min..max. */
-        OUT_OF_RANGE
+        OUT_OF_RANGE,
+        /** Full payment while the discount is still being verified - a deposit only. */
+        DISCOUNT_PENDING_FULL,
+        /** Discount being verified and too little left for the minimum deposit: nothing can be paid yet. */
+        DISCOUNT_ON_HOLD
     }
 
     /** The numbers the rule works from, for one bill at one moment. */
@@ -43,8 +50,11 @@ public final class PaymentRules {
         public final double remaining;
         public final double min;
         public final double max;
+        /** True while a discount waits for the receptionist's ID check (discount_verification_status = pending). */
+        public final boolean discountPending;
 
-        Range(double total, double paid) {
+        Range(double total, double paid, boolean discountPending) {
+            this.discountPending = discountPending;
             this.total = round2(total);
             this.paid = round2(paid);
             this.remaining = Math.max(0, round2(this.total - this.paid));
@@ -63,7 +73,11 @@ public final class PaymentRules {
     }
 
     public static Range of(double total, double paid) {
-        return new Range(total, paid);
+        return new Range(total, paid, false);
+    }
+
+    public static Range of(double total, double paid, boolean discountPending) {
+        return new Range(total, paid, discountPending);
     }
 
     /** The peso amount a 20/30/40/50% option sends: that share of the ORIGINAL total, capped at what is left. */
@@ -74,6 +88,10 @@ public final class PaymentRules {
     /** Whether the server will accept {@code amount} as a Full (or Partial) payment against {@code range}. */
     public static Verdict check(Range range, boolean fullPayment, double amount) {
         if (range.isSettled()) return Verdict.SETTLED;
+        if (range.discountPending) {
+            if (fullPayment) return Verdict.DISCOUNT_PENDING_FULL;
+            if (!range.canPartial()) return Verdict.DISCOUNT_ON_HOLD;
+        }
         if (fullPayment) {
             return Math.abs(amount - range.remaining) > 0.01 ? Verdict.FULL_MUST_EQUAL_BALANCE : Verdict.OK;
         }

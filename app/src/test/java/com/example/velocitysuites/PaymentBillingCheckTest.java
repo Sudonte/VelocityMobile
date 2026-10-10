@@ -92,4 +92,19 @@ public class PaymentBillingCheckTest {
         assertEquals(SubmitVerdict.AMOUNT_NOT_ALLOWED, PaymentBillingCheck.beforeSubmit(almostPaid, almostPaid, 300, false));
         assertEquals(SubmitVerdict.PROCEED, PaymentBillingCheck.beforeSubmit(almostPaid, almostPaid, 300, true));
     }
+
+    @Test
+    public void aDiscountDecisionIsABillChange() {
+        Bill waiting = new Bill(2000, 600, true);
+        assertTrue(PaymentBillingCheck.billChanged(waiting, new Bill(2000, 600, false))); // rejected
+        assertTrue(PaymentBillingCheck.billChanged(waiting, new Bill(1600, 600, false))); // approved, total now discounted
+        assertFalse(PaymentBillingCheck.billChanged(waiting, new Bill(2000, 600, true)));
+    }
+
+    @Test
+    public void fullPaymentWhileTheDiscountIsPending_isStoppedBeforeSending() {
+        Bill waiting = new Bill(2000, 600, true);
+        assertEquals(SubmitVerdict.AMOUNT_NOT_ALLOWED, PaymentBillingCheck.beforeSubmit(waiting, waiting, 1400, true));
+        assertEquals(SubmitVerdict.PROCEED, PaymentBillingCheck.beforeSubmit(waiting, waiting, 500, false));
+    }
 }

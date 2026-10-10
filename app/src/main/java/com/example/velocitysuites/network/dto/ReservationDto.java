@@ -27,6 +27,8 @@ public class ReservationDto {
     public String id_card_type;
     /** The admin-created discount the guest claimed (Discount module id), or null. */
     public Long discount_id;
+    /** not_requested / pending / approved / rejected - Reservation::discount_verification_status. */
+    public String discount_verification_status;
     /** Server path of the stored ID image - only ever tested for presence (the image itself is served by an authenticated endpoint). */
     public String id_card_image_path;
     /** Server-built Transaction Timeline (App\\Support\\TransactionTimeline); null/empty on an older server. */

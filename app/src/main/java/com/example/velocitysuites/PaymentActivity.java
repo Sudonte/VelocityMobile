@@ -891,8 +891,10 @@ public class PaymentActivity extends BaseNavigationActivity {
             // against a shrinking base.
             boolean hasPriorPayment = alreadyPaidValue > 0.009;
             String dueFormatted = MoneyFormat.format(remainingDueValue());
-            PaymentRules.Range rulesRange = PaymentRules.of(grandTotalValue, alreadyPaidValue);
-            if (isFullPaymentMode && grandTotalValue > 0 && !isCashSelected && !rulesRange.isSettled() && !rulesRange.canPartial()) {
+            PaymentRules.Range rulesRange = rulesRange();
+            if (rulesRange.discountPending && grandTotalValue > 0 && !rulesRange.isSettled()) {
+                tvPaymentModeSub.setText(R.string.discount_pending_line);
+            } else if (isFullPaymentMode && grandTotalValue > 0 && !isCashSelected && !rulesRange.isSettled() && !rulesRange.canPartial()) {
                 // The 20% minimum no longer fits inside what is left: only Full is possible, and the guest is told why.
                 tvPaymentModeSub.setText(getString(R.string.partial_unavailable_hint, dueFormatted, MoneyFormat.format(rulesRange.min)));
             } else if (isFullPaymentMode) {
@@ -1020,7 +1022,7 @@ public class PaymentActivity extends BaseNavigationActivity {
      * valid once a booking has loaded. Disables Proceed/Complete on mismatch.
      */
     private boolean validateAmount() {
-        PaymentRules.Range range = PaymentRules.of(grandTotalValue, alreadyPaidValue);
+        PaymentRules.Range range = rulesRange();
         PaymentRules.Verdict verdict = PaymentRules.check(range, isFullPaymentMode, payNowValue);
         boolean valid = verdict == PaymentRules.Verdict.OK;
         if (tvAmountError != null) {
@@ -1036,6 +1038,10 @@ public class PaymentActivity extends BaseNavigationActivity {
         switch (verdict) {
             case SETTLED:
                 return getString(R.string.error_payment_settled);
+            case DISCOUNT_PENDING_FULL:
+                return getString(R.string.discount_pending_line);
+            case DISCOUNT_ON_HOLD:
+                return getString(R.string.discount_on_hold, MoneyFormat.format(range.remaining), MoneyFormat.format(range.min));
             case FULL_REQUIRED:
                 return getString(R.string.error_partial_unavailable,
                         MoneyFormat.format(range.remaining), MoneyFormat.format(range.min));
@@ -1056,17 +1062,42 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     private boolean enforcePartialAvailability() {
         if (cgPaymentAmount == null || grandTotalValue <= 0) return false;
-        boolean partialAllowed = !isCashSelected && PaymentRules.of(grandTotalValue, alreadyPaidValue).canPartial();
+        PaymentRules.Range range = rulesRange();
+        boolean partialAllowed = !isCashSelected && range.canPartial();
+        // While a discount waits for the ID check only a deposit may be paid, so Full Payment is not offered.
+        boolean fullAllowed = !range.discountPending;
         int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
         for (int id : partialChipIds) {
             com.google.android.material.chip.Chip chip = findViewById(id);
             if (chip != null) chip.setVisibility(partialAllowed ? View.VISIBLE : View.GONE);
         }
-        if (!partialAllowed && cgPaymentAmount.getCheckedChipId() != R.id.chipPercentFull) {
+        View fullChip = findViewById(R.id.chipPercentFull);
+        if (fullChip != null) fullChip.setVisibility(fullAllowed ? View.VISIBLE : View.GONE);
+
+        int checked = cgPaymentAmount.getCheckedChipId();
+        if (!partialAllowed && fullAllowed && checked != R.id.chipPercentFull) {
             cgPaymentAmount.check(R.id.chipPercentFull);
             return true;
         }
+        if (!fullAllowed && partialAllowed && checked == R.id.chipPercentFull) {
+            cgPaymentAmount.check(R.id.chipPercent20);
+            return true;
+        }
         return false;
+    }
+
+    /** The server's payment rule for what is on screen right now - including a discount still waiting for its ID check. */
+    private PaymentRules.Range rulesRange() {
+        return PaymentRules.of(grandTotalValue, alreadyPaidValue, isDiscountPending());
+    }
+
+    /** True while the discount the guest asked for is still being verified (deposits only). */
+    private boolean isDiscountPending() {
+        if (isPendingBookingMode || isPendingReservationMode) {
+            return pendingWizardState != null
+                    && (pendingWizardState.discountIdOrNull() != null || !"None".equalsIgnoreCase(pendingWizardState.idCardType));
+        }
+        return currentBooking != null && currentBooking.isDiscountPending();
     }
 
     private double parseAmount(String text) {
@@ -2166,8 +2197,8 @@ public class PaymentActivity extends BaseNavigationActivity {
                 switch (verdict) {
                     case AMOUNT_NOT_ALLOWED:
                         showSubmitError(ruleMessage(PaymentRules.check(
-                                PaymentRules.of(shownBill.total, shownBill.paid), isFullPaymentMode, payNowValue),
-                                PaymentRules.of(shownBill.total, shownBill.paid)));
+                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending), isFullPaymentMode, payNowValue),
+                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending)));
                         break;
                     case PROCEED:
                         submitPaymentToServer(number, referenceNumber);

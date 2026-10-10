@@ -157,6 +157,8 @@ public class Booking implements Serializable {
     private boolean editedOnce = false;
     /** Discount module id of the discount the guest claimed (null = none) - re-seeds the Edit Reservation wizard. */
     private String discountId;
+    /** The server's discount_verification_status: not_requested / pending / approved / rejected (null when unknown). */
+    private String discountVerificationStatus;
     /** An ID image is stored on the server for this transaction (the edit wizard shows "ID on file" instead of an empty upload). */
     private boolean hasIdCard;
     /** Server-built timeline steps, in display order; empty when the server didn't send one (the screen then falls back to deriving steps). */
@@ -806,6 +808,10 @@ public class Booking implements Serializable {
     public void setRequiredPaymentAmount(Double requiredPaymentAmount) { this.requiredPaymentAmount = requiredPaymentAmount; }
     public void setPaymentMethodLocked(boolean paymentMethodLocked) { this.paymentMethodLocked = paymentMethodLocked; }
     public void setEditedOnce(boolean editedOnce) { this.editedOnce = editedOnce; }
+    public String getDiscountVerificationStatus() { return discountVerificationStatus; }
+    public void setDiscountVerificationStatus(String status) { this.discountVerificationStatus = status; }
+    /** True while a discount waits for the receptionist's ID check - the guest may pay a deposit only (PaymentRules). */
+    public boolean isDiscountPending() { return "pending".equalsIgnoreCase(discountVerificationStatus); }
     public String getDiscountId() { return discountId; }
     public void setDiscountId(String discountId) { this.discountId = discountId; }
     public boolean isHasIdCard() { return hasIdCard; }

@@ -186,7 +186,11 @@ public class PaymentScreenTest {
 
     /** Walks Review -> GCash steps 1..4 with valid input, ending on step 5 (review and submit). */
     private PaymentActivity toSubmitStep() {
-        PaymentActivity a = launchUnpaid();
+        return toSubmitStep(ScreenTestSupport.reservation(588, 1800));
+    }
+
+    private PaymentActivity toSubmitStep(ReservationDto reservation) {
+        PaymentActivity a = launch(reservation);
         proceedToGcash(a);
         a.findViewById(R.id.btnGcashStep1Next).performClick();
         type(a, R.id.etGcashNumber, NUMBER);
@@ -269,6 +273,72 @@ public class PaymentScreenTest {
     /** The amount section is part of the review screen; give the layout a moment to settle. */
     private static void proceedToGcashPrerequisites(PaymentActivity a) {
         settle();
+    }
+
+    // ---- a discount waiting for the receptionist's ID check: deposits only ----
+
+    private static ReservationDto withDiscount(ReservationDto r, String status) {
+        r.discount_verification_status = status;
+        return r;
+    }
+
+    @Test
+    public void discountPending_hidesFullPayment_explainsWhy_andSelectsADeposit() {
+        PaymentActivity a = launch(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending"));
+        proceedToGcashPrerequisites(a);
+
+        assertFalse("Full Payment is not offered", isVisible(a, R.id.chipPercentFull));
+        assertTrue("deposit options are", isVisible(a, R.id.chipPercent20));
+        assertEquals(a.getString(R.string.discount_pending_line), text(a, R.id.tvPaymentModeSub));
+        assertEquals("a deposit is selected", "₱400.00", text(a, R.id.tvAmountToPay));
+        assertTrue(a.findViewById(R.id.proceedToGcashButton).isEnabled());
+    }
+
+    @Test
+    public void discountApprovedOrRejectedOrNotRequested_offersFullPaymentAsUsual() {
+        for (String status : new String[]{"approved", "rejected", "not_requested"}) {
+            PaymentActivity a = launch(withDiscount(ScreenTestSupport.reservation(588, 2000), status));
+            proceedToGcashPrerequisites(a);
+            assertTrue(status, isVisible(a, R.id.chipPercentFull));
+        }
+    }
+
+    @Test
+    public void discountPending_withTooLittleLeftForADeposit_putsPaymentOnHold() {
+        PaymentActivity a = launch(withDiscount(ScreenTestSupport.reservation(588, 2000,
+                ScreenTestSupport.payment(1, "1700.00", "completed", "gcash")), "pending"));
+        proceedToGcashPrerequisites(a);
+
+        assertFalse(isVisible(a, R.id.chipPercentFull));
+        assertFalse(isVisible(a, R.id.chipPercent20));
+        assertFalse(a.findViewById(R.id.proceedToGcashButton).isEnabled());
+        assertTrue(isVisible(a, R.id.tvAmountError));
+    }
+
+    @Test
+    public void whenTheDiscountIsDecidedWhileAway_optionsUpdate_andWhatWasTypedIsKept() {
+        PaymentActivity a = toSubmitStep(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending"));
+        assertFalse(isVisible(a, R.id.chipPercentFull));
+
+        leaveAndComeBack();
+        // approved meanwhile: the server's total now includes the discount
+        answerBillCheck(withDiscount(ScreenTestSupport.reservation(588, 1600), "approved"));
+
+        assertEquals(a.getString(R.string.bill_changed_title), latestDialogTitle());
+        assertTrue("Full Payment is back", isVisible(a, R.id.chipPercentFull));
+        assertEquals("typed reference kept", REFERENCE, ((EditText) a.findViewById(R.id.etGcashReferenceNumber)).getText().toString());
+        assertEquals("receipt kept", a.getString(R.string.receipt_attached_success), text(a, R.id.tvReceiptStatus));
+    }
+
+    @Test
+    public void submittingWhileTheDiscountIsStillPending_neverSendsAFullPayment() throws Exception {
+        PaymentActivity a = toSubmitStep(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending"));
+        a.findViewById(R.id.completePaymentButton).performClick();
+        idle();
+        confirmLatestDialog();
+        answerBillCheck(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending"));
+
+        awaitSubmitCalls(1); // the selected deposit goes out; it is not a Full payment
     }
 
     // ---- Review Billing: what is shown ----

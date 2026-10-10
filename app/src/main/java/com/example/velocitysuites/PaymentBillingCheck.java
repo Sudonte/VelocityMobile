@@ -20,14 +20,21 @@ public final class PaymentBillingCheck {
     public static final class Bill {
         public final double total;
         public final double paid;
+        /** A discount is waiting for the receptionist's ID check - deposits only (PaymentRules). */
+        public final boolean discountPending;
 
         public Bill(double total, double paid) {
+            this(total, paid, false);
+        }
+
+        public Bill(double total, double paid, boolean discountPending) {
             this.total = total;
             this.paid = paid;
+            this.discountPending = discountPending;
         }
 
         public static Bill of(Booking booking) {
-            return new Bill(booking.getTotalAmount(), booking.getAmountPaid());
+            return new Bill(booking.getTotalAmount(), booking.getAmountPaid(), booking.isDiscountPending());
         }
 
         /** What is still owed; never negative. */
@@ -38,7 +45,8 @@ public final class PaymentBillingCheck {
         public boolean sameAs(Bill other) {
             return other != null
                     && Math.abs(total - other.total) < EPSILON
-                    && Math.abs(paid - other.paid) < EPSILON;
+                    && Math.abs(paid - other.paid) < EPSILON
+                    && discountPending == other.discountPending;
         }
     }
 
@@ -78,7 +86,7 @@ public final class PaymentBillingCheck {
         if (latest == null) return SubmitVerdict.CHECK_FAILED;
         if (!latest.sameAs(shown)) return SubmitVerdict.BILL_CHANGED;
         if (typedAmount > latest.balanceDue() + EPSILON) return SubmitVerdict.OVER_BALANCE;
-        PaymentRules.Verdict rule = PaymentRules.check(PaymentRules.of(latest.total, latest.paid), fullPayment, typedAmount);
+        PaymentRules.Verdict rule = PaymentRules.check(PaymentRules.of(latest.total, latest.paid, latest.discountPending), fullPayment, typedAmount);
         if (rule != PaymentRules.Verdict.OK) return SubmitVerdict.AMOUNT_NOT_ALLOWED;
         return SubmitVerdict.PROCEED;
     }

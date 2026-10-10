@@ -276,6 +276,7 @@ public final class ApiMapper {
         }
         booking.setIdCardType(dto.id_card_type != null ? dto.id_card_type : "None");
         booking.setDiscountId(dto.discount_id != null ? String.valueOf(dto.discount_id) : null);
+        booking.setDiscountVerificationStatus(dto.discount_verification_status);
         booking.setHasIdCard(dto.id_card_image_path != null && !dto.id_card_image_path.isEmpty());
         booking.setTimeline(toTimeline(dto.timeline));
         if (dto.edit_summary != null) {
