@@ -51,7 +51,9 @@ public final class PaymentBillingCheck {
         /** The latest bill could not be read: do not send; offer Retry. */
         CHECK_FAILED,
         /** The bill is unchanged but the amount typed is more than is owed: inline error. */
-        OVER_BALANCE
+        OVER_BALANCE,
+        /** The bill is unchanged and the amount is not over the balance, but the server's rule (PaymentRules) would still refuse it. */
+        AMOUNT_NOT_ALLOWED
     }
 
     /**
@@ -70,11 +72,14 @@ public final class PaymentBillingCheck {
      * @param shown       what the guest last saw / confirmed
      * @param latest      the fresh read, or null if it could not be fetched
      * @param typedAmount the amount about to be sent
+     * @param fullPayment true for Full Payment, false for one of the partial options
      */
-    public static SubmitVerdict beforeSubmit(Bill shown, @Nullable Bill latest, double typedAmount) {
+    public static SubmitVerdict beforeSubmit(Bill shown, @Nullable Bill latest, double typedAmount, boolean fullPayment) {
         if (latest == null) return SubmitVerdict.CHECK_FAILED;
         if (!latest.sameAs(shown)) return SubmitVerdict.BILL_CHANGED;
         if (typedAmount > latest.balanceDue() + EPSILON) return SubmitVerdict.OVER_BALANCE;
+        PaymentRules.Verdict rule = PaymentRules.check(PaymentRules.of(latest.total, latest.paid), fullPayment, typedAmount);
+        if (rule != PaymentRules.Verdict.OK) return SubmitVerdict.AMOUNT_NOT_ALLOWED;
         return SubmitVerdict.PROCEED;
     }
 }

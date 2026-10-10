@@ -760,7 +760,7 @@
     <string name="percent_50">50%</string>
     <string name="full_payment_hint">Enter the exact total booking amount to pay in full</string>
     <string name="full_payment_hint_with_due">This will settle your remaining balance of %1$s in full</string>
-    <string name="error_full_amount_mismatch">Amount must exactly match the total booking amount (%1$s) to proceed.</string>
+    <string name="error_full_amount_mismatch">Full payment must equal the remaining balance (%1$s).</string>
     <string name="amount_to_pay_label">Amount to Pay Now</string>
     <string name="remaining_balance_label">Remaining Balance</string>
     <string name="already_paid_label">Already Paid</string>
@@ -1325,6 +1325,10 @@
     <string name="selected_amenities_count_format">Selected Amenities: %1$d</string>
     <string name="addon_amenities_empty">No additional amenities are currently available.</string>
     <string name="addon_amenities_load_error">Unable to load additional amenities. Please try again.</string>
+    <string name="error_payment_settled">This reservation is already fully paid. There is nothing left to pay.</string>
+    <string name="error_partial_unavailable">Full payment is required: the remaining balance (%1$s) is below the minimum down payment (%2$s).</string>
+    <string name="error_partial_out_of_range">The payment must be between %1$s and %2$s.</string>
+    <string name="partial_unavailable_hint">Only Full Payment is available: the remaining balance (%1$s) is below the minimum partial payment (%2$s).</string>
     <string name="retry_label">Retry</string>
     <string name="bill_changed_title">Your bill has changed</string>
     <string name="bill_changed_message">The amount due on this reservation changed while you were away.\n\nBalance due: %1$s → %2$s\nAmount to pay: %3$s → %4$s\n\nYour GCash number, reference number and receipt were kept. Please check the new amount before you submit.</string>

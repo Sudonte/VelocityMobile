@@ -861,6 +861,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (renderStoredPaymentPercentageIfPresent()) {
             return;
         }
+        if (enforcePartialAvailability()) return;
         int checkedId = cgPaymentAmount.getCheckedChipId();
         isFullPaymentMode = checkedId == R.id.chipPercentFull;
         if (checkedId == R.id.chipPercent20) selectedPartialPercent = PARTIAL_PERCENTAGES[0];
@@ -884,7 +885,11 @@ public class PaymentActivity extends BaseNavigationActivity {
             // against a shrinking base.
             boolean hasPriorPayment = alreadyPaidValue > 0.009;
             String dueFormatted = MoneyFormat.format(remainingDueValue());
-            if (isFullPaymentMode) {
+            PaymentRules.Range rulesRange = PaymentRules.of(grandTotalValue, alreadyPaidValue);
+            if (isFullPaymentMode && grandTotalValue > 0 && !isCashSelected && !rulesRange.isSettled() && !rulesRange.canPartial()) {
+                // The 20% minimum no longer fits inside what is left: only Full is possible, and the guest is told why.
+                tvPaymentModeSub.setText(getString(R.string.partial_unavailable_hint, dueFormatted, MoneyFormat.format(rulesRange.min)));
+            } else if (isFullPaymentMode) {
                 tvPaymentModeSub.setText(hasPriorPayment
                         ? getString(R.string.full_payment_hint_with_due, dueFormatted)
                         : getString(R.string.full_payment_hint));
@@ -1009,21 +1014,53 @@ public class PaymentActivity extends BaseNavigationActivity {
      * valid once a booking has loaded. Disables Proceed/Complete on mismatch.
      */
     private boolean validateAmount() {
-        boolean valid;
-        if (isFullPaymentMode) {
-            double due = remainingDueValue();
-            valid = due > 0 && Math.abs(payNowValue - due) <= 0.009;
-            if (tvAmountError != null) {
-                tvAmountError.setText(getString(R.string.error_full_amount_mismatch,
-                        MoneyFormat.format(due)));
-                tvAmountError.setVisibility(valid ? View.GONE : View.VISIBLE);
-            }
-        } else {
-            valid = payNowValue > 0;
-            if (tvAmountError != null) tvAmountError.setVisibility(View.GONE);
+        PaymentRules.Range range = PaymentRules.of(grandTotalValue, alreadyPaidValue);
+        PaymentRules.Verdict verdict = PaymentRules.check(range, isFullPaymentMode, payNowValue);
+        boolean valid = verdict == PaymentRules.Verdict.OK;
+        if (tvAmountError != null) {
+            tvAmountError.setText(valid ? "" : ruleMessage(verdict, range));
+            tvAmountError.setVisibility(valid ? View.GONE : View.VISIBLE);
         }
         if (proceedToGcashButton != null) proceedToGcashButton.setEnabled(valid);
         return valid;
+    }
+
+    /** The server's own rule (PaymentRules) in words, with the allowed peso amount or range. */
+    private String ruleMessage(PaymentRules.Verdict verdict, PaymentRules.Range range) {
+        switch (verdict) {
+            case SETTLED:
+                return getString(R.string.error_payment_settled);
+            case FULL_REQUIRED:
+                return getString(R.string.error_partial_unavailable,
+                        MoneyFormat.format(range.remaining), MoneyFormat.format(range.min));
+            case OUT_OF_RANGE:
+                return getString(R.string.error_partial_out_of_range,
+                        MoneyFormat.format(range.min), MoneyFormat.format(range.max));
+            case FULL_MUST_EQUAL_BALANCE:
+            default:
+                return getString(R.string.error_full_amount_mismatch, MoneyFormat.format(range.remaining));
+        }
+    }
+
+    /**
+     * Partial payment only exists while the 20% minimum still fits inside what is left to pay (and never for
+     * Cash, which is always paid in full). Otherwise the 20/30/40/50% options are hidden and Full Payment is
+     * selected, with a short explanation under the selector. Returns true if it just switched to Full - the chip
+     * listener then re-enters applyPaymentAmountSelection().
+     */
+    private boolean enforcePartialAvailability() {
+        if (cgPaymentAmount == null || grandTotalValue <= 0) return false;
+        boolean partialAllowed = !isCashSelected && PaymentRules.of(grandTotalValue, alreadyPaidValue).canPartial();
+        int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
+        for (int id : partialChipIds) {
+            com.google.android.material.chip.Chip chip = findViewById(id);
+            if (chip != null) chip.setVisibility(partialAllowed ? View.VISIBLE : View.GONE);
+        }
+        if (!partialAllowed && cgPaymentAmount.getCheckedChipId() != R.id.chipPercentFull) {
+            cgPaymentAmount.check(R.id.chipPercentFull);
+            return true;
+        }
+        return false;
     }
 
     private double parseAmount(String text) {
@@ -2111,8 +2148,13 @@ public class PaymentActivity extends BaseNavigationActivity {
                 updateSubmitButtonState();
                 if (isFinishing() || isDestroyed()) return;
                 PaymentBillingCheck.SubmitVerdict verdict = PaymentBillingCheck.beforeSubmit(
-                        shownBill, PaymentBillingCheck.Bill.of(fresh), payNowValue);
+                        shownBill, PaymentBillingCheck.Bill.of(fresh), payNowValue, isFullPaymentMode);
                 switch (verdict) {
+                    case AMOUNT_NOT_ALLOWED:
+                        showSubmitError(ruleMessage(PaymentRules.check(
+                                PaymentRules.of(shownBill.total, shownBill.paid), isFullPaymentMode, payNowValue),
+                                PaymentRules.of(shownBill.total, shownBill.paid)));
+                        break;
                     case PROCEED:
                         submitPaymentToServer(number, referenceNumber);
                         break;

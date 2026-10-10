@@ -222,6 +222,55 @@ public class PaymentScreenTest {
         return a.findViewById(id).getVisibility() == View.VISIBLE;
     }
 
+    // ---- paying the rest of a partly paid reservation (same examples as the server's GuestPayRemainingBalanceTest) ----
+
+    @Test
+    public void partlyPaid_offersTheRestAsFullPayment_andKeepsTheInRangePartialOptions() {
+        // P2,000, P600 verified: P1,400 left, the 20% minimum (P400) still fits
+        PaymentActivity a = launch(ScreenTestSupport.reservation(588, 2000,
+                ScreenTestSupport.payment(1, "600.00", "completed", "gcash")));
+        proceedToGcashPrerequisites(a);
+
+        assertTrue("partial options stay", isVisible(a, R.id.chipPercent20));
+        assertEquals("the 20% option is 20% of the original price", "₱400.00", text(a, R.id.tvAmountToPay));
+        a.findViewById(R.id.chipPercentFull).performClick();
+        idle();
+        assertEquals("Full Payment sends the balance, not the price", "₱1,400.00", text(a, R.id.tvAmountToPay));
+        assertFalse("no error for an allowed amount", isVisible(a, R.id.tvAmountError));
+    }
+
+    @Test
+    public void nearlyPaid_hidesPartialOptions_andExplainsWhy() {
+        // P2,000, P1,700 verified: P300 left is under the P400 minimum, so only Full is possible
+        PaymentActivity a = launch(ScreenTestSupport.reservation(588, 2000,
+                ScreenTestSupport.payment(1, "1700.00", "completed", "gcash")));
+        proceedToGcashPrerequisites(a);
+
+        assertFalse("partial options are hidden", isVisible(a, R.id.chipPercent20));
+        assertFalse(isVisible(a, R.id.chipPercent50));
+        assertTrue(isVisible(a, R.id.chipPercentFull));
+        assertEquals("Full is selected and sends the balance", "₱300.00", text(a, R.id.tvAmountToPay));
+        assertEquals(a.getString(R.string.partial_unavailable_hint, "₱300.00", "₱400.00"), text(a, R.id.tvPaymentModeSub));
+        assertFalse(isVisible(a, R.id.tvAmountError));
+        assertTrue("and the guest can continue", a.findViewById(R.id.proceedToGcashButton).isEnabled());
+    }
+
+    @Test
+    public void fullyPaid_cannotContinue_andSaysSo() {
+        PaymentActivity a = launch(ScreenTestSupport.reservation(588, 2000,
+                ScreenTestSupport.payment(1, "2000.00", "completed", "gcash")));
+        proceedToGcashPrerequisites(a);
+
+        assertFalse(a.findViewById(R.id.proceedToGcashButton).isEnabled());
+        assertTrue(isVisible(a, R.id.tvAmountError));
+        assertEquals(a.getString(R.string.error_payment_settled), text(a, R.id.tvAmountError));
+    }
+
+    /** The amount section is part of the review screen; give the layout a moment to settle. */
+    private static void proceedToGcashPrerequisites(PaymentActivity a) {
+        settle();
+    }
+
     // ---- Review Billing: what is shown ----
 
     @Test
