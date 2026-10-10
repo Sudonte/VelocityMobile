@@ -2,6 +2,7 @@ package com.example.velocitysuites.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -74,6 +75,8 @@ public class PaymentScreenTest {
 
     private Context app;
     private ScreenTestSupport.FakeApi api;
+    private ActivityController<PaymentActivity> controller;
+    private int amenitiesAnswered;
 
     @Before
     public void setUp() {
@@ -104,14 +107,14 @@ public class PaymentScreenTest {
 
     private PaymentActivity launch(ReservationDto reservation) {
         Intent intent = new Intent(app, PaymentActivity.class).putExtra("BOOKING_ID", String.valueOf(reservation.id));
-        ActivityController<PaymentActivity> controller = Robolectric.buildActivity(PaymentActivity.class, intent);
+        controller = Robolectric.buildActivity(PaymentActivity.class, intent);
         controller.setup();
         idle();
         ScreenTestSupport.answerBookingLoad(api, 0, ScreenTestSupport.reservations(reservation), ScreenTestSupport.directBookings());
         idle();
-        int answered = 0;
-        while (answered < api.count("getRequestableAmenities")) {
-            ScreenTestSupport.FakeCall<List<RequestableAmenityDto>> amenities = api.call("getRequestableAmenities", answered++);
+        amenitiesAnswered = 0;
+        while (amenitiesAnswered < api.count("getRequestableAmenities")) {
+            ScreenTestSupport.FakeCall<List<RequestableAmenityDto>> amenities = api.call("getRequestableAmenities", amenitiesAnswered++);
             amenities.succeed(new ArrayList<>());
             idle();
         }
@@ -137,6 +140,20 @@ public class PaymentScreenTest {
         assertNotNull("a confirmation dialog should be showing", dialog);
         ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         idle();
+    }
+
+    /** Answers the bill re-read the screen makes (resume / right before submit), plus the amenity read that corrects its total. */
+    private void answerBillCheck(ReservationDto latest) {
+        int index = api.count("getReservation") - 1;
+        assertTrue("the screen should have re-read the bill", index >= 0);
+        ScreenTestSupport.FakeCall<ReservationDto> call = api.call("getReservation", index);
+        call.succeed(latest);
+        idle();
+        while (amenitiesAnswered < api.count("getRequestableAmenities")) {
+            ScreenTestSupport.FakeCall<List<RequestableAmenityDto>> amenities = api.call("getRequestableAmenities", amenitiesAnswered++);
+            amenities.succeed(new ArrayList<>());
+            idle();
+        }
     }
 
     private static void proceedToGcash(PaymentActivity a) {
@@ -563,6 +580,7 @@ public class PaymentScreenTest {
         submit.performClick();
         idle();
         confirmLatestDialog(); // "Submit this GCash payment of ₱360.00?"
+        answerBillCheck(ScreenTestSupport.reservation(588, 1800)); // bill unchanged
 
         // loading: a modal "processing" dialog, and the button says so and is disabled
         Dialog loading = ShadowDialog.getLatestDialog();
@@ -606,6 +624,7 @@ public class PaymentScreenTest {
         submit.performClick();
         idle();
         confirmLatestDialog();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1800));
         Dialog loading = ShadowDialog.getLatestDialog();
         awaitSubmitCalls(1);
 
@@ -624,6 +643,7 @@ public class PaymentScreenTest {
         submit.performClick();
         idle();
         confirmLatestDialog();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1800));
         assertFalse("the old error is cleared when a new attempt begins", isVisible(a, R.id.cardSubmitError));
         awaitSubmitCalls(2);
         ScreenTestSupport.FakeCall<PaymentSubmitResponse> second = api.call("submitGcashPayment", 1);
@@ -648,6 +668,103 @@ public class PaymentScreenTest {
         Thread.sleep(100);
         assertEquals("nothing was sent", 0, api.count("submitGcashPayment"));
         assertTrue("the guest can retry", a.findViewById(R.id.completePaymentButton).isEnabled());
+    }
+
+    // ---- the bill changing while the guest is off paying in the GCash app ----
+
+    private static String latestDialogTitle() {
+        Dialog d = ShadowDialog.getLatestDialog();
+        TextView t = d == null ? null : d.findViewById(androidx.appcompat.R.id.alertTitle);
+        return t == null ? null : t.getText().toString();
+    }
+
+    private void leaveAndComeBack() {
+        controller.pause();
+        idle();
+        controller.resume();
+        idle();
+    }
+
+    @Test
+    public void returnToGcash_unchangedBill_saysNothingAndShowsNothingNew() {
+        PaymentActivity a = toSubmitStep();
+        Dialog before = ShadowDialog.getLatestDialog();
+        String amountBefore = text(a, R.id.tvAmountToPay);
+
+        leaveAndComeBack();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1800));
+
+        assertEquals("no new dialog", before, ShadowDialog.getLatestDialog());
+        assertEquals(amountBefore, text(a, R.id.tvAmountToPay));
+    }
+
+    @Test
+    public void returnToGcash_changedBill_updatesAmount_keepsInput_andNeedsConfirmBeforeSubmit() throws Exception {
+        PaymentActivity a = toSubmitStep();
+        String amountBefore = text(a, R.id.tvAmountToPay);
+
+        leaveAndComeBack();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1500));
+
+        assertEquals(a.getString(R.string.bill_changed_title), latestDialogTitle());
+        assertNotEquals("the amount shown follows the new bill", amountBefore, text(a, R.id.tvAmountToPay));
+        assertEquals("the pinned bar quotes the same amount", text(a, R.id.tvAmountToPay), text(a, R.id.tvBarAmount));
+        assertEquals("typed reference kept", REFERENCE, ((EditText) a.findViewById(R.id.etGcashReferenceNumber)).getText().toString());
+        assertEquals("receipt kept", a.getString(R.string.receipt_attached_success), text(a, R.id.tvReceiptStatus));
+
+        // confirm the notice, then submit: the pre-submit re-read passes and the payment goes out once
+        confirmLatestDialog();
+        a.findViewById(R.id.completePaymentButton).performClick();
+        idle();
+        confirmLatestDialog();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1500));
+        awaitSubmitCalls(1);
+    }
+
+    @Test
+    public void submit_beforeConfirmingAChangedAmount_isBlocked() {
+        PaymentActivity a = toSubmitStep();
+        leaveAndComeBack();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1500));
+        // the guest dismisses nothing and goes straight for Submit: the notice comes back, nothing is sent
+        a.findViewById(R.id.completePaymentButton).performClick();
+        idle();
+        confirmLatestDialog(); // the "Submit this payment?" dialog
+        assertEquals(a.getString(R.string.bill_changed_title), latestDialogTitle());
+        assertEquals(0, api.count("submitGcashPayment"));
+    }
+
+    @Test
+    public void submit_billChangedRightBeforeSending_stopsAndShowsTheNewAmount() {
+        PaymentActivity a = toSubmitStep();
+        a.findViewById(R.id.completePaymentButton).performClick();
+        idle();
+        confirmLatestDialog();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1500));
+
+        assertEquals(a.getString(R.string.bill_changed_title), latestDialogTitle());
+        assertEquals("nothing was sent", 0, api.count("submitGcashPayment"));
+        assertEquals("the form is intact", View.VISIBLE, a.findViewById(R.id.gcashStep5Review).getVisibility());
+        assertTrue("and submittable again once confirmed", a.findViewById(R.id.completePaymentButton).isEnabled());
+    }
+
+    @Test
+    public void submit_billCheckFails_doesNotSend_andRetryWorks() throws Exception {
+        PaymentActivity a = toSubmitStep();
+        a.findViewById(R.id.completePaymentButton).performClick();
+        idle();
+        confirmLatestDialog();
+        ScreenTestSupport.FakeCall<ReservationDto> failing = api.last("getReservation");
+        failing.http(500);
+        idle();
+
+        assertEquals(a.getString(R.string.bill_check_failed_title), latestDialogTitle());
+        assertEquals(0, api.count("submitGcashPayment"));
+        assertEquals("typed reference kept", REFERENCE, ((EditText) a.findViewById(R.id.etGcashReferenceNumber)).getText().toString());
+
+        confirmLatestDialog(); // Retry
+        answerBillCheck(ScreenTestSupport.reservation(588, 1800));
+        awaitSubmitCalls(1);
     }
 
     // ---- shape ----

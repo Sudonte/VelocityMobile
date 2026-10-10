@@ -1321,6 +1321,12 @@
     <string name="addon_amenities_empty">No additional amenities are currently available.</string>
     <string name="addon_amenities_load_error">Unable to load additional amenities. Please try again.</string>
     <string name="retry_label">Retry</string>
+    <string name="bill_changed_title">Your bill has changed</string>
+    <string name="bill_changed_message">The amount due on this reservation changed while you were away.\n\nBalance due: %1$s → %2$s\nAmount to pay: %3$s → %4$s\n\nYour GCash number, reference number and receipt were kept. Please check the new amount before you submit.</string>
+    <string name="bill_changed_confirm">I understand, continue</string>
+    <string name="bill_check_failed_title">Couldn\'t check your bill</string>
+    <string name="bill_check_failed_message">We couldn\'t confirm the latest amount due, so nothing was submitted. Your details are still here. Check your connection and try again.</string>
+    <string name="error_amount_exceeds_balance">The amount is more than the balance due (%1$s). Please enter the correct amount.</string>
     <string name="summary_amenities_header">Add-On Amenities</string>
     <string name="label_quantity">Qty</string>
     <string name="tax_service_charge_label">Taxes &amp; Service Charges</string>

@@ -1975,8 +1975,182 @@ public class PaymentActivity extends BaseNavigationActivity {
                 && !(gcashPortalSection != null && gcashPortalSection.getVisibility() == View.VISIBLE);
     }
 
+    /** The total and amount paid the guest last saw (or confirmed) - what every fresh read is compared with. */
+    private PaymentBillingCheck.Bill shownBill;
+    private boolean billCheckInFlight;
+    /** A changed bill has been shown and not yet confirmed; submitting is blocked until it is. */
+    private boolean billChangeAwaitingConfirm;
+    private AlertDialog billDialog;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkBillOnReturn();
+    }
+
+    /** True while the GCash form of an existing reservation is open - the only time a change must be announced. */
+    private boolean isPayingExistingBill() {
+        return currentBooking != null && bookingId != null && shownBill != null
+                && !isPendingBookingMode && !isPendingReservationMode && !isSubmittingPayment
+                && gcashPortalSection != null && gcashPortalSection.getVisibility() == View.VISIBLE;
+    }
+
+    /**
+     * Reads the latest bill of the reservation being paid, with the same total correction loadBookingData() applies
+     * (without it a fresh read would look "changed" against the corrected figures on screen).
+     *
+     * @param callback the corrected latest bill, or an error if it could not be read
+     */
+    private void fetchLatestBill(RoomRepository.RepositoryCallback<Booking> callback) {
+        repository.fetchTransactionById(bookingId, true, new RoomRepository.RepositoryCallback<Booking>() {
+            @Override
+            public void onSuccess(Booking fresh) {
+                repository.correctPendingReservationTotal(fresh, new RoomRepository.RepositoryCallback<Booking>() {
+                    @Override
+                    public void onSuccess(Booking corrected) {
+                        callback.onSuccess(corrected != null ? corrected : fresh);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        callback.onSuccess(fresh);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    /** The guest came back to the screen (e.g. from the GCash app): quietly check the bill, speak only if it moved. */
+    private void checkBillOnReturn() {
+        if (!isPayingExistingBill() || billCheckInFlight) return;
+        billCheckInFlight = true;
+        fetchLatestBill(new RoomRepository.RepositoryCallback<Booking>() {
+            @Override
+            public void onSuccess(Booking fresh) {
+                billCheckInFlight = false;
+                if (isFinishing() || isDestroyed() || !isPayingExistingBill()) return;
+                if (PaymentBillingCheck.billChanged(shownBill, PaymentBillingCheck.Bill.of(fresh))) {
+                    showBillChangedNotice(fresh);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                billCheckInFlight = false; // silent: the pre-submit check is the one that must not fail quietly
+            }
+        });
+    }
+
+    /**
+     * Puts the new figures everywhere the amount appears (including what the copy button copies), keeps everything
+     * the guest typed or attached, and makes them confirm the new amount before anything can be sent.
+     */
+    private void showBillChangedNotice(Booking fresh) {
+        PaymentBillingCheck.Bill old = shownBill;
+        PaymentBillingCheck.Bill now = PaymentBillingCheck.Bill.of(fresh);
+        double oldPayNow = payNowValue;
+        applyLatestBill(fresh);
+        billChangeAwaitingConfirm = true;
+        if (billDialog != null && billDialog.isShowing()) billDialog.dismiss();
+        billDialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.bill_changed_title)
+                .setMessage(getString(R.string.bill_changed_message,
+                        MoneyFormat.format(old.balanceDue()), MoneyFormat.format(now.balanceDue()),
+                        MoneyFormat.format(oldPayNow), MoneyFormat.format(payNowValue)))
+                .setCancelable(false)
+                .setPositiveButton(R.string.bill_changed_confirm, (d, w) -> billChangeAwaitingConfirm = false)
+                .show();
+    }
+
+    /** Redraws every figure from a fresh read of the same reservation; form input is not touched. */
+    private void applyLatestBill(Booking fresh) {
+        currentBooking = fresh;
+        reviewGate.accept(fresh);
+        shownBill = PaymentBillingCheck.Bill.of(fresh);
+        roomTotalValue = fresh.getTotalAmount();
+        grandTotalValue = roomTotalValue;
+        alreadyPaidValue = fresh.getAmountPaid();
+        String formattedGrandTotal = MoneyFormat.format(grandTotalValue);
+        tvTotalAmount.setText(formattedGrandTotal);
+        tvGrandTotal.setText(formattedGrandTotal);
+        renderBillFigures(roomTotalValue);
+        applyPaymentAmountSelection();
+        updateAmountToPay();
+    }
+
+    /**
+     * Right before anything is sent: read the bill again. Unchanged and the amount fits - submit. Changed, unreadable
+     * or over the balance - stop, say so, and leave the form exactly as the guest filled it.
+     */
+    private void verifyBillThenSubmit(String number, String referenceNumber) {
+        if (isSubmittingPayment) return;
+        if (isPendingBookingMode || isPendingReservationMode || currentBooking == null || shownBill == null) {
+            submitPaymentToServer(number, referenceNumber);
+            return;
+        }
+        if (billChangeAwaitingConfirm) { // a changed amount was shown and not yet confirmed
+            showBillChangedNotice(currentBooking);
+            return;
+        }
+        if (!NetworkUtils.isOnline(this)) { // the submit itself refuses at once with the usual offline banner
+            submitPaymentToServer(number, referenceNumber);
+            return;
+        }
+        if (billCheckInFlight) return;
+        billCheckInFlight = true;
+        setButtonEnabled(completePaymentButton, false);
+        fetchLatestBill(new RoomRepository.RepositoryCallback<Booking>() {
+            @Override
+            public void onSuccess(Booking fresh) {
+                billCheckInFlight = false;
+                updateSubmitButtonState();
+                if (isFinishing() || isDestroyed()) return;
+                PaymentBillingCheck.SubmitVerdict verdict = PaymentBillingCheck.beforeSubmit(
+                        shownBill, PaymentBillingCheck.Bill.of(fresh), payNowValue);
+                switch (verdict) {
+                    case PROCEED:
+                        submitPaymentToServer(number, referenceNumber);
+                        break;
+                    case BILL_CHANGED:
+                        showBillChangedNotice(fresh);
+                        break;
+                    case OVER_BALANCE:
+                        showSubmitError(getString(R.string.error_amount_exceeds_balance,
+                                MoneyFormat.format(shownBill.balanceDue())));
+                        break;
+                    default:
+                        showBillCheckFailed(number, referenceNumber);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                billCheckInFlight = false;
+                updateSubmitButtonState();
+                if (isFinishing() || isDestroyed()) return;
+                showBillCheckFailed(number, referenceNumber);
+            }
+        });
+    }
+
+    private void showBillCheckFailed(String number, String referenceNumber) {
+        if (billDialog != null && billDialog.isShowing()) billDialog.dismiss();
+        billDialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.bill_check_failed_title)
+                .setMessage(R.string.bill_check_failed_message)
+                .setPositiveButton(R.string.retry_label, (d, w) -> verifyBillThenSubmit(number, referenceNumber))
+                .setNegativeButton(R.string.cancel_label, null)
+                .show();
+    }
+
     private void populateExistingTransactionSummary() {
         reviewGate.accept(currentBooking); // what is about to be drawn - see onVisiblePoll()
+        shownBill = PaymentBillingCheck.Bill.of(currentBooking);
         double amount = currentBooking.getTotalAmount();
 
         roomTotalValue = amount;
@@ -2036,6 +2210,20 @@ public class PaymentActivity extends BaseNavigationActivity {
         // Reservation instead gets its split from loadItemizedAmenitiesForPendingReservation()
         // above, asynchronously - fall back to the full amount as Room Charges
         // until that resolves, rather than showing a wrong ₱0.00 Room Charges.
+        renderBillFigures(amount);
+        renderPaidProgress();
+
+        applyPaymentAmountSelection();
+        renderPaymentVerificationStatus(currentBooking);
+        preselectPaymentMethod(currentBooking);
+        if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.VISIBLE);
+        if (emptyStateSection != null) emptyStateSection.setVisibility(View.GONE);
+        updateBookReserveCtaVisibility(true);
+        renderActionBar();
+    }
+
+    /** Every figure of the bill - charges, discount, paid, outstanding - drawn from {@link #currentBooking}. */
+    private void renderBillFigures(double amount) {
         double roomCharge = currentBooking.getRoomCharge();
         double amenityCharge = currentBooking.getAmenityCharge();
         boolean hasSplitFigures = roomCharge > 0.009 || amenityCharge > 0.009;
@@ -2065,15 +2253,6 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (tvOutstandingBalanceSummary != null) {
             tvOutstandingBalanceSummary.setText(MoneyFormat.format(remainingDueValue()));
         }
-        renderPaidProgress();
-
-        applyPaymentAmountSelection();
-        renderPaymentVerificationStatus(currentBooking);
-        preselectPaymentMethod(currentBooking);
-        if (checkoutSummarySection != null) checkoutSummarySection.setVisibility(View.VISIBLE);
-        if (emptyStateSection != null) emptyStateSection.setVisibility(View.GONE);
-        updateBookReserveCtaVisibility(true);
-        renderActionBar();
     }
 
     /** The bar under the bill and its "x% paid" caption - same percentage the bar has always used. */
@@ -2549,7 +2728,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.confirm_payment_title)
                 .setMessage(getString(R.string.confirm_submit_gcash_payment_msg, MoneyFormat.format(payNowValue)))
-                .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> submitPaymentToServer(number, referenceNumber))
+                .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> verifyBillThenSubmit(number, referenceNumber))
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
     }
