@@ -69,6 +69,33 @@ public class LandingScreenTest {
         app = ApplicationProvider.getApplicationContext();
         api = new ScreenTestSupport.FakeApi();
         ScreenTestSupport.freshRepository(app, api);
+        ScreenTestSupport.goOnline(app);
+    }
+
+    // ---- never usable offline ----
+
+    @Test
+    public void whileOffline_aFullScreenNoInternetStateCoversLanding_andLiftsWhenTheConnectionReturns() {
+        android.net.ConnectivityManager cm = (android.net.ConnectivityManager) app.getSystemService(Context.CONNECTIVITY_SERVICE);
+        shadowOf(cm).setNetworkCapabilities(cm.getActiveNetwork(), null);
+        launch();
+
+        View gate = activity.findViewById(R.id.offlineGate);
+        assertNotNull(gate);
+        assertEquals("the no-internet state covers the page", View.VISIBLE, gate.getVisibility());
+        assertNotNull("with a Retry button", activity.findViewById(R.id.btnOfflineGateRetry));
+
+        ScreenTestSupport.goOnline(app);
+        controller.stop();
+        controller.start();
+        idle();
+        assertEquals("a working connection lifts it", View.GONE, activity.findViewById(R.id.offlineGate).getVisibility());
+    }
+
+    @Test
+    public void whileOnline_theGateStaysOutOfTheWay() {
+        launch();
+        assertEquals(View.GONE, activity.findViewById(R.id.offlineGate).getVisibility());
     }
 
     // ---- helpers ----

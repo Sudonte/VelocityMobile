@@ -7,7 +7,10 @@
     <string name="introduction_loading_message">Loading…</string>
     <string name="introduction_loading_percent_initial">0%</string>
     <string name="introduction_starting">Starting Velocity Suites…</string>
-    <string name="introduction_checking_connection">Checking internet connection…</string>
+    <string name="introduction_checking_connection">Checking your connection…</string>
+    <string name="introduction_connection_good">Connection is good</string>
+    <string name="introduction_error_icon_description">No internet connection</string>
+    <string name="introduction_slow_connection_detected">Slow connection detected — this may take a moment</string>
     <string name="introduction_connecting">Connecting to Velocity Suites…</string>
     <string name="introduction_loading_hotel_info">Loading hotel information…</string>
     <string name="introduction_almost_ready">Almost ready…</string>
@@ -19,20 +22,18 @@
     <string name="introduction_error_no_internet_desc">Please connect to Wi-Fi or mobile data and try again.</string>
     <string name="introduction_error_backend_desc">Velocity Suites is temporarily unavailable. Please try again.</string>
     <string name="sign_in_sign_up_label">Sign In / Sign Up</string>
-    <string name="welcome_tagline">Your Comfort is our Service</string>
+    <string name="welcome_tagline">Your comfort is our service</string>
     <!-- Welcome screen: what the app is and does, then what to do next. Only describes what the app itself does. -->
-    <string name="welcome_headline">Book your stay with Velocity Suites</string>
-    <string name="welcome_support">Create an account to book, pay and keep track of your stay, all from your phone.</string>
-    <string name="welcome_point_rooms_title">Browse rooms</string>
-    <string name="welcome_point_rooms_desc">See available rooms and their rates.</string>
-    <string name="welcome_point_book_title">Book or reserve</string>
-    <string name="welcome_point_book_desc">Book now, or reserve and pay later.</string>
-    <string name="welcome_point_pay_title">Pay with GCash</string>
-    <string name="welcome_point_pay_desc">Pay by GCash and upload the receipt.</string>
-    <string name="welcome_point_track_title">Track your stay</string>
-    <string name="welcome_point_track_desc">Follow every booking and payment.</string>
-    <string name="welcome_point_notify_title">Get notifications</string>
-    <string name="welcome_point_notify_desc">Get updates on bookings and payments.</string>
+    <string name="welcome_headline">Welcome, Guest!</string>
+    <string name="welcome_support">Step into a stay designed around you. At Velocity Suites Hotel, every room and every service is prepared with your rest and convenience in mind. Book rooms, manage your reservations, and track your payments — all in one app.</string>
+    <string name="welcome_point_rooms_title">Easy room booking</string>
+    <string name="welcome_point_rooms_desc">Browse rooms, then book or reserve in a few taps.</string>
+    <string name="welcome_point_pay_title">Secure GCash payments</string>
+    <string name="welcome_point_pay_desc">Pay by GCash and upload your receipt.</string>
+    <string name="welcome_point_track_title">Track all your transactions</string>
+    <string name="welcome_point_track_desc">Follow every booking, reservation and payment.</string>
+    <string name="welcome_point_notify_title">Friendly front-desk support</string>
+    <string name="welcome_point_notify_desc">Our front-desk team is here whenever you need us.</string>
     <string name="welcome_action_create_account">Create an Account</string>
     <string name="welcome_action_sign_in">Already have an account? Sign In</string>
     <string name="sign_in">Sign In</string>
@@ -1086,18 +1087,26 @@
     <string name="empty_upcoming_bookings">You have no upcoming bookings. New bookings will appear here once scheduled.</string>
     <string name="empty_title_upcoming_bookings">No Upcoming Bookings Found</string>
     <!-- Real, permanent, non-recoverable deletion (hard DELETE against the guest's own row + its owned child records) - not the old hidden_at soft-hide. See RoomRepository#deleteReservationPermanently()/#deleteBookingPermanently() and TRANSACTION_PERMANENT_DELETE_BACKEND_SPEC.md. -->
-    <string name="delete_permanently_button_label">Delete Permanently</string>
-    <string name="delete_transaction_permanently_title">Delete Transaction Permanently?</string>
-    <string name="deleting_in_progress_label">Deleting…</string>
+    <string name="delete_permanently_button_label">Remove From My Bookings</string>
+    <string name="delete_transaction_permanently_title">Remove From My Bookings?</string>
+    <string name="txn_removed_by_guest">Removed from bookings by guest</string>
+    <!-- Itemized stay (server StayBill): booked vs actual check-out, nights and the extra nights' charge. -->
+    <string name="stay_scheduled_check_in">Scheduled Check-In</string>
+    <string name="stay_scheduled_check_out">Scheduled Check-Out</string>
+    <string name="stay_actual_check_out">Actual Check-Out</string>
+    <string name="stay_nights_booked_format">%1$s (booked: %2$d)</string>
+    <string name="stay_extra_nights_charge">Extra Nights Charge (%1$d)</string>
+    <string name="stay_updated_total">Updated Total</string>
+    <string name="deleting_in_progress_label">Removing…</string>
     <string name="cancelling_in_progress_label">Cancelling…</string>
     <string name="wizard_progress_lost_restart">Your booking session was interrupted, so we\'ve restarted it from the beginning. Please re-enter your details.</string>
-    <string name="delete_transaction_success_title">Transaction Deleted</string>
+    <string name="delete_transaction_success_title">Removed From My Bookings</string>
     <!-- Booking-tab vs Reservation-tab specific copy for confirmDeleteTransaction()/TransactionListActivity#confirmDelete() - a Booking may be deleted once Completed or Cancelled/Rejected, a Reservation only once Cancelled/Rejected (never merely Completed/staff-verified - see TransactionCategorizer's own doc). -->
-    <string name="delete_booking_transaction_confirm">This booking transaction will be permanently deleted and cannot be recovered. Are you sure you want to continue?</string>
-    <string name="delete_booking_transaction_success">The booking transaction has been permanently deleted.</string>
-    <string name="delete_reservation_transaction_confirm">This reservation transaction will be permanently deleted and cannot be recovered. Are you sure you want to continue?</string>
-    <string name="delete_reservation_transaction_success">The reservation transaction has been permanently deleted.</string>
-    <string name="delete_transaction_failed_format">The transaction could not be permanently deleted. %1$s</string>
+    <string name="delete_booking_transaction_confirm">This booking will be removed from your Bookings &amp; Reservations. It is never deleted: it stays in your Transaction History with all its details as your proof. Continue?</string>
+    <string name="delete_booking_transaction_success">The booking was removed from your bookings. It stays in your Transaction History.</string>
+    <string name="delete_reservation_transaction_confirm">This reservation will be removed from your Bookings &amp; Reservations. It is never deleted: it stays in your Transaction History with all its details as your proof. Continue?</string>
+    <string name="delete_reservation_transaction_success">The reservation was removed from your bookings. It stays in your Transaction History.</string>
+    <string name="delete_transaction_failed_format">The transaction could not be removed. %1$s</string>
     <!-- Status-code-specific delete errors (RoomRepository#deleteErrorMessage()) - always a clean, fixed message, never the raw backend/framework error text. -->
     <string name="delete_error_forbidden">You are not allowed to delete this transaction.</string>
     <string name="delete_error_not_found_booking">This booking transaction no longer exists.</string>
@@ -1581,7 +1590,7 @@
     <!-- Hotel information -->
     <string name="landing_section_news">Announcements &amp; Updates</string>
     <string name="landing_hotel_name">Velocity Suites Hotel</string>
-    <string name="landing_hotel_desc">A modern five-star hotel offering comfortable accommodations, premium amenities, and heartfelt service for business and leisure travelers alike.</string>
+    <string name="landing_hotel_desc">Velocity Suites Hotel offers comfortable accommodations, premium amenities, and heartfelt service for business and leisure travelers alike.</string>
     <string name="landing_hotel_address_label">Address</string>
     <string name="landing_hotel_address">Allah Valley Drive National Highway, Surallah, South Cotabato, 9512</string>
     <string name="landing_hotel_view_location">View Location</string>

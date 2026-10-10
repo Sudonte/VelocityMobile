@@ -90,7 +90,7 @@ public class WelcomeScreenTest {
         assertTrue("headline above supporting text", top(root, headline) < top(root, support));
         assertTrue("supporting text above the value points", top(root, support) < top(root, points));
         assertTrue("value points above the actions", top(root, points) < top(root, actions));
-        assertEquals("the five things the app actually does", 5, ((ViewGroup) points).getChildCount());
+        assertEquals("the four highlights", 4, ((ViewGroup) points).getChildCount());
     }
 
     // ---- actions ----

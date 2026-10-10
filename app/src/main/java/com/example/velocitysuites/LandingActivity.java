@@ -96,6 +96,8 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     private LandingRefreshCoordinator refreshCoordinator;
     private VisiblePoller visiblePoller;
     private Snackbar refreshFailedSnackbar;
+    private final OfflineGate offlineGate = new OfflineGate(this);
+
     /** onCreate() starts the first load itself, so the very first onResume() must not start a second one. */
     private boolean firstResume = true;
     // A section that has never loaded has nothing to show, so it shows its own spinner and, if it fails, its own
@@ -842,6 +844,8 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     protected void onStart() {
         super.onStart();
         if (hotelMapView != null) hotelMapView.onStart();
+        // Landing is never usable offline - also when it is reopened from the back stack after the connection dropped.
+        offlineGate.start();
     }
 
     @Override
@@ -871,6 +875,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
 
     @Override
     protected void onStop() {
+        offlineGate.stop();
         if (hotelMapView != null) hotelMapView.onStop();
         super.onStop();
     }
@@ -880,6 +885,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         // Belt and braces: onPause() already stopped the poller; cancel() silences any request still in flight.
         visiblePoller.stop();
         refreshCoordinator.cancel();
+        offlineGate.destroy();
         dismissRefreshFailure();
         if (hotelMapView != null) hotelMapView.onDestroy();
         super.onDestroy();

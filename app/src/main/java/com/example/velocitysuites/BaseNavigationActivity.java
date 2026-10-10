@@ -36,8 +36,8 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.END)) {
-                    drawerLayout.closeDrawer(GravityCompat.END);
+                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
                 } else {
                     setEnabled(false);
                     BaseNavigationActivity.super.onBackPressed();
@@ -87,7 +87,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                 } else {
                     handleNavigation(itemId);
                 }
-                drawerLayout.postDelayed(() -> drawerLayout.closeDrawer(GravityCompat.END), 250);
+                drawerLayout.postDelayed(() -> drawerLayout.closeDrawer(GravityCompat.START), 250);
                 return true;
             });
         }
@@ -97,7 +97,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         // listener here, not one per child, avoids opening the drawer twice.
         View menuButtonControl = findViewById(R.id.menuButtonControl);
         if (menuButtonControl != null && drawerLayout != null) {
-            menuButtonControl.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.END));
+            menuButtonControl.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
         }
 
         // Header notification icon navigates to the Notifications screen

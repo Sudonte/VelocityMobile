@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full-screen "no internet" state laid over a screen that is not usable offline (Landing). Swallows touches. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/offlineGate"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/velocity_surface_elevated"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingHorizontal="32dp"
+    android:visibility="gone">
+
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:contentDescription="@string/introduction_error_icon_description"
+        android:src="@drawable/ic_wifi_off"
+        app:tint="@color/velocity_red_dark" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:text="@string/introduction_error_no_internet"
+        android:textColor="@color/velocity_red_dark"
+        android:textSize="20sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:text="@string/introduction_error_no_internet_desc"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="14sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOfflineGateRetry"
+        style="@style/Widget.Velocity.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:minWidth="160dp"
+        android:stateListAnimator="@null"
+        android:text="@string/retry_label"
+        app:cornerRadius="0dp"
+        app:elevation="0dp" />
+</LinearLayout>

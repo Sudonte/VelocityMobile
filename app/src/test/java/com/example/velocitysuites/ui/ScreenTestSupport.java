@@ -113,6 +113,15 @@ final class ScreenTestSupport {
      * into the next) whose ApiService is {@code api}. Uses the real application context, so error messages
      * resolve real strings.
      */
+    /** Robolectric reports no network by default; a screen that is held back while offline (Landing) needs this to be usable. */
+    static void goOnline(Context applicationContext) {
+        android.net.ConnectivityManager cm = (android.net.ConnectivityManager) applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        android.net.NetworkCapabilities caps = org.robolectric.shadows.ShadowNetworkCapabilities.newInstance();
+        org.robolectric.Shadows.shadowOf(caps).addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        org.robolectric.Shadows.shadowOf(caps).addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+        org.robolectric.Shadows.shadowOf(cm).setNetworkCapabilities(cm.getActiveNetwork(), caps);
+    }
+
     static RoomRepository freshRepository(Context applicationContext, FakeApi api) {
         try {
             Field instance = RoomRepository.class.getDeclaredField("instance");

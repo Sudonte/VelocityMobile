@@ -4,6 +4,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +24,9 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Startup gate: introduction.xml is not just a cosmetic splash - it holds
@@ -76,6 +82,16 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton btnIntroductionRetry;
 
     private final Handler startupHandler = new Handler(Looper.getMainLooper());
+
+    /** The connection probe runs here, never on the main thread; cancelled when the screen goes away. */
+    private final ExecutorService probeExecutor = Executors.newSingleThreadExecutor();
+    private Future<?> probeFuture;
+    /** Written by the probe thread, read on the main thread. */
+    private volatile ConnectionProbe.Result probeResult;
+    /** True once the probe called the connection slow: the "slow connection" message then stays on screen. */
+    private boolean slowConnection = false;
+    /** Restarts the startup check by itself the moment a working connection returns while the offline state is showing. */
+    private ConnectivityManager.NetworkCallback reconnectCallback;
 
     /** Single source of truth for both the progress bar and the "%" label - see updateProgress(). */
     private int currentProgress = 0;
@@ -141,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
         // showError() already no-op safely via isChecking/hasNavigated, but
         // there's no reason to let a stray Handler message survive).
         startupHandler.removeCallbacksAndMessages(null);
+        if (probeFuture != null) probeFuture.cancel(true);
+        probeExecutor.shutdownNow();
+        unregisterReconnectCallback();
     }
 
     private void startLogoAnimation(View logoGroup) {
@@ -201,22 +220,97 @@ public class MainActivity extends AppCompatActivity {
         updateProgress(0);
         loadingMessageText.setText(R.string.introduction_starting);
 
+        slowConnection = false;
+        probeResult = null;
         animateProgress(0, INIT_END, INIT_DURATION_MS, () -> {
             loadingMessageText.setText(R.string.introduction_checking_connection);
-            animateProgress(INIT_END, CONNECTIVITY_END, CONNECTIVITY_DURATION_MS, () -> {
-                if (!NetworkUtils.isOnline(this)) {
-                    isChecking = false;
-                    showError(getString(R.string.introduction_error_no_internet),
-                            getString(R.string.introduction_error_no_internet_desc));
-                    return;
-                }
-                runBackendCheck();
-            });
+            startProbe();
+            animateProgress(INIT_END, CONNECTIVITY_END, CONNECTIVITY_DURATION_MS, this::awaitProbe);
         });
     }
 
+    /**
+     * The real connection check: the phone must report a validated internet connection AND the backend must answer a
+     * tiny request (latency + download timed). Wi-Fi with no actual internet therefore counts as offline. Runs off
+     * the main thread and is cancelled with the screen.
+     */
+    private void startProbe() {
+        final boolean phoneSaysOnline = NetworkUtils.isOnline(this);
+        final int hintKbps = NetworkUtils.downstreamKbps(this);
+        if (probeFuture != null) probeFuture.cancel(true);
+        probeFuture = probeExecutor.submit(() -> {
+            ConnectionProbe.Result result = ConnectionProbe.run(ConnectionProbe.HEALTH_URL, hintKbps, phoneSaysOnline);
+            if (!Thread.currentThread().isInterrupted()) probeResult = result;
+        });
+    }
+
+    /** Waits (polling the volatile result) for the probe, then branches: offline state, or on to the backend load. */
+    private void awaitProbe() {
+        ConnectionProbe.Result result = probeResult;
+        if (result == null) {
+            startupHandler.postDelayed(this::awaitProbe, RESULT_POLL_INTERVAL_MS);
+            return;
+        }
+        switch (result.quality) {
+            case OFFLINE:
+                isChecking = false;
+                showError(getString(R.string.introduction_error_no_internet),
+                        getString(R.string.introduction_error_no_internet_desc));
+                registerReconnectCallback();
+                return;
+            case SLOW:
+                slowConnection = true;
+                loadingMessageText.setText(R.string.introduction_slow_connection_detected);
+                break;
+            default:
+                loadingMessageText.setText(R.string.introduction_connection_good);
+                break;
+        }
+        runBackendCheck();
+    }
+
+    /** Sets the staged status text unless the slow-connection notice is the one to keep showing. */
+    private void setStatus(int stringRes) {
+        if (!slowConnection) loadingMessageText.setText(stringRes);
+    }
+
+    private void registerReconnectCallback() {
+        if (reconnectCallback != null) return;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm == null) return;
+        reconnectCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onCapabilitiesChanged(Network network, android.net.NetworkCapabilities capabilities) {
+                if (capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                        && capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                    startupHandler.post(() -> {
+                        if (!isChecking && !hasNavigated && !isFinishing()) startStartupCheck();
+                    });
+                }
+            }
+        };
+        try {
+            cm.registerNetworkCallback(new NetworkRequest.Builder().build(), reconnectCallback);
+        } catch (RuntimeException e) {
+            reconnectCallback = null; // the Retry button still works
+        }
+    }
+
+    private void unregisterReconnectCallback() {
+        if (reconnectCallback == null) return;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            try {
+                cm.unregisterNetworkCallback(reconnectCallback);
+            } catch (IllegalArgumentException ignored) {
+                // already unregistered
+            }
+        }
+        reconnectCallback = null;
+    }
+
     private void runBackendCheck() {
-        loadingMessageText.setText(R.string.introduction_connecting);
+        setStatus(R.string.introduction_connecting);
 
         // The real result is just recorded here - only finishOnceResultReady()
         // (driven by the cosmetic animation's own end callback / poll loop)
@@ -242,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         animateProgress(CONNECTIVITY_END, CONNECTING_END, CONNECTING_DURATION_MS, () -> {
-            loadingMessageText.setText(R.string.introduction_loading_hotel_info);
+            setStatus(R.string.introduction_loading_hotel_info);
             animateProgress(CONNECTING_END, BACKEND_PHASE_CAP, LOADING_INFO_DURATION_MS,
                     () -> finishOnceResultReady(resultReady, resultSuccess, resultMessage));
         });
@@ -308,6 +402,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void showError(String title, String description) {
         loadingPanel.setVisibility(View.GONE);
+        // The offline icon belongs to the offline state only; "temporarily unavailable" is a different problem.
+        findViewById(R.id.errorIcon).setVisibility(
+                title.equals(getString(R.string.introduction_error_no_internet)) ? View.VISIBLE : View.GONE);
         errorTitleText.setText(title);
         errorDescriptionText.setText(description);
         errorPanel.setVisibility(View.VISIBLE);
@@ -317,6 +414,7 @@ public class MainActivity extends AppCompatActivity {
     private void openLanding() {
         if (hasNavigated) return;
         hasNavigated = true;
+        unregisterReconnectCallback();
         Intent intent = new Intent(MainActivity.this, LandingActivity.class);
         startActivity(intent);
         finish(); // Prevents returning to splash

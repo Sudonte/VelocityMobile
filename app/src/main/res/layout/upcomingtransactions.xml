@@ -206,7 +206,7 @@
         style="@style/Widget.VelocitySuites.NavigationView"
         android:layout_width="320dp"
         android:layout_height="match_parent"
-        android:layout_gravity="end"
+        android:layout_gravity="start"
         android:background="@color/velocity_surface_elevated"
         app:headerLayout="@layout/nav_header_guest"
         app:menu="@menu/menu_dashboard" />
