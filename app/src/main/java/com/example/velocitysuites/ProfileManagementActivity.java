@@ -154,11 +154,41 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         if (themeDarkIcon != null) themeDarkIcon.setImageTintList(android.content.res.ColorStateList.valueOf(isDark ? activeColor : inactiveColor));
     }
 
+    /** onCreate() already fetched the profile, so the very first onResume() must not fetch it a second time. */
+    private boolean firstResume = true;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Back on this screen (from another screen or another app): pick up anything that changed meanwhile - a
+        // name or number corrected at the front desk, a profile-update lock that has since lifted.
+        if (firstResume) {
+            firstResume = false;
+        } else {
+            fetchProfileFromServer();
+        }
+    }
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): quietly re-read the profile. It only
+     * re-applies server values to the read-only page - the edit form is a separate dialog with its own copy, so
+     * nothing a guest is typing can be overwritten - and a failure shows nothing. The base class's badge check is kept.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        super.onVisiblePoll();
+        fetchProfileFromServer();
+    }
+
     private void fetchProfileFromServer() {
         ApiClient.getService(this).getProfile().enqueue(new Callback<ProfileResponse>() {
             @Override
             public void onResponse(Call<ProfileResponse> call, Response<ProfileResponse> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().user != null) {
+                    // A beat's request can still be in flight when the guest leaves; the page it would repaint (and
+                    // the Glide load that starts) must not be touched once this screen is gone. (An expired session
+                    // below is still acted on either way.)
+                    if (isFinishing() || isDestroyed()) return;
                     ProfileResponse body = response.body();
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("userFirstName", body.user.first_name);

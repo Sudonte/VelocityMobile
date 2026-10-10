@@ -73,7 +73,6 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     /** Optional: the Notification.TYPE_* that linked here - disambiguates an id shared by a reservation and a direct booking. */
     public static final String EXTRA_SELECTED_TYPE_HINT = "SELECTED_TYPE_HINT";
 
-    private static final long AUTO_REFRESH_MS = 30_000;
     private static final long SEARCH_DEBOUNCE_MS = 300;
 
     /** "Filter by Status" options, position-matched with STATUS_LABEL_RES (selection maps back by position, so it works in any locale). */
@@ -125,16 +124,18 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private final ClickGuard clickGuard = new ClickGuard();
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable applyFiltersRunnable = this::applyFilters;
-    private final Runnable autoRefreshRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // Light "anything changed?" checks - never a full reload of however far the list has been
-            // scrolled. The notification poll is what lets an arrival trigger an immediate status refresh.
-            requestPoll();
-            pollNotificationsForArrivals();
-            handler.postDelayed(this, AUTO_REFRESH_MS);
-        }
-    };
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity). Light "anything changed?" checks -
+     * never a full reload of however far the list has been scrolled. The notification poll is what lets an arrival
+     * trigger an immediate status refresh, and it repaints the header badge, so it replaces the base class's
+     * badge-only default.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        requestPoll();
+        pollNotificationsForArrivals();
+    }
 
     /** A notification about a booking/reservation/payment arrived: the receptionist just did something - refresh now. */
     private final RoomRepository.NotificationArrivalListener arrivalListener = arrived -> {
@@ -216,14 +217,6 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         } else {
             requestPoll();
         }
-        handler.removeCallbacks(autoRefreshRunnable);
-        handler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        handler.removeCallbacks(autoRefreshRunnable);
     }
 
     @Override

@@ -1939,7 +1939,44 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
     }
 
+    /** What the Review Billing figures were last drawn from - see onVisiblePoll(). */
+    private final ChangeGate reviewGate = new ChangeGate();
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity). While the guest is only REVIEWING
+     * the bill of an existing reservation, quietly re-read it and redraw the figures if they changed - a discount
+     * applied, a payment verified, the status moving on - so they never pay against numbers that went stale while
+     * the screen sat open. It deliberately does nothing once the GCash steps are open or a payment is being
+     * submitted: that form holds what the guest has typed and attached, and a redraw under their hands would lose
+     * it. A failed check says nothing. The base class's badge check is kept.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        super.onVisiblePoll();
+        if (!isReviewingExistingBill()) return;
+        final String id = currentBooking.getId();
+        repository.pollBookingsSplit((merged, reservationsError, directError) -> {
+            if (isFinishing() || isDestroyed() || !isReviewingExistingBill()) return; // the guest moved on meanwhile
+            Booking fresh = null;
+            for (Booking b : repository.getBookings()) {
+                if (b.getId().equals(id)) {
+                    fresh = b;
+                    break;
+                }
+            }
+            if (fresh == null || !reviewGate.accept(fresh)) return;
+            loadBookingData();
+        });
+    }
+
+    /** True while an existing reservation's bill is on screen and the guest has not started paying. */
+    private boolean isReviewingExistingBill() {
+        return currentBooking != null && !isPendingBookingMode && !isPendingReservationMode && !isSubmittingPayment
+                && !(gcashPortalSection != null && gcashPortalSection.getVisibility() == View.VISIBLE);
+    }
+
     private void populateExistingTransactionSummary() {
+        reviewGate.accept(currentBooking); // what is about to be drawn - see onVisiblePoll()
         double amount = currentBooking.getTotalAmount();
 
         roomTotalValue = amount;

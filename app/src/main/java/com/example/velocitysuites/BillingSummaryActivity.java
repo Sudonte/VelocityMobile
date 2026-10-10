@@ -109,6 +109,60 @@ public class BillingSummaryActivity extends AppCompatActivity {
         }
     }
 
+    // ---- Keeping the figures current ----
+    // This is the screen a guest reads just before paying, so while it is open the amounts and status are checked
+    // again every 30s (and when the guest returns to it) instead of staying as they were when it opened.
+    private final VisiblePoller visiblePoller = new VisiblePoller(this::refreshQuietly);
+    /** What populateSummary() last drew, so a check that finds the same booking redraws nothing. */
+    private final ChangeGate billingGate = new ChangeGate();
+    /** onCreate() already loaded, so the very first onResume() must not check again. */
+    private boolean firstResume = true;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (firstResume) {
+            firstResume = false;
+        } else {
+            refreshQuietly();
+        }
+        visiblePoller.start();
+    }
+
+    @Override
+    protected void onPause() {
+        visiblePoller.stop();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        visiblePoller.stop();
+        super.onDestroy();
+    }
+
+    /**
+     * A light, silent check for changes to this reservation (a receptionist verifying a payment, a discount applied,
+     * the status moving on). Redraws only if THIS booking really changed; if it has vanished from the list the
+     * screen is left as it is (opening it already handles that case) and a failed check says nothing.
+     */
+    private void refreshQuietly() {
+        if (reservationId == null || booking == null) return;
+        repository.pollBookingsSplit((merged, reservationsError, directError) -> {
+            if (isFinishing() || isDestroyed()) return;
+            Booking fresh = null;
+            for (Booking b : repository.getBookings()) {
+                if (b.getId().equals(reservationId)) {
+                    fresh = b;
+                    break;
+                }
+            }
+            if (fresh == null || !billingGate.accept(fresh)) return;
+            booking = fresh;
+            populateSummary();
+        });
+    }
+
     private void initViews() {
         findViewById(R.id.btnBillingBack).setOnClickListener(v -> finish());
 
@@ -196,6 +250,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
             return;
         }
 
+        billingGate.accept(booking); // what is about to be drawn - see refreshQuietly()
         populateSummary();
     }
 

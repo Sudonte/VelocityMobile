@@ -66,6 +66,18 @@ public class BookingDetailsActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> editLauncher;
     private final ClickGuard clickGuard = new ClickGuard();
 
+    /**
+     * While this screen is open a guest may be waiting for the receptionist to verify a payment or an ID, so the
+     * transaction is re-read every 30s (and when the guest returns to the screen) - the same beat Transaction
+     * Details uses - and the page is rebuilt only if something about it really changed.
+     */
+    private final VisiblePoller visiblePoller = new VisiblePoller(() -> {
+        if (booking != null) refreshFromServer(false);
+    });
+    private final ChangeGate detailsGate = new ChangeGate();
+    /** onCreate() already refreshed once, so the very first onResume() must not refresh again. */
+    private boolean firstResume = true;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,8 +109,32 @@ public class BookingDetailsActivity extends AppCompatActivity {
         });
 
         correctTotalAmountThenRender();
+        detailsGate.accept(booking); // what is being drawn from the intent's copy
         // "On the next open": always pick up what the receptionist verified since this record was cached.
         refreshFromServer(false);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (firstResume) {
+            firstResume = false;
+        } else if (booking != null) {
+            refreshFromServer(false); // back on the screen: catch up silently
+        }
+        visiblePoller.start();
+    }
+
+    @Override
+    protected void onPause() {
+        visiblePoller.stop();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        visiblePoller.stop();
+        super.onDestroy();
     }
 
     /**
@@ -118,6 +154,10 @@ public class BookingDetailsActivity extends AppCompatActivity {
             public void onSuccess(Booking fresh) {
                 if (isFinishing() || isDestroyed()) return;
                 swipeRefresh.setRefreshing(false);
+                // A silent check that finds the same transaction must not rebuild every section (pull-to-refresh and
+                // a saved edit always redraw, as before).
+                boolean changed = detailsGate.accept(fresh);
+                if (!changed && !userInitiated) return;
                 booking = fresh;
                 correctTotalAmountThenRender();
             }

@@ -76,6 +76,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     };
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshDashboard;
+    /** What populateDashboard() last drew - lets the silent 30s check skip a redraw when nothing changed (see onVisiblePoll()). */
+    private final ChangeGate dashboardGate = new ChangeGate();
     private final androidx.activity.result.ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(), granted -> {
                 // Denial is handled gracefully everywhere else too (NotificationHelper checks
@@ -210,7 +212,40 @@ public class DashboardActivity extends BaseNavigationActivity {
         updateNotificationBadge();
     }
 
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): while the guest stays on the
+     * dashboard, quietly check for new or changed bookings and notifications - the same light checks
+     * Transaction History and Notifications use - and redraw ONLY if something really changed. No spinner and no
+     * error message (a background miss is invisible; the next beat or any real action tries again), and an
+     * unchanged dashboard is left exactly as it is, so a card the guest has open stays open.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        RoomRepository repository = RoomRepository.getInstance(this);
+        final int[] pending = {2};
+        Runnable oneSettled = () -> {
+            if (--pending[0] > 0 || isFinishing() || isDestroyed()) return;
+            List<Booking> bookings = repository.getBookings();
+            List<Notification> notifications = repository.getNotifications();
+            if (dashboardGate.accept(bookings, notifications, ChangeGate.today())) populateDashboard(bookings, notifications);
+        };
+        repository.pollBookingsSplit((merged, reservationsError, directError) -> oneSettled.run());
+        repository.pollNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+            @Override
+            public void onSuccess(List<Notification> result) {
+                if (!isFinishing() && !isDestroyed()) updateNotificationBadge();
+                oneSettled.run();
+            }
+
+            @Override
+            public void onError(String message) {
+                oneSettled.run();
+            }
+        });
+    }
+
     private void populateDashboard(List<Booking> allBookings, List<Notification> allNotifications) {
+        dashboardGate.accept(allBookings, allNotifications, ChangeGate.today());
         if (swipeRefreshDashboard != null) swipeRefreshDashboard.setRefreshing(false);
         RoomRepository repository = RoomRepository.getInstance(this);
 

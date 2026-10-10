@@ -447,6 +447,11 @@ public final class RoomRepository {
         loadRooms(null, null, true, callback);
     }
 
+    /** Same, for the dates a guest searched (either may be null for the default window) - the Room Browsing silent refresh. */
+    public void refreshRoomsFresh(Calendar checkIn, Calendar checkOut, RepositoryCallback<List<Room>> callback) {
+        loadRooms(checkIn, checkOut, true, callback);
+    }
+
     private void loadRooms(Calendar checkIn, Calendar checkOut, boolean fresh, RepositoryCallback<List<Room>> callback) {
         java.util.Map<String, String> filters = new java.util.HashMap<>();
         if (checkIn != null) filters.put("check_in", ApiMapper.toApiDate(checkIn));

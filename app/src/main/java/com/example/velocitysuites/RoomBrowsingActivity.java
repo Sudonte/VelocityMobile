@@ -64,6 +64,11 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private boolean shouldOpenSelectedRoom;
     private boolean shouldOpenSelectedRoomsSummary;
     private boolean hasLoadedRoomsOnce;
+    /** True once the guest has searched/filtered/sorted: the list then shows applyFilters()' result, not simply every room (see showLoadedRooms()). */
+    private boolean filtersApplied;
+    /** What the room list was last drawn from, so the silent 30s refresh redraws only on a real change (see onVisiblePoll()). */
+    private final ChangeGate roomsGate = new ChangeGate();
+    private List<String> roomTypeOptions = new ArrayList<>();
 
     /** Multi-room cart: room id -> selected quantity, pre-seeded from an incoming ROOM_IDS extra (landing.xml carryover), extendable here via each card's quantity stepper. */
     private final Map<String, Integer> selectedQuantities = new LinkedHashMap<>();
@@ -241,20 +246,18 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private void loadRooms() {
         loadingOverlay.setVisibility(View.VISIBLE);
         layoutRoomError.setVisibility(View.GONE);
-        RoomRepository.getInstance(this).refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+        // The no-cache request path (opening, coming back, pull-to-refresh): "refresh" must never be answered from a
+        // stale copy sitting in front of the server.
+        RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 loadingOverlay.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 layoutRoomError.setVisibility(View.GONE);
                 allRooms = result;
+                roomsGate.accept(allRooms); // what is about to be drawn - see onVisiblePoll()
                 refreshRoomTypeDropdownOptions();
-                filteredRooms = new ArrayList<>(allRooms);
-                adapter.updateList(filteredRooms);
-                noResultsView.setVisibility(filteredRooms.isEmpty() ? View.VISIBLE : View.GONE);
-                if (tvResultsCount != null) {
-                    tvResultsCount.setText(filteredRooms.size() + " Rooms Found");
-                }
+                showLoadedRooms();
                 updateSelectionSummaryBar();
                 openSelectedRoomFromLanding();
                 openSelectedRoomsSummaryFromLanding();
@@ -266,6 +269,58 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 noResultsView.setVisibility(View.GONE);
                 layoutRoomError.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    /**
+     * Shows {@code allRooms} the way the guest last asked to see them: re-applying their search, filters and sort
+     * if they have ever used any (applyFilters() sets {@link #filtersApplied}), otherwise simply every room.
+     * A reload used to always show every room, so after returning to this screen the list ignored filters the
+     * guest had set while the filter controls still showed them.
+     */
+    private void showLoadedRooms() {
+        if (filtersApplied) {
+            applyFilters();
+            return;
+        }
+        filteredRooms = new ArrayList<>(allRooms);
+        adapter.updateList(filteredRooms);
+        noResultsView.setVisibility(filteredRooms.isEmpty() ? View.VISIBLE : View.GONE);
+        if (tvResultsCount != null) {
+            tvResultsCount.setText(filteredRooms.size() + " Rooms Found");
+        }
+    }
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): quietly re-fetch the rooms - for the
+     * dates the guest searched, or the default window - so a room that just sold out or came back appears without
+     * a pull. No loading overlay, no error message if it fails, and nothing is redrawn unless the rooms really
+     * changed; when they did, the guest's own search/filters/sort are re-applied and their Reserve/Book cart is
+     * trimmed to what is still free. The no-cache request path is used, as on the landing page.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        super.onVisiblePoll();
+        RoomRepository.getInstance(this).refreshRoomsFresh(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
+            @Override
+            public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed() || result == null) return;
+                if (!roomsGate.accept(result)) return;
+                allRooms = result;
+                refreshRoomTypeDropdownOptions();
+                showLoadedRooms();
+                List<Room> bookable = new ArrayList<>();
+                for (Room room : allRooms) {
+                    if (room != null && room.isAvailable()) bookable.add(room);
+                }
+                CartSelectionReconciler.reconcile(selectedQuantities, bookable);
+                updateSelectionSummaryBar();
+            }
+
+            @Override
+            public void onError(String message) {
+                // silent by design - the next beat (or any real action) tries again
             }
         });
     }
@@ -350,10 +405,11 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         // availability is date-range-aware server-side, so filtering the
         // stale default-window snapshot client-side would show the wrong
         // Fully Booked state for any dates other than the initial load's.
-        RoomRepository.getInstance(this).refreshRooms(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
+        RoomRepository.getInstance(this).refreshRoomsFresh(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 allRooms = result;
+                roomsGate.accept(allRooms); // what is about to be drawn - see onVisiblePoll()
                 refreshRoomTypeDropdownOptions();
                 finishSearch();
             }
@@ -540,12 +596,17 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         options.addAll(distinctTypes);
 
         String previousSelection = dropdownRoomType.getText() != null ? dropdownRoomType.getText().toString() : null;
-        dropdownRoomType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
-        dropdownRoomType.setOnItemClickListener((parent, view, position, id) -> {
-            String selected = options.get(position);
-            selectedRoomTypeFilter = selected.equals(getString(R.string.all_categories)) ? "All" : selected;
-            performSearchWithLoading();
-        });
+        // Only touch the dropdown when its choices really changed - the silent 30s refresh calls this too, and an
+        // identical new adapter would close the list a guest is part-way through opening.
+        if (!options.equals(roomTypeOptions)) {
+            roomTypeOptions = options;
+            dropdownRoomType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
+            dropdownRoomType.setOnItemClickListener((parent, view, position, id) -> {
+                String selected = options.get(position);
+                selectedRoomTypeFilter = selected.equals(getString(R.string.all_categories)) ? "All" : selected;
+                performSearchWithLoading();
+            });
+        }
 
         if (previousSelection != null && options.contains(previousSelection)) {
             dropdownRoomType.setText(previousSelection, false);
@@ -642,6 +703,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     }
 
     private void applyFilters() {
+        filtersApplied = true;
         // Type filter comes from the Room Type exposed dropdown; defaults to "All" so
         // an empty/"All" selection returns every room instead of matching nothing.
         String typeFilter = selectedRoomTypeFilter;

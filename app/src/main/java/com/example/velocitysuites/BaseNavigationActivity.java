@@ -188,6 +188,38 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         // the guest just edited it in Profile Management) - keep it fresh,
         // same reasoning as the notification badge refresh above.
         refreshHeader();
+        visiblePoller.start();
+    }
+
+    @Override
+    protected void onPause() {
+        // Nothing polls while the screen is covered, minimised or finished.
+        visiblePoller.stop();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        visiblePoller.stop();
+        super.onDestroy();
+    }
+
+    /**
+     * The one refresh beat of every guest screen: a single VisiblePoller started in onResume() and stopped in
+     * onPause(), so it ticks every 30 seconds only while the screen is actually showing - never twice over, never
+     * in the background. The first tick is 30 seconds after the screen comes back; whether it also reloads the
+     * instant it comes back is each screen's own onResume() business.
+     */
+    private final VisiblePoller visiblePoller = new VisiblePoller(this::onVisiblePoll);
+
+    /**
+     * Called on every beat of the visible-only poller. The default keeps the header bell's unread badge current
+     * (a light check for new notifications). A screen that shows server data overrides this to refresh it
+     * SILENTLY - no spinner, no error message, and redrawing only when something really changed (see
+     * ChangeGate) - and calls super.onVisiblePoll() too unless its own refresh already fetches notifications.
+     */
+    protected void onVisiblePoll() {
+        refreshNotificationBadge();
     }
 
     /**

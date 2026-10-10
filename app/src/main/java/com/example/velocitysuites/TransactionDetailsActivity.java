@@ -3,8 +3,6 @@ package com.example.velocitysuites;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -45,16 +43,8 @@ public class TransactionDetailsActivity extends AppCompatActivity {
      * for changes itself every 30s (the same light, merge-only poll Transaction History uses), one at a time, and
      * re-renders only if something the screen shows actually changed.
      */
-    private static final long POLL_MS = 30_000;
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final VisiblePoller visiblePoller = new VisiblePoller(this::pollNow);
     private boolean pollInFlight = false;
-    private final Runnable pollRunnable = new Runnable() {
-        @Override
-        public void run() {
-            pollNow();
-            handler.postDelayed(this, POLL_MS);
-        }
-    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -93,19 +83,18 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        handler.removeCallbacks(pollRunnable);
-        handler.postDelayed(pollRunnable, POLL_MS);
+        visiblePoller.start();
     }
 
     @Override
     protected void onPause() {
+        visiblePoller.stop();
         super.onPause();
-        handler.removeCallbacks(pollRunnable);
     }
 
     @Override
     protected void onDestroy() {
-        handler.removeCallbacksAndMessages(null);
+        visiblePoller.stop();
         super.onDestroy();
     }
 

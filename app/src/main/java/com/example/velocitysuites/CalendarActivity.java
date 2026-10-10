@@ -138,16 +138,37 @@ public class CalendarActivity extends BaseNavigationActivity {
             @Override
             public void onSuccess(List<Booking> result) {
                 if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-                buildEvents(result != null ? result : repository.getBookings());
+                List<Booking> shown = result != null ? result : repository.getBookings();
+                eventsGate.accept(shown, ChangeGate.today()); // what is about to be drawn - see onVisiblePoll()
+                buildEvents(shown);
             }
 
             @Override
             public void onError(String message) {
                 if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-                buildEvents(repository.getBookings());
+                List<Booking> shown = repository.getBookings();
+                eventsGate.accept(shown, ChangeGate.today());
+                buildEvents(shown);
                 Toast.makeText(CalendarActivity.this,
                         "Couldn't refresh calendar: " + message, Toast.LENGTH_SHORT).show();
             }
+        });
+    }
+
+    /** What the calendar events were last drawn from, so the silent 30s check redraws only on a real change. */
+    private final ChangeGate eventsGate = new ChangeGate();
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): a light, silent check for changes,
+     * with no loading overlay and no message if it fails. The events are rebuilt only if the bookings changed or the
+     * day rolled over. The base class's badge check is kept.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        super.onVisiblePoll();
+        repository.pollBookingsSplit((merged, reservationsError, directError) -> {
+            if (isFinishing() || isDestroyed() || (reservationsError != null && directError != null)) return;
+            if (eventsGate.accept(merged, ChangeGate.today())) buildEvents(merged);
         });
     }
 

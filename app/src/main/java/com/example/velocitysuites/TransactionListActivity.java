@@ -90,6 +90,24 @@ public class TransactionListActivity extends BaseNavigationActivity {
         loadTransactions();
     }
 
+    /** What the list was last drawn from, so the silent 30s check redraws only on a real change. */
+    private final ChangeGate listGate = new ChangeGate();
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): a light, silent check for changes
+     * (a booking confirmed, a payment verified), the same one Transaction History uses. The list is redrawn only if
+     * something really changed (or the day rolled over, which moves bookings between Upcoming/Completed); a failed
+     * check says nothing. The header badge check of the base class is kept.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        super.onVisiblePoll();
+        repository.pollBookingsSplit((merged, reservationsError, directError) -> {
+            if (isFinishing() || isDestroyed() || (reservationsError != null && directError != null)) return;
+            if (listGate.accept(merged, ChangeGate.today())) applyFilter(merged);
+        });
+    }
+
     private void applyHeaderText() {
         int titleRes;
         int descRes;
@@ -151,7 +169,9 @@ public class TransactionListActivity extends BaseNavigationActivity {
             @Override
             public void onSuccess(List<Booking> result) {
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                applyFilter(result != null ? result : new ArrayList<>());
+                List<Booking> shown = result != null ? result : new ArrayList<>();
+                listGate.accept(shown, ChangeGate.today()); // what is about to be drawn - see onVisiblePoll()
+                applyFilter(shown);
             }
 
             @Override

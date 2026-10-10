@@ -392,12 +392,31 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      * changes for any reason (this screen's own actions, or DashboardActivity's),
      * re-render immediately from the shared cache - no manual refresh needed.
      */
+    /** What the list was last drawn from - see bookingsChangedListener (declared first: the lambda below uses it). */
+    private final ChangeGate listGate = new ChangeGate();
+
     private final RoomRepository.BookingsChangedListener bookingsChangedListener = () -> {
         allMyBookings = repository.getBookings();
         com.example.velocitysuites.network.DiagnosticLog.d("BookingAndReservationActivity.bookingsChangedListener.fired",
                 "cachedCount=" + allMyBookings.size());
+        // The silent 30s check (onVisiblePoll()) fires this listener after every successful poll, whether or not
+        // anything changed. Redrawing identical data would rebuild the list under the guest's finger every 30s, so
+        // only a real change is drawn.
+        if (!listGate.accept(allMyBookings, repository.getCompletedHistoricalReservations(), ChangeGate.today())) return;
         renderList();
     };
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): a light, silent check for changes
+     * - a receptionist confirming a booking, a payment being verified - merged into the shared cache, which
+     * notifies bookingsChangedListener above. No spinner, no error message if the check fails. The header badge
+     * check from the base class is kept, since this screen doesn't fetch notifications itself.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        super.onVisiblePoll();
+        repository.pollBookingsSplit((merged, reservationsError, bookingsError) -> { });
+    }
 
     @Override
     protected void onStart() {
@@ -1029,6 +1048,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         repository.refreshBookingsSplit((merged, reservationsError, bookingsError) -> {
             if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             allMyBookings = merged != null ? merged : new ArrayList<>();
+            listGate.accept(allMyBookings, repository.getCompletedHistoricalReservations(), ChangeGate.today()); // about to be drawn below
             if (bookingsError == null) hasLoadedBookingsOnce = true;
             if (reservationsError == null) hasLoadedReservationsOnce = true;
             bookingsLoadError = bookingsError;

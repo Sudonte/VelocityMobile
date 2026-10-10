@@ -56,23 +56,11 @@ public class NotificationActivity extends BaseNavigationActivity {
     private static final long SEARCH_DEBOUNCE_MS = 300;
 
     // Silent polling refresh, matching the website's 30s auto-refresh on its own notifications page - keeps
-    // the list current without the guest needing to pull-to-refresh manually.
-    private static final long AUTO_REFRESH_MS = 30000;
-    private final Handler autoRefreshHandler = new Handler(Looper.getMainLooper());
-    private final Runnable autoRefreshRunnable = new Runnable() {
-        @Override
-        public void run() {
-            // Lightweight check-for-changes (see pollForNewNotifications()) rather than a full
-            // loadNotifications() reload - this timer fires every 30s for as long as the guest stays on
-            // this screen, so re-fetching however large the loaded window has grown would mean repeatedly
-            // re-downloading the guest's entire history just to check for one new row.
-            pollForNewNotifications();
-            autoRefreshHandler.postDelayed(this, AUTO_REFRESH_MS);
-        }
-    };
+    // the list current without the guest needing to pull-to-refresh manually. The timer itself is the shared
+    // visible-only one in BaseNavigationActivity (see onVisiblePoll() below).
 
     // Separate, more frequent timer purely for re-rendering the relative "5m ago" text on already-visible
-    // rows - nothing to do with fetching (see autoRefreshRunnable), so the two concerns can't interfere.
+    // rows - nothing to do with fetching (see onVisiblePoll()), so the two concerns can't interfere.
     private static final long TIME_TEXT_REFRESH_MS = 60000;
     private final Handler timeTextRefreshHandler = new Handler(Looper.getMainLooper());
     private final Runnable timeTextRefreshRunnable = new Runnable() {
@@ -240,10 +228,20 @@ public class NotificationActivity extends BaseNavigationActivity {
         } else {
             pollForNewNotifications();
         }
-        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
         timeTextRefreshHandler.removeCallbacks(timeTextRefreshRunnable);
-        autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_MS);
         timeTextRefreshHandler.postDelayed(timeTextRefreshRunnable, TIME_TEXT_REFRESH_MS);
+    }
+
+    /**
+     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): a lightweight check for changes
+     * (see pollForNewNotifications()) rather than a full loadNotifications() reload - it fires every 30s for as
+     * long as the guest stays here, so re-fetching however large the loaded window has grown would mean
+     * repeatedly re-downloading the guest's entire history just to check for one new row. It also repaints the
+     * header badge, so it replaces the base class's badge-only default.
+     */
+    @Override
+    protected void onVisiblePoll() {
+        pollForNewNotifications();
     }
 
     /** Pairs with onCreate()'s savedInstanceState restore above. */
@@ -256,14 +254,12 @@ public class NotificationActivity extends BaseNavigationActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
         timeTextRefreshHandler.removeCallbacks(timeTextRefreshRunnable);
     }
 
     @Override
     protected void onDestroy() {
         // Nothing may fire against a screen that is gone: timers, the pending debounced search.
-        autoRefreshHandler.removeCallbacksAndMessages(null);
         timeTextRefreshHandler.removeCallbacksAndMessages(null);
         searchHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
