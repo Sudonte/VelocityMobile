@@ -128,6 +128,11 @@ android {
             // inflate the app's real merged resources and manifest. The plain-JUnit tests are
             // unaffected: they never load an Android runtime at all.
             isIncludeAndroidResources = true
+            // All ~680 Robolectric screen tests run in one JVM, and Gradle's default 512 MB test heap runs out near
+            // the end of a full run: the JVM then sits in garbage collection for minutes (one test "taking" 5-6
+            // minutes) and dies with an OutOfMemoryError, failing the task although no test failed. Individual test
+            // classes pass fine alone, which is what hid it.
+            all { it.maxHeapSize = "1536m" }
         }
     }
     lint {
