@@ -271,7 +271,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         applyMode();
 
         loadingOverlay.setVisibility(View.VISIBLE);
-        repository.refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+        repository.refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 loadingOverlay.setVisibility(View.GONE);
@@ -1431,7 +1431,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      */
     private void onAddRoomClicked() {
         loadingOverlay.setVisibility(View.VISIBLE);
-        repository.refreshRooms(checkInCal, checkOutCal, new RoomRepository.RepositoryCallback<List<Room>>() {
+        repository.refreshRoomsFresh(checkInCal, checkOutCal, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 loadingOverlay.setVisibility(View.GONE);
@@ -2070,7 +2070,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      * cache if the network call fails.
      */
     private void refreshRoomsForSelectedDates() {
-        repository.refreshRooms(checkInCal, checkOutCal, new RoomRepository.RepositoryCallback<List<Room>>() {
+        repository.refreshRoomsFresh(checkInCal, checkOutCal, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 allRooms = result;
@@ -3996,7 +3996,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                         if (hasEnteredCheckIn() && hasEnteredCheckOut()) {
                             refreshRoomsForSelectedDates();
                         } else {
-                            repository.refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+                            repository.refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
                                 @Override
                                 public void onSuccess(List<Room> result) {
                                     allRooms = result;

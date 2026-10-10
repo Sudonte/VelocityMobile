@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
      *   CONNECTIVITY_END -> CONNECTING_END -> BACKEND_PHASE_CAP: cosmetic
      *   sub-labels ("Connecting..." then "Loading hotel information...")
      *   spanning the SAME single real backend call - RoomRepository.
-     *   refreshRooms() hits the same public GET /rooms endpoint landing.xml
+     *   refreshRoomsFresh() hits the same public GET /rooms endpoint landing.xml
      *   needs first anyway, so it doubles as both the "backend reachable"
      *   probe and the "load required landing data" step rather than
      *   inventing a separate health endpoint.
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         boolean[] resultSuccess = {false};
         String[] resultMessage = {null};
 
-        RoomRepository.getInstance(this).refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
+        RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 resultReady[0] = true;
