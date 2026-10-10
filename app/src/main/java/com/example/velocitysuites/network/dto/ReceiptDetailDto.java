@@ -35,6 +35,8 @@ public class ReceiptDetailDto {
     public String check_in;
     public String check_out;
     public int number_of_nights;
+    /** The itemized stay - null until the stay is in house. */
+    public StayBillDto stay_bill;
     public List<String> assigned_room_numbers;
     public int adults;
     public int children;

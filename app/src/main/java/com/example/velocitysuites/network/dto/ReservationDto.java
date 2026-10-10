@@ -51,6 +51,8 @@ public class ReservationDto {
     public String cancelled_at;
     public String verified_at;
     public String hidden_at;
+    /** The guest removed it from Bookings & Reservations (Transaction History still lists it). */
+    public boolean hidden_by_guest;
     /** Reservation creation timestamp (UTC ISO-8601) - permanent, distinct from booking.confirmed_at (when it was converted). Null on older cached responses. */
     public String created_at;
     public String updated_at;

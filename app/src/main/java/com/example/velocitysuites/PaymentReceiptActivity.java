@@ -306,7 +306,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         if (passedIn != null && ReceiptCardHelper.isReceiptForBooking(detail, passedIn)) {
             return passedIn;
         }
-        for (Booking cached : RoomRepository.getInstance(this).getBookings()) {
+        for (Booking cached : RoomRepository.getInstance(this).getAllBookings()) {
             if (ReceiptCardHelper.isReceiptForBooking(detail, cached)) {
                 return cached;
             }
@@ -451,8 +451,17 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         addRowOrDash(content, getString(R.string.receipt_room_rate_label), formatRateValue(detail));
         addRowOrDash(content, getString(R.string.details_label_check_in), detail.getCheckIn());
         addRowOrDash(content, getString(R.string.details_label_check_out), detail.getCheckOut());
-        addRowOrDash(content, getString(R.string.receipt_number_of_nights_label),
-                detail.getNumberOfNights() > 0 ? String.valueOf(detail.getNumberOfNights()) : null);
+        if (detail.getStay() != null) {
+            for (StayInfo.Row row : detail.getStay().rows(this)) {
+                // The booked dates are already the Check-In / Check-Out rows just above.
+                if (row.label.equals(getString(R.string.stay_scheduled_check_in))
+                        || row.label.equals(getString(R.string.stay_scheduled_check_out))) continue;
+                addRowOrDash(content, row.label, row.value);
+            }
+        } else {
+            addRowOrDash(content, getString(R.string.receipt_number_of_nights_label),
+                    detail.getNumberOfNights() > 0 ? String.valueOf(detail.getNumberOfNights()) : null);
+        }
         if (!detail.getAssignedRoomNumbers().isEmpty()) {
             addRow(content, getString(R.string.details_label_room_number),
                     android.text.TextUtils.join(", ", detail.getAssignedRoomNumbers()));
@@ -748,7 +757,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return;
         }
         List<String> memberIds = BookingGroupState.getGroupMembers(this, booking.getId());
-        List<Booking> allBookings = RoomRepository.getInstance(this).getBookings();
+        List<Booking> allBookings = RoomRepository.getInstance(this).getAllBookings();
         List<Booking> resolved = new ArrayList<>();
         for (String memberId : memberIds) {
             for (Booking candidate : allBookings) {

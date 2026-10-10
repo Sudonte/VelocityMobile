@@ -76,10 +76,16 @@ public class ReceiptDetail implements Serializable {
     @Nullable public String getGuestAccountName() { return guestAccountName; }
     @Nullable public String getRepresentativeName() { return representativeName; }
     @Nullable public String getRoomType() { return roomType; }
-    public List<BookingRoom> getRoomLines() { return roomLines; }
+    /** The room lines exactly as the front desk billed them (each room's own nights) once the stay is itemized, else the booked lines. */
+    public List<BookingRoom> getRoomLines() {
+        return stay != null && !stay.rooms.isEmpty() ? stay.asBookingRooms() : roomLines;
+    }
     @Nullable public String getCheckIn() { return checkIn; }
     @Nullable public String getCheckOut() { return checkOut; }
-    public int getNumberOfNights() { return numberOfNights; }
+    public int getNumberOfNights() { return stay != null ? stay.actualNights : numberOfNights; }
+    @Nullable public StayInfo getStay() { return stay; }
+    public void setStay(@Nullable StayInfo stay) { this.stay = stay; }
+    private StayInfo stay;
     public List<String> getAssignedRoomNumbers() { return assignedRoomNumbers; }
     public int getAdults() { return adults; }
     public int getChildren() { return children; }

@@ -330,7 +330,24 @@ public final class RoomRepository {
         return null;
     }
 
+    /**
+     * The guest's Bookings & Reservations, dashboard, calendar and payment screens: every record EXCEPT the ones the
+     * guest removed (or staff archived). Those are never deleted - see getAllBookings().
+     */
     public List<Booking> getBookings() {
+        List<Booking> visible = new ArrayList<>(bookings.size());
+        for (Booking b : bookings) {
+            if (!b.isHiddenFromLists()) visible.add(b);
+        }
+        return visible;
+    }
+
+    /**
+     * EVERY record, including the ones removed from Bookings & Reservations. Transaction History (and opening a
+     * record from it, or its receipt) reads this: a removed booking is still the guest's proof and stays there with
+     * its real status.
+     */
+    public List<Booking> getAllBookings() {
         return new ArrayList<>(bookings);
     }
 
@@ -883,7 +900,7 @@ public final class RoomRepository {
             }
         };
 
-        api.getReservations(perPage, requestId).enqueue(new Callback<PaginatedResponse<ReservationDto>>() {
+        api.getReservations(perPage, 1, requestId).enqueue(new Callback<PaginatedResponse<ReservationDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<ReservationDto>> call, Response<PaginatedResponse<ReservationDto>> response) {
                 com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.reservations.response",
@@ -926,7 +943,7 @@ public final class RoomRepository {
             }
         });
 
-        api.getDirectBookings(perPage, requestId).enqueue(new Callback<PaginatedResponse<DirectBookingResponseDto>>() {
+        api.getDirectBookings(perPage, 1, requestId).enqueue(new Callback<PaginatedResponse<DirectBookingResponseDto>>() {
             @Override
             public void onResponse(Call<PaginatedResponse<DirectBookingResponseDto>> call, Response<PaginatedResponse<DirectBookingResponseDto>> response) {
                 com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.directBookings.response",
@@ -1998,7 +2015,7 @@ public final class RoomRepository {
                     // sequences and coexist in this same cache, so an id-only
                     // match could also wipe out an unrelated direct Booking that
                     // merely happens to share this reservation's numeric id.
-                    bookings.removeIf(b -> b.getId().equals(reservationId) && !b.isDirectBooking());
+                    markRemovedByGuest(b -> b.getId().equals(reservationId) && !b.isDirectBooking());
                     notifyBookingsChanged();
                     if (callback != null) callback.onSuccess(null);
                 } else {
@@ -2016,7 +2033,21 @@ public final class RoomRepository {
     }
 
     /**
-     * Same real, permanent deletion as deleteReservationPermanently() above,
+     * The server only hides a removed record (it is never deleted), so the local copy is flagged the same way instead
+     * of being dropped: it leaves Bookings & Reservations but stays in Transaction History.
+     */
+    private void markRemovedByGuest(java.util.function.Predicate<Booking> match) {
+        String now = java.time.Instant.now().toString();
+        for (Booking b : bookings) {
+            if (match.test(b)) {
+                b.setHiddenByGuest(true);
+                if (b.getHiddenAt() == null || b.getHiddenAt().isEmpty()) b.setHiddenAt(now);
+            }
+        }
+    }
+
+    /**
+     * Same removal as deleteReservationPermanently() above,
      * for a genuinely direct Booking (Booking#isDirectBooking()==true)
      * instead - confirmed directly against the live backend (2026-09-18):
      * Api\BookingController is exclusively a direct-booking controller (its
@@ -2039,7 +2070,7 @@ public final class RoomRepository {
                 if (response.isSuccessful()) {
                     // See deleteReservationPermanently()'s matching comment -
                     // scoped by isDirectBooking() too, not just id, for the same reason.
-                    bookings.removeIf(b -> b.getId().equals(bookingId) && b.isDirectBooking());
+                    markRemovedByGuest(b -> b.getId().equals(bookingId) && b.isDirectBooking());
                     notifyBookingsChanged();
                     if (callback != null) callback.onSuccess(null);
                 } else {

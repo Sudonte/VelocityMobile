@@ -115,7 +115,7 @@ public class NotificationDetailsActivity extends AppCompatActivity {
 
         // The exact transaction this notification is about - a reservation and a direct booking can share an id,
         // so this is not simply "the first booking with that id" (see TransactionNavigator#pick()).
-        Booking booking = TransactionNavigator.pick(RoomRepository.getInstance(this).getBookings(), referenceId, null,
+        Booking booking = TransactionNavigator.pick(RoomRepository.getInstance(this).getAllBookings(), referenceId, null,
                 notification.getType(), notification.getReceiptNumber());
 
         relatedBooking = booking;

@@ -185,7 +185,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         // Stale-while-revalidate: the dashboard has usually already loaded the bookings into the shared
         // cache, so paint those immediately and refresh behind them - the list is never blank for the
         // length of a network round trip.
-        List<Booking> cached = repository.getBookings();
+        List<Booking> cached = repository.getAllBookings();
         if (!cached.isEmpty()) {
             allRows = TransactionRow.fromAll(cached);
             loadedOnce = true;
@@ -274,7 +274,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
                     repository.loadMoreBookings((merged, reservationsError, directError) -> {
                         loadingMore = false;
                         if (!isUiAlive()) return;
-                        allRows = TransactionRow.fromAll(merged);
+                        allRows = TransactionRow.fromAll(repository.getAllBookings());
                         applyFilters();
                         // A failed "load more" leaves the visible page intact - a quiet toast, no error takeover.
                         if (reservationsError != null || directError != null) {
@@ -430,7 +430,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             } else {
                 if (!bothFailed) loadedOnce = true;
                 else loadedOnce = loadedOnce || !merged.isEmpty();
-                allRows = TransactionRow.fromAll(merged);
+                allRows = TransactionRow.fromAll(repository.getAllBookings());
                 applyFilters();
                 if (reservationsError != null || directError != null) {
                     Toast.makeText(this, bothFailed
@@ -457,7 +457,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             // error, and a failed family keeps its last good data (the repository merges per family).
             if (reservationsError == null || directError == null) {
                 loadedOnce = true;
-                allRows = TransactionRow.fromAll(merged);
+                allRows = TransactionRow.fromAll(repository.getAllBookings());
                 applyFilters();
             }
             runQueuedPoll();
@@ -700,7 +700,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             @Override
             public void onFound(Booking booking) {
                 if (!isUiAlive()) return;
-                allRows = TransactionRow.fromAll(repository.getBookings());
+                allRows = TransactionRow.fromAll(repository.getAllBookings());
                 applyFilters(); // re-enters applySelectedHighlight(), which now finds it
             }
 

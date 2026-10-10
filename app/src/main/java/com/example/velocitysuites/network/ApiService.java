@@ -154,6 +154,14 @@ public interface ApiService {
     @GET("guest/reservations")
     Call<PaginatedResponse<ReservationDto>> getReservations(@Query("per_page") int perPage, @Header("X-Request-Id") String requestId);
 
+    /**
+     * Everything the guest ever made, including what they removed from Bookings & Reservations (the server flags those
+     * with hidden_by_guest) - Transaction History needs the full record. Same endpoint and method name as above, so the
+     * list/refresh code reads it as one family.
+     */
+    @GET("guest/reservations")
+    Call<PaginatedResponse<ReservationDto>> getReservations(@Query("per_page") int perPage, @Query("include_hidden") int includeHidden, @Header("X-Request-Id") String requestId);
+
     @POST("guest/reservations")
     Call<ReservationDto> createReservation(@Body ReservationRequest request);
 
@@ -233,6 +241,10 @@ public interface ApiService {
     /** Same endpoint as getDirectBookings(int) above - overload (not a signature change), see getReservations(int, String)'s identical doc just above. */
     @GET("guest/bookings")
     Call<PaginatedResponse<DirectBookingResponseDto>> getDirectBookings(@Query("per_page") int perPage, @Header("X-Request-Id") String requestId);
+
+    /** See getReservations(int, int, String). */
+    @GET("guest/bookings")
+    Call<PaginatedResponse<DirectBookingResponseDto>> getDirectBookings(@Query("per_page") int perPage, @Query("include_hidden") int includeHidden, @Header("X-Request-Id") String requestId);
 
     /** Single direct-Booking fetch by id - used when a deep-linked transaction (e.g. from a notification) isn't in the already-loaded getDirectBookings() page. */
     @GET("guest/bookings/{id}")

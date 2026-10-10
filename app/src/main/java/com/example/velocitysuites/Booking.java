@@ -95,6 +95,8 @@ public class Booking implements Serializable {
      * at all, since it no longer exists server-side.
      */
     private String hiddenAt;
+    /** The guest took it off Bookings & Reservations. Transaction History keeps it - it is the guest's proof. */
+    private boolean hiddenByGuest;
     private List<PaymentRecord> paymentHistory = new ArrayList<>();
     /** Numeric id of the most recent payment row, needed to call cancel/void on it. Null if no payment attempt exists yet. */
     private String latestPaymentId;
@@ -226,6 +228,8 @@ public class Booking implements Serializable {
      * assume it's populated.
      */
     private List<BookingRoom> rooms = new ArrayList<>();
+    /** The server's itemized stay once the guest is in house or checked out (actual nights, extra nights, ...); null before. */
+    private StayInfo stay;
     /**
      * Itemized paid-amenity breakdown for this transaction - see
      * MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md. Empty on every transaction
@@ -480,6 +484,13 @@ public class Booking implements Serializable {
         return isDirectBooking() ? getId() : null;
     }
     public String getHiddenAt() { return hiddenAt; }
+    public boolean isHiddenByGuest() { return hiddenByGuest; }
+    public void setHiddenByGuest(boolean hiddenByGuest) { this.hiddenByGuest = hiddenByGuest; }
+
+    /** True when this record must not appear on Bookings & Reservations, the dashboard or the calendar (it still appears in Transaction History). */
+    public boolean isHiddenFromLists() {
+        return hiddenByGuest || (hiddenAt != null && !hiddenAt.trim().isEmpty());
+    }
     public List<PaymentRecord> getPaymentHistory() { return paymentHistory; }
     public String getLatestPaymentId() { return latestPaymentId; }
     public String getGcashNumber() { return gcashNumber; }
@@ -587,6 +598,8 @@ public class Booking implements Serializable {
     public String getPaymentDateOnly() { return paymentDateOnly; }
     public String getPaymentTimeOnly() { return paymentTimeOnly; }
     public List<BookingRoom> getRooms() { return rooms; }
+    @Nullable public StayInfo getStay() { return stay; }
+    public void setStay(@Nullable StayInfo stay) { this.stay = stay; }
     public List<BookingAmenity> getAmenities() { return amenities; }
 
     /**

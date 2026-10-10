@@ -295,7 +295,18 @@ public class BookingDetailsActivity extends AppCompatActivity {
         addInfoRow(container, getString(R.string.details_label_booking_date), booking.getBookingDate());
         addInfoRow(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
         addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
-        addInfoRow(container, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
+        StayInfo stay = booking.getStay();
+        if (stay != null) {
+            // In house or finished: the dates and nights the front desk actually billed - scheduled, actual, nights
+            // (booked vs actual when they differ), the extra nights' charge and the updated total.
+            for (StayInfo.Row row : stay.rows(this)) {
+                if (row.label.equals(getString(R.string.stay_scheduled_check_in))
+                        || row.label.equals(getString(R.string.stay_scheduled_check_out))) continue; // already shown just above
+                addInfoRow(container, row.label, row.value);
+            }
+        } else {
+            addInfoRow(container, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
+        }
         // Cross-reference for a historical (converted) reservation record -
         // see Booking.convertedBookingId's own doc for why this is the one
         // new identifier this feature surfaces, rather than restating the
@@ -399,7 +410,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
             // 2026-09-18 - see BookingRoomDto#assigned_room_numbers's own doc)
             // rather than guessing from the single legacy roomNumber field.
             for (BookingRoom room : rooms) {
-                double subtotal = room.getPricePerNight() * room.getQuantity() * stayNights;
+                // Each room line's own nights when the front desk itemized the stay (an extended room costs more nights).
+                long lineNights = booking.getStay() != null && room.getNights() > 0 ? room.getNights() : stayNights;
+                double subtotal = room.getPricePerNight() * room.getQuantity() * lineNights;
                 String imageUrl = RoomRepository.getInstance(this).findRoomTypeImageUrl(room.getRoomTypeId());
                 String assignedRoomsText = Booking.resolveAssignedRoomsText(this, room.getAssignedRoomNumbers());
                 addRoomDetailBlock(container, room.getRoomTypeName(), room.getQuantity(), room.getPricePerNight(), subtotal, imageUrl, assignedRoomsText);

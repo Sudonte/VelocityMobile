@@ -185,6 +185,19 @@
         <!-- "N Receipt(s) Available" - only when the backend has issued receipts for this transaction.
              The leading icon is attached in code (TransactionHistoryAdapter -> TextIcons) so it is sized
              with the text; this is one TextView rather than an ImageView + TextView row. -->
+        <!-- Shown when the guest removed this from Bookings & Reservations: it is kept here as proof. -->
+        <TextView
+            android:id="@+id/tvTxnRemoved"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/txn_removed_by_guest"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
         <TextView
             android:id="@+id/tvTxnReceipts"
             android:layout_width="match_parent"

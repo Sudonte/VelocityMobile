@@ -17,6 +17,8 @@ public class BookingDto {
     // reservation's when a completed/cancelled transaction is hidden - see
     // ReservationWorkflowService::hide().
     public String hidden_at;
+    /** The guest removed it from Bookings & Reservations (Transaction History still lists it). */
+    public boolean hidden_by_guest;
     // Set when a receptionist rejects this already-converted Booking (see
     // Receptionist\BookingController::reject()) - distinct from a payment's
     // own rejection_reason (PaymentDto) and from a pre-conversion

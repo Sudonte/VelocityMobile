@@ -112,7 +112,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
      */
     private void refreshFromCache() {
         if (booking == null || isFinishing() || isDestroyed()) return;
-        for (Booking candidate : RoomRepository.getInstance(this).getBookings()) {
+        for (Booking candidate : RoomRepository.getInstance(this).getAllBookings()) {
             if (candidate != booking && candidate.isDirectBooking() == booking.isDirectBooking()
                     && java.util.Objects.equals(candidate.getId(), booking.getId())) {
                 boolean changed = !TransactionRow.from(booking).sameContentAs(TransactionRow.from(candidate))

@@ -24,6 +24,8 @@ public class BillingDto {
     public List<BookingRoomDto> room_lines;
     /** Itemized paid-amenity breakdown (booking_amenities child rows) - null/absent until the backend ships the multi-room contract. */
     public List<BookingAmenityDto> amenities;
+    /** The itemized stay (scheduled vs actual check-out, nights, extra nights, per-room lines, discount, total); null until the stay is in house. */
+    public StayBillDto stay_bill;
 
     public double totalAmountAsDouble() {
         return parse(total_amount);

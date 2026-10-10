@@ -144,7 +144,7 @@ final class TransactionNavigator {
     static void openFromNotification(@NonNull Activity activity, @NonNull Notification notification, @NonNull Listener listener) {
         RoomRepository repository = RoomRepository.getInstance(activity);
         String referenceId = notification.getReferenceId();
-        Booking hit = pick(repository.getBookings(), referenceId, null, notification.getType(), notification.getReceiptNumber());
+        Booking hit = pick(repository.getAllBookings(), referenceId, null, notification.getType(), notification.getReceiptNumber());
         if (hit != null) {
             activity.startActivity(detailsIntent(activity, hit));
             return;

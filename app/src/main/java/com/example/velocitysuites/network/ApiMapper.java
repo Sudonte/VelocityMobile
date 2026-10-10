@@ -4,6 +4,7 @@ import com.example.velocitysuites.Booking;
 import com.example.velocitysuites.BookingAmenity;
 import com.example.velocitysuites.BookingRoom;
 import com.example.velocitysuites.ReceiptDetail;
+import com.example.velocitysuites.StayInfo;
 import com.example.velocitysuites.Room;
 import com.example.velocitysuites.RoomAmenity;
 import com.example.velocitysuites.TimeUtils;
@@ -270,6 +271,11 @@ public final class ApiMapper {
         booking.setAmenityCharge(amenityCharge);
         booking.setAdditionalGuestFee(additionalGuestFee);
         booking.setRooms(toBookingRooms(roomLineDtos));
+        // Once the stay is in house / finished the server itemizes it (the front desk's own bill): its lines carry each
+        // room's ACTUAL nights, so they replace the booked ones everywhere the rooms are listed.
+        StayInfo stay = StayInfo.from(dto.booking != null && dto.booking.billing != null ? dto.booking.billing.stay_bill : null);
+        booking.setStay(stay);
+        if (stay != null && !stay.rooms.isEmpty()) booking.setRooms(stay.asBookingRooms());
         booking.setAmenities(toBookingAmenities(amenityLineDtos));
         if (dto.discount_preview != null) {
             booking.setDiscountAmount(dto.discount_preview.discount);
@@ -298,6 +304,7 @@ public final class ApiMapper {
         String verifiedAt = dto.booking != null ? dto.booking.verified_at : dto.verified_at;
         booking.setStaffVerified(verifiedAt != null && !verifiedAt.isEmpty());
         booking.setHiddenAt(dto.booking != null ? dto.booking.hidden_at : dto.hidden_at);
+        booking.setHiddenByGuest(dto.hidden_by_guest || (dto.booking != null && dto.booking.hidden_by_guest));
         booking.setPaymentDeadline(dto.payment_deadline);
         booking.setSelectedPaymentPercentage(dto.selected_payment_percentage);
         booking.setRequiredPaymentAmount(dto.required_payment_amount);
@@ -591,6 +598,9 @@ public final class ApiMapper {
         booking.setRequiredPaymentAmount(dto.required_payment_amount);
         booking.setRoomNumber(assignedRoom != null ? assignedRoom.room_number : null);
         booking.setRooms(toBookingRooms(dto.room_lines));
+        StayInfo directStay = StayInfo.from(dto.stay_bill);
+        booking.setStay(directStay);
+        if (directStay != null && !directStay.rooms.isEmpty()) booking.setRooms(directStay.asBookingRooms());
         booking.setAmenities(toBookingAmenities(dto.amenities));
         // Room Charges/Amenities Total breakdown for the Payment Summary
         // section - summed from the same itemized lines just set above, so
@@ -626,6 +636,7 @@ public final class ApiMapper {
         booking.setPaymentPendingVerification(pendingVerification);
         booking.setStaffVerified(dto.verified_at != null && !dto.verified_at.isEmpty());
         booking.setHiddenAt(dto.hidden_at);
+        booking.setHiddenByGuest(dto.hidden_by_guest);
         booking.setTransactionRejectionReason(dto.rejection_reason);
         booking.setCancellationDate(dto.cancelled_at != null && !dto.cancelled_at.isEmpty() ? reformatDateTime(dto.cancelled_at) : null);
         booking.setCancellationReason(dto.rejection_reason);
@@ -751,7 +762,7 @@ public final class ApiMapper {
                     dto.anchor_payment.verified_by
             );
         }
-        return new ReceiptDetail(
+        ReceiptDetail receiptDetail = new ReceiptDetail(
                 dto.receipt_type,
                 dto.receipt_number,
                 String.valueOf(dto.booking_id),
@@ -771,6 +782,8 @@ public final class ApiMapper {
                 anchor,
                 reformatDateTime(dto.issued_at)
         );
+        receiptDetail.setStay(StayInfo.from(dto.stay_bill));
+        return receiptDetail;
     }
 
     private static double parseAmount(String s) {

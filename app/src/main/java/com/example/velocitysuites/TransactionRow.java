@@ -55,13 +55,15 @@ public final class TransactionRow {
     final boolean closed;
     /** Some payment was made or attempted against it. */
     final boolean hasAnyPayment;
+    /** The guest removed it from Bookings & Reservations - it stays here, with its real status, as their proof. */
+    final boolean removedByGuest;
     /** Lower-cased text the search box matches against (reference, room, dates, status words, payment/receipt references, amounts). */
     final String searchText;
 
     private TransactionRow(Booking booking, String id, boolean direct, Kind kind, TransactionStatusHelper.Summary summary,
                            String roomText, String checkIn, String checkOut, long sortMillis, @Nullable LocalDate checkInDate,
                            int receiptCount, List<String> roomTypes, List<String> roomTypesLower, String lifecycleStatus,
-                           boolean closed, boolean hasAnyPayment, String searchText) {
+                           boolean closed, boolean hasAnyPayment, boolean removedByGuest, String searchText) {
         this.booking = booking;
         this.id = id;
         this.direct = direct;
@@ -78,6 +80,7 @@ public final class TransactionRow {
         this.lifecycleStatus = lifecycleStatus;
         this.closed = closed;
         this.hasAnyPayment = hasAnyPayment;
+        this.removedByGuest = removedByGuest;
         this.searchText = searchText;
     }
 
@@ -114,6 +117,7 @@ public final class TransactionRow {
                 sortMillisOf(b), PaymentDates.parseDate(checkIn),
                 b.getReceipts() != null ? b.getReceipts().size() : 0,
                 Collections.unmodifiableList(types), Collections.unmodifiableList(typesLower), lifecycle, closed, anyPayment,
+                b.isHiddenByGuest(),
                 searchTextOf(b, id, kind, summary, roomText, checkIn, checkOut, lifecycle));
     }
 
@@ -170,7 +174,8 @@ public final class TransactionRow {
                 && Objects.equals(roomText, o.roomText)
                 && Objects.equals(checkIn, o.checkIn)
                 && Objects.equals(checkOut, o.checkOut)
-                && receiptCount == o.receiptCount;
+                && receiptCount == o.receiptCount
+                && removedByGuest == o.removedByGuest;
     }
 
     // ---- Derivations ----

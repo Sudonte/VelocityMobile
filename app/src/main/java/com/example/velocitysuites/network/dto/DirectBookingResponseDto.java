@@ -36,6 +36,10 @@ public class DirectBookingResponseDto {
     public String discount_verification_status;
     public String verified_at;
     public String hidden_at;
+    /** The guest removed it from Bookings & Reservations (Transaction History still lists it). */
+    public boolean hidden_by_guest;
+    /** The itemized stay once it is in house or finished (same calculation as the front desk's bill); null before that. */
+    public StayBillDto stay_bill;
     // Set when a receptionist rejects this booking (Receptionist\
     // BookingController::reject() - a direct "New Booking" is just as
     // rejectable as a reservation-derived one, since that action only

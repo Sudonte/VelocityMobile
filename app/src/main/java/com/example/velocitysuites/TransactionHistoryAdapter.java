@@ -115,6 +115,8 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
         String payment = TransactionText.payment(ctx, summary);
         holder.tvPayment.setText(payment);
 
+        holder.tvRemoved.setVisibility(row.removedByGuest ? View.VISIBLE : View.GONE);
+
         if (row.receiptCount > 0) {
             holder.tvReceipts.setVisibility(View.VISIBLE);
             holder.tvReceipts.setText(ctx.getResources().getQuantityString(
@@ -204,7 +206,7 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final MaterialCardView card;
-        final TextView tvStatusBadge, tvRef, tvRoom, tvTotal, tvStay, tvPayment, tvReceipts;
+        final TextView tvStatusBadge, tvRef, tvRoom, tvTotal, tvStay, tvPayment, tvReceipts, tvRemoved;
         ValueAnimator highlightAnimator;
 
         public ViewHolder(@NonNull View itemView) {
@@ -217,6 +219,7 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
             tvStay = itemView.findViewById(R.id.tvTxnStay);
             tvPayment = itemView.findViewById(R.id.tvTxnPayment);
             tvReceipts = itemView.findViewById(R.id.tvTxnReceipts);
+            tvRemoved = itemView.findViewById(R.id.tvTxnRemoved);
         }
 
         void cancelHighlight() {
