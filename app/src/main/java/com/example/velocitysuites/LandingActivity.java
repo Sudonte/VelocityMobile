@@ -193,8 +193,6 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
             @Override
             public void onRefreshStarted(boolean userInitiated) {
                 if (!userInitiated) return;
-                // The guest asked for fresh data: pictures are downloaded again too, not served from Glide's cache.
-                ImageFreshness.bump();
                 dismissRefreshFailure();
                 // Already true after a pull gesture; this is what shows it for the Retry button.
                 landingSwipeRefresh.setRefreshing(true);
@@ -597,7 +595,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         String imageUrl = announcement.getFirstImageUrl();
         if (imageUrl != null && !imageUrl.isEmpty()) {
             imageContainer.setVisibility(View.VISIBLE);
-            ImageFreshness.apply(com.bumptech.glide.Glide.with(this).load(imageUrl).centerCrop()).into(ivImage);
+            com.bumptech.glide.Glide.with(this).load(imageUrl).centerCrop().into(ivImage);
         } else {
             imageContainer.setVisibility(View.GONE);
         }

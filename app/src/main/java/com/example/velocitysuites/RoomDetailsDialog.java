@@ -258,10 +258,10 @@ final class RoomDetailsDialog {
             galleryCountCard.setOnClickListener(v -> activity.startActivity(RoomGalleryActivity.createIntent(
                     activity, new ArrayList<>(galleryUrls), new ArrayList<>(galleryLabels), pagerRoomImages.getCurrentItem(), room.getName())));
         } else if (room.getImageUrl() != null && !room.getImageUrl().isEmpty()) {
-            ImageFreshness.apply(Glide.with(activity)
+            Glide.with(activity)
                     .load(room.getImageUrl())
                     .placeholder(fallbackImage)
-                    .error(fallbackImage))
+                    .error(fallbackImage)
                     .into(ivRoomImage);
         } else if (room.getImageResId() != 0) {
             ivRoomImage.setImageResource(room.getImageResId());

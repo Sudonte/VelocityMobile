@@ -233,10 +233,10 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         int fallbackImage = RoomVisuals.getRoomImage(room.getType());
         if (room.getImageUrl() != null && !room.getImageUrl().isEmpty()) {
-            ImageFreshness.apply(Glide.with(context)
+            Glide.with(context)
                     .load(room.getImageUrl())
                     .placeholder(fallbackImage)
-                    .error(fallbackImage))
+                    .error(fallbackImage)
                     .into(holder.roomImage);
         } else if (room.getImageResId() != 0) {
             holder.roomImage.setImageResource(room.getImageResId());
