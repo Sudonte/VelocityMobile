@@ -197,7 +197,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:helperText="@string/helper_gmail_only"
+                        app:helperText="@string/helper_email_any"
                         app:startIconDrawable="@drawable/ic_email">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -491,7 +491,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:helperText="@string/helper_gmail_only"
+                        app:helperText="@string/helper_email_any"
                         app:startIconDrawable="@drawable/ic_email">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/forgotEmailEditText"

@@ -98,6 +98,32 @@ public class LandingScreenTest {
         assertEquals(View.GONE, activity.findViewById(R.id.offlineGate).getVisibility());
     }
 
+    // ---- the Maps SDK starts on the main thread, so the map waits until its card is near the screen ----
+
+    private static boolean mapStarted(LandingActivity a) throws Exception {
+        java.lang.reflect.Field f = LandingActivity.class.getDeclaredField("mapStarted");
+        f.setAccessible(true);
+        return f.getBoolean(a);
+    }
+
+    @Test
+    public void theHotelMapIsNotCreatedWhileThePageIsFirstDrawn_onlyOnceItsCardIsNearTheScreen() throws Exception {
+        launch();
+        relayout();
+        idle();
+        View map = activity.findViewById(R.id.hotelMapView);
+        NestedScrollView scroll = activity.findViewById(R.id.landingScroll);
+        android.graphics.Rect inContent = new android.graphics.Rect();
+        map.getDrawingRect(inContent);
+        ((ViewGroup) scroll.getChildAt(0)).offsetDescendantRectToMyCoords(map, inContent);
+        org.junit.Assume.assumeTrue("card already near the screen in this layout (top=" + inContent.top + ", viewport=" + scroll.getHeight() + ")",
+                inContent.top >= scroll.getHeight() * 1.6);
+        assertFalse("map created at launch", mapStarted(activity));
+        scroll.scrollTo(0, scroll.getChildAt(0).getHeight());
+        idle();
+        assertTrue("map not created after scrolling to it", mapStarted(activity));
+    }
+
     // ---- helpers ----
 
     private static void idle() {

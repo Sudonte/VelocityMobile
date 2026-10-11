@@ -67,8 +67,8 @@
     <string name="mobile_label">Mobile Number</string>
     <string name="otp_label">Verification Code</string>
     <string name="confirm_password_label">Confirm Password</string>
-    <string name="email_hint">yourname@gmail.com</string>
-    <string name="helper_gmail_only">Only Gmail addresses (@gmail.com) are accepted</string>
+    <string name="email_hint">yourname@example.com</string>
+    <string name="helper_email_any">Use an email address you can open - we send your codes there</string>
     <string name="password_hint">Enter your password</string>
     <string name="confirm_password_hint">Confirm Password</string>
     <string name="login_credentials_section_title">Login Credentials</string>
@@ -87,10 +87,10 @@
     <string name="dont_have_account">Don\'t have an account? </string>
     <string name="already_have_account">Already have an account? </string>
     <string name="verify_otp_title">Verify Account</string>
-    <string name="verify_otp_desc_email">Enter the 6-digit code we sent to your registered Gmail address.</string>
+    <string name="verify_otp_desc_email">Enter the 6-digit code we sent to your registered email address.</string>
     <string name="otp_hint">OTP Code</string>
     <string name="otp_channel_section_title">Verification Method</string>
-    <string name="otp_channel_hint_email">We\'ll send your code to the Gmail address entered above.</string>
+    <string name="otp_channel_hint_email">We\'ll send your code to the email address entered above.</string>
     <string name="verify_button">Verify &amp; Activate</string>
     <string name="resend_otp">Resend OTP</string>
     <string name="resend_otp_countdown">Resend code in %1$ds</string>
@@ -361,7 +361,7 @@
     <string name="invalid_credentials">Invalid credentials. Please try again.</string>
     <string name="incorrect_password">Incorrect password</string>
     <string name="email_required">Email is required</string>
-    <string name="valid_email_required">Enter a valid @gmail.com email address</string>
+    <string name="valid_email_required">Enter a valid email address</string>
     <string name="password_required">Password is required</string>
     <string name="first_name_required">First name is required</string>
     <string name="last_name_required">Last name is required</string>

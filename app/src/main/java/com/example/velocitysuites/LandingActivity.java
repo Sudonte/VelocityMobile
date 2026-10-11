@@ -82,6 +82,12 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     private AutoCompleteTextView dropdownRoomTypeFilter;
     private MaterialButton btnToggleRooms;
     private MapView hotelMapView;
+    // The Maps SDK initialises on the main thread (it blocked it for 5s+ on a busy device: an ANR on the landing page),
+    // so the map is created only when its card is about to scroll into view - not while the page is first drawn.
+    private boolean mapStarted;
+    private boolean screenStarted;
+    private boolean screenResumed;
+    private Bundle pendingMapBundle;
     private GoogleMap hotelGoogleMap;
     private List<Room> rooms = new ArrayList<>();
     private List<Room> allAvailableRooms = new ArrayList<>();
@@ -244,12 +250,32 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     }
 
     private void setupHotelMap(Bundle savedInstanceState) {
-        Bundle mapViewBundle = null;
-        if (savedInstanceState != null) {
-            mapViewBundle = savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY);
+        pendingMapBundle = savedInstanceState != null ? savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY) : null;
+        View scroll = findViewById(R.id.landingScroll);
+        if (scroll instanceof androidx.core.widget.NestedScrollView) {
+            ((androidx.core.widget.NestedScrollView) scroll).setOnScrollChangeListener(
+                    (androidx.core.widget.NestedScrollView.OnScrollChangeListener) (v, x, y, oldX, oldY) -> startMapIfNearScreen());
         }
-        hotelMapView.onCreate(mapViewBundle);
+        hotelMapView.post(this::startMapIfNearScreen);
+    }
+
+    /** Creates the map the first time its card is within half a screen height of the visible area. */
+    private void startMapIfNearScreen() {
+        if (mapStarted || hotelMapView == null || isFinishing() || isDestroyed()) return;
+        View scroll = findViewById(R.id.landingScroll);
+        if (scroll == null || hotelMapView.getHeight() == 0) return;
+        android.graphics.Rect visible = new android.graphics.Rect();
+        if (!scroll.getGlobalVisibleRect(visible)) return;
+        int[] at = new int[2];
+        hotelMapView.getLocationOnScreen(at);
+        int margin = visible.height() / 2;
+        if (at[1] > visible.bottom + margin || at[1] + hotelMapView.getHeight() < visible.top - margin) return;
+        mapStarted = true;
+        hotelMapView.onCreate(pendingMapBundle);
+        pendingMapBundle = null;
         hotelMapView.getMapAsync(this);
+        if (screenStarted) hotelMapView.onStart();
+        if (screenResumed) hotelMapView.onResume();
     }
 
     @Override
@@ -843,7 +869,8 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     @Override
     protected void onStart() {
         super.onStart();
-        if (hotelMapView != null) hotelMapView.onStart();
+        screenStarted = true;
+        if (hotelMapView != null && mapStarted) hotelMapView.onStart();
         // Landing is never usable offline - also when it is reopened from the back stack after the connection dropped.
         offlineGate.start();
     }
@@ -851,7 +878,8 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     @Override
     protected void onResume() {
         super.onResume();
-        if (hotelMapView != null) hotelMapView.onResume();
+        screenResumed = true;
+        if (hotelMapView != null && mapStarted) hotelMapView.onResume();
         isNavigatingToBookingFlow = false;
         // onCreate() already started the first load - skip that first resume. Every later return to the page (after
         // a booking elsewhere, a sign-in, another app) catches up silently, so a now-unavailable room drops off the
@@ -869,14 +897,16 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     protected void onPause() {
         // Nothing polls while the page is covered or the app is in the background.
         visiblePoller.stop();
-        if (hotelMapView != null) hotelMapView.onPause();
+        screenResumed = false;
+        if (hotelMapView != null && mapStarted) hotelMapView.onPause();
         super.onPause();
     }
 
     @Override
     protected void onStop() {
         offlineGate.stop();
-        if (hotelMapView != null) hotelMapView.onStop();
+        screenStarted = false;
+        if (hotelMapView != null && mapStarted) hotelMapView.onStop();
         super.onStop();
     }
 
@@ -887,25 +917,30 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         refreshCoordinator.cancel();
         offlineGate.destroy();
         dismissRefreshFailure();
-        if (hotelMapView != null) hotelMapView.onDestroy();
+        if (hotelMapView != null && mapStarted) hotelMapView.onDestroy();
         super.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        if (hotelMapView != null) hotelMapView.onLowMemory();
+        if (hotelMapView != null && mapStarted) hotelMapView.onLowMemory();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        if (hotelMapView == null || !mapStarted) {
+            // Map never created (guest never scrolled to it): carry any earlier state through untouched.
+            if (pendingMapBundle != null) outState.putBundle(MAP_VIEW_BUNDLE_KEY, pendingMapBundle);
+            return;
+        }
         Bundle mapViewBundle = outState.getBundle(MAP_VIEW_BUNDLE_KEY);
         if (mapViewBundle == null) {
             mapViewBundle = new Bundle();
             outState.putBundle(MAP_VIEW_BUNDLE_KEY, mapViewBundle);
         }
-        if (hotelMapView != null) hotelMapView.onSaveInstanceState(mapViewBundle);
+        hotelMapView.onSaveInstanceState(mapViewBundle);
     }
 
     /**

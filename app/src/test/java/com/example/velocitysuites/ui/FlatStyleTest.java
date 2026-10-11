@@ -158,7 +158,7 @@ public class FlatStyleTest {
         // ...and so do the shared guest header (logo / notification / profile buttons) and the offline banner,
         // which every guest screen includes - restyling them would change screens outside Booking/Reservation.
         for (String shared : new String[]{"headerLogoContainer", "headerNotificationContainer", "headerNotificationBadge",
-                "headerProfileContainer", "logoContainer", "offlineBanner"}) {
+                "headerProfileContainer", "headerNotificationCard", "headerProfileCard", "logoContainer", "offlineBanner"}) {
             problems.removeIf(p -> p.contains("#" + shared));
         }
         assertTrue(problems.toString(), problems.isEmpty());

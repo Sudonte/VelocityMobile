@@ -134,23 +134,35 @@
     </LinearLayout>
 
     <!-- Header Notification Entry Point -->
-    <com.google.android.material.card.MaterialCardView
+    <!-- The bell and the profile picture are drawn 34dp but each sits in its own 48dp, non-overlapping wrapper that
+         takes the taps (no TouchDelegate: those enlarge a hit area past the control without telling its neighbours,
+         so neighbouring controls' areas could overlap and steal each other's taps). -->
+    <FrameLayout
         android:id="@+id/headerNotificationContainer"
-        style="@style/Widget.Velocity.Card.Glass"
-        android:layout_width="@dimen/guest_header_notification_size"
-        android:layout_height="@dimen/guest_header_notification_size"
-        android:layout_marginEnd="6dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:clickable="true"
+        android:contentDescription="@string/title_notifications"
         android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/card_corner_radius"
-        app:cardElevation="@dimen/card_elevation"
-        app:strokeColor="@color/velocity_red_subtle"
-        app:strokeWidth="1.2dp"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/headerProfileContainer"
         app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/headerNotificationCard"
+            style="@style/Widget.Velocity.Card.Glass"
+            android:layout_width="@dimen/guest_header_notification_size"
+            android:layout_height="@dimen/guest_header_notification_size"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="@dimen/card_elevation"
+            app:strokeColor="@color/velocity_red_subtle"
+            app:strokeWidth="1.2dp">
 
         <ImageView
             android:id="@+id/headerNotificationIcon"
@@ -166,6 +178,7 @@
             app:tint="@color/velocity_red_primary" />
 
     </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
     <!-- Unread Notification Badge (count updates dynamically) -->
     <TextView
@@ -195,20 +208,28 @@
          loads everywhere else the guest's photo appears (Dashboard's own
          Welcome/Account Summary cards). Tapping it opens the same
          destination as tapping it there (Profile Management). -->
-    <com.google.android.material.card.MaterialCardView
+    <FrameLayout
         android:id="@+id/headerProfileContainer"
-        android:layout_width="@dimen/guest_header_profile_size"
-        android:layout_height="@dimen/guest_header_profile_size"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:clickable="true"
         android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="17dp"
-        app:cardElevation="@dimen/card_elevation"
-        app:strokeColor="@color/white"
-        app:strokeWidth="2dp"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/headerProfileCard"
+            android:layout_width="@dimen/guest_header_profile_size"
+            android:layout_height="@dimen/guest_header_profile_size"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:focusable="false"
+            app:cardCornerRadius="17dp"
+            app:cardElevation="@dimen/card_elevation"
+            app:strokeColor="@color/white"
+            app:strokeWidth="2dp">
 
         <ImageView
             android:id="@+id/headerProfileImage"
@@ -218,6 +239,7 @@
             android:scaleType="centerCrop"
             android:src="@drawable/img_profile_placeholder" />
     </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
     <View
         android:id="@+id/headerProfileOnlineRing"
@@ -226,6 +248,8 @@
         android:background="@drawable/shape_intro_pill"
         android:backgroundTint="@color/white"
         android:importantForAccessibility="no"
+        android:layout_marginBottom="7dp"
+        android:layout_marginEnd="7dp"
         app:layout_constraintBottom_toBottomOf="@id/headerProfileContainer"
         app:layout_constraintEnd_toEndOf="@id/headerProfileContainer" />
 

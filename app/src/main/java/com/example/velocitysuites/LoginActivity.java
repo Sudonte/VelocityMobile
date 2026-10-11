@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Patterns;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -548,7 +547,7 @@ public class LoginActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(email)) {
             emailEditText.setError(getString(R.string.email_required));
             isValid = false;
-        } else if (!isGmailAddress(email)) {
+        } else if (!EmailValidator.isValid(email)) {
             emailEditText.setError(getString(R.string.valid_email_required));
             isValid = false;
         }
@@ -558,11 +557,6 @@ public class LoginActivity extends AppCompatActivity {
             isValid = false;
         }
         return isValid;
-    }
-
-    private boolean isGmailAddress(String email) {
-        return email != null && Patterns.EMAIL_ADDRESS.matcher(email).matches()
-                && email.trim().toLowerCase(Locale.ROOT).endsWith("@gmail.com");
     }
 
     private void showForgotPasswordFlow() {
@@ -598,7 +592,7 @@ public class LoginActivity extends AppCompatActivity {
                 forgotEmailEditText.setError(getString(R.string.email_required));
                 return;
             }
-            if (!isGmailAddress(email)) {
+            if (!EmailValidator.isValid(email)) {
                 forgotEmailEditText.setError(getString(R.string.valid_email_required));
                 return;
             }

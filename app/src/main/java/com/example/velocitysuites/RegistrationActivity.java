@@ -11,7 +11,6 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Patterns;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -868,8 +867,7 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     private boolean isValidEmail(CharSequence target) {
-        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches()
-                && target.toString().trim().toLowerCase(Locale.ROOT).endsWith("@gmail.com"));
+        return EmailValidator.isValid(target);
     }
 
     /** Returns to the Welcome screen, clearing any Login/Registration
