@@ -117,9 +117,14 @@
                             android:id="@+id/additionalAmenitiesNote"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:gravity="top|start"
                             android:inputType="textCapSentences|textMultiLine"
                             android:maxLength="500"
-                            android:minHeight="48dp"
+                            android:maxLines="5"
+                            android:minHeight="120dp"
+                            android:minLines="4"
+                            android:overScrollMode="ifContentScrolls"
+                            android:scrollbars="vertical"
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 

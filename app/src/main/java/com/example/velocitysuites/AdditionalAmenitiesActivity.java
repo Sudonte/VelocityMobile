@@ -66,6 +66,14 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         form = findViewById(R.id.additionalAmenitiesForm);
         list = findViewById(R.id.additionalAmenitiesList);
         noteField = findViewById(R.id.additionalAmenitiesNote);
+        // Long notes scroll inside the field instead of dragging the whole screen.
+        noteField.setOnTouchListener((v, event) -> {
+            if (v.canScrollVertically(1) || v.canScrollVertically(-1)) {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) v.performClick();
+            }
+            return false;
+        });
         totalLabel = findViewById(R.id.additionalAmenitiesTotal);
         submitButton = findViewById(R.id.additionalAmenitiesSubmit);
 

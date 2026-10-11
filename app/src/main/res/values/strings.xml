@@ -1322,7 +1322,7 @@
     <string name="additional_amenities_each_format">%1$s each</string>
     <string name="additional_amenities_total_format">Total: %1$s</string>
     <string name="additional_amenities_billing_note">Approved items are added to your bill at the price shown now.</string>
-    <string name="additional_amenities_note_hint">Note for the front desk (optional)</string>
+    <string name="additional_amenities_note_hint">Guest Notes</string>
     <string name="additional_amenities_submit">Send Request</string>
     <string name="additional_amenities_submitted">Request sent! The front desk will review it shortly.</string>
     <string name="additional_amenities_submit_error">Couldn\'t send your request: %1$s</string>
