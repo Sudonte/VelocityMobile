@@ -236,6 +236,6 @@ public class Step2DatesFragment extends WizardStepFragment {
             minDate.set(Calendar.MILLISECOND, 0);
             picker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         }
-        picker.show();
+        SafeDialogs.show(picker);
     }
 }

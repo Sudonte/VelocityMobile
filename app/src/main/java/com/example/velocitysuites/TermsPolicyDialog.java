@@ -44,7 +44,7 @@ public final class TermsPolicyDialog {
         scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, x, y, oldX, oldY) -> checkEnd.run());
         scrollView.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> checkEnd.run());
 
-        dialog.show();
+        SafeDialogs.show(dialog);
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }

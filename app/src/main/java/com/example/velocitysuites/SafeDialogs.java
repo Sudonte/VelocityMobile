@@ -1,6 +1,7 @@
 package com.example.velocitysuites;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.view.WindowManager;
@@ -33,8 +34,13 @@ final class SafeDialogs {
         return true;
     }
 
+    /** Same as {@link #show(Context, Dialog)}, using the dialog's own context to find its screen. */
+    static void show(@NonNull Dialog dialog) {
+        show(dialog.getContext(), dialog);
+    }
+
     /** Shows the already-created dialog if its screen is still alive; never throws for a dead window. */
-    static void show(@Nullable Context context, @NonNull AlertDialog dialog) {
+    static void show(@Nullable Context context, @NonNull Dialog dialog) {
         if (!canShow(context)) return;
         try {
             dialog.show();

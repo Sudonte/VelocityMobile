@@ -758,7 +758,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         TextView message = dialogView.findViewById(R.id.loadingMessage);
         if (message != null) message.setText(getString(R.string.msg_exporting_format, format));
         exportProgressDialog = new SafeDialogs.Material(this).setView(dialogView).setCancelable(false).create();
-        exportProgressDialog.show();
+        SafeDialogs.show(exportProgressDialog);
         final AlertDialog progress = exportProgressDialog;
 
         // Application context: the worker must not keep this Activity alive, and only needs strings and the resolver.

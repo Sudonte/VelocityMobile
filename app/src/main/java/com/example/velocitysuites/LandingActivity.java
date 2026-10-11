@@ -605,7 +605,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         btnClose.setOnClickListener(v -> dialog.dismiss());
         btnDismiss.setOnClickListener(v -> dialog.dismiss());
 
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     private void setupActions() {

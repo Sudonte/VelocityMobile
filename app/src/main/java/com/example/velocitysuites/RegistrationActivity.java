@@ -267,7 +267,7 @@ public class RegistrationActivity extends AppCompatActivity {
         Calendar maxDob = Calendar.getInstance();
         maxDob.add(Calendar.DAY_OF_YEAR, -1);
         datePickerDialog.getDatePicker().setMaxDate(maxDob.getTimeInMillis());
-        datePickerDialog.show();
+        SafeDialogs.show(datePickerDialog);
     }
 
     private Integer parseValidAge(String value) {

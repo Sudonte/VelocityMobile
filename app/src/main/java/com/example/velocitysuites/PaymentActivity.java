@@ -1792,7 +1792,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         builder.setView(dialogView);
         builder.setCancelable(false);
         AlertDialog dialog = builder.create();
-        dialog.show();
+        SafeDialogs.show(dialog);
 
         List<List<Room>> groups = new ArrayList<>(pendingWizardState.selectedRoomsGroupedByType().values());
         // Reachable only via the legacy "Proceed & Pay Later" branch (the dead
@@ -1869,7 +1869,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         builder.setView(dialogView);
         builder.setCancelable(false);
         AlertDialog dialog = builder.create();
-        dialog.show();
+        SafeDialogs.show(dialog);
 
         if (isPendingReservationMode) {
             List<List<Room>> groups = new ArrayList<>(pendingWizardState.selectedRoomsGroupedByType().values());
@@ -2862,7 +2862,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         builder.setView(dialogView);
         builder.setCancelable(false);
         AlertDialog dialog = builder.create();
-        dialog.show();
+        SafeDialogs.show(dialog);
 
         String paymentType = isFullPaymentMode ? "full" : "partial";
 

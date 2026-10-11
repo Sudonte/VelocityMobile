@@ -290,7 +290,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
                 }
             });
         });
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     /** Read-only detail view - no Modify/Pay affordances, matching the "read-only format" requirement. */

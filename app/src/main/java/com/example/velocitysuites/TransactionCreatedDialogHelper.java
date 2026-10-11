@@ -100,6 +100,6 @@ final class TransactionCreatedDialogHelper {
             dialog.dismiss();
             onAcknowledged.run();
         });
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 }

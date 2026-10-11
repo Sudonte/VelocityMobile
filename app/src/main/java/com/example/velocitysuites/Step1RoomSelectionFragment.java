@@ -400,7 +400,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
-        dialog.show();
+        SafeDialogs.show(dialog);
         // Cap the dialog's window height to a fraction of the display (rather than
         // leaving it wrap_content/unbounded) so the NestedScrollView's layout_weight="1"
         // above has a real, finite height to distribute - without this, the window
@@ -449,7 +449,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
-        dialog.show();
+        SafeDialogs.show(dialog);
         if (dialog.getWindow() != null) {
             int maxDialogHeightPx = (int) (getResources().getDisplayMetrics().heightPixels * 0.85f);
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, maxDialogHeightPx);

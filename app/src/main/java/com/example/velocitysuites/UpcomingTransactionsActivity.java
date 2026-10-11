@@ -344,7 +344,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         builder.setView(detailView);
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         detailView.findViewById(R.id.btnClosePaymentDetail).setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     /** Re-fetches the open Payment Details dialog's amenity requests after the guest sent a new one. */

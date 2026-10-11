@@ -1579,7 +1579,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
-        dialog.show();
+        SafeDialogs.show(dialog);
         // Cap the dialog's window height (see Step1RoomSelectionFragment's identical
         // fix) so dialog_available_rooms.xml's NestedScrollView (layout_weight="1")
         // has a real bounded height to fill instead of growing unbounded to fit every
@@ -1626,7 +1626,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
-        dialog.show();
+        SafeDialogs.show(dialog);
         if (dialog.getWindow() != null) {
             int maxDialogHeightPx = (int) (getResources().getDisplayMetrics().heightPixels * 0.85f);
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, maxDialogHeightPx);
@@ -2294,7 +2294,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             minDate.set(Calendar.MILLISECOND, 0);
             picker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         }
-        picker.show();
+        SafeDialogs.show(picker);
     }
 
     private void setupIdentificationLogic() {
@@ -4028,7 +4028,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 });
             });
         });
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     /**
@@ -4113,6 +4113,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 }
             });
         });
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 }

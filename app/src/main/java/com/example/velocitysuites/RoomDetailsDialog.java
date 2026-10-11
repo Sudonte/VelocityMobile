@@ -298,7 +298,7 @@ final class RoomDetailsDialog {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
-        dialog.show();
+        SafeDialogs.show(dialog);
         return dialog;
     }
 

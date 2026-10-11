@@ -292,7 +292,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         Calendar maxDob = Calendar.getInstance();
         maxDob.add(Calendar.DAY_OF_YEAR, -1);
         datePickerDialog.getDatePicker().setMaxDate(maxDob.getTimeInMillis());
-        datePickerDialog.show();
+        SafeDialogs.show(datePickerDialog);
     }
 
     private Integer parseValidAge(String value) {
@@ -905,7 +905,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         };
         renderStep[0].run();
 
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     private void applyCallingCodeHint(TextInputLayout mobileLayout, String country) {
@@ -1194,7 +1194,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     });
         });
 
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     /**
@@ -1268,7 +1268,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     });
         });
 
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     /**
@@ -1397,7 +1397,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     });
         });
 
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     private void selectProfilePicture() {

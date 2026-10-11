@@ -516,7 +516,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 .setView(buildLoadingView())
                 .setCancelable(false)
                 .create();
-        dialog.show();
+        SafeDialogs.show(dialog);
 
         // One call covering every selected room type - see
         // RoomRepository#createReservation(List<List<Room>>, ...)'s own

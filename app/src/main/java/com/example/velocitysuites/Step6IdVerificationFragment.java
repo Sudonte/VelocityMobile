@@ -258,7 +258,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             refreshUploadSection();
         });
         dialog.setContentView(content);
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     private void addDetailRow(LinearLayout parent, String label, String value) {

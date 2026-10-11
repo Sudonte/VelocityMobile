@@ -49,7 +49,7 @@ final class SelectedRoomsDialog {
 
         dialogView.findViewById(R.id.btnCloseSelectedRoomsDialog).setOnClickListener(v -> dialog.dismiss());
         dialogView.findViewById(R.id.btnDoneSelectedRooms).setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     /** Room id -> unit count, and room id -> a representative Room instance - both in first-seen order. */

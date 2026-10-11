@@ -685,7 +685,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
-        dialog.show();
+        SafeDialogs.show(dialog);
     }
 
     private void clearAllFilters() {
