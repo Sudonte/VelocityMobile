@@ -410,9 +410,10 @@
                 style="@style/Widget.Velocity.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="56dp"
+                android:minHeight="52dp"
                 android:stateListAnimator="@null"
                 android:text="@string/welcome_action_create_account"
+                android:textSize="15sp"
                 app:icon="@drawable/ic_person"
                 app:iconGravity="textStart"
                 app:iconTint="@color/white" />

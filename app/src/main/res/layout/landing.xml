@@ -26,12 +26,12 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_landing_header_red"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
+            android:paddingVertical="8dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/headerLogoCard"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
@@ -43,7 +43,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:contentDescription="@string/app_logo"
-                    android:padding="7dp"
+                    android:padding="6dp"
                     android:src="@drawable/velocity_suites_logo" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -58,7 +58,7 @@
                 android:maxLines="2"
                 android:text="@string/velocity_suites"
                 android:textColor="@color/white"
-                android:textSize="17sp"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/btnProceed"
                 app:layout_constraintStart_toEndOf="@id/headerLogoCard"
@@ -143,7 +143,7 @@
                         <FrameLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:minHeight="260dp">
+                            android:minHeight="220dp">
 
                             <ImageView
                                 android:id="@+id/landingHeroImage"
@@ -164,7 +164,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="bottom"
                                 android:orientation="vertical"
-                                android:padding="20dp">
+                                android:padding="16dp">
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -172,18 +172,18 @@
                                     android:background="@drawable/bg_badge_hero"
                                     android:fontFamily="sans-serif-black"
                                     android:letterSpacing="0.06"
-                                    android:paddingHorizontal="12dp"
-                                    android:paddingVertical="6dp"
+                                    android:paddingHorizontal="10dp"
+                                    android:paddingVertical="4dp"
                                     android:text="@string/landing_welcome_guest"
                                     android:textAllCaps="true"
                                     android:textColor="@color/white"
-                                    android:textSize="12sp" />
+                                    android:textSize="11sp" />
 
                                 <TextView
                                     android:id="@+id/landingHeroTitle"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="12dp"
+                                    android:layout_marginTop="8dp"
                                     android:fontFamily="sans-serif-black"
                                     android:includeFontPadding="false"
                                     android:letterSpacing="-0.02"
@@ -192,7 +192,7 @@
                                     android:shadowRadius="8"
                                     android:text="@string/landing_banner_luxury_title"
                                     android:textColor="@color/white"
-                                    android:textSize="28sp" />
+                                    android:textSize="24sp" />
 
                                 <TextView
                                     android:layout_width="match_parent"
@@ -205,22 +205,22 @@
                                     android:shadowRadius="6"
                                     android:text="@string/landing_banner_luxury_sub"
                                     android:textColor="@color/white"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btnExploreNow"
                                     style="@style/Widget.Velocity.Button"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="12dp"
                                     android:minWidth="0dp"
                                     android:insetTop="0dp"
                                     android:insetBottom="0dp"
                                     android:minHeight="48dp"
-                                    android:paddingHorizontal="22dp"
+                                    android:paddingHorizontal="20dp"
                                     android:stateListAnimator="@null"
                                     android:text="@string/landing_banner_cta"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     app:backgroundTint="@color/velocity_red_primary"
                                     app:cornerRadius="0dp"
                                     app:elevation="0dp"
@@ -237,10 +237,10 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
                             android:lineSpacingExtra="4dp"
-                            android:padding="20dp"
+                            android:padding="16dp"
                             android:text="@string/landing_greeting"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -269,15 +269,15 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.card.MaterialCardView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
                                 app:cardCornerRadius="@dimen/card_corner_radius"
                                 app:cardElevation="@dimen/card_elevation">
 
                                 <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
                                     android:layout_gravity="center"
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_room_search"
@@ -303,7 +303,7 @@
                             android:lineSpacingExtra="2dp"
                             android:text="@string/landing_section_rooms_sub"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
 
                         <!-- How many rooms, and the "Live Rates" tag. Its own row, below the title: beside the title
                              the tag took so much of a narrow or large-font row that "AVAILABLE ROOMS" broke into a
@@ -378,7 +378,7 @@
                                 android:paddingVertical="14dp"
                                 android:text="@string/all_categories"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -429,7 +429,7 @@
                                 android:stateListAnimator="@null"
                                 android:text="@string/retry_label"
                                 android:textAllCaps="true"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 app:backgroundTint="@color/velocity_red_primary"
                                 app:cornerRadius="0dp"
                                 app:elevation="0dp"
@@ -462,7 +462,7 @@
                             android:text="@string/view_all_rooms"
                             android:textAllCaps="false"
                             android:textColor="@color/velocity_action_text"
-                            android:textSize="14sp"
+                            android:textSize="13sp"
                             android:visibility="gone"
                             app:icon="@drawable/ic_expand_more"
                             app:iconGravity="textEnd"
@@ -497,15 +497,15 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.card.MaterialCardView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
                                 app:cardCornerRadius="@dimen/card_corner_radius"
                                 app:cardElevation="@dimen/card_elevation">
 
                                 <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
                                     android:layout_gravity="center"
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_star"
@@ -577,15 +577,15 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.card.MaterialCardView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
                                 app:cardCornerRadius="@dimen/card_corner_radius"
                                 app:cardElevation="@dimen/card_elevation">
 
                                 <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
                                     android:layout_gravity="center"
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_notifications"
@@ -657,15 +657,15 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.card.MaterialCardView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
                                 app:cardCornerRadius="@dimen/card_corner_radius"
                                 app:cardElevation="@dimen/card_elevation">
 
                                 <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
                                     android:layout_gravity="center"
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_services"
@@ -691,7 +691,7 @@
                             android:lineSpacingExtra="2dp"
                             android:text="@string/landing_section_amenities_sub"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
 
                         <ProgressBar
                             android:id="@+id/progressLandingAmenities"
@@ -750,15 +750,15 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.card.MaterialCardView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
                                 app:cardBackgroundColor="@color/velocity_red_soft"
                                 app:cardCornerRadius="@dimen/card_corner_radius"
                                 app:cardElevation="@dimen/card_elevation">
 
                                 <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
                                     android:layout_gravity="center"
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_info"
@@ -783,7 +783,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/landing_hotel_name"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="20sp" />
+                            android:textSize="18sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -793,12 +793,12 @@
                             android:lineSpacingExtra="3dp"
                             android:text="@string/landing_hotel_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/mapPreviewCard"
                             android:layout_width="match_parent"
-                            android:layout_height="190dp"
+                            android:layout_height="160dp"
                             android:layout_marginTop="16dp"
                             android:clickable="true"
                             android:focusable="true"
@@ -858,7 +858,7 @@
                             android:stateListAnimator="@null"
                             android:text="@string/landing_hotel_view_location"
                             android:textAllCaps="false"
-                            android:textSize="14sp"
+                            android:textSize="13sp"
                             app:backgroundTint="@color/velocity_red_primary"
                             app:cornerRadius="0dp"
                             app:elevation="0dp"
