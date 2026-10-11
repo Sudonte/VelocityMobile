@@ -344,6 +344,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 String action = selectedRoomActionFromLanding != null
                         ? selectedRoomActionFromLanding : PendingRoomSelection.ACTION_VIEW;
                 rvRooms.postDelayed(() -> {
+                    if (isFinishing() || isDestroyed()) return;
                     rvRooms.smoothScrollToPosition(selectedIndex);
                     showRoomDetailsDialog(room, action);
                 }, 450L);
@@ -368,7 +369,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (appBarLayout != null) {
             appBarLayout.setExpanded(false, true);
         }
-        rvRooms.postDelayed(this::showSelectedRoomsDialog, 450L);
+        rvRooms.postDelayed(() -> {
+            if (!isFinishing() && !isDestroyed()) showSelectedRoomsDialog();
+        }, 450L);
     }
 
     private void setupDatePickers() {
