@@ -107,7 +107,7 @@ public class AmenityEntryPointsTest {
         assertNotNull(opened);
         assertEquals(new ComponentName(a, AdditionalAmenitiesActivity.class), opened.getComponent());
         assertEquals("338", opened.getStringExtra(AdditionalAmenitiesActivity.EXTRA_ID));
-        assertTrue(opened.getBooleanExtra(AdditionalAmenitiesActivity.EXTRA_HAS_BOOKING, false));
+        assertTrue(opened.getBooleanExtra(AdditionalAmenitiesActivity.EXTRA_DIRECT_BOOKING, false));
     }
 
     @Test

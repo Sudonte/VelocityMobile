@@ -376,7 +376,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
                 container.removeAllViews();
                 reason.setVisibility(View.GONE);
                 button.setEnabled(false);
-                RoomRepository.getInstance(UpcomingTransactionsActivity.this).fetchAdditionalAmenities(booking.isHasBooking(), booking.getId(),
+                RoomRepository.getInstance(UpcomingTransactionsActivity.this).fetchAdditionalAmenities(booking.isDirectBooking(), booking.getId(),
                         new RoomRepository.RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto>() {
                             @Override
                             public void onSuccess(com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto info) {
@@ -388,7 +388,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
                             public void onError(String message) {
                                 if (isFinishing()) return;
                                 state.setVisibility(View.VISIBLE);
-                                state.setText(R.string.additional_amenities_load_error);
+                                state.setText(message);
                                 retry.setVisibility(View.VISIBLE);
                             }
                         });
@@ -398,7 +398,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         retry.setOnClickListener(v -> load.run());
         button.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(this, AdditionalAmenitiesActivity.class);
-            intent.putExtra(AdditionalAmenitiesActivity.EXTRA_HAS_BOOKING, booking.isHasBooking());
+            intent.putExtra(AdditionalAmenitiesActivity.EXTRA_DIRECT_BOOKING, booking.isDirectBooking());
             intent.putExtra(AdditionalAmenitiesActivity.EXTRA_ID, booking.getId());
             additionalAmenitiesLauncher.launch(intent);
         });

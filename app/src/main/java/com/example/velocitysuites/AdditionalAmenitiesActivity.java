@@ -25,13 +25,14 @@ import java.util.List;
  */
 public class AdditionalAmenitiesActivity extends AppCompatActivity {
 
-    public static final String EXTRA_HAS_BOOKING = "EXTRA_HAS_BOOKING";
+    public static final String EXTRA_DIRECT_BOOKING = "EXTRA_DIRECT_BOOKING";
     public static final String EXTRA_ID = "EXTRA_ID";
 
     /** Sane stepper bound so a stray tap-and-hold can't ask for hundreds; the server enforces real stock. */
     private static final int MAX_QTY = 20;
 
     private RoomRepository repository;
+    /** true: the id is a direct booking's; false: it is the reservation (a converted stay keeps the reservation id in the app). */
     private boolean hasBooking;
     private String id;
 
@@ -54,7 +55,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.additional_amenities);
 
-        hasBooking = getIntent().getBooleanExtra(EXTRA_HAS_BOOKING, true);
+        hasBooking = getIntent().getBooleanExtra(EXTRA_DIRECT_BOOKING, false);
         id = getIntent().getStringExtra(EXTRA_ID);
         repository = RoomRepository.getInstance(this);
 
@@ -102,7 +103,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 if (isFinishing()) return;
-                showState(getString(R.string.additional_amenities_load_error), true);
+                showState(message, true);
             }
         });
     }
@@ -122,7 +123,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 if (isFinishing()) return;
-                showState(getString(R.string.additional_amenities_load_error), true);
+                showState(message, true);
             }
         });
     }

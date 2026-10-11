@@ -50,7 +50,7 @@ public class AdditionalAmenitiesScreenTest {
 
     private AdditionalAmenitiesActivity open() {
         Intent intent = new Intent(app, AdditionalAmenitiesActivity.class)
-                .putExtra(AdditionalAmenitiesActivity.EXTRA_HAS_BOOKING, true)
+                .putExtra(AdditionalAmenitiesActivity.EXTRA_DIRECT_BOOKING, true)
                 .putExtra(AdditionalAmenitiesActivity.EXTRA_ID, "42");
         AdditionalAmenitiesActivity a = Robolectric.buildActivity(AdditionalAmenitiesActivity.class, intent).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
@@ -117,7 +117,7 @@ public class AdditionalAmenitiesScreenTest {
         api.<AdditionalAmenityInfoDto>last("getBookingAdditionalAmenities").offline();
         shadowOf(Looper.getMainLooper()).idle();
 
-        assertEquals(a.getString(R.string.additional_amenities_load_error), text(a, R.id.additionalAmenitiesStateText));
+        assertEquals(a.getString(R.string.error_server_unreachable), text(a, R.id.additionalAmenitiesStateText));
         assertTrue(visible(a, R.id.additionalAmenitiesRetry));
 
         a.findViewById(R.id.additionalAmenitiesRetry).performClick();

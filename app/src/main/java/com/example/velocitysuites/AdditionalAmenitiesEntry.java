@@ -21,7 +21,7 @@ final class AdditionalAmenitiesEntry {
 
     static Intent intent(@NonNull Context context, @NonNull Booking booking) {
         return new Intent(context, AdditionalAmenitiesActivity.class)
-                .putExtra(AdditionalAmenitiesActivity.EXTRA_HAS_BOOKING, booking.isHasBooking())
+                .putExtra(AdditionalAmenitiesActivity.EXTRA_DIRECT_BOOKING, booking.isDirectBooking())
                 .putExtra(AdditionalAmenitiesActivity.EXTRA_ID, booking.getId());
     }
 
@@ -35,7 +35,7 @@ final class AdditionalAmenitiesEntry {
         button.setEnabled(false);
         reason.setVisibility(View.GONE);
         button.setOnClickListener(v -> onClick.run());
-        RoomRepository.getInstance(context).fetchAdditionalAmenities(booking.isHasBooking(), booking.getId(),
+        RoomRepository.getInstance(context).fetchAdditionalAmenities(booking.isDirectBooking(), booking.getId(),
                 new RoomRepository.RepositoryCallback<AdditionalAmenityInfoDto>() {
                     @Override
                     public void onSuccess(AdditionalAmenityInfoDto info) {

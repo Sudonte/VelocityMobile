@@ -2240,15 +2240,15 @@ public final class RoomRepository {
         });
     }
 
-    /** The guest's additional-amenity requests on a stay, and whether more can be requested ({@code hasBooking}: the id is a booking's, else a reservation's). */
-    public void fetchAdditionalAmenities(boolean hasBooking, String id, RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> callback) {
-        enqueueAdditionalAmenities(hasBooking ? api.getBookingAdditionalAmenities(id) : api.getReservationAdditionalAmenities(id), callback);
+    /** The guest's additional-amenity requests on a stay, and whether more can be requested ({@code directBooking}: the id is a direct booking's, else the reservation's). */
+    public void fetchAdditionalAmenities(boolean directBooking, String id, RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> callback) {
+        enqueueAdditionalAmenities(directBooking ? api.getBookingAdditionalAmenities(id) : api.getReservationAdditionalAmenities(id), callback);
     }
 
     /** Submits the chosen amenities as PENDING requests; the server enforces ownership, an active stay, stock and prices. */
-    public void submitAdditionalAmenities(boolean hasBooking, String id, com.example.velocitysuites.network.dto.AdditionalAmenitySubmitRequest request,
+    public void submitAdditionalAmenities(boolean directBooking, String id, com.example.velocitysuites.network.dto.AdditionalAmenitySubmitRequest request,
                                           RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> callback) {
-        enqueueAdditionalAmenities(hasBooking ? api.submitBookingAdditionalAmenities(id, request) : api.submitReservationAdditionalAmenities(id, request), callback);
+        enqueueAdditionalAmenities(directBooking ? api.submitBookingAdditionalAmenities(id, request) : api.submitReservationAdditionalAmenities(id, request), callback);
     }
 
     private void enqueueAdditionalAmenities(Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> call,
@@ -2839,7 +2839,10 @@ public final class RoomRepository {
     }
 
     private String errorMessage(int code, String body) {
-        if (body != null) {
+        // Always on record: the HTTP status the server answered with (never shown to the guest).
+        android.util.Log.e("RoomRepository", "Request failed, httpStatus=" + code);
+        // A 404/405/5xx body is framework text ("No query results for model ...", "Server Error"), never for a guest.
+        if (body != null && code != 404 && code != 405 && code < 500) {
             try {
                 com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
                 String fieldError = firstFieldError(json);
@@ -3161,8 +3164,12 @@ public final class RoomRepository {
      * string regardless of actual cause.
      */
     public static String networkErrorMessage(Context context, Throwable t) {
+        android.util.Log.e("RoomRepository", "Request failed before any response: " + t.getClass().getSimpleName());
         if (t instanceof java.net.UnknownHostException || t instanceof java.net.ConnectException) {
-            return context.getString(R.string.error_no_internet_connection);
+            // "No internet" only when the device really is offline; online but unreachable is the server's problem.
+            return NetworkUtils.isOnline(context)
+                    ? context.getString(R.string.error_server_unreachable)
+                    : context.getString(R.string.error_no_internet_connection);
         }
         if (t instanceof java.net.SocketTimeoutException) {
             return context.getString(R.string.error_request_timed_out);

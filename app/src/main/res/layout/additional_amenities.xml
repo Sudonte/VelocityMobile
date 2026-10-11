@@ -29,7 +29,7 @@
                 android:background="@android:color/transparent"
                 android:contentDescription="@string/back"
                 android:src="@drawable/ic_arrow_back"
-                app:tint="@color/white" />
+                app:tint="@color/velocity_red_primary" />
 
             <TextView
                 android:layout_width="0dp"
@@ -38,7 +38,7 @@
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-black"
                 android:text="@string/request_additional_amenities_button"
-                android:textColor="@color/white"
+                android:textColor="@color/velocity_red_primary"
                 android:textSize="18sp" />
         </LinearLayout>
 

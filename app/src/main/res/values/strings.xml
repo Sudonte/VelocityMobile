@@ -408,14 +408,14 @@
     <string name="dashboard_time_format">h:mm a</string>
     <string name="next_stay_loading">Looking for your next stay…</string>
     <string name="next_stay_error_title">Could not load your stays</string>
-    <string name="next_stay_error_desc">Check your connection and try again.</string>
+    <string name="next_stay_error_desc">Please try again.</string>
     <string name="next_stay_empty_title">No stay planned yet</string>
     <string name="next_stay_empty_desc">Book a room and your next stay will show up here.</string>
     <string name="next_stay_book_action">Book a room</string>
     <string name="next_stay_balance_due">Balance due</string>
     <string name="next_stay_payment_label">Payment</string>
     <string name="dashboard_section_loading">Loading…</string>
-    <string name="dashboard_section_error">Could not load this section. Check your connection and try again.</string>
+    <string name="dashboard_section_error">Couldn\'t load this section. Please try again.</string>
     <string name="next_stay_fully_paid">Fully paid</string>
     <string name="next_stay_view_details">View details ›</string>
     <string name="next_stay_dates_format">%1$s → %2$s</string>
@@ -466,7 +466,7 @@
     <string name="payment_history_empty_filtered_title">No payments match</string>
     <string name="payment_history_empty_filtered_desc">Try another payment method or a wider date range.</string>
     <string name="payment_history_error_title">Couldn\'t load your payments</string>
-    <string name="payment_history_error_desc">Check your connection and try again.</string>
+    <string name="payment_history_error_desc">Please try again.</string>
     <string name="nav_profile_management">Profile Management</string>
     <string name="nav_logout">Logout</string>
     <string name="nav_open_drawer">Open navigation drawer</string>
@@ -959,9 +959,9 @@
     <string name="error_no_internet_connection">No internet connection. Please check your Wi-Fi or mobile data and try again.</string>
     <string name="error_request_timed_out">The request timed out. Please check your connection and try again.</string>
     <string name="error_server_unreachable">We couldn\'t reach the Velocity Suites server. Please try again in a moment.</string>
-    <string name="error_server_error">Something went wrong on our end. Please try again, and contact us if the problem continues.</string>
+    <string name="error_server_error">Something went wrong on our side. Please try again later.</string>
     <string name="error_session_expired">Your session has expired. Please log in again to continue.</string>
-    <string name="error_unexpected_response">We received an unexpected response from the server. Please try again.</string>
+    <string name="error_unexpected_response">Something went wrong on our side. Please try again later.</string>
     <string name="confirm_submit_gcash_payment_msg">Submit this GCash payment of %1$s for verification? Double-check your reference number and receipt — this can\'t be undone.</string>
     <string name="book_now_cta_title">Ready to book a room?</string>
     <string name="book_now_cta_desc">Select your rooms and dates, then come back here to complete payment.</string>
@@ -1321,7 +1321,7 @@
     <string name="no_available_rooms_message">No rooms are available for your selected Check-in and Check-out dates. Please choose different dates.</string>
     <string name="change_dates_button">Change Dates</string>
     <string name="room_load_error_title">Couldn\'t Load Rooms</string>
-    <string name="room_load_error_message">We couldn\'t check room availability. Please check your connection and try again.</string>
+    <string name="room_load_error_message">We couldn\'t check room availability. Please try again.</string>
     <string name="room_load_error_toast">Couldn\'t check room availability. Please try again.</string>
     <string name="no_more_amenity_stock_toast">No more %1$s available right now.</string>
 
@@ -1331,7 +1331,7 @@
     <string name="additional_amenities_section_title">Additional amenity requests</string>
     <string name="additional_amenities_section_helper">Extra items you asked for during your stay. Only approved ones are added to your bill.</string>
     <string name="additional_amenities_loading">Loading…</string>
-    <string name="additional_amenities_load_error">We couldn\'t load your amenity requests. Check your connection and try again.</string>
+    <string name="additional_amenities_load_error">We couldn\'t load your amenity requests. Please try again.</string>
     <string name="additional_amenities_none">You haven\'t requested any additional amenities yet.</string>
     <string name="additional_amenities_not_available">Extra amenities can\'t be requested for this booking right now.</string>
     <string name="additional_amenities_catalog_empty">There are no extra amenities to request right now.</string>
@@ -1654,7 +1654,7 @@
     <string name="landing_no_rooms_for_filter">No items match the selected filter or sorting options. Please adjust your selection.</string>
     <string name="landing_empty_title">No Available Rooms</string>
     <string name="room_error_title">Unable to load rooms</string>
-    <string name="room_error_message">Please check your connection and try again.</string>
+    <string name="room_error_message">Please try again.</string>
     <string name="no_phone_app_found">No phone app found on this device.</string>
     <string name="no_email_app_found">No email app found on this device.</string>
     <string name="no_browser_app_found">No browser app found on this device.</string>
