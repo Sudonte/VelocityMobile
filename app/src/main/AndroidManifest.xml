@@ -174,11 +174,6 @@
             android:theme="@style/Theme.VelocitySuites" />
 
         <activity
-            android:name=".PaymentHistoryActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.VelocitySuites" />
-
-        <activity
             android:name=".UpcomingTransactionsActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.VelocitySuites" />
