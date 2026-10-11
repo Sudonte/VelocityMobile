@@ -62,6 +62,15 @@ public final class TimeUtils {
         } catch (DateTimeParseException ignored) {
         }
 
+        // A bare calendar date ("2026-10-05", e.g. an announcement's publish date) is that day in the hotel's own
+        // timezone - not a malformed timestamp.
+        if (value.length() == 10 && value.charAt(4) == '-' && value.charAt(7) == '-') {
+            try {
+                return java.time.LocalDate.parse(value).atStartOfDay(ZONE_MANILA).toInstant();
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
         // Laravel's default JSON cast has no offset at all - treat as UTC,
         // the app's single storage-timezone convention (see class doc).
         String normalized = value.contains("T") ? value : value.replace(' ', 'T');

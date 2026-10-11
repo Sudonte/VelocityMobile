@@ -33,7 +33,8 @@ public class Announcement implements Serializable {
         // dto.published_at is a raw UTC ISO-8601 timestamp - format it to
         // Asia/Manila here (once, at mapping time) rather than showing the
         // unconverted raw string to the guest (see TimeUtils).
-        return new Announcement(String.valueOf(dto.id), dto.title, dto.content, TimeUtils.formatDateTime(dto.published_at), dto.target_audience, dto.images);
+        return new Announcement(String.valueOf(dto.id), dto.title, dto.content, dto.published_at != null && dto.published_at.trim().length() == 10
+                ? TimeUtils.formatDate(dto.published_at) : TimeUtils.formatDateTime(dto.published_at), dto.target_audience, dto.images);
     }
 
     public String getId() { return id; }
