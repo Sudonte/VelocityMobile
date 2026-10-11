@@ -46,5 +46,8 @@
     <dimen name="guest_header_profile_size">34dp</dimen>
     <!-- One card look app-wide: 12dp corners, subtle elevation. -->
     <dimen name="card_corner_radius">12dp</dimen>
+    <!-- Introduction: logo centred on the screen, loading / offline status anchored near the bottom edge. -->
+    <dimen name="intro_logo_size">144dp</dimen>
+    <dimen name="intro_bottom_padding">40dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
 </resources>

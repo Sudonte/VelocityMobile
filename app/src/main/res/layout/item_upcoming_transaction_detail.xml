@@ -26,7 +26,7 @@
             android:paddingVertical="6dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/white"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:letterSpacing="0.02"
             android:visibility="gone"
             tools:visibility="visible"
@@ -38,35 +38,34 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- The ID leads: bold, brand colour. "Booking #338" / "Reservation #588" so the two can be told apart. -->
+            <TextView
+                android:id="@+id/tvTransactionBookingId"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-black"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="18sp"
+                tools:text="Booking #338" />
+
             <TextView
                 android:id="@+id/tvTransactionTypePill"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:background="@drawable/shape_intro_pill"
                 android:backgroundTint="@color/velocity_red_soft"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 android:textAllCaps="true"
                 android:letterSpacing="0.05"
                 tools:text="Booking" />
-
-            <TextView
-                android:id="@+id/tvTransactionBookingId"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:fontFamily="sans-serif-black"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="11sp"
-                android:letterSpacing="0.03"
-                android:textAllCaps="true"
-                android:alpha="0.7"
-                tools:text="Booking ID: VS-8829" />
         </LinearLayout>
 
         <TextView
@@ -74,10 +73,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@color/velocity_red_dark"
-            android:textSize="17sp"
-            android:letterSpacing="-0.02"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp"
             tools:text="Executive City Suite" />
 
         <TextView
@@ -106,7 +104,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/check_in_label"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_inactive_gray"
                     android:fontFamily="sans-serif-bold"/>
@@ -125,7 +123,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:alpha="0.75"
                     tools:text="2:00 PM" />
             </LinearLayout>
@@ -139,7 +137,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/check_out_label"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_inactive_gray"
                     android:fontFamily="sans-serif-bold"/>
@@ -158,7 +156,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:alpha="0.75"
                     tools:text="12:00 PM" />
             </LinearLayout>
@@ -213,7 +211,7 @@
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="5dp"
                 android:textColor="@color/velocity_green_dark"
-                android:textSize="9sp"
+                android:textSize="12sp"
                 android:textAllCaps="true"
                 android:letterSpacing="0.04"
                 tools:text="Confirmed" />
@@ -229,7 +227,7 @@
                 android:paddingVertical="5dp"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/velocity_green_dark"
-                android:textSize="9sp"
+                android:textSize="12sp"
                 android:textAllCaps="true"
                 android:letterSpacing="0.04"
                 tools:text="Fully Paid" />

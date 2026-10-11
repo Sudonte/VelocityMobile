@@ -43,6 +43,18 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <!-- The ID leads: bold, brand colour ("Booking #338" / "Reservation #588"). -->
+                <TextView
+                    android:id="@+id/tvPaymentBookingId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="16sp"
+                    tools:text="Reservation #588" />
+
                 <!-- Transaction type - always shown so it's never ambiguous whether this
                      card is a view-only Booking or a still-payable Reservation, regardless
                      of payment/verification status shown elsewhere on the card. -->
@@ -55,7 +67,7 @@
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
                     android:textAllCaps="true"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-black"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -65,10 +77,10 @@
                     android:id="@+id/tvPaymentRoomName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
+                    android:fontFamily="sans-serif-medium"
                     android:text="@string/executive_suite"
-                    android:textColor="@color/black"
-                    android:textSize="13sp"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp"
                     android:maxLines="1"
                     android:ellipsize="end" />
 
@@ -80,7 +92,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/transaction_ref_format"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:alpha="0.7"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -93,7 +105,7 @@
                     android:layout_marginTop="1dp"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:alpha="0.7"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -112,7 +124,7 @@
                     android:paddingHorizontal="7dp"
                     android:paddingVertical="2dp"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:visibility="gone"
                     tools:text="Pay by Aug 30, 11:39 PM"
                     tools:visibility="visible" />
@@ -135,7 +147,7 @@
                     android:paddingVertical="3dp"
                     android:text="@string/status_pending"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-black"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -155,7 +167,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="2dp"
                     android:textColor="@color/velocity_inactive_gray"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-black"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -180,7 +192,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/total_amount"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_inactive_gray"
                     android:fontFamily="sans-serif-bold"/>
@@ -203,7 +215,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/paid_column_label"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_inactive_gray"
                     android:fontFamily="sans-serif-bold"/>
@@ -227,7 +239,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/remaining_balance_label"
-                    android:textSize="9sp"
+                    android:textSize="12sp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_inactive_gray"
                     android:fontFamily="sans-serif-bold"/>
@@ -263,7 +275,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/view_details_label"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:alpha="0.85" />
 
                 <ImageView
@@ -289,7 +301,7 @@
                 android:fontFamily="sans-serif-black"
                 android:text="@string/pay_now"
                 android:textAllCaps="false"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:backgroundTint="@color/velocity_red_primary"
                 app:cornerRadius="0dp"
                 tools:visibility="visible" />

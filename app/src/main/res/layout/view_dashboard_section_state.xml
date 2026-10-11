@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A Dashboard section that has nothing to show YET: either still loading, or it could not be loaded (with Retry).
+     Never worded as "you have none" - that message is only for a section that loaded and is genuinely empty. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingVertical="16dp"
+    android:visibility="gone">
+
+    <TextView
+        android:id="@+id/sectionStateText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="14sp"
+        tools:text="@string/dashboard_section_error" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/sectionStateRetry"
+        style="@style/Widget.Velocity.Flat.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:minWidth="140dp"
+        android:text="@string/retry_label" />
+</LinearLayout>

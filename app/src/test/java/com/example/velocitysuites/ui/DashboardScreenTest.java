@@ -206,15 +206,21 @@ public class DashboardScreenTest {
     // ---- date and time
 
     @Test
-    public void theDateAndTimeAreOneClearLineInHotelTime() {
+    public void theDateIsOnTop_theTimeBelowIt_largerAndInHotelTime() {
         DashboardActivity activity = launch();
-        SimpleDateFormat format = new SimpleDateFormat(app.getString(R.string.dashboard_date_time_format), Locale.US);
-        format.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
-        String expected = format.format(new java.util.Date());
-        String shown = text(activity, R.id.dateText);
-        // e.g. "Sunday, October 11, 2026 · 8:31 AM" - compare the date part (the minute may roll over during the test)
-        assertTrue(shown, shown.contains(" · "));
-        assertEquals(expected.substring(0, expected.indexOf(" · ")), shown.substring(0, shown.indexOf(" · ")));
+        SimpleDateFormat dateFormat = new SimpleDateFormat(app.getString(R.string.dashboard_date_format), Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+        SimpleDateFormat timeFormat = new SimpleDateFormat(app.getString(R.string.dashboard_time_format), Locale.US);
+        timeFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
+
+        // e.g. "Sunday, October 11, 2026" over "9:19 AM"
+        assertEquals(dateFormat.format(new java.util.Date()), text(activity, R.id.dateText));
+        assertTrue(text(activity, R.id.timeText).matches("\\d{1,2}:\\d{2} (AM|PM)"));
+        TextView date = activity.findViewById(R.id.dateText);
+        TextView time = activity.findViewById(R.id.timeText);
+        assertTrue("the time is the larger of the two", time.getTextSize() > date.getTextSize());
+        assertTrue("the time sits directly below the date", ((View) date.getParent()) == ((View) time.getParent())
+                && ((ViewGroup) date.getParent()).indexOfChild(time) == ((ViewGroup) date.getParent()).indexOfChild(date) + 1);
     }
 
     // ---- Next Stay card
@@ -301,5 +307,149 @@ public class DashboardScreenTest {
         assertTrue(chip.getText().length() > 0);
         assertNotNull("an icon beside the words", chip.getCompoundDrawables()[0]);
         assertTrue("12sp minimum", chip.getTextSize() >= 12 * app.getResources().getDisplayMetrics().scaledDensity - 0.5f);
+    }
+
+    // ---- ID leads each item (Recent Bookings, Upcoming Stays, Payment Status)
+
+    private static com.example.velocitysuites.network.dto.DirectBookingResponseDto booking(long id, int daysAway) {
+        com.example.velocitysuites.network.dto.DirectBookingResponseDto d = ScreenTestSupport.directBooking(id, 1800);
+        d.check_in = manilaToday().plusDays(daysAway).toString();
+        d.check_out = manilaToday().plusDays(daysAway + 1).toString();
+        return d;
+    }
+
+    private void answerWith(java.util.List<ReservationDto> reservations, java.util.List<com.example.velocitysuites.network.dto.DirectBookingResponseDto> direct) {
+        ScreenTestSupport.answerBookingLoad(api, 0, reservations, direct);
+        idle();
+    }
+
+    private static TextView first(ViewGroup container, int id) {
+        assertTrue("the section lists an item", container.getChildCount() > 0);
+        return (TextView) container.getChildAt(0).findViewById(id);
+    }
+
+    @Test
+    public void recentBookings_andUpcoming_highlightTheBookingNumber_withTheRoomNameSmallerBelow() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(booking(338, 2)));
+
+        for (int listId : new int[]{R.id.bookingListContainer, R.id.upcomingListContainer}) {
+            ViewGroup list = activity.findViewById(listId);
+            TextView id = first(list, R.id.tvNextItemBookingId);
+            TextView room = first(list, R.id.tvNextItemRoomName);
+            assertEquals("Booking #338", id.getText().toString());
+            assertTrue("the ID is the larger line", id.getTextSize() > room.getTextSize());
+            assertEquals("in the brand colour", androidx.core.content.ContextCompat.getColor(app, R.color.velocity_red_primary), id.getCurrentTextColor());
+            assertTrue("the room name is secondary text", room.getCurrentTextColor() != id.getCurrentTextColor());
+            assertTrue("12sp minimum", room.getTextSize() >= 12 * app.getResources().getDisplayMetrics().scaledDensity - 0.5f);
+        }
+    }
+
+    @Test
+    public void upcomingAndPaymentStatus_labelAReservationAsAReservation() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 3)));
+
+        ViewGroup upcoming = activity.findViewById(R.id.upcomingListContainer);
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        for (int i = 0; i < upcoming.getChildCount(); i++) {
+            labels.add(((TextView) upcoming.getChildAt(i).findViewById(R.id.tvNextItemBookingId)).getText().toString());
+        }
+        assertTrue(labels.toString(), labels.contains("Reservation #588") && labels.contains("Booking #338"));
+
+        ViewGroup payments = activity.findViewById(R.id.paymentListContainer);
+        assertTrue(payments.getChildCount() > 0);
+        TextView paymentId = (TextView) payments.getChildAt(0).findViewById(R.id.tvPaymentBookingId);
+        String shown = paymentId.getText().toString();
+        assertTrue(shown, shown.startsWith("Booking #") || shown.startsWith("Reservation #"));
+        TextView paymentRoom = (TextView) payments.getChildAt(0).findViewById(R.id.tvPaymentRoomName);
+        assertTrue("the room name is the smaller line", paymentId.getTextSize() > paymentRoom.getTextSize());
+    }
+
+    // ---- loading / error states: never "you have none" when the load failed
+
+    private void failEverythingPending() {
+        for (int round = 0; round < 3; round++) {
+            for (String method : new String[]{"getReservations", "getDirectBookings", "getNotifications"}) {
+                for (int i = 0; i < api.count(method); i++) {
+                    ScreenTestSupport.FakeCall<Object> call = api.call(method, i);
+                    if (call.pending() && !call.isCanceled()) {
+                        try {
+                            call.offline();
+                        } catch (RuntimeException alreadyAnswered) {
+                            // answered in an earlier round
+                        }
+                    }
+                }
+            }
+            idle();
+        }
+    }
+
+    private static final int[] STATE_VIEWS = {R.id.stateSummary, R.id.stateRecent, R.id.stateUpcoming, R.id.statePayments, R.id.stateNotifications};
+    private static final int[] EMPTY_MESSAGES = {R.id.noBookingsText, R.id.noUpcomingText, R.id.noPaymentsText, R.id.noNotificationsText};
+
+    @Test
+    public void everySectionSaysLoadingFirst_notThatYouHaveNone() {
+        DashboardActivity activity = launch();
+        for (int id : STATE_VIEWS) {
+            assertEquals(View.VISIBLE, activity.findViewById(id).getVisibility());
+            assertEquals(app.getString(R.string.dashboard_section_loading), ((TextView) activity.findViewById(id).findViewById(R.id.sectionStateText)).getText().toString());
+        }
+        for (int emptyId : EMPTY_MESSAGES) {
+            assertEquals("no empty message while loading", View.GONE, activity.findViewById(emptyId).getVisibility());
+        }
+    }
+
+    @Test
+    public void whenLoadingFails_everySectionShowsAnErrorWithRetry_andNeverAnEmptyMessage() {
+        DashboardActivity activity = launch();
+        failEverythingPending();
+
+        for (int id : STATE_VIEWS) {
+            View state = activity.findViewById(id);
+            assertEquals(View.VISIBLE, state.getVisibility());
+            assertEquals(app.getString(R.string.dashboard_section_error), ((TextView) state.findViewById(R.id.sectionStateText)).getText().toString());
+            View retry = state.findViewById(R.id.sectionStateRetry);
+            assertEquals(View.VISIBLE, retry.getVisibility());
+            assertTrue("a 48dp touch target", retry.getLayoutParams().height >= (int) (48 * app.getResources().getDisplayMetrics().density));
+        }
+        for (int emptyId : EMPTY_MESSAGES) {
+            assertEquals("a failed load is never worded as none", View.GONE, activity.findViewById(emptyId).getVisibility());
+        }
+        assertEquals("the summary counts are hidden too", View.GONE, ((View) activity.findViewById(R.id.tileActiveBooking).getParent()).getVisibility());
+    }
+
+    @Test
+    public void retryInAnySection_asksAgain_andShowsLoadingWhileItDoes() {
+        DashboardActivity activity = launch();
+        failEverythingPending();
+        int before = api.count("getReservations");
+
+        tap(activity.findViewById(R.id.stateUpcoming).findViewById(R.id.sectionStateRetry));
+        idle();
+
+        assertTrue("asked the server again", api.count("getReservations") > before);
+        assertEquals(app.getString(R.string.dashboard_section_loading),
+                ((TextView) activity.findViewById(R.id.stateUpcoming).findViewById(R.id.sectionStateText)).getText().toString());
+    }
+
+    @Test
+    public void aLoadedButTrulyEmptyDashboardSaysSo_withoutErrors() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings());
+        api.<Object>call("getNotifications", 0).succeed(ScreenTestSupport.notificationPage(0));
+        idle();
+
+        for (int id : STATE_VIEWS) assertEquals(View.GONE, activity.findViewById(id).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.noBookingsText).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.noNotificationsText).getVisibility());
+    }
+
+    @Test
+    public void recentBookingsIsTheSectionName() {
+        DashboardActivity activity = launch();
+        assertEquals("Recent Bookings", app.getString(R.string.recent_bookings_title));
+        assertNotNull(findText(activity, R.string.recent_bookings_title));
     }
 }

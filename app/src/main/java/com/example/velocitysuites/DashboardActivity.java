@@ -29,6 +29,7 @@ import java.util.Locale;
 public class DashboardActivity extends BaseNavigationActivity {
 
     private TextView dateText;
+    private TextView timeText;
     /** The four mutually exclusive states of the Next Stay card. */
     private View nextStayLoading, nextStayError, nextStayEmpty, nextStayContent;
     /** The stay the Next Stay card shows (what a tap opens). */
@@ -37,6 +38,12 @@ public class DashboardActivity extends BaseNavigationActivity {
     private boolean bookingsResolved = false;
     /** True when the last bookings refresh failed (the sections then offer Retry / a pull-to-refresh hint if they have nothing to show). */
     private boolean bookingsLoadFailed = false;
+    /** Same two flags for the notifications request. */
+    private boolean notificationsResolved = false;
+    private boolean notificationsLoadFailed = false;
+
+    /** What a data section shows when it has nothing to list: still loading, could not load (Retry), or loaded and genuinely empty (OK). */
+    private enum SectionState { OK, LOADING, ERROR }
     private TextView activeReservationsCountText, cancelReservationsCountText, activeBookingsCountText, cancelBookingsCountText;
     private TextView pastBookingsCountText, pastReservationsCountText;
     private LinearLayout bookingListContainer, paymentListContainer, upcomingListContainer, notificationListContainer;
@@ -115,8 +122,11 @@ public class DashboardActivity extends BaseNavigationActivity {
         requestNotificationPermissionIfNeeded();
 
         dateText = findViewById(R.id.dateText);
+        timeText = findViewById(R.id.timeText);
 
         initializeNewComponents();
+        // Until the first answer arrives every data section says "Loading…" (never "you have none").
+        applySectionStates(RoomRepository.getInstance(this).getBookings(), RoomRepository.getInstance(this).getNotifications());
 
         swipeRefreshDashboard = findViewById(R.id.swipeRefreshDashboard);
         if (swipeRefreshDashboard != null) {
@@ -200,13 +210,18 @@ public class DashboardActivity extends BaseNavigationActivity {
         repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
+                notificationsResolved = true;
+                notificationsLoadFailed = false;
                 updateNotificationBadge();
                 populateDashboard(repository.getBookings(), repository.getNotifications());
             }
 
             @Override
             public void onError(String message) {
-                // Bookings refresh above already re-populates; nothing further needed on notification failure.
+                // A failure is shown in the Notifications section (never as "no notifications").
+                notificationsResolved = true;
+                notificationsLoadFailed = true;
+                populateDashboard(repository.getBookings(), repository.getNotifications());
             }
         });
     }
@@ -313,6 +328,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         populatePayments(allBookings);
         populateUpcoming(allBookings);
         populateNotifications(allNotifications);
+        applySectionStates(allBookings, allNotifications);
 
         // Account Summary
         SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
@@ -380,7 +396,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
 
         if (displayBookings.isEmpty()) {
-            noBookingsText.setText(bookingsLoadFailed ? R.string.dashboard_activity_error : R.string.no_bookings_found);
+
             noBookingsText.setVisibility(View.VISIBLE);
             if (noBookingsIcon != null) noBookingsIcon.setVisibility(View.VISIBLE);
             if (btnEmptyBookNow != null) btnEmptyBookNow.setVisibility(View.VISIBLE);
@@ -513,6 +529,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         ImageView ivRoomImage = card.findViewById(R.id.ivPaymentRoomImage);
 
         tvRoomName.setText(b.getRoomName());
+        ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getId()));
         if (ivRoomImage != null) {
             int fallbackImage = RoomVisuals.getRoomImage(b.getRoomType());
             if (b.getRoomImageUrl() != null && !b.getRoomImageUrl().isEmpty()) {
@@ -953,11 +970,10 @@ public class DashboardActivity extends BaseNavigationActivity {
         }));
         findViewById(R.id.btnNextStayBook).setOnClickListener(NavUtils.debounce(v ->
                 startActivity(new android.content.Intent(this, RoomBrowsingActivity.class))));
-        findViewById(R.id.btnNextStayRetry).setOnClickListener(NavUtils.debounce(v -> {
-            bookingsResolved = false;
-            updateNextStay(RoomRepository.getInstance(this).getBookings());
-            loadDashboardData();
-        }));
+        findViewById(R.id.btnNextStayRetry).setOnClickListener(NavUtils.debounce(v -> retryDashboardLoad()));
+        for (int stateId : new int[]{R.id.stateSummary, R.id.stateRecent, R.id.stateNotifications, R.id.stateUpcoming, R.id.statePayments}) {
+            findViewById(stateId).findViewById(R.id.sectionStateRetry).setOnClickListener(NavUtils.debounce(v -> retryDashboardLoad()));
+        }
         findViewById(R.id.btnEditProfile).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, ProfileManagementActivity.class))));
         findViewById(R.id.dateTimeCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, CalendarActivity.class))));
 
@@ -1075,6 +1091,57 @@ public class DashboardActivity extends BaseNavigationActivity {
      * (which may itself be a check-out, if the guest is already checked in) so the section
      * is never empty while there's genuinely something upcoming.
      */
+    /** Retry for any section that could not load: show "Loading…" everywhere again and ask the server once more. */
+    private void retryDashboardLoad() {
+        bookingsResolved = false;
+        bookingsLoadFailed = false;
+        notificationsResolved = false;
+        notificationsLoadFailed = false;
+        RoomRepository repository = RoomRepository.getInstance(this);
+        updateNextStay(repository.getBookings());
+        applySectionStates(repository.getBookings(), repository.getNotifications());
+        loadDashboardData();
+    }
+
+    private static SectionState stateOf(boolean hasData, boolean resolved, boolean failed) {
+        if (hasData) return SectionState.OK;
+        if (!resolved) return SectionState.LOADING;
+        return failed ? SectionState.ERROR : SectionState.OK;
+    }
+
+    /**
+     * Every data section is one of: its list, a loading line, an error with Retry, or - only when it LOADED and is truly
+     * empty - its "you have none" message. A load that failed must never read as "no bookings" / "no payments".
+     */
+    private void applySectionStates(List<Booking> bookings, List<Notification> notifications) {
+        SectionState fromBookings = stateOf(!bookings.isEmpty(), bookingsResolved, bookingsLoadFailed);
+        SectionState fromNotifications = stateOf(!notifications.isEmpty(), notificationsResolved, notificationsLoadFailed);
+
+        // the summary's tiles live in a grid; their counts are meaningless until the bookings are known
+        View summaryGrid = (View) findViewById(R.id.tileActiveBooking).getParent();
+        bindSectionState(R.id.stateSummary, fromBookings, summaryGrid);
+        if (fromBookings == SectionState.OK) summaryGrid.setVisibility(View.VISIBLE);
+        bindSectionState(R.id.stateRecent, fromBookings, noBookingsText, noBookingsIcon, btnEmptyBookNow);
+        bindSectionState(R.id.stateUpcoming, fromBookings, noUpcomingText);
+        bindSectionState(R.id.statePayments, fromBookings, noPaymentsText);
+        bindSectionState(R.id.stateNotifications, fromNotifications, noNotificationsText);
+    }
+
+    private void bindSectionState(int includeId, SectionState state, View... hiddenUnlessOk) {
+        View include = findViewById(includeId);
+        include.setVisibility(state == SectionState.OK ? View.GONE : View.VISIBLE);
+        if (state != SectionState.OK) {
+            ((TextView) include.findViewById(R.id.sectionStateText))
+                    .setText(state == SectionState.LOADING ? R.string.dashboard_section_loading : R.string.dashboard_section_error);
+            include.findViewById(R.id.sectionStateRetry).setVisibility(state == SectionState.ERROR ? View.VISIBLE : View.GONE);
+        }
+        for (View v : hiddenUnlessOk) {
+            if (v == null) continue;
+            // (when the state is OK each section's own populate*() has just decided what its empty message does)
+            if (state != SectionState.OK) v.setVisibility(View.GONE);
+        }
+    }
+
     /** Today's date at the hotel (Asia/Manila) - the day every "tomorrow" / "in N days" hint is counted from. */
     private static java.time.LocalDate hotelToday() {
         return java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila"));
@@ -1185,7 +1252,8 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         tvTypePill.setText(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
         tvRoomName.setText(b.getRoomName());
-        tvBookingId.setText(getString(R.string.booking_id_format, b.getId()));
+        // The ID leads each item: "Booking #338" / "Reservation #588" (the format Transaction History uses).
+        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getId()));
 
         String relevantDate = isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate();
         tvDate.setText(getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format, relevantDate));
@@ -1361,13 +1429,16 @@ public class DashboardActivity extends BaseNavigationActivity {
         clockHandler.postDelayed(clockRunnable, 1000);
     }
 
-    /** "Sunday, October 11, 2026 · 8:31 AM" in hotel time (Asia/Manila), whatever the phone's own zone is. */
+    /** The date ("Sunday, October 11, 2026") with the time ("9:19 AM") below it, in hotel time (Asia/Manila), whatever the phone's own zone is. */
     private void updateDateTime() {
-        SimpleDateFormat format = new SimpleDateFormat(getString(R.string.dashboard_date_time_format), Locale.US);
-        format.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Manila"));
-        if (dateText != null) {
-            dateText.setText(format.format(new java.util.Date()));
-        }
+        java.util.TimeZone manila = java.util.TimeZone.getTimeZone("Asia/Manila");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(getString(R.string.dashboard_date_format), Locale.US);
+        SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.dashboard_time_format), Locale.US);
+        dateFormat.setTimeZone(manila);
+        timeFormat.setTimeZone(manila);
+        java.util.Date now = new java.util.Date();
+        if (dateText != null) dateText.setText(dateFormat.format(now));
+        if (timeText != null) timeText.setText(timeFormat.format(now));
     }
 
     @Override

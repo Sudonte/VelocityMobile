@@ -403,8 +403,10 @@ public class MainActivity extends AppCompatActivity {
     private void showError(String title, String description) {
         loadingPanel.setVisibility(View.GONE);
         // The offline icon belongs to the offline state only; "temporarily unavailable" is a different problem.
+        // On a short phone the status block at the bottom would otherwise reach up into the centred logo: drop the icon there.
+        boolean roomForIcon = getResources().getConfiguration().screenHeightDp >= 640;
         findViewById(R.id.errorIcon).setVisibility(
-                title.equals(getString(R.string.introduction_error_no_internet)) ? View.VISIBLE : View.GONE);
+                roomForIcon && title.equals(getString(R.string.introduction_error_no_internet)) ? View.VISIBLE : View.GONE);
         errorTitleText.setText(title);
         errorDescriptionText.setText(description);
         errorPanel.setVisibility(View.VISIBLE);

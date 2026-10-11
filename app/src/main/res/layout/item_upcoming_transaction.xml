@@ -68,7 +68,7 @@
             android:paddingVertical="4dp"
             android:text="@string/check_in_time"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:fontFamily="sans-serif-black" />
 
     </LinearLayout>

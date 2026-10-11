@@ -39,12 +39,11 @@
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/loadingPanel"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.42"
-        app:layout_constraintVertical_chainStyle="packed">
+        app:layout_constraintVertical_bias="0.5">
 
         <!-- Logo Halo Effect for Visual Depth -->
         <View
@@ -57,8 +56,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/logoContainer"
-            android:layout_width="170dp"
-            android:layout_height="170dp"
+            android:layout_width="@dimen/intro_logo_size"
+            android:layout_height="@dimen/intro_logo_size"
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="@dimen/card_corner_radius"
             app:cardElevation="@dimen/card_elevation"
@@ -93,12 +92,11 @@
         android:id="@+id/loadingPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginBottom="@dimen/intro_bottom_padding"
         android:alpha="0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/logoGroup">
+        app:layout_constraintStart_toStartOf="parent">
 
         <ProgressBar
             android:id="@+id/introductionProgress"
@@ -175,13 +173,13 @@
         android:id="@+id/errorPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginBottom="@dimen/intro_bottom_padding"
         android:paddingHorizontal="32dp"
         android:visibility="gone"
         tools:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/logoGroup">
+        app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
             android:id="@+id/errorIcon"

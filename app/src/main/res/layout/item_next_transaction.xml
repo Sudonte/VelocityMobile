@@ -50,45 +50,35 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- The ID leads: bold, brand colour ("Booking #338" / "Reservation #588"). -->
+            <TextView
+                android:id="@+id/tvNextItemBookingId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="16sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Booking #338" />
+
             <TextView
                 android:id="@+id/tvNextItemTypePill"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:background="@drawable/shape_intro_pill"
-                android:backgroundTint="@color/velocity_red_soft"
-                android:paddingHorizontal="7dp"
-                android:paddingVertical="2dp"
-                android:fontFamily="sans-serif-black"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="8sp"
-                android:textAllCaps="true"
-                android:letterSpacing="0.04"
-                tools:text="Booking" />
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tvNextItemRoomName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-black"
-                android:textColor="@color/black"
-                android:textSize="13sp"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
                 android:maxLines="1"
                 android:ellipsize="end"
                 tools:text="Executive City Suite" />
-
-            <TextView
-                android:id="@+id/tvNextItemBookingId"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="10sp"
-                android:alpha="0.75"
-                android:maxLines="1"
-                android:ellipsize="end"
-                tools:text="Booking ID: VS-8829" />
 
             <TextView
                 android:id="@+id/tvNextItemDate"
@@ -97,7 +87,7 @@
                 android:layout_marginTop="2dp"
                 android:fontFamily="sans-serif-bold"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:maxLines="2"
                 android:ellipsize="end"
                 tools:text="Check-in: Oct 12, 2023" />
@@ -122,7 +112,7 @@
                 android:paddingVertical="3dp"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/white"
-                android:textSize="8sp"
+                android:textSize="12sp"
                 android:textAllCaps="true"
                 android:maxLines="1"
                 android:ellipsize="end"
@@ -140,7 +130,7 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
                 android:textColor="@color/velocity_green_dark"
-                android:textSize="8sp"
+                android:textSize="12sp"
                 android:textAllCaps="true"
                 android:maxLines="1"
                 android:ellipsize="end"
@@ -155,7 +145,7 @@
                 android:fontFamily="sans-serif-black"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
-                android:textSize="8sp"
+                android:textSize="12sp"
                 android:textAllCaps="true"
                 android:maxLines="1"
                 android:ellipsize="end"
