@@ -710,6 +710,7 @@
     <string name="recent_transactions">Recent Transactions</string>
     <string name="total_paid_label">Total Paid</string>
     <string name="booking_id_format">Booking ID: %1$s</string>
+    <string name="reservation_id_format">Reservation ID: %1$s</string>
     <string name="transaction_search_empty_desc">No transactions match your search. Try a different keyword or clear your search.</string>
     <string name="transaction_payment_empty_desc">No payment records are available. Completed payments will appear here.</string>
     <string name="view_booking_details_button">View Booking Details</string>

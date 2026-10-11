@@ -114,6 +114,9 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
             headerProfile.setOnClickListener(v -> openScreen(ProfileManagementActivity.class));
         }
 
+        // The header icons are drawn at 34dp; their touch area is still 48dp.
+        TouchTargets.ensureMinimumTouchArea(menuButtonControl, headerNotification, headerProfile);
+
         // Align IDs for guest_header.xml if used
         refreshHeader();
     }

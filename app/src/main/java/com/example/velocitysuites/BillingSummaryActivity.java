@@ -255,7 +255,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
     }
 
     private void populateSummary() {
-        tvBillingRef.setText(getString(R.string.booking_ref_label, booking.getDisplayId()));
+        tvBillingRef.setText(getString(booking.isHasBooking() ? R.string.booking_ref_label : R.string.reservation_ref_label, booking.getDisplayId()));
         tvBillingStatus.setText(booking.getStatus().toUpperCase(Locale.US));
         tvBillingRoomHeadline.setText(roomHeadline());
         tvBillingRoomType.setText(android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()));

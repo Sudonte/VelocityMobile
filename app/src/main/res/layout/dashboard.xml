@@ -236,8 +236,8 @@
 
                         <ImageView
                             android:id="@+id/clockIcon"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_soft"
                             android:contentDescription="@string/system_clock_label"
@@ -377,8 +377,8 @@
                             android:visibility="gone">
 
                             <ImageView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
                                 android:alpha="0.5"
                                 android:importantForAccessibility="no"
                                 android:src="@drawable/ic_calendar"
@@ -584,8 +584,8 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="36dp"
-                                    android:layout_height="36dp"
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
@@ -627,8 +627,8 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="36dp"
-                                    android:layout_height="36dp"
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
@@ -677,8 +677,8 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="36dp"
-                                    android:layout_height="36dp"
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
@@ -720,8 +720,8 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="36dp"
-                                    android:layout_height="36dp"
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
@@ -765,8 +765,8 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
                                 android:importantForAccessibility="no"
@@ -808,6 +808,7 @@
                                 android:id="@+id/tileActiveBooking"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:minHeight="48dp"
                                 android:layout_columnWeight="1"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_green_soft"
@@ -831,6 +832,7 @@
                                 android:id="@+id/tileActiveReservation"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:minHeight="48dp"
                                 android:layout_columnWeight="1"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
@@ -854,6 +856,7 @@
                                 android:id="@+id/tilePastBooking"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:minHeight="48dp"
                                 android:layout_columnWeight="1"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_blue_soft"
@@ -877,6 +880,7 @@
                                 android:id="@+id/tilePastReservation"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:minHeight="48dp"
                                 android:layout_columnWeight="1"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_status_soft"
@@ -900,6 +904,7 @@
                                 android:id="@+id/tileCancelBooking"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:minHeight="48dp"
                                 android:layout_columnWeight="1"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_gray_soft"
@@ -923,6 +928,7 @@
                                 android:id="@+id/tileCancelReservation"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:minHeight="48dp"
                                 android:layout_columnWeight="1"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_orange_soft"
@@ -967,8 +973,8 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
                                 android:importantForAccessibility="no"
@@ -1013,7 +1019,7 @@
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
-                                android:minHeight="40dp"
+                                android:minHeight="48dp"
                                 android:paddingHorizontal="16dp"
                                 android:paddingVertical="8dp"
                                 android:text="@string/see_all"
@@ -1109,8 +1115,8 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_blue_soft"
                                 android:importantForAccessibility="no"
@@ -1154,7 +1160,7 @@
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
-                                android:minHeight="40dp"
+                                android:minHeight="48dp"
                                 android:paddingHorizontal="16dp"
                                 android:paddingVertical="8dp"
                                 android:text="@string/see_all"
@@ -1220,8 +1226,8 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_green_soft"
                                 android:importantForAccessibility="no"
@@ -1266,7 +1272,7 @@
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
-                                android:minHeight="40dp"
+                                android:minHeight="48dp"
                                 android:paddingHorizontal="16dp"
                                 android:paddingVertical="8dp"
                                 android:text="@string/see_all"
@@ -1332,8 +1338,8 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_orange_soft"
                                 android:importantForAccessibility="no"
@@ -1378,7 +1384,7 @@
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
-                                android:minHeight="40dp"
+                                android:minHeight="48dp"
                                 android:paddingHorizontal="16dp"
                                 android:paddingVertical="8dp"
                                 android:text="@string/see_all"
@@ -1443,8 +1449,8 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
                                 android:importantForAccessibility="no"
@@ -1469,7 +1475,7 @@
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
-                                android:minHeight="40dp"
+                                android:minHeight="48dp"
                                 android:paddingHorizontal="16dp"
                                 android:paddingVertical="8dp"
                                 android:text="@string/edit_profile"

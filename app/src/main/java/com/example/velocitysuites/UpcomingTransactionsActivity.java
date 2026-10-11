@@ -272,7 +272,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         LinearLayout historyContainer = detailView.findViewById(R.id.detailPaymentHistoryContainer);
         TextView tvHistoryEmpty = detailView.findViewById(R.id.detailPaymentHistoryEmpty);
 
-        tvBookingId.setText(getString(R.string.booking_id_format, booking.getDisplayId()));
+        tvBookingId.setText(getString(booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId()));
 
         String payRef;
         if (booking.getTransactionRef() != null) {
