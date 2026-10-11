@@ -16,7 +16,7 @@ final class TransactionText {
 
     /** "Reservation #588" / "Booking #250" (cards upper-case it). */
     static String reference(Context ctx, TransactionRow row) {
-        return reference(ctx, row.kind == TransactionRow.Kind.BOOKING, row.id);
+        return reference(ctx, row.kind == TransactionRow.Kind.BOOKING, row.booking.getDisplayId());
     }
 
     static String reference(Context ctx, boolean isBooking, @Nullable String id) {

@@ -400,6 +400,8 @@ public final class ApiMapper {
         booking.setPaymentSummary(toPaymentSummary(dto.payment_summary));
         booking.setPaymentTransactions(toPaymentTransactions(dto.payment_transactions));
         booking.setReceipts(toReceipts(dto.receipts));
+        // Once converted, the receptionist web knows this stay only as Booking #<bookings.id>.
+        if (dto.booking != null && dto.booking.id > 0) booking.setDisplayId(String.valueOf(dto.booking.id));
 
         return booking;
     }

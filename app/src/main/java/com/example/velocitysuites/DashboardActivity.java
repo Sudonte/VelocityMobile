@@ -529,7 +529,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         ImageView ivRoomImage = card.findViewById(R.id.ivPaymentRoomImage);
 
         tvRoomName.setText(b.getRoomName());
-        ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getId()));
+        ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
         if (ivRoomImage != null) {
             int fallbackImage = RoomVisuals.getRoomImage(b.getRoomType());
             if (b.getRoomImageUrl() != null && !b.getRoomImageUrl().isEmpty()) {
@@ -538,7 +538,7 @@ public class DashboardActivity extends BaseNavigationActivity {
                 ivRoomImage.setImageResource(fallbackImage);
             }
         }
-        String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getId();
+        String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getDisplayId();
         tvRef.setText(getString(R.string.transaction_ref_format, ref));
 
         TextView tvDeadline = card.findViewById(R.id.tvPaymentDeadline);
@@ -655,7 +655,7 @@ public class DashboardActivity extends BaseNavigationActivity {
                 // regardless of which screen Pay Now was tapped from.
                 btnQuickPay.setOnClickListener(v -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.pay_now_confirm_title)
-                        .setMessage(getString(R.string.pay_now_confirm_msg, b.getId()))
+                        .setMessage(getString(R.string.pay_now_confirm_msg, b.getDisplayId()))
                         .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
                             android.content.Intent intent = new android.content.Intent(this, BillingSummaryActivity.class);
                             intent.putExtra(BillingSummaryActivity.EXTRA_RESERVATION_ID, b.getId());
@@ -1258,7 +1258,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         tvTypePill.setText(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
         tvRoomName.setText(b.getRoomName());
         // The ID leads each item: "Booking #338" / "Reservation #588" (the format Transaction History uses).
-        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getId()));
+        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
 
         String relevantDate = isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate();
         tvDate.setText(getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format, relevantDate));

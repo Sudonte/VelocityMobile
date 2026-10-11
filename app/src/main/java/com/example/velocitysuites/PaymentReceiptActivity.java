@@ -860,7 +860,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // --- Booking Information ---
         bindRowOrDash(R.id.rowBookingId,
                 getString(booking.isHasBooking() ? R.string.receipt_label_booking_id : R.string.receipt_label_reservation_id),
-                booking.getId());
+                booking.getDisplayId());
         // Itemized multi-room-type breakdown (Booking#getRooms()) only ever
         // populates once the backend ships the contract in
         // MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md - empty on every

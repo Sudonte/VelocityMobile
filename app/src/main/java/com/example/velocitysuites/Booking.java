@@ -85,6 +85,7 @@ public class Booking implements Serializable {
      * on the real Booking side would just restate getId() - not added.
      */
     private String convertedBookingId;
+    private String displayId;
     /**
      * Legacy field, defensive/for completeness only - kept in case an older
      * server build still returns a soft-hide marker on some rows. The
@@ -440,6 +441,12 @@ public class Booking implements Serializable {
 
     // Getters
     public String getId() { return id; }
+    /**
+     * The number the guest sees for this transaction, which must equal what the receptionist web shows: the
+     * bookings.id once a reservation has been converted (the web then lists it only as Booking #N), otherwise
+     * the row's own id. getId() stays the key for API calls, caches and navigation - never print it directly.
+     */
+    public String getDisplayId() { return displayId != null && !displayId.isEmpty() ? displayId : id; }
     public String getRoomId() { return roomId; }
     public String getRoomName() { return roomName; }
     public String getRoomType() { return roomType; }
@@ -820,6 +827,7 @@ public class Booking implements Serializable {
     public void setStaffVerified(boolean staffVerified) { this.staffVerified = staffVerified; }
     public void setHistoricalReservation(boolean historicalReservation) { this.historicalReservation = historicalReservation; }
     public void setConvertedBookingId(String convertedBookingId) { this.convertedBookingId = convertedBookingId; }
+    public void setDisplayId(String displayId) { this.displayId = displayId; }
     public void setHiddenAt(String hiddenAt) { this.hiddenAt = hiddenAt; }
     public void setPaymentHistory(List<PaymentRecord> paymentHistory) { this.paymentHistory = paymentHistory != null ? paymentHistory : new ArrayList<>(); }
     public void setLatestPaymentId(String latestPaymentId) { this.latestPaymentId = latestPaymentId; }

@@ -326,7 +326,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
         boolean noShow = booking.isNoShow();
         String statusLabel = noShow ? getString(R.string.status_no_show) : booking.getStatus();
 
-        tvId.setText(getString(R.string.booking_id_format, booking.getId()));
+        tvId.setText(getString(R.string.booking_id_format, booking.getDisplayId()));
         // Same three-tier itemized/grouped-siblings/legacy-single summary
         // BookingDetailsActivity's header uses (Booking#buildRoomSelectionSummaryText())
         // instead of getAllRoomTypeNames(), which never considered grouped

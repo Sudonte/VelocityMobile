@@ -3634,8 +3634,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             // generic "Ref: X" here, which used to be indistinguishable from
             // a real booking reference.
             String refText = b.isHasBooking()
-                    ? getString(R.string.direct_booking_ref_format, b.getId())
-                    : getString(R.string.reservation_ref_format, b.getId());
+                    ? getString(R.string.direct_booking_ref_format, b.getDisplayId())
+                    : getString(R.string.reservation_ref_format, b.getDisplayId());
             List<Booking> groupMembers = null;
             if (groupRef != null) {
                 List<String> memberIds = BookingGroupState.getGroupMembers(BookingAndReservationActivity.this, b.getId());
@@ -3856,7 +3856,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private void showPayNowConfirmation(Booking booking) {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.pay_now_confirm_title)
-                .setMessage(getString(R.string.pay_now_confirm_msg, booking.getId()))
+                .setMessage(getString(R.string.pay_now_confirm_msg, booking.getDisplayId()))
                 .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
                     if (!NavUtils.allowClick()) return;
                     android.content.Intent intent = new android.content.Intent(BookingAndReservationActivity.this, BillingSummaryActivity.class);

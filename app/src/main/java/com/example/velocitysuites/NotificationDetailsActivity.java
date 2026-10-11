@@ -132,8 +132,8 @@ public class NotificationDetailsActivity extends AppCompatActivity {
         container.removeAllViews();
 
         String ref = booking.isHasBooking()
-                ? getString(R.string.direct_booking_ref_format, booking.getId())
-                : getString(R.string.reservation_ref_format, booking.getId());
+                ? getString(R.string.direct_booking_ref_format, booking.getDisplayId())
+                : getString(R.string.reservation_ref_format, booking.getDisplayId());
         addInfoRow(container, getString(R.string.details_label_transaction_ref), ref);
         addInfoRow(container, getString(R.string.details_label_room_type),
                 android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()));

@@ -274,8 +274,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // ID must never be shown twice in one header).
         TextView tvHeadline = findViewById(R.id.tvDetailsRoomHeadline);
         tvHeadline.setText(booking.isHasBooking()
-                ? getString(R.string.direct_booking_ref_format, booking.getId())
-                : getString(R.string.reservation_ref_format, booking.getId()));
+                ? getString(R.string.direct_booking_ref_format, booking.getDisplayId())
+                : getString(R.string.reservation_ref_format, booking.getDisplayId()));
 
         TextView tvStatus = findViewById(R.id.tvDetailsStatus);
         tvStatus.setText(BookingStatusPresenter.computeStatusLabel(this, booking));
@@ -349,7 +349,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
             for (Booking sibling : groupMembers) {
                 if (sibling.getId().equals(booking.getId())) continue;
                 addInfoRow(container, sibling.getRoomName(),
-                        getString(sibling.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, sibling.getId()));
+                        getString(sibling.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, sibling.getDisplayId()));
             }
         }
     }

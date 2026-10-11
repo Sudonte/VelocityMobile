@@ -649,7 +649,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             // "N/A" - a currency string or a blank value must never appear
             // next to a "Booking ID" label either.
             tvReviewBookingIdValue.setText(currentBooking != null
-                    ? getString(R.string.hash_id_format, currentBooking.getId())
+                    ? getString(R.string.hash_id_format, currentBooking.getDisplayId())
                     : getString(R.string.pending_booking_id_review_label));
         }
         // Room/s, dates, guest count and representative name all come from
@@ -2264,8 +2264,8 @@ public class PaymentActivity extends BaseNavigationActivity {
         // check above), so this label and that gate can never disagree.
         boolean hasBooking = currentBooking.isHasBooking();
         tvBookingRef.setText(hasBooking
-                ? getString(R.string.booking_ref_label, currentBooking.getId())
-                : getString(R.string.reservation_ref_label, currentBooking.getId()));
+                ? getString(R.string.booking_ref_label, currentBooking.getDisplayId())
+                : getString(R.string.reservation_ref_label, currentBooking.getDisplayId()));
         tvPaymentStatus.setText(currentBooking.getStatus().toUpperCase(Locale.getDefault()));
 
         if (tvTransactionType != null) {

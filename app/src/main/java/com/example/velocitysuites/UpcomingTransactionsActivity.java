@@ -272,7 +272,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         LinearLayout historyContainer = detailView.findViewById(R.id.detailPaymentHistoryContainer);
         TextView tvHistoryEmpty = detailView.findViewById(R.id.detailPaymentHistoryEmpty);
 
-        tvBookingId.setText(getString(R.string.booking_id_format, booking.getId()));
+        tvBookingId.setText(getString(R.string.booking_id_format, booking.getDisplayId()));
 
         String payRef;
         if (booking.getTransactionRef() != null) {
@@ -501,7 +501,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
 
         tvTypePill.setText(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
         // The ID leads each item, labelled so a booking and a reservation can be told apart: "Booking #338" / "Reservation #588".
-        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getId()));
+        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
         tvTitle.setText(b.getRoomName());
         tvRoomType.setText(getString(R.string.booking_detail_room_type,
                 android.text.TextUtils.join(", ", b.getAllRoomTypeNames())));

@@ -216,6 +216,8 @@ public final class TransactionRow {
         StringBuilder sb = new StringBuilder(160);
         add(sb, id);
         add(sb, "#" + id);
+        add(sb, b.getDisplayId());
+        add(sb, "#" + b.getDisplayId());
         add(sb, kind == Kind.BOOKING ? "booking" : "reservation");
         add(sb, roomText);
         add(sb, b.getRoomName());

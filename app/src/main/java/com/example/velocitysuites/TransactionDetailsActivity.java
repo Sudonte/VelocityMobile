@@ -179,7 +179,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
         StatusBadges.bind(findViewById(R.id.tvTxDetailStatusBadge), summary.status);
         ((TextView) findViewById(R.id.tvTxDetailRef)).setText(
-                TransactionText.reference(this, booking.isHasBooking(), booking.getId()));
+                TransactionText.reference(this, booking.isHasBooking(), booking.getDisplayId()));
         ((TextView) findViewById(R.id.tvTxDetailTitle)).setText(TransactionStatusHelper.headlineRes(summary));
         ((TextView) findViewById(R.id.tvTxDetailRoom)).setText(
                 TransactionText.roomOrDash(this, TransactionRow.roomTextOf(booking)));

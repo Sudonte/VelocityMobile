@@ -96,7 +96,7 @@ final class TransactionExporter {
             TransactionStatusHelper.Summary s = row.summary;
             appendCsvLine(sb, new String[]{
                     row.kind == TransactionRow.Kind.BOOKING ? "Booking" : "Reservation",
-                    row.id,
+                    row.booking.getDisplayId(),
                     ctx.getString(TransactionStatusHelper.styleFor(s.status).labelRes),
                     row.roomText,
                     row.checkIn,
@@ -218,7 +218,7 @@ final class TransactionExporter {
         TransactionStatusHelper.Summary s = row.summary;
         String status = ctx.getString(TransactionStatusHelper.styleFor(s.status).labelRes).toUpperCase(Locale.US);
         String kind = row.kind == TransactionRow.Kind.BOOKING ? "Booking" : "Reservation";
-        String line1 = kind + " #" + row.id + "  ·  " + status + (row.roomText.isEmpty() ? "" : "  ·  " + row.roomText);
+        String line1 = kind + " #" + row.booking.getDisplayId() + "  ·  " + status + (row.roomText.isEmpty() ? "" : "  ·  " + row.roomText);
         String line2 = TransactionText.stay(ctx, row.checkIn, row.checkOut) + "  ·  Total " + MoneyFormat.format(s.grandTotal)
                 + "  ·  Paid " + MoneyFormat.format(s.verifiedPaid) + "  ·  Balance " + MoneyFormat.format(s.balance)
                 + (s.hasPendingPayment && MoneyFormat.isPositive(s.pendingSubmitted)
