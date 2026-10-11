@@ -146,6 +146,27 @@
                 android:visibility="gone"
                 app:backgroundTint="@color/velocity_red_primary" />
 
+            <!-- Request Additional Amenities: same picker as Payment Details; disabled with the server's reason when this stay can't request. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRequestAmenitiesDetails"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:minHeight="48dp"
+                android:text="@string/request_additional_amenities_button"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvRequestAmenitiesDetailsReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <!-- Card/section-based layout: every section is always visible and
                  scrolls together, replacing the old 4-tab toggle switcher. Each
                  section is its own MaterialCardView with a red section title,

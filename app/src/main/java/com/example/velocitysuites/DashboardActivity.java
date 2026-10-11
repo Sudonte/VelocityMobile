@@ -968,6 +968,9 @@ public class DashboardActivity extends BaseNavigationActivity {
                         .putExtra(BookingDetailsActivity.EXTRA_BOOKING, currentNextStay.booking));
             }
         }));
+        findViewById(R.id.btnNextStayRequestAmenities).setOnClickListener(NavUtils.debounce(v -> {
+            if (currentNextStay != null) startActivity(AdditionalAmenitiesEntry.intent(this, currentNextStay.booking));
+        }));
         findViewById(R.id.btnNextStayBook).setOnClickListener(NavUtils.debounce(v ->
                 startActivity(new android.content.Intent(this, RoomBrowsingActivity.class))));
         findViewById(R.id.btnNextStayRetry).setOnClickListener(NavUtils.debounce(v -> retryDashboardLoad()));
@@ -1186,6 +1189,8 @@ public class DashboardActivity extends BaseNavigationActivity {
             balanceLabel.setText(R.string.next_stay_payment_label);
             balance.setText(R.string.next_stay_fully_paid);
         }
+        findViewById(R.id.btnNextStayRequestAmenities).setVisibility(
+                stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
         showNextStayState(nextStayContent);
     }
 

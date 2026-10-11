@@ -1327,18 +1327,6 @@
 
     <!-- Post-Booking Additional Amenity Request -->
     <string name="back">Back</string>
-    <string name="title_request_amenity">Request Amenity</string>
-    <string name="request_amenity_section_title">Request Additional Quantity</string>
-    <string name="request_amenity_section_subtitle">You can request more of the paid amenities you selected when booking. Amenities not originally selected cannot be added here.</string>
-    <string name="request_amenity_empty_state">No paid amenities were selected for this booking, so there is nothing additional to request.</string>
-    <string name="request_amenity_history_title">Your Requests</string>
-    <string name="request_amenity_submit_button">Request</string>
-    <string name="request_amenity_summary_format">&#8369;%1$,.0f each  •  Booked ×%2$d  •  Already requested ×%3$d</string>
-    <string name="request_amenity_history_name_format">%1$s × %2$d</string>
-    <string name="request_amenity_history_meta_format">&#8369;%1$,.2f  •  Requested %2$s</string>
-    <string name="request_amenity_submit_success">Request submitted! The front desk will review it shortly.</string>
-    <string name="request_amenity_submit_error">Couldn\'t submit request: %1$s</string>
-    <string name="request_amenity_load_error">Couldn\'t load amenities: %1$s</string>
     <string name="request_additional_amenities_button">Request Additional Amenities</string>
     <string name="additional_amenities_section_title">Additional amenity requests</string>
     <string name="additional_amenities_section_helper">Extra items you asked for during your stay. Only approved ones are added to your bill.</string>

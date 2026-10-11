@@ -496,7 +496,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
     /**
      * Paid/additional amenities originally selected at creation time (see
      * RequestableAmenityDto's own doc comment - this endpoint never returns complimentary/free
-     * amenities), reusing the same requestable-amenities endpoint RequestAmenityActivity already
+     * amenities), reusing the same requestable-amenities endpoint the old request screen used to
      * fetches from - no new backend endpoint needed. Never hides the card entirely: an empty
      * result shows a "no paid amenities" message plus a ₱0.00 total instead of a blank/missing
      * section.

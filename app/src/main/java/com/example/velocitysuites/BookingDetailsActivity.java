@@ -215,6 +215,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         findViewById(R.id.btnEditReservation).setVisibility(
                 ReservationEditPolicy.canEdit(booking, LocalTransactionState.hasModifiedOnce(this, booking.getId()))
                         ? View.VISIBLE : View.GONE);
+        bindRequestAmenities();
         // Resolved before bindHeader() now (previously ran after it) so the
         // header's own itemized room-selection line can use the same
         // groupMembers fallback buildRoomInfoSection() below already relies on.
@@ -231,6 +232,23 @@ public class BookingDetailsActivity extends AppCompatActivity {
         buildPaymentSummarySection(findViewById(R.id.sectionPaymentSummaryContent));
         buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
+    }
+
+    /** Request Additional Amenities: offered for a stay that exists (not a cancelled one or a finished one); the server's answer enables it or explains why not. */
+    private void bindRequestAmenities() {
+        View button = findViewById(R.id.btnRequestAmenitiesDetails);
+        TextView reason = findViewById(R.id.tvRequestAmenitiesDetailsReason);
+        String status = booking.getStatus();
+        boolean offered = booking.isHasBooking() && !"Cancelled".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)
+                && !"Checked-Out".equalsIgnoreCase(status);
+        if (!offered) {
+            button.setVisibility(View.GONE);
+            reason.setVisibility(View.GONE);
+            return;
+        }
+        AdditionalAmenitiesEntry.bindWithEligibility(this, button, reason, booking, () -> {
+            if (clickGuard.tryAcquire()) startActivity(AdditionalAmenitiesEntry.intent(this, booking));
+        });
     }
 
     private void bindHeader() {

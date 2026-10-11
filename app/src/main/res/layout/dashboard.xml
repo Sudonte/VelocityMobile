@@ -518,6 +518,16 @@
                                 android:text="@string/next_stay_view_details"
                                 android:textColor="@color/velocity_action_text"
                                 android:textSize="12sp" />
+
+                            <!-- Only while the guest is staying: ask the front desk for extra amenities. -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnNextStayRequestAmenities"
+                                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:layout_marginTop="8dp"
+                                android:text="@string/request_additional_amenities_button"
+                                android:visibility="gone" />
                         </LinearLayout>
                     </FrameLayout>
                 </com.google.android.material.card.MaterialCardView>

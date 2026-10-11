@@ -3,7 +3,7 @@ package com.example.velocitysuites.network.dto;
 /**
  * A Paid/Additional amenity originally selected for a reservation, with how much has already been
  * requested since - the only amenities a guest may submit a further request for. See
- * Api\AmenityRequestController::requestable(), RequestAmenityActivity and BillingSummaryActivity.
+ * Api\AmenityRequestController::requestable() and BillingSummaryActivity.
  */
 public class RequestableAmenityDto {
     public long amenity_id;
