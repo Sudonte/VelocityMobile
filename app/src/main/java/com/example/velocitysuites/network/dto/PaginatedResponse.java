@@ -10,4 +10,9 @@ public class PaginatedResponse<T> {
     public int total;
     /** Notifications-only (Api\NotificationController::index()) - the guest's TRUE total unread count, not derived from `data`/`total` above (which only ever reflect this one page). Stays 0 (its Java default) on every other PaginatedResponse<T> use (bookings/reservations), which don't populate this key at all - harmless, never read there. */
     public int unread_count;
+
+    /** `data` that is never null - Gson stores null (not the default empty list) when the server sends `"data": null`. */
+    public List<T> items() {
+        return data != null ? data : new ArrayList<>();
+    }
 }

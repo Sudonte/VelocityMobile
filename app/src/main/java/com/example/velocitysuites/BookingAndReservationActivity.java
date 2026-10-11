@@ -1472,7 +1472,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      */
     private void showAvailableRoomsDialog(List<Room> rooms) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_available_rooms, null);
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(this, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 
@@ -1594,7 +1594,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     /** "View Selection Details" - the full per-room-type price breakdown (quantity × price/night × nights = subtotal) behind the compact footer summary. */
     private void showSelectedRoomsSummaryDialog(Map<String, Room> stagedRooms, Map<String, Integer> stagedQuantities, long nights) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_selected_rooms_summary, null);
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(this, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 
@@ -2839,7 +2839,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (btnCancelEdit != null) {
             btnCancelEdit.setOnClickListener(v -> {
                 if (isSubmitting) return;
-                new MaterialAlertDialogBuilder(this)
+                new SafeDialogs.Material(this)
                         .setMessage(R.string.confirm_discard_edit_msg)
                         .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> cancelEditMode())
                         .setNegativeButton(R.string.cancel_label, null)
@@ -2869,7 +2869,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
             final Booking duplicate = foundDuplicate;
             if (duplicate != null) {
-                new MaterialAlertDialogBuilder(this)
+                new SafeDialogs.Material(this)
                         .setTitle(R.string.duplicate_reservation_title)
                         .setMessage(getString(R.string.error_duplicate_reservation,
                                 duplicate.getId(), duplicate.getCheckInDate(), duplicate.getCheckOutDate()))
@@ -2898,7 +2898,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 confirmMessageRes = R.string.confirm_create_booking_msg;
             }
 
-            new MaterialAlertDialogBuilder(this)
+            new SafeDialogs.Material(this)
                     .setMessage(confirmMessageRes)
                     .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
                         setSubmitting(true);
@@ -2962,7 +2962,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                                     goToPaymentFor(updated);
                                     return;
                                 }
-                                new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                                new SafeDialogs.Material(BookingAndReservationActivity.this)
                                         .setTitle(R.string.reservation_updated_title)
                                         .setMessage(getString(R.string.reservation_updated_msg, updatedId))
                                         .setPositiveButton(R.string.close_label, (dialog, which) -> {
@@ -3100,7 +3100,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             String msg = failedRollbackIds.isEmpty()
                     ? getString(R.string.multi_room_partial_failure_msg, createdSoFar.size(), totalRooms, originalError)
                     : getString(R.string.multi_room_rollback_failed_msg, createdSoFar.size(), totalRooms, originalError);
-            new MaterialAlertDialogBuilder(this)
+            new SafeDialogs.Material(this)
                     .setTitle(titleRes)
                     .setMessage(msg)
                     .setPositiveButton(R.string.close_label, null)
@@ -3162,7 +3162,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
             if (!reservationMode) {
                 if (multiRoomMsg != null) {
-                    new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                    new SafeDialogs.Material(BookingAndReservationActivity.this)
                             .setTitle(R.string.multi_room_created_title)
                             .setMessage(multiRoomMsg)
                             .setPositiveButton("OK", (dialog, which) -> goToPaymentFor(primary))
@@ -3176,7 +3176,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             String baseMessage = getString(R.string.reservation_created_msg, primary.getId());
             String message = multiRoomMsg != null ? multiRoomMsg + "\n\n" + baseMessage : baseMessage;
 
-            new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+            new SafeDialogs.Material(BookingAndReservationActivity.this)
                     .setTitle(R.string.reservation_created_title)
                     .setMessage(message)
                     .setCancelable(false)
@@ -3854,7 +3854,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      * Terms & Cancellation Policy acknowledgement before routing to Payment.
      */
     private void showPayNowConfirmation(Booking booking) {
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.pay_now_confirm_title)
                 .setMessage(getString(R.string.pay_now_confirm_msg, booking.getDisplayId()))
                 .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
@@ -3919,7 +3919,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     }
                 }
                 if (current != null && !BookingActionPolicy.canCancel(current)) {
-                    new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                    new SafeDialogs.Material(BookingAndReservationActivity.this)
                             .setTitle(R.string.cancel_not_allowed_title)
                             .setMessage(R.string.cancel_not_allowed_already_verified_msg)
                             .setPositiveButton(R.string.close_label, null)
@@ -3945,7 +3945,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // verified booking is blocked earlier, by BookingActionPolicy in
         // onCancelTapped() (and again server-side).
         if (PaymentStateUtil.isFullyPaid(booking)) {
-            new MaterialAlertDialogBuilder(this)
+            new SafeDialogs.Material(this)
                     .setTitle(R.string.cancel_not_allowed_title)
                     .setMessage(R.string.cancel_not_allowed_verified_msg)
                     .setPositiveButton(R.string.close_label, null)
@@ -3959,7 +3959,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 ? (isBooking ? R.string.cancel_partial_payment_confirm : R.string.cancel_partial_payment_reservation_confirm)
                 : (isBooking ? R.string.cancel_booking_confirm : R.string.cancel_reservation_confirm);
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setTitle(isBooking ? R.string.cancel_booking_title : R.string.cancel_reservation_title)
                 .setMessage(messageRes)
                 .setPositiveButton(isBooking ? R.string.yes_cancel_booking : R.string.yes_cancel_reservation, null)
@@ -3987,7 +3987,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     public void onSuccess(Booking result) {
                         dismissSafely(dialog);
                         if (isFinishing() || isDestroyed()) return;
-                        new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                        new SafeDialogs.Material(BookingAndReservationActivity.this)
                                 .setTitle(isBooking ? R.string.cancel_booking_success_title : R.string.cancel_reservation_success_title)
                                 .setMessage(isBooking ? R.string.cancel_booking_success_msg : R.string.cancel_reservation_success_msg)
                                 .setPositiveButton(R.string.close_label, null)
@@ -4050,7 +4050,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         int messageRes = booking.isHasBooking() ? R.string.delete_booking_transaction_confirm : R.string.delete_reservation_transaction_confirm;
         int successMsgRes = booking.isHasBooking() ? R.string.delete_booking_transaction_success : R.string.delete_reservation_transaction_success;
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setTitle(R.string.delete_transaction_permanently_title)
                 .setMessage(messageRes)
                 .setPositiveButton(R.string.delete_permanently_button_label, null)
@@ -4072,7 +4072,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     public void onSuccess(Void result) {
                         dismissSafely(dialog);
                         if (isFinishing() || isDestroyed()) return;
-                        new MaterialAlertDialogBuilder(BookingAndReservationActivity.this)
+                        new SafeDialogs.Material(BookingAndReservationActivity.this)
                                 .setTitle(R.string.delete_transaction_success_title)
                                 .setMessage(successMsgRes)
                                 .setPositiveButton(R.string.close_label, null)

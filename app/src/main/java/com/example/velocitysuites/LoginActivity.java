@@ -327,7 +327,7 @@ public class LoginActivity extends AppCompatActivity {
      * an account still scheduled for deletion.
      */
     private void showRestoreAccountPrompt(String restoreDeadlineIso, String fullName) {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.restore_account_title)
                 .setMessage(getString(R.string.restore_account_message, formatRestoreDeadline(restoreDeadlineIso)))
                 .setCancelable(false)

@@ -633,7 +633,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         View logoutButton = findViewById(R.id.logoutButton);
         if (logoutButton != null) {
-            logoutButton.setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
+            logoutButton.setOnClickListener(v -> new SafeDialogs.Material(this)
                     .setTitle(R.string.logout_confirm_title)
                     .setMessage(R.string.logout_confirm_message)
                     .setPositiveButton(R.string.logout_confirm_action, (d, w) -> logout())
@@ -660,7 +660,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
      */
     private void performEditProfileWizard() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_profile_wizard, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setView(dialogView)
                 .create();
 
@@ -823,7 +823,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         Runnable doCancel = () -> {
             if (hasChanges[0]) {
-                new MaterialAlertDialogBuilder(this)
+                new SafeDialogs.Material(this)
                         .setTitle(R.string.discard_changes_title)
                         .setMessage(R.string.discard_changes_message)
                         .setPositiveButton(R.string.discard_changes_action, (d, w) -> dialog.dismiss())
@@ -1142,7 +1142,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
      */
     private void showConfirmPasswordForEmailChangeDialog(String newEmail) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirm_password_email_change, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
@@ -1207,7 +1207,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
      */
     private void showVerifyNewEmailOtpDialog(String newEmail) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_verify_new_email_otp, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
@@ -1309,7 +1309,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
     private void showChangePasswordOtpDialog(String email) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_password_otp, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
@@ -1402,7 +1402,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
     private void selectProfilePicture() {
         String[] options = {getString(R.string.take_photo), getString(R.string.choose_from_gallery)};
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.select_image_title)
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -1453,15 +1453,14 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             if (requestCode == PICK_IMAGE_REQUEST) {
                 Uri selectedImage = data.getData();
                 if (selectedImage != null) {
-                    try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+                    Bitmap bitmap = ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE);
+                    if (bitmap != null) {
                         confirmAndUploadProfilePicture(bitmap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } else {
                         Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else if (requestCode == CAPTURE_IMAGE_REQUEST) {
+            } else if (requestCode == CAPTURE_IMAGE_REQUEST && data.getExtras() != null) {
                 Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
                 if (imageBitmap != null) {
                     confirmAndUploadProfilePicture(imageBitmap);
@@ -1471,7 +1470,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     }
 
     private void confirmAndUploadProfilePicture(Bitmap bitmap) {
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setMessage(R.string.confirm_update_profile_picture)
                 .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> saveAndSetProfileImage(bitmap))
                 .setNegativeButton(R.string.cancel_label, null)

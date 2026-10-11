@@ -186,7 +186,7 @@ final class TransactionNavigator {
     /** The friendly message for a transaction that no longer exists. */
     static void showNotFoundDialog(@NonNull Activity activity) {
         if (activity.isFinishing() || activity.isDestroyed()) return;
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+        new SafeDialogs.Material(activity)
                 .setTitle(R.string.deep_link_transaction_not_found_title)
                 .setMessage(R.string.deep_link_transaction_not_found)
                 .setPositiveButton(R.string.confirm_dialog_positive, null)

@@ -340,7 +340,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         bindAdditionalAmenities(detailView, booking, currencyFormat);
 
         com.google.android.material.dialog.MaterialAlertDialogBuilder builder =
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
+                new SafeDialogs.Material(this);
         builder.setView(detailView);
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         detailView.findViewById(R.id.btnClosePaymentDetail).setOnClickListener(v -> dialog.dismiss());

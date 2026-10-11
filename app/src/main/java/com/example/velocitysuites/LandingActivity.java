@@ -432,7 +432,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         }
         message.append(amenity.getMaxQuantity()).append(" available");
 
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(amenity.getName())
                 .setMessage(message.toString())
                 .setPositiveButton("Close", null)
@@ -578,7 +578,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
 
     private void showAnnouncementDetail(Announcement announcement) {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_announcement_details, null);
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(this, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 

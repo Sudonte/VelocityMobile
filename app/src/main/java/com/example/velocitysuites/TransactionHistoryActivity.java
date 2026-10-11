@@ -584,7 +584,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         Collections.sort(types, String.CASE_INSENSITIVE_ORDER);
         String[] options = types.toArray(new String[0]);
         int checked = criteria.roomType != null ? types.indexOf(criteria.roomType) : -1;
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.room_type_filter_title)
                 .setSingleChoiceItems(options, checked, (dialog, which) -> {
                     criteria.roomType = options[which];
@@ -614,7 +614,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         }
         String[] options = statuses.toArray(new String[0]);
         int checked = criteria.bookingStatus != null ? statuses.indexOf(criteria.bookingStatus) : -1;
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.booking_status_filter_title)
                 .setSingleChoiceItems(options, checked, (dialog, which) -> {
                     criteria.bookingStatus = options[which];
@@ -730,7 +730,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             return;
         }
         String[] options = {getString(R.string.export_as_pdf), getString(R.string.export_as_csv)};
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.export_options_title)
                 .setItems(options, (dialog, which) -> {
                     pendingExportRows = new ArrayList<>(displayedRows);
@@ -757,7 +757,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_loading, null);
         TextView message = dialogView.findViewById(R.id.loadingMessage);
         if (message != null) message.setText(getString(R.string.msg_exporting_format, format));
-        exportProgressDialog = new MaterialAlertDialogBuilder(this).setView(dialogView).setCancelable(false).create();
+        exportProgressDialog = new SafeDialogs.Material(this).setView(dialogView).setCancelable(false).create();
         exportProgressDialog.show();
         final AlertDialog progress = exportProgressDialog;
 

@@ -298,7 +298,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
 
     private void showAvailableRoomsDialog(List<Room> rooms) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_available_rooms, null);
-        AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(requireContext(), R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 
@@ -417,7 +417,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
     /** "View Selection Details" - the full per-room-type price breakdown (quantity × price/night × nights = subtotal) behind the compact footer summary. */
     private void showSelectedRoomsSummaryDialog(Map<String, Room> stagedRooms, Map<String, Integer> stagedQuantities, long nights) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_selected_rooms_summary, null);
-        AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(requireContext(), R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 

@@ -193,7 +193,7 @@ public class NotificationActivity extends BaseNavigationActivity {
      * applying it - the same confirm-dialog convention used for other one-way actions across the app.
      */
     private void confirmMarkAllRead(View triggerButton) {
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setMessage(R.string.confirm_mark_all_read_msg)
                 .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> {
                     // Disabled for the duration of the request so a repeated tap right after this dialog's
@@ -404,7 +404,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     private void confirmReadStateChange(Notification notification) {
         final String notificationId = notification.getId();
         final boolean markRead = !notification.isRead();
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setMessage(markRead ? R.string.confirm_mark_read_msg : R.string.confirm_mark_unread_msg)
                 .setPositiveButton(R.string.confirm_button_label, (d, w) -> changeReadState(notificationId, markRead, true))
                 .setNegativeButton(R.string.cancel_label, null)

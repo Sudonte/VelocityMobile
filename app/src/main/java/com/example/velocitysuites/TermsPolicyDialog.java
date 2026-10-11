@@ -25,7 +25,7 @@ public final class TermsPolicyDialog {
      */
     public static void show(Context context, @Nullable CharSequence addendum, @Nullable Runnable onRead) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_terms_agreement, null);
-        AlertDialog dialog = new MaterialAlertDialogBuilder(context).setView(dialogView).create();
+        AlertDialog dialog = new SafeDialogs.Material(context).setView(dialogView).create();
 
         ((TextView) dialogView.findViewById(R.id.termsBodyText)).setText(TermsContent.build(context, addendum));
         dialogView.findViewById(R.id.termsCloseButton).setOnClickListener(v -> dialog.dismiss());

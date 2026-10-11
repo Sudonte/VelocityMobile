@@ -488,7 +488,7 @@ public final class RoomRepository {
             public void onResponse(Call<RoomsResponse> call, Response<RoomsResponse> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().room_types != null) {
                     List<Room> mapped = new ArrayList<>();
-                    for (RoomTypeDto dto : response.body().room_types.data) {
+                    for (RoomTypeDto dto : response.body().room_types.items()) {
                         mapped.add(ApiMapper.toRoom(dto));
                     }
                     rooms = mapped;
@@ -905,10 +905,10 @@ public final class RoomRepository {
             public void onResponse(Call<PaginatedResponse<ReservationDto>> call, Response<PaginatedResponse<ReservationDto>> response) {
                 com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.reservations.response",
                         "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
-                                + " recordCount=" + (response.body() != null ? response.body().data.size() : -1));
+                                + " recordCount=" + (response.body() != null ? response.body().items().size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
                     lastReservationsTotal = response.body().total;
-                    for (ReservationDto dto : response.body().data) {
+                    for (ReservationDto dto : response.body().items()) {
                         // A single malformed/unexpected record must never take down the
                         // WHOLE list - see State F (JSON/model parsing failure) in the
                         // task spec. Before this try/catch, ApiMapper#toBooking() throwing
@@ -948,10 +948,10 @@ public final class RoomRepository {
             public void onResponse(Call<PaginatedResponse<DirectBookingResponseDto>> call, Response<PaginatedResponse<DirectBookingResponseDto>> response) {
                 com.example.velocitysuites.network.DiagnosticLog.d("refreshBookings.directBookings.response",
                         "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
-                                + " recordCount=" + (response.body() != null ? response.body().data.size() : -1));
+                                + " recordCount=" + (response.body() != null ? response.body().items().size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
                     lastDirectBookingsTotal = response.body().total;
-                    for (DirectBookingResponseDto dto : response.body().data) {
+                    for (DirectBookingResponseDto dto : response.body().items()) {
                         // Same State-F protection as the reservations loop above.
                         try {
                             direct.add(ApiMapper.toBooking(dto));
@@ -1039,7 +1039,7 @@ public final class RoomRepository {
                 }
                 if (response.isSuccessful() && response.body() != null) {
                     List<Notification> mapped = new ArrayList<>();
-                    for (NotificationDto dto : response.body().data) {
+                    for (NotificationDto dto : response.body().items()) {
                         mapped.add(ApiMapper.toNotification(dto));
                     }
                     int unreadCount = reconcilePendingReadStates(mapped, response.body().unread_count);
@@ -1184,7 +1184,7 @@ public final class RoomRepository {
                 if (requestGeneration != accountGeneration) return;
                 if (response.isSuccessful() && response.body() != null) {
                     List<Notification> fetched = new ArrayList<>();
-                    for (NotificationDto dto : response.body().data) {
+                    for (NotificationDto dto : response.body().items()) {
                         fetched.add(ApiMapper.toNotification(dto));
                     }
                     int unreadCount = reconcilePendingReadStates(fetched, response.body().unread_count);

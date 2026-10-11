@@ -653,7 +653,7 @@ public class DashboardActivity extends BaseNavigationActivity {
                 // showPayNowConfirmation()) - the guest must review the full
                 // bill before reaching PaymentActivity's GCash portal,
                 // regardless of which screen Pay Now was tapped from.
-                btnQuickPay.setOnClickListener(v -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                btnQuickPay.setOnClickListener(v -> new SafeDialogs.Material(this)
                         .setTitle(R.string.pay_now_confirm_title)
                         .setMessage(getString(R.string.pay_now_confirm_msg, b.getDisplayId()))
                         .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {

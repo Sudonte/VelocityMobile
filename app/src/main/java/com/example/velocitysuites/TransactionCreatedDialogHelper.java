@@ -92,7 +92,7 @@ final class TransactionCreatedDialogHelper {
             tvDateTime.setText(dateTime != null && !dateTime.isEmpty() ? dateTime : context.getString(R.string.label_not_available));
         }
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(context)
+        AlertDialog dialog = new SafeDialogs.Material(context)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();

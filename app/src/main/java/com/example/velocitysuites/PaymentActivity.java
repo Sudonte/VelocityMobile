@@ -1193,7 +1193,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             btnReplaceReceipt.setOnClickListener(v -> receiptPickerLauncher.launch("image/*"));
         }
         if (btnRemoveReceipt != null) {
-            btnRemoveReceipt.setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
+            btnRemoveReceipt.setOnClickListener(v -> new SafeDialogs.Material(this)
                     .setTitle(R.string.confirm_remove_receipt_title)
                     .setMessage(R.string.confirm_remove_receipt_msg)
                     .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> removeReceipt())
@@ -1249,7 +1249,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         Glide.with(this).load(receiptUri).into(fullImage);
         int padding = (int) (16 * getResources().getDisplayMetrics().density);
         fullImage.setPadding(padding, padding, padding, padding);
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.view_receipt)
                 .setView(fullImage)
                 .setPositiveButton(R.string.close_label, null)
@@ -1489,7 +1489,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     private void setupPaymentVerificationActions() {
         if (btnCancelPayment != null) {
-            btnCancelPayment.setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
+            btnCancelPayment.setOnClickListener(v -> new SafeDialogs.Material(this)
                     .setTitle(R.string.confirm_cancel_payment_title)
                     .setMessage(R.string.confirm_cancel_payment_msg)
                     .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> cancelPendingPayment())
@@ -1497,7 +1497,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                     .show());
         }
         if (btnConvertToReservation != null) {
-            btnConvertToReservation.setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
+            btnConvertToReservation.setOnClickListener(v -> new SafeDialogs.Material(this)
                     .setTitle(R.string.confirm_convert_reservation_title)
                     .setMessage(R.string.confirm_convert_reservation_msg)
                     .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> convertPendingPaymentToReservation())
@@ -1702,7 +1702,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         tvTotal.setText(MoneyFormat.format(due));
         tvBalance.setText(MoneyFormat.format(balance <= 0.009 ? 0 : balance));
 
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.confirm_payment_title)
                 .setView(dialogView)
                 .setPositiveButton(R.string.confirm_and_proceed, (dialog, which) -> {
@@ -1742,7 +1742,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // payment that failed to attach - neither ever actually converted
         // the reservation, so this always lands back on Reservations, not
         // the unrelated Dashboard a guest would otherwise be dropped on.
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.reservation_pending_title)
                 .setMessage(getString(R.string.reservation_pending_thank_you_msg, reservationId))
                 .setPositiveButton(R.string.confirmed_button, (dialog, which) -> finalizePayment())
@@ -1785,7 +1785,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (isSubmittingPayment) return;
         isSubmittingPayment = true;
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+        MaterialAlertDialogBuilder builder = new SafeDialogs.Material(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
         TextView tvMsg = dialogView.findViewById(R.id.loadingMessage);
         tvMsg.setText(R.string.processing_payment);
@@ -1848,7 +1848,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         tvTotal.setText(MoneyFormat.format(due));
         tvBalance.setText(MoneyFormat.format(balance <= 0.009 ? 0 : balance));
 
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.confirm_payment_title)
                 .setView(dialogView)
                 .setPositiveButton(R.string.confirm_and_proceed, (dialog, which) -> submitCashPaymentToServer())
@@ -1862,7 +1862,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
         isSubmittingPayment = true;
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+        MaterialAlertDialogBuilder builder = new SafeDialogs.Material(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
         TextView tvMsg = dialogView.findViewById(R.id.loadingMessage);
         tvMsg.setText(R.string.processing_payment);
@@ -1919,7 +1919,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             @Override
             public void onSuccess(Void result) {
                 dismissSafely(dialog);
-                new MaterialAlertDialogBuilder(PaymentActivity.this)
+                new SafeDialogs.Material(PaymentActivity.this)
                         .setTitle(R.string.payment_success_title)
                         .setMessage(R.string.cash_payment_submitted_msg)
                         .setPositiveButton(R.string.close_label, (d, which) -> finalizePayment())
@@ -1957,7 +1957,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // Same "Thank you for trusting us" treatment as Proceed & Pay Later -
         // the reservation is genuinely created either way, cash just isn't
         // verified online (see the class-level Cash confirmation comment).
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.reservation_pending_title)
                 .setMessage(getString(R.string.reservation_pending_thank_you_msg, currentBooking.getId()))
                 .setPositiveButton(R.string.confirmed_button, (d, which) -> finalizePayment())
@@ -2150,7 +2150,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         applyLatestBill(fresh);
         billChangeAwaitingConfirm = true;
         if (billDialog != null && billDialog.isShowing()) billDialog.dismiss();
-        billDialog = new MaterialAlertDialogBuilder(this)
+        billDialog = new SafeDialogs.Material(this)
                 .setTitle(R.string.bill_changed_title)
                 .setMessage(getString(R.string.bill_changed_message,
                         MoneyFormat.format(old.balanceDue()), MoneyFormat.format(now.balanceDue()),
@@ -2238,7 +2238,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     private void showBillCheckFailed(String number, String referenceNumber) {
         if (billDialog != null && billDialog.isShowing()) billDialog.dismiss();
-        billDialog = new MaterialAlertDialogBuilder(this)
+        billDialog = new SafeDialogs.Material(this)
                 .setTitle(R.string.bill_check_failed_title)
                 .setMessage(R.string.bill_check_failed_message)
                 .setPositiveButton(R.string.retry_label, (d, w) -> verifyBillThenSubmit(number, referenceNumber))
@@ -2827,7 +2827,7 @@ public class PaymentActivity extends BaseNavigationActivity {
      * their number/receipt, so it doesn't cover this (one-way) submission itself.
      */
     private void showFinalGcashConfirmationDialog(String number, String referenceNumber) {
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.confirm_payment_title)
                 .setMessage(getString(R.string.confirm_submit_gcash_payment_msg, MoneyFormat.format(payNowValue)))
                 .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> verifyBillThenSubmit(number, referenceNumber))
@@ -2855,7 +2855,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             completePaymentButton.setText(R.string.submitting_payment_button);
         }
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+        MaterialAlertDialogBuilder builder = new SafeDialogs.Material(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
         TextView tvMsg = dialogView.findViewById(R.id.loadingMessage);
         tvMsg.setText(R.string.processing_payment);
@@ -3077,7 +3077,7 @@ public class PaymentActivity extends BaseNavigationActivity {
      * gone) or stays here with what they typed.
      */
     private void showRoomsUnavailableDialog(String serverMessage) {
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.rooms_unavailable_title)
                 .setMessage(getString(R.string.rooms_unavailable_message, serverMessage))
                 .setPositiveButton(R.string.rooms_unavailable_choose_another, (d, w) -> {
@@ -3190,7 +3190,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         clearSubmitError();
 
         // Says what was submitted - the amount and the reference the guest typed - not just "success".
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.payment_success_title)
                 .setMessage(getString(R.string.gcash_payment_success_message_format,
                         MoneyFormat.format(amountPaid), GcashReferenceFormatter.format(transactionRef)))

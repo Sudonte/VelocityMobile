@@ -638,7 +638,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private void showFilterDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_room_filters, null);
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(this, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 

@@ -38,7 +38,7 @@ final class SelectedRoomsDialog {
 
     static void show(Activity activity, List<Room> rooms, RemoveListener listener) {
         View dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_selected_rooms, null);
-        AlertDialog dialog = new AlertDialog.Builder(activity, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(activity, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 

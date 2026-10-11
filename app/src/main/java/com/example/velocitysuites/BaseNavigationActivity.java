@@ -313,7 +313,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
     }
 
     private void showLogoutConfirmation() {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle("Log Out")
                 .setMessage("Are you sure you want to log out of your session?")
                 .setPositiveButton("Log Out", (dialog, which) -> logout())

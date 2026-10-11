@@ -50,6 +50,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
     private final List<TextView> subtotalLabels = new ArrayList<>();
     private boolean submitting;
 
+    @android.annotation.SuppressLint("ClickableViewAccessibility") // the field only lets its own text scroll; clicks still pass through
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

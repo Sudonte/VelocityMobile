@@ -501,7 +501,6 @@
     <string name="title_payment_breakdown">Payment Breakdown</string>
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
     <string name="upcoming_transactions_screen_desc">Every upcoming check-in and check-out from your bookings and reservations, in chronological order.</string>
-    <string name="filter_all_transactions">All Transactions</string>
     <string name="filter_upcoming_bookings">Upcoming Bookings</string>
     <string name="filter_upcoming_reservations">Upcoming Reservations</string>
 
@@ -1583,9 +1582,6 @@
          entry point removed per spec); these three strings stay because
          dialog_deactivate_account.xml - now unused but deliberately left in place in
          case the feature returns - still references them. -->
-    <string name="deactivate_account_title">Deactivate Account</string>
-    <string name="deactivate_confirm_action">Deactivate Account</string>
-    <string name="deactivate_password_prompt_message">Enter your password to confirm account deactivation.</string>
 
     <!-- OTP account-reactivation screen on Login (see LoginActivity's
          handleLogin()/reactivation card) - shown only when correct
@@ -1706,7 +1702,6 @@
     <string name="helper_checkin_window">Earliest check-in is 2 days from today (no latest date)</string>
     <string name="error_checkin_outside_window">Check-in must be at least 2 days (48 hours) from today. Earliest available check-in: %1$s.</string>
     <string name="checkin_advance_notice">Check-in must be booked at least %1$d days (%2$d hours) in advance. Earliest available check-in: %3$s.</string>
-    <string name="checkin_advance_notice_icon_desc">Information</string>
     <string name="helper_checkout_after_checkin">At least 1 night after check-in</string>
     <string name="title_select_checkin">Select Check-in Date</string>
     <string name="title_select_checkout">Select Check-out Date</string>

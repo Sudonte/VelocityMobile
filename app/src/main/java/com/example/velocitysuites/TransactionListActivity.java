@@ -237,7 +237,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
         int messageRes = booking.isHasBooking() ? R.string.delete_booking_transaction_confirm : R.string.delete_reservation_transaction_confirm;
         int successMsgRes = booking.isHasBooking() ? R.string.delete_booking_transaction_success : R.string.delete_reservation_transaction_success;
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+        AlertDialog dialog = new SafeDialogs.Material(this)
                 .setTitle(R.string.delete_transaction_permanently_title)
                 .setMessage(messageRes)
                 .setPositiveButton(R.string.delete_permanently_button_label, null)
@@ -257,7 +257,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
                     public void onSuccess(Void result) {
                         dismissSafely(dialog);
                         if (isFinishing() || isDestroyed()) return;
-                        new MaterialAlertDialogBuilder(TransactionListActivity.this)
+                        new SafeDialogs.Material(TransactionListActivity.this)
                                 .setTitle(R.string.delete_transaction_success_title)
                                 .setMessage(successMsgRes)
                                 .setPositiveButton(R.string.close_label, null)
@@ -377,7 +377,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
             cardCancel.setVisibility(View.GONE);
         }
 
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setView(detailView)
                 .setPositiveButton(R.string.close_label, null)
                 .show();

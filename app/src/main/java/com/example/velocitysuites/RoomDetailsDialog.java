@@ -52,7 +52,7 @@ final class RoomDetailsDialog {
     static AlertDialog show(Activity activity, Room room, String action,
                              String occupiedRangeText, ActionListener listener) {
         View dialogView = inflateAndBindCommonFields(activity, room);
-        AlertDialog dialog = new AlertDialog.Builder(activity, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(activity, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 
@@ -130,7 +130,7 @@ final class RoomDetailsDialog {
                                        int initialQuantity, QuantityListener onQuantityChanged,
                                        @Nullable Runnable onDismissed) {
         View dialogView = inflateAndBindCommonFields(activity, room);
-        AlertDialog dialog = new AlertDialog.Builder(activity, R.style.VelocityDialogTheme)
+        AlertDialog dialog = new SafeDialogs.Plain(activity, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
 

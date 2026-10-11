@@ -296,7 +296,7 @@ public class RegistrationActivity extends AppCompatActivity {
      *  (uploaded post-verification, see {@link #verifyOtp()}). */
     private void selectProfilePicture() {
         String[] options = {getString(R.string.take_photo), getString(R.string.choose_from_gallery)};
-        new MaterialAlertDialogBuilder(this)
+        new SafeDialogs.Material(this)
                 .setTitle(R.string.select_image_title)
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -347,10 +347,10 @@ public class RegistrationActivity extends AppCompatActivity {
             if (requestCode == PICK_IMAGE_REQUEST) {
                 android.net.Uri selectedImage = data.getData();
                 if (selectedImage != null) {
-                    try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
+                    Bitmap bitmap = ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE);
+                    if (bitmap != null) {
                         setSelectedProfilePicture(bitmap);
-                    } catch (IOException e) {
+                    } else {
                         Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
                     }
                 }

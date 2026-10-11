@@ -400,7 +400,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 ? R.string.confirm_update_reservation_msg
                 : (state.isBookingMode() ? R.string.confirm_create_booking_msg : R.string.confirm_create_reservation_msg);
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder builder = new SafeDialogs.Material(requireContext())
                 .setMessage(confirmMessageRes)
                 .setPositiveButton(isEditMode ? R.string.confirm_update_reservation_positive : R.string.confirm_dialog_positive,
                         (dialog, which) -> {
@@ -512,7 +512,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
     private void createReservationsThenShowSuccess() {
         BookingWizardState state = getState();
-        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+        AlertDialog dialog = new SafeDialogs.Material(requireContext())
                 .setView(buildLoadingView())
                 .setCancelable(false)
                 .create();
@@ -606,7 +606,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
         boolean gcash = "gcash".equalsIgnoreCase(getState().paymentMethod);
         String newReservationId = created.getId();
-        new MaterialAlertDialogBuilder(requireContext())
+        new SafeDialogs.Material(requireContext())
                 .setTitle(gcash ? R.string.reservation_created_gcash_title : R.string.reservation_created_cash_title)
                 .setMessage(gcash ? R.string.reservation_created_gcash_msg : R.string.reservation_created_cash_msg)
                 .setPositiveButton(R.string.confirmed_button, (d, which) -> {
@@ -762,7 +762,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         }
 
         Activity activity = requireActivity();
-        new MaterialAlertDialogBuilder(requireContext())
+        new SafeDialogs.Material(requireContext())
                 .setTitle(R.string.edit_saved_title)
                 .setMessage(message.toString())
                 .setCancelable(false)
