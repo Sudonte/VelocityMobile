@@ -337,12 +337,129 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         View btnDownload = detailView.findViewById(R.id.btnDownloadPaymentReceipt);
         if (btnDownload != null) btnDownload.setVisibility(View.GONE);
 
+        bindAdditionalAmenities(detailView, booking, currencyFormat);
+
         com.google.android.material.dialog.MaterialAlertDialogBuilder builder =
                 new com.google.android.material.dialog.MaterialAlertDialogBuilder(this);
         builder.setView(detailView);
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         detailView.findViewById(R.id.btnClosePaymentDetail).setOnClickListener(v -> dialog.dismiss());
         dialog.show();
+    }
+
+    /** Re-fetches the open Payment Details dialog's amenity requests after the guest sent a new one. */
+    private Runnable amenityRequestsReload;
+
+    private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> additionalAmenitiesLauncher =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && amenityRequestsReload != null) amenityRequestsReload.run();
+            });
+
+    /**
+     * Payment Details' "Additional amenity requests": the requests with Pending / Approved / Rejected (+ reason), and the
+     * "Request Additional Amenities" button - disabled with the server's plain-language reason when the stay can't
+     * request (not the guest's, checked out, cancelled). Loading, empty and error-with-Retry states are all shown.
+     */
+    private void bindAdditionalAmenities(View detailView, Booking booking, java.text.NumberFormat currencyFormat) {
+        TextView state = detailView.findViewById(R.id.detailAmenityRequestsState);
+        View retry = detailView.findViewById(R.id.detailAmenityRequestsRetry);
+        LinearLayout container = detailView.findViewById(R.id.detailAmenityRequestsContainer);
+        TextView reason = detailView.findViewById(R.id.detailAmenityRequestsReason);
+        View button = detailView.findViewById(R.id.btnRequestAdditionalAmenities);
+
+        Runnable load = new Runnable() {
+            @Override
+            public void run() {
+                state.setVisibility(View.VISIBLE);
+                state.setText(R.string.additional_amenities_loading);
+                retry.setVisibility(View.GONE);
+                container.removeAllViews();
+                reason.setVisibility(View.GONE);
+                button.setEnabled(false);
+                RoomRepository.getInstance(UpcomingTransactionsActivity.this).fetchAdditionalAmenities(booking.isHasBooking(), booking.getId(),
+                        new RoomRepository.RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto>() {
+                            @Override
+                            public void onSuccess(com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto info) {
+                                if (isFinishing()) return;
+                                renderAmenityRequests(info, state, container, reason, button, currencyFormat);
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                if (isFinishing()) return;
+                                state.setVisibility(View.VISIBLE);
+                                state.setText(R.string.additional_amenities_load_error);
+                                retry.setVisibility(View.VISIBLE);
+                            }
+                        });
+            }
+        };
+        amenityRequestsReload = load;
+        retry.setOnClickListener(v -> load.run());
+        button.setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(this, AdditionalAmenitiesActivity.class);
+            intent.putExtra(AdditionalAmenitiesActivity.EXTRA_HAS_BOOKING, booking.isHasBooking());
+            intent.putExtra(AdditionalAmenitiesActivity.EXTRA_ID, booking.getId());
+            additionalAmenitiesLauncher.launch(intent);
+        });
+        load.run();
+    }
+
+    private void renderAmenityRequests(com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto info, TextView state, LinearLayout container,
+                                       TextView reason, View button, java.text.NumberFormat currencyFormat) {
+        container.removeAllViews();
+        java.util.List<com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto> requests = info.requests;
+        if (requests == null || requests.isEmpty()) {
+            state.setVisibility(View.VISIBLE);
+            state.setText(R.string.additional_amenities_none);
+        } else {
+            state.setVisibility(View.GONE);
+            for (com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto r : requests) {
+                container.addView(buildAmenityRequestRow(container, r, currencyFormat));
+            }
+        }
+        button.setEnabled(info.can_request);
+        if (!info.can_request) {
+            reason.setVisibility(View.VISIBLE);
+            reason.setText(info.reason != null ? info.reason : getString(R.string.additional_amenities_not_available));
+        } else {
+            reason.setVisibility(View.GONE);
+        }
+    }
+
+    private View buildAmenityRequestRow(ViewGroup parent, com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto r, java.text.NumberFormat currencyFormat) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_additional_amenity_request, parent, false);
+        ((TextView) row.findViewById(R.id.tvAmenityRequestName)).setText(getString(R.string.amenity_request_name_format, r.name, r.quantity));
+        ((TextView) row.findViewById(R.id.tvAmenityRequestPrice)).setText(getString(R.string.amenity_request_price_format,
+                currencyFormat.format(r.unit_price), currencyFormat.format(r.subtotal)));
+
+        TextView chip = row.findViewById(R.id.tvAmenityRequestStatus);
+        int label;
+        int bg;
+        int fg;
+        if ("approved".equals(r.status)) {
+            label = R.string.amenity_request_status_approved;
+            bg = R.color.velocity_blue_soft;
+            fg = R.color.velocity_blue_primary;
+        } else if ("rejected".equals(r.status)) {
+            label = R.string.amenity_request_status_rejected;
+            bg = R.color.velocity_red_status_soft;
+            fg = R.color.velocity_red_status_dark;
+        } else {
+            label = R.string.amenity_request_status_pending;
+            bg = R.color.velocity_orange_soft;
+            fg = R.color.velocity_orange_primary;
+        }
+        chip.setText(label);
+        chip.setBackgroundTintList(getColorStateList(bg));
+        chip.setTextColor(getColor(fg));
+
+        TextView why = row.findViewById(R.id.tvAmenityRequestReason);
+        if ("rejected".equals(r.status) && r.rejection_reason != null && !r.rejection_reason.isEmpty()) {
+            why.setVisibility(View.VISIBLE);
+            why.setText(getString(R.string.amenity_request_rejected_reason_format, r.rejection_reason));
+        }
+        return row;
     }
 
     private View buildPaymentHistoryRow(ViewGroup parent, Booking.PaymentRecord record, java.text.NumberFormat currencyFormat) {
@@ -383,7 +500,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         TextView tvPaymentStatus = card.findViewById(R.id.tvTransactionPaymentStatus);
 
         tvTypePill.setText(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-        tvBookingId.setText(getString(R.string.booking_id_format, b.getId()));
+        // The ID leads each item, labelled so a booking and a reservation can be told apart: "Booking #338" / "Reservation #588".
+        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getId()));
         tvTitle.setText(b.getRoomName());
         tvRoomType.setText(getString(R.string.booking_detail_room_type,
                 android.text.TextUtils.join(", ", b.getAllRoomTypeNames())));

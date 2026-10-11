@@ -2240,6 +2240,37 @@ public final class RoomRepository {
         });
     }
 
+    /** The guest's additional-amenity requests on a stay, and whether more can be requested ({@code hasBooking}: the id is a booking's, else a reservation's). */
+    public void fetchAdditionalAmenities(boolean hasBooking, String id, RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> callback) {
+        enqueueAdditionalAmenities(hasBooking ? api.getBookingAdditionalAmenities(id) : api.getReservationAdditionalAmenities(id), callback);
+    }
+
+    /** Submits the chosen amenities as PENDING requests; the server enforces ownership, an active stay, stock and prices. */
+    public void submitAdditionalAmenities(boolean hasBooking, String id, com.example.velocitysuites.network.dto.AdditionalAmenitySubmitRequest request,
+                                          RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> callback) {
+        enqueueAdditionalAmenities(hasBooking ? api.submitBookingAdditionalAmenities(id, request) : api.submitReservationAdditionalAmenities(id, request), callback);
+    }
+
+    private void enqueueAdditionalAmenities(Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> call,
+                                            RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> callback) {
+        call.enqueue(new Callback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto>() {
+            @Override
+            public void onResponse(Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> c,
+                                   Response<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (callback != null) callback.onSuccess(response.body());
+                } else {
+                    if (callback != null) callback.onError(errorMessage(response));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> c, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
+    }
+
     public void submitPayment(String reservationId, String paymentMethod, String paymentType, String referenceNumber, double amount,
                                Integer selectedPaymentPercentage, String idempotencyKey, RepositoryCallback<Void> callback) {
         PaymentRequest request = new PaymentRequest(paymentMethod, paymentType, referenceNumber, amount);

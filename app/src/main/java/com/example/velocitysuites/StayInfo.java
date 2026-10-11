@@ -75,8 +75,17 @@ public final class StayInfo implements Serializable {
     @Nullable public final String discountName;
     public final double total;
     public final List<RoomLine> rooms;
+    /** "Name x qty" / amount, one per approved additional amenity. */
+    private final List<String[]> additionalAmenities;
 
     private StayInfo(StayBillDto d, List<RoomLine> rooms) {
+        List<String[]> extras = new ArrayList<>();
+        if (d.additional_amenities != null) {
+            for (StayBillDto.Amenity a : d.additional_amenities) {
+                if (a != null) extras.add(new String[]{a.amenity_name + " × " + a.quantity, MoneyFormat.format(a.subtotal)});
+            }
+        }
+        this.additionalAmenities = Collections.unmodifiableList(extras);
         this.checkIn = d.check_in;
         this.scheduledCheckOut = d.scheduled_check_out;
         this.actualCheckOut = d.actual_check_out;
@@ -148,6 +157,9 @@ public final class StayInfo implements Serializable {
         out.add(new Row(c.getString(R.string.receipt_number_of_nights_label), nightsText(c)));
         if (extraNights > 0) {
             out.add(new Row(c.getString(R.string.stay_extra_nights_charge, extraNights), MoneyFormat.format(extraNightsCharge)));
+        }
+        for (String[] extra : additionalAmenities) {
+            out.add(new Row(c.getString(R.string.stay_additional_amenity_label, extra[0]), extra[1]));
         }
         out.add(new Row(c.getString(R.string.stay_updated_total), MoneyFormat.format(total)));
         return out;

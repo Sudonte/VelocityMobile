@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One requestable amenity: name, unit price, and a 48dp quantity stepper with the line subtotal. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="@dimen/card_elevation">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvAmenityOptionName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp"
+            tools:text="Extra Bed" />
+
+        <TextView
+            android:id="@+id/tvAmenityOptionPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="₱200.00 each" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAmenityOptionMinus"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/cd_decrease_quantity"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="48dp"
+                android:padding="0dp"
+                app:icon="@drawable/ic_remove"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+
+            <TextView
+                android:id="@+id/tvAmenityOptionQty"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:gravity="center"
+                android:text="@string/amenity_quantity_zero"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="16sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAmenityOptionPlus"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/cd_increase_quantity"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="48dp"
+                android:padding="0dp"
+                app:icon="@drawable/ic_add"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+
+            <TextView
+                android:id="@+id/tvAmenityOptionSubtotal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-bold"
+                android:gravity="end"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="14sp"
+                tools:text="₱400.00" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

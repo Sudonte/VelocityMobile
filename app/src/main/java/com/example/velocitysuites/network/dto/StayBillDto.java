@@ -27,6 +27,16 @@ public class StayBillDto {
     public double total_paid;
     public double balance;
     public List<Room> rooms;
+    /** Approved extra amenities the guest asked for (or the desk added) after booking - already inside {@link #total}. */
+    public List<Amenity> additional_amenities;
+    public double additional_amenities_total;
+
+    public static class Amenity {
+        public String amenity_name;
+        public int quantity;
+        public double unit_price;
+        public double subtotal;
+    }
 
     public static class Room {
         public String room_number;

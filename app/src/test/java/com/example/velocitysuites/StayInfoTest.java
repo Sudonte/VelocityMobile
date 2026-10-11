@@ -135,4 +135,27 @@ public class StayInfoTest {
         assertEquals(5, rows.size());
         assertEquals("1 night", rows.get(3).value);
     }
+
+    @Test
+    public void approvedAdditionalAmenitiesGetTheirOwnRowsBeforeTheTotal() {
+        Context c = ApplicationProvider.getApplicationContext();
+        StayBillDto d = lateStay();
+        StayBillDto.Amenity bed = new StayBillDto.Amenity();
+        bed.amenity_name = "Extra Bed";
+        bed.quantity = 2;
+        bed.unit_price = 200;
+        bed.subtotal = 400;
+        d.additional_amenities = new ArrayList<>();
+        d.additional_amenities.add(bed);
+        d.additional_amenities_total = 400;
+        d.total = 5400;
+
+        List<StayInfo.Row> rows = StayInfo.from(d).rows(c);
+
+        assertEquals(7, rows.size());
+        assertEquals(c.getString(R.string.stay_additional_amenity_label, "Extra Bed × 2"), rows.get(5).label);
+        assertEquals(MoneyFormat.format(400), rows.get(5).value);
+        assertEquals(c.getString(R.string.stay_updated_total), rows.get(6).label);
+        assertEquals(MoneyFormat.format(5400), rows.get(6).value);
+    }
 }

@@ -304,6 +304,57 @@
                 app:strokeColor="@color/velocity_red_primary"
                 android:textColor="@color/velocity_red_primary" />
 
+            <!-- Additional amenity requests on this stay: loading / error (Retry) / empty / list with Pending-Approved-Rejected chips -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/additional_amenities_section_title"
+                android:textColor="@color/velocity_red_dark"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/additional_amenities_section_helper"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/detailAmenityRequestsState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="@string/additional_amenities_loading"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/detailAmenityRequestsRetry"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/retry_label"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/detailAmenityRequestsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/detailAmenityRequestsReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRequestAdditionalAmenities"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -311,6 +362,7 @@
                 android:layout_height="52dp"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="sans-serif-bold"
+                android:enabled="false"
                 android:text="@string/request_additional_amenities_button"
                 android:textAllCaps="false"
                 android:textSize="14sp"

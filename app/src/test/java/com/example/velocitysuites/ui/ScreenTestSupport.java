@@ -79,6 +79,8 @@ final class ScreenTestSupport {
     static final class FakeApi {
         private final Map<String, List<FakeCall<?>>> calls = new HashMap<>();
         final List<String> log = new ArrayList<>();
+        /** The arguments of the latest call to each method, by name. */
+        final Map<String, Object[]> lastArgs = new HashMap<>();
 
         ApiService proxy() {
             return (ApiService) Proxy.newProxyInstance(ApiService.class.getClassLoader(), new Class<?>[]{ApiService.class},
@@ -86,6 +88,7 @@ final class ScreenTestSupport {
                         if (method.getReturnType() != Call.class) {
                             throw new UnsupportedOperationException("unexpected non-Call API method: " + method.getName());
                         }
+                        lastArgs.put(method.getName(), args);
                         FakeCall<Object> call = new FakeCall<>();
                         calls.computeIfAbsent(method.getName(), k -> new ArrayList<>()).add(call);
                         log.add(method.getName() + (args != null && args.length > 0 && args[0] != null ? "(" + args[0] + ")" : ""));

@@ -132,6 +132,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".AdditionalAmenitiesActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.VelocitySuites" />
+
+        <activity
             android:name=".RequestAmenityActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.VelocitySuites" />

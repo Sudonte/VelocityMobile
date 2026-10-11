@@ -307,6 +307,21 @@ public interface ApiService {
     @GET("guest/reservations/{id}/amenities/requests")
     Call<List<AmenityRequestDto>> getAmenityRequests(@Path("id") String id);
 
+    /** "Request Additional Amenities" (Api\AdditionalAmenityController): any paid catalog amenity, needs front-desk approval, billed only once approved. */
+    @GET("guest/bookings/{id}/additional-amenities")
+    Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> getBookingAdditionalAmenities(@Path("id") String id);
+
+    @POST("guest/bookings/{id}/additional-amenities")
+    Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> submitBookingAdditionalAmenities(
+            @Path("id") String id, @Body com.example.velocitysuites.network.dto.AdditionalAmenitySubmitRequest request);
+
+    @GET("guest/reservations/{id}/additional-amenities")
+    Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> getReservationAdditionalAmenities(@Path("id") String id);
+
+    @POST("guest/reservations/{id}/additional-amenities")
+    Call<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto> submitReservationAdditionalAmenities(
+            @Path("id") String id, @Body com.example.velocitysuites.network.dto.AdditionalAmenitySubmitRequest request);
+
     /** Rejected (422) server-side unless amenity_id was already selected in this reservation's original booking - see ReservationAmenity. */
     @POST("guest/reservations/{id}/amenities/requests")
     Call<AmenityRequestDto> submitAmenityRequest(@Path("id") String id, @Body AmenityRequestSubmitRequest request);
