@@ -90,16 +90,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingStart="20dp"
+                android:paddingStart="16dp"
                 android:paddingTop="8dp"
-                android:paddingEnd="20dp"
+                android:paddingEnd="16dp"
                 android:paddingBottom="32dp">
 
                 <!-- Screen Title Area -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -109,7 +109,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/title_dashboard"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="17sp" />
+                        android:textSize="16sp" />
 
                     <View
                         android:layout_width="48dp"
@@ -128,8 +128,8 @@
                     android:id="@+id/welcomeCard"
                     style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
                     android:layout_width="match_parent"
-                    android:layout_height="260dp"
-                    android:layout_marginBottom="10dp"
+                    android:layout_height="220dp"
+                    android:layout_marginBottom="8dp"
                     app:cardElevation="@dimen/card_elevation">
 
                     <FrameLayout
@@ -153,7 +153,7 @@
                             android:layout_height="match_parent"
                             android:gravity="center_vertical"
                             android:orientation="vertical"
-                            android:padding="18dp">
+                            android:padding="16dp">
 
                             <TextView
                                 android:id="@+id/welcomeText"
@@ -165,7 +165,7 @@
                                 android:letterSpacing="0.04"
                                 android:textColor="@color/white"
                                 android:alpha="0.92"
-                                android:textSize="15sp" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/userNameText"
@@ -181,12 +181,12 @@
                                 android:shadowRadius="4"
                                 android:text="@string/guest_first_last_name"
                                 android:textColor="@color/white"
-                                android:textSize="28sp" />
+                                android:textSize="24sp" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
+                                android:layout_marginTop="8dp"
                                 android:alpha="0.92"
                                 android:fontFamily="sans-serif-medium"
                                 android:lineSpacingExtra="2dp"
@@ -241,7 +241,7 @@
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_soft"
                             android:contentDescription="@string/system_clock_label"
-                            android:padding="10dp"
+                            android:padding="8dp"
                             android:src="@drawable/ic_clock"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -265,7 +265,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:text="@string/loading_date"
                                 android:textColor="@color/velocity_text_secondary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
 
                             <TextView
                                 android:id="@+id/timeText"
@@ -275,7 +275,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/time_placeholder"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="28sp" />
+                                android:textSize="24sp" />
                         </LinearLayout>
 
                         <ImageView
@@ -327,7 +327,7 @@
                                 android:layout_marginStart="12dp"
                                 android:text="@string/next_stay_loading"
                                 android:textColor="@color/velocity_text_secondary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -346,7 +346,7 @@
                                 android:gravity="center"
                                 android:text="@string/next_stay_error_title"
                                 android:textColor="@color/velocity_red_dark"
-                                android:textSize="15sp" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -392,7 +392,7 @@
                                 android:gravity="center"
                                 android:text="@string/next_stay_empty_title"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="15sp" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:layout_width="match_parent"
@@ -434,7 +434,7 @@
                                     android:layout_weight="1"
                                     android:fontFamily="sans-serif-black"
                                     android:textColor="@color/velocity_red_primary"
-                                    android:textSize="16sp"
+                                    android:textSize="15sp"
                                     tools:text="Check-in tomorrow" />
 
                                 <TextView
@@ -457,7 +457,7 @@
                                 android:layout_marginTop="12dp"
                                 android:fontFamily="sans-serif-black"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="16sp"
+                                android:textSize="15sp"
                                 tools:text="Deluxe ×2" />
 
                             <TextView
@@ -466,7 +466,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="Oct 12, 2026 → Oct 14, 2026" />
 
                             <TextView
@@ -498,7 +498,7 @@
                                     android:layout_weight="1"
                                     android:text="@string/next_stay_balance_due"
                                     android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
 
                                 <TextView
                                     android:id="@+id/tvNextStayBalance"
@@ -506,7 +506,7 @@
                                     android:layout_height="wrap_content"
                                     android:fontFamily="sans-serif-black"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="16sp"
+                                    android:textSize="15sp"
                                     tools:text="₱1,800.00" />
                             </LinearLayout>
 
@@ -553,7 +553,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="8dp"
                     android:orientation="vertical">
 
                     <LinearLayout
@@ -750,7 +750,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="8dp"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -758,7 +758,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
+                        android:padding="8dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -785,7 +785,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:layout_marginBottom="10dp"
+                            android:layout_marginBottom="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/booking_reservation_summary_desc"
                             android:textColor="@color/velocity_text_secondary"
@@ -812,7 +812,7 @@
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_green_soft"
                                 android:orientation="vertical"
-                                android:padding="11dp"
+                                android:padding="8dp"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground">
@@ -823,7 +823,7 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_booking"
                                     app:tint="@color/velocity_green_dark" />
-                                <TextView android:id="@+id/activeBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_green_dark"/>
+                                <TextView android:id="@+id/activeBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="19sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_green_dark"/>
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_active_bookings" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
@@ -835,7 +835,7 @@
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
                                 android:orientation="vertical"
-                                android:padding="11dp"
+                                android:padding="8dp"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground">
@@ -846,7 +846,7 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_reservation"
                                     app:tint="@color/velocity_red_primary" />
-                                <TextView android:id="@+id/activeReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_primary"/>
+                                <TextView android:id="@+id/activeReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="19sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_primary"/>
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_active_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
@@ -858,7 +858,7 @@
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_blue_soft"
                                 android:orientation="vertical"
-                                android:padding="11dp"
+                                android:padding="8dp"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground">
@@ -869,7 +869,7 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_check_circle"
                                     app:tint="@color/velocity_blue_primary" />
-                                <TextView android:id="@+id/pastBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_blue_primary"/>
+                                <TextView android:id="@+id/pastBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="19sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_blue_primary"/>
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_past_bookings" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
@@ -881,7 +881,7 @@
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_status_soft"
                                 android:orientation="vertical"
-                                android:padding="11dp"
+                                android:padding="8dp"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground">
@@ -892,7 +892,7 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_check_circle"
                                     app:tint="@color/velocity_red_status_dark" />
-                                <TextView android:id="@+id/pastReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_status_dark"/>
+                                <TextView android:id="@+id/pastReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="19sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_status_dark"/>
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_past_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
@@ -904,7 +904,7 @@
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_gray_soft"
                                 android:orientation="vertical"
-                                android:padding="11dp"
+                                android:padding="8dp"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground">
@@ -915,7 +915,7 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_close"
                                     app:tint="@color/velocity_inactive_gray" />
-                                <TextView android:id="@+id/cancelBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_inactive_gray"/>
+                                <TextView android:id="@+id/cancelBookingsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="19sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_inactive_gray"/>
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_bookings" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
 
@@ -927,7 +927,7 @@
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_orange_soft"
                                 android:orientation="vertical"
-                                android:padding="11dp"
+                                android:padding="8dp"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground">
@@ -938,7 +938,7 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_close"
                                     app:tint="@color/velocity_orange_primary" />
-                                <TextView android:id="@+id/cancelReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="21sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_orange_primary"/>
+                                <TextView android:id="@+id/cancelReservationsCountText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero" android:textSize="19sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_orange_primary"/>
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
                         </GridLayout>
@@ -951,7 +951,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -959,7 +959,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
+                        android:padding="8dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -983,7 +983,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_marginEnd="8dp"
                                 android:layout_weight="1"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 android:text="@string/recent_bookings_title" />
                             <TextView
                                 android:id="@+id/bookingCountBadge"
@@ -995,7 +995,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:gravity="center"
                                 android:minWidth="22dp"
-                                android:paddingHorizontal="7dp"
+                                android:paddingHorizontal="8dp"
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
@@ -1025,7 +1025,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="11dp"
+                            android:layout_marginBottom="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/recent_bookings_desc"
                             android:textColor="@color/velocity_text_secondary"
@@ -1093,7 +1093,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1101,7 +1101,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
+                        android:padding="8dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1136,7 +1136,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:gravity="center"
                                 android:minWidth="22dp"
-                                android:paddingHorizontal="7dp"
+                                android:paddingHorizontal="8dp"
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
@@ -1166,7 +1166,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="11dp"
+                            android:layout_marginBottom="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/notifications_dashboard_desc"
                             android:textColor="@color/velocity_text_secondary"
@@ -1204,7 +1204,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1212,7 +1212,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
+                        android:padding="8dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1236,7 +1236,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_marginEnd="8dp"
                                 android:layout_weight="1"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 android:text="@string/upcoming_transactions" />
                             <TextView
                                 android:id="@+id/upcomingCountBadge"
@@ -1248,7 +1248,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:gravity="center"
                                 android:minWidth="22dp"
-                                android:paddingHorizontal="7dp"
+                                android:paddingHorizontal="8dp"
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
@@ -1278,7 +1278,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="11dp"
+                            android:layout_marginBottom="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/upcoming_transactions_desc"
                             android:textColor="@color/velocity_text_secondary"
@@ -1316,7 +1316,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1324,7 +1324,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
+                        android:padding="8dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1348,7 +1348,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_marginEnd="8dp"
                                 android:layout_weight="1"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 android:text="@string/payment_status" />
                             <TextView
                                 android:id="@+id/paymentCountBadge"
@@ -1360,7 +1360,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:gravity="center"
                                 android:minWidth="22dp"
-                                android:paddingHorizontal="7dp"
+                                android:paddingHorizontal="8dp"
                                 android:paddingVertical="2dp"
                                 android:text="@string/zero"
                                 android:textColor="@color/white"
@@ -1390,7 +1390,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="11dp"
+                            android:layout_marginBottom="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/payment_status_dashboard_desc"
                             android:textColor="@color/velocity_text_secondary"
@@ -1436,7 +1436,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="11dp">
+                        android:padding="8dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1481,7 +1481,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:layout_marginBottom="10dp"
+                            android:layout_marginBottom="8dp"
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/account_summary_desc"
                             android:textColor="@color/velocity_text_secondary"
@@ -1514,7 +1514,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="20dp"
+                                android:layout_marginStart="16dp"
                                 android:orientation="vertical">
                                 <TextView
                                     android:id="@+id/accountFullNameText"
@@ -1523,7 +1523,7 @@
                                     android:fontFamily="sans-serif-black"
                                     android:text="@string/guest_user"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="15sp"
+                                    android:textSize="14sp"
                                     android:letterSpacing="-0.02" />
                                 <TextView
                                     android:id="@+id/accountEmailText"
@@ -1613,7 +1613,7 @@
                     android:id="@+id/supportCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     app:cardBackgroundColor="@color/velocity_red_primary"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation">
@@ -1622,7 +1622,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="11dp">
+                        android:padding="8dp">
 
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="44dp"
@@ -1642,7 +1642,7 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
+                            android:layout_marginStart="12dp"
                             android:layout_weight="1"
                             android:orientation="vertical">
                             <TextView
@@ -1651,7 +1651,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/support_need_help_title"
                                 android:textColor="@color/white"
-                                android:textSize="16sp" />
+                                android:textSize="15sp" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
