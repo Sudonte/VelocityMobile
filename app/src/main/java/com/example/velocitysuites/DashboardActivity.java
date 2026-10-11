@@ -29,9 +29,14 @@ import java.util.Locale;
 public class DashboardActivity extends BaseNavigationActivity {
 
     private TextView dateText;
-    private TextView timeText;
-    private TextView nextHotelTransactionText;
-    private LinearLayout nextTransactionListContainer;
+    /** The four mutually exclusive states of the Next Stay card. */
+    private View nextStayLoading, nextStayError, nextStayEmpty, nextStayContent;
+    /** The stay the Next Stay card shows (what a tap opens). */
+    private NextStay currentNextStay;
+    /** True once the bookings request has answered (success or failure) - until then the card says it is loading. */
+    private boolean bookingsResolved = false;
+    /** True when the last bookings refresh failed (the sections then offer Retry / a pull-to-refresh hint if they have nothing to show). */
+    private boolean bookingsLoadFailed = false;
     private TextView activeReservationsCountText, cancelReservationsCountText, activeBookingsCountText, cancelBookingsCountText;
     private TextView pastBookingsCountText, pastReservationsCountText;
     private LinearLayout bookingListContainer, paymentListContainer, upcomingListContainer, notificationListContainer;
@@ -110,7 +115,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         requestNotificationPermissionIfNeeded();
 
         dateText = findViewById(R.id.dateText);
-        timeText = findViewById(R.id.timeText);
 
         initializeNewComponents();
 
@@ -136,8 +140,10 @@ public class DashboardActivity extends BaseNavigationActivity {
     }
 
     private void initializeNewComponents() {
-        nextHotelTransactionText = findViewById(R.id.nextHotelTransactionText);
-        nextTransactionListContainer = findViewById(R.id.nextTransactionListContainer);
+        nextStayLoading = findViewById(R.id.nextStayLoading);
+        nextStayError = findViewById(R.id.nextStayError);
+        nextStayEmpty = findViewById(R.id.nextStayEmpty);
+        nextStayContent = findViewById(R.id.nextStayContent);
 
         activeReservationsCountText = findViewById(R.id.activeReservationsCountText);
         cancelReservationsCountText = findViewById(R.id.cancelReservationsCountText);
@@ -179,11 +185,15 @@ public class DashboardActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                bookingsResolved = true;
+                bookingsLoadFailed = false;
                 populateDashboard(repository.getBookings(), repository.getNotifications());
             }
 
             @Override
             public void onError(String message) {
+                bookingsResolved = true;
+                bookingsLoadFailed = true;
                 populateDashboard(repository.getBookings(), repository.getNotifications());
             }
         });
@@ -249,7 +259,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         if (swipeRefreshDashboard != null) swipeRefreshDashboard.setRefreshing(false);
         RoomRepository repository = RoomRepository.getInstance(this);
 
-        updateDashboardHub(allBookings, allNotifications);
+        updateNextStay(allBookings);
 
         // Booking and Reservation Summary: reservations (no payment yet) vs.
         // bookings (paid), each split by TransactionCategorizer - the same
@@ -370,6 +380,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
 
         if (displayBookings.isEmpty()) {
+            noBookingsText.setText(bookingsLoadFailed ? R.string.dashboard_activity_error : R.string.no_bookings_found);
             noBookingsText.setVisibility(View.VISIBLE);
             if (noBookingsIcon != null) noBookingsIcon.setVisibility(View.VISIBLE);
             if (btnEmptyBookNow != null) btnEmptyBookNow.setVisibility(View.VISIBLE);
@@ -933,8 +944,20 @@ public class DashboardActivity extends BaseNavigationActivity {
                 BookingAndReservationActivity.SECTION_BOOKING, BookingAndReservationActivity.FILTER_CANCELLED)));
         findViewById(R.id.tileCancelReservation).setOnClickListener(NavUtils.debounce(v -> openBookingSectionFiltered(
                 BookingAndReservationActivity.SECTION_RESERVATION, BookingAndReservationActivity.FILTER_CANCELLED)));
-        findViewById(R.id.nextTransactionCard).setOnClickListener(NavUtils.debounce(v ->
-                startActivity(new android.content.Intent(this, UpcomingTransactionsActivity.class))));
+        findViewById(R.id.nextStayCard).setOnClickListener(NavUtils.debounce(v -> {
+            // Only the filled card opens anything; the loading / error / empty states have their own buttons.
+            if (currentNextStay != null && nextStayContent.getVisibility() == View.VISIBLE) {
+                startActivity(new android.content.Intent(this, BookingDetailsActivity.class)
+                        .putExtra(BookingDetailsActivity.EXTRA_BOOKING, currentNextStay.booking));
+            }
+        }));
+        findViewById(R.id.btnNextStayBook).setOnClickListener(NavUtils.debounce(v ->
+                startActivity(new android.content.Intent(this, RoomBrowsingActivity.class))));
+        findViewById(R.id.btnNextStayRetry).setOnClickListener(NavUtils.debounce(v -> {
+            bookingsResolved = false;
+            updateNextStay(RoomRepository.getInstance(this).getBookings());
+            loadDashboardData();
+        }));
         findViewById(R.id.btnEditProfile).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, ProfileManagementActivity.class))));
         findViewById(R.id.dateTimeCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, CalendarActivity.class))));
 
@@ -1052,44 +1075,79 @@ public class DashboardActivity extends BaseNavigationActivity {
      * (which may itself be a check-out, if the guest is already checked in) so the section
      * is never empty while there's genuinely something upcoming.
      */
-    private void updateDashboardHub(List<Booking> bookings, List<Notification> notifications) {
-        nextTransactionListContainer.removeAllViews();
-        List<Booking> tomorrowCheckIns = getTomorrowCheckIns(bookings);
-
-        if (!tomorrowCheckIns.isEmpty()) {
-            if (nextHotelTransactionText != null) nextHotelTransactionText.setVisibility(View.GONE);
-            for (Booking b : tomorrowCheckIns) {
-                addTransactionItemCard(b, true, nextTransactionListContainer, false);
-            }
-            return;
-        }
-
-        Booking nextBooking = getNextHotelTransactionBooking(bookings);
-        if (nextBooking == null) {
-            if (nextHotelTransactionText != null) nextHotelTransactionText.setVisibility(View.VISIBLE);
-            return;
-        }
-        if (nextHotelTransactionText != null) nextHotelTransactionText.setVisibility(View.GONE);
-        // "Checked-In" means the relevant next event is the check-out, not the
-        // check-in - matches the exact selection rule in getNextHotelTransactionBooking().
-        boolean isCheckInEvent = !"Checked-In".equalsIgnoreCase(nextBooking.getStatus());
-        addTransactionItemCard(nextBooking, isCheckInEvent, nextTransactionListContainer, false);
+    /** Today's date at the hotel (Asia/Manila) - the day every "tomorrow" / "in N days" hint is counted from. */
+    private static java.time.LocalDate hotelToday() {
+        return java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila"));
     }
 
-    /** Every non-cancelled/non-rejected, not-yet-checked-in booking/reservation whose check-in date is tomorrow. */
-    private List<Booking> getTomorrowCheckIns(List<Booking> bookings) {
-        List<Booking> result = new ArrayList<>();
-        for (Booking b : bookings) {
-            String status = b.getStatus();
-            if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED
-                    || "Checked-In".equalsIgnoreCase(status) || "Checked-Out".equalsIgnoreCase(status)) {
-                continue;
-            }
-            if (isDateTomorrow(b.getCheckInDate())) {
-                result.add(b);
-            }
+    private void showNextStayState(View visible) {
+        for (View state : new View[]{nextStayLoading, nextStayError, nextStayEmpty, nextStayContent}) {
+            state.setVisibility(state == visible ? View.VISIBLE : View.GONE);
         }
-        return result;
+    }
+
+    /** The Next Stay card: loading until the first answer, an error with Retry when nothing could be loaded, an empty state with one action, or the stay itself. */
+    private void updateNextStay(List<Booking> bookings) {
+        currentNextStay = null;
+        if (!bookingsResolved && bookings.isEmpty()) {
+            showNextStayState(nextStayLoading);
+            return;
+        }
+        if (bookingsLoadFailed && bookings.isEmpty()) {
+            showNextStayState(nextStayError);
+            return;
+        }
+        NextStay stay = NextStay.select(bookings, hotelToday());
+        if (stay == null) {
+            showNextStayState(nextStayEmpty);
+            return;
+        }
+        currentNextStay = stay;
+
+        ((TextView) findViewById(R.id.tvNextStayHint)).setText(stay.hint(this));
+        ((TextView) findViewById(R.id.tvNextStayRooms)).setText(TransactionRow.roomTextOf(stay.booking));
+        ((TextView) findViewById(R.id.tvNextStayDates)).setText(stay.datesText(this));
+        ((TextView) findViewById(R.id.tvNextStayNights)).setText(stay.nightsText(this));
+        styleNextStayStatus((TextView) findViewById(R.id.tvNextStayStatus), stay.status);
+
+        TextView balanceLabel = findViewById(R.id.tvNextStayBalanceLabel);
+        TextView balance = findViewById(R.id.tvNextStayBalance);
+        if (stay.hasBalanceDue()) {
+            balanceLabel.setText(R.string.next_stay_balance_due);
+            balance.setText(MoneyFormat.format(stay.balance));
+        } else {
+            balanceLabel.setText(R.string.next_stay_payment_label);
+            balance.setText(R.string.next_stay_fully_paid);
+        }
+        showNextStayState(nextStayContent);
+    }
+
+    /** Status chip: colour AND icon AND words, so it never relies on colour alone. */
+    private void styleNextStayStatus(TextView chip, NextStay.PlainStatus status) {
+        int bg, fg, icon;
+        switch (status.tone) {
+            case GOOD:
+                bg = R.color.status_paid_bg; fg = R.color.status_paid_fg; icon = R.drawable.ic_check_circle;
+                break;
+            case INFO:
+                bg = R.color.velocity_blue_soft; fg = R.color.velocity_blue_primary; icon = R.drawable.ic_info;
+                break;
+            default:
+                bg = R.color.status_pending_bg; fg = R.color.status_pending_fg; icon = R.drawable.ic_clock;
+                break;
+        }
+        chip.setText(status.labelRes);
+        chip.setBackgroundTintList(ContextCompat.getColorStateList(this, bg));
+        chip.setTextColor(ContextCompat.getColor(this, fg));
+        android.graphics.drawable.Drawable drawable = ContextCompat.getDrawable(this, icon);
+        if (drawable != null) {
+            int size = (int) (12 * getResources().getDisplayMetrics().density);
+            drawable = drawable.mutate();
+            drawable.setBounds(0, 0, size, size);
+            drawable.setTint(ContextCompat.getColor(this, fg));
+        }
+        chip.setCompoundDrawables(drawable, null, null, null);
+        chip.setCompoundDrawablePadding((int) (4 * getResources().getDisplayMetrics().density));
     }
 
     /**
@@ -1206,35 +1264,6 @@ public class DashboardActivity extends BaseNavigationActivity {
      * Booking itself instead of a pre-formatted single-line string so the
      * card can show full detail (Booking ID, room, dates, status).
      */
-    private Booking getNextHotelTransactionBooking(List<Booking> bookings) {
-        SimpleDateFormat sdf = new SimpleDateFormat(getString(R.string.date_format_short), Locale.US);
-        long todayStart = getTodayStartMillis();
-        long bestTime = Long.MAX_VALUE;
-        Booking best = null;
-
-        for (Booking booking : bookings) {
-            if (TransactionCategorizer.categorize(booking) == TransactionCategorizer.Category.CANCELLED
-                    || "Checked-Out".equalsIgnoreCase(booking.getStatus())) {
-                continue;
-            }
-            try {
-                long checkInTime = sdf.parse(booking.getCheckInDate()).getTime();
-                long checkOutTime = sdf.parse(booking.getCheckOutDate()).getTime();
-
-                if (checkInTime >= todayStart && !"Checked-In".equalsIgnoreCase(booking.getStatus()) && checkInTime < bestTime) {
-                    bestTime = checkInTime;
-                    best = booking;
-                }
-                if (checkOutTime >= todayStart && "Checked-In".equalsIgnoreCase(booking.getStatus()) && checkOutTime < bestTime) {
-                    bestTime = checkOutTime;
-                    best = booking;
-                }
-            } catch (Exception ignored) {}
-        }
-
-        return best;
-    }
-
     private long getTodayStartMillis() {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -1310,7 +1339,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         startAnimationIfPresent(R.id.welcomeText, fadeIn);
         startAnimationIfPresent(R.id.userNameText, fadeIn);
         startAnimationIfPresent(R.id.dateTimeCard, fadeIn);
-        startAnimationIfPresent(R.id.nextTransactionCard, fadeIn);
+        startAnimationIfPresent(R.id.nextStayCard, fadeIn);
     }
 
     private void startAnimationIfPresent(int viewId, Animation animation) {
@@ -1332,16 +1361,12 @@ public class DashboardActivity extends BaseNavigationActivity {
         clockHandler.postDelayed(clockRunnable, 1000);
     }
 
+    /** "Sunday, October 11, 2026 · 8:31 AM" in hotel time (Asia/Manila), whatever the phone's own zone is. */
     private void updateDateTime() {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat(getString(R.string.date_format_full), Locale.getDefault());
-        SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.time_format_seconds), Locale.getDefault());
-
+        SimpleDateFormat format = new SimpleDateFormat(getString(R.string.dashboard_date_time_format), Locale.US);
+        format.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Manila"));
         if (dateText != null) {
-            dateText.setText(dateFormat.format(calendar.getTime()));
-        }
-        if (timeText != null) {
-            timeText.setText(timeFormat.format(calendar.getTime()));
+            dateText.setText(format.format(new java.util.Date()));
         }
     }
 

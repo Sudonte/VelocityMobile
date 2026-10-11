@@ -396,6 +396,47 @@
     <string name="guest_email">ombid.guest@velocitysuites.com</string>
     <string name="executive_suite">Executive Suite</string>
     <string name="quick_actions">Quick Actions</string>
+    <string name="quick_actions_desc">Shortcuts to the things guests do most.</string>
+    <string name="quick_action_browse_rooms">Browse rooms</string>
+    <string name="quick_action_my_bookings">My bookings</string>
+    <string name="quick_action_my_reservations">My reservations</string>
+    <string name="quick_action_history">Transaction history</string>
+    <!-- Dashboard: next stay -->
+    <string name="next_stay_section_title">Your Next Stay</string>
+    <string name="next_stay_section_desc">The date and time at the hotel, and the stay coming up next.</string>
+    <string name="dashboard_date_time_caption">Today at the hotel (Manila time)</string>
+    <string name="dashboard_date_time_format">EEEE, MMMM d, yyyy · h:mm a</string>
+    <string name="next_stay_loading">Looking for your next stay…</string>
+    <string name="next_stay_error_title">Could not load your stays</string>
+    <string name="next_stay_error_desc">Check your connection and try again.</string>
+    <string name="next_stay_empty_title">No stay planned yet</string>
+    <string name="next_stay_empty_desc">Book a room and your next stay will show up here.</string>
+    <string name="next_stay_book_action">Book a room</string>
+    <string name="next_stay_balance_due">Balance due</string>
+    <string name="next_stay_payment_label">Payment</string>
+    <string name="dashboard_activity_error">Could not load your activity. Pull down to refresh.</string>
+    <string name="next_stay_fully_paid">Fully paid</string>
+    <string name="next_stay_view_details">View details ›</string>
+    <string name="next_stay_dates_format">%1$s → %2$s</string>
+    <string name="next_stay_status_staying">Staying with us</string>
+    <string name="next_stay_status_confirmed">Confirmed</string>
+    <string name="next_stay_status_waiting_confirmation">Waiting for confirmation</string>
+    <string name="next_stay_status_payment_review">Payment under review</string>
+    <string name="next_stay_status_waiting_payment">Waiting for payment</string>
+    <string name="next_stay_hint_checkin_today">Check-in today</string>
+    <string name="next_stay_hint_checkin_tomorrow">Check-in tomorrow</string>
+    <plurals name="next_stay_hint_checkin_days">
+        <item quantity="one">Check-in is %1$d day away</item>
+        <item quantity="other">Check-in is %1$d days away</item>
+    </plurals>
+    <string name="next_stay_hint_checkin_on">Check-in on %1$s</string>
+    <string name="next_stay_hint_checkout_today">Checking out today</string>
+    <string name="next_stay_hint_checkout_tomorrow">Checking out tomorrow</string>
+    <plurals name="next_stay_hint_checkout_days">
+        <item quantity="one">Checking out in %1$d day</item>
+        <item quantity="other">Checking out in %1$d days</item>
+    </plurals>
+    <string name="next_stay_hint_checkout_due">Check-out was due on %1$s</string>
     <string name="quick_action_booking">Booking</string>
     <string name="quick_action_reservation">Reservation</string>
     <string name="logout">Logout</string>
@@ -452,9 +493,6 @@
     <string name="contact_support_button">Contact Support</string>
     <string name="support_email_subject">Velocity Suites - Support Request</string>
     <string name="error_no_email_app">No email app found. Call us instead at %1$s.</string>
-    <string name="next_hotel_transaction_label">Next Hotel Transaction</string>
-    <string name="next_hotel_transaction_desc">Your nearest upcoming check-in or check-out</string>
-    <string name="no_next_transaction">No scheduled check-ins or check-outs</string>
     <string name="check_in_tomorrow_label">Check-in Tomorrow</string>
     <string name="check_out_tomorrow_label">Check-out Tomorrow</string>
     <string name="tomorrow_badge_short">Tomorrow</string>
@@ -470,8 +508,8 @@
     <string name="br_summary_past_reservations">Past Reservations</string>
     <string name="br_summary_cancel_bookings">Cancelled Bookings</string>
     <string name="br_summary_cancel_reservations">Cancelled Reservations</string>
-    <string name="recent_bookings_title">Recent Bookings</string>
-    <string name="recent_bookings_desc">Tap a Booking ID to view its full details in Transaction History.</string>
+    <string name="recent_bookings_title">Recent Activity</string>
+    <string name="recent_bookings_desc">Your latest bookings and their payment status. Tap one to see its details.</string>
     <string name="account_status_active">Account Active</string>
     <string name="account_status_signed_out">Session Expired</string>
     <string name="payment_details_title">Payment Details</string>
@@ -530,7 +568,7 @@
     <string name="membership_label">Status: %1$s</string>
 
     <string name="no_notifications">No new notifications</string>
-    <string name="see_all">See All</string>
+    <string name="see_all">View all</string>
     <string name="yes_cancel_booking">Yes, Cancel Booking</string>
     <string name="yes_cancel_reservation">Yes, Cancel Reservation</string>
     <string name="cancel_booking_button">Cancel Booking</string>

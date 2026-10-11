@@ -1,0 +1,136 @@
+package com.example.velocitysuites;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * The guest's next stay for the Dashboard: which booking/reservation it is, whether they are still to arrive or already
+ * in house, how far away the check-in / check-out is (for the plain hint such as "Check-in tomorrow"), the stay's
+ * nights, and a plain-language status. Pure data and rules (days are hotel-local calendar days, passed in), so the
+ * selection and wording are unit-testable.
+ */
+public final class NextStay {
+
+    /** Where the guest is in the stay. */
+    public enum Phase { UPCOMING, IN_HOUSE }
+
+    /** Plain-language status - always shown as colour + icon + text, never colour alone. */
+    public enum PlainStatus {
+        STAYING(R.string.next_stay_status_staying, Tone.GOOD),
+        CONFIRMED(R.string.next_stay_status_confirmed, Tone.GOOD),
+        WAITING_CONFIRMATION(R.string.next_stay_status_waiting_confirmation, Tone.WAITING),
+        PAYMENT_REVIEW(R.string.next_stay_status_payment_review, Tone.INFO),
+        WAITING_PAYMENT(R.string.next_stay_status_waiting_payment, Tone.WAITING);
+
+        @StringRes public final int labelRes;
+        public final Tone tone;
+
+        PlainStatus(int labelRes, Tone tone) {
+            this.labelRes = labelRes;
+            this.tone = tone;
+        }
+    }
+
+    public enum Tone { GOOD, WAITING, INFO }
+
+    private static final DateTimeFormatter SHORT = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US);
+
+    public final Booking booking;
+    public final Phase phase;
+    public final LocalDate checkIn;
+    public final LocalDate checkOut;
+    /** Days from today to the check-in (UPCOMING) or the check-out (IN_HOUSE); negative when that day has passed. */
+    public final long daysToEvent;
+    public final long nights;
+    public final PlainStatus status;
+    public final double balance;
+
+    private NextStay(Booking booking, Phase phase, LocalDate checkIn, LocalDate checkOut, long daysToEvent) {
+        this.booking = booking;
+        this.phase = phase;
+        this.checkIn = checkIn;
+        this.checkOut = checkOut;
+        this.daysToEvent = daysToEvent;
+        this.nights = Math.max(1, ChronoUnit.DAYS.between(checkIn, checkOut));
+        this.status = plainStatus(booking);
+        this.balance = TransactionStatusHelper.summarize(booking).balance;
+    }
+
+    /**
+     * The nearest event: for a stay not yet started its check-in, for a guest in house their check-out. Cancelled /
+     * rejected and finished stays never qualify; a past check-in that was never checked in is not "next" either.
+     * An in-house guest whose check-out day has already passed still shows (it is the most urgent thing).
+     */
+    @Nullable
+    public static NextStay select(@Nullable List<Booking> bookings, @NonNull LocalDate today) {
+        NextStay best = null;
+        if (bookings == null) return null;
+        for (Booking b : bookings) {
+            if (b == null) continue;
+            if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
+            String status = b.getStatus() == null ? "" : b.getStatus();
+            if ("Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) continue;
+            LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+            LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+            if (in == null || out == null) continue;
+
+            NextStay candidate;
+            if ("Checked-In".equalsIgnoreCase(status)) {
+                candidate = new NextStay(b, Phase.IN_HOUSE, in, out, ChronoUnit.DAYS.between(today, out));
+            } else if (!in.isBefore(today)) {
+                candidate = new NextStay(b, Phase.UPCOMING, in, out, ChronoUnit.DAYS.between(today, in));
+            } else {
+                continue;
+            }
+            if (best == null || candidate.daysToEvent < best.daysToEvent
+                    || (candidate.daysToEvent == best.daysToEvent && candidate.phase == Phase.IN_HOUSE && best.phase != Phase.IN_HOUSE)) {
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    public static PlainStatus plainStatus(@NonNull Booking b) {
+        if ("Checked-In".equalsIgnoreCase(b.getStatus())) return PlainStatus.STAYING;
+        boolean review = b.isPaymentPendingVerification() && !b.isStaffVerified();
+        if (!b.isHasBooking()) return review ? PlainStatus.PAYMENT_REVIEW : PlainStatus.WAITING_PAYMENT;
+        if (b.isStaffVerified()) return PlainStatus.CONFIRMED;
+        return review ? PlainStatus.PAYMENT_REVIEW : PlainStatus.WAITING_CONFIRMATION;
+    }
+
+    /** The one-line hint: "Check-in tomorrow", "Checking out today", "Check-in on Oct 20, 2026", ... */
+    public String hint(@NonNull Context c) {
+        if (phase == Phase.IN_HOUSE) {
+            if (daysToEvent < 0) return c.getString(R.string.next_stay_hint_checkout_due, checkOut.format(SHORT));
+            if (daysToEvent == 0) return c.getString(R.string.next_stay_hint_checkout_today);
+            if (daysToEvent == 1) return c.getString(R.string.next_stay_hint_checkout_tomorrow);
+            return c.getResources().getQuantityString(R.plurals.next_stay_hint_checkout_days, (int) daysToEvent, (int) daysToEvent);
+        }
+        if (daysToEvent == 0) return c.getString(R.string.next_stay_hint_checkin_today);
+        if (daysToEvent == 1) return c.getString(R.string.next_stay_hint_checkin_tomorrow);
+        if (daysToEvent <= 7) return c.getResources().getQuantityString(R.plurals.next_stay_hint_checkin_days, (int) daysToEvent, (int) daysToEvent);
+        return c.getString(R.string.next_stay_hint_checkin_on, checkIn.format(SHORT));
+    }
+
+    /** "Oct 12, 2026 → Oct 14, 2026". */
+    public String datesText(@NonNull Context c) {
+        return c.getString(R.string.next_stay_dates_format, checkIn.format(SHORT), checkOut.format(SHORT));
+    }
+
+    public String nightsText(@NonNull Context c) {
+        return c.getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights);
+    }
+
+    public boolean hasBalanceDue() {
+        return balance > MoneyFormat.EPSILON;
+    }
+}
