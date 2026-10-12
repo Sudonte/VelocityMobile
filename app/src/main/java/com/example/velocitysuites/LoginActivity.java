@@ -323,6 +323,10 @@ public class LoginActivity extends AppCompatActivity {
         // Remember Me state, so this call is what (re)establishes it.
         boolean isRemembered = rememberMeCheckbox != null && rememberMeCheckbox.isChecked();
         SessionManager.setRememberMe(this, isRemembered);
+        if (auth.user.guest != null && auth.user.guest.address != null) {
+            // Shown in the Guest Information card of the booking/reservation details.
+            getSharedPreferences("VelocityPrefs", MODE_PRIVATE).edit().putString("userAddress", auth.user.guest.address).apply();
+        }
 
         // The account was soft-deleted (see ProfileManagementActivity's
         // Delete Account action) but is still inside its 30-day restore

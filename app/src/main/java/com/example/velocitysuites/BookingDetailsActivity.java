@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import androidx.core.widget.TextViewCompat;
+import com.example.velocitysuites.network.ApiClient;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -134,6 +136,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         visiblePoller.stop();
+        if (ioExecutor != null) ioExecutor.shutdownNow();
+        // The downloaded ID photo is private: do not leave a copy in the cache.
+        if (idCardFile != null) idCardFile.delete();
         super.onDestroy();
     }
 
@@ -210,7 +215,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
     private void renderAllSections() {
         // Re-rendering (after a refresh/edit) must replace, not append to, what was drawn before.
         int[] sectionIds = {R.id.sectionBookingInfoContent, R.id.sectionGuestInfoContent, R.id.sectionRoomInfoContent,
-                R.id.sectionPaymentInfoContent, R.id.sectionPaymentSummaryContent, R.id.sectionTimelineContent};
+                R.id.sectionPaymentInfoContent, R.id.sectionPaymentSummaryContent, R.id.sectionTimelineContent,
+                R.id.sectionPaymentHistoryContent, R.id.sectionDiscountIdContent};
         for (int id : sectionIds) {
             ((LinearLayout) findViewById(id)).removeAllViews();
         }
@@ -231,6 +237,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         buildGuestInfoSection(findViewById(R.id.sectionGuestInfoContent));
         buildRoomInfoSection(findViewById(R.id.sectionRoomInfoContent));
         buildPaymentInfoSection(findViewById(R.id.sectionPaymentInfoContent));
+        buildPaymentHistoryCard(findViewById(R.id.sectionPaymentHistoryContent));
         buildPaymentSummarySection(findViewById(R.id.sectionPaymentSummaryContent));
         buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
@@ -378,8 +385,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
         android.content.SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
         String guestAccountName = prefs.getString("userName", null);
         String representativeName = booking.getRepresentativeName();
-        addInfoRowVertical(container, getString(R.string.receipt_guest_account_name_label), guestAccountName);
-        addInfoRowVertical(container, getString(R.string.details_label_representative_name), representativeName);
+        addIconRow(container, R.drawable.ic_person, getString(R.string.guest_label_name), guestAccountName);
+        if (representativeName != null && !representativeName.trim().equalsIgnoreCase(guestAccountName == null ? "" : guestAccountName.trim())) {
+            addIconRow(container, R.drawable.ic_people, getString(R.string.details_label_representative_name), representativeName);
+        }
+        addIconRow(container, R.drawable.ic_email, getString(R.string.guest_label_email), prefs.getString("userEmail", null));
+        addIconRow(container, R.drawable.ic_phone, getString(R.string.guest_label_phone), prefs.getString("userMobile", null));
+        addIconRow(container, R.drawable.ic_location, getString(R.string.guest_label_address), prefs.getString("userAddress", null));
 
         // Guest counts live here (not Room Information) - they describe WHO is
         // staying, not what was booked. Moved from buildRoomInfoSection().
@@ -558,16 +570,160 @@ public class BookingDetailsActivity extends AppCompatActivity {
      */
     private void buildDiscountIdSection(android.view.View card, LinearLayout container) {
         String status = booking.getDiscountVerificationStatus();
-        int label;
-        if ("approved".equalsIgnoreCase(status)) label = R.string.discount_id_status_approved;
-        else if ("rejected".equalsIgnoreCase(status)) label = R.string.discount_id_status_rejected;
-        else if ("pending".equalsIgnoreCase(status)) label = R.string.discount_id_status_pending;
-        else {
+        boolean approved = "approved".equalsIgnoreCase(status);
+        boolean rejected = "rejected".equalsIgnoreCase(status);
+        boolean pending = "pending".equalsIgnoreCase(status);
+        if (!approved && !rejected && !pending) {
+            // not_requested / no discount: the whole section is hidden
             card.setVisibility(android.view.View.GONE);
             return;
         }
         card.setVisibility(android.view.View.VISIBLE);
-        addInfoRow(container, getString(R.string.discount_id_status_label), getString(label));
+
+        // The verification status leads the section - read fresh from the server on open, resume and pull-to-refresh.
+        int chipText = approved ? R.string.discount_chip_approved : rejected ? R.string.discount_chip_rejected : R.string.discount_chip_pending;
+        int chipBg = approved ? R.color.velocity_green_soft : rejected ? R.color.velocity_red_subtle : R.color.velocity_orange_soft;
+        int chipFg = approved ? R.color.velocity_green_dark : rejected ? R.color.velocity_red_dark : R.color.velocity_orange_primary;
+        int chipIcon = approved ? R.drawable.ic_check_circle : rejected ? R.drawable.ic_close : R.drawable.ic_clock;
+        container.addView(buildStatusChip(chipText, chipBg, chipFg, chipIcon));
+
+        String discountName = discountDisplayName(booking.getIdCardType());
+        if (approved) {
+            addHelperText(container, getString(R.string.discount_help_approved, discountName));
+        } else if (pending) {
+            addHelperText(container, getString(R.string.discount_help_pending));
+        }
+
+        String type = booking.getIdCardType();
+        if (type != null && !type.trim().isEmpty() && !"none".equalsIgnoreCase(type.trim())) {
+            addInfoRow(container, getString(R.string.discount_label_type), type.trim());
+        }
+        if (booking.isHasIdCard() && !booking.isDirectBooking()) {
+            addIdPhotoRow(container);
+        }
+        if (approved && booking.getDiscountAmount() > 0.009) {
+            addInfoRow(container, getString(R.string.discount_label_amount), formatPrice(booking.getDiscountAmount()));
+        } else if (pending) {
+            addInfoRow(container, getString(R.string.discount_label_amount), getString(R.string.discount_amount_pending));
+        }
+    }
+
+    private String discountDisplayName(@Nullable String idType) {
+        String t = idType == null ? "" : idType.toLowerCase(Locale.ROOT);
+        if (t.contains("senior")) return getString(R.string.discount_name_senior);
+        if (t.contains("pwd")) return getString(R.string.discount_name_pwd);
+        return idType != null && !idType.trim().isEmpty() && !"none".equalsIgnoreCase(idType.trim()) ? idType.trim() : getString(R.string.discount_name_generic);
+    }
+
+    private TextView buildStatusChip(int textRes, int bgColor, int fgColor, int iconRes) {
+        TextView chip = new TextView(this);
+        chip.setText(textRes);
+        chip.setTextSize(13);
+        chip.setTypeface(null, android.graphics.Typeface.BOLD);
+        chip.setTextColor(getColor(fgColor));
+        chip.setBackgroundResource(R.drawable.shape_flat_badge);
+        chip.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(bgColor)));
+        float d = getResources().getDisplayMetrics().density;
+        chip.setPadding((int) (10 * d), (int) (6 * d), (int) (10 * d), (int) (6 * d));
+        chip.setCompoundDrawablePadding((int) (8 * d));
+        chip.setCompoundDrawablesRelativeWithIntrinsicBounds(iconRes, 0, 0, 0);
+        TextViewCompat.setCompoundDrawableTintList(chip, android.content.res.ColorStateList.valueOf(getColor(fgColor)));
+        chip.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.bottomMargin = (int) (8 * d);
+        chip.setLayoutParams(lp);
+        return chip;
+    }
+
+    private void addHelperText(LinearLayout container, String text) {
+        TextView helper = new TextView(this);
+        helper.setText(text);
+        helper.setTextSize(12);
+        helper.setLineSpacing(0, 1.1f);
+        helper.setTextColor(getColor(R.color.velocity_text_secondary));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.bottomMargin = (int) (12 * getResources().getDisplayMetrics().density);
+        helper.setLayoutParams(lp);
+        container.addView(helper);
+    }
+
+    // ---- the uploaded ID photo: a small thumbnail, full screen on tap ----
+
+    private java.util.concurrent.ExecutorService ioExecutor;
+    private java.io.File idCardFile;
+
+    private void addIdPhotoRow(LinearLayout container) {
+        float d = getResources().getDisplayMetrics().density;
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        rowLp.bottomMargin = (int) (8 * d);
+        row.setLayoutParams(rowLp);
+
+        TextView label = new TextView(this);
+        label.setText(R.string.discount_label_id_details);
+        label.setTextSize(12);
+        label.setTextColor(getColor(R.color.velocity_text_secondary));
+        label.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        ImageView thumb = new ImageView(this);
+        thumb.setLayoutParams(new LinearLayout.LayoutParams((int) (96 * d), (int) (64 * d)));
+        thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        thumb.setBackgroundColor(getColor(R.color.velocity_red_soft));
+        thumb.setImageResource(R.drawable.ic_person);
+        thumb.setPadding((int) (20 * d), (int) (12 * d), (int) (20 * d), (int) (12 * d));
+        thumb.setContentDescription(getString(R.string.discount_id_photo_cd));
+        row.addView(label);
+        row.addView(thumb);
+        container.addView(row);
+        loadIdPhoto(thumb);
+    }
+
+    /** Downloads the ID off the main thread, decodes a thumbnail-sized bitmap, and keeps a private copy for the full-screen viewer. */
+    private void loadIdPhoto(ImageView thumb) {
+        if (ioExecutor == null) ioExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        final String id = booking.getId();
+        ApiClient.getService(this).getIdCard(id).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(retrofit2.Call<okhttp3.ResponseBody> call, retrofit2.Response<okhttp3.ResponseBody> response) {
+                if (isFinishing() || isDestroyed() || !response.isSuccessful() || response.body() == null || ioExecutor == null) return;
+                final okhttp3.ResponseBody body = response.body();
+                try {
+                    ioExecutor.execute(() -> {
+                        try {
+                            byte[] bytes = body.bytes();
+                            android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
+                            bounds.inJustDecodeBounds = true;
+                            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
+                            android.graphics.BitmapFactory.Options opts = new android.graphics.BitmapFactory.Options();
+                            opts.inSampleSize = Math.max(1, Math.max(bounds.outWidth, bounds.outHeight) / 320);
+                            android.graphics.Bitmap bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
+                            java.io.File file = new java.io.File(getCacheDir(), "id_card_" + id + ".jpg");
+                            try (java.io.FileOutputStream out = new java.io.FileOutputStream(file)) {
+                                out.write(bytes);
+                            }
+                            runOnUiThread(() -> {
+                                if (isFinishing() || isDestroyed() || bmp == null) return;
+                                idCardFile = file;
+                                thumb.setPadding(0, 0, 0, 0);
+                                thumb.setImageBitmap(bmp);
+                                thumb.setOnClickListener(v -> ReceiptImageViewerActivity.start(BookingDetailsActivity.this, android.net.Uri.fromFile(file).toString()));
+                            });
+                        } catch (java.io.IOException | RuntimeException e) {
+                            // Keep the placeholder; the details themselves are unaffected.
+                        }
+                    });
+                } catch (java.util.concurrent.RejectedExecutionException ignored) {
+                    // screen is closing
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<okhttp3.ResponseBody> call, Throwable t) {
+                // Placeholder stays.
+            }
+        });
     }
 
     // ---- Payment Summary section ----
@@ -689,36 +845,6 @@ public class BookingDetailsActivity extends AppCompatActivity {
             receiptView.setOnClickListener(v -> ReceiptImageViewerActivity.start(this, booking.getReceiptUrl()));
             container.addView(receiptView);
         }
-
-        buildPaymentHistorySection(container);
-    }
-
-    /**
-     * Payment Transaction History - prefers the backend-authoritative
-     * booking.getPaymentTransactions() (richer: includes payment_stage,
-     * verifier, receipt cross-reference) when the backend has attached one;
-     * falls back to the legacy flat paymentHistory only for an older/
-     * not-yet-migrated response. Never both at once - showing the same
-     * payments twice would double the guest's apparent transaction count.
-     */
-    private void buildPaymentHistorySection(LinearLayout container) {
-        List<Booking.PaymentTransactionRecord> transactions = booking.getPaymentTransactions();
-        if (!transactions.isEmpty()) {
-            addSectionDivider(container, getString(R.string.details_label_payment_history));
-            for (int i = 0; i < transactions.size(); i++) {
-                container.addView(ReceiptCardHelper.buildTransactionRow(this, container, transactions.get(i), i == transactions.size() - 1));
-            }
-            return;
-        }
-
-        List<Booking.PaymentRecord> history = booking.getPaymentHistory();
-        if (history != null && !history.isEmpty()) {
-            addSectionDivider(container, getString(R.string.details_label_payment_history));
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-            for (Booking.PaymentRecord record : history) {
-                container.addView(buildPaymentHistoryRow(container, record, currencyFormat));
-            }
-        }
     }
 
     /** Same calendar-day computation PaymentReceiptActivity uses for its identical row - kept as a local copy per this codebase's existing per-screen-helper convention. */
@@ -754,12 +880,6 @@ public class BookingDetailsActivity extends AppCompatActivity {
         View card = LayoutInflater.from(this).inflate(R.layout.item_payment_receipt_action, container, false);
         ReceiptCardHelper.bindLegacyReceiptActionCard(this, card, booking);
         container.addView(card);
-    }
-
-    private View buildPaymentHistoryRow(ViewGroup parent, Booking.PaymentRecord record, NumberFormat currencyFormat) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_payment_history_entry, parent, false);
-        PaymentCardBinder.bind(row, record, this);
-        return row;
     }
 
     // ---- Timeline tab ----
@@ -922,6 +1042,211 @@ public class BookingDetailsActivity extends AppCompatActivity {
     // ---- Shared row helper ----
 
     /** One "Label ............ Value" row, matching BookingAndReservationActivity's existing buildDetailsInfoRow() convention. Skips entirely if value is null/blank, per "only display fields that exist." */
+    // ---- Payment History card: rows newest first, then the totals ----
+
+    private static final class PayRow {
+        double amount;
+        String methodType;
+        String dateTime;
+        long sortKey;
+        int statusRes;
+        int statusBg;
+        int statusFg;
+        @Nullable String reference;
+        @Nullable String receiptNumber;
+    }
+
+    private void buildPaymentHistoryCard(LinearLayout container) {
+        List<PayRow> rows = new ArrayList<>();
+        List<Booking.PaymentTransactionRecord> transactions = booking.getPaymentTransactions();
+        if (!transactions.isEmpty()) {
+            for (Booking.PaymentTransactionRecord tx : transactions) rows.add(rowFrom(tx));
+        } else if (booking.getPaymentHistory() != null) {
+            int order = 0;
+            for (Booking.PaymentRecord record : booking.getPaymentHistory()) {
+                PayRow row = rowFrom(record);
+                row.sortKey = row.sortKey != 0 ? row.sortKey : order;
+                order++;
+                rows.add(row);
+            }
+        }
+        java.util.Collections.sort(rows, (a, b) -> Long.compare(b.sortKey, a.sortKey));
+
+        if (rows.isEmpty()) {
+            TextView none = new TextView(this);
+            none.setText(R.string.ph_no_payments);
+            none.setTextSize(13);
+            none.setTextColor(getColor(R.color.velocity_text_secondary));
+            none.setPadding(0, 0, 0, (int) (8 * getResources().getDisplayMetrics().density));
+            container.addView(none);
+        }
+        for (PayRow row : rows) {
+            container.addView(buildPayRowView(container, row));
+        }
+        addPaymentTotals(container);
+    }
+
+    private PayRow rowFrom(Booking.PaymentTransactionRecord tx) {
+        PayRow row = new PayRow();
+        row.amount = tx.amountPaid;
+        boolean gcash = "gcash".equalsIgnoreCase(tx.paymentMethod);
+        String method = getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash);
+        String stage = tx.paymentStage == null ? "" : tx.paymentStage.toLowerCase(Locale.ROOT);
+        String type;
+        if (stage.contains("deposit")) {
+            type = getString(R.string.ph_type_deposit);
+        } else if ("checkout_payment".equalsIgnoreCase(tx.transactionType)) {
+            type = getString(R.string.ph_type_balance);
+        } else if (stage.contains("final")) {
+            boolean firstPayment = Math.abs(tx.totalPaidAfterTransaction - tx.amountPaid) < 0.01;
+            type = getString(firstPayment ? R.string.ph_type_full : R.string.ph_type_balance);
+        } else {
+            type = getString(R.string.ph_type_payment);
+        }
+        row.methodType = getString(R.string.ph_method_type_format, method, type);
+        row.dateTime = tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "";
+        java.time.Instant at = TimeUtils.parseInstant(tx.paymentDate);
+        row.sortKey = at != null ? at.toEpochMilli() : 0;
+        String ref = tx.gcashReferenceNumber != null ? tx.gcashReferenceNumber : tx.referenceNumber;
+        row.reference = gcash && !TextUtils.isEmpty(ref) ? GcashReferenceFormatter.format(ref) : (TextUtils.isEmpty(ref) ? null : ref);
+        row.receiptNumber = tx.receiptNumber;
+        String verification = tx.verificationStatus != null ? tx.verificationStatus.toLowerCase(Locale.ROOT) : "";
+        String paymentStatus = tx.paymentStatus != null ? tx.paymentStatus.toLowerCase(Locale.ROOT) : "";
+        if ("verified".equals(verification) || (verification.isEmpty() && "completed".equals(paymentStatus))) {
+            setPayStatus(row, R.string.ph_status_verified, R.color.velocity_green_soft, R.color.velocity_green_dark);
+        } else if ("rejected".equals(verification) || "rejected".equals(paymentStatus) || "failed".equals(paymentStatus)) {
+            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_dark);
+        } else {
+            setPayStatus(row, R.string.ph_status_pending, R.color.velocity_orange_soft, R.color.velocity_orange_primary);
+        }
+        return row;
+    }
+
+    private PayRow rowFrom(Booking.PaymentRecord record) {
+        PayRow row = new PayRow();
+        row.amount = MoneyFormat.parse(record.amount);
+        boolean gcash = record.method != null && record.method.toLowerCase(Locale.ROOT).contains("gcash");
+        row.methodType = getString(R.string.ph_method_type_format,
+                getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash), getString(R.string.ph_type_payment));
+        row.dateTime = record.date != null ? TimeUtils.formatDateTime(record.date) : "";
+        java.time.Instant at = TimeUtils.parseInstant(record.date);
+        row.sortKey = at != null ? at.toEpochMilli() : 0;
+        row.reference = TextUtils.isEmpty(record.referenceNumber) ? null : (gcash ? GcashReferenceFormatter.format(record.referenceNumber) : record.referenceNumber);
+        String st = record.status == null ? "" : record.status.toLowerCase(Locale.ROOT);
+        if (st.contains("reject") || st.contains("fail")) {
+            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_dark);
+        } else if (st.contains("verif") || st.contains("complet") || st.contains("paid")) {
+            setPayStatus(row, R.string.ph_status_verified, R.color.velocity_green_soft, R.color.velocity_green_dark);
+        } else {
+            setPayStatus(row, R.string.ph_status_pending, R.color.velocity_orange_soft, R.color.velocity_orange_primary);
+        }
+        return row;
+    }
+
+    private static void setPayStatus(PayRow row, int label, int bg, int fg) {
+        row.statusRes = label;
+        row.statusBg = bg;
+        row.statusFg = fg;
+    }
+
+    private View buildPayRowView(LinearLayout parent, PayRow row) {
+        View view = LayoutInflater.from(this).inflate(R.layout.item_payment_history_row, parent, false);
+        ((TextView) view.findViewById(R.id.tvPhAmount)).setText(formatPrice(row.amount));
+        TextView status = view.findViewById(R.id.tvPhStatus);
+        status.setText(row.statusRes);
+        status.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(row.statusBg)));
+        status.setTextColor(getColor(row.statusFg));
+        ((TextView) view.findViewById(R.id.tvPhMethodType)).setText(row.methodType);
+        TextView date = view.findViewById(R.id.tvPhDate);
+        date.setText(row.dateTime);
+        date.setVisibility(TextUtils.isEmpty(row.dateTime) ? View.GONE : View.VISIBLE);
+        TextView ref = view.findViewById(R.id.tvPhReference);
+        if (TextUtils.isEmpty(row.reference)) {
+            ref.setVisibility(View.GONE);
+        } else {
+            ref.setText(getString(R.string.ph_reference_format, row.reference));
+        }
+        View hint = view.findViewById(R.id.tvPhReceiptHint);
+        if (!TextUtils.isEmpty(row.receiptNumber)) {
+            hint.setVisibility(View.VISIBLE);
+            view.setClickable(true);
+            view.setOnClickListener(v -> {
+                if (clickGuard.tryAcquire()) {
+                    startActivity(PaymentReceiptActivity.newIntentForReceipt(this, booking, row.receiptNumber));
+                }
+            });
+        }
+        return view;
+    }
+
+    /** Total, Discount (only once approved), Paid and Remaining Balance - same figures and same Remaining rule as the billing breakdown. */
+    private void addPaymentTotals(LinearLayout container) {
+        double totalAmount;
+        double amountPaid;
+        double remainingBalance;
+        if (groupMembers != null) {
+            BookingGroupAggregator.Totals totals = BookingGroupAggregator.sum(groupMembers);
+            totalAmount = totals.totalAmount;
+            amountPaid = totals.amountPaid;
+            remainingBalance = totalAmount - amountPaid;
+        } else {
+            totalAmount = booking.getTotalAmount();
+            amountPaid = booking.getEffectiveTotalAmountPaid();
+            remainingBalance = booking.getEffectiveRemainingBalance();
+        }
+        View rule = new View(this);
+        LinearLayout.LayoutParams ruleLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) getResources().getDisplayMetrics().density);
+        ruleLp.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        ruleLp.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        rule.setLayoutParams(ruleLp);
+        rule.setBackgroundColor(getColor(R.color.velocity_red_subtle));
+        container.addView(rule);
+
+        addInfoRow(container, getString(R.string.ph_total_label), formatPrice(totalAmount));
+        if ("approved".equalsIgnoreCase(booking.getDiscountVerificationStatus()) && booking.getDiscountAmount() > 0.009) {
+            addInfoRow(container, getString(R.string.ph_discount_label), "-" + formatPrice(booking.getDiscountAmount()));
+        }
+        addInfoRow(container, getString(R.string.ph_amount_paid_label), formatPrice(amountPaid));
+        if (remainingBalance > 0.009 && (amountPaid > 0.009 || booking.isHasBooking())
+                && !"Checked-Out".equalsIgnoreCase(booking.getStatus()) && !"Completed".equalsIgnoreCase(booking.getStatus())) {
+            addInfoRow(container, getString(R.string.ph_remaining_label), formatPrice(remainingBalance));
+        }
+    }
+
+    /** One label/value row with a small leading icon; skipped when there is no real value (never shows "null"). */
+    private void addIconRow(LinearLayout container, int iconRes, String label, @Nullable String value) {
+        if (TextUtils.isEmpty(value) || "null".equalsIgnoreCase(value.trim())) return;
+        float d = getResources().getDisplayMetrics().density;
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        rowLp.bottomMargin = (int) (10 * d);
+        row.setLayoutParams(rowLp);
+
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(iconRes);
+        icon.setColorFilter(getColor(R.color.velocity_red_primary));
+        icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams((int) (18 * d), (int) (18 * d));
+        iconLp.setMarginEnd((int) (8 * d));
+        row.addView(icon, iconLp);
+
+        TextView tvLabel = new TextView(this);
+        tvLabel.setText(label);
+        tvLabel.setTextSize(12);
+        tvLabel.setTextColor(getColor(R.color.velocity_text_secondary));
+        row.addView(tvLabel, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f));
+
+        TextView tvValue = new TextView(this);
+        tvValue.setText(value.trim());
+        tvValue.setTextSize(13);
+        tvValue.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvValue.setTextColor(getColor(R.color.velocity_text_primary));
+        tvValue.setGravity(Gravity.END);
+        row.addView(tvValue, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f));
+        container.addView(row);
+    }
+
     private void addInfoRow(LinearLayout container, String label, @Nullable String value) {
         if (TextUtils.isEmpty(value)) return;
 
@@ -945,6 +1270,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
         tvValue.setTypeface(null, android.graphics.Typeface.BOLD);
         tvValue.setTextColor(getResources().getColor(R.color.velocity_text_primary));
         tvValue.setGravity(Gravity.END);
+        // A long room name, email or address wraps in its own column instead of being squeezed or cut off.
+        tvValue.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f));
 
         row.addView(tvLabel);
         row.addView(tvValue);
