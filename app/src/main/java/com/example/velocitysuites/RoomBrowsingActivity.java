@@ -297,7 +297,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         adapter.updateList(filteredRooms);
         noResultsView.setVisibility(filteredRooms.isEmpty() ? View.VISIBLE : View.GONE);
         if (tvResultsCount != null) {
-            tvResultsCount.setText(filteredRooms.size() + " Rooms Found");
+            tvResultsCount.setText(getResources().getQuantityString(R.plurals.rooms_found, filteredRooms.size(), filteredRooms.size()));
         }
     }
 
@@ -819,7 +819,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             noResultsView.setVisibility(filteredRooms.isEmpty() ? View.VISIBLE : View.GONE);
 
             if (tvResultsCount != null) {
-                String countText = filteredRooms.size() + (filteredRooms.size() == 1 ? " Room Found" : " Rooms Found");
+                String countText = getResources().getQuantityString(R.plurals.rooms_found, filteredRooms.size(), filteredRooms.size());
                 tvResultsCount.setText(countText);
             }
         } else {

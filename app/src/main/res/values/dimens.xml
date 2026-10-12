@@ -11,8 +11,6 @@
          room_card_* above so dialog_room_details.xml's full-width hero image is
          untouched by the list card's compactness pass. -->
     <dimen name="room_list_card_photo_height">160dp</dimen>
-    <dimen name="room_list_card_image_width">140dp</dimen>
-    <dimen name="room_list_card_image_height">136dp</dimen>
     <dimen name="room_list_card_content_padding">9dp</dimen>
     <dimen name="room_list_card_spacing">8dp</dimen>
 

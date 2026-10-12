@@ -315,6 +315,10 @@
     <string name="guest_capacity_reached_hint">Room capacity reached. Remove a guest or add a room to bring in more.</string>
     <string name="guest_counter_format">%1$d of %2$s</string>
     <string name="guest_count_adjusted_to_capacity">Guest count lowered to fit your rooms (up to %1$d guests).</string>
+    <plurals name="rooms_found">
+        <item quantity="one">%d Room Found</item>
+        <item quantity="other">%d Rooms Found</item>
+    </plurals>
     <plurals name="guests_noun">
         <item quantity="one">%1$d guest</item>
         <item quantity="other">%1$d guests</item>
@@ -662,8 +666,6 @@
     <string name="filter_rooms_title">Filter Rooms</string>
     <string name="no_matching_rooms">No rooms available</string>
     <string name="no_matching_rooms_desc">No rooms available for these dates. Try different dates.</string>
-    <string name="searching_rooms">Searching for rooms…</string>
-    <string name="finding_best_options">Finding the best options…</string>
     <string name="reset_label">Reset</string>
     <string name="refresh_label">Refresh</string>
 

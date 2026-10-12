@@ -94,7 +94,6 @@
     <color name="velocity_landing_overlay">#66000000</color>
 
     <!-- Overlay / scrim tints (loading overlays, sticky bar backgrounds, hairline dividers) -->
-    <color name="velocity_overlay_scrim_dark">#B3000000</color>
     <color name="velocity_overlay_scrim_light">#80FFFFFF</color>
     <color name="velocity_sticky_bar_bg">#E6FFFFFF</color>
     <color name="velocity_divider_hairline">#1A000000</color>
