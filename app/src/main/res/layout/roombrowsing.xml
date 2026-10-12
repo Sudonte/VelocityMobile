@@ -99,14 +99,15 @@
                         style="@style/Widget.Velocity.Card.Glass"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="16dp"
                         android:layout_marginBottom="14dp"
-                        app:cardElevation="@dimen/card_elevation">
+                        app:cardCornerRadius="0dp"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_glass_card_white"
+                            android:background="@drawable/bg_search_panel_full_width"
                             android:padding="16dp">
 
                             <com.google.android.material.card.MaterialCardView
@@ -574,72 +575,34 @@
                 tools:listitem="@layout/item_room_card" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <!-- Progress Indicator Overlay (Refined Glassmorphism-like) -->
+        <!-- Skeleton loader: placeholder cards in the list area while rooms load. Sits where the list sits (below
+             the app bar, scrolling with it) and swallows taps so nothing underneath is hit mid-load. -->
         <FrameLayout
             android:id="@+id/loadingOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/velocity_overlay_scrim_dark"
-            android:elevation="0dp"
+            android:background="@color/velocity_red_bg_end"
             android:clickable="true"
             android:focusable="true"
-            android:visibility="gone">
+            android:visibility="gone"
+            app:behavior_overlapTop="150dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="240dp"
+            <LinearLayout
+                android:id="@+id/skeletonList"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="@dimen/card_elevation"
-                app:cardBackgroundColor="@color/velocity_surface_elevated"
-                app:strokeColor="@color/velocity_divider_hairline"
-                app:strokeWidth="1dp">
+                android:orientation="vertical"
+                android:paddingHorizontal="22dp"
+                android:paddingTop="155dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="36dp">
+                <include layout="@layout/view_room_skeleton_card" />
 
-                    <com.google.android.material.progressindicator.CircularProgressIndicator
-                        android:id="@+id/searchProgress"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:indeterminate="true"
-                        app:indicatorSize="72dp"
-                        app:trackThickness="8dp"
-                        app:indicatorColor="@color/velocity_red_primary"
-                        app:trackColor="@color/velocity_red_soft"
-                        app:trackCornerRadius="0dp" />
+                <include layout="@layout/view_room_skeleton_card" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="29dp"
-                        android:fontFamily="sans-serif-black"
-                        android:text="@string/searching_rooms"
-                        android:textColor="@color/velocity_red_dark"
-                        android:textSize="14sp"
-                        android:letterSpacing="0.12"
-                        android:textAllCaps="true"
-                        android:gravity="center"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/finding_best_options"
-                        android:textColor="@color/velocity_inactive_gray"
-                        android:textSize="12sp"
-                        android:alpha="0.7"
-                        android:gravity="center" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                <include layout="@layout/view_room_skeleton_card" />
+            </LinearLayout>
         </FrameLayout>
-
-
 
         <!-- Empty State View -->
         <include

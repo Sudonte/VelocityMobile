@@ -251,7 +251,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     }
 
     private void loadRooms() {
-        loadingOverlay.setVisibility(View.VISIBLE);
+        setRoomsLoading(true);
         layoutRoomError.setVisibility(View.GONE);
         // The no-cache request path (opening, coming back, pull-to-refresh): "refresh" must never be answered from a
         // stale copy sitting in front of the server.
@@ -259,7 +259,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             @Override
             public void onSuccess(List<Room> result) {
                 if (isFinishing() || isDestroyed()) return;
-                loadingOverlay.setVisibility(View.GONE);
+                setRoomsLoading(false);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 layoutRoomError.setVisibility(View.GONE);
                 allRooms = result;
@@ -274,7 +274,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             @Override
             public void onError(String message) {
                 if (isFinishing() || isDestroyed()) return;
-                loadingOverlay.setVisibility(View.GONE);
+                setRoomsLoading(false);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 noResultsView.setVisibility(View.GONE);
                 layoutRoomError.setVisibility(View.VISIBLE);
@@ -411,7 +411,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     }
 
     private void performSearchWithLoading() {
-        loadingOverlay.setVisibility(View.VISIBLE);
+        setRoomsLoading(true);
 
         // Re-fetch from the backend with the guest's actual dates first -
         // availability is date-range-aware server-side, so filtering the
@@ -436,7 +436,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private void finishSearch() {
         applyFilters();
-        loadingOverlay.setVisibility(View.GONE);
+        setRoomsLoading(false);
         if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
 
         // Auto-direct to results by collapsing the search section
@@ -454,9 +454,34 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private static final long ONE_DAY_MS = 24L * 60 * 60 * 1000;
 
+    private boolean roomsLoading;
+
+    /** Search Availability stays disabled until both dates are valid, and while a search is running. */
+    private void updateSearchButton() {
+        if (btnSearchAvailability == null) return;
+        boolean valid = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
+        btnSearchAvailability.setEnabled(valid && !roomsLoading);
+        btnSearchAvailability.setText(roomsLoading ? R.string.searching_rooms_button : R.string.search_availability);
+    }
+
+    /** Skeleton cards while the room list loads; also puts the Search button in its loading state. */
+    private void setRoomsLoading(boolean loading) {
+        roomsLoading = loading;
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(loading ? View.VISIBLE : View.GONE);
+            View skeleton = loadingOverlay.findViewById(R.id.skeletonList);
+            if (skeleton != null) {
+                skeleton.clearAnimation();
+                if (loading) skeleton.startAnimation(android.view.animation.AnimationUtils.loadAnimation(this, R.anim.skeleton_pulse));
+            }
+        }
+        updateSearchButton();
+    }
+
     /** "2 nights" under the fields and "Oct 12 - Oct 14 - 2 nights" in the pinned bar - only when both dates are set. */
     private void updateDateSummary() {
         boolean both = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
+        updateSearchButton();
         if (tvNightsSummary == null || tvPinnedDates == null) return;
         if (!both) {
             tvNightsSummary.setVisibility(View.GONE);

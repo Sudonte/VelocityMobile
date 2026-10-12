@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One placeholder room card shown while the room list loads (no text, so it needs no translation). -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/room_list_card_spacing"
+    android:importantForAccessibility="no"
+    app:cardBackgroundColor="@color/velocity_surface_elevated"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/velocity_divider_hairline"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/room_list_card_content_padding">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/room_list_card_photo_height"
+            android:background="@color/velocity_divider_hairline" />
+
+        <View
+            android:layout_width="180dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/velocity_divider_hairline" />
+
+        <View
+            android:layout_width="120dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/velocity_divider_hairline" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/velocity_divider_hairline" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
