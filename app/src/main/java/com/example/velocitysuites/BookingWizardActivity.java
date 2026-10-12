@@ -477,7 +477,7 @@ public class BookingWizardActivity extends AppCompatActivity {
     private void attemptGoToNextStep() {
         WizardStepFragment current = currentFragment();
         if (current != null && !current.validateBeforeNext()) {
-            Toast.makeText(this, R.string.wizard_step_incomplete, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, current.validationMessageRes(), Toast.LENGTH_SHORT).show();
             return;
         }
         if (currentStepIndex < stepCount) {

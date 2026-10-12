@@ -1712,6 +1712,16 @@ public final class RoomRepository {
      */
     private File copyUriToTempFile(Uri uri, String prefix) throws IOException {
         File tempFile = File.createTempFile(prefix, ".jpg", appContext.getCacheDir());
+        if (prefix.startsWith("id_card_")) {
+            // ID photos are downscaled/re-encoded first (camera originals can exceed the server's
+            // 5 MB limit); if the image can't be decoded, fall through and upload the original bytes.
+            try {
+                IdImageCompressor.compress(appContext, uri, tempFile);
+                return tempFile;
+            } catch (IOException | RuntimeException ignored) {
+                // fall back to the raw copy below
+            }
+        }
         try (InputStream in = appContext.getContentResolver().openInputStream(uri);
              FileOutputStream out = new FileOutputStream(tempFile)) {
             if (in == null) throw new IOException("Could not open selected image.");

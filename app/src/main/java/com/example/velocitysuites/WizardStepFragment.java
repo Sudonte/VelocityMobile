@@ -47,6 +47,11 @@ public abstract class WizardStepFragment extends Fragment {
         return true;
     }
 
+    /** The message shown when {@link #validateBeforeNext()} blocks Next; steps override it with a specific reason. */
+    public int validationMessageRes() {
+        return R.string.wizard_step_incomplete;
+    }
+
     /**
      * Dismisses a loading dialog shown around a Retrofit call (room/reservation
      * creation, ID card upload) - safe to call from that call's onSuccess()/onError()

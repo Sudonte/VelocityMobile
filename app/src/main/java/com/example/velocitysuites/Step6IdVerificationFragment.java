@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.content.ActivityNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -18,8 +20,23 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+
+import androidx.core.widget.NestedScrollView;
+
+import com.example.velocitysuites.network.ApiClient;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Step 6: ID Verification for Discount. Lists every discount the System
@@ -46,6 +63,14 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
     private ImageView ivIdPreview;
     private MaterialButton btnUploadId;
     private MaterialButton btnRemoveId;
+    private MaterialButton btnViewId;
+    private NestedScrollView scrollView;
+
+    /** Edit mode: the ID already stored on the server, downloaded once (via the owner-only endpoint) for the thumbnail. */
+    private ExecutorService ioExecutor;
+    private File storedIdFile;
+    private boolean storedIdLoading;
+    private boolean storedIdLoadFailed;
 
     private final List<Discount> loaded = new ArrayList<>();
     private boolean loading;
@@ -62,7 +87,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             BookingWizardState state = getState();
             state.idCardImageUri = uri;
             state.removeIdCard = false;
-            refreshUploadSection();
+            if (isAdded() && getView() != null) refreshUploadSection();
         });
     }
 
@@ -86,6 +111,8 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         ivIdPreview = view.findViewById(R.id.ivIdPreview);
         btnUploadId = view.findViewById(R.id.btnUploadId);
         btnRemoveId = view.findViewById(R.id.btnRemoveId);
+        btnViewId = view.findViewById(R.id.btnViewId);
+        scrollView = view.findViewById(R.id.step6Scroll);
 
         ((TextView) rowNoDiscount.findViewById(R.id.tvDiscountName)).setText(R.string.discount_none_title);
         ((TextView) rowNoDiscount.findViewById(R.id.tvDiscountShortDesc)).setText(R.string.discount_none_desc);
@@ -98,9 +125,17 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             renderList();
             refreshUploadSection();
         });
+        ivIdPreview.setOnClickListener(v -> viewFullSize());
+        btnViewId.setOnClickListener(v -> viewFullSize());
 
         view.findViewById(R.id.btnDiscountRetry).setOnClickListener(v -> loadDiscounts());
-        btnUploadId.setOnClickListener(v -> idPickerLauncher.launch("image/*"));
+        btnUploadId.setOnClickListener(v -> {
+            try {
+                idPickerLauncher.launch("image/*");
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(requireContext(), R.string.discount_id_picker_unavailable, Toast.LENGTH_SHORT).show();
+            }
+        });
         btnRemoveId.setOnClickListener(v -> {
             BookingWizardState state = getState();
             state.idCardImageUri = null;
@@ -116,7 +151,18 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
     @Override
     public void onDestroyView() {
         loadGeneration++; // drop any in-flight response for the old view
+        if (ioExecutor != null) {
+            ioExecutor.shutdown();
+            ioExecutor = null;
+        }
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        // The downloaded copy of the stored ID is only for this screen; do not leave it in the cache.
+        if (storedIdFile != null && requireActivity().isFinishing()) storedIdFile.delete();
+        super.onDestroy();
     }
 
     private void loadDiscounts() {
@@ -256,6 +302,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             dialog.dismiss();
             renderList();
             refreshUploadSection();
+            if (changed) revealUploadSection();
         });
         dialog.setContentView(content);
         SafeDialogs.show(dialog);
@@ -294,7 +341,16 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
-    /** Shows/hides the ID section for the chosen discount: a new image preview, the "on file" note, replace and remove. */
+    /** Scrolls the Upload ID section fully into view once the discount choice has been laid out. */
+    private void revealUploadSection() {
+        if (scrollView == null) return;
+        scrollView.postDelayed(() -> {
+            if (!isAdded() || getView() == null || layoutIdUpload.getVisibility() != View.VISIBLE) return;
+            scrollView.smoothScrollTo(0, Math.max(0, layoutIdUpload.getTop() - dp(8)));
+        }, 150);
+    }
+
+    /** Shows/hides the ID section for the chosen discount: a preview (new or stored ID) with view, replace and remove. */
     private void refreshUploadSection() {
         BookingWizardState state = getState();
         if (state.discount == null) {
@@ -305,19 +361,31 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         boolean hasNew = state.idCardImageUri != null;
         boolean keepsStored = state.idCardOnFile && !state.removeIdCard && !hasNew;
 
+        boolean showsPreview = false;
         if (hasNew) {
             applyPreview(state.idCardImageUri);
+            showsPreview = true;
             tvIdUploadStatus.setText(R.string.id_uploaded_status);
-        } else {
-            ivIdPreview.setVisibility(View.GONE);
-            if (keepsStored) {
+        } else if (keepsStored) {
+            if (storedIdFile != null) {
+                applyPreview(Uri.fromFile(storedIdFile));
+                showsPreview = true;
                 tvIdUploadStatus.setText(R.string.discount_id_on_file);
-            } else if (state.idCardOnFile) {
-                tvIdUploadStatus.setText(R.string.discount_id_removed);
+            } else if (storedIdLoading) {
+                tvIdUploadStatus.setText(R.string.discount_id_loading);
+            } else if (storedIdLoadFailed) {
+                tvIdUploadStatus.setText(R.string.discount_id_load_failed);
             } else {
-                tvIdUploadStatus.setText(getString(R.string.discount_upload_for_format, state.discount.getName()));
+                tvIdUploadStatus.setText(R.string.discount_id_on_file);
+                loadStoredId();
             }
+        } else if (state.idCardOnFile) {
+            tvIdUploadStatus.setText(R.string.discount_id_removed);
+        } else {
+            tvIdUploadStatus.setText(getString(R.string.discount_upload_for_format, state.discount.getName()));
         }
+        if (!showsPreview) ivIdPreview.setVisibility(View.GONE);
+        btnViewId.setVisibility(showsPreview ? View.VISIBLE : View.GONE);
         tvIdUploadStatus.setTextColor(requireContext().getColor(R.color.velocity_text_secondary));
         btnUploadId.setText((hasNew || keepsStored) ? R.string.discount_replace_id : R.string.upload_id_card);
         btnRemoveId.setVisibility((hasNew || keepsStored) ? View.VISIBLE : View.GONE);
@@ -325,12 +393,86 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
 
     private void applyPreview(Uri uri) {
         ivIdPreview.setVisibility(View.VISIBLE);
-        Glide.with(requireContext()).load(uri).into(ivIdPreview);
+        Glide.with(requireContext()).load(uri).override(720, 360).into(ivIdPreview);
+    }
+
+    /** Opens the new or stored ID in the zoomable full-screen viewer. */
+    private void viewFullSize() {
+        BookingWizardState state = getState();
+        Uri source = state.idCardImageUri != null ? state.idCardImageUri
+                : (storedIdFile != null ? Uri.fromFile(storedIdFile) : null);
+        if (source != null) ReceiptImageViewerActivity.start(requireContext(), source.toString());
+    }
+
+    /**
+     * Edit mode: downloads the ID already on file through the owner-only
+     * GET guest/reservations/{id}/id-card endpoint (never a public URL) so it can be shown as a
+     * thumbnail. The bytes are read and written off the main thread.
+     */
+    private void loadStoredId() {
+        final String reservationId = getWizardActivity().getEditingReservationId();
+        if (reservationId == null) return;
+        storedIdLoading = true;
+        storedIdLoadFailed = false;
+        tvIdUploadStatus.setText(R.string.discount_id_loading);
+        if (ioExecutor == null) ioExecutor = Executors.newSingleThreadExecutor();
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final int generation = loadGeneration;
+        ApiClient.getService(appContext).getIdCard(reservationId).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (!isAdded() || getView() == null || generation != loadGeneration) return;
+                if (!response.isSuccessful() || response.body() == null || ioExecutor == null) {
+                    finishStoredIdLoad(null);
+                    return;
+                }
+                final ResponseBody body = response.body();
+                try {
+                    ioExecutor.execute(() -> {
+                        File file = null;
+                        try {
+                            byte[] bytes = body.bytes();
+                            File target = new File(appContext.getCacheDir(), "step6_id_" + reservationId + ".jpg");
+                            try (FileOutputStream out = new FileOutputStream(target)) {
+                                out.write(bytes);
+                            }
+                            file = target;
+                        } catch (IOException | RuntimeException ignored) {
+                            // stays null -> "preview could not be loaded"
+                        }
+                        final File result = file;
+                        View v = getView();
+                        if (v != null) v.post(() -> finishStoredIdLoad(result));
+                    });
+                } catch (RejectedExecutionException ignored) {
+                    // screen is closing
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (!isAdded() || getView() == null || generation != loadGeneration) return;
+                finishStoredIdLoad(null);
+            }
+        });
+    }
+
+    private void finishStoredIdLoad(@Nullable File file) {
+        if (!isAdded() || getView() == null) return;
+        storedIdLoading = false;
+        storedIdFile = file;
+        storedIdLoadFailed = file == null;
+        refreshUploadSection();
     }
 
     @Override
     public String stepTitle() {
         return "ID Verification";
+    }
+
+    @Override
+    public int validationMessageRes() {
+        return R.string.error_id_required;
     }
 
     @Override
@@ -340,7 +482,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             // Inline, next to the field it belongs to.
             tvIdUploadStatus.setText(R.string.error_id_required);
             tvIdUploadStatus.setTextColor(requireContext().getColor(R.color.velocity_red_primary));
-            layoutIdUpload.requestFocus();
+            revealUploadSection();
             return false;
         }
         return true;

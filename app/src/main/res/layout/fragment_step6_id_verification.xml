@@ -2,6 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/step6Scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipToPadding="false"
@@ -146,6 +147,17 @@
                 android:contentDescription="@string/discount_id_preview_desc"
                 android:padding="1dp"
                 android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewId"
+                style="@style/Widget.Velocity.Flat.Button.Text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/discount_view_id"
+                android:textAllCaps="false"
+                android:textColor="@color/velocity_red_primary"
                 android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton

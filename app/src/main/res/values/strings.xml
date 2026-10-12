@@ -1020,6 +1020,10 @@
     <string name="discount_upload_title">Upload your ID</string>
     <string name="discount_upload_for_format">Upload a valid ID for the %1$s discount.</string>
     <string name="discount_id_preview_desc">Preview of your uploaded ID</string>
+    <string name="discount_view_id">View full size</string>
+    <string name="discount_id_loading">Your previously uploaded ID is on file. Loading preview…</string>
+    <string name="discount_id_load_failed">Your uploaded ID is on file, but its preview could not be loaded.</string>
+    <string name="discount_id_picker_unavailable">No app available to choose a photo.</string>
     <string name="discount_replace_id">Replace ID</string>
     <string name="discount_remove_id">Remove ID</string>
     <string name="discount_id_on_file">Your previously uploaded ID is on file.</string>
