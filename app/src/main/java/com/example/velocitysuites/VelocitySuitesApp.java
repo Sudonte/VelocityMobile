@@ -32,6 +32,14 @@ public class VelocitySuitesApp extends Application {
 
         // Debug-build-only (see CrashLogger's own doc) - no-ops entirely in release.
         CrashLogger.install(this);
+        if (BuildConfig.DEBUG) {
+            // Logs (never crashes on) disk/network work on the main thread and leaked Activities/closeables,
+            // so lag and leaks show up in logcat under the "StrictMode" tag while testing.
+            android.os.StrictMode.setThreadPolicy(new android.os.StrictMode.ThreadPolicy.Builder()
+                    .detectAll().penaltyLog().build());
+            android.os.StrictMode.setVmPolicy(new android.os.StrictMode.VmPolicy.Builder()
+                    .detectLeakedClosableObjects().detectActivityLeaks().penaltyLog().build());
+        }
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override public void onActivityResumed(Activity activity) {
                 CrashLogger.setCurrentActivityName(activity.getClass().getSimpleName());

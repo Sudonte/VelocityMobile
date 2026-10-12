@@ -484,6 +484,7 @@
                                 <ImageView
                                     android:layout_width="120dp"
                                     android:layout_height="120dp"
+                                    android:id="@+id/ivTotalDueDecor"
                                     android:layout_alignParentEnd="true"
                                     android:layout_centerVertical="true"
                                     android:layout_marginEnd="-40dp"
@@ -496,6 +497,7 @@
                                     android:id="@+id/lblTotalDue"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_toStartOf="@id/ivTotalDueDecor"
                                     android:fontFamily="sans-serif-black"
                                     android:letterSpacing="0.15"
                                     android:text="@string/total_amount_due"

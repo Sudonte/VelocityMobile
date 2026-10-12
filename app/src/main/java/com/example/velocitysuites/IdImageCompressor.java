@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+// minSdk 29: the InputStream constructor of the platform ExifInterface is reliable here; no extra dependency needed.
+import android.annotation.SuppressLint;
 import android.media.ExifInterface;
 import android.net.Uri;
 
@@ -19,6 +21,7 @@ import java.io.InputStream;
  * capped (IDs stay legible for the receptionist) and the EXIF rotation is baked into the pixels,
  * since the re-encoded file carries no EXIF.
  */
+@SuppressLint("ExifInterface")
 final class IdImageCompressor {
 
     static final int MAX_EDGE_PX = 1600;

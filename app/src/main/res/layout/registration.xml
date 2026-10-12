@@ -465,7 +465,7 @@
                                 android:layout_weight="1"
                                 android:fontFamily="sans-serif-medium"
                                 android:text="@string/age_validation_error"
-                                android:textColor="@color/velocity_red_dark"
+                                android:textColor="@color/velocity_red_text"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -1082,7 +1082,7 @@
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp" />
 
-                        <LinearLayout
+                        <LinearLayout android:baselineAligned="false"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="13dp"
@@ -1258,7 +1258,7 @@
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/verify_otp_title"
-                                android:textColor="@color/velocity_red_dark"
+                                android:textColor="@color/velocity_red_text"
                                 android:textAllCaps="true"
                                 android:letterSpacing="0.03"
                                 android:textSize="16sp" />
