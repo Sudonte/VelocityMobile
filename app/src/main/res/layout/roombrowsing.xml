@@ -99,7 +99,7 @@
                         style="@style/Widget.Velocity.Card.Glass"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginHorizontal="16dp"
                         android:layout_marginBottom="14dp"
                         app:cardElevation="@dimen/card_elevation">
 
@@ -107,7 +107,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_glass_card_white"
-                            android:padding="13dp">
+                            android:padding="16dp">
 
                             <com.google.android.material.card.MaterialCardView
                                 android:id="@+id/cardSearchHeaderIcon"
@@ -244,12 +244,30 @@
                                 </LinearLayout>
                             </LinearLayout>
 
+                            <!-- "2 nights" once both dates are picked. -->
+                            <TextView
+                                android:id="@+id/tvNightsSummary"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:drawablePadding="6dp"
+                                android:fontFamily="sans-serif-bold"
+                                android:gravity="center_vertical"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="13sp"
+                                android:visibility="gone"
+                                app:drawableStartCompat="@drawable/ic_clock"
+                                app:drawableTint="@color/velocity_red_primary"
+                                app:layout_constraintTop_toBottomOf="@id/dateFieldsRow"
+                                tools:text="2 nights"
+                                tools:visibility="visible" />
+
                             <!-- 48-hour advance check-in note; text from CheckInNotice so the date is never hard-coded. -->
                             <TextView
                                 android:id="@+id/tvCheckInAdvanceNotice"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="11dp"
+                                android:layout_marginTop="8dp"
                                 android:background="@color/velocity_red_bg_end"
                                 android:drawablePadding="8dp"
                                 android:padding="11dp"
@@ -257,7 +275,7 @@
                                 android:textSize="12sp"
                                 app:drawableStartCompat="@drawable/ic_info"
                                 app:drawableTint="@color/velocity_red_primary"
-                                app:layout_constraintTop_toBottomOf="@id/dateFieldsRow" />
+                                app:layout_constraintTop_toBottomOf="@id/tvNightsSummary" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSearchAvailability"
@@ -277,9 +295,9 @@
                                 android:id="@+id/btnResetSearch"
                                 style="@style/Widget.MaterialComponents.Button.TextButton"
                                 android:layout_width="match_parent"
-                                android:layout_height="36dp"
+                                android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:minHeight="0dp"
+                                android:minHeight="48dp"
                                 android:text="@string/reset_label"
                                 android:textColor="@color/velocity_red_primary"
                                 android:textSize="12sp"
@@ -383,6 +401,26 @@
                                     android:ellipsize="end"
                                     tools:text="25 Rooms Found" />
                             </LinearLayout>
+
+                            <!-- Compact dates, shown once dates are picked; tap = back up to the search card. -->
+                            <TextView
+                                android:id="@+id/tvPinnedDates"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="20dp"
+                                android:layout_marginTop="4dp"
+                                android:background="?attr/selectableItemBackground"
+                                android:drawablePadding="4dp"
+                                android:fontFamily="sans-serif-bold"
+                                android:gravity="center_vertical"
+                                android:minHeight="32dp"
+                                android:textColor="@color/velocity_red_primary"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                app:drawableStartCompat="@drawable/ic_calendar"
+                                app:drawableTint="@color/velocity_red_primary"
+                                tools:text="Oct 12 - Oct 14 · 2 nights"
+                                tools:visibility="visible" />
 
                             <TextView
                                 android:id="@+id/tvCurrentSortLabel"

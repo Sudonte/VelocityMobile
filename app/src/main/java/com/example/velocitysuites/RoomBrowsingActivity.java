@@ -50,6 +50,10 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private Calendar checkInDate, checkOutDate;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+    /** What the Check-in / Check-out fields show: "Mon, Oct 12, 2026". */
+    private final SimpleDateFormat fieldDateFormat = new SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault());
+    private final SimpleDateFormat shortDateFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
+    private TextView tvNightsSummary, tvPinnedDates;
 
     // Filters and Sorting
     private int selectedCapacity = 0; // 0 for any, 1 for 1-2, 2 for 3-4, 3 for 5+
@@ -160,6 +164,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         ((android.widget.TextView) findViewById(R.id.tvCheckInAdvanceNotice)).setText(CheckInNotice.notice(this));
         etCheckOut = findViewById(R.id.etCheckOut);
         checkInLayout = findViewById(R.id.checkInLayout);
+        tvNightsSummary = findViewById(R.id.tvNightsSummary);
+        tvPinnedDates = findViewById(R.id.tvPinnedDates);
+        stackDateFieldsOnNarrowScreens();
         checkOutLayout = findViewById(R.id.checkOutLayout);
         btnSearchAvailability = findViewById(R.id.btnSearchAvailability);
         btnFilters = findViewById(R.id.btnFilters);
@@ -187,10 +194,10 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (emptyStateDesc != null) emptyStateDesc.setText(R.string.no_matching_rooms_desc);
         if (emptyStateIcon != null) emptyStateIcon.setImageResource(R.drawable.ic_room_search);
         if (btnEmptyStateAction != null) {
-            btnEmptyStateAction.setText(R.string.clear_filters);
+            btnEmptyStateAction.setText(R.string.reset_label);
             btnEmptyStateAction.setIconResource(R.drawable.ic_filter);
             btnEmptyStateAction.setVisibility(View.VISIBLE);
-            btnEmptyStateAction.setOnClickListener(v -> clearAllFilters());
+            btnEmptyStateAction.setOnClickListener(v -> { clearAllFilters(); loadRooms(); });
         }
 
         // Persistent network/API failure state - see roombrowsing.xml's layoutRoomError.
@@ -393,11 +400,11 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 }
                 
                 // Highlight the date fields
-                if (checkInDate == null) etCheckIn.setError(getString(R.string.error_required));
-                if (checkOutDate == null) etCheckOut.setError(getString(R.string.error_required));
+                if (checkInDate == null) checkInLayout.setError(getString(R.string.error_required));
+                if (checkOutDate == null) checkOutLayout.setError(getString(R.string.error_required));
             } else {
-                etCheckIn.setError(null);
-                etCheckOut.setError(null);
+                checkInLayout.setError(null);
+                checkOutLayout.setError(null);
                 performSearchWithLoading();
             }
         });
@@ -447,6 +454,42 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private static final long ONE_DAY_MS = 24L * 60 * 60 * 1000;
 
+    /** "2 nights" under the fields and "Oct 12 - Oct 14 - 2 nights" in the pinned bar - only when both dates are set. */
+    private void updateDateSummary() {
+        boolean both = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
+        if (tvNightsSummary == null || tvPinnedDates == null) return;
+        if (!both) {
+            tvNightsSummary.setVisibility(View.GONE);
+            tvPinnedDates.setVisibility(View.GONE);
+            return;
+        }
+        int nights = (int) StayDateCalculator.nightsBetween(checkInDate, checkOutDate);
+        String nightsText = getResources().getQuantityString(R.plurals.nights_lower, nights, nights);
+        tvNightsSummary.setText(nightsText);
+        tvNightsSummary.setVisibility(View.VISIBLE);
+        String pinned = getString(R.string.pinned_dates_format,
+                shortDateFormat.format(checkInDate.getTime()), shortDateFormat.format(checkOutDate.getTime()), nightsText);
+        tvPinnedDates.setText(pinned);
+        tvPinnedDates.setContentDescription(getString(R.string.pinned_dates_cd, pinned));
+        tvPinnedDates.setVisibility(View.VISIBLE);
+    }
+
+    /** On a very narrow screen the two date fields stack (check-in above check-out) instead of squeezing side by side. */
+    private void stackDateFieldsOnNarrowScreens() {
+        android.widget.LinearLayout row = findViewById(R.id.dateFieldsRow);
+        if (row == null || getResources().getConfiguration().screenWidthDp >= 340) return;
+        row.setOrientation(android.widget.LinearLayout.VERTICAL);
+        for (int i = 0; i < row.getChildCount(); i++) {
+            android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) row.getChildAt(i).getLayoutParams();
+            lp.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+            lp.weight = 0f;
+            lp.setMarginStart(0);
+            lp.setMarginEnd(0);
+            lp.topMargin = i == 0 ? 0 : (int) (8 * getResources().getDisplayMetrics().density);
+            row.getChildAt(i).setLayoutParams(lp);
+        }
+    }
+
     private void showCheckInPicker() {
         // Earliest check-in: hotel-local today + 2 days, no upper limit (see CheckInWindow)
         long earliestCheckInUtc = CheckInWindow.earliestUtcMillis();
@@ -468,19 +511,21 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         picker.addOnPositiveButtonClickListener(selection -> {
             checkInDate = fromUtcMidnight(selection);
-            etCheckIn.setText(dateFormat.format(checkInDate.getTime()));
-            etCheckIn.setError(null);
+            etCheckIn.setText(fieldDateFormat.format(checkInDate.getTime()));
+            checkInLayout.setError(null);
 
             // A previously chosen check-out that is no longer at least one
             // night after the new check-in must be re-picked
             if (checkOutDate != null && !checkOutDate.after(checkInDate)) {
                 checkOutDate = null;
                 etCheckOut.setText("");
+                checkOutLayout.setError(null);
             }
 
             // Check-out becomes selectable now that check-in is valid, but the
             // guest picks it themselves rather than being forced into it here.
             checkOutLayout.setEnabled(true);
+            updateDateSummary();
         });
 
         picker.show(getSupportFragmentManager(), "CHECK_IN_PICKER");
@@ -490,8 +535,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (checkInDate == null) {
             // Defensive guard: the field is disabled until check-in is set, so this
             // only fires if something (e.g. accessibility tooling) bypasses that.
-            etCheckIn.setError(getString(R.string.error_select_checkin_first));
-            Toast.makeText(this, R.string.error_select_checkin_first, Toast.LENGTH_SHORT).show();
+            checkInLayout.setError(getString(R.string.error_select_checkin_first));
             return;
         }
 
@@ -514,8 +558,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         picker.addOnPositiveButtonClickListener(selection -> {
             checkOutDate = fromUtcMidnight(selection);
-            etCheckOut.setText(dateFormat.format(checkOutDate.getTime()));
-            etCheckOut.setError(null);
+            etCheckOut.setText(fieldDateFormat.format(checkOutDate.getTime()));
+            checkOutLayout.setError(null);
+            updateDateSummary();
         });
 
         picker.show(getSupportFragmentManager(), "CHECK_OUT_PICKER");
@@ -551,13 +596,15 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         btnFilters.setOnClickListener(v -> showFilterDialog());
         btnResetSearch.setOnClickListener(v -> {
-            etCheckIn.setText("");
-            etCheckOut.setText("");
-            checkInDate = null;
-            checkOutDate = null;
-            checkOutLayout.setEnabled(false);
-            performSearchWithLoading();
+            clearAllFilters();   // dates, sort, type, status, capacity, price
+            loadRooms();         // and back to the default room list
         });
+        if (tvPinnedDates != null) {
+            tvPinnedDates.setOnClickListener(v -> {
+                if (appBarLayout != null) appBarLayout.setExpanded(true, true);
+                if (rvRooms != null) rvRooms.smoothScrollToPosition(0);
+            });
+        }
     }
 
     private void setupSortDropdown() {
@@ -695,7 +742,10 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         etCheckOut.setText("");
         checkInDate = null;
         checkOutDate = null;
+        checkInLayout.setError(null);
+        checkOutLayout.setError(null);
         checkOutLayout.setEnabled(false);
+        updateDateSummary();
         dropdownSort.setText(getString(R.string.sort_default), false);
         dropdownRoomType.setText(getString(R.string.all_categories), false);
         dropdownStatus.setText(getString(R.string.filter_status_all_rooms), false);

@@ -217,10 +217,6 @@
     <string name="section_title_room_information">Room Information</string>
     <string name="section_title_booking_information">Stay &amp; Dates</string>
     <string name="section_title_discount_id">Discount ID</string>
-    <string name="discount_id_status_label">ID verification</string>
-    <string name="discount_id_status_pending">Waiting for the front desk to check your ID</string>
-    <string name="discount_id_status_approved">Approved - the discount applies to your bill</string>
-    <string name="discount_id_status_rejected">Rejected - no discount applies to your bill</string>
     <string name="receipt_information_title">Receipt Information</string>
     <string name="receipt_payment_percentage_label">Payment Percentage</string>
     <string name="receipt_payment_status_label">Payment Status</string>
@@ -664,8 +660,8 @@
     <string name="clear_filters">Clear All Filters</string>
     <string name="apply_filters">Apply Filters</string>
     <string name="filter_rooms_title">Filter Rooms</string>
-    <string name="no_matching_rooms">No Available Rooms</string>
-    <string name="no_matching_rooms_desc">No rooms match your selected filters or search criteria. Please try different options.</string>
+    <string name="no_matching_rooms">No rooms available</string>
+    <string name="no_matching_rooms_desc">No rooms available for these dates. Try different dates.</string>
     <string name="searching_rooms">Searching for rooms…</string>
     <string name="finding_best_options">Finding the best options…</string>
     <string name="reset_label">Reset</string>
@@ -1834,6 +1830,44 @@
     <string name="chip_status_active">Active</string>
     <string name="chip_status_completed">Completed</string>
     <string name="chip_status_cancelled">Cancelled / Rejected</string>
+    <plurals name="nights_lower">
+        <item quantity="one">%1$d night</item>
+        <item quantity="other">%1$d nights</item>
+    </plurals>
+    <string name="pinned_dates_format">%1$s – %2$s · %3$s</string>
+    <string name="pinned_dates_cd">Dates: %1$s. Tap to change.</string>
+    <string name="guest_label_name">Name</string>
+    <string name="guest_label_email">Email</string>
+    <string name="guest_label_phone">Phone</string>
+    <string name="guest_label_address">Address</string>
+    <string name="discount_chip_pending">Waiting for the front desk to verify your ID</string>
+    <string name="discount_help_pending">Please present your Senior Citizen / PWD ID at the front desk. Your discount will be applied once verified.</string>
+    <string name="discount_chip_approved">Your ID has been successfully verified</string>
+    <string name="discount_help_approved">Your %1$s discount has been applied.</string>
+    <string name="discount_chip_rejected">ID verification unsuccessful – please ask the front desk.</string>
+    <string name="discount_label_type">Discount type</string>
+    <string name="discount_label_id_details">ID</string>
+    <string name="discount_label_amount">Discount amount</string>
+    <string name="discount_amount_pending">Pending verification</string>
+    <string name="discount_id_photo_cd">Your uploaded ID. Tap to view full screen.</string>
+    <string name="discount_name_senior">Senior Citizen</string>
+    <string name="discount_name_pwd">PWD</string>
+    <string name="discount_name_generic">discount</string>
+    <string name="ph_amount_paid_label">Paid</string>
+    <string name="ph_total_label">Total</string>
+    <string name="ph_discount_label">Discount</string>
+    <string name="ph_remaining_label">Remaining Balance</string>
+    <string name="ph_no_payments">No payments yet.</string>
+    <string name="ph_view_receipt">View receipt</string>
+    <string name="ph_type_deposit">Deposit</string>
+    <string name="ph_type_full">Full Payment</string>
+    <string name="ph_type_balance">Balance</string>
+    <string name="ph_type_payment">Payment</string>
+    <string name="ph_status_pending">Pending verification</string>
+    <string name="ph_status_verified">Verified</string>
+    <string name="ph_status_rejected">Rejected</string>
+    <string name="ph_method_type_format">%1$s · %2$s</string>
+    <string name="ph_reference_format">Ref. %1$s</string>
 </resources>
 
 
