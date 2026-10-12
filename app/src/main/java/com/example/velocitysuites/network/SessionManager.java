@@ -174,6 +174,10 @@ public final class SessionManager {
     public static void clear(Context context) {
         prefs(context).edit().clear().apply();
         securePrefs(context).edit().clear().apply();
+        // The saved theme lives in the prefs wiped above, but AppCompatDelegate still holds the
+        // previous guest's night mode for this process - reset it so the login screen and the
+        // next session start in Light mode instead of staying Dark until the app restarts.
+        com.example.velocitysuites.ThemePreferences.applyMode(com.example.velocitysuites.ThemePreferences.MODE_LIGHT);
     }
 
     private static SharedPreferences prefs(Context context) {
