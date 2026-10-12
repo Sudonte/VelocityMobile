@@ -1380,6 +1380,54 @@
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
+                        <!-- Filter chips: All / Active / Completed / Cancelled-Rejected for whichever tab is open.
+                             They drive the same per-tab state as the two hidden dropdowns below. -->
+                        <HorizontalScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:scrollbars="none">
+
+                            <com.google.android.material.chip.ChipGroup
+                                android:id="@+id/cgStatusFilter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:chipSpacingHorizontal="6dp"
+                                app:selectionRequired="true"
+                                app:singleLine="true"
+                                app:singleSelection="true">
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipStatusAll"
+                                    style="@style/Widget.Velocity.Flat.Chip"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/chip_status_all"
+                                    android:textSize="13sp" />
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipStatusActive"
+                                    style="@style/Widget.Velocity.Flat.Chip"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/chip_status_active"
+                                    android:textSize="13sp" />
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipStatusCompleted"
+                                    style="@style/Widget.Velocity.Flat.Chip"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/chip_status_completed"
+                                    android:textSize="13sp" />
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chipStatusCancelled"
+                                    style="@style/Widget.Velocity.Flat.Chip"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/chip_status_cancelled"
+                                    android:textSize="13sp" />
+                            </com.google.android.material.chip.ChipGroup>
+                        </HorizontalScrollView>
+
                         <!-- Status Filter combo box: one dropdown per tab (never shared -
                              see BookingAndReservationActivity's per-tab
                              showAllBookingCategories/showAllReservationCategories

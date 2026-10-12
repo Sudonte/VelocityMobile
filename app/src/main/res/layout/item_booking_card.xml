@@ -18,25 +18,13 @@
         android:paddingHorizontal="14dp"
         android:paddingVertical="8dp">
 
-        <!-- Summary row: room picture, then ID / rooms / dates / status, chevron. Full
+        <!-- Summary row: ID / rooms / dates / status, chevron (no picture). Full
              guest/payment/timeline info lives in BookingDetailsActivity, opened by tapping
              anywhere on this card. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/ivBookingRoom"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="11dp"
-                android:background="@color/velocity_red_soft"
-                android:contentDescription="@null"
-                android:importantForAccessibility="no"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_bed" />
 
             <LinearLayout
                 android:layout_width="0dp"

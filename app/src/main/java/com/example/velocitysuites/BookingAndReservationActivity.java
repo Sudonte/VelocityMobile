@@ -112,6 +112,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
     private View layoutBookingStatusFilter, layoutReservationStatusFilter;
     private AutoCompleteTextView bookingStatusFilter, reservationStatusFilter;
+    private ChipGroup cgStatusFilter;
+    /** True while code (not the guest) is checking a chip, so the listener does not re-filter. */
+    private boolean syncingStatusChips;
     private View cardCancellationPolicy;
     /**
      * Independent per-tab Status Filter state - a Reservation status pick
@@ -529,6 +532,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         layoutReservationStatusFilter = findViewById(R.id.layoutReservationStatusFilter);
         bookingStatusFilter = findViewById(R.id.bookingStatusFilter);
         reservationStatusFilter = findViewById(R.id.reservationStatusFilter);
+        cgStatusFilter = findViewById(R.id.cgStatusFilter);
         cardCancellationPolicy = findViewById(R.id.cardCancellationPolicy);
 
         etSearchTransactions = findViewById(R.id.etSearchTransactions);
@@ -774,12 +778,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (ivListEmptyIcon != null) {
             ivListEmptyIcon.setImageResource(reservation ? R.drawable.ic_reservation : R.drawable.ic_booking);
         }
-        if (layoutBookingStatusFilter != null) {
-            layoutBookingStatusFilter.setVisibility(reservation ? View.GONE : View.VISIBLE);
-        }
-        if (layoutReservationStatusFilter != null) {
-            layoutReservationStatusFilter.setVisibility(reservation ? View.VISIBLE : View.GONE);
-        }
+        // The chip row replaces the two dropdowns on screen; they stay hidden and only hold no state of their own.
+        if (layoutBookingStatusFilter != null) layoutBookingStatusFilter.setVisibility(View.GONE);
+        if (layoutReservationStatusFilter != null) layoutReservationStatusFilter.setVisibility(View.GONE);
         // Only one of New Booking/New Reservation is ever relevant to the
         // active tab - GONE (not INVISIBLE) so the other button expands to
         // fill the freed width instead of leaving a blank half-row.
@@ -921,6 +922,17 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
         });
 
+        if (cgStatusFilter != null) {
+            cgStatusFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (syncingStatusChips || checkedIds.isEmpty()) return;
+                boolean reservation = isReservationMode();
+                int id = checkedIds.get(0);
+                if (id == R.id.chipStatusActive) selectCategory(reservation, TransactionCategorizer.Category.ACTIVE);
+                else if (id == R.id.chipStatusCompleted) selectCategory(reservation, TransactionCategorizer.Category.COMPLETED);
+                else if (id == R.id.chipStatusCancelled) selectCategory(reservation, TransactionCategorizer.Category.CANCELLED);
+                else selectAllStatuses(reservation);
+            });
+        }
         syncStatusFilterDisplay();
     }
 
@@ -955,6 +967,18 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
     /** Reflects each tab's OWN remembered filter in its own combo box - both are kept in sync regardless of which one is currently visible, so switching tabs never shows a stale value. */
     private void syncStatusFilterDisplay() {
+        if (cgStatusFilter != null) {
+            boolean reservation = isReservationMode();
+            boolean all = reservation ? showAllReservationCategories : showAllBookingCategories;
+            TransactionCategorizer.Category category = reservation ? currentReservationCategory : currentBookingCategory;
+            int chipId = all ? R.id.chipStatusAll
+                    : category == TransactionCategorizer.Category.COMPLETED ? R.id.chipStatusCompleted
+                    : category == TransactionCategorizer.Category.CANCELLED ? R.id.chipStatusCancelled
+                    : R.id.chipStatusActive;
+            syncingStatusChips = true;
+            cgStatusFilter.check(chipId);
+            syncingStatusChips = false;
+        }
         if (bookingStatusFilter != null) {
             bookingStatusFilter.setText(getString(bookingStatusLabelRes(showAllBookingCategories, currentBookingCategory)), false);
         }
@@ -3605,23 +3629,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         return Booking.formatRoomSelectionSummary(countsByRoomName);
     }
 
-    /** The room's picture on a list card: thumbnail-decoded by Glide, the bed icon while loading or when there is none. */
-    private void bindCardPicture(ImageView view, Booking b) {
-        if (view == null) return;
-        String url = b.getRoomImageUrl();
-        if (url == null || url.trim().isEmpty() || isFinishing() || isDestroyed()) {
-            Glide.with(view).clear(view);
-            view.setImageResource(R.drawable.ic_bed);
-            return;
-        }
-        Glide.with(view)
-                .load(url)
-                .placeholder(R.drawable.ic_bed)
-                .error(R.drawable.ic_bed)
-                .thumbnail(0.25f)
-                .into(view);
-    }
-
     /**
      * Payment method, then what is paid and what is left. The remaining balance is only shown while something is
      * still owed on a live transaction (never for Cancelled/Rejected/Checked-Out/Completed, never at P0.00) - the
@@ -3699,7 +3706,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     ? getString(R.string.date_range_nights_format, b.getCheckInDate(), b.getCheckOutDate(),
                             getResources().getQuantityString(R.plurals.nights_count_plain, nights.intValue(), nights.intValue()))
                     : getString(R.string.date_range_format, b.getCheckInDate(), b.getCheckOutDate()));
-            bindCardPicture(holder.ivBookingRoom, b);
             bindCardPayment(holder.tvBookingPaymentMethod, holder.tvBookingPaidLine, b);
             // Payment method/status pill, amount paid, remaining balance, and
             // created date/time all moved into BookingDetailsActivity's Guest
@@ -3769,7 +3775,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             // dashboard screen now agrees on.
             TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
             boolean deletable = category == TransactionCategorizer.Category.CANCELLED
-                    || (isBookingTab && category == TransactionCategorizer.Category.COMPLETED);
+                    || (category == TransactionCategorizer.Category.COMPLETED && (isBookingTab || b.isHistoricalReservation()));
             styleStatusBadge(holder.tvBookingStatus, b);
             if (deletable) {
                 holder.btnModify.setVisibility(View.GONE);
@@ -3861,7 +3867,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingGuests, tvBookingPrice;
             TextView tvBookingPaymentMethod, tvBookingPaidLine;
-            ImageView ivBookingRoom;
             LinearLayout layoutActionButtons;
             TextView tvFrontDeskNote;
             MaterialButton btnModify, btnCancel, btnViewDetails, btnPayNow, btnDelete, btnBookAgain;
@@ -3877,7 +3882,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 tvBookingPrice = itemView.findViewById(R.id.tvBookingPrice);
                 tvBookingPaymentMethod = itemView.findViewById(R.id.tvBookingPaymentMethod);
                 tvBookingPaidLine = itemView.findViewById(R.id.tvBookingPaidLine);
-                ivBookingRoom = itemView.findViewById(R.id.ivBookingRoom);
                 layoutActionButtons = itemView.findViewById(R.id.layoutActionButtons);
                 btnModify = itemView.findViewById(R.id.btnModify);
                 btnCancel = itemView.findViewById(R.id.btnCancel);
