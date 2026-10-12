@@ -6,6 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="false">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,17 +58,68 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvFilterTitle" />
 
+        <!-- Room type / status: exposed dropdowns -->
+        <LinearLayout
+            android:id="@+id/typeStatusSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/filterDividerTop">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilRoomTypeFilter"
+                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/room_type_row_label">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropdownRoomType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-bold"
+                    android:includeFontPadding="false"
+                    android:inputType="none"
+                    android:paddingVertical="9dp"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="12sp"
+                    tools:ignore="LabelFor" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilStatusFilter"
+                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="@string/room_status_row_label">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropdownStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-bold"
+                    android:includeFontPadding="false"
+                    android:inputType="none"
+                    android:paddingVertical="9dp"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="12sp"
+                    tools:ignore="LabelFor" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
         <!-- Capacity Section -->
         <LinearLayout
             android:id="@+id/capacitySectionCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="13dp"
             android:background="@drawable/shape_search_field"
             android:backgroundTint="@color/velocity_red_bg_end"
             android:orientation="vertical"
             android:padding="14dp"
-            app:layout_constraintTop_toBottomOf="@id/filterDividerTop">
+            app:layout_constraintTop_toBottomOf="@id/typeStatusSection">
 
             <LinearLayout
                 android:id="@+id/capacityLabelContainer"
@@ -233,7 +289,7 @@
                 android:layout_height="44dp"
                 android:layout_marginEnd="10dp"
                 android:layout_weight="1"
-                android:text="@string/reset_label"
+                android:text="@string/clear_label"
                 android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
@@ -248,5 +304,6 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 
 </com.google.android.material.card.MaterialCardView>

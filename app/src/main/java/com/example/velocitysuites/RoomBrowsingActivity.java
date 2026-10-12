@@ -41,9 +41,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private TextInputEditText etCheckIn, etCheckOut;
     private TextInputLayout checkInLayout, checkOutLayout;
     private MaterialButton btnSearchAvailability, btnFilters, btnResetSearch;
-    private AutoCompleteTextView dropdownSort, dropdownRoomType, dropdownStatus;
+    private MaterialButton btnSort;
     private View noResultsView, loadingOverlay, layoutRoomError;
-    private TextView tvResultsCount, tvCurrentSortLabel;
+    private TextView tvResultsCount;
     private TextView emptyStateTitle, emptyStateDesc;
     private ImageView emptyStateIcon;
     private MaterialButton btnEmptyStateAction;
@@ -57,7 +57,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     // Filters and Sorting
     private int selectedCapacity = 0; // 0 for any, 1 for 1-2, 2 for 3-4, 3 for 5+
-    private float selectedMaxPrice = 10000;
+    private float selectedMaxPrice = 15000;
     private String currentSortMode = "Default"; // Default, PriceLow, PriceHigh, NameAZ
     private String selectedRoomTypeFilter = "All";
     private String selectedStatusFilter = "All"; // All, Available, Limited, Unavailable
@@ -127,6 +127,13 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         updatePersonalizedGreeting();
     }
 
+    /** The room-details dialog has its own heart: when it closes, redraw the card hearts from the store. */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && adapter != null) adapter.refreshFavorites();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -171,13 +178,10 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         btnSearchAvailability = findViewById(R.id.btnSearchAvailability);
         btnFilters = findViewById(R.id.btnFilters);
         btnResetSearch = findViewById(R.id.btnResetSearch);
-        dropdownSort = findViewById(R.id.dropdownSort);
-        dropdownRoomType = findViewById(R.id.dropdownRoomType);
-        dropdownStatus = findViewById(R.id.dropdownStatus);
+        btnSort = findViewById(R.id.btnSort);
         noResultsView = findViewById(R.id.noResultsView);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         tvResultsCount = findViewById(R.id.tvResultsCount);
-        tvCurrentSortLabel = findViewById(R.id.tvCurrentSortLabel);
         appBarLayout = findViewById(R.id.appBarLayout);
         if (appBarLayout != null) {
             // Pull-to-refresh only while the header is fully expanded. With the header collapsed a stray pull
@@ -648,9 +652,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         // However, we can keep the TextWatcher for clearing results if needed, or just let it be.
         // The user specifically wants the loading indicator on button click.
 
-        setupSortDropdown();
-        setupRoomTypeDropdown();
-        setupStatusDropdown();
+        setupSortButton();
+        updateFilterBadge();
 
         btnFilters.setOnClickListener(v -> showFilterDialog());
         btnResetSearch.setOnClickListener(v -> {
@@ -665,83 +668,67 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         }
     }
 
-    private void setupSortDropdown() {
-        String[] sortOptions = getResources().getStringArray(R.array.sort_options);
-        dropdownSort.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, sortOptions));
-        dropdownSort.setOnItemClickListener((parent, view, position, id) -> {
-            switch (position) {
-                case 1: currentSortMode = "PriceLow"; break;
-                case 2: currentSortMode = "PriceHigh"; break;
-                case 3: currentSortMode = "NameAZ"; break;
-                default: currentSortMode = "Default"; break;
-            }
-            applyControlChange();
+    private void setupSortButton() {
+        btnSort.setOnClickListener(v -> {
+            androidx.appcompat.widget.PopupMenu menu = new androidx.appcompat.widget.PopupMenu(this, btnSort);
+            String[] sortOptions = getResources().getStringArray(R.array.sort_options);
+            for (int i = 0; i < sortOptions.length; i++) menu.getMenu().add(0, i, i, sortOptions[i]);
+            menu.setOnMenuItemClickListener(item -> {
+                switch (item.getItemId()) {
+                    case 1: currentSortMode = "PriceLow"; break;
+                    case 2: currentSortMode = "PriceHigh"; break;
+                    case 3: currentSortMode = "NameAZ"; break;
+                    default: currentSortMode = "Default"; break;
+                }
+                applyControlChange();
+                return true;
+            });
+            menu.show();
         });
+        updateSortButtonLabel();
     }
 
-    private void setupRoomTypeDropdown() {
-        // Placeholder until the first room list arrives - real options are
-        // filled in by refreshRoomTypeDropdownOptions() below.
-        List<String> initial = new ArrayList<>();
-        initial.add(getString(R.string.all_categories));
-        dropdownRoomType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, initial));
+    private void updateSortButtonLabel() {
+        if (btnSort == null) return;
+        String[] sortOptions = getResources().getStringArray(R.array.sort_options);
+        int index = "PriceLow".equals(currentSortMode) ? 1 : "PriceHigh".equals(currentSortMode) ? 2 : "NameAZ".equals(currentSortMode) ? 3 : 0;
+        btnSort.setText(sortOptions[index]);
+        btnSort.setContentDescription(getString(R.string.sorting_by_label, sortOptions[index]));
     }
 
-    /**
-     * Room Type filter options must never be a fixed list - the System
-     * Administrator can create/rename/retire room types at any time through
-     * the web Rooms Module, and the guest app has to reflect that without an
-     * XML/code change. Rebuilt every time allRooms is (re)loaded, from the
-     * distinct types actually present in that list.
-     */
+    /** Type / Status / Capacity / Price that differ from "show everything" - drives the FILTERS (n) badge. */
+    private int activeFilterCount() {
+        int count = 0;
+        if (!"All".equals(selectedRoomTypeFilter)) count++;
+        if (!"All".equals(selectedStatusFilter)) count++;
+        if (selectedCapacity != 0) count++;
+        if (selectedMaxPrice < 15000) count++;
+        return count;
+    }
+
+    private void updateFilterBadge() {
+        if (btnFilters == null) return;
+        int count = activeFilterCount();
+        btnFilters.setText(count == 0 ? getString(R.string.filter_label) : getString(R.string.filters_count_format, count));
+    }
+
+    /** Distinct room types in the loaded list (the admin can add / rename types at any time), "All" first. */
     private void refreshRoomTypeDropdownOptions() {
         java.util.TreeSet<String> distinctTypes = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (Room r : allRooms) {
-            if (r.getType() != null && !r.getType().trim().isEmpty()) {
+            if (r != null && r.getType() != null && !r.getType().trim().isEmpty()) {
                 distinctTypes.add(r.getType().trim());
             }
         }
         List<String> options = new ArrayList<>();
         options.add(getString(R.string.all_categories));
         options.addAll(distinctTypes);
-
-        String previousSelection = dropdownRoomType.getText() != null ? dropdownRoomType.getText().toString() : null;
-        // Only touch the dropdown when its choices really changed - the silent 30s refresh calls this too, and an
-        // identical new adapter would close the list a guest is part-way through opening.
-        if (!options.equals(roomTypeOptions)) {
-            roomTypeOptions = options;
-            dropdownRoomType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
-            dropdownRoomType.setOnItemClickListener((parent, view, position, id) -> {
-                String selected = options.get(position);
-                selectedRoomTypeFilter = selected.equals(getString(R.string.all_categories)) ? "All" : selected;
-                applyControlChange();
-            });
-        }
-
-        if (previousSelection != null && options.contains(previousSelection)) {
-            dropdownRoomType.setText(previousSelection, false);
-        } else {
-            dropdownRoomType.setText(getString(R.string.all_categories), false);
-            selectedRoomTypeFilter = "All";
+        roomTypeOptions = options;
+        if (!"All".equals(selectedRoomTypeFilter) && !options.contains(selectedRoomTypeFilter)) {
+            selectedRoomTypeFilter = "All"; // the selected type no longer exists
+            updateFilterBadge();
         }
     }
-
-    private void setupStatusDropdown() {
-        String[] statusOptions = getResources().getStringArray(R.array.status_filter_options);
-        dropdownStatus.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, statusOptions));
-        dropdownStatus.setOnItemClickListener((parent, view, position, id) -> {
-            switch (position) {
-                case 1: selectedStatusFilter = "Available"; break;
-                case 2: selectedStatusFilter = "Limited"; break;
-                case 3: selectedStatusFilter = "Unavailable"; break;
-                default: selectedStatusFilter = "All"; break;
-            }
-            // Status is already known from the last fetch - filter the current list
-            // locally instead of re-hitting the network, so the change is instant.
-            applyFilters();
-        });
-    }
-
 
     private void showFilterDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_room_filters, null);
@@ -755,6 +742,26 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         MaterialButton btnApply = dialogView.findViewById(R.id.btnApplyFilters);
         MaterialButton btnClose = dialogView.findViewById(R.id.btnCloseFilters);
         MaterialButton btnClear = dialogView.findViewById(R.id.btnClearAll);
+        AutoCompleteTextView typeDropdown = dialogView.findViewById(R.id.dropdownRoomType);
+        AutoCompleteTextView statusDropdown = dialogView.findViewById(R.id.dropdownStatus);
+
+        // Pending choices: only written to the real filters on Apply.
+        final String[] pendingType = {selectedRoomTypeFilter};
+        final String[] pendingStatus = {selectedStatusFilter};
+        final String allTypes = getString(R.string.all_categories);
+        final List<String> typeOptions = roomTypeOptions.isEmpty() ? java.util.Collections.singletonList(allTypes) : roomTypeOptions;
+        typeDropdown.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, typeOptions));
+        typeDropdown.setText("All".equals(pendingType[0]) ? allTypes : pendingType[0], false);
+        typeDropdown.setOnItemClickListener((parent, view, position, id) ->
+                pendingType[0] = position == 0 ? "All" : typeOptions.get(position));
+        final String[] statusOptions = getResources().getStringArray(R.array.status_filter_options);
+        final String[] statusKeys = {"All", "Available", "Limited", "Unavailable"};
+        statusDropdown.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, statusOptions));
+        for (int i = 0; i < statusKeys.length; i++) {
+            if (statusKeys[i].equals(pendingStatus[0])) statusDropdown.setText(statusOptions[i], false);
+        }
+        statusDropdown.setOnItemClickListener((parent, view, position, id) ->
+                pendingStatus[0] = position < statusKeys.length ? statusKeys[position] : "All");
 
         // Set current values
         priceSlider.setValue(Math.min(selectedMaxPrice, priceSlider.getValueTo()));
@@ -771,13 +778,19 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         btnClose.setOnClickListener(v -> dialog.dismiss());
 
+        // Clear = back to "show everything" right away (dates and sort are left alone; Reset on the search card clears those too).
         btnClear.setOnClickListener(v -> {
-            priceSlider.setValue(priceSlider.getValueTo());
-            capacityGroup.check(R.id.chipAnyCap);
-            tvPriceLabel.setText(getString(R.string.budget_label, String.format(Locale.getDefault(), "%,.0f", priceSlider.getValueTo())));
+            selectedRoomTypeFilter = "All";
+            selectedStatusFilter = "All";
+            selectedCapacity = 0;
+            selectedMaxPrice = 15000;
+            dialog.dismiss();
+            applyControlChange();
         });
 
         btnApply.setOnClickListener(v -> {
+            selectedRoomTypeFilter = pendingType[0];
+            selectedStatusFilter = pendingStatus[0];
             selectedMaxPrice = priceSlider.getValue();
             int checkedId = capacityGroup.getCheckedChipId();
             if (checkedId == R.id.chipAnyCap) selectedCapacity = 0;
@@ -803,9 +816,6 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         checkInLayout.setError(null);
         checkOutLayout.setError(null);
         updateDateSummary();
-        dropdownSort.setText(getString(R.string.sort_default), false);
-        dropdownRoomType.setText(getString(R.string.all_categories), false);
-        dropdownStatus.setText(getString(R.string.filter_status_all_rooms), false);
         selectedRoomTypeFilter = "All";
         selectedStatusFilter = "All";
         selectedCapacity = 0;
@@ -826,7 +836,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 typeFilter,
                 selectedCapacity,
                 0,
-                selectedMaxPrice,
+                selectedMaxPrice >= 15000 ? Float.MAX_VALUE : selectedMaxPrice, // slider maximum = no limit
                 checkInDate,
                 checkOutDate
         );
@@ -907,21 +917,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             }
         }
 
-        if (tvCurrentSortLabel != null) {
-            String sortName = getString(R.string.sort_default);
-            switch (currentSortMode) {
-                case "PriceLow":
-                    sortName = "Price: Low to High";
-                    break;
-                case "PriceHigh":
-                    sortName = "Price: High to Low";
-                    break;
-                case "NameAZ":
-                    sortName = "Name: A-Z";
-                    break;
-            }
-            tvCurrentSortLabel.setText(getString(R.string.sorting_by_label, sortName));
-        }
+        updateSortButtonLabel();
+        updateFilterBadge();
         updateSelectionSummaryBar();
     }
 

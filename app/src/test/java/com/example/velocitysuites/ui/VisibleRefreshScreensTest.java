@@ -414,15 +414,17 @@ public class VisibleRefreshScreensTest {
         assertEquals("3 Rooms Found", count.getText().toString());
 
         // The guest filters to one room type (their choice must survive every refresh from now on).
-        AutoCompleteTextView types = activity.findViewById(R.id.dropdownRoomType);
+        activity.findViewById(R.id.btnFilters).performClick();
+        idle();
+        android.app.Dialog dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        AutoCompleteTextView types = dialog.findViewById(R.id.dropdownRoomType);
         int deluxe = indexOf(types, "Deluxe");
         types.getOnItemClickListener().onItemClick(null, null, deluxe, 0);
+        dialog.findViewById(R.id.btnApplyFilters).performClick();
         idle();
-        answerPending("getRoomsFresh", LandingFixtures.rooms(
-                LandingFixtures.roomType(1, "Deluxe", "1800.00", 3),
-                LandingFixtures.roomType(2, "Suite", "3000.00", 2),
-                LandingFixtures.roomType(3, "Family", "4000.00", 5)));
+        // a filter change re-filters the loaded rooms: no refetch, and the bar reads FILTERS (1)
         assertEquals("1 Room Found", count.getText().toString());
+        assertEquals("FILTERS (1)", ((android.widget.Button) activity.findViewById(R.id.btnFilters)).getText().toString());
         // every load of this screen - opening, searching, the beat - goes through the no-cache endpoint
 
         secondsUntilBeat("getRoomsFresh");
