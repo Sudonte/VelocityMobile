@@ -83,6 +83,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "GIT_COMMIT", "\"$gitCommitHash\"")
+        // The live API. Every build uses it unless a DEBUG build is given -PapiBaseUrl=... (see buildTypes.debug).
+        buildConfigField("String", "API_BASE_URL", "\"https://velocitysuites.com/api/\"")
         buildConfigField("String", "BUILD_TIME", "\"$buildTimestamp\"")
     }
 
@@ -98,6 +100,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Local end-to-end testing only: ./gradlew assembleDebug -PapiBaseUrl=http://10.0.2.2:8000/api/
+            // Release builds never read this property.
+            (project.findProperty("apiBaseUrl") as String?)?.let {
+                buildConfigField("String", "API_BASE_URL", "\"$it\"")
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

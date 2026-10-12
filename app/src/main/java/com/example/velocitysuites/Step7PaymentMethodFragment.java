@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -87,11 +86,12 @@ public class Step7PaymentMethodFragment extends WizardStepFragment {
     }
 
     @Override
+    public int validationMessageRes() {
+        return R.string.error_payment_method_required;
+    }
+
+    @Override
     public boolean validateBeforeNext() {
-        if (!getState().paymentMethodChosen) {
-            Toast.makeText(requireContext(), R.string.error_payment_method_required, Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        return true;
+        return getState().paymentMethodChosen;
     }
 }

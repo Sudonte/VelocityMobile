@@ -18,7 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public final class ApiClient {
 
-    public static final String BASE_URL = "https://velocitysuites.com/api/";
+    public static final String BASE_URL = com.example.velocitysuites.BuildConfig.API_BASE_URL;
 
     private static ApiService service;
 

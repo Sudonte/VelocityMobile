@@ -87,6 +87,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private MaterialButton btnConfirm;
 
     private boolean submitting = false;
+    /** The "Are you sure?" dialog is up - a fast second tap on Confirm must not stack a second one. */
+    private boolean confirmDialogOpen = false;
 
     @Nullable
     @Override
@@ -380,7 +382,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     }
 
     private void onConfirmClicked() {
-        if (submitting) return;
+        if (submitting || confirmDialogOpen) return;
         BookingWizardState state = getState();
 
         if (!state.termsViewed || !state.termsAccepted) {
@@ -406,6 +408,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 .setMessage(confirmMessageRes)
                 .setPositiveButton(isEditMode ? R.string.confirm_update_reservation_positive : R.string.confirm_dialog_positive,
                         (dialog, which) -> {
+                            if (submitting) return; // a repeat tap on a second copy of this dialog
                             // Armed HERE, synchronously, the instant the guest taps Yes - not
                             // inside proceedAfterConfirm(), which only runs once
                             // recheckAvailabilityThenProceed()'s async network round-trip
@@ -423,6 +426,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         if (isEditMode) {
             builder.setTitle(R.string.confirm_update_reservation_title);
         }
+        confirmDialogOpen = true;
+        builder.setOnDismissListener(d -> confirmDialogOpen = false);
         builder.show();
     }
 
@@ -598,8 +603,26 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private void onReservationCreationFailed(@Nullable String errorMessage) {
         if (!isAdded()) return;
         setSubmitting(false);
-        Toast.makeText(requireContext(), errorMessage != null ? errorMessage : getString(R.string.error_room_unavailable), Toast.LENGTH_LONG).show();
-        getWizardActivity().goToStep(2);
+        showSubmitFailedDialog(errorMessage, () -> {
+            setSubmitting(true);
+            createReservationsThenShowSuccess();
+        });
+    }
+
+    /**
+     * A failed submit keeps the guest on the review step with everything they entered. They can retry (a lost
+     * connection is the usual cause), or go change the rooms/dates when the server said they are no longer free.
+     */
+    private void showSubmitFailedDialog(@Nullable String serverMessage, Runnable retry) {
+        if (!isAdded()) return;
+        String message = serverMessage != null && !serverMessage.trim().isEmpty() ? serverMessage : getString(R.string.error_submit_generic);
+        new SafeDialogs.Material(requireContext())
+                .setTitle(R.string.submit_failed_title)
+                .setMessage(message)
+                .setPositiveButton(R.string.retry_label, (d, w) -> retry.run())
+                .setNeutralButton(R.string.submit_failed_change, (d, w) -> getWizardActivity().goToStep(2))
+                .setNegativeButton(R.string.close_label, null)
+                .show();
     }
 
     private void onReservationCreated(Booking created) {
@@ -681,7 +704,10 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                     public void onError(String message) {
                         if (!isAdded()) return;
                         setSubmitting(false);
-                        Toast.makeText(requireContext(), message != null ? message : getString(R.string.error_room_unavailable), Toast.LENGTH_LONG).show();
+                        showSubmitFailedDialog(message, () -> {
+                            setSubmitting(true);
+                            saveEditedReservation();
+                        });
                     }
                 });
     }

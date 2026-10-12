@@ -1375,7 +1375,7 @@
                                     android:layout_weight="1"
                                     android:lineSpacingExtra="2dp"
                                     android:text="@string/booking_cancellation_policy_notice"
-                                    android:textColor="@color/velocity_red_dark"
+                                    android:textColor="@color/velocity_text_primary"
                                     android:textSize="12sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
@@ -1553,7 +1553,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:gravity="center"
                                 android:text="@string/booking_list_empty_title"
-                                android:textColor="@color/velocity_red_dark"
+                                android:textColor="@color/velocity_red_primary"
                                 android:textSize="13sp" />
 
                             <TextView

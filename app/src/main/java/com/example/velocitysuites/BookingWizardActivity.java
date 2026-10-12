@@ -105,6 +105,8 @@ public class BookingWizardActivity extends AppCompatActivity {
         if (currentStepIndex < stepCount) {
             btnNext.setEnabled(enabled);
         }
+        // Called whenever the room selection changes - keep the running summary in step with it.
+        updateSummaryBar();
     }
 
     /** Advances past the current step without re-running its own validateBeforeNext() - for a step's own "Skip" affordance (e.g. amenities). */
@@ -242,6 +244,19 @@ public class BookingWizardActivity extends AppCompatActivity {
 
         btnPrevious = findViewById(R.id.btnWizardPrevious);
         btnNext = findViewById(R.id.btnWizardNext);
+
+        // Edge-to-edge devices (target SDK 35+) draw under the status/navigation bars: keep the header
+        // below the status bar and the Back/Next bar above the navigation bar and the keyboard.
+        View wizardRoot = findViewById(R.id.wizardRoot);
+        final int headerTop = headerBar.getPaddingTop();
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(wizardRoot, (v, insets) -> {
+            androidx.core.graphics.Insets bars = insets.getInsets(
+                    androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout());
+            androidx.core.graphics.Insets ime = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime());
+            headerBar.setPadding(headerBar.getPaddingLeft(), headerTop + bars.top, headerBar.getPaddingRight(), headerBar.getPaddingBottom());
+            v.setPadding(bars.left, 0, bars.right, Math.max(bars.bottom, ime.bottom));
+            return insets;
+        });
         findViewById(R.id.btnWizardBack).setOnClickListener(v -> handleBackPress());
         // A fast double-tap on Back/Next must move exactly one step - the second tap would otherwise
         // run against the NEXT step's (often empty) validation and skip right past it.
@@ -527,7 +542,11 @@ public class BookingWizardActivity extends AppCompatActivity {
         stepIndicator.setCurrentStep(currentStepIndex);
         WizardStepFragment current = currentFragment();
         String title = current != null ? current.stepTitle() : "";
-        tvStepLabel.setText(getString(R.string.wizard_step_label_format, currentStepIndex, stepCount, title));
+        tvStepLabel.setText(getString(R.string.wizard_step_x_of_y_format, currentStepIndex, stepCount));
+        TextView tvStepName = findViewById(R.id.tvWizardStepName);
+        if (tvStepName != null) tvStepName.setText(title);
+        com.google.android.material.progressindicator.LinearProgressIndicator progressBar = findViewById(R.id.wizardProgressBar);
+        if (progressBar != null) progressBar.setProgressCompat(Math.round(100f * currentStepIndex / stepCount), true);
         if (tvStepsRemaining != null) {
             int remaining = stepCount - currentStepIndex;
             tvStepsRemaining.setText(remaining > 0
@@ -553,7 +572,8 @@ public class BookingWizardActivity extends AppCompatActivity {
     private void updateSummaryBar() {
         TextView bar = findViewById(R.id.wizardSummaryBar);
         if (bar == null) return;
-        if (state.checkIn == null || state.checkOut == null) {
+        // The final review step shows the same facts in its own summary card.
+        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount) {
             bar.setVisibility(View.GONE);
             return;
         }

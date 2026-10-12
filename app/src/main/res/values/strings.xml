@@ -277,6 +277,10 @@
         <item quantity="other">%1$d Receipts Available</item>
     </plurals>
     <string name="wizard_step_label_format">Step %1$d of %2$d - %3$s</string>
+    <string name="wizard_step_x_of_y_format">Step %1$d of %2$d</string>
+    <string name="submit_failed_title">We couldn\'t complete that</string>
+    <string name="submit_failed_change">Change rooms or dates</string>
+    <string name="error_submit_generic">Something went wrong. Please check your connection and try again. Nothing you entered was lost.</string>
     <string name="wizard_final_step_label">Final step</string>
     <string name="stay_duration_summary_format">%1$d night(s) · %2$s – %3$s</string>
     <plurals name="wizard_steps_remaining">

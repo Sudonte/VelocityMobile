@@ -7,7 +7,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application>
+    <!-- Debug only: lets a debug build talk to a local http:// backend (10.0.2.2) for end-to-end tests. -->
+    <application android:usesCleartextTraffic="true">
         <activity
             android:name=".debug.DebugReceiptPreviewActivity"
             android:exported="true"

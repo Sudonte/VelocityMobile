@@ -83,7 +83,7 @@
         android:fontFamily="sans-serif-black"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
-        android:textColor="@color/velocity_red_dark"
+        android:textColor="@color/velocity_text_primary"
         android:textSize="12sp"
         tools:text="20%" />
 </LinearLayout>
