@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -633,6 +634,10 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         if (updateProfilePictureButton != null) {
             updateProfilePictureButton.setOnClickListener(v -> handleProfilePictureTap());
         }
+
+        setupCollapsibleSection(R.id.personalChevron, R.id.personalBody);
+        setupCollapsibleSection(R.id.contactChevron, R.id.contactBody);
+        setupCollapsibleSection(R.id.addressChevron, R.id.addressBody);
 
         View logoutButton = findViewById(R.id.logoutButton);
         if (logoutButton != null) {
@@ -1546,6 +1551,26 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
             }
+        });
+    }
+    /**
+     * Personal / Contact / Address details stay hidden until the guest taps the section header
+     * (the row the chevron sits in); tapping again collapses it. The body views stay in the
+     * hierarchy, so the rest of this class keeps binding to them unchanged.
+     */
+    private void setupCollapsibleSection(int chevronId, int bodyId) {
+        View chevron = findViewById(chevronId);
+        View body = findViewById(bodyId);
+        if (chevron == null || body == null || !(chevron.getParent() instanceof ViewGroup)) return;
+        ViewGroup header = (ViewGroup) chevron.getParent();
+        header.setClickable(true);
+        header.setFocusable(true);
+        header.setOnClickListener(v -> {
+            boolean expand = body.getVisibility() != View.VISIBLE;
+            ViewGroup card = (ViewGroup) body.getParent();
+            android.transition.TransitionManager.beginDelayedTransition(card, new android.transition.AutoTransition().setDuration(200));
+            body.setVisibility(expand ? View.VISIBLE : View.GONE);
+            chevron.animate().rotation(expand ? 180f : 0f).setDuration(200).start();
         });
     }
 }

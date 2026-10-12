@@ -571,7 +571,21 @@
                                     android:textColor="@color/velocity_text_secondary"
                                     android:textSize="11sp" />
                             </LinearLayout>
+                            <ImageView
+                                android:id="@+id/personalChevron"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginStart="6dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/personalBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
 
                         <View
                             android:layout_width="match_parent"
@@ -786,6 +800,7 @@
                                     android:text="@string/label_not_available" />
                             </LinearLayout>
                         </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -854,7 +869,21 @@
                                     android:textColor="@color/velocity_text_secondary"
                                     android:textSize="11sp" />
                             </LinearLayout>
+                            <ImageView
+                                android:id="@+id/contactChevron"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginStart="6dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/contactBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
 
                         <View
                             android:layout_width="match_parent"
@@ -945,6 +974,7 @@
                                     android:text="@string/guest_mobile" />
                             </LinearLayout>
                         </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -1010,7 +1040,21 @@
                                     android:textColor="@color/velocity_text_secondary"
                                     android:textSize="11sp" />
                             </LinearLayout>
+                            <ImageView
+                                android:id="@+id/addressChevron"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginStart="6dp"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/addressBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
 
                         <View
                             android:layout_width="match_parent"
@@ -1204,6 +1248,7 @@
                                 android:layout_width="match_parent"
                                 android:textSize="13sp"
                                 android:text="@string/label_not_available" />
+                        </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
