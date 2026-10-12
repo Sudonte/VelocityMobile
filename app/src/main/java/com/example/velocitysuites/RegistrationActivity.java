@@ -350,12 +350,13 @@ public class RegistrationActivity extends AppCompatActivity {
             if (requestCode == PICK_IMAGE_REQUEST) {
                 android.net.Uri selectedImage = data.getData();
                 if (selectedImage != null) {
-                    Bitmap bitmap = ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE);
-                    if (bitmap != null) {
-                        setSelectedProfilePicture(bitmap);
-                    } else {
-                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
-                    }
+                    BackgroundWork.run(this, () -> ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE), bitmap -> {
+                        if (bitmap != null) {
+                            setSelectedProfilePicture(bitmap);
+                        } else {
+                            Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             } else if (requestCode == CAPTURE_IMAGE_REQUEST && data.getExtras() != null) {
                 Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
@@ -400,17 +401,23 @@ public class RegistrationActivity extends AppCompatActivity {
             return;
         }
 
-        File tempFile;
-        try {
-            tempFile = File.createTempFile("profile_", ".jpg", getCacheDir());
-            try (FileOutputStream out = new FileOutputStream(tempFile)) {
-                selectedProfileBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+        final Bitmap toUpload = selectedProfileBitmap;
+        BackgroundWork.run(this, () -> {
+            File file = File.createTempFile("profile_", ".jpg", getCacheDir());
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                toUpload.compress(Bitmap.CompressFormat.JPEG, 90, out);
             }
-        } catch (IOException e) {
-            proceed.run();
-            return;
-        }
+            return file;
+        }, file -> {
+            if (file == null) {
+                proceed.run();
+            } else {
+                uploadProfileFile(file, proceed);
+            }
+        });
+    }
 
+    private void uploadProfileFile(File tempFile, Runnable proceed) {
         RequestBody fileBody = RequestBody.create(tempFile, MediaType.parse("image/jpeg"));
         MultipartBody.Part part = MultipartBody.Part.createFormData("profile_picture", tempFile.getName(), fileBody);
 

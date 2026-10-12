@@ -212,6 +212,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     if (body.user.updated_at != null) editor.putString("userUpdatedAt", body.user.updated_at);
                     if (body.guest != null) {
                         if (body.guest.mobile_number != null) editor.putString("userMobile", body.guest.mobile_number);
+                        if (body.guest.address != null) editor.putString("userAddress", body.guest.address);
                         if (body.guest.gender != null) editor.putString("userGender", body.guest.gender);
                         if (body.guest.date_of_birth != null) editor.putString("userDob", formatDobForDisplay(body.guest.date_of_birth));
                         if (body.guest.age != null) editor.putString("userAge", String.valueOf(body.guest.age));
@@ -1467,12 +1468,14 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             if (requestCode == PICK_IMAGE_REQUEST) {
                 Uri selectedImage = data.getData();
                 if (selectedImage != null) {
-                    Bitmap bitmap = ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE);
-                    if (bitmap != null) {
-                        confirmAndUploadProfilePicture(bitmap);
-                    } else {
-                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
-                    }
+                    // Decoding the picked photo reads a file: off the main thread.
+                    BackgroundWork.run(this, () -> ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE), bitmap -> {
+                        if (bitmap != null) {
+                            confirmAndUploadProfilePicture(bitmap);
+                        } else {
+                            Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             } else if (requestCode == CAPTURE_IMAGE_REQUEST && data.getExtras() != null) {
                 Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
@@ -1498,25 +1501,32 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         // across reinstalls/devices instead of living only in local prefs).
         if (profileImage != null) profileImage.setImageBitmap(bitmap);
 
-        File tempFile;
-        try {
-            tempFile = File.createTempFile("profile_", ".jpg", getCacheDir());
-            try (FileOutputStream out = new FileOutputStream(tempFile)) {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+        BackgroundWork.run(this, () -> writeProfileJpeg(bitmap), file -> {
+            if (file == null) {
+                Toast.makeText(this, "Failed to prepare image for upload", Toast.LENGTH_SHORT).show();
+                return;
             }
-        } catch (IOException e) {
-            Toast.makeText(this, "Failed to prepare image for upload", Toast.LENGTH_SHORT).show();
-            return;
-        }
+            uploadProfileFile(file);
+        });
+    }
 
+    private File writeProfileJpeg(Bitmap bitmap) throws IOException {
+        File tempFile = File.createTempFile("profile_", ".jpg", getCacheDir());
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+        }
+        return tempFile;
+    }
+
+    private void uploadProfileFile(File tempFile) {
         RequestBody fileBody = RequestBody.create(tempFile, MediaType.parse("image/jpeg"));
         MultipartBody.Part part = MultipartBody.Part.createFormData("profile_picture", tempFile.getName(), fileBody);
 
         ApiClient.getService(this).updateProfilePicture(part).enqueue(new Callback<ProfileResponse>() {
             @Override
             public void onResponse(Call<ProfileResponse> call, Response<ProfileResponse> response) {
-                if (isFinishing() || isDestroyed()) return;
                 tempFile.delete();
+                if (isFinishing() || isDestroyed()) return;
                 if (!response.isSuccessful() || response.body() == null || response.body().guest == null) {
                     Toast.makeText(ProfileManagementActivity.this, "Failed to upload photo. Please try again.", Toast.LENGTH_SHORT).show();
                     return;
@@ -1531,8 +1541,8 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
-                if (isFinishing() || isDestroyed()) return;
                 tempFile.delete();
+                if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });

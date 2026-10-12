@@ -419,11 +419,16 @@ public class PaymentActivity extends BaseNavigationActivity {
      * permission-free MediaStore insert path for that API level and above.
      */
     private void downloadGcashQrCode() {
+        // Decoding the QR and writing it to the Pictures library are file work: off the main thread.
+        BackgroundWork.run(this, this::saveGcashQrToPictures, saved ->
+                Toast.makeText(this, Boolean.TRUE.equals(saved) ? R.string.qr_download_success : R.string.qr_download_failed, Toast.LENGTH_LONG).show());
+    }
+
+    private Boolean saveGcashQrToPictures() {
         try {
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.gcash_official_qr);
             if (bitmap == null) {
-                Toast.makeText(this, R.string.qr_download_failed, Toast.LENGTH_LONG).show();
-                return;
+                return Boolean.FALSE;
             }
             String fileName = "VelocitySuites_GCash_QR_" + System.currentTimeMillis() + ".jpg";
             ContentValues values = new ContentValues();
@@ -433,8 +438,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             if (uri == null) {
-                Toast.makeText(this, R.string.qr_download_failed, Toast.LENGTH_LONG).show();
-                return;
+                return Boolean.FALSE;
             }
             boolean saved = false;
             try (java.io.OutputStream os = getContentResolver().openOutputStream(uri)) {
@@ -442,12 +446,12 @@ public class PaymentActivity extends BaseNavigationActivity {
                     saved = bitmap.compress(Bitmap.CompressFormat.JPEG, 95, os);
                 }
             }
-            Toast.makeText(this, saved ? R.string.qr_download_success : R.string.qr_download_failed, Toast.LENGTH_LONG).show();
+            return saved;
         } catch (Exception e) {
             // Never crash on a save failure (denied media permission on an
             // unusual OEM build, out of storage, etc.) - the guest can still
             // scan the on-screen QR and complete payment regardless.
-            Toast.makeText(this, R.string.qr_download_failed, Toast.LENGTH_LONG).show();
+            return Boolean.FALSE;
         }
     }
 
