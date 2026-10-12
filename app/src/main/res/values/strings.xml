@@ -1076,14 +1076,6 @@
          to lean on the tab above for Booking/Reservation context. -->
     <string name="filter_by_status_label">Filter by Status</string>
     <string name="filter_all_transactions_label">All Transactions</string>
-    <string name="booking_status_all">All Bookings</string>
-    <string name="booking_status_confirmed">Confirmed Booking</string>
-    <string name="booking_status_completed">Completed Booking</string>
-    <string name="booking_status_cancelled">Cancelled or Rejected Booking</string>
-    <string name="reservation_status_all">All Reservations</string>
-    <string name="reservation_status_confirmed">Pending/Confirmed Reservation</string>
-    <string name="reservation_status_completed">Completed Reservation</string>
-    <string name="reservation_status_cancelled">Cancelled or Rejected Reservation</string>
     <!-- Sort By / Room Type: two separate exposed-dropdown controls on the
          Booking &amp; Reservation list (not combined into one Filter dialog) -
          reuses sort_row_label/room_type_row_label, the same labels

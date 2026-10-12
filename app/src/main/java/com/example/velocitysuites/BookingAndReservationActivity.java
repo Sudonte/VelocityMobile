@@ -110,17 +110,14 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private TextView tvSummaryTax;
     private List<AddOnAmenity> addOnCatalog = new ArrayList<>();
     private final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
-    private View layoutBookingStatusFilter, layoutReservationStatusFilter;
-    private AutoCompleteTextView bookingStatusFilter, reservationStatusFilter;
     private ChipGroup cgStatusFilter;
     /** True while code (not the guest) is checking a chip, so the listener does not re-filter. */
     private boolean syncingStatusChips;
     private View cardCancellationPolicy;
     /**
      * Independent per-tab Status Filter state - a Reservation status pick
-     * must never affect the Booking tab's filter and vice versa (each tab
-     * has its own combo box, see layoutBookingStatusFilter/
-     * layoutReservationStatusFilter). "All" is the default on first landing
+     * must never affect the Booking tab's filter and vice versa (the chip row
+     * shows the open tab's own state, see syncStatusFilterDisplay()). "All" is the default on first landing
      * and always restored after a new booking/reservation is created, so the
      * guest immediately sees it without hunting through statuses.
      */
@@ -255,7 +252,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         setupAdditionalGuests();
         setupBookingConfirmation();
         setupListSection();
-        setupStatusFilterDropdowns();
+        setupStatusFilterChips();
         setupSwipeRefresh();
 
         // A manually-picked tab/filter isn't part of the launch Intent, so without this
@@ -528,10 +525,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         tvAmenitiesEmptyState = findViewById(R.id.tvAmenitiesEmptyState);
         loadAmenityCatalog();
 
-        layoutBookingStatusFilter = findViewById(R.id.layoutBookingStatusFilter);
-        layoutReservationStatusFilter = findViewById(R.id.layoutReservationStatusFilter);
-        bookingStatusFilter = findViewById(R.id.bookingStatusFilter);
-        reservationStatusFilter = findViewById(R.id.reservationStatusFilter);
         cgStatusFilter = findViewById(R.id.cgStatusFilter);
         cardCancellationPolicy = findViewById(R.id.cardCancellationPolicy);
 
@@ -778,9 +771,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (ivListEmptyIcon != null) {
             ivListEmptyIcon.setImageResource(reservation ? R.drawable.ic_reservation : R.drawable.ic_booking);
         }
-        // The chip row replaces the two dropdowns on screen; they stay hidden and only hold no state of their own.
-        if (layoutBookingStatusFilter != null) layoutBookingStatusFilter.setVisibility(View.GONE);
-        if (layoutReservationStatusFilter != null) layoutReservationStatusFilter.setVisibility(View.GONE);
         // Only one of New Booking/New Reservation is ever relevant to the
         // active tab - GONE (not INVISIBLE) so the other button expands to
         // fill the freed width instead of leaving a blank half-row.
@@ -881,47 +871,11 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Status Filter combo boxes replace the old four-button toggle row; same
-     * end effect (filters rvItemList in place, see itemsForCurrentTab()) via
-     * one exposed-dropdown per tab instead of four buttons per tab. Upcoming
-     * is folded into Active/Confirmed here (see itemsForCurrentTab()) rather
-     * than being its own option. TransactionListActivity itself is still
-     * reachable from UpcomingTransactionsActivity's separate nav buttons,
-     * unaffected by this.
+     * The status filter is the chip row (All / Active / Completed / Cancelled-Rejected) for whichever tab is open;
+     * it filters rvItemList in place (see itemsForCurrentTab()). Upcoming is folded into Active there rather than
+     * being its own chip. Each tab keeps its own selection - see syncStatusFilterDisplay().
      */
-    private void setupStatusFilterDropdowns() {
-        String[] bookingStatuses = {
-                getString(R.string.booking_status_all),
-                getString(R.string.booking_status_confirmed),
-                getString(R.string.booking_status_completed),
-                getString(R.string.booking_status_cancelled),
-        };
-        bookingStatusFilter.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, bookingStatuses));
-        bookingStatusFilter.setOnItemClickListener((parent, view, position, id) -> {
-            switch (position) {
-                case 1: selectCategory(false, TransactionCategorizer.Category.ACTIVE); break;
-                case 2: selectCategory(false, TransactionCategorizer.Category.COMPLETED); break;
-                case 3: selectCategory(false, TransactionCategorizer.Category.CANCELLED); break;
-                default: selectAllStatuses(false); break;
-            }
-        });
-
-        String[] reservationStatuses = {
-                getString(R.string.reservation_status_all),
-                getString(R.string.reservation_status_confirmed),
-                getString(R.string.reservation_status_completed),
-                getString(R.string.reservation_status_cancelled),
-        };
-        reservationStatusFilter.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, reservationStatuses));
-        reservationStatusFilter.setOnItemClickListener((parent, view, position, id) -> {
-            switch (position) {
-                case 1: selectCategory(true, TransactionCategorizer.Category.ACTIVE); break;
-                case 2: selectCategory(true, TransactionCategorizer.Category.COMPLETED); break;
-                case 3: selectCategory(true, TransactionCategorizer.Category.CANCELLED); break;
-                default: selectAllStatuses(true); break;
-            }
-        });
-
+    private void setupStatusFilterChips() {
         if (cgStatusFilter != null) {
             cgStatusFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
                 if (syncingStatusChips || checkedIds.isEmpty()) return;
@@ -965,7 +919,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         renderList();
     }
 
-    /** Reflects each tab's OWN remembered filter in its own combo box - both are kept in sync regardless of which one is currently visible, so switching tabs never shows a stale value. */
+    /** Checks the chip matching the OPEN tab's own remembered filter; called on every tab switch, so the chips never show the other tab's choice. */
     private void syncStatusFilterDisplay() {
         if (cgStatusFilter != null) {
             boolean reservation = isReservationMode();
@@ -978,30 +932,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             syncingStatusChips = true;
             cgStatusFilter.check(chipId);
             syncingStatusChips = false;
-        }
-        if (bookingStatusFilter != null) {
-            bookingStatusFilter.setText(getString(bookingStatusLabelRes(showAllBookingCategories, currentBookingCategory)), false);
-        }
-        if (reservationStatusFilter != null) {
-            reservationStatusFilter.setText(getString(reservationStatusLabelRes(showAllReservationCategories, currentReservationCategory)), false);
-        }
-    }
-
-    private int bookingStatusLabelRes(boolean showAll, TransactionCategorizer.Category category) {
-        if (showAll) return R.string.booking_status_all;
-        switch (category) {
-            case COMPLETED: return R.string.booking_status_completed;
-            case CANCELLED: return R.string.booking_status_cancelled;
-            default: return R.string.booking_status_confirmed;
-        }
-    }
-
-    private int reservationStatusLabelRes(boolean showAll, TransactionCategorizer.Category category) {
-        if (showAll) return R.string.reservation_status_all;
-        switch (category) {
-            case COMPLETED: return R.string.reservation_status_completed;
-            case CANCELLED: return R.string.reservation_status_cancelled;
-            default: return R.string.reservation_status_confirmed;
         }
     }
 

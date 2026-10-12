@@ -1380,8 +1380,8 @@
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Filter chips: All / Active / Completed / Cancelled-Rejected for whichever tab is open.
-                             They drive the same per-tab state as the two hidden dropdowns below. -->
+                        <!-- Filter chips: All / Active / Completed / Cancelled-Rejected for whichever tab is open;
+                             each tab keeps its own selection (BookingAndReservationActivity#syncStatusFilterDisplay). -->
                         <HorizontalScrollView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1427,60 +1427,6 @@
                                     android:textSize="13sp" />
                             </com.google.android.material.chip.ChipGroup>
                         </HorizontalScrollView>
-
-                        <!-- Status Filter combo box: one dropdown per tab (never shared -
-                             see BookingAndReservationActivity's per-tab
-                             showAllBookingCategories/showAllReservationCategories
-                             state), replacing the old four-chip toggle row. Same
-                             ExposedDropdown pattern as the Sort By/Room Type row
-                             below, for visual and behavioral consistency. -->
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layoutBookingStatusFilter"
-                            style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:hint="@string/filter_by_status_label"
-                            app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/bookingStatusFilter"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-bold"
-                                android:includeFontPadding="false"
-                                android:inputType="none"
-                                android:paddingVertical="8dp"
-                                android:text="@string/booking_status_all"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="12sp"
-                                tools:ignore="LabelFor" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layoutReservationStatusFilter"
-                            style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:visibility="gone"
-                            tools:visibility="visible"
-                            android:hint="@string/filter_by_status_label"
-                            app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/reservationStatusFilter"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-bold"
-                                android:includeFontPadding="false"
-                                android:inputType="none"
-                                android:paddingVertical="8dp"
-                                android:text="@string/reservation_status_all"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="12sp"
-                                tools:ignore="LabelFor" />
-                        </com.google.android.material.textfield.TextInputLayout>
 
                         <!-- Sort By / Room Type: two visually separate exposed-dropdown
                              controls (not one combined Filter dialog) - same
