@@ -257,14 +257,43 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
      * values are shown as-is rather than dropped.
      */
     private String formatDobForDisplay(String apiDate) {
-        try {
-            java.text.SimpleDateFormat apiFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            java.text.SimpleDateFormat displayFormat = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
-            java.util.Date parsed = apiFormat.parse(apiDate);
-            return parsed != null ? displayFormat.format(parsed) : apiDate;
-        } catch (java.text.ParseException e) {
-            return apiDate;
+        java.util.Date parsed = parseDob(apiDate);
+        return parsed != null ? new SimpleDateFormat("MMM dd, yyyy", Locale.US).format(parsed) : apiDate;
+    }
+
+    /**
+     * Parses a birth date in any format this app has stored or received: the API's yyyy-MM-dd
+     * (possibly with a trailing time/zone part, which is ignored - only the calendar date matters,
+     * so no timezone conversion can shift it), the wizard's MM/dd/yyyy, or the profile screen's
+     * "MMM dd, yyyy" cache. Returns null when nothing matches.
+     */
+    static java.util.Date parseDob(String value) {
+        if (value == null) return null;
+        String v = value.trim();
+        if (v.isEmpty()) return null;
+        if (v.matches("^\\d{4}-\\d{2}-\\d{2}.*")) v = v.substring(0, 10);
+        for (String pattern : new String[]{"yyyy-MM-dd", "MM/dd/yyyy", "MMM dd, yyyy", "MMM d, yyyy"}) {
+            SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.US);
+            format.setLenient(false);
+            try {
+                java.util.Date parsed = format.parse(v);
+                if (parsed != null) return parsed;
+            } catch (ParseException ignored) {
+            }
         }
+        return null;
+    }
+
+    /** The saved date of birth as the API's yyyy-MM-dd, or "" when none is saved/parseable. */
+    private String savedDobIso() {
+        java.util.Date parsed = parseDob(prefs.getString("userDob", ""));
+        return parsed != null ? new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(parsed) : "";
+    }
+
+    /** The saved date of birth as the wizard's MM/dd/yyyy field text, or "" when none is saved. */
+    private String savedDobForWizard() {
+        java.util.Date parsed = parseDob(prefs.getString("userDob", ""));
+        return parsed != null ? new SimpleDateFormat("MM/dd/yyyy", Locale.US).format(parsed) : "";
     }
 
     /**
@@ -278,12 +307,9 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     private void openDobPicker(TextInputEditText editAge, TextInputEditText editDob) {
         Calendar initial = Calendar.getInstance();
         String existingDob = editDob.getText() != null ? editDob.getText().toString().trim() : "";
-        if (!TextUtils.isEmpty(existingDob)) {
-            try {
-                java.util.Date parsed = new SimpleDateFormat("MM/dd/yyyy", Locale.US).parse(existingDob);
-                if (parsed != null) initial.setTime(parsed);
-            } catch (ParseException ignored) {
-            }
+        java.util.Date existing = parseDob(existingDob);
+        if (existing != null) {
+            initial.setTime(existing);
         } else {
             initial.add(Calendar.YEAR, -MIN_REGISTRATION_AGE);
         }
@@ -340,15 +366,10 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         }
     }
 
-    /** Converts the editDob text ("MM/dd/yyyy") into the API's expected "YYYY-MM-DD". */
-    private String toApiDate(String mmDdYyyy) {
-        try {
-            SimpleDateFormat input = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
-            SimpleDateFormat output = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            return output.format(input.parse(mmDdYyyy));
-        } catch (ParseException | NullPointerException e) {
-            return mmDdYyyy;
-        }
+    /** Converts the editDob text into the API's expected "YYYY-MM-DD"; null if it can't be read (never sends garbage). */
+    private String toApiDate(String dobText) {
+        java.util.Date parsed = parseDob(dobText);
+        return parsed != null ? new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(parsed) : null;
     }
 
     private void initializeViews() {
@@ -670,6 +691,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_profile_wizard, null);
         AlertDialog dialog = new SafeDialogs.Material(this)
                 .setView(dialogView)
+                .setCancelable(false)
                 .create();
 
         View step1Page = dialogView.findViewById(R.id.step1Page);
@@ -697,8 +719,18 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         editFirst.setText(prefs.getString("userFirstName", ""));
         editMiddle.setText(prefs.getString("userMiddleName", ""));
         editLast.setText(prefs.getString("userLastName", ""));
-        editAge.setText(prefs.getString("userAge", ""));
-        editDob.setText(prefs.getString("userDob", ""));
+        // The cached userDob is a display string ("Sep 09, 1990"); the field and the picker work in
+        // MM/dd/yyyy, so convert - setting the raw cache here is what used to make the picker
+        // fail to parse it and fall back to today.
+        editDob.setText(savedDobForWizard());
+        String savedAge = prefs.getString("userAge", "");
+        java.util.Date savedDobDate = parseDob(editDob.getText().toString());
+        if (TextUtils.isEmpty(savedAge) && savedDobDate != null) {
+            Calendar dobCal = Calendar.getInstance();
+            dobCal.setTime(savedDobDate);
+            savedAge = String.valueOf(calculateAge(dobCal.get(Calendar.YEAR), dobCal.get(Calendar.MONTH) + 1, dobCal.get(Calendar.DAY_OF_MONTH)));
+        }
+        editAge.setText(savedAge);
         editGender.setText(displayGender(prefs.getString("userGender", "")), false);
 
         String[] genders = {"Male", "Female"};
@@ -807,30 +839,18 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             updateAgeValidationUi.run();
         }
 
-        // Dirty-tracking for the Cancel/Back discard-confirmation (spec: only nag when the
-        // guest actually changed something) - attached AFTER every field above was pre-filled,
-        // since programmatic setText() also fires TextWatcher.afterTextChanged().
-        final boolean[] hasChanges = {false};
-        TextWatcher dirtyWatcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            @Override public void afterTextChanged(Editable s) { hasChanges[0] = true; }
+        // Unsaved-changes check for Back/Cancel: compares the live fields with the saved profile
+        // (rather than flagging any TextWatcher callback), so the async address cascade filling in
+        // the saved address, or typing a value back to what it was, never counts as a change.
+        java.util.function.BooleanSupplier hasChanges = () -> {
+            String currentEmail = prefs.getString("userEmail", "");
+            if (!editEmail.getText().toString().trim().equalsIgnoreCase(currentEmail)) return true;
+            return profileFieldsDiffer(editFirst, editMiddle, editLast, editGender, editDob, editMobile,
+                    addressController.getStructuredValues(), true);
         };
-        View[] addrFields = {
-                dialogView.findViewById(R.id.addrCountryField), dialogView.findViewById(R.id.addrRegionField),
-                dialogView.findViewById(R.id.addrProvinceField), dialogView.findViewById(R.id.addrCityField),
-                dialogView.findViewById(R.id.addrBarangayField), dialogView.findViewById(R.id.addrStreetField),
-                dialogView.findViewById(R.id.addrZipField),
-        };
-        for (TextView tv : new TextView[]{editFirst, editMiddle, editLast, editDob, editGender, editEmail, editMobile}) {
-            tv.addTextChangedListener(dirtyWatcher);
-        }
-        for (View v : addrFields) {
-            if (v instanceof TextView) ((TextView) v).addTextChangedListener(dirtyWatcher);
-        }
 
         Runnable doCancel = () -> {
-            if (hasChanges[0]) {
+            if (hasChanges.getAsBoolean()) {
                 new SafeDialogs.Material(this)
                         .setTitle(R.string.discard_changes_title)
                         .setMessage(R.string.discard_changes_message)
@@ -914,7 +934,53 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         renderStep[0].run();
 
         dialog.setOnDismissListener(d -> addressController.dispose());
+        // Hardware/gesture Back: step back through the wizard, and ask before discarding on the
+        // first step. Tapping outside never closes it (setCancelable(false)).
+        dialog.setOnKeyListener((d, keyCode, event) -> {
+            if (keyCode != android.view.KeyEvent.KEYCODE_BACK || event.getAction() != android.view.KeyEvent.ACTION_UP) return false;
+            if (currentStep[0] > 1) {
+                currentStep[0]--;
+                renderStep[0].run();
+            } else {
+                doCancel.run();
+            }
+            return true;
+        });
         SafeDialogs.show(dialog);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        }
+    }
+
+    /**
+     * True when any editable profile field (everything except email, which has its own OTP flow)
+     * differs from what is saved. With {@code ignoreUnloadedAddress}, an address part that is
+     * still empty (the cascade is still loading the saved value) is not treated as a change.
+     */
+    private boolean profileFieldsDiffer(TextInputEditText editFirst, TextInputEditText editMiddle, TextInputEditText editLast,
+                                        AutoCompleteTextView editGender, TextInputEditText editDob, TextInputEditText editMobile,
+                                        AddressSelection sel, boolean ignoreUnloadedAddress) {
+        if (!editFirst.getText().toString().trim().equals(prefs.getString("userFirstName", "").trim())) return true;
+        if (!editMiddle.getText().toString().trim().equals(prefs.getString("userMiddleName", "").trim())) return true;
+        if (!editLast.getText().toString().trim().equals(prefs.getString("userLastName", "").trim())) return true;
+        if (!editGender.getText().toString().trim().equalsIgnoreCase(displayGender(prefs.getString("userGender", "")))) return true;
+        String dobIso = toApiDate(editDob.getText().toString());
+        if (dobIso != null && !dobIso.equals(savedDobIso())) return true;
+        String mobile = PhoneNumberValidator.stripFormatting(editMobile.getText().toString().trim());
+        if (!mobile.equals(PhoneNumberValidator.stripFormatting(prefs.getString("userMobile", "").trim()))) return true;
+        String[][] pairs = {
+                {sel.country, prefs.getString("userCountry", "")}, {sel.region, prefs.getString("userRegion", "")},
+                {sel.province, prefs.getString("userProvince", "")}, {sel.city, prefs.getString("userCity", "")},
+                {sel.barangay, prefs.getString("userBarangay", "")}, {sel.street, prefs.getString("userStreet", "")},
+                {sel.zip, prefs.getString("userZip", "")}};
+        for (String[] pair : pairs) {
+            String now = pair[0] == null ? "" : pair[0].trim();
+            String saved = pair[1] == null ? "" : pair[1].trim();
+            if (ignoreUnloadedAddress && now.isEmpty()) continue;
+            if (!now.equals(saved)) return true;
+        }
+        return false;
     }
 
     private void applyCallingCodeHint(TextInputLayout mobileLayout, String country) {
@@ -1051,12 +1117,27 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         String currentEmail = prefs.getString("userEmail", "");
         boolean emailChanged = !emailStr.equalsIgnoreCase(currentEmail);
 
+        // Nothing but (maybe) the email changed: don't send a profile update at all - the server
+        // counts every accepted update against the 30-day cooldown, so a no-op save would burn it.
+        if (!profileFieldsDiffer(editFirst, editMiddle, editLast, editGender, editDob, editMobile, selection, false)) {
+            if (emailChanged) {
+                dismissSafely(dialog);
+                showConfirmPasswordForEmailChangeDialog(emailStr);
+            } else {
+                Toast.makeText(this, R.string.profile_no_changes, Toast.LENGTH_SHORT).show();
+                dismissSafely(dialog);
+            }
+            return;
+        }
+
         ProfileUpdateRequest request = new ProfileUpdateRequest();
         request.first_name = firstStr;
         request.last_name = lastStr;
         request.middle_name = middleStr.isEmpty() ? null : middleStr;
         if (!genderStr.isEmpty()) request.gender = mapGender(genderStr);
-        if (!dobStr.isEmpty()) request.date_of_birth = toApiDate(dobStr);
+        // Unchanged date -> the exact saved value; otherwise the picked date. Never today, never garbage.
+        String dobIso = toApiDate(dobStr);
+        if (dobIso != null) request.date_of_birth = dobIso;
         request.mobile_number = mobileStr;
         request.address = addressController.getComposedAddress();
         request.country = selection.country;
@@ -1231,9 +1312,26 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         TextInputEditText otpField = dialogView.findViewById(R.id.verifyNewEmailOtp);
         MaterialButton btnConfirm = dialogView.findViewById(R.id.btnConfirmVerifyNewEmailOtp);
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelVerifyNewEmailOtp);
-        View resendLink = dialogView.findViewById(R.id.resendVerifyNewEmailOtpLink);
+        TextView resendLink = dialogView.findViewById(R.id.resendVerifyNewEmailOtpLink);
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Resend is locked for 30s after each code is sent, with a visible countdown.
+        resendLink.setEnabled(false);
+        android.os.CountDownTimer resendTimer = new android.os.CountDownTimer(30_000, 1_000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                resendLink.setText(getString(R.string.resend_otp_countdown, (int) ((millisUntilFinished + 999) / 1000)));
+            }
+
+            @Override
+            public void onFinish() {
+                resendLink.setText(R.string.resend_otp);
+                resendLink.setEnabled(true);
+            }
+        };
+        resendTimer.start();
+        dialog.setOnDismissListener(d -> resendTimer.cancel());
 
         // Resending means calling requestEmailChange() again, which needs the
         // password again too - rather than holding it in memory just to
