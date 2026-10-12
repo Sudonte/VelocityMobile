@@ -76,7 +76,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                 SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
                 String currentUserName = prefs.getString("userName", "");
                 if (currentUserName != null && !currentUserName.isEmpty() && taglineLabel != null) {
-                    taglineLabel.setText(getString(R.string.hello_user, currentUserName));
+                    taglineLabel.setText(getString(R.string.hello_user, firstNameOf(prefs, currentUserName)));
                 }
             }
 
@@ -300,7 +300,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         // Update header greeting in the activity layout
         android.widget.TextView headerTagline = findViewById(R.id.headerTagline);
         if (headerTagline != null && currentUserName != null && !currentUserName.isEmpty()) {
-            headerTagline.setText(getString(R.string.hello_user, currentUserName));
+            headerTagline.setText(getString(R.string.hello_user, firstNameOf(prefs, currentUserName)));
         }
 
         // Header profile thumbnail - same source/fallback as every other
@@ -326,7 +326,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
             if (headerView != null) {
                 android.widget.TextView navTaglineLabel = headerView.findViewById(R.id.hotelTagline);
                 if (navTaglineLabel != null && currentUserName != null && !currentUserName.isEmpty()) {
-                    navTaglineLabel.setText(getString(R.string.hello_user, currentUserName));
+                    navTaglineLabel.setText(getString(R.string.hello_user, firstNameOf(prefs, currentUserName)));
                 }
             }
         }
@@ -436,6 +436,15 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    /** First name only for the header greeting: the saved first name, else the first word of the full name. */
+    private static String firstNameOf(SharedPreferences prefs, String fullName) {
+        String first = prefs.getString("userFirstName", "");
+        if (first != null && !first.trim().isEmpty()) return first.trim();
+        String name = fullName == null ? "" : fullName.trim();
+        int space = name.indexOf(' ');
+        return space > 0 ? name.substring(0, space) : name;
     }
 }
 
