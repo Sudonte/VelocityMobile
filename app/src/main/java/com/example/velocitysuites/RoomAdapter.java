@@ -343,18 +343,12 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * between outline/filled and survives app restarts.
      */
     private void bindFavorite(RoomViewHolder holder, Room room, Context context) {
-        if (holder.btnFavorite == null) return;
-        applyFavoriteIcon(holder.btnFavorite, context, RoomFavoritesStore.isFavorite(context, room.getId()), room.getName());
-        holder.btnFavorite.setOnClickListener(v -> {
-            boolean nowFavorite = RoomFavoritesStore.toggleFavorite(context, room.getId());
-            applyFavoriteIcon(holder.btnFavorite, context, nowFavorite, room.getName());
-        });
+        RoomFavoritesStore.bindHeart(holder.btnFavorite, context, room.getId(), room.getName());
     }
 
-    private void applyFavoriteIcon(ImageView button, Context context, boolean favorite, String roomName) {
-        button.setImageResource(favorite ? R.drawable.ic_favorite_filled : R.drawable.ic_favorite_border);
-        button.setContentDescription(context.getString(
-                favorite ? R.string.cd_remove_from_favorites_format : R.string.cd_add_to_favorites_format, roomName));
+    /** Re-reads every heart from the store (e.g. after the details dialog toggled one). */
+    public void refreshFavorites() {
+        if (getItemCount() > 0) notifyItemRangeChanged(0, getItemCount());
     }
 
     /**

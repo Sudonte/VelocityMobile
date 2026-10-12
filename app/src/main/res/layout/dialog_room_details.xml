@@ -91,6 +91,18 @@
                     android:letterSpacing="0.08" />
             </com.google.android.material.card.MaterialCardView>
 
+            <ImageButton
+                android:id="@+id/detailBtnFavorite"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_add_to_favorites"
+                android:padding="12dp"
+                android:src="@drawable/ic_favorite_border"
+                app:tint="@color/white" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
                 style="@style/Widget.MaterialComponents.Button.Icon"

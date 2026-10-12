@@ -41,6 +41,23 @@ public final class RoomFavoritesStore {
         return nowFavorite;
     }
 
+    /**
+     * Shows the heart for this room and wires its tap - the one place both the room card and the room-details
+     * dialog use, so they can never disagree. The icon flips instantly; the choice is persisted by toggleFavorite().
+     */
+    public static void bindHeart(android.widget.ImageView heart, Context context, String roomId, String roomName) {
+        if (heart == null) return;
+        String name = roomName == null ? "" : roomName;
+        applyIcon(heart, context, isFavorite(context, roomId), name);
+        heart.setOnClickListener(v -> applyIcon(heart, context, toggleFavorite(context, roomId), name));
+    }
+
+    private static void applyIcon(android.widget.ImageView heart, Context context, boolean favorite, String roomName) {
+        heart.setImageResource(favorite ? R.drawable.ic_favorite_filled : R.drawable.ic_favorite_border);
+        heart.setContentDescription(context.getString(
+                favorite ? R.string.cd_remove_from_favorites_format : R.string.cd_add_to_favorites_format, roomName));
+    }
+
     private static SharedPreferences prefs(Context context) {
         return context.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }

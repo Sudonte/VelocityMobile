@@ -219,6 +219,8 @@ final class RoomDetailsDialog {
         TextView tvGalleryCount = dialogView.findViewById(R.id.detailGalleryCount);
         ImageView ivTypeIcon = dialogView.findViewById(R.id.detailRoomTypeIcon);
 
+        RoomFavoritesStore.bindHeart(dialogView.findViewById(R.id.detailBtnFavorite), activity, room.getId(), room.getName());
+
         tvName.setText(room.getName());
         tvType.setText(room.getType());
         tvPrice.setText(activity.getString(R.string.price_format_night, room.getPricePerNight()));
