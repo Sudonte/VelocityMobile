@@ -92,6 +92,10 @@
             android:theme="@style/Theme.VelocitySuites" />
 
         <activity
+            android:name=".ReceiptImageViewerActivity"
+            android:theme="@style/Theme.VelocitySuites" />
+
+        <activity
             android:name=".RoomGalleryActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.VelocitySuites" />

@@ -104,7 +104,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         // consistently across every guest screen that includes guest_header.xml.
         View headerNotification = findViewById(R.id.headerNotificationContainer);
         if (headerNotification != null) {
-            headerNotification.setOnClickListener(v -> openScreen(NotificationActivity.class));
+            headerNotification.setOnClickListener(v -> onHeaderBellTapped(v));
         }
 
         // Header profile thumbnail navigates to Profile Management, same
@@ -195,12 +195,14 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
     protected void onPause() {
         // Nothing polls while the screen is covered, minimised or finished.
         visiblePoller.stop();
+        dismissNotificationPopup();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         visiblePoller.stop();
+        dismissNotificationPopup();
         super.onDestroy();
     }
 
@@ -247,6 +249,25 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                         // Keep whatever count we already had; no badge change on failure.
                     }
                 });
+    }
+
+    private NotificationPopup notificationPopup;
+
+    /** The header bell: a dropdown of the latest notifications (the full screen is one tap away inside it). */
+    protected void onHeaderBellTapped(View bell) {
+        if (this instanceof NotificationActivity) {
+            return; // already on the full list
+        }
+        if (notificationPopup == null) {
+            notificationPopup = new NotificationPopup(this, this::updateNotificationBadge);
+        }
+        notificationPopup.toggle(bell);
+    }
+
+    protected void dismissNotificationPopup() {
+        if (notificationPopup != null) {
+            notificationPopup.dismiss();
+        }
     }
 
     protected void updateNotificationBadge() {

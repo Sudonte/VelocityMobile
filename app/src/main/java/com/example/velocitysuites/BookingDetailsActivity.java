@@ -683,6 +683,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
             receiptView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             receiptView.setAdjustViewBounds(true);
             Glide.with(this).load(booking.getReceiptUrl()).into(receiptView);
+            receiptView.setContentDescription(getString(R.string.receipt_image_content_description));
+            receiptView.setOnClickListener(v -> ReceiptImageViewerActivity.start(this, booking.getReceiptUrl()));
             container.addView(receiptView);
         }
 

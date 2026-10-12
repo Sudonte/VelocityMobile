@@ -406,7 +406,7 @@ public final class RoomRepository {
      * same package). Both `rooms`/`bookings` are otherwise only ever
      * populated from the live API (refreshRooms()/refreshBookings()), which
      * a JVM unit test can't reach - these let availability-matching logic
-     * (isAvailableForDates()/findOverlappingBooking()) be tested against
+     * (isAvailableForDates()) be tested against
      * known in-memory data instead. Never called from production code.
      */
     void setRoomsForTesting(List<Room> rooms) {
@@ -2560,9 +2560,9 @@ public final class RoomRepository {
     // ---- Local-only search over cached rooms. Cross-guest date conflicts
     // are the backend's call (a reservation requests a room TYPE; staff
     // assign an actual room at confirmation), so the availability checks
-    // below combine the room's backend-reported availability flag with the
-    // one conflict the client CAN judge accurately: the signed-in guest's
-    // own overlapping reservations (see findOverlappingBooking). ----
+    // below use the room's backend-reported availability flag only. A guest's
+    // own other stays never block a new one - same or overlapping dates are
+    // allowed, only real room inventory (judged by the backend) limits it. ----
 
     public List<Room> searchRooms(String query, String type, int guests, float minPrice, float maxPrice, Calendar checkIn, Calendar checkOut) {
         List<Room> results = new ArrayList<>();
@@ -2583,143 +2583,16 @@ public final class RoomRepository {
     }
 
     public boolean isAvailableForDates(Room room, Calendar checkIn, Calendar checkOut, String excludeBookingId) {
-        return room != null && room.isAvailable()
-                && findOverlappingBooking(room.getType(), checkIn, checkOut, excludeBookingId) == null;
+        return room != null && room.isAvailable();
     }
 
     public boolean isDayAvailable(String roomId, long timeInMillis, String excludeBookingId) {
         for (Room r : rooms) {
             if (r.getId().equals(roomId)) {
-                Calendar dayStart = Calendar.getInstance();
-                dayStart.setTimeInMillis(timeInMillis);
-                Calendar dayEnd = (Calendar) dayStart.clone();
-                dayEnd.add(Calendar.DAY_OF_YEAR, 1);
-                return r.isAvailable()
-                        && findOverlappingBooking(r.getType(), dayStart, dayEnd, excludeBookingId) == null;
+                return r.isAvailable();
             }
         }
         return false;
-    }
-
-    /**
-     * Cross-guest availability can only be judged by the backend (rooms are
-     * assigned by staff per TYPE at confirmation), but the guest's OWN
-     * reservations are fully known here - so double booking by the same
-     * account is blocked client-side: returns the guest's active stay of the
-     * same room type overlapping [checkIn, checkOut), or null when the range
-     * is clear. Cancelled/Checked-Out/Rejected stays don't block, and the
-     * ranges are half-open so a check-in on someone's check-out day is fine.
-     */
-    public Booking findOverlappingBooking(String roomType, Calendar checkIn, Calendar checkOut, String excludeBookingId) {
-        if (roomType == null || checkIn == null || checkOut == null) {
-            return null;
-        }
-        SimpleDateFormat displayDate = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-        long newIn = startOfDay(checkIn);
-        long newOut = startOfDay(checkOut);
-        for (Booking b : bookings) {
-            if (excludeBookingId != null && excludeBookingId.equals(b.getId())) continue;
-            String status = b.getStatus();
-            if ("Cancelled".equalsIgnoreCase(status)
-                    || "Checked-Out".equalsIgnoreCase(status)
-                    || "Rejected".equalsIgnoreCase(status)) continue;
-            if (!b.hasRoomType(roomType)) continue;
-            try {
-                long existingIn = displayDate.parse(b.getCheckInDate()).getTime();
-                long existingOut = displayDate.parse(b.getCheckOutDate()).getTime();
-                if (newIn < existingOut && existingIn < newOut) {
-                    return b;
-                }
-            } catch (Exception ignored) {
-                // Unparseable dates on a record can't be compared - don't block on them.
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Guest-level stay-date conflict, independent of room type - a guest
-     * can't physically occupy two overlapping hotel stays regardless of
-     * which room type either one is for, so unlike findOverlappingBooking()
-     * above (which only blocks a repeat of the SAME room type, for the
-     * "don't double-book this exact room type" check on the Room Selection/
-     * Dates steps), this checks every one of the guest's own active
-     * Bookings AND Reservations together (both already live in the merged
-     * `bookings` cache - see refreshBookings()) regardless of type. This is
-     * the Guest Transaction Date Validation from the Dates step's own
-     * validateBeforeNext() - a completely separate concern from Room
-     * Availability Validation (cross-guest inventory, judged server-side).
-     * An EXACT check-in/check-out match against another active stay is
-     * deliberately NOT reported as a conflict (a guest may create multiple
-     * Bookings/Reservations using the same dates, as long as room
-     * availability and every other condition is independently satisfied) -
-     * only a genuinely different, overlapping range is returned. This
-     * exclusion happens per-record inside the loop below, not by inspecting
-     * whichever single record this method happens to return: `bookings` is
-     * an unordered merged cache, so if a guest has both an exact-duplicate
-     * stay and a separate, genuinely-overlapping stay on file, only
-     * filtering exact matches out of every candidate (rather than picking
-     * one arbitrary match and asking whether that one happened to be exact)
-     * guarantees the real overlap still gets returned regardless of
-     * iteration order.
-     */
-    public Booking findConflictingStayForGuest(Calendar checkIn, Calendar checkOut, String excludeBookingId) {
-        return findConflictingStayForGuest(checkIn, checkOut,
-                excludeBookingId == null ? null : java.util.Collections.singletonList(excludeBookingId));
-    }
-
-    /**
-     * Same as {@link #findConflictingStayForGuest(Calendar, Calendar, String)}, but excludes
-     * every id in {@code excludeBookingIds} - needed when editing one sibling of a
-     * BookingGroupState-grouped multi-room-type transaction, since every sibling shares the
-     * exact same dates and must not be reported as a conflict with itself.
-     */
-    public Booking findConflictingStayForGuest(Calendar checkIn, Calendar checkOut, List<String> excludeBookingIds) {
-        if (checkIn == null || checkOut == null) {
-            return null;
-        }
-        SimpleDateFormat displayDate = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-        long newIn = startOfDay(checkIn);
-        long newOut = startOfDay(checkOut);
-        for (Booking b : bookings) {
-            if (excludeBookingIds != null && excludeBookingIds.contains(b.getId())) continue;
-            String status = b.getStatus();
-            if ("Cancelled".equalsIgnoreCase(status)
-                    || "Checked-Out".equalsIgnoreCase(status)
-                    || "Rejected".equalsIgnoreCase(status)) continue;
-            try {
-                long existingIn = displayDate.parse(b.getCheckInDate()).getTime();
-                long existingOut = displayDate.parse(b.getCheckOutDate()).getTime();
-                if (isGenuineOverlap(newIn, newOut, existingIn, existingOut)) {
-                    return b;
-                }
-            } catch (Exception ignored) {
-                // Unparseable dates on a record can't be compared - don't block on them.
-            }
-        }
-        return null;
-    }
-
-    /**
-     * True for a genuine, non-identical date-range overlap; false for an exact
-     * check-in/check-out match (deliberately not a conflict - see
-     * findConflictingStayForGuest()'s class doc) and false for a non-overlapping
-     * range. Extracted as a pure static predicate (package-private) so this
-     * exact logic - including the exact-match exclusion - is unit-testable
-     * without a RoomRepository instance (which needs a Context).
-     */
-    static boolean isGenuineOverlap(long newIn, long newOut, long existingIn, long existingOut) {
-        if (newIn == existingIn && newOut == existingOut) return false;
-        return newIn < existingOut && existingIn < newOut;
-    }
-
-    private static long startOfDay(Calendar cal) {
-        Calendar c = (Calendar) cal.clone();
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        return c.getTimeInMillis();
     }
 
     // ---- Helpers ----

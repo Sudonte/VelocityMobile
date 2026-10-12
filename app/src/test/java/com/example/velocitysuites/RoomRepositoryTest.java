@@ -35,24 +35,6 @@ public class RoomRepositoryTest {
     }
 
     @Test
-    public void testIsAvailableForDates_WithConflict() {
-        Booking booking = new Booking(
-                "B1", room.getId(), room.getName(), room.getType(),
-                "May 01, 2025", "May 05, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
-        );
-        repository.addBookingForTesting(booking);
-
-        // Try to book overlapping dates
-        Calendar checkIn = Calendar.getInstance();
-        checkIn.set(2025, Calendar.MAY, 3);
-        Calendar checkOut = Calendar.getInstance();
-        checkOut.set(2025, Calendar.MAY, 7);
-
-        assertFalse("Room should not be available due to overlap",
-                repository.isAvailableForDates(room, checkIn, checkOut, null));
-    }
-
-    @Test
     public void testIsAvailableForDates_ExcludeCurrentBooking() {
         String bookingId = "B2";
         Booking booking = new Booking(
@@ -138,95 +120,23 @@ public class RoomRepositoryTest {
     }
 
     @Test
-    public void testFindOverlappingBooking_MatchesAnyRoomTypeInMultiTypeTransaction() {
-        // A multi-room-type transaction (e.g. "Deluxe + Suite") must still be
-        // found as an overlap when only its second room type is queried -
-        // see Booking#hasRoomType()/getAllRoomTypeNames().
-        Booking multiType = new Booking(
-                "B1", room.getId(), room.getName(), "Executive",
-                "May 01, 2025", "May 05, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
-        );
-        List<BookingRoom> rooms = new java.util.ArrayList<>();
-        rooms.add(new BookingRoom("1", "Executive", 1, 3000.0, 4, 12000.0, null));
-        rooms.add(new BookingRoom("2", "Deluxe", 2, 2500.0, 4, 20000.0, null));
-        multiType.setRooms(rooms);
-        repository.addBookingForTesting(multiType);
-
-        Calendar checkIn = Calendar.getInstance();
-        checkIn.set(2025, Calendar.MAY, 2);
-        Calendar checkOut = Calendar.getInstance();
-        checkOut.set(2025, Calendar.MAY, 3);
-
-        assertNotNull("Querying the second room type of a multi-type booking must still find the overlap",
-                repository.findOverlappingBooking("Deluxe", checkIn, checkOut, null));
-    }
-
-    // ---- isGenuineOverlap() / findConflictingStayForGuest() - Requirement 2 ----
-
-    @Test
-    public void isGenuineOverlap_exactMatch_isNotAConflict() {
-        long in = 1000L, out = 2000L;
-        assertFalse(RoomRepository.isGenuineOverlap(in, out, in, out));
-    }
-
-    @Test
-    public void isGenuineOverlap_partialOverlap_isAConflict() {
-        // Existing May1-May5, new May3-May7 - genuinely different range, overlaps.
-        assertTrue(RoomRepository.isGenuineOverlap(3000L, 7000L, 1000L, 5000L));
-    }
-
-    @Test
-    public void isGenuineOverlap_backToBack_isNotAConflict() {
-        // New check-in on the existing stay's check-out day - half-open range, allowed.
-        assertFalse(RoomRepository.isGenuineOverlap(5000L, 9000L, 1000L, 5000L));
-    }
-
-    @Test
-    public void isGenuineOverlap_nonOverlapping_isNotAConflict() {
-        assertFalse(RoomRepository.isGenuineOverlap(9000L, 12000L, 1000L, 5000L));
-    }
-
-    @Test
-    public void findConflictingStayForGuest_exactDuplicateDates_allowed() {
-        // Requirement 2: a guest may create multiple transactions using the
-        // same check-in/check-out dates as an existing one of theirs.
+    public void isAvailableForDates_ownOverlappingOrIdenticalStaysNeverBlock() {
+        // A guest may hold several reservations/bookings over the same or
+        // overlapping dates; only the room's real availability limits them.
         repository.addBookingForTesting(new Booking(
                 "B1", room.getId(), room.getName(), room.getType(),
                 "May 01, 2025", "May 05, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
         ));
+        Calendar sameIn = Calendar.getInstance();
+        sameIn.set(2025, Calendar.MAY, 1);
+        Calendar sameOut = Calendar.getInstance();
+        sameOut.set(2025, Calendar.MAY, 5);
+        Calendar overlapIn = Calendar.getInstance();
+        overlapIn.set(2025, Calendar.MAY, 3);
+        Calendar overlapOut = Calendar.getInstance();
+        overlapOut.set(2025, Calendar.MAY, 8);
 
-        Calendar checkIn = Calendar.getInstance();
-        checkIn.set(2025, Calendar.MAY, 1);
-        Calendar checkOut = Calendar.getInstance();
-        checkOut.set(2025, Calendar.MAY, 5);
-
-        assertNull("An exact date-range duplicate must not be reported as a conflict",
-                repository.findConflictingStayForGuest(checkIn, checkOut, (String) null));
-    }
-
-    @Test
-    public void findConflictingStayForGuest_exactMatchAndGenuineOverlapBothOnFile_stillBlocksOnTheOverlap() {
-        // Regression test for the iteration-order bug: a guest with BOTH an
-        // exact-duplicate stay (B1, allowed) AND a separately, genuinely
-        // overlapping stay (B2, must still block) on file must not slip
-        // through just because B1 happened to be checked first - the
-        // exact-match exclusion has to apply per-candidate, not by deciding
-        // from whichever single record the method happens to return.
-        repository.addBookingForTesting(new Booking(
-                "B1", room.getId(), room.getName(), room.getType(),
-                "May 01, 2025", "May 05, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
-        ));
-        repository.addBookingForTesting(new Booking(
-                "B2", room.getId(), room.getName(), room.getType(),
-                "May 03, 2025", "May 08, 2025", 2, 500.0, "Confirmed", "Apr 30, 2025"
-        ));
-
-        Calendar checkIn = Calendar.getInstance();
-        checkIn.set(2025, Calendar.MAY, 1);
-        Calendar checkOut = Calendar.getInstance();
-        checkOut.set(2025, Calendar.MAY, 5);
-
-        assertNotNull("The genuine overlap with B2 must still block, regardless of B1's exact match",
-                repository.findConflictingStayForGuest(checkIn, checkOut, (String) null));
+        assertEquals(room.isAvailable(), repository.isAvailableForDates(room, sameIn, sameOut, null));
+        assertEquals(room.isAvailable(), repository.isAvailableForDates(room, overlapIn, overlapOut, null));
     }
 }

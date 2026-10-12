@@ -2856,29 +2856,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 return;
             }
 
-            // Double-booking guard: the same guest may not hold two active
-            // stays of the same room type over overlapping dates. Checked
-            // before the generic availability check so they get told WHICH
-            // reservation is in the way instead of a vague "unavailable".
-            // Checked against every selected room type, since any one of
-            // them could collide with an existing stay.
-            Booking foundDuplicate = null;
-            for (Room r : selectedRooms) {
-                foundDuplicate = repository.findOverlappingBooking(r.getType(), checkInCal, checkOutCal, editingBookingId);
-                if (foundDuplicate != null) break;
-            }
-            final Booking duplicate = foundDuplicate;
-            if (duplicate != null) {
-                new SafeDialogs.Material(this)
-                        .setTitle(R.string.duplicate_reservation_title)
-                        .setMessage(getString(R.string.error_duplicate_reservation,
-                                duplicate.getId(), duplicate.getCheckInDate(), duplicate.getCheckOutDate()))
-                        .setPositiveButton(R.string.close_label, null)
-                        .setNeutralButton(R.string.modify_label, (dialog, which) -> launchModifyWizard(duplicate))
-                        .show();
-                return;
-            }
-
             // Double check availability - if editing, we exclude the current booking from the check
             if (!allSelectedRoomsAvailable(checkInCal, checkOutCal)) {
                 Toast.makeText(this, R.string.error_room_unavailable, Toast.LENGTH_LONG).show();
@@ -3606,6 +3583,51 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         return Booking.formatRoomSelectionSummary(countsByRoomName);
     }
 
+    /** The room's picture on a list card: thumbnail-decoded by Glide, the bed icon while loading or when there is none. */
+    private void bindCardPicture(ImageView view, Booking b) {
+        if (view == null) return;
+        String url = b.getRoomImageUrl();
+        if (url == null || url.trim().isEmpty() || isFinishing() || isDestroyed()) {
+            Glide.with(view).clear(view);
+            view.setImageResource(R.drawable.ic_bed);
+            return;
+        }
+        Glide.with(view)
+                .load(url)
+                .placeholder(R.drawable.ic_bed)
+                .error(R.drawable.ic_bed)
+                .thumbnail(0.25f)
+                .into(view);
+    }
+
+    /**
+     * Payment method, then what is paid and what is left. The remaining balance is only shown while something is
+     * still owed on a live transaction (never for Cancelled/Rejected/Checked-Out/Completed, never at P0.00) - the
+     * figures come from the same TransactionStatusHelper summary the details screen uses (verified payments only).
+     */
+    private void bindCardPayment(TextView methodView, TextView paidView, Booking b) {
+        if (methodView == null || paidView == null) return;
+        String method = b.getPaymentMethod();
+        boolean hasMethod = method != null && !method.trim().isEmpty();
+        methodView.setVisibility(hasMethod ? View.VISIBLE : View.GONE);
+        if (hasMethod) {
+            methodView.setText(getString(R.string.booking_card_payment_format,
+                    getString("cash".equalsIgnoreCase(method) ? R.string.payment_method_cash : R.string.payment_method_gcash)));
+        }
+        TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
+        String status = b.getStatus();
+        boolean closed = "Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)
+                || "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
+        boolean showRemaining = !closed && MoneyFormat.isPositive(summary.balance);
+        if (showRemaining) {
+            paidView.setText(getString(R.string.booking_card_paid_remaining_format,
+                    MoneyFormat.format(summary.verifiedPaid), MoneyFormat.format(summary.balance)));
+        } else {
+            paidView.setText(getString(R.string.booking_card_paid_format, MoneyFormat.format(summary.verifiedPaid)));
+        }
+        paidView.setVisibility(MoneyFormat.isPositive(summary.verifiedPaid) || showRemaining ? View.VISIBLE : View.GONE);
+    }
+
     private class BookingsAdapter extends RecyclerView.Adapter<BookingsAdapter.ViewHolder> {
         private final List<Booking> mBookings;
         private final boolean isBookingTab;
@@ -3650,7 +3672,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                         (b.isEditedOnce() || LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()))
                                 ? View.VISIBLE : View.GONE);
             }
-            holder.tvBookingDates.setText(getString(R.string.date_range_format, b.getCheckInDate(), b.getCheckOutDate()));
+            Long nights = StayDateCalculator.nightsBetweenOrNull(b.getCheckInDate(), b.getCheckOutDate());
+            holder.tvBookingDates.setText(nights != null && nights > 0
+                    ? getString(R.string.date_range_nights_format, b.getCheckInDate(), b.getCheckOutDate(),
+                            getResources().getQuantityString(R.plurals.nights_count_plain, nights.intValue(), nights.intValue()))
+                    : getString(R.string.date_range_format, b.getCheckInDate(), b.getCheckOutDate()));
+            bindCardPicture(holder.ivBookingRoom, b);
+            bindCardPayment(holder.tvBookingPaymentMethod, holder.tvBookingPaidLine, b);
             // Payment method/status pill, amount paid, remaining balance, and
             // created date/time all moved into BookingDetailsActivity's Guest
             // Info/Payment tabs - the compact card no longer shows them
@@ -3810,6 +3838,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingGuests, tvBookingPrice;
+            TextView tvBookingPaymentMethod, tvBookingPaidLine;
+            ImageView ivBookingRoom;
             LinearLayout layoutActionButtons;
             TextView tvFrontDeskNote;
             MaterialButton btnModify, btnCancel, btnViewDetails, btnPayNow, btnDelete, btnBookAgain;
@@ -3823,6 +3853,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 tvBookingDates = itemView.findViewById(R.id.tvBookingDates);
                 tvBookingGuests = itemView.findViewById(R.id.tvBookingGuests);
                 tvBookingPrice = itemView.findViewById(R.id.tvBookingPrice);
+                tvBookingPaymentMethod = itemView.findViewById(R.id.tvBookingPaymentMethod);
+                tvBookingPaidLine = itemView.findViewById(R.id.tvBookingPaidLine);
+                ivBookingRoom = itemView.findViewById(R.id.ivBookingRoom);
                 layoutActionButtons = itemView.findViewById(R.id.layoutActionButtons);
                 btnModify = itemView.findViewById(R.id.btnModify);
                 btnCancel = itemView.findViewById(R.id.btnCancel);

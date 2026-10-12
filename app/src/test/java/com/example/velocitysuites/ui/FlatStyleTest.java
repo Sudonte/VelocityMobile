@@ -70,7 +70,10 @@ public class FlatStyleTest {
         if (!(v instanceof MaterialCardView) && v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
         if (v instanceof MaterialButton) {
             MaterialButton b = (MaterialButton) v;
-            if (b.getCornerRadius() != 0) problems.add(where + " " + name + " cornerRadius=" + b.getCornerRadius());
+            // The landing page's two hero actions (Sign In / Sign Up and Explore Now) are the one place controls are rounded: 12dp.
+            boolean landingAction = b.getId() == R.id.btnProceed || b.getId() == R.id.btnExploreNow;
+            float expectedRadius = landingAction ? 12 * v.getResources().getDisplayMetrics().density : 0f;
+            if (Math.abs(b.getCornerRadius() - expectedRadius) > 0.5f) problems.add(where + " " + name + " cornerRadius=" + b.getCornerRadius());
             if (b.getStateListAnimator() != null) problems.add(where + " " + name + " has a press animator");
         }
         if (v instanceof MaterialCardView) {

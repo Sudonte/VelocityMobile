@@ -28,10 +28,8 @@ import java.util.Locale;
  * had to protect whatever room was already staged) - now that Room Selection
  * is step 2, it's step 2's own job to fetch date-aware availability and
  * reconcile any pre-existing selection against whatever dates are picked
- * here (see Step1RoomSelectionFragment). What IS checked here is a
- * completely separate concern: Guest Transaction Date Validation - this
- * guest's OWN other active Bookings/Reservations can't overlap this stay,
- * regardless of room type (see RoomRepository#findConflictingStayForGuest()).
+ * here (see Step1RoomSelectionFragment). A guest's own other stays never
+ * block a new one - same or overlapping dates are allowed.
  */
 public class Step2DatesFragment extends WizardStepFragment {
 
@@ -122,44 +120,7 @@ public class Step2DatesFragment extends WizardStepFragment {
             return false;
         }
         tilCheckIn.setError(null);
-        return validateNoGuestDateConflict();
-    }
-
-    /**
-     * Guest Transaction Date Validation - blocks Next while this check-in/
-     * check-out range genuinely OVERLAPS another of THIS guest's own active
-     * Bookings/Reservations (any room type - see
-     * RoomRepository#findConflictingStayForGuest()). An EXACT date match is
-     * never returned as a conflict by that method - a guest may create
-     * multiple Bookings/Reservations using the same dates, as long as room
-     * availability and every other condition is independently satisfied -
-     * so any non-null result here is always a genuine, different-range
-     * overlap. Completely separate from Room Availability Validation
-     * (cross-guest inventory for a specific room type, judged server-side
-     * and by Step1RoomSelectionFragment on step 2) - both must independently
-     * pass. On a Modify run, the reservation being edited AND every sibling
-     * of its own BookingGroupState group (same multi-room-type transaction,
-     * same dates by construction) are excluded from its own conflict check -
-     * excluding only the one edited id would make Modify falsely report
-     * the guest's own sibling record as a conflicting stay.
-     */
-    private boolean validateNoGuestDateConflict() {
-        BookingWizardState state = getState();
-        String excludeId = getWizardActivity().getEditingReservationId();
-        List<String> excludeIds = new ArrayList<>();
-        if (excludeId != null) {
-            excludeIds.add(excludeId);
-            excludeIds.addAll(BookingGroupState.getGroupMembers(requireContext(), excludeId));
-        }
-        Booking conflict = repository.findConflictingStayForGuest(state.checkIn, state.checkOut, excludeIds);
-        if (conflict == null) {
-            tilCheckOut.setError(null);
-            return true;
-        }
-        String message = getString(R.string.error_overlapping_stay_dates);
-        tilCheckOut.setError(message);
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
-        return false;
+        return true;
     }
 
     private void showDatePicker(boolean isCheckIn) {
@@ -213,13 +174,6 @@ public class Step2DatesFragment extends WizardStepFragment {
                 }
             }
             updateNightsSummary();
-            // Immediate feedback once both dates are in place, rather than
-            // waiting for a Next tap - validateBeforeNext() still re-checks
-            // this as the authoritative gate (e.g. if the guest never
-            // triggers this picker again after some other state changes).
-            if (state.checkIn != null && state.checkOut != null && state.checkOut.after(state.checkIn)) {
-                validateNoGuestDateConflict();
-            }
         }, activeCalFinal.get(Calendar.YEAR), activeCalFinal.get(Calendar.MONTH), activeCalFinal.get(Calendar.DAY_OF_MONTH));
 
         if (isCheckIn) {

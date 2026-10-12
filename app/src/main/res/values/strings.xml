@@ -1047,10 +1047,7 @@
     <string name="no_room_selected">No room selected</string>
     <string name="confirm_reservation_label">Confirm Reservation</string>
     <string name="error_room_unavailable">Selected room is not available for these dates.</string>
-    <string name="duplicate_reservation_title">Already Reserved</string>
-    <string name="error_duplicate_reservation">You already have an active reservation (Ref: %1$s) for this room type from %2$s to %3$s. To avoid a double booking, please modify or cancel that reservation instead of creating a new one.</string>
     <string name="error_invalid_dates">Check-out date must be later than the check-in date.</string>
-    <string name="error_overlapping_stay_dates">Your selected stay dates overlap with another active booking or reservation. Please select different check-in and check-out dates.</string>
     <string name="error_checkin_past">Check-in date can\'t be in the past. Please pick a new date.</string>
     <string name="reservation_created_title">Reservation Created!</string>
     <string name="reservation_created_msg">Your reservation #%1$s is in. No payment has been made - use Pay Now whenever you\'re ready to turn it into a booking.</string>
@@ -1135,8 +1132,8 @@
     <string name="empty_upcoming_bookings">You have no upcoming bookings. New bookings will appear here once scheduled.</string>
     <string name="empty_title_upcoming_bookings">No Upcoming Bookings Found</string>
     <!-- Real, permanent, non-recoverable deletion (hard DELETE against the guest's own row + its owned child records) - not the old hidden_at soft-hide. See RoomRepository#deleteReservationPermanently()/#deleteBookingPermanently() and TRANSACTION_PERMANENT_DELETE_BACKEND_SPEC.md. -->
-    <string name="delete_permanently_button_label">Remove From My Bookings</string>
-    <string name="delete_transaction_permanently_title">Remove From My Bookings?</string>
+    <string name="delete_permanently_button_label">Delete</string>
+    <string name="delete_transaction_permanently_title">Delete Permanently?</string>
     <string name="txn_removed_by_guest">Removed from bookings by guest</string>
     <!-- Itemized stay (server StayBill): booked vs actual check-out, nights and the extra nights' charge. -->
     <string name="stay_scheduled_check_in">Scheduled Check-In</string>
@@ -1146,15 +1143,15 @@
     <string name="stay_extra_nights_charge">Extra Nights Charge (%1$d)</string>
     <string name="stay_additional_amenity_label">Additional amenities: %1$s</string>
     <string name="stay_updated_total">Updated Total</string>
-    <string name="deleting_in_progress_label">Removing…</string>
+    <string name="deleting_in_progress_label">Deleting…</string>
     <string name="cancelling_in_progress_label">Cancelling…</string>
     <string name="wizard_progress_lost_restart">Your booking session was interrupted, so we\'ve restarted it from the beginning. Please re-enter your details.</string>
-    <string name="delete_transaction_success_title">Removed From My Bookings</string>
+    <string name="delete_transaction_success_title">Deleted</string>
     <!-- Booking-tab vs Reservation-tab specific copy for confirmDeleteTransaction()/TransactionListActivity#confirmDelete() - a Booking may be deleted once Completed or Cancelled/Rejected, a Reservation only once Cancelled/Rejected (never merely Completed/staff-verified - see TransactionCategorizer's own doc). -->
-    <string name="delete_booking_transaction_confirm">This booking will be removed from your Bookings &amp; Reservations. It is never deleted: it stays in your Transaction History with all its details as your proof. Continue?</string>
-    <string name="delete_booking_transaction_success">The booking was removed from your bookings. It stays in your Transaction History.</string>
-    <string name="delete_reservation_transaction_confirm">This reservation will be removed from your Bookings &amp; Reservations. It is never deleted: it stays in your Transaction History with all its details as your proof. Continue?</string>
-    <string name="delete_reservation_transaction_success">The reservation was removed from your bookings. It stays in your Transaction History.</string>
+    <string name="delete_booking_transaction_confirm">Delete this booking permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
+    <string name="delete_booking_transaction_success">Booking deleted.</string>
+    <string name="delete_reservation_transaction_confirm">Delete this reservation permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
+    <string name="delete_reservation_transaction_success">Reservation deleted.</string>
     <string name="delete_transaction_failed_format">The transaction could not be removed. %1$s</string>
     <!-- Status-code-specific delete errors (RoomRepository#deleteErrorMessage()) - always a clean, fixed message, never the raw backend/framework error text. -->
     <string name="delete_error_forbidden">You are not allowed to delete this transaction.</string>
@@ -1179,7 +1176,7 @@
     <string name="cancel_failed_format">Couldn\'t cancel: %1$s</string>
     <string name="booking_cancellation_policy_notice">Cancellation Policy: Fully paid bookings cannot be cancelled. Bookings with only a partial payment can be cancelled, but the partial payment already made is non-refundable and will not be returned.</string>
     <string name="cancel_not_allowed_title">Cancellation Not Allowed</string>
-    <string name="cancel_not_allowed_already_verified_msg">This booking has already been verified by the front desk and can no longer be cancelled.</string>
+    <string name="cancel_not_allowed_already_verified_msg">This can no longer be cancelled because the front desk has already verified or converted it.</string>
     <string name="cancel_not_allowed_verified_msg">This booking is fully paid, so it can no longer be cancelled here. If you have concerns, please contact the front desk for assistance.</string>
     <string name="cancel_partial_payment_confirm">This booking will be cancelled permanently. Since only a partial payment was made, that amount is non-refundable and will not be returned. Do you want to proceed?</string>
     <string name="additional_guest_age">Age</string>
@@ -1817,6 +1814,29 @@
     <string name="terms_privacy_body">Velocity Suites respects your privacy and processes your personal information in line with the Data Privacy Act of 2012 (Republic Act No. 10173) and its implementing rules.\n\n1. What we collect\nThe details you give when you create an account, make a Booking or Reservation, upload an ID, or pay: your name, birth date, gender, email, mobile number, address, guest details, ID image (only to verify a discount), and payment records such as GCash references.\n\n2. Why we collect it\nOnly to manage your account, process Bookings and Reservations, verify discounts and payments, send OTPs and notifications, give you customer support, keep the property secure, and meet legal obligations.\n\n3. Your consent\nBy checking the agreement box you consent to this collection and use. You may withdraw your consent by contacting the hotel, but some services may then no longer be available.\n\n4. Sharing\nYour information is shared only with hotel staff who need it to serve you, with payment providers to process payments, and with authorities when required by law. It is not sold.\n\n5. Storage and security\nWe use reasonable organizational, physical, and technical safeguards, and keep your information only as long as needed for the purposes above or as the law requires.\n\n6. Your rights\nUnder RA 10173 you have the right to be informed, to access, to correct, to object, to request erasure or blocking, to data portability, and to be compensated for damages caused by inaccurate, incomplete, outdated, false, or unlawfully obtained data. You may also file a complaint with the National Privacy Commission.\n\n7. Contact\nTo use your rights or ask about your data, contact the Velocity Suites front desk.</string>
     <string name="registration_terms_section_title">Terms and Policy</string>
     <string name="password_requirements">Password requirements: at least 8 characters. Re-enter it below to confirm.</string>
+    <string name="receipt_image_missing">No receipt image is available for this payment.</string>
+    <string name="receipt_image_load_failed">The receipt image could not be loaded. Check your connection and try again.</string>
+    <string name="receipt_image_content_description">GCash payment receipt</string>
+    <string name="notif_popup_empty">No new notifications</string>
+    <string name="notif_popup_view_all">View all notifications</string>
+    <string name="notif_popup_unread_format">%1$d unread</string>
+    <string name="login_account_not_found">Account does not exist.</string>
+    <string name="login_wrong_password">Incorrect password. Please try again.</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="sending_code">Sending code…</string>
+    <string name="verifying">Verifying…</string>
+    <string name="landing_feature_booking_title">Easy room booking</string>
+    <string name="landing_feature_booking_desc">Browse rooms, then book or reserve in a few taps.</string>
+    <string name="landing_feature_payment_title">Pay by cash or GCash</string>
+    <string name="landing_feature_payment_desc">Settle at the front desk, or pay by GCash and attach your receipt.</string>
+    <string name="landing_feature_realtime_title">Real-time booking updates</string>
+    <string name="landing_feature_realtime_desc">See the front desk\'s confirmation as it happens.</string>
+    <string name="landing_feature_notify_title">Notifications</string>
+    <string name="landing_feature_notify_desc">Get an alert for every booking, payment and check-in.</string>
+    <string name="booking_card_payment_format">Payment: %1$s</string>
+    <string name="booking_card_paid_remaining_format">Paid %1$s · Remaining %2$s</string>
+    <string name="booking_card_paid_format">Paid %1$s</string>
+    <string name="date_range_nights_format">%1$s - %2$s · %3$s</string>
 </resources>
 
 

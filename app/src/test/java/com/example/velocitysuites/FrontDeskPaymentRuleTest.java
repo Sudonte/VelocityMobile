@@ -47,6 +47,17 @@ public class FrontDeskPaymentRuleTest {
     }
 
     @Test
+    public void checkedOutOrCompletedBooking_hasNoMessage_evenWithAStaleBalance() {
+        assertFalse(PaymentEligibility.needsFrontDeskPayment(confirmed("Checked-Out", 2000, 800)));
+        assertFalse(PaymentEligibility.needsFrontDeskPayment(confirmed("Completed", 2000, 800)));
+    }
+
+    @Test
+    public void bookingWithZeroBalance_hasNoMessage() {
+        assertFalse(PaymentEligibility.needsFrontDeskPayment(confirmed("Confirmed", 0, 0)));
+    }
+
+    @Test
     public void aReservationThatIsNotABookingYet_isPaidInTheApp_soNoFrontDeskMessage() {
         Booking reservation = new Booking("588", "1", "Deluxe", "Deluxe", "Oct 01, 2026", "Oct 02, 2026", 2, 2000, "Pending", "");
         reservation.setHasBooking(false);

@@ -194,6 +194,7 @@
                         android:text="@string/email_label" />
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/emailLayout"
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -221,6 +222,7 @@
                         android:text="@string/password_label" />
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/passwordLayout"
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

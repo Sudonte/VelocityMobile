@@ -982,7 +982,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         View headerNotification = findViewById(R.id.headerNotificationContainer);
         if (headerNotification != null) {
-            headerNotification.setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, NotificationActivity.class))));
+            headerNotification.setOnClickListener(NavUtils.debounce(this::onHeaderBellTapped));
         }
 
         findViewById(R.id.bookingDetailsCard).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryBookings()));

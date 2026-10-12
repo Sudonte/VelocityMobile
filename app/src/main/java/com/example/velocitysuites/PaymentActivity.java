@@ -1242,18 +1242,8 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     private void showReceiptPreviewDialog() {
-        if (receiptUri == null) return;
-        ImageView fullImage = new ImageView(this);
-        fullImage.setAdjustViewBounds(true);
-        fullImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        Glide.with(this).load(receiptUri).into(fullImage);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        fullImage.setPadding(padding, padding, padding, padding);
-        new SafeDialogs.Material(this)
-                .setTitle(R.string.view_receipt)
-                .setView(fullImage)
-                .setPositiveButton(R.string.close_label, null)
-                .show();
+        // Full-screen, pinch-to-zoom viewer; a missing image shows its own message instead of doing nothing.
+        ReceiptImageViewerActivity.start(this, receiptUri != null ? receiptUri.toString() : null);
     }
 
     private void removeReceipt() {

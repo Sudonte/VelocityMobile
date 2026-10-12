@@ -237,6 +237,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     .load(room.getImageUrl())
                     .placeholder(fallbackImage)
                     .error(fallbackImage)
+                    .thumbnail(0.25f)
                     .into(holder.roomImage);
         } else if (room.getImageResId() != 0) {
             holder.roomImage.setImageResource(room.getImageResId());

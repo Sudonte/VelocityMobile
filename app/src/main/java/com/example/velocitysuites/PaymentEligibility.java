@@ -48,6 +48,8 @@ public final class PaymentEligibility {
      */
     public static boolean needsFrontDeskPayment(Booking b) {
         if (b == null || !b.isHasBooking() || b.isHistoricalReservation()) return false;
+        // Nothing is owed at the desk once the stay is over, whatever a stale balance says.
+        if ("Checked-Out".equalsIgnoreCase(b.getStatus()) || "Completed".equalsIgnoreCase(b.getStatus())) return false;
         TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
         boolean open = summary.status == TransactionStatusHelper.Status.PENDING
                 || summary.status == TransactionStatusHelper.Status.PARTIALLY_PAID;

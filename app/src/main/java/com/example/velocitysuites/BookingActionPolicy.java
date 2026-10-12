@@ -5,20 +5,19 @@ package com.example.velocitysuites;
  * Booking/Reservation from the app. Used by the Booking List card and by the
  * tap-time re-check, so no entry point can drift from the rule.
  *
- * <p>The receptionist's verify action sets {@code bookings.verified_at}
- * (Receptionist\PaymentController::verify() -> autoCompleteBooking(), or
- * Receptionist\BookingController::verify()); ApiMapper exposes it as
- * {@link Booking#isStaffVerified()}. The backend refuses to cancel such a
- * booking (Api\BookingController::cancel(), ReservationWorkflowService::
- * cancelConvertedBooking()), so the app hides the action to match.
+ * <p>The backend enforces the same gate (ReservationWorkflowService::cancel()
+ * and Api\BookingController::cancel()), so a hand-sent request is refused too.
  *
- * <p>Rules:
+ * <p>Cancel is hidden (GONE, not merely disabled) when:
  * <ul>
- *   <li>null booking -> false.</li>
- *   <li>Fully paid -> false (unchanged, see {@link PaymentStateUtil#isFullyPaid}).</li>
- *   <li>A Booking (hasBooking) the receptionist has verified -> false.</li>
- *   <li>Anything else, including a not-yet-converted Reservation -> true
- *       (unchanged behavior for reservations).</li>
+ *   <li>the booking is null, or already Cancelled / Rejected / Checked-In /
+ *       Checked-Out / Completed;</li>
+ *   <li>it is fully paid ({@link PaymentStateUtil#isFullyPaid});</li>
+ *   <li>it is a Reservation already converted to a Booking (covers a Cash
+ *       reservation the receptionist converted and a GCash Pay Later one);</li>
+ *   <li>it is a Reservation (Cash) the receptionist has already verified;</li>
+ *   <li>it is a direct Booking the receptionist has verified
+ *       ({@code bookings.verified_at}, {@link Booking#isStaffVerified()}).</li>
  * </ul>
  */
 public final class BookingActionPolicy {
@@ -27,7 +26,17 @@ public final class BookingActionPolicy {
 
     public static boolean canCancel(Booking booking) {
         if (booking == null) return false;
+        if (isClosedStatus(booking.getStatus())) return false;
         if (PaymentStateUtil.isFullyPaid(booking)) return false;
-        return !(booking.isHasBooking() && booking.isStaffVerified());
+        if (booking.isHasBooking() && !booking.isDirectBooking()) return false;
+        return !booking.isStaffVerified();
+    }
+
+    private static boolean isClosedStatus(String status) {
+        return "Cancelled".equalsIgnoreCase(status)
+                || "Rejected".equalsIgnoreCase(status)
+                || "Checked-In".equalsIgnoreCase(status)
+                || "Checked-Out".equalsIgnoreCase(status)
+                || "Completed".equalsIgnoreCase(status);
     }
 }

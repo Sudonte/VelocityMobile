@@ -18,16 +18,25 @@
         android:paddingHorizontal="16dp"
         android:paddingVertical="8dp">
 
-        <!-- Compact summary row: status/name/type/dates, chevron - deliberately
-             image-free (room images belong only in BookingDetailsActivity's
-             Selected Rooms section, never this list - see that screen's own
-             per-room-type image cards). Only the essentials per card - full
-             guest/payment/timeline info lives in BookingDetailsActivity,
-             opened by tapping anywhere on this card. -->
+        <!-- Summary row: room picture, then ID / rooms / dates / status, chevron. Full
+             guest/payment/timeline info lives in BookingDetailsActivity, opened by tapping
+             anywhere on this card. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/ivBookingRoom"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="12dp"
+                android:background="@color/velocity_red_soft"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_bed" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -180,6 +189,23 @@
                     android:textSize="15sp" />
             </LinearLayout>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvBookingPaymentMethod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="@style/TextAppearance.Velocity.Caption"
+            tools:text="Payment: GCash" />
+
+        <TextView
+            android:id="@+id/tvBookingPaidLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:textAppearance="@style/TextAppearance.Velocity.Caption"
+            tools:text="Paid ₱500.00 · Remaining ₱700.00" />
 
         <LinearLayout
             android:id="@+id/layoutActionButtons"

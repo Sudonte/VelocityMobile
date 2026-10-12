@@ -67,6 +67,10 @@ public class RegistrationActivity extends AppCompatActivity {
     private AutoCompleteTextView genderDropdown;
     private View step1Layout, step2Layout, step3Layout, otpLayout;
     private MaterialButton nextButton, signUpButton;
+    /** True while register/verify is in flight - a second tap does nothing. */
+    private boolean requestInFlight;
+    private static final long RESEND_COOLDOWN_MS = 60_000L;
+    private android.os.CountDownTimer resendTimer;
     private TextView stepText, resendOtpLink;
     private View registrationLabel;
     private View stepProgressBar;
@@ -626,17 +630,20 @@ public class RegistrationActivity extends AppCompatActivity {
             request.age = 0;
         }
 
-        signUpButton.setEnabled(false);
+        if (requestInFlight) return;
+        setRequestInFlight(true, R.string.sending_code);
         ApiClient.getService(this).register(request).enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                signUpButton.setEnabled(true);
+                setRequestInFlight(false, R.string.sign_up_now);
+                if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful()) {
                     animateStepOut(true, () -> {
                         isOtpStep = true;
                         currentStep = 4;
                         updateStepUI();
                         animateStepIn(true);
+                        startResendCooldown();
                         Toast.makeText(RegistrationActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
                     });
                 } else {
@@ -647,10 +654,51 @@ public class RegistrationActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
-                signUpButton.setEnabled(true);
+                setRequestInFlight(false, R.string.sign_up_now);
+                if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    /**
+     * Disables the primary button and swaps its label while a request is out (so a second tap cannot
+     * double-submit); on the way out it restores {@code idleLabel} and the Terms gate decides enabled-ness.
+     */
+    private void setRequestInFlight(boolean inFlight, int label) {
+        requestInFlight = inFlight;
+        signUpButton.setText(label);
+        if (inFlight) {
+            signUpButton.setEnabled(false);
+        } else if (isOtpStep) {
+            signUpButton.setEnabled(true);
+        } else {
+            updateSignUpEnabledState();
+        }
+    }
+
+    /** Resend OTP is locked for a minute after a code goes out, with the seconds left shown on the link. */
+    private void startResendCooldown() {
+        if (resendTimer != null) resendTimer.cancel();
+        resendOtpLink.setEnabled(false);
+        resendTimer = new android.os.CountDownTimer(RESEND_COOLDOWN_MS, 1000L) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                resendOtpLink.setText(getString(R.string.resend_otp_countdown, (int) ((millisUntilFinished + 999) / 1000)));
+            }
+
+            @Override
+            public void onFinish() {
+                resendOtpLink.setText(R.string.resend_otp);
+                resendOtpLink.setEnabled(true);
+            }
+        }.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (resendTimer != null) resendTimer.cancel();
+        super.onDestroy();
     }
 
     private void verifyOtp() {
@@ -661,11 +709,13 @@ public class RegistrationActivity extends AppCompatActivity {
         }
 
         String email = textOf(emailEdit);
-        signUpButton.setEnabled(false);
+        if (requestInFlight) return;
+        setRequestInFlight(true, R.string.verifying);
         ApiClient.getService(this).verifyOtp(new VerifyOtpRequest(email, otp)).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                signUpButton.setEnabled(true);
+                setRequestInFlight(false, R.string.verify_button);
+                if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse auth = response.body();
                     String fullName = auth.user.full_name != null ? auth.user.full_name
@@ -690,7 +740,8 @@ public class RegistrationActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<AuthResponse> call, Throwable t) {
-                signUpButton.setEnabled(true);
+                setRequestInFlight(false, R.string.verify_button);
+                if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
             }
         });
@@ -701,16 +752,19 @@ public class RegistrationActivity extends AppCompatActivity {
         ApiClient.getService(this).resendOtp(new EmailRequest(textOf(emailEdit))).enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                resendOtpLink.setEnabled(true);
+                if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful()) {
+                    startResendCooldown();
                     Toast.makeText(RegistrationActivity.this, "A new OTP has been sent to your email.", Toast.LENGTH_SHORT).show();
                 } else {
+                    resendOtpLink.setEnabled(true);
                     Toast.makeText(RegistrationActivity.this, "Couldn't resend OTP: " + errorMessage(response), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 resendOtpLink.setEnabled(true);
                 Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
             }

@@ -36,6 +36,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private TextInputEditText emailEditText, passwordEditText;
     private TextInputEditText forgotEmailEditText, loginOtpEditText, newPasswordEditText, confirmNewPasswordEditText;
+    private TextInputLayout emailLayout, passwordLayout;
+    private boolean signingIn;
     private TextInputLayout forgotEmailLayout, loginOtpLayout, newPasswordLayout, confirmNewPasswordLayout;
     private View forgotEmailLabel, otpLabel, newPasswordLabel, confirmPasswordLabel;
     private View loginCard, forgotPasswordCard, signupRedirect, headerSection, loginLabel;
@@ -171,6 +173,11 @@ public class LoginActivity extends AppCompatActivity {
     private void initializeViews() {
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
+        emailLayout = findViewById(R.id.emailLayout);
+        passwordLayout = findViewById(R.id.passwordLayout);
+        // An inline error clears as soon as the guest starts fixing the field.
+        emailEditText.addTextChangedListener(new SimpleTextWatcher(() -> setFieldError(emailLayout, emailEditText, null)));
+        passwordEditText.addTextChangedListener(new SimpleTextWatcher(() -> setFieldError(passwordLayout, passwordEditText, null)));
         
         forgotEmailEditText = findViewById(R.id.forgotEmailEditText);
         loginOtpEditText = findViewById(R.id.loginOtpEditText);
@@ -216,11 +223,12 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
         String password = passwordEditText.getText() != null ? passwordEditText.getText().toString().trim() : "";
 
+        if (signingIn) return;
         if (!validateInput(email, password)) return;
 
         boolean isDefaultAccount = email.equalsIgnoreCase(DEFAULT_EMAIL) && password.equals(DEFAULT_PASSWORD);
 
-        findViewById(R.id.signInButton).setEnabled(false);
+        setSigningIn(true);
 
         // Always authenticate against the real backend first - even for the
         // built-in demo credentials - so a session created here carries a
@@ -233,7 +241,9 @@ public class LoginActivity extends AppCompatActivity {
         ApiClient.getService(this).login(request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                findViewById(R.id.signInButton).setEnabled(true);
+                setSigningIn(false);
+                if (isFinishing() || isDestroyed()) return;
+                String errorBody = response.isSuccessful() ? null : readErrorBody(response);
                 if (response.isSuccessful() && response.body() != null && Boolean.TRUE.equals(response.body().reactivation_required)) {
                     // Correct credentials, but the account is deactivated (see
                     // Api\AuthController::login()'s ACCOUNT_DEACTIVATED branch) -
@@ -251,7 +261,7 @@ public class LoginActivity extends AppCompatActivity {
                     // account isn't a guest account (see AuthController::
                     // login's role check), so show the server's actual
                     // reason instead of a misleading "invalid credentials".
-                    Toast.makeText(LoginActivity.this, errorMessage(response), Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, messageFrom(errorBody), Toast.LENGTH_LONG).show();
                 } else if (isDefaultAccount) {
                     // Demo account rejected by the server (e.g. not seeded
                     // in this environment) - fall back to the fully local
@@ -264,14 +274,24 @@ public class LoginActivity extends AppCompatActivity {
                     // distinct warning on the 2nd failed attempt ("one more
                     // attempt will require verification"), which a fixed
                     // local string would otherwise hide from the guest.
-                    Toast.makeText(LoginActivity.this, errorMessage(response), Toast.LENGTH_SHORT).show();
-                    passwordEditText.setError(getString(R.string.incorrect_password));
+                    LoginFailure failure = LoginFailure.parse(errorBody);
+                    if (failure.kind == LoginFailure.Kind.ACCOUNT_NOT_FOUND) {
+                        setFieldError(emailLayout, emailEditText, getString(R.string.login_account_not_found));
+                        emailEditText.requestFocus();
+                    } else if (failure.kind == LoginFailure.Kind.WRONG_PASSWORD) {
+                        setFieldError(passwordLayout, passwordEditText, failure.message != null ? failure.message : getString(R.string.login_wrong_password));
+                        passwordEditText.requestFocus();
+                    } else {
+                        Toast.makeText(LoginActivity.this, messageFrom(errorBody), Toast.LENGTH_SHORT).show();
+                        setFieldError(passwordLayout, passwordEditText, getString(R.string.incorrect_password));
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<AuthResponse> call, Throwable t) {
-                findViewById(R.id.signInButton).setEnabled(true);
+                setSigningIn(false);
+                if (isFinishing() || isDestroyed()) return;
                 if (isDefaultAccount) {
                     // No backend reachable - fall back to the fully local
                     // demo session so the demo account still works offline.
@@ -527,33 +547,52 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private String errorMessage(Response<?> response) {
-        if (response.errorBody() != null) {
-            try {
-                String body = response.errorBody().string();
-                int idx = body.indexOf("\"message\":\"");
-                if (idx != -1) {
-                    int start = idx + 11;
-                    int end = body.indexOf('"', start);
-                    if (end != -1) return body.substring(start, end);
-                }
-            } catch (Exception ignored) {
-            }
+        return messageFrom(readErrorBody(response));
+    }
+
+    private String readErrorBody(Response<?> response) {
+        try {
+            return response.errorBody() != null ? response.errorBody().string() : null;
+        } catch (Exception e) {
+            return null;
         }
-        return getString(R.string.invalid_credentials);
+    }
+
+    private String messageFrom(String errorBody) {
+        String message = LoginFailure.parse(errorBody).message;
+        return message != null && !message.trim().isEmpty() ? message : getString(R.string.invalid_credentials);
+    }
+
+    /** One shot per tap: while a sign-in is in flight the button is disabled and says so. */
+    private void setSigningIn(boolean inFlight) {
+        signingIn = inFlight;
+        MaterialButton button = findViewById(R.id.signInButton);
+        if (button == null) return;
+        button.setEnabled(!inFlight);
+        button.setText(inFlight ? R.string.signing_in : R.string.sign_in);
+    }
+
+    /** Puts the message under the field (null clears it); the error lives in the TextInputLayout, not a popup bubble. */
+    private void setFieldError(TextInputLayout layout, TextInputEditText field, String message) {
+        if (layout != null) {
+            layout.setError(message);
+        } else if (field != null) {
+            field.setError(message);
+        }
     }
 
     private boolean validateInput(String email, String password) {
         boolean isValid = true;
         if (TextUtils.isEmpty(email)) {
-            emailEditText.setError(getString(R.string.email_required));
+            setFieldError(emailLayout, emailEditText, getString(R.string.email_required));
             isValid = false;
         } else if (!EmailValidator.isValid(email)) {
-            emailEditText.setError(getString(R.string.valid_email_required));
+            setFieldError(emailLayout, emailEditText, getString(R.string.valid_email_required));
             isValid = false;
         }
 
         if (TextUtils.isEmpty(password)) {
-            passwordEditText.setError(getString(R.string.password_required));
+            setFieldError(passwordLayout, passwordEditText, getString(R.string.password_required));
             isValid = false;
         }
         return isValid;
