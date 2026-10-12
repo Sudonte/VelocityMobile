@@ -383,11 +383,13 @@ public class NotificationActivity extends BaseNavigationActivity {
 
             @Override
             public void onNotFound() {
+                if (!isUiAlive()) return;
                 TransactionNavigator.showNotFoundDialog(NotificationActivity.this);
             }
 
             @Override
             public void onError(String message) {
+                if (!isUiAlive()) return;
                 Toast.makeText(NotificationActivity.this, getString(R.string.txn_lookup_error_format, message), Toast.LENGTH_LONG).show();
             }
         });

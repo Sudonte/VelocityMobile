@@ -908,6 +908,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         };
         renderStep[0].run();
 
+        dialog.setOnDismissListener(d -> addressController.dispose());
         SafeDialogs.show(dialog);
     }
 

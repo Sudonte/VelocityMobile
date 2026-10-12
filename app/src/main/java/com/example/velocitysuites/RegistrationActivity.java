@@ -705,6 +705,7 @@ public class RegistrationActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (resendTimer != null) resendTimer.cancel();
+        if (addressController != null) addressController.dispose();
         super.onDestroy();
     }
 

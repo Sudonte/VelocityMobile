@@ -678,7 +678,8 @@
     <string name="cd_room_image">Room preview image</string>
     <string name="cd_close_dialog">Close dialog</string>
     <string name="filter_label">Filters</string>
-    <string name="sort_by_default">Sorting by: Default</string>
+    <string name="clear_label">Clear</string>
+    <string name="filters_count_format">FILTERS (%1$d)</string>
     <string name="sort_default">Default</string>
     <string name="sort_price_low_high">Price: Low to High</string>
     <string name="sort_price_high_low">Price: High to Low</string>
@@ -1667,7 +1668,6 @@
          elsewhere in this file) rather than the literal character, so no editor or tool that mis-reads this file's
          encoding can ever turn it into mojibake again. Exact text required: no space after the sign. -->
     <string name="landing_footer_copyright">&#169;2026 Velocity Suites Surallah. All rights reserved.</string>
-    <string name="cd_landing_banner">Featured hotel banner</string>
     <!-- Pull-to-refresh on the landing page. Shown (with a Retry button) only when the guest's own refresh failed;
          whatever was on the page before stays on screen. -->
     <string name="landing_refresh_failed_all">Couldn\'t refresh. Check your connection and try again.</string>

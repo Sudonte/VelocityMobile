@@ -202,7 +202,11 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         AdditionalAmenitySubmitRequest request = new AdditionalAmenitySubmitRequest(note.isEmpty() ? null : note);
         for (int i = 0; i < catalog.size(); i++) {
             if (quantities.get(i) > 0) {
-                request.items.add(new AdditionalAmenitySubmitRequest.Item(Long.parseLong(catalog.get(i).getId()), quantities.get(i)));
+                try {
+                    request.items.add(new AdditionalAmenitySubmitRequest.Item(Long.parseLong(catalog.get(i).getId()), quantities.get(i)));
+                } catch (NumberFormatException e) {
+                    // an amenity without a numeric id can't be requested; skip it rather than crash
+                }
             }
         }
         if (request.items.isEmpty()) return;

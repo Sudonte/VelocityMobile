@@ -203,12 +203,14 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         repository.refreshRoomsFresh(state.checkIn, state.checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> freshRooms) {
+                if (!isAdded()) return;
                 RoomAvailabilityReconciler.reconcile(state.selectedRooms, freshRooms);
                 goBack.run();
             }
 
             @Override
             public void onError(String message) {
+                if (!isAdded()) return;
                 goBack.run(); // Room Selection re-reads availability itself
             }
         });

@@ -573,6 +573,11 @@ public class AddressHierarchyController {
         if (group != null) group.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
+    /** Call when the screen / dialog hosting this controller closes: answers still in flight are then ignored. */
+    public void dispose() {
+        selectionGeneration++;
+    }
+
     private void reportLookupFailure() {
         Toast.makeText(context, R.string.address_lookup_failed, Toast.LENGTH_SHORT).show();
     }
