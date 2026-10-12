@@ -36,7 +36,7 @@ final class OtpBoxes {
         float density = context.getResources().getDisplayMetrics().density;
         container.removeAllViews();
         for (int i = 0; i < length; i++) {
-            EditText box = new EditText(context);
+            EditText box = new BackspaceAwareEditText(context);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, (int) (52 * density), 1f);
             if (i > 0) lp.setMarginStart((int) (6 * density));
             box.setLayoutParams(lp);
@@ -78,6 +78,33 @@ final class OtpBoxes {
             });
             boxes[i] = box;
             container.addView(box);
+        }
+    }
+
+    /**
+     * Many soft keyboards never send KEYCODE_DEL for an EMPTY field - they call deleteSurroundingText()
+     * on the input connection instead - so the key listener alone misses Backspace-to-previous-box.
+     * This turns that call (and a real DEL key) on an empty box into the same DEL key event.
+     */
+    private static final class BackspaceAwareEditText extends EditText {
+        BackspaceAwareEditText(Context context) {
+            super(context);
+        }
+
+        @Override
+        public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+            android.view.inputmethod.InputConnection base = super.onCreateInputConnection(outAttrs);
+            if (base == null) return null;
+            return new android.view.inputmethod.InputConnectionWrapper(base, true) {
+                @Override
+                public boolean deleteSurroundingText(int beforeLength, int afterLength) {
+                    if (getText().length() == 0 && beforeLength > 0) {
+                        return dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
+                                && dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL));
+                    }
+                    return super.deleteSurroundingText(beforeLength, afterLength);
+                }
+            };
         }
     }
 

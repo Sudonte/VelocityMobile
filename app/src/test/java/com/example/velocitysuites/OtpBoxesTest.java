@@ -90,6 +90,17 @@ public class OtpBoxesTest {
     }
 
     @Test
+    public void softKeyboardDeleteOnAnEmptyBoxAlsoStepsBack() {
+        box(0).setText("1");
+        box(1).setText("2");
+        EditText empty = box(2);
+        android.view.inputmethod.InputConnection ic = empty.onCreateInputConnection(new android.view.inputmethod.EditorInfo());
+        // what a soft keyboard calls instead of sending KEYCODE_DEL
+        ic.deleteSurroundingText(1, 0);
+        assertEquals("1", boxes.getCode());
+    }
+
+    @Test
     public void nonDigitsAreIgnored() {
         box(0).setText("a");
         assertEquals("", boxes.getCode());
