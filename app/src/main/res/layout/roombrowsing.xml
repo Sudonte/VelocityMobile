@@ -285,7 +285,10 @@
                                 android:layout_height="@dimen/search_button_height"
                                 android:layout_marginTop="11dp"
                                 android:text="@string/search_availability"
+                                android:textColor="@color/white"
                                 android:textSize="12sp"
+                                app:backgroundTint="@color/bg_button_primary"
+                                app:iconTint="@color/white"
                                 app:layout_constraintTop_toBottomOf="@id/tvCheckInAdvanceNotice"
                                 app:icon="@drawable/ic_room_search"
                                 app:iconGravity="textStart"
@@ -306,6 +309,7 @@
                                 android:insetTop="0dp"
                                 android:insetBottom="0dp"
                                 app:icon="@drawable/ic_close"
+                                app:iconGravity="textStart"
                                 app:iconSize="14dp"
                                 app:iconPadding="4dp"
                                 app:iconTint="@color/velocity_red_primary"
@@ -431,7 +435,7 @@
                                 android:layout_marginTop="4dp"
                                 android:fontFamily="sans-serif-medium"
                                 android:includeFontPadding="false"
-                                android:text="@string/sort_by_preferred"
+                                android:text="@string/sort_by_default"
                                 android:textColor="@color/velocity_inactive_gray"
                                 android:textSize="11sp"
                                 android:alpha="0.8" />
@@ -556,7 +560,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:translationZ="0dp"
-            app:behavior_overlapTop="150dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <androidx.recyclerview.widget.RecyclerView
@@ -569,7 +572,7 @@
                 android:nestedScrollingEnabled="true"
                 android:overScrollMode="never"
                 android:paddingHorizontal="22dp"
-                android:paddingTop="155dp"
+                android:paddingTop="8dp"
                 android:paddingBottom="101dp"
                 android:scrollbarStyle="outsideOverlay"
                 tools:listitem="@layout/item_room_card" />
@@ -585,7 +588,6 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone"
-            app:behavior_overlapTop="150dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <LinearLayout
@@ -594,7 +596,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="22dp"
-                android:paddingTop="155dp">
+                android:paddingTop="8dp">
 
                 <include layout="@layout/view_room_skeleton_card" />
 

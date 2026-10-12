@@ -678,7 +678,7 @@
     <string name="cd_room_image">Room preview image</string>
     <string name="cd_close_dialog">Close dialog</string>
     <string name="filter_label">Filters</string>
-    <string name="sort_by_preferred">Sorting by: Preferred</string>
+    <string name="sort_by_default">Sorting by: Default</string>
     <string name="sort_default">Default</string>
     <string name="sort_price_low_high">Price: Low to High</string>
     <string name="sort_price_high_low">Price: High to Low</string>
@@ -692,7 +692,6 @@
     <string name="amenities_more_format">+%1$d more</string>
     <string name="sorting_by_label">Sorting by: %1$s</string>
     <string name="capacity_persons_format">%1$d Persons</string>
-    <string name="personalized_greeting_format">Hello %1$s! %2$s</string>
     <string name="transaction_history_desc">Track your stays and billing records. Review your past reservations and payment history with Velocity Suites.</string>
     <string name="search_label">Search</string>
     <string name="search_transactions_hint">Search reference or room…</string>
@@ -1686,10 +1685,10 @@
     <string name="step_booking_details_title">Booking Details</string>
     <string name="confirm_booking_label">Confirm Booking</string>
     <string name="error_select_checkin_first">Please select your check-in date first</string>
-    <string name="helper_checkin_window">Earliest check-in is 2 days from today (no latest date)</string>
+    <string name="helper_checkin_window">At least 2 days from today</string>
     <string name="error_checkin_outside_window">Check-in must be at least 2 days (48 hours) from today. Earliest available check-in: %1$s.</string>
     <string name="checkin_advance_notice">Check-in must be booked at least %1$d days (%2$d hours) in advance. Earliest available check-in: %3$s.</string>
-    <string name="helper_checkout_after_checkin">At least 1 night after check-in</string>
+    <string name="helper_checkout_after_checkin">At least 1 night</string>
     <string name="title_select_checkin">Select Check-in Date</string>
     <string name="title_select_checkout">Select Check-out Date</string>
     <string name="step_details_subtitle">Choose your room and stay dates</string>

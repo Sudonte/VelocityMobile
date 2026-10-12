@@ -179,6 +179,13 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         tvResultsCount = findViewById(R.id.tvResultsCount);
         tvCurrentSortLabel = findViewById(R.id.tvCurrentSortLabel);
         appBarLayout = findViewById(R.id.appBarLayout);
+        if (appBarLayout != null) {
+            // Pull-to-refresh only while the header is fully expanded. With the header collapsed a stray pull
+            // used to leave SwipeRefresh's white circle hanging over the filter dropdowns.
+            appBarLayout.addOnOffsetChangedListener((bar, offset) -> {
+                if (swipeRefresh != null && !swipeRefresh.isRefreshing()) swipeRefresh.setEnabled(offset == 0);
+            });
+        }
 
         // The empty state is a shared include (view_empty_state.xml) whose title/description/
         // action are populated per-screen in code - without this it would render as a blank
@@ -251,6 +258,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     }
 
     private void loadRooms() {
+        final int seq = ++roomsRequestSeq;
         setRoomsLoading(true);
         layoutRoomError.setVisibility(View.GONE);
         // The no-cache request path (opening, coming back, pull-to-refresh): "refresh" must never be answered from a
@@ -258,7 +266,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
-                if (isFinishing() || isDestroyed()) return;
+                if (isFinishing() || isDestroyed() || seq != roomsRequestSeq) return;
                 setRoomsLoading(false);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 layoutRoomError.setVisibility(View.GONE);
@@ -273,7 +281,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
             @Override
             public void onError(String message) {
-                if (isFinishing() || isDestroyed()) return;
+                if (isFinishing() || isDestroyed() || seq != roomsRequestSeq) return;
                 setRoomsLoading(false);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 noResultsView.setVisibility(View.GONE);
@@ -385,7 +393,6 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private void setupDatePickers() {
         // Check-out stays disabled/inaccessible until a valid check-in is chosen.
-        checkOutLayout.setEnabled(false);
         etCheckIn.setOnClickListener(v -> showCheckInPicker());
         etCheckOut.setOnClickListener(v -> showCheckOutPicker());
 
@@ -410,8 +417,18 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         });
     }
 
+    /** Sort / type / capacity / price changes re-filter the rooms already loaded: no network call, no spinner. */
+    private void applyControlChange() {
+        applyFilters();
+        if (rvRooms != null) rvRooms.scrollToPosition(0);
+    }
+
+    /** Bumped by every room fetch so a slow, older response can never overwrite a newer one. */
+    private int roomsRequestSeq;
+
     private void performSearchWithLoading() {
         setRoomsLoading(true);
+        final int seq = ++roomsRequestSeq;
 
         // Re-fetch from the backend with the guest's actual dates first -
         // availability is date-range-aware server-side, so filtering the
@@ -420,6 +437,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         RoomRepository.getInstance(this).refreshRoomsFresh(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed() || seq != roomsRequestSeq) return;
                 allRooms = result;
                 roomsGate.accept(allRooms); // what is about to be drawn - see onVisiblePoll()
                 refreshRoomTypeDropdownOptions();
@@ -428,7 +446,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
             @Override
             public void onError(String message) {
-                Toast.makeText(RoomBrowsingActivity.this, "Couldn't refresh availability: " + message, Toast.LENGTH_LONG).show();
+                if (isFinishing() || isDestroyed() || seq != roomsRequestSeq) return;
+                Toast.makeText(RoomBrowsingActivity.this, R.string.room_load_error_toast, Toast.LENGTH_LONG).show();
                 finishSearch();
             }
         });
@@ -515,6 +534,18 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         }
     }
 
+    /** Thicker red outline on the date field whose picker is open; restored when the picker closes. */
+    private void highlightWhileOpen(com.google.android.material.textfield.TextInputLayout layout, MaterialDatePicker<Long> picker) {
+        final int width = layout.getBoxStrokeWidth();
+        final int color = layout.getBoxStrokeColor();
+        layout.setBoxStrokeWidth(width * 2);
+        layout.setBoxStrokeColor(getColor(R.color.velocity_red_primary));
+        picker.addOnDismissListener(d -> {
+            layout.setBoxStrokeWidth(width);
+            layout.setBoxStrokeColor(color);
+        });
+    }
+
     private void showCheckInPicker() {
         // Earliest check-in: hotel-local today + 2 days, no upper limit (see CheckInWindow)
         long earliestCheckInUtc = CheckInWindow.earliestUtcMillis();
@@ -553,6 +584,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             updateDateSummary();
         });
 
+        highlightWhileOpen(checkInLayout, picker);
         picker.show(getSupportFragmentManager(), "CHECK_IN_PICKER");
     }
 
@@ -588,6 +620,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             updateDateSummary();
         });
 
+        highlightWhileOpen(checkOutLayout, picker);
         picker.show(getSupportFragmentManager(), "CHECK_OUT_PICKER");
     }
 
@@ -642,7 +675,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 case 3: currentSortMode = "NameAZ"; break;
                 default: currentSortMode = "Default"; break;
             }
-            performSearchWithLoading();
+            applyControlChange();
         });
     }
 
@@ -681,7 +714,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             dropdownRoomType.setOnItemClickListener((parent, view, position, id) -> {
                 String selected = options.get(position);
                 selectedRoomTypeFilter = selected.equals(getString(R.string.all_categories)) ? "All" : selected;
-                performSearchWithLoading();
+                applyControlChange();
             });
         }
 
@@ -753,7 +786,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             else if (checkedId == R.id.chip5plus) selectedCapacity = 3;
             
             dialog.dismiss();
-            performSearchWithLoading();
+            applyControlChange();
         });
 
         if (dialog.getWindow() != null) {
@@ -769,7 +802,6 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         checkOutDate = null;
         checkInLayout.setError(null);
         checkOutLayout.setError(null);
-        checkOutLayout.setEnabled(false);
         updateDateSummary();
         dropdownSort.setText(getString(R.string.sort_default), false);
         dropdownRoomType.setText(getString(R.string.all_categories), false);
@@ -876,7 +908,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         }
 
         if (tvCurrentSortLabel != null) {
-            String sortName = "Preferred";
+            String sortName = getString(R.string.sort_default);
             switch (currentSortMode) {
                 case "PriceLow":
                     sortName = "Price: Low to High";
@@ -1039,14 +1071,11 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         });
     }
 
+    /** The header greets the guest by first name; the intro text stays plain so the greeting is not repeated. */
     private void updatePersonalizedGreeting() {
         TextView screenDescription = findViewById(R.id.screenDescription);
         if (screenDescription != null) {
-            SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
-            String fullName = prefs.getString("userName", "Guest");
-            String firstName = fullName != null ? fullName.split(" ")[0] : "Guest";
-            String description = getString(R.string.room_browsing_desc);
-            screenDescription.setText(getString(R.string.personalized_greeting_format, firstName, description));
+            screenDescription.setText(R.string.room_browsing_desc);
         }
     }
 }
