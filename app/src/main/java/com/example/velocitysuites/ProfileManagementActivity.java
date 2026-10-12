@@ -1386,10 +1386,11 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
     /**
      * OTP-gated instead of current-password-gated: sends a verification
-     * code to the guest's registered email (reusing the same
-     * forgotPassword/resetPassword endpoints the Login screen's Forgot
-     * Password flow already uses - no new backend endpoint needed) and
-     * only shows the new-password dialog once that send succeeds.
+     * code to the guest's registered email (the same forgot-password
+     * endpoint the Login screen's Forgot Password flow uses) and opens the
+     * two-step Change Password dialog. The password itself is changed
+     * through guest/password/change, which needs the token the server
+     * issues once the code is verified.
      */
     private void initiatePasswordReset() {
         String email = prefs.getString("userEmail", "");
@@ -1405,11 +1406,13 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
                         if (isFinishing() || isDestroyed()) return;
                         if (changePasswordButton != null) changePasswordButton.setEnabled(true);
-                        if (!response.isSuccessful()) {
+                        // 429 = the server's 30-second resend cooldown: a code was sent moments ago
+                        // (e.g. the guest closed and reopened this dialog), so it is still valid.
+                        if (!response.isSuccessful() && response.code() != 429) {
                             Toast.makeText(ProfileManagementActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
                             return;
                         }
-                        Toast.makeText(ProfileManagementActivity.this, getString(R.string.otp_sent_to, email), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ProfileManagementActivity.this, getString(R.string.otp_sent_to, OtpBoxes.maskEmail(email)), Toast.LENGTH_SHORT).show();
                         showChangePasswordOtpDialog(email);
                     }
 
@@ -1422,6 +1425,14 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 });
     }
 
+    /**
+     * Change Password, one dialog with two mutually exclusive steps. Step 1 verifies the emailed
+     * code with the server, which answers with a short-lived single-use token; only then is step 2
+     * (the password fields) shown, and the password change is sent together with that token, so
+     * the server itself refuses a change that skipped verification. The token lives only in this
+     * method's locals: closing the dialog at any point discards it and the next attempt starts
+     * again at step 1.
+     */
     private void showChangePasswordOtpDialog(String email) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_password_otp, null);
         AlertDialog dialog = new SafeDialogs.Material(this)
@@ -1429,14 +1440,105 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 .setCancelable(false)
                 .create();
 
-        TextInputEditText otpField = dialogView.findViewById(R.id.changePasswordOtp);
+        View stepOtp = dialogView.findViewById(R.id.changePasswordStepOtp);
+        View stepPassword = dialogView.findViewById(R.id.changePasswordStepPassword);
+        TextView stepText = dialogView.findViewById(R.id.changePasswordStepText);
+        View progress = dialogView.findViewById(R.id.changePasswordProgress);
+        TextView otpDesc = dialogView.findViewById(R.id.changePasswordOtpDesc);
+        TextView otpError = dialogView.findViewById(R.id.changePasswordOtpError);
+        TextView resendLink = dialogView.findViewById(R.id.resendChangePasswordOtpLink);
         TextInputEditText newPass = dialogView.findViewById(R.id.changePasswordNew);
         TextInputEditText confirmPass = dialogView.findViewById(R.id.changePasswordConfirmNew);
+        TextInputLayout newPassLayout = dialogView.findViewById(R.id.changePasswordNewLayout);
+        TextInputLayout confirmPassLayout = dialogView.findViewById(R.id.changePasswordConfirmNewLayout);
+        TextView ruleLength = dialogView.findViewById(R.id.changePasswordRuleLength);
+        TextView ruleMatch = dialogView.findViewById(R.id.changePasswordRuleMatch);
         MaterialButton btnConfirm = dialogView.findViewById(R.id.btnConfirmChangePasswordOtp);
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelChangePasswordOtp);
-        View resendLink = dialogView.findViewById(R.id.resendChangePasswordOtpLink);
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        otpDesc.setText(getString(R.string.change_password_otp_sent_desc, OtpBoxes.maskEmail(email)));
+
+        // null until the SERVER has accepted the code; step 2 is only reachable when it is set.
+        final String[] resetToken = {null};
+        final boolean[] busy = {false};
+        final OtpBoxes[] otpBoxes = new OtpBoxes[1];
+
+        Runnable verifyCode = () -> {
+            if (busy[0] || resetToken[0] != null) return;
+            String code = otpBoxes[0].getCode();
+            if (code.length() != 6) {
+                showOtpError(otpError, otpBoxes[0], getString(R.string.invalid_otp));
+                return;
+            }
+            busy[0] = true;
+            btnConfirm.setEnabled(false);
+            ApiClient.getService(this).verifyResetOtpForToken(new com.example.velocitysuites.network.dto.VerifyResetOtpRequest(email, code))
+                    .enqueue(new Callback<com.example.velocitysuites.network.dto.ResetTokenResponse>() {
+                        @Override
+                        public void onResponse(Call<com.example.velocitysuites.network.dto.ResetTokenResponse> call,
+                                               Response<com.example.velocitysuites.network.dto.ResetTokenResponse> response) {
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
+                            busy[0] = false;
+                            btnConfirm.setEnabled(true);
+                            com.example.velocitysuites.network.dto.ResetTokenResponse body = response.body();
+                            if (!response.isSuccessful() || body == null || TextUtils.isEmpty(body.reset_token)) {
+                                String msg = response.code() == 429
+                                        ? getString(R.string.otp_too_many_attempts)
+                                        : (response.isSuccessful() ? getString(R.string.otp_invalid_or_expired)
+                                        : errorMessage(response, getString(R.string.otp_invalid_or_expired)));
+                                otpBoxes[0].clear();
+                                showOtpError(otpError, otpBoxes[0], msg);
+                                return;
+                            }
+                            resetToken[0] = body.reset_token;
+                            Toast.makeText(ProfileManagementActivity.this, R.string.otp_verified, Toast.LENGTH_SHORT).show();
+                            stepOtp.setVisibility(View.GONE);
+                            stepPassword.setVisibility(View.VISIBLE);
+                            stepText.setText(getString(R.string.registration_step_format, 2, 2));
+                            progress.getLayoutParams().width = (int) (48 * getResources().getDisplayMetrics().density);
+                            progress.requestLayout();
+                            btnConfirm.setText(R.string.reset_password_button);
+                            newPass.requestFocus();
+                        }
+
+                        @Override
+                        public void onFailure(Call<com.example.velocitysuites.network.dto.ResetTokenResponse> call, Throwable t) {
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
+                            busy[0] = false;
+                            btnConfirm.setEnabled(true);
+                            showOtpError(otpError, otpBoxes[0], RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t));
+                        }
+                    });
+        };
+
+        otpBoxes[0] = new OtpBoxes(dialogView.findViewById(R.id.changePasswordOtpBoxes), 6, (code, complete) -> {
+            otpError.setVisibility(View.GONE);
+            otpBoxes[0].setError(false);
+            if (complete) verifyCode.run();
+        });
+
+        stepText.setText(getString(R.string.registration_step_format, 1, 2));
+        btnConfirm.setText(R.string.verify_otp_button);
+
+        // ---- resend with a 30s countdown (same cadence as the email-change flow; the server enforces it too) ----
+        final android.os.CountDownTimer[] resendTimer = {null};
+        Runnable startResendCountdown = () -> {
+            if (resendTimer[0] != null) resendTimer[0].cancel();
+            resendLink.setEnabled(false);
+            resendTimer[0] = new android.os.CountDownTimer(30_000, 1_000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    resendLink.setText(getString(R.string.resend_otp_countdown, (int) ((millisUntilFinished + 999) / 1000)));
+                }
+
+                @Override
+                public void onFinish() {
+                    resendLink.setText(R.string.resend_otp);
+                    resendLink.setEnabled(true);
+                }
+            }.start();
+        };
+        startResendCountdown.run();
 
         resendLink.setOnClickListener(v -> {
             resendLink.setEnabled(false);
@@ -1444,79 +1546,170 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     .enqueue(new Callback<ApiMessage>() {
                         @Override
                         public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                            if (isFinishing() || isDestroyed()) return;
-                            resendLink.setEnabled(true);
-                            Toast.makeText(ProfileManagementActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
+                            if (response.isSuccessful()) {
+                                Toast.makeText(ProfileManagementActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
+                                otpBoxes[0].clear();
+                                otpError.setVisibility(View.GONE);
+                            } else {
+                                showOtpError(otpError, otpBoxes[0], errorMessage(response, getString(R.string.reset_code_send_failed)));
+                            }
+                            startResendCountdown.run();
                         }
 
                         @Override
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
-                            if (isFinishing() || isDestroyed()) return;
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
                             resendLink.setEnabled(true);
-                            Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
+                            showOtpError(otpError, otpBoxes[0], RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t));
                         }
                     });
         });
 
-        btnConfirm.setOnClickListener(v -> {
-            String otp = otpField.getText() != null ? otpField.getText().toString().trim() : "";
+        // ---- step 2: live rule hints (they mirror the server: at least 8 characters, and a matching confirmation) ----
+        Runnable updateRules = () -> {
+            String p = newPass.getText() != null ? newPass.getText().toString() : "";
+            String c = confirmPass.getText() != null ? confirmPass.getText().toString() : "";
+            setRuleState(ruleLength, R.string.password_rule_length, p.length() >= 8);
+            setRuleState(ruleMatch, R.string.password_rule_match, !p.isEmpty() && p.equals(c));
+        };
+        TextWatcher rulesWatcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                newPassLayout.setError(null);
+                confirmPassLayout.setError(null);
+                updateRules.run();
+            }
+        };
+        newPass.addTextChangedListener(rulesWatcher);
+        confirmPass.addTextChangedListener(rulesWatcher);
+        updateRules.run();
+
+        Runnable submitPassword = () -> {
+            if (busy[0] || resetToken[0] == null) return;
             String nPass = newPass.getText() != null ? newPass.getText().toString() : "";
             String cPass = confirmPass.getText() != null ? confirmPass.getText().toString() : "";
-
-            if (otp.length() != 6) {
-                otpField.setError(getString(R.string.invalid_otp));
-                return;
-            }
             if (nPass.length() < 8) {
-                newPass.setError(getString(R.string.password_min_length));
+                newPassLayout.setError(getString(R.string.password_min_length));
+                newPass.requestFocus();
                 return;
             }
             if (!nPass.equals(cPass)) {
-                confirmPass.setError(getString(R.string.passwords_do_not_match));
+                confirmPassLayout.setError(getString(R.string.passwords_do_not_match));
+                confirmPass.requestFocus();
                 return;
             }
 
+            busy[0] = true;
             btnConfirm.setEnabled(false);
-            ApiClient.getService(this).resetPassword(new com.example.velocitysuites.network.dto.ResetPasswordRequest(email, otp, nPass, cPass))
-                    .enqueue(new Callback<AuthResponse>() {
+            ApiClient.getService(this).changePasswordWithToken(
+                            new com.example.velocitysuites.network.dto.ChangePasswordTokenRequest(resetToken[0], nPass, cPass))
+                    .enqueue(new Callback<ApiMessage>() {
                         @Override
-                        public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                            if (isFinishing() || isDestroyed()) return;
-                            btnConfirm.setEnabled(true);
-                            if (!response.isSuccessful()) {
-                                String msg = errorMessage(response, getString(R.string.otp_invalid_or_expired));
-                                otpField.setError(msg);
-                                Toast.makeText(ProfileManagementActivity.this, msg, Toast.LENGTH_LONG).show();
+                        public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            busy[0] = false;
+                            if (response.isSuccessful()) {
+                                // The password is already changed server-side regardless of whether this
+                                // screen is still visible - markUpdated()/logout() always run.
+                                resetToken[0] = null;
+                                dismissSafely(dialog);
+                                markUpdated(KEY_PASSWORD_UPDATED_AT);
+                                if (!isFinishing() && !isDestroyed()) {
+                                    Toast.makeText(ProfileManagementActivity.this, R.string.password_changed_success, Toast.LENGTH_LONG).show();
+                                }
+                                // The server revokes every API token (this device and all others) on a password
+                                // change, so the app signs the guest out to log back in with the new password.
+                                logout();
                                 return;
                             }
-                            // The password is already changed server-side regardless of
-                            // whether this screen is still visible - only the now-pointless
-                            // dialog/Toast are guarded; markUpdated()/logout() below still
-                            // run unconditionally (real local state that must stay correct).
-                            dismissSafely(dialog);
-                            markUpdated(KEY_PASSWORD_UPDATED_AT);
-                            if (!isFinishing() && !isDestroyed()) {
-                                Toast.makeText(ProfileManagementActivity.this, R.string.password_changed_success, Toast.LENGTH_LONG).show();
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
+                            btnConfirm.setEnabled(true);
+                            String msg = errorMessage(response, getString(R.string.password_change_failed));
+                            if (response.code() == 422 && msg.toLowerCase(Locale.ROOT).contains("verification")) {
+                                // The server no longer accepts the verification (expired or already used): start over.
+                                resetToken[0] = null;
+                                stepPassword.setVisibility(View.GONE);
+                                stepOtp.setVisibility(View.VISIBLE);
+                                stepText.setText(getString(R.string.registration_step_format, 1, 2));
+                                progress.getLayoutParams().width = (int) (24 * getResources().getDisplayMetrics().density);
+                                progress.requestLayout();
+                                btnConfirm.setText(R.string.verify_otp_button);
+                                newPass.setText("");
+                                confirmPass.setText("");
+                                otpBoxes[0].clear();
+                                showOtpError(otpError, otpBoxes[0], msg);
+                            } else {
+                                newPassLayout.setError(msg);
                             }
-                            // resetPassword() revokes every prior token server-side
-                            // and issues a new one (see AuthController::resetPassword),
-                            // but this in-app change-password flow deliberately still
-                            // logs the guest out rather than silently swapping the
-                            // session's token, so they consciously log back in with
-                            // the new password.
-                            logout();
                         }
 
                         @Override
-                        public void onFailure(Call<AuthResponse> call, Throwable t) {
-                            if (isFinishing() || isDestroyed()) return;
+                        public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            busy[0] = false;
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
                             btnConfirm.setEnabled(true);
                             Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
                     });
+        };
+        confirmPass.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                submitPassword.run();
+                return true;
+            }
+            return false;
+        });
+
+        btnConfirm.setOnClickListener(v -> {
+            if (resetToken[0] == null) verifyCode.run(); else submitPassword.run();
+        });
+
+        // ---- leaving: ask first if anything was entered; a verified code is always discarded ----
+        Runnable requestClose = () -> {
+            boolean hasInput = resetToken[0] != null || !otpBoxes[0].isEmpty()
+                    || (newPass.getText() != null && newPass.getText().length() > 0)
+                    || (confirmPass.getText() != null && confirmPass.getText().length() > 0);
+            if (!hasInput) {
+                dialog.dismiss();
+                return;
+            }
+            new SafeDialogs.Material(this)
+                    .setTitle(R.string.discard_changes_title)
+                    .setMessage(R.string.change_password_discard_message)
+                    .setPositiveButton(R.string.discard_changes_action, (d, w) -> dialog.dismiss())
+                    .setNegativeButton(R.string.continue_editing_label, null)
+                    .show();
+        };
+        btnCancel.setOnClickListener(v -> requestClose.run());
+        dialog.setOnKeyListener((d, keyCode, event) -> {
+            if (keyCode != android.view.KeyEvent.KEYCODE_BACK || event.getAction() != android.view.KeyEvent.ACTION_UP) return false;
+            requestClose.run();
+            return true;
+        });
+        dialog.setOnDismissListener(d -> {
+            if (resendTimer[0] != null) resendTimer[0].cancel();
+            resetToken[0] = null;
         });
 
         SafeDialogs.show(dialog);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
+        otpBoxes[0].focusFirst();
+    }
+
+    private void showOtpError(TextView errorView, OtpBoxes boxes, String message) {
+        errorView.setText(message);
+        errorView.setVisibility(View.VISIBLE);
+        boxes.setError(true);
+    }
+
+    private void setRuleState(TextView rule, int textRes, boolean met) {
+        rule.setText(getString(met ? R.string.password_rule_met_format : R.string.password_rule_unmet_format, getString(textRes)));
+        rule.setTextColor(getColor(met ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
     }
 
     private void selectProfilePicture() {

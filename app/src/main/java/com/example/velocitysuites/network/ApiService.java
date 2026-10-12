@@ -78,6 +78,14 @@ public interface ApiService {
     @POST("verify-reset-otp")
     Call<ApiMessage> verifyResetOtp(@Body VerifyResetOtpRequest request);
 
+    /** Same endpoint, read as the verified-OTP token response (used by the in-app Change Password flow). */
+    @POST("verify-reset-otp")
+    Call<com.example.velocitysuites.network.dto.ResetTokenResponse> verifyResetOtpForToken(@Body VerifyResetOtpRequest request);
+
+    /** The signed-in guest's password change; refused by the server without the token from verify-reset-otp. */
+    @POST("guest/password/change")
+    Call<ApiMessage> changePasswordWithToken(@Body com.example.velocitysuites.network.dto.ChangePasswordTokenRequest request);
+
     @POST("reset-password")
     Call<AuthResponse> resetPassword(@Body ResetPasswordRequest request);
 

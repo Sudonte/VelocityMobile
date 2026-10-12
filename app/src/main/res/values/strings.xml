@@ -1444,6 +1444,16 @@
     <string name="no_unread_notifications_title">No Unread Notifications</string>
     <string name="no_unread_notifications_desc">You\'re all caught up — no new hotel updates right now.</string>
     <string name="password_changed_success">Your password has been changed successfully. You may change it again after 30 days.</string>
+    <string name="change_password_otp_sent_desc">We sent a 6-digit verification code to %1$s. Enter it below to continue.</string>
+    <string name="change_password_new_desc">Code verified. Choose a new password for your account.</string>
+    <string name="change_password_discard_message">Your password has not been changed. You will need to verify a new code if you leave now.</string>
+    <string name="otp_box_desc">Code digit %1$d of %2$d</string>
+    <string name="otp_too_many_attempts">Too many incorrect codes. Request a new code with Resend OTP.</string>
+    <string name="password_change_failed">Couldn\'t change your password. Please try again.</string>
+    <string name="password_rule_length">At least 8 characters</string>
+    <string name="password_rule_match">Both passwords match</string>
+    <string name="password_rule_met_format">✓  %1$s</string>
+    <string name="password_rule_unmet_format">○  %1$s</string>
     <string name="change_password_otp_desc">For your security, enter the verification code we sent to your registered email address, then set your new password.</string>
     <string name="profile_picture_updated">Your profile picture has been updated successfully. You may update it again after 30 days.</string>
     <string name="confirm_update_profile_picture">Are you sure you want to update your profile picture? After saving your changes, you will not be able to update your profile picture again for 30 days.</string>
