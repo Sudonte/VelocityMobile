@@ -587,11 +587,15 @@ public class BookingDetailsActivity extends AppCompatActivity {
         int chipIcon = approved ? R.drawable.ic_check_circle : rejected ? R.drawable.ic_close : R.drawable.ic_clock;
         container.addView(buildStatusChip(chipText, chipBg, chipFg, chipIcon));
 
-        String discountName = discountDisplayName(booking.getIdCardType());
         if (approved) {
-            addHelperText(container, getString(R.string.discount_help_approved, discountName));
+            addHelperText(container, getString(R.string.discount_help_approved));
         } else if (pending) {
             addHelperText(container, getString(R.string.discount_help_pending));
+        } else {
+            String reason = booking.getDiscountRejectionReason();
+            addHelperText(container, TextUtils.isEmpty(reason) || reason.trim().isEmpty()
+                    ? getString(R.string.discount_help_rejected_no_reason)
+                    : getString(R.string.discount_help_rejected, reason.trim()));
         }
 
         String type = booking.getIdCardType();

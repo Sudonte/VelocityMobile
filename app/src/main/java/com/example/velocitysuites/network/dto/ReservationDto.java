@@ -29,6 +29,8 @@ public class ReservationDto {
     public Long discount_id;
     /** not_requested / pending / approved / rejected - Reservation::discount_verification_status. */
     public String discount_verification_status;
+    /** Why the receptionist rejected the discount ID at check-in (null otherwise). */
+    public String discount_rejection_reason;
     /** While the discount is pending: the most all payments together may add up to (Reservation::deposit_cap). */
     public Double deposit_cap;
     /** Server path of the stored ID image - only ever tested for presence (the image itself is served by an authenticated endpoint). */

@@ -34,6 +34,7 @@ public class DirectBookingResponseDto {
     public List<AdditionalGuestDto> additional_guest_details;
     public boolean discount_requested;
     public String discount_verification_status;
+    public String discount_rejection_reason;
     public String verified_at;
     public String hidden_at;
     /** The guest removed it from Bookings & Reservations (Transaction History still lists it). */

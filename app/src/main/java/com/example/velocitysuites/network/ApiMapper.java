@@ -283,6 +283,7 @@ public final class ApiMapper {
         booking.setIdCardType(dto.id_card_type != null ? dto.id_card_type : "None");
         booking.setDiscountId(dto.discount_id != null ? String.valueOf(dto.discount_id) : null);
         booking.setDiscountVerificationStatus(dto.discount_verification_status);
+        booking.setDiscountRejectionReason(dto.discount_rejection_reason);
         booking.setDepositCap(dto.deposit_cap);
         booking.setHasIdCard(dto.id_card_image_path != null && !dto.id_card_image_path.isEmpty());
         booking.setTimeline(toTimeline(dto.timeline));
@@ -643,6 +644,7 @@ public final class ApiMapper {
         booking.setHiddenAt(dto.hidden_at);
         booking.setHiddenByGuest(dto.hidden_by_guest);
         booking.setDiscountVerificationStatus(dto.discount_verification_status);
+        booking.setDiscountRejectionReason(dto.discount_rejection_reason);
         booking.setTransactionRejectionReason(dto.rejection_reason);
         booking.setCancellationDate(dto.cancelled_at != null && !dto.cancelled_at.isEmpty() ? reformatDateTime(dto.cancelled_at) : null);
         booking.setCancellationReason(dto.rejection_reason);

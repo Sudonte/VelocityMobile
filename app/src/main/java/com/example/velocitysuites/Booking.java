@@ -162,6 +162,8 @@ public class Booking implements Serializable {
     private String discountId;
     /** The server's discount_verification_status: not_requested / pending / approved / rejected (null when unknown). */
     private String discountVerificationStatus;
+    /** Why the receptionist rejected the discount ID at check-in (null when not rejected). */
+    @Nullable private String discountRejectionReason;
     /** deposit_cap: the most all payments may add up to while the discount is pending (null otherwise). */
     private Double depositCap;
     /** An ID image is stored on the server for this transaction (the edit wizard shows "ID on file" instead of an empty upload). */
@@ -844,6 +846,8 @@ public class Booking implements Serializable {
     public void setEditedOnce(boolean editedOnce) { this.editedOnce = editedOnce; }
     public String getDiscountVerificationStatus() { return discountVerificationStatus; }
     public void setDiscountVerificationStatus(String status) { this.discountVerificationStatus = status; }
+    @Nullable public String getDiscountRejectionReason() { return discountRejectionReason; }
+    public void setDiscountRejectionReason(@Nullable String reason) { this.discountRejectionReason = reason; }
     /** True while a discount waits for the receptionist's ID check - the guest may pay a deposit only (PaymentRules). */
     public Double getDepositCap() { return depositCap; }
     public void setDepositCap(Double depositCap) { this.depositCap = depositCap; }
