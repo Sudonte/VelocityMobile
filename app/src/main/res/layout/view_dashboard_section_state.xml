@@ -8,7 +8,7 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingVertical="16dp"
+    android:paddingVertical="14dp"
     android:visibility="gone">
 
     <TextView
@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textColor="@color/velocity_text_secondary"
-        android:textSize="14sp"
+        android:textSize="13sp"
         tools:text="@string/dashboard_section_error" />
 
     <com.google.android.material.button.MaterialButton

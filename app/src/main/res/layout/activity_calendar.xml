@@ -34,22 +34,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="92dp"
-                    android:paddingBottom="16dp">
+                    android:paddingTop="83dp"
+                    android:paddingBottom="14dp">
 
                     <TextView
                         android:id="@+id/screenTitle"
                         style="@style/TextAppearance.Velocity.ScreenTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginHorizontal="22dp"
                         android:text="@string/title_calendar"
                         android:textColor="@color/velocity_red_primary" />
 
                     <View
                         android:layout_width="48dp"
                         android:layout_height="4dp"
-                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginHorizontal="22dp"
                         android:layout_marginTop="8dp"
                         android:background="@drawable/shape_intro_pill"
                         android:backgroundTint="@color/velocity_red_primary" />
@@ -59,9 +59,9 @@
                         style="@style/TextAppearance.Velocity.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginTop="11dp"
+                        android:layout_marginBottom="14dp"
                         android:lineSpacingExtra="4dp"
                         android:text="@string/calendar_screen_desc"
                         android:textColor="@color/velocity_text_secondary" />
@@ -74,7 +74,7 @@
                             android:id="@+id/chipGroupCalendarFilters"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="24dp"
+                            android:layout_marginHorizontal="22dp"
                             app:singleSelection="true"
                             app:selectionRequired="true"
                             app:chipSpacingHorizontal="8dp">
@@ -132,15 +132,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="40dp">
+                android:paddingHorizontal="18dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="36dp">
 
                 <!-- Live clock: current date and time this Calendar opened to -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -157,7 +157,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="11dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -178,7 +178,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/time_placeholder"
                             android:textColor="@color/black"
-                            android:textSize="18sp" />
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -187,7 +187,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Elevated"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     android:clickable="false"
                     android:focusable="false">
 
@@ -213,12 +213,12 @@
                     android:id="@+id/layoutSelectedDateFilter"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="11dp"
                     android:background="@drawable/shape_intro_pill"
                     android:backgroundTint="@color/velocity_red_soft"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="14dp"
                     android:paddingVertical="10dp"
                     android:visibility="gone"
                     tools:visibility="visible">
@@ -260,7 +260,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="11dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
                     <TextView
@@ -271,7 +271,7 @@
                     <View
                         android:layout_width="0dp"
                         android:layout_height="2dp"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="11dp"
                         android:layout_weight="1"
                         android:background="@color/velocity_red_soft" />
                 </LinearLayout>
@@ -288,7 +288,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="48dp"
+                    android:paddingVertical="43dp"
                     android:visibility="gone"
                     tools:visibility="visible">
 
@@ -303,11 +303,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="11dp"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/no_upcoming_activities_title"
                         android:textColor="@color/velocity_red_dark"
-                        android:textSize="15sp" />
+                        android:textSize="14sp" />
 
                     <TextView
                         android:layout_width="match_parent"

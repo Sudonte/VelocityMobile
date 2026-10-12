@@ -159,6 +159,7 @@ public class BookingWizardActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 // silent
             }
         });

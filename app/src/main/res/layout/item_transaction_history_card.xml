@@ -23,7 +23,7 @@
     style="@style/Widget.Velocity.Card.Glass.Compact"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginHorizontal="14dp"
     android:layout_marginBottom="8dp"
     android:clickable="true"
     android:focusable="true"
@@ -36,8 +36,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="12dp">
+        android:paddingHorizontal="13dp"
+        android:paddingVertical="11dp">
 
         <!-- Row 1: status badge, then the reference right next to it, chevron far right. The
              reference takes the remaining width and wraps onto a second line (never clips the id)
@@ -106,7 +106,7 @@
                 android:fontFamily="sans-serif-black"
                 android:maxLines="2"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 tools:text="Deluxe" />
 
             <TextView
@@ -117,7 +117,7 @@
                 android:fontFamily="sans-serif-black"
                 android:gravity="end"
                 android:textColor="@color/velocity_action_text"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 tools:text="₱1,800.00" />
         </LinearLayout>
 
@@ -144,7 +144,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="0dp"
-                    android:paddingEnd="14dp"
+                    android:paddingEnd="13dp"
                     android:text="@string/ptx_stay_label"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />
@@ -166,7 +166,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="0dp"
-                    android:paddingEnd="14dp"
+                    android:paddingEnd="13dp"
                     android:text="@string/txn_payment_label"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />

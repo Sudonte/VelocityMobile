@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/velocity_surface_elevated"
-    android:paddingTop="20dp"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
-    android:paddingBottom="16dp">
+    android:paddingTop="18dp"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="14dp">
 
     <!-- Premium Decorative Accent -->
     <View
@@ -47,7 +47,7 @@
         android:id="@+id/titleContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@id/logoContainer"
         app:layout_constraintEnd_toEndOf="parent"
@@ -64,7 +64,7 @@
             android:text="@string/velocity_suites"
             android:textAllCaps="true"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="19sp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/hotelTagline"
@@ -89,7 +89,7 @@
         android:id="@+id/headerDivider"
         android:layout_width="36dp"
         android:layout_height="2.5dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/shape_intro_pill"
         android:backgroundTint="@color/velocity_red_primary"
         android:alpha="0.2"

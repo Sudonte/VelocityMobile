@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="22dp">
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.Velocity.Card.Flat"
@@ -25,12 +25,12 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_flat_box"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -50,7 +50,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -79,7 +79,7 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:layout_marginBottom="8dp"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="14dp"
                     android:paddingVertical="4dp">
 
                     <TextView
@@ -89,7 +89,7 @@
                         android:text="@string/adults_label"
                         android:fontFamily="sans-serif-bold"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAdultsMinus"
@@ -112,7 +112,7 @@
                         android:gravity="center"
                         android:text="@string/default_adults_count_display"
                         android:textColor="@color/velocity_red_dark"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:fontFamily="sans-serif-black" />
 
                     <com.google.android.material.button.MaterialButton
@@ -136,7 +136,7 @@
                     android:background="@drawable/shape_flat_notice"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="14dp"
                     android:paddingVertical="4dp">
 
                     <TextView
@@ -146,7 +146,7 @@
                         android:text="@string/children_label"
                         android:fontFamily="sans-serif-bold"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnChildrenMinus"
@@ -169,7 +169,7 @@
                         android:gravity="center"
                         android:text="@string/default_children_count_display"
                         android:textColor="@color/velocity_red_dark"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:fontFamily="sans-serif-black" />
 
                     <com.google.android.material.button.MaterialButton
@@ -194,7 +194,7 @@
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-bold"
                     android:textColor="@color/velocity_red_dark"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     tools:text="2 of 4 guests" />
 
                 <TextView

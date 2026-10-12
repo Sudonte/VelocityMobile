@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="22dp">
 
         <TextView
             android:id="@+id/detailBookingId"
@@ -19,16 +19,16 @@
             android:layout_marginBottom="4dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/detailRoomName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="11dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <!-- Selected Rooms - one item_selected_room_type_card per distinct
              room type, populated by TransactionListActivity#showDetailsDialog()
@@ -50,7 +50,7 @@
             android:layout_marginBottom="6dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/detailCheckIn"
@@ -59,22 +59,22 @@
             android:layout_marginBottom="6dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/detailCheckOut"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="13dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
+            android:textSize="12sp" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/velocity_red_subtle"
-            android:layout_marginBottom="14dp" />
+            android:layout_marginBottom="13dp" />
 
         <TextView
             android:id="@+id/detailPaymentRef"
@@ -83,7 +83,7 @@
             android:layout_marginBottom="6dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/detailPaymentDate"
@@ -92,7 +92,7 @@
             android:layout_marginBottom="6dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/detailAmount"
@@ -101,7 +101,7 @@
             android:layout_marginBottom="8dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="15sp" />
+            android:textSize="14sp" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCancellation"
@@ -117,7 +117,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="13dp">
 
                 <TextView
                     android:id="@+id/detailCancelDate"
@@ -126,7 +126,7 @@
                     android:layout_marginBottom="4dp"
                     android:fontFamily="sans-serif-bold"
                     android:textColor="@color/velocity_red_dark"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/detailCancelReason"
@@ -134,7 +134,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -143,7 +143,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="14dp"
             android:text="@string/download_receipt"
             android:textAllCaps="false"
             app:cornerRadius="0dp"

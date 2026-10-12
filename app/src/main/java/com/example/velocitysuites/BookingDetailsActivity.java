@@ -193,11 +193,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking corrected) {
+                        if (isFinishing() || isDestroyed()) return;
                         renderAllSections();
                     }
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         // correctPendingReservationTotal() itself never calls onError - present
                         // for RepositoryCallback's contract only.
                         renderAllSections();

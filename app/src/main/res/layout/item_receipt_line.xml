@@ -13,7 +13,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginBottom="11dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -28,19 +28,19 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             tools:text="Deluxe Room ×2" />
 
         <TextView
             android:id="@+id/tvLineAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="11dp"
             android:fontFamily="sans-serif-medium"
             android:gravity="end"
             android:textAlignment="viewEnd"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             tools:text="₱15,000.00" />
     </LinearLayout>
 

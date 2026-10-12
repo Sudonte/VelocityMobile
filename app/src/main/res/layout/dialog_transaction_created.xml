@@ -12,12 +12,12 @@
     android:background="@color/velocity_surface_elevated"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:padding="26dp">
+    android:padding="23dp">
 
     <ImageView
         android:layout_width="52dp"
         android:layout_height="52dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="11dp"
         android:contentDescription="@null"
         android:src="@drawable/ic_check_circle"
         app:tint="@color/velocity_green_dark" />
@@ -30,17 +30,17 @@
         android:gravity="center"
         android:textAllCaps="true"
         android:textColor="@color/velocity_text_primary"
-        android:textSize="17sp"
+        android:textSize="15sp"
         tools:text="Booking Created Successfully" />
 
     <TextView
         android:id="@+id/tvTransactionCreatedLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="14dp"
         android:gravity="center"
         android:textColor="@color/velocity_text_secondary"
-        android:textSize="13sp"
+        android:textSize="12sp"
         tools:text="Your Booking ID is:" />
 
     <TextView
@@ -52,14 +52,14 @@
         android:gravity="center"
         android:textColor="@color/velocity_red_primary"
         android:textIsSelectable="true"
-        android:textSize="26sp"
+        android:textSize="23sp"
         tools:text="BOOKING #164" />
 
     <LinearLayout
         android:id="@+id/layoutTransactionCreatedDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="16dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -162,7 +162,7 @@
         android:id="@+id/tvTransactionCreatedFooter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="14dp"
         android:gravity="center"
         android:lineSpacingExtra="2dp"
         android:textColor="@color/velocity_text_secondary"
@@ -173,7 +173,7 @@
         android:id="@+id/btnTransactionCreatedAction"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="20dp"
         android:fontFamily="sans-serif-black"
         android:textAllCaps="false"
         android:textColor="@color/white"

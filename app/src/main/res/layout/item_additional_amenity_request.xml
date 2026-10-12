@@ -21,7 +21,7 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-bold"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="14sp"
+            android:textSize="13sp"
             tools:text="Extra Bed × 2" />
 
         <TextView

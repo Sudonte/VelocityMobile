@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_flat_box"
         android:orientation="vertical"
-        android:paddingHorizontal="16dp"
+        android:paddingHorizontal="14dp"
         android:paddingVertical="8dp">
 
         <!-- Summary row: room picture, then ID / rooms / dates / status, chevron. Full
@@ -31,7 +31,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_marginTop="2dp"
-                android:layout_marginEnd="12dp"
+                android:layout_marginEnd="11dp"
                 android:background="@color/velocity_red_soft"
                 android:contentDescription="@null"
                 android:importantForAccessibility="no"
@@ -186,7 +186,7 @@
                     android:fontFamily="sans-serif-black"
                     android:text="@string/zero_price"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="15sp" />
+                    android:textSize="14sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -224,7 +224,7 @@
                 android:lineSpacingExtra="2dp"
                 android:padding="10dp"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:visibility="gone"
                 tools:text="Remaining balance: ₱1,400.00. Please pay at the Velocity Suites front desk."
                 tools:visibility="visible" />

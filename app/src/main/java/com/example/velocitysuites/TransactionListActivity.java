@@ -168,6 +168,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 List<Booking> shown = result != null ? result : new ArrayList<>();
                 listGate.accept(shown, ChangeGate.today()); // what is about to be drawn - see onVisiblePoll()
@@ -176,6 +177,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 Toast.makeText(TransactionListActivity.this, "Couldn't load records: " + message, Toast.LENGTH_LONG).show();
             }
@@ -267,6 +269,7 @@ public class TransactionListActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         positive.setEnabled(true);
                         negative.setEnabled(true);
                         positive.setText(R.string.delete_permanently_button_label);

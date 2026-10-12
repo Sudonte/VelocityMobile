@@ -212,6 +212,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         repository.submitAdditionalAmenities(hasBooking, id, request, new RoomRepository.RepositoryCallback<AdditionalAmenityInfoDto>() {
             @Override
             public void onSuccess(AdditionalAmenityInfoDto info) {
+                if (isFinishing() || isDestroyed()) return;
                 submitting = false;
                 Toast.makeText(AdditionalAmenitiesActivity.this, R.string.additional_amenities_submitted, Toast.LENGTH_LONG).show();
                 setResult(RESULT_OK);
@@ -220,6 +221,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 submitting = false;
                 refreshTotal();
                 Toast.makeText(AdditionalAmenitiesActivity.this, getString(R.string.additional_amenities_submit_error, message), Toast.LENGTH_LONG).show();

@@ -62,7 +62,7 @@
         style="@style/Widget.MaterialComponents.Button.Icon"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/back_label"
         android:insetLeft="0dp"
@@ -99,8 +99,8 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="16dp">
+            android:paddingHorizontal="22dp"
+            android:paddingVertical="14dp">
 
             <!-- 1. Brand -->
             <com.google.android.material.card.MaterialCardView
@@ -118,7 +118,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:contentDescription="@string/app_logo"
-                    android:padding="16dp"
+                    android:padding="14dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/velocity_suites_logo" />
             </com.google.android.material.card.MaterialCardView>
@@ -129,12 +129,12 @@
                 style="@style/TextAppearance.Velocity.ScreenTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="22dp"
                 android:accessibilityHeading="true"
                 android:gravity="center"
                 android:text="@string/welcome_headline"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="28sp" />
+                android:textSize="25sp" />
 
             <TextView
                 android:id="@+id/welcomeTaglineText"
@@ -146,12 +146,12 @@
                 android:gravity="center"
                 android:text="@string/welcome_tagline"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <View
                 android:layout_width="40dp"
                 android:layout_height="2dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:background="@drawable/shape_intro_pill"
                 android:backgroundTint="@color/velocity_red_primary"
                 android:importantForAccessibility="no" />
@@ -162,19 +162,19 @@
                 style="@style/TextAppearance.Velocity.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:alpha="1"
                 android:gravity="center"
                 android:lineSpacingMultiplier="1.2"
                 android:text="@string/welcome_support"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <!-- 4. What the app does: five short value points -->
             <LinearLayout
                 android:id="@+id/welcomePoints"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -205,7 +205,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -215,7 +215,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/welcome_point_rooms_title"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="16sp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -223,7 +223,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/welcome_point_rooms_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -255,7 +255,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -265,7 +265,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/welcome_point_pay_title"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="16sp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -273,7 +273,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/welcome_point_pay_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -305,7 +305,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -315,7 +315,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/welcome_point_track_title"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="16sp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -323,7 +323,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/welcome_point_track_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -355,7 +355,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -365,7 +365,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/welcome_point_notify_title"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="16sp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -373,7 +373,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/welcome_point_notify_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -402,8 +402,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="16dp">
+            android:paddingHorizontal="22dp"
+            android:paddingVertical="14dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/registrationButton"
@@ -413,7 +413,7 @@
                 android:minHeight="52dp"
                 android:stateListAnimator="@null"
                 android:text="@string/welcome_action_create_account"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 app:icon="@drawable/ic_person"
                 app:iconGravity="textStart"
                 app:iconTint="@color/white" />
@@ -427,7 +427,7 @@
                 android:minHeight="48dp"
                 android:text="@string/welcome_action_sign_in"
                 android:textColor="@color/velocity_action_text"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
         </LinearLayout>
     </LinearLayout>
 

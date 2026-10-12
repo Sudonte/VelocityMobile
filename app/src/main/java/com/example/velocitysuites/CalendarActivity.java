@@ -137,6 +137,7 @@ public class CalendarActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
                 List<Booking> shown = result != null ? result : repository.getBookings();
                 eventsGate.accept(shown, ChangeGate.today()); // what is about to be drawn - see onVisiblePoll()
@@ -145,6 +146,7 @@ public class CalendarActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
                 List<Booking> shown = repository.getBookings();
                 eventsGate.accept(shown, ChangeGate.today());

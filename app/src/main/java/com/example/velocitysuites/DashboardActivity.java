@@ -195,6 +195,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 bookingsResolved = true;
                 bookingsLoadFailed = false;
                 populateDashboard(repository.getBookings(), repository.getNotifications());
@@ -202,6 +203,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 bookingsResolved = true;
                 bookingsLoadFailed = true;
                 populateDashboard(repository.getBookings(), repository.getNotifications());
@@ -210,6 +212,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         repository.refreshNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
             @Override
             public void onSuccess(List<Notification> result) {
+                if (isFinishing() || isDestroyed()) return;
                 notificationsResolved = true;
                 notificationsLoadFailed = false;
                 updateNotificationBadge();
@@ -218,6 +221,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 // A failure is shown in the Notifications section (never as "no notifications").
                 notificationsResolved = true;
                 notificationsLoadFailed = true;
@@ -264,6 +268,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 oneSettled.run();
             }
         });

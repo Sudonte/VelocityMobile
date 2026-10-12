@@ -63,22 +63,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="92dp">
+                    android:paddingTop="83dp">
 
                     <TextView
                         android:id="@+id/screenTitle"
                         style="@style/TextAppearance.Velocity.ScreenTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginHorizontal="22dp"
                         android:text="@string/title_room_browsing"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="17sp" />
+                        android:textSize="15sp" />
 
                     <View
                         android:layout_width="48dp"
                         android:layout_height="4dp"
-                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginHorizontal="22dp"
                         android:layout_marginTop="8dp"
                         android:background="@drawable/shape_intro_pill"
                         android:backgroundTint="@color/velocity_red_primary" />
@@ -88,9 +88,9 @@
                         style="@style/TextAppearance.Velocity.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="22dp"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginTop="11dp"
+                        android:layout_marginBottom="20dp"
                         android:lineSpacingExtra="4dp"
                         android:text="@string/room_browsing_desc" />
 
@@ -99,15 +99,15 @@
                         style="@style/Widget.Velocity.Card.Glass"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginBottom="14dp"
                         app:cardElevation="@dimen/card_elevation">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_glass_card_white"
-                            android:padding="14dp">
+                            android:padding="13dp">
 
                             <com.google.android.material.card.MaterialCardView
                                 android:id="@+id/cardSearchHeaderIcon"
@@ -140,7 +140,7 @@
                                 android:maxLines="1"
                                 android:text="@string/find_perfect_stay"
                                 android:textAllCaps="false"
-                                android:textSize="17sp"
+                                android:textSize="15sp"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintStart_toEndOf="@id/cardSearchHeaderIcon"
                                 app:layout_constraintTop_toTopOf="parent" />
@@ -150,7 +150,7 @@
                                 android:id="@+id/dateFieldsRow"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
+                                android:layout_marginTop="11dp"
                                 android:baselineAligned="false"
                                 android:orientation="horizontal"
                                 app:layout_constraintTop_toBottomOf="@id/tvSearchHeader">
@@ -249,12 +249,12 @@
                                 android:id="@+id/tvCheckInAdvanceNotice"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
+                                android:layout_marginTop="11dp"
                                 android:background="@color/velocity_red_bg_end"
                                 android:drawablePadding="8dp"
-                                android:padding="12dp"
+                                android:padding="11dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12sp"
                                 app:drawableStartCompat="@drawable/ic_info"
                                 app:drawableTint="@color/velocity_red_primary"
                                 app:layout_constraintTop_toBottomOf="@id/dateFieldsRow" />
@@ -264,9 +264,9 @@
                                 style="@style/Widget.Velocity.Button"
                                 android:layout_width="match_parent"
                                 android:layout_height="@dimen/search_button_height"
-                                android:layout_marginTop="12dp"
+                                android:layout_marginTop="11dp"
                                 android:text="@string/search_availability"
-                                android:textSize="13sp"
+                                android:textSize="12sp"
                                 app:layout_constraintTop_toBottomOf="@id/tvCheckInAdvanceNotice"
                                 app:icon="@drawable/ic_room_search"
                                 app:iconGravity="textStart"
@@ -342,8 +342,8 @@
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="24dp"
-                        android:paddingTop="16dp"
+                        android:paddingHorizontal="22dp"
+                        android:paddingTop="14dp"
                         android:paddingBottom="10dp">
 
                         <LinearLayout
@@ -377,7 +377,7 @@
                                     android:layout_weight="1"
                                     android:includeFontPadding="false"
                                     android:textColor="@color/velocity_red_dark"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     android:letterSpacing="-0.01"
                                     android:maxLines="1"
                                     android:ellipsize="end"
@@ -388,7 +388,7 @@
                                 android:id="@+id/tvCurrentSortLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="22dp"
+                                android:layout_marginStart="20dp"
                                 android:layout_marginTop="4dp"
                                 android:fontFamily="sans-serif-medium"
                                 android:includeFontPadding="false"
@@ -420,7 +420,7 @@
                         android:layout_height="wrap_content"
                         android:baselineAligned="false"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="24dp"
+                        android:paddingHorizontal="22dp"
                         android:paddingTop="8dp"
                         android:paddingBottom="10dp">
 
@@ -443,7 +443,7 @@
                                 android:paddingVertical="9dp"
                                 android:text="@string/sort_default"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12sp"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
 
@@ -466,7 +466,7 @@
                                 android:paddingVertical="9dp"
                                 android:text="@string/all_categories"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12sp"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -476,7 +476,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="24dp"
+                        android:paddingHorizontal="22dp"
                         android:paddingBottom="10dp">
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -496,7 +496,7 @@
                                 android:paddingVertical="9dp"
                                 android:text="@string/filter_status_all_rooms"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12sp"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -529,9 +529,9 @@
                 android:elevation="0dp"
                 android:nestedScrollingEnabled="true"
                 android:overScrollMode="never"
-                android:paddingHorizontal="24dp"
-                android:paddingTop="172dp"
-                android:paddingBottom="112dp"
+                android:paddingHorizontal="22dp"
+                android:paddingTop="155dp"
+                android:paddingBottom="101dp"
                 android:scrollbarStyle="outsideOverlay"
                 tools:listitem="@layout/item_room_card" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
@@ -562,7 +562,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="40dp">
+                    android:padding="36dp">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/searchProgress"
@@ -578,11 +578,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
+                        android:layout_marginTop="29dp"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/searching_rooms"
                         android:textColor="@color/velocity_red_dark"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:letterSpacing="0.12"
                         android:textAllCaps="true"
                         android:gravity="center"/>
@@ -594,7 +594,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/finding_best_options"
                         android:textColor="@color/velocity_inactive_gray"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:alpha="0.7"
                         android:gravity="center" />
                 </LinearLayout>
@@ -650,8 +650,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="12dp">
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="11dp">
 
                 <LinearLayout
                     android:id="@+id/layoutSelectionSummaryDetails"
@@ -674,7 +674,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-bold"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             tools:text="2 room(s) selected · Up to 4 guests" />
 
                         <TextView
@@ -684,7 +684,7 @@
                             android:layout_marginTop="2dp"
                             android:fontFamily="sans-serif-black"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="15sp"
+                            android:textSize="14sp"
                             tools:text="&#8369;7,000 total / night" />
                     </LinearLayout>
 

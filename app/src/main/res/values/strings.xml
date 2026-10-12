@@ -1837,6 +1837,7 @@
     <string name="booking_card_paid_remaining_format">Paid %1$s · Remaining %2$s</string>
     <string name="booking_card_paid_format">Paid %1$s</string>
     <string name="date_range_nights_format">%1$s - %2$s · %3$s</string>
+    <string name="delete_completed_copy_confirm">Remove this completed reservation from your list? Your booking and your Transaction History are not changed.</string>
 </resources>
 
 

@@ -10,7 +10,7 @@
     android:focusable="true"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingHorizontal="32dp"
+    android:paddingHorizontal="29dp"
     android:visibility="gone">
 
     <ImageView
@@ -23,12 +23,12 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="14dp"
         android:fontFamily="sans-serif-black"
         android:gravity="center"
         android:text="@string/introduction_error_no_internet"
         android:textColor="@color/velocity_red_dark"
-        android:textSize="20sp" />
+        android:textSize="18sp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -38,14 +38,14 @@
         android:lineSpacingExtra="3dp"
         android:text="@string/introduction_error_no_internet_desc"
         android:textColor="@color/velocity_text_secondary"
-        android:textSize="14sp" />
+        android:textSize="13sp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnOfflineGateRetry"
         style="@style/Widget.Velocity.Button"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="22dp"
         android:minWidth="160dp"
         android:stateListAnimator="@null"
         android:text="@string/retry_label"

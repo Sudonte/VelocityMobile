@@ -12,9 +12,9 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingTop="36dp"
-        android:paddingBottom="12dp"
+        android:paddingHorizontal="11dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="11dp"
         android:background="@color/velocity_red_dark">
 
         <ImageButton
@@ -33,7 +33,7 @@
             android:layout_marginStart="8dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:text="@string/tab_new_reservation" />
     </LinearLayout>
 
@@ -48,12 +48,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:padding="24dp">
+            android:padding="22dp">
 
             <ImageView
                 android:layout_width="88dp"
                 android:layout_height="88dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="11dp"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_reservation"
                 app:tint="@color/velocity_red_primary" />
@@ -61,10 +61,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 android:gravity="center"
                 android:text="@string/starting_reservation_headline" />
 
@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:gravity="center"
                 android:text="@string/starting_reservation_desc" />
 
@@ -81,7 +81,7 @@
                 android:id="@+id/layoutRoomRecap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
                 app:strokeColor="@color/velocity_red_subtle"
@@ -92,7 +92,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         android:id="@+id/tvRoomRecapCount"
@@ -100,7 +100,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         tools:text="2 rooms selected" />
 
                     <TextView
@@ -109,7 +109,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:lineSpacingExtra="4dp"
                         tools:text="• Deluxe Suite\n• Ocean View Room" />
 
@@ -120,7 +120,7 @@
                         android:layout_marginTop="8dp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         tools:text="₱8,500 / night" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -128,9 +128,9 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="22dp"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:gravity="start"
                 android:lineSpacingExtra="6dp"
                 android:text="@string/starting_reservation_steps_preview" />
@@ -141,8 +141,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="14dp"
+        android:paddingHorizontal="18dp"
+        android:paddingVertical="13dp"
         android:background="@color/velocity_surface_elevated"
         android:elevation="0dp">
 

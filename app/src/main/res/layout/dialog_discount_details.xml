@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
+        android:paddingStart="14dp"
         android:paddingTop="8dp"
         android:paddingEnd="4dp">
 
@@ -25,7 +25,7 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="18sp"
+            android:textSize="16sp"
             tools:text="Senior Citizen" />
 
         <ImageButton
@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp" />
+            android:padding="14dp" />
     </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_flat_box"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDetailBack"

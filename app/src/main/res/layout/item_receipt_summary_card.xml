@@ -24,13 +24,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <ImageView
             android:id="@+id/ivReceiptCardIcon"
             android:layout_width="22dp"
             android:layout_height="22dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="14dp"
             android:importantForAccessibility="no"
             android:src="@drawable/ic_transaction_history"
             app:tint="@color/velocity_red_primary" />
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 tools:text="Partial Payment Receipt" />
 
             <TextView
@@ -91,7 +91,7 @@
                     android:fontFamily="sans-serif-bold"
                     android:gravity="end"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     tools:text="₱5,000.00" />
             </LinearLayout>
         </LinearLayout>

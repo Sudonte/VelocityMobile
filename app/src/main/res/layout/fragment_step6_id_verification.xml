@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <TextView
             style="@style/TextAppearance.Velocity.Label.Section"
@@ -24,10 +24,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="14dp"
             android:text="@string/discount_step_intro"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <!-- Always available: continue without a discount. -->
         <include
@@ -42,7 +42,7 @@
             android:gravity="center_vertical"
             android:minHeight="56dp"
             android:orientation="horizontal"
-            android:padding="16dp"
+            android:padding="14dp"
             android:visibility="gone">
 
             <ProgressBar
@@ -53,10 +53,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="14dp"
                 android:text="@string/discount_loading"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- Error + retry -->
@@ -66,7 +66,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_flat_box"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:padding="14dp"
             android:visibility="gone">
 
             <TextView
@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/discount_load_error"
                 android:textColor="@color/velocity_red_dark"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDiscountRetry"
@@ -96,10 +96,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_flat_box"
-            android:padding="16dp"
+            android:padding="14dp"
             android:text="@string/discount_empty"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:visibility="gone" />
 
         <LinearLayout
@@ -116,7 +116,7 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_flat_box"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:padding="14dp"
             android:visibility="gone">
 
             <TextView
@@ -126,7 +126,7 @@
                 android:fontFamily="sans-serif-bold"
                 android:text="@string/discount_upload_title"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/tvIdUploadStatus"
@@ -135,7 +135,7 @@
                 android:layout_marginTop="4dp"
                 android:text="@string/no_id_uploaded"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <ImageView
                 android:id="@+id/ivIdPreview"

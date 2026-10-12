@@ -19,8 +19,8 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="4dp"
-            android:paddingTop="36dp"
-            android:paddingBottom="12dp">
+            android:paddingTop="32dp"
+            android:paddingBottom="11dp">
 
             <ImageButton
                 android:id="@+id/btnAdditionalAmenitiesBack"
@@ -39,7 +39,7 @@
                 android:fontFamily="sans-serif-black"
                 android:text="@string/request_additional_amenities_button"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
         </LinearLayout>
 
         <androidx.core.widget.NestedScrollView
@@ -53,15 +53,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="11dp"
                     android:text="@string/additional_amenities_intro"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="13sp" />
 
                 <!-- Loading / error (with Retry) / "can't request" explanation -->
                 <LinearLayout
@@ -70,7 +70,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="24dp">
+                    android:paddingVertical="22dp">
 
                     <TextView
                         android:id="@+id/additionalAmenitiesStateText"
@@ -79,7 +79,7 @@
                         android:gravity="center"
                         android:text="@string/additional_amenities_loading"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/additionalAmenitiesRetry"
@@ -125,17 +125,17 @@
                             android:minLines="4"
                             android:overScrollMode="ifContentScrolls"
                             android:scrollbars="vertical"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         android:id="@+id/additionalAmenitiesTotal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:fontFamily="sans-serif-black"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         tools:text="Total: ₱400.00" />
 
                     <TextView
@@ -151,7 +151,7 @@
                         style="@style/Widget.Velocity.Flat.Button"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:enabled="false"
                         android:text="@string/additional_amenities_submit" />
                 </LinearLayout>

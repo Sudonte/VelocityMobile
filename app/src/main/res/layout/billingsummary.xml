@@ -17,9 +17,9 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="4dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="44dp"
-        android:paddingBottom="16dp">
+        android:paddingEnd="18dp"
+        android:paddingTop="40dp"
+        android:paddingBottom="14dp">
 
         <ImageButton
             android:id="@+id/btnBillingBack"
@@ -38,7 +38,7 @@
             android:layout_marginStart="4dp"
             android:text="@string/billing_summary_title"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -47,20 +47,20 @@
         android:layout_weight="1"
         android:clipToPadding="false"
         android:fillViewport="true"
-        android:paddingBottom="24dp"
+        android:paddingBottom="22dp"
         android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="18dp">
 
             <!-- Booking Summary: reference + status -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/velocity_red_primary"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation">
@@ -69,7 +69,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -85,7 +85,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/booking_ref_label"
                             android:textColor="#E6FFFFFF"
-                            android:textSize="13sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:id="@+id/tvBillingStatus"
@@ -95,7 +95,7 @@
                             android:backgroundTint="#40000000"
                             android:fontFamily="sans-serif-black"
                             android:letterSpacing="0.05"
-                            android:paddingHorizontal="12dp"
+                            android:paddingHorizontal="11dp"
                             android:paddingVertical="6dp"
                             android:text="@string/status_pending"
                             android:textColor="@color/white"
@@ -110,7 +110,7 @@
                         android:fontFamily="sans-serif-black"
                         android:text="@string/no_room_selected"
                         android:textColor="@color/white"
-                        android:textSize="20sp" />
+                        android:textSize="18sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -119,20 +119,20 @@
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
                         android:text="@string/guest_information_title"
                         app:drawableStartCompat="@drawable/ic_reservation"
@@ -143,8 +143,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/guest_account_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingPrimaryGuest" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:gravity="end" android:textAlignment="viewEnd" android:text="@string/not_specified" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/guest_account_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingPrimaryGuest" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="11dp" android:gravity="end" android:textAlignment="viewEnd" android:text="@string/not_specified" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -152,8 +152,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/details_label_representative_name" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingRepresentativeName" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:gravity="end" android:textAlignment="viewEnd" android:text="@string/not_provided_label" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/details_label_representative_name" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingRepresentativeName" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="11dp" android:gravity="end" android:textAlignment="viewEnd" android:text="@string/not_provided_label" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -162,8 +162,8 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_guests_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingGuestCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/summary_guests_default" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_guests_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingGuestCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/summary_guests_default" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -172,15 +172,15 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/id_type_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingIdType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/no_id_uploaded" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/id_type_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingIdType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/no_id_uploaded" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/layoutBillingAdditionalGuestsSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:layout_marginTop="13dp"
                         android:orientation="vertical"
                         android:visibility="gone"
                         tools:visibility="visible">
@@ -214,20 +214,20 @@
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
                         android:text="@string/room_and_stay_title"
                         app:drawableStartCompat="@drawable/ic_booking"
@@ -250,8 +250,8 @@
                             android:layout_marginBottom="10dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
-                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_type_summary_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                            <TextView android:id="@+id/tvBillingRoomType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/no_room_selected" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_type_summary_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:id="@+id/tvBillingRoomType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/no_room_selected" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -260,8 +260,8 @@
                             android:layout_marginBottom="10dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
-                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/selected_room_quantity_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                            <TextView android:id="@+id/tvBillingRoomQuantity" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="2 Room(s)"/>
+                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/selected_room_quantity_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:id="@+id/tvBillingRoomQuantity" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="2 Room(s)"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -270,8 +270,8 @@
                             android:layout_marginBottom="10dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
-                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_rate_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                            <TextView android:id="@+id/tvBillingSingleRoomRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="₱3,500.00 / Night"/>
+                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_rate_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:id="@+id/tvBillingSingleRoomRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱3,500.00 / Night"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -280,8 +280,8 @@
                             android:layout_marginBottom="10dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
-                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_subtotal_per_night_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                            <TextView android:id="@+id/tvBillingRoomSubtotalPerNight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="₱7,000.00"/>
+                            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_subtotal_per_night_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                            <TextView android:id="@+id/tvBillingRoomSubtotalPerNight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱7,000.00"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -308,8 +308,8 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/stay_dates_summary_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingDates" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/summary_dates_placeholder" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/stay_dates_summary_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingDates" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/summary_dates_placeholder" android:textColor="@color/velocity_text_primary" android:textSize="12sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -317,8 +317,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/nights_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingNights" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero_price" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/nights_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingNights" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/zero_price" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -328,8 +328,8 @@
                         android:layout_marginTop="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_rate_per_night_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingRoomRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="₱5,800.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_rate_per_night_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingRoomRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱5,800.00"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -338,8 +338,8 @@
                         android:layout_marginTop="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_primary" android:textSize="14sp"/>
-                        <TextView android:id="@+id/tvBillingStayRoomAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="15sp" tools:text="₱17,400.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_primary" android:textSize="13sp"/>
+                        <TextView android:id="@+id/tvBillingStayRoomAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="14sp" tools:text="₱17,400.00"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -350,7 +350,7 @@
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
@@ -359,13 +359,13 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
                         android:text="@string/payment_information_title"
                         app:drawableStartCompat="@drawable/ic_payment_card"
@@ -379,8 +379,8 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:visibility="gone">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/review_payment_method_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingPaymentMethod" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="GCash"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/review_payment_method_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingPaymentMethod" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="GCash"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -391,8 +391,8 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:visibility="gone">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/review_payment_type_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingPaymentType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="Partial Payment"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/review_payment_type_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingPaymentType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="Partial Payment"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -402,8 +402,8 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:visibility="gone">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/payment_status" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingPaymentStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="Pending Verification"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/payment_status" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingPaymentStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="Pending Verification"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -414,20 +414,20 @@
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
                         android:text="@string/billing_amenities_title"
                         app:drawableStartCompat="@drawable/ic_booking"
@@ -437,11 +437,11 @@
                         android:id="@+id/tvNoAmenitiesMessage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="11dp"
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/no_paid_amenities_message"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:alpha="0.75"
                         android:visibility="gone"
                         tools:visibility="visible" />
@@ -455,7 +455,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginVertical="12dp"
+                        android:layout_marginVertical="11dp"
                         android:background="@color/velocity_red_subtle" />
 
                     <LinearLayout
@@ -463,8 +463,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_amenities_amount_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_primary" android:textSize="14sp"/>
-                        <TextView android:id="@+id/tvAmenitiesSectionTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="15sp" tools:text="₱1,200.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_amenities_amount_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_primary" android:textSize="13sp"/>
+                        <TextView android:id="@+id/tvAmenitiesSectionTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="14sp" tools:text="₱1,200.00"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -474,20 +474,20 @@
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
                         android:text="@string/payment_breakdown_title"
                         app:drawableStartCompat="@drawable/ic_payment_card"
@@ -500,8 +500,8 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_rate_per_night_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingBreakdownRoomRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="₱5,800.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_rate_per_night_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingBreakdownRoomRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱5,800.00"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -510,8 +510,8 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/nights_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingBreakdownNights" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="3"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/nights_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingBreakdownNights" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="3"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -520,8 +520,8 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_room_stay_amount_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="₱17,400.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_room_stay_amount_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingRate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱17,400.00"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -530,8 +530,8 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_amenities_amount_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingTotalAmenities" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold" tools:text="₱1,800.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_amenities_amount_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingTotalAmenities" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold" tools:text="₱1,800.00"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -543,26 +543,26 @@
                         android:orientation="horizontal"
                         android:visibility="gone"
                         tools:visibility="visible">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/discount_applied_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingDiscount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_amount" android:textColor="@color/velocity_green_dark" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/discount_applied_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingDiscount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_amount" android:textColor="@color/velocity_green_dark" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/layoutBillingSelectedPayment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginBottom="13dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:visibility="gone">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/selected_payment_label" android:textColor="@color/velocity_text_secondary" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
-                        <TextView android:id="@+id/tvBillingSelectedPayment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_amount" android:textColor="@color/velocity_text_primary" android:textSize="14sp" android:fontFamily="sans-serif-bold"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/selected_payment_label" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium"/>
+                        <TextView android:id="@+id/tvBillingSelectedPayment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/placeholder_amount" android:textColor="@color/velocity_text_primary" android:textSize="13sp" android:fontFamily="sans-serif-bold"/>
                     </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginBottom="13dp"
                         android:background="@color/velocity_red_subtle" />
 
                     <LinearLayout
@@ -570,8 +570,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/grand_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="15sp" android:textAllCaps="true" android:letterSpacing="0.03"/>
-                        <TextView android:id="@+id/tvBillingBalanceDue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_primary" android:textSize="20sp" tools:text="₱7,000.00"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/grand_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="14sp" android:textAllCaps="true" android:letterSpacing="0.03"/>
+                        <TextView android:id="@+id/tvBillingBalanceDue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_primary" android:textSize="18sp" tools:text="₱7,000.00"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -587,13 +587,13 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="18dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginBottom="13dp"
                         android:drawablePadding="8dp"
                         android:text="@string/terms_and_agreement_title"
                         app:drawableStartCompat="@drawable/ic_lock"
@@ -603,7 +603,7 @@
                         android:id="@+id/tvViewBillingTerms"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
@@ -624,7 +624,7 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/view_terms_link_label"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="13sp" />
+                            android:textSize="12sp" />
 
                         <ImageView
                             android:layout_width="16dp"
@@ -638,7 +638,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginBottom="13dp"
                         android:background="@color/velocity_red_subtle" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
@@ -649,7 +649,7 @@
                         android:lineSpacingExtra="2dp"
                         android:text="@string/terms_read_accepted_label"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         app:buttonTint="@color/velocity_red_primary" />
 
                     <TextView
@@ -657,7 +657,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:layout_marginStart="36dp"
+                        android:layout_marginStart="32dp"
                         android:text="@string/terms_view_required_hint"
                         android:textColor="@color/velocity_text_secondary"
                         android:textSize="11sp" />
@@ -674,7 +674,7 @@
         android:elevation="0dp"
         android:gravity="center_vertical|end"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConfirmBilling"
@@ -682,9 +682,9 @@
             android:layout_width="wrap_content"
             android:layout_height="54dp"
             android:enabled="false"
-            android:paddingHorizontal="24dp"
+            android:paddingHorizontal="22dp"
             android:text="@string/confirm_booking_label"
-            android:textSize="15sp"
+            android:textSize="14sp"
             app:icon="@drawable/ic_payment_card"
             app:iconGravity="textStart"
             app:iconPadding="10dp" />

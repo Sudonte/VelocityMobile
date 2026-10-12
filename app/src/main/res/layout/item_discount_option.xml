@@ -14,13 +14,13 @@
     android:gravity="center_vertical"
     android:minHeight="56dp"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="14dp">
 
     <ImageView
         android:id="@+id/ivDiscountSelected"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="14dp"
         android:importantForAccessibility="no"
         android:src="@drawable/ic_check_circle"
         android:visibility="invisible"
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="15sp"
+            android:textSize="14sp"
             tools:text="Senior Citizen" />
 
         <TextView
@@ -78,12 +78,12 @@
         android:id="@+id/tvDiscountValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:background="@drawable/bg_flat_box_selected"
         android:fontFamily="sans-serif-black"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
         android:textColor="@color/velocity_red_dark"
-        android:textSize="13sp"
+        android:textSize="12sp"
         tools:text="20%" />
 </LinearLayout>

@@ -241,11 +241,13 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                 new RoomRepository.RepositoryCallback<java.util.List<Notification>>() {
                     @Override
                     public void onSuccess(java.util.List<Notification> result) {
+                        if (isFinishing() || isDestroyed()) return;
                         updateNotificationBadge();
                     }
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         // Keep whatever count we already had; no badge change on failure.
                     }
                 });
@@ -409,10 +411,12 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(retrofit2.Call<com.example.velocitysuites.network.dto.ApiMessage> call,
                                             retrofit2.Response<com.example.velocitysuites.network.dto.ApiMessage> response) {
+                        if (isFinishing() || isDestroyed()) return;
                     }
 
                     @Override
                     public void onFailure(retrofit2.Call<com.example.velocitysuites.network.dto.ApiMessage> call, Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
                     }
                 });
 

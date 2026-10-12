@@ -43,8 +43,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="24dp"
-            android:paddingBottom="28dp">
+            android:paddingHorizontal="22dp"
+            android:paddingBottom="25dp">
 
             <!-- Hero Branding Section: photo header + circular logo + curved
                  red/white transition + brand name + tagline. The hero photo
@@ -76,7 +76,7 @@
                     android:id="@+id/logoContainer"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
-                    android:layout_marginTop="82dp"
+                    android:layout_marginTop="74dp"
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -91,7 +91,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:contentDescription="@string/app_logo"
-                        android:padding="14dp"
+                        android:padding="13dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/velocity_suites_logo" />
                 </com.google.android.material.card.MaterialCardView>
@@ -100,13 +100,13 @@
                     android:id="@+id/appNameLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="16dp"
                     android:fontFamily="sans-serif-black"
                     android:letterSpacing="0.1"
                     android:text="@string/velocity_suites"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="26sp"
+                    android:textSize="23sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/curvedHeaderView" />
@@ -141,7 +141,7 @@
                 android:id="@+id/loginLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="22dp"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:visibility="invisible"
@@ -165,7 +165,7 @@
                     android:gravity="center"
                     android:text="@string/login_subtitle"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
@@ -173,7 +173,7 @@
                 style="@style/Widget.Velocity.Card.Glass.Elevated"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toTopOf="@+id/signupRedirect"
                 app:layout_constraintTop_toBottomOf="@id/loginLabel">
@@ -183,8 +183,8 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="24dp"
-                    android:paddingVertical="28dp">
+                    android:paddingHorizontal="22dp"
+                    android:paddingVertical="25dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Input"
@@ -208,16 +208,16 @@
                             android:fontFamily="sans-serif-medium"
                             android:hint="@string/email_hint"
                             android:inputType="textEmailAddress"
-                            android:paddingVertical="14dp"
+                            android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Input"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:layout_marginBottom="6dp"
                         android:text="@string/password_label" />
 
@@ -236,15 +236,15 @@
                             android:fontFamily="sans-serif-medium"
                             android:hint="@string/password_hint"
                             android:inputType="textPassword"
-                            android:paddingVertical="14dp"
+                            android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="18dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -255,7 +255,7 @@
                             android:checked="true"
                             android:text="@string/remember_me"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:minHeight="0dp"
                             android:minWidth="0dp"
                             android:padding="0dp"
@@ -275,14 +275,14 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/forgot_password"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="13sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/signInButton"
                         style="@style/Widget.Velocity.Button"
                         android:layout_width="match_parent"
-                        android:layout_marginTop="26dp"
+                        android:layout_marginTop="23dp"
                         android:text="@string/sign_in"
                         app:icon="@drawable/ic_arrow_forward"
                         app:iconGravity="textEnd"
@@ -297,7 +297,7 @@
                 android:id="@+id/signupRedirect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="invisible"
@@ -311,7 +311,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/dont_have_account"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/signUpLink"
@@ -321,7 +321,7 @@
                     android:padding="4dp"
                     android:text="@string/sign_up"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="14sp" />
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <!-- Supporting feature indicators -->
@@ -329,7 +329,7 @@
                 android:id="@+id/featuresRow"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                android:layout_marginTop="20dp"
                 android:baselineAligned="false"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -429,7 +429,7 @@
                 style="@style/Widget.Velocity.Card.Glass.Elevated"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toTopOf="@+id/signupRedirect"
                 app:layout_constraintTop_toBottomOf="@id/loginLabel">
@@ -439,8 +439,8 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="24dp"
-                    android:paddingVertical="32dp">
+                    android:paddingHorizontal="22dp"
+                    android:paddingVertical="29dp">
 
                     <ImageView
                         android:layout_width="48dp"
@@ -449,7 +449,7 @@
                         android:importantForAccessibility="no"
                         android:src="@android:drawable/ic_dialog_info"
                         app:tint="@color/velocity_red_primary"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="14dp" />
 
                     <TextView
                         android:id="@+id/forgotPasswordTitle"
@@ -468,15 +468,15 @@
                         android:gravity="center"
                         android:text="@string/forgot_password_instruction"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:lineSpacingExtra="2dp" />
 
                     <View
                         android:layout_width="40dp"
                         android:layout_height="3dp"
                         android:layout_gravity="center"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="24dp"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="22dp"
                         android:background="@color/velocity_red_subtle" />
 
                     <!-- Form Fields -->
@@ -501,9 +501,9 @@
                             android:layout_height="wrap_content"
                             android:hint="@string/email_hint"
                             android:inputType="textEmailAddress"
-                            android:paddingVertical="14dp"
+                            android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
@@ -529,8 +529,8 @@
                             android:hint="@string/otp_hint"
                             android:inputType="number"
                             android:maxLength="6"
-                            android:paddingVertical="14dp"
-                            android:textSize="14sp"
+                            android:paddingVertical="13dp"
+                            android:textSize="13sp"
                             android:textColor="@color/velocity_text_primary" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -538,12 +538,12 @@
                         android:id="@+id/resendOtpLink"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:fontFamily="sans-serif-black"
                         android:padding="4dp"
                         android:text="@string/resend_otp"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:visibility="gone" />
 
                     <TextView
@@ -569,9 +569,9 @@
                             android:layout_height="wrap_content"
                             android:hint="@string/new_password_hint"
                             android:inputType="textPassword"
-                            android:paddingVertical="14dp"
+                            android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
@@ -579,7 +579,7 @@
                         style="@style/TextAppearance.Velocity.Label.Input"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:layout_marginBottom="6dp"
                         android:text="@string/confirm_password_label"
                         android:visibility="gone" />
@@ -598,16 +598,16 @@
                             android:layout_height="wrap_content"
                             android:hint="@string/confirm_new_password_hint"
                             android:inputType="textPassword"
-                            android:paddingVertical="14dp"
+                            android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/forgotActionButton"
                         style="@style/Widget.Velocity.Button"
                         android:layout_width="match_parent"
-                        android:layout_marginTop="28dp"
+                        android:layout_marginTop="25dp"
                         android:text="@string/send_otp_button" />
 
                     <TextView
@@ -615,12 +615,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:layout_marginTop="16dp"
-                        android:padding="12dp"
+                        android:layout_marginTop="14dp"
+                        android:padding="11dp"
                         android:text="@string/back_to_sign_in"
                         android:textColor="@color/velocity_red_primary"
                         android:fontFamily="sans-serif-bold"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -635,7 +635,7 @@
                 style="@style/Widget.Velocity.Card.Glass.Elevated"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toTopOf="@+id/signupRedirect"
                 app:layout_constraintTop_toBottomOf="@id/loginLabel">
@@ -645,14 +645,14 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="24dp"
-                    android:paddingVertical="32dp">
+                    android:paddingHorizontal="22dp"
+                    android:paddingVertical="29dp">
 
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:layout_gravity="center"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_pause"
                         app:tint="@color/velocity_orange_primary" />
@@ -674,15 +674,15 @@
                         android:gravity="center"
                         android:lineSpacingExtra="2dp"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         tools:text="Your Velocity Suites account is currently deactivated. We've sent a 6-digit verification code to:\nj***@gmail.com" />
 
                     <View
                         android:layout_width="40dp"
                         android:layout_height="3dp"
                         android:layout_gravity="center"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="24dp"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginBottom="22dp"
                         android:background="@color/velocity_red_subtle" />
 
                     <TextView
@@ -705,27 +705,27 @@
                             android:hint="@string/otp_hint"
                             android:inputType="number"
                             android:maxLength="6"
-                            android:paddingVertical="14dp"
+                            android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         android:id="@+id/reactivationResendLink"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:fontFamily="sans-serif-black"
                         android:padding="4dp"
                         android:text="@string/resend_otp"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/reactivationActionButton"
                         style="@style/Widget.Velocity.Button"
                         android:layout_width="match_parent"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="11dp"
                         android:text="@string/verify_reactivate_button" />
 
                     <TextView
@@ -733,12 +733,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:layout_marginTop="16dp"
-                        android:padding="12dp"
+                        android:layout_marginTop="14dp"
+                        android:padding="11dp"
                         android:text="@string/back_to_sign_in"
                         android:textColor="@color/velocity_red_primary"
                         android:fontFamily="sans-serif-bold"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -751,8 +751,8 @@
         style="@style/Widget.MaterialComponents.Button.Icon"
         android:layout_width="44dp"
         android:layout_height="44dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="14dp"
         android:contentDescription="@string/back_label"
         android:insetLeft="0dp"
         android:insetTop="0dp"

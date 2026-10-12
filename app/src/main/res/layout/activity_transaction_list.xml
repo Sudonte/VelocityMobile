@@ -34,21 +34,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="92dp">
+                    android:paddingTop="83dp">
 
                     <TextView
                         android:id="@+id/screenTitle"
                         style="@style/TextAppearance.Velocity.ScreenTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginHorizontal="22dp"
                         android:text="@string/cancelled_bookings_label"
                         android:textColor="@color/velocity_red_primary" />
 
                     <View
                         android:layout_width="48dp"
                         android:layout_height="4dp"
-                        android:layout_marginHorizontal="24dp"
+                        android:layout_marginHorizontal="22dp"
                         android:layout_marginTop="8dp"
                         android:background="@drawable/shape_intro_pill"
                         android:backgroundTint="@color/velocity_red_primary" />
@@ -58,9 +58,9 @@
                         style="@style/TextAppearance.Velocity.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="24dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="20dp"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginTop="11dp"
+                        android:layout_marginBottom="18dp"
                         android:lineSpacingExtra="4dp"
                         android:text="@string/desc_cancelled_bookings"
                         android:textColor="@color/velocity_text_secondary" />
@@ -100,8 +100,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="20dp"
-                android:paddingBottom="48dp">
+                android:paddingTop="18dp"
+                android:paddingBottom="43dp">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvTransactions"
@@ -115,7 +115,7 @@
                     layout="@layout/view_empty_state"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="48dp"
+                    android:layout_marginTop="43dp"
                     android:visibility="gone"
                     tools:visibility="visible" />
 

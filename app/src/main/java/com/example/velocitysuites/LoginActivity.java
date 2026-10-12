@@ -123,6 +123,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 // A network failure here is NOT proof the token is invalid -
                 // but silently entering the dashboard on local state alone is
                 // exactly the risk this whole gate exists to close, so the
@@ -367,6 +368,7 @@ public class LoginActivity extends AppCompatActivity {
         ApiClient.getService(this).restoreAccount().enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                if (isFinishing() || isDestroyed()) return;
                 if (!response.isSuccessful()) {
                     SessionManager.clear(LoginActivity.this);
                     Toast.makeText(LoginActivity.this, R.string.network_error, Toast.LENGTH_LONG).show();
@@ -380,6 +382,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 SessionManager.clear(LoginActivity.this);
                 Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
             }
@@ -434,6 +437,7 @@ public class LoginActivity extends AppCompatActivity {
                 .enqueue(new Callback<AuthResponse>() {
                     @Override
                     public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
                         reactivationActionButton.setEnabled(true);
                         if (!response.isSuccessful() || response.body() == null || response.body().token == null) {
                             reactivationOtpLayout.setError(getString(R.string.invalid_otp));
@@ -450,6 +454,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<AuthResponse> call, Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
                         reactivationActionButton.setEnabled(true);
                         Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                     }
@@ -464,6 +469,7 @@ public class LoginActivity extends AppCompatActivity {
                 .enqueue(new Callback<ApiMessage>() {
                     @Override
                     public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                        if (isFinishing() || isDestroyed()) return;
                         if (!response.isSuccessful()) {
                             // 429 (throttled) is expected if this races the
                             // cooldown's own end - either way, resume counting
@@ -479,6 +485,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<ApiMessage> call, Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
                         reactivationResendLink.setEnabled(true);
                         Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                     }
@@ -640,6 +647,7 @@ public class LoginActivity extends AppCompatActivity {
             ApiClient.getService(this).forgotPassword(new EmailRequest(email)).enqueue(new Callback<ApiMessage>() {
                 @Override
                 public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                    if (isFinishing() || isDestroyed()) return;
                     forgotActionButton.setEnabled(true);
                     if (!response.isSuccessful()) {
                         Toast.makeText(LoginActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
@@ -660,6 +668,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<ApiMessage> call, Throwable t) {
+                    if (isFinishing() || isDestroyed()) return;
                     forgotActionButton.setEnabled(true);
                     Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                 }
@@ -677,6 +686,7 @@ public class LoginActivity extends AppCompatActivity {
             ApiClient.getService(this).verifyResetOtp(new VerifyResetOtpRequest(email, otp)).enqueue(new Callback<ApiMessage>() {
                 @Override
                 public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                    if (isFinishing() || isDestroyed()) return;
                     forgotActionButton.setEnabled(true);
                     if (!response.isSuccessful()) {
                         String msg = errorMessage(response);
@@ -701,6 +711,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<ApiMessage> call, Throwable t) {
+                    if (isFinishing() || isDestroyed()) return;
                     forgotActionButton.setEnabled(true);
                     Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                 }
@@ -720,6 +731,7 @@ public class LoginActivity extends AppCompatActivity {
                     .enqueue(new Callback<AuthResponse>() {
                         @Override
                         public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                            if (isFinishing() || isDestroyed()) return;
                             forgotActionButton.setEnabled(true);
                             if (!response.isSuccessful() || response.body() == null) {
                                 String msg = errorMessage(response);
@@ -744,6 +756,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         @Override
                         public void onFailure(Call<AuthResponse> call, Throwable t) {
+                            if (isFinishing() || isDestroyed()) return;
                             forgotActionButton.setEnabled(true);
                             Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
                         }
@@ -772,6 +785,7 @@ public class LoginActivity extends AppCompatActivity {
         ApiClient.getService(this).forgotPassword(new EmailRequest(email)).enqueue(new Callback<ApiMessage>() {
             @Override
             public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                if (isFinishing() || isDestroyed()) return;
                 resendOtpLink.setEnabled(true);
                 if (!response.isSuccessful()) {
                     Toast.makeText(LoginActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
@@ -783,6 +797,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 resendOtpLink.setEnabled(true);
                 Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
             }

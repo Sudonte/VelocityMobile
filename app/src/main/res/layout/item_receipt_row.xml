@@ -13,16 +13,16 @@
     android:id="@+id/rowRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginBottom="11dp"
     android:orientation="horizontal">
 
     <TextView
         android:id="@+id/tvRowLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="14dp"
+        android:layout_marginEnd="13dp"
         android:textColor="@color/velocity_text_secondary"
-        android:textSize="13sp"
+        android:textSize="12sp"
         tools:text="GCash Reference #" />
 
     <TextView

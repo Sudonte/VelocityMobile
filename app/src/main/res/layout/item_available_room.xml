@@ -89,7 +89,7 @@
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
                     android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     tools:text="₱3,500 / night" />
             </com.google.android.material.card.MaterialCardView>
         </FrameLayout>
@@ -117,7 +117,7 @@
                     android:letterSpacing="-0.02"
                     android:singleLine="true"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     app:layout_constraintEnd_toStartOf="@+id/roomTypeIcon"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -265,7 +265,7 @@
                     android:fontFamily="sans-serif-black"
                     android:gravity="center"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     tools:text="2" />
 
                 <com.google.android.material.button.MaterialButton

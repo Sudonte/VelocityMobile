@@ -83,11 +83,13 @@ public class BillingSummaryActivity extends AppCompatActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 loadReservation();
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 loadReservation();
             }
         });
@@ -96,11 +98,13 @@ public class BillingSummaryActivity extends AppCompatActivity {
             repository.fetchRequestableAmenities(reservationId, new RoomRepository.RepositoryCallback<List<RequestableAmenityDto>>() {
                 @Override
                 public void onSuccess(List<RequestableAmenityDto> items) {
+                    if (isFinishing() || isDestroyed()) return;
                     populateAmenities(items);
                 }
 
                 @Override
                 public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
                     // No amenities line rather than a stale/blank one - same
                     // "hide rather than fabricate" convention as the discount line.
                     populateAmenities(null);

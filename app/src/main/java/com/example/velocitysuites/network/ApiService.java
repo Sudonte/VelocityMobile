@@ -214,6 +214,10 @@ public interface ApiService {
     @DELETE("guest/reservations/{id}")
     Call<ApiMessage> deleteReservationPermanently(@Path("id") String id);
 
+    /** Hides only the frozen "Completed" copy of a converted reservation; the booking and Transaction History stay. */
+    @DELETE("guest/reservations/{id}?snapshot_only=1")
+    Call<ApiMessage> hideCompletedReservationCopy(@Path("id") String id);
+
     @POST("guest/reservations/{id}/payments")
     Call<PaymentSubmitResponse> submitPayment(@Path("id") String id, @Body PaymentRequest request);
 

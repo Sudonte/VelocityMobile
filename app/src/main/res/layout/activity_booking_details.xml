@@ -36,7 +36,7 @@
             android:fontFamily="sans-serif-black"
             android:text="@string/booking_details_screen_title"
             android:textColor="@color/white"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -52,21 +52,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <!-- Header card -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <!-- No room image here by design - a room photo belongs only in
                          the Room Information section below (item_selected_room_type_card.xml,
@@ -101,7 +101,7 @@
                         android:fontFamily="sans-serif-black"
                         android:textAllCaps="true"
                         android:textColor="@color/black"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         tools:text="Booking #338" />
 
                     <TextView
@@ -111,7 +111,7 @@
                         android:layout_marginTop="8dp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         tools:text="Sep 04, 2026 - Sep 05, 2026" />
 
                     <!-- Every selected room type and its quantity - e.g. "Bryan Dela
@@ -139,7 +139,7 @@
                 android:id="@+id/btnEditReservation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 android:minHeight="48dp"
                 android:text="@string/edit_reservation_button"
                 android:textAllCaps="false"
@@ -162,7 +162,7 @@
                 android:id="@+id/tvRequestAmenitiesDetailsReason"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 android:textColor="@color/velocity_text_secondary"
                 android:textSize="12sp"
                 android:visibility="gone" />
@@ -179,14 +179,14 @@
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -195,7 +195,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/section_title_booking_information"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionBookingInfoContent"
@@ -208,14 +208,14 @@
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -224,7 +224,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/section_title_room_information"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionRoomInfoContent"
@@ -237,14 +237,14 @@
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -253,7 +253,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/receipt_billing_breakdown_title"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionPaymentSummaryContent"
@@ -266,14 +266,14 @@
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -282,7 +282,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/receipt_payment_information_title"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionPaymentInfoContent"
@@ -298,7 +298,7 @@
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 android:visibility="gone">
 
                 <LinearLayout
@@ -306,7 +306,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -315,7 +315,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/section_title_discount_id"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionDiscountIdContent"
@@ -328,14 +328,14 @@
                 style="@style/Widget.Velocity.Card.Flat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -344,7 +344,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/receipt_guest_information_title"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionGuestInfoContent"
@@ -363,7 +363,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_flat_box"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         style="@style/TextAppearance.Velocity.Label.Section"
@@ -372,7 +372,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="@string/section_title_transaction_timeline"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <LinearLayout
                         android:id="@+id/sectionTimelineContent"

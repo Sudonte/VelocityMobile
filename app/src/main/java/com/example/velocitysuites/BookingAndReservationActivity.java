@@ -274,6 +274,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         repository.refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 allRooms = result;
                 setupRoomSelection();
@@ -283,6 +284,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 Toast.makeText(BookingAndReservationActivity.this, "Couldn't load rooms: " + message, Toast.LENGTH_LONG).show();
             }
@@ -706,6 +708,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
                 @Override
                 public void onSuccess(List<Booking> bookings) {
+                    if (isFinishing() || isDestroyed()) return;
                     allMyBookings = bookings != null ? bookings : new ArrayList<>();
                     renderList();
                     for (Booking booking : allMyBookings) {
@@ -719,6 +722,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
                 @Override
                 public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
                     Toast.makeText(BookingAndReservationActivity.this, "Error loading booking: " + message, Toast.LENGTH_SHORT).show();
                 }
             });
@@ -1019,11 +1023,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             repository.correctPendingReservationTotal(b, new RoomRepository.RepositoryCallback<Booking>() {
                 @Override
                 public void onSuccess(Booking corrected) {
+                    if (isFinishing() || isDestroyed()) return;
                     renderList();
                 }
 
                 @Override
                 public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
                     // correctPendingReservationTotal() itself never calls onError - present for
                     // RepositoryCallback's contract only.
                 }
@@ -1434,6 +1440,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         repository.refreshRoomsFresh(checkInCal, checkOutCal, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 allRooms = result;
                 refreshAvailableRooms();
@@ -1442,6 +1449,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 openAvailableRoomsDialogOrToast();
             }
@@ -2073,12 +2081,14 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         repository.refreshRoomsFresh(checkInCal, checkOutCal, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed()) return;
                 allRooms = result;
                 refreshAvailableRooms();
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 refreshAvailableRooms();
             }
         });
@@ -2725,12 +2735,14 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         repository.refreshAmenities("paid", new RoomRepository.RepositoryCallback<List<AddOnAmenity>>() {
             @Override
             public void onSuccess(List<AddOnAmenity> amenities) {
+                if (isFinishing() || isDestroyed()) return;
                 addOnCatalog = amenities;
                 renderAmenityCatalog();
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 addOnCatalog = new ArrayList<>();
                 renderAmenityCatalog();
             }
@@ -2925,6 +2937,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     new RoomRepository.RepositoryCallback<Booking>() {
                         @Override
                         public void onSuccess(Booking updated) {
+                            if (isFinishing() || isDestroyed()) return;
                             String updatedId = editingBookingId;
                             LocalTransactionState.markModifiedOnce(BookingAndReservationActivity.this, updatedId);
                             Runnable showConfirmation = () -> {
@@ -2954,11 +2967,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                                 repository.uploadIdCard(updated.getId(), uploadedIdUri, new RoomRepository.RepositoryCallback<Void>() {
                                     @Override
                                     public void onSuccess(Void result) {
+                                        if (isFinishing() || isDestroyed()) return;
                                         showConfirmation.run();
                                     }
 
                                     @Override
                                     public void onError(String message) {
+                                        if (isFinishing() || isDestroyed()) return;
                                         Toast.makeText(BookingAndReservationActivity.this,
                                                 "Reservation updated, but the new ID photo failed to upload: " + message, Toast.LENGTH_LONG).show();
                                         showConfirmation.run();
@@ -2971,6 +2986,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
                         @Override
                         public void onError(String message) {
+                            if (isFinishing() || isDestroyed()) return;
                             setSubmitting(false);
                             Toast.makeText(BookingAndReservationActivity.this, "Couldn't update reservation: " + message, Toast.LENGTH_LONG).show();
                         }
@@ -3041,6 +3057,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking booking) {
+                        if (isFinishing() || isDestroyed()) return;
                         createdSoFar.add(booking);
                         createRoomReservations(groups, index + 1, createdSoFar, adults, children,
                                 guestFirstName, guestMiddleName, guestLastName, guests);
@@ -3048,6 +3065,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         handleRoomCreationFailure(createdSoFar, groups.size(), message);
                     }
                 });
@@ -3088,11 +3106,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         repository.cancelReservation(bookingId, new RoomRepository.RepositoryCallback<Booking>() {
             @Override
             public void onSuccess(Booking result) {
+                if (isFinishing() || isDestroyed()) return;
                 rollbackCreatedBookings(createdSoFar, index + 1, failedRollbackIds, totalRooms, originalError);
             }
 
             @Override
             public void onError(String msg) {
+                if (isFinishing() || isDestroyed()) return;
                 failedRollbackIds.add(bookingId);
                 rollbackCreatedBookings(createdSoFar, index + 1, failedRollbackIds, totalRooms, originalError);
             }
@@ -3209,12 +3229,14 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             repository.uploadIdCard(b.getId(), uploadedIdUri, new RoomRepository.RepositoryCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
+                    if (isFinishing() || isDestroyed()) return;
                     remaining[0]--;
                     if (remaining[0] == 0) onDone.run();
                 }
 
                 @Override
                 public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
                     Toast.makeText(BookingAndReservationActivity.this,
                             "Reservation created, but the ID photo failed to upload for one of the rooms: " + message, Toast.LENGTH_LONG).show();
                     remaining[0]--;
@@ -3758,7 +3780,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 // app can call delete against, and the record must stay
                 // available as a permanent historical reference regardless.
                 if (holder.btnDelete != null) {
-                    holder.btnDelete.setVisibility(b.isHistoricalReservation() ? View.GONE : View.VISIBLE);
+                    holder.btnDelete.setVisibility(View.VISIBLE);
                     holder.btnDelete.setEnabled(true);
                     holder.btnDelete.setText(R.string.delete_permanently_button_label);
                     holder.btnDelete.setOnClickListener(v -> confirmDeleteTransaction(b));
@@ -4036,11 +4058,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                             repository.refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
                                 @Override
                                 public void onSuccess(List<Room> result) {
+                                    if (isFinishing() || isDestroyed()) return;
                                     allRooms = result;
                                 }
 
                                 @Override
                                 public void onError(String message) {
+                                    if (isFinishing() || isDestroyed()) return;
                                     // Best-effort refresh; the next Add Room open still re-fetches.
                                 }
                             });
@@ -4049,6 +4073,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         // Leave the dialog open and re-enable controls so the
                         // guest can retry, matching confirmDeleteTransaction().
                         positive.setEnabled(true);
@@ -4080,7 +4105,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // same isHasBooking() split the ref-text/status labels already use)
         // - orthogonal to isDirectBooking() below, which decides which
         // backend table's endpoint the delete call itself must hit.
-        int messageRes = booking.isHasBooking() ? R.string.delete_booking_transaction_confirm : R.string.delete_reservation_transaction_confirm;
+        int messageRes = booking.isHistoricalReservation() ? R.string.delete_completed_copy_confirm
+                : booking.isHasBooking() ? R.string.delete_booking_transaction_confirm : R.string.delete_reservation_transaction_confirm;
         int successMsgRes = booking.isHasBooking() ? R.string.delete_booking_transaction_success : R.string.delete_reservation_transaction_success;
 
         AlertDialog dialog = new SafeDialogs.Material(this)
@@ -4116,6 +4142,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         // Leave the dialog open and re-enable controls so the
                         // guest can retry - the item must NOT disappear from
                         // the list on failure.
@@ -4138,6 +4165,11 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 // Booking#getBookingEndpointDeleteId()'s doc: confirmed directly
                 // against the live backend that Api\BookingController only ever
                 // handles direct bookings).
+                // A "Completed" reservation copy is removed on its own - its booking and history stay.
+                if (booking.isHistoricalReservation()) {
+                    repository.hideCompletedReservationCopy(booking.getId(), deleteCallback);
+                    return;
+                }
                 String bookingEndpointId = booking.getBookingEndpointDeleteId();
                 if (bookingEndpointId != null) {
                     repository.deleteBookingPermanently(bookingEndpointId, deleteCallback);

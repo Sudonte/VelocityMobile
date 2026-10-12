@@ -255,11 +255,13 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<java.util.List<Booking>>() {
             @Override
             public void onSuccess(java.util.List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 loadBookingData();
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 loadBookingData();
             }
         });
@@ -1520,12 +1522,14 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.cancelPayment(currentBooking.getLatestPaymentId(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
+                if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(PaymentActivity.this, R.string.cancel_payment_success_msg, Toast.LENGTH_LONG).show();
                 openScreen(TransactionHistoryActivity.class);
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 isSubmittingPayment = false;
                 Toast.makeText(PaymentActivity.this, getString(R.string.error_payment_submission_failed_format, message), Toast.LENGTH_LONG).show();
             }
@@ -1539,6 +1543,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.voidPayment(currentBooking.getLatestPaymentId(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
+                if (isFinishing() || isDestroyed()) return;
                 Toast.makeText(PaymentActivity.this, R.string.convert_to_reservation_success_msg, Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(PaymentActivity.this, BookingAndReservationActivity.class);
                 intent.putExtra(BookingAndReservationActivity.EXTRA_OPEN_SECTION, BookingAndReservationActivity.SECTION_RESERVATION);
@@ -1548,6 +1553,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 isSubmittingPayment = false;
                 Toast.makeText(PaymentActivity.this, getString(R.string.error_payment_submission_failed_format, message), Toast.LENGTH_LONG).show();
             }
@@ -1751,11 +1757,13 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.uploadIdCard(created.getId(), state.idCardImageUri, new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
+                if (isFinishing() || isDestroyed()) return;
                 onDone.run();
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 onDone.run();
             }
         });
@@ -1800,6 +1808,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking created) {
+                        if (isFinishing() || isDestroyed()) return;
                         isSubmittingPayment = false;
                         currentBooking = created;
                         bookingId = created.getId();
@@ -1811,6 +1820,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         isSubmittingPayment = false;
                         dismissSafely(dialog);
                         Toast.makeText(PaymentActivity.this, message, Toast.LENGTH_LONG).show();
@@ -1876,16 +1886,19 @@ public class PaymentActivity extends BaseNavigationActivity {
                     new RoomRepository.RepositoryCallback<Booking>() {
                         @Override
                         public void onSuccess(Booking created) {
+                            if (isFinishing() || isDestroyed()) return;
                             uploadIdCardIfNeeded(created, () ->
                                     repository.submitPayment(created.getId(), "cash", paymentType, null, payNowValue,
                                             selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
                                                 @Override
                                                 public void onSuccess(Void result) {
+                                                    if (isFinishing() || isDestroyed()) return;
                                                     onPendingReservationCashCreated(dialog, created, false);
                                                 }
 
                                                 @Override
                                                 public void onError(String message) {
+                                                    if (isFinishing() || isDestroyed()) return;
                                                     // Reservation WAS created - don't roll it back, it just stays unpaid.
                                                     onPendingReservationCashCreated(dialog, created, true);
                                                 }
@@ -1894,6 +1907,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
                         @Override
                         public void onError(String message) {
+                            if (isFinishing() || isDestroyed()) return;
                             isSubmittingPayment = false;
                             dismissSafely(dialog);
                             Toast.makeText(PaymentActivity.this, getString(R.string.error_payment_submission_failed_format, message), Toast.LENGTH_LONG).show();
@@ -1908,6 +1922,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.submitPayment(bookingId, "cash", paymentType, null, payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
+                if (isFinishing() || isDestroyed()) return;
                 dismissSafely(dialog);
                 new SafeDialogs.Material(PaymentActivity.this)
                         .setTitle(R.string.payment_success_title)
@@ -1919,6 +1934,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 isSubmittingPayment = false;
                 dismissSafely(dialog);
                 Toast.makeText(PaymentActivity.this, getString(R.string.error_payment_submission_failed_format, message), Toast.LENGTH_LONG).show();
@@ -1994,11 +2010,13 @@ public class PaymentActivity extends BaseNavigationActivity {
             repository.correctPendingReservationTotal(currentBooking, new RoomRepository.RepositoryCallback<Booking>() {
                 @Override
                 public void onSuccess(Booking corrected) {
+                    if (isFinishing() || isDestroyed()) return;
                     populateExistingTransactionSummary();
                 }
 
                 @Override
                 public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
                     populateExistingTransactionSummary();
                 }
             });
@@ -2088,14 +2106,17 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.fetchTransactionById(bookingId, true, new RoomRepository.RepositoryCallback<Booking>() {
             @Override
             public void onSuccess(Booking fresh) {
+                if (isFinishing() || isDestroyed()) return;
                 repository.correctPendingReservationTotal(fresh, new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking corrected) {
+                        if (isFinishing() || isDestroyed()) return;
                         callback.onSuccess(corrected != null ? corrected : fresh);
                     }
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         callback.onSuccess(fresh);
                     }
                 });
@@ -2103,6 +2124,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 callback.onError(message);
             }
         });
@@ -2124,6 +2146,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 billCheckInFlight = false; // silent: the pre-submit check is the one that must not fail quietly
             }
         });
@@ -2450,6 +2473,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.fetchRequestableAmenities(booking.getId(), new RoomRepository.RepositoryCallback<List<RequestableAmenityDto>>() {
             @Override
             public void onSuccess(List<RequestableAmenityDto> items) {
+                if (isFinishing() || isDestroyed()) return;
                 // The guest may have left this booking behind (e.g. Cancel Payment
                 // navigated away, or a different booking loaded) by the time this
                 // resolves - only apply it to the summary still on screen.
@@ -2459,6 +2483,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 // Best-effort only - Room Charges/Amenities Total/Selected Amenities
                 // simply keep the full-amount-as-Room-Charges fallback already shown.
             }
@@ -2871,12 +2896,14 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.submitGcashPayment(bookingId, paymentType, referenceNumber, payNowValue, gcashNumber, receiptUri, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
+                if (isFinishing() || isDestroyed()) return;
                 dismissSafely(dialog);
                 showGcashSuccessDialog(referenceNumber, payNowValue);
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 if (isDuplicateReferenceError(message)) {
                     // Don't take the server's word for it yet - it may be reporting OUR
                     // OWN just-submitted payment back to us (see reconcileDuplicateReference()).
@@ -2937,6 +2964,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 Booking match = findBookingByReference(result, referenceNumber);
                 if (match != null) {
                     currentBooking = match;
@@ -2949,6 +2977,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 if (allowRetry) {
                     reconcileDuplicateReference(referenceNumber, onRecoveredAsOwnPayment, onGenuineDuplicate, false);
                 } else {
@@ -3020,6 +3049,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                 new RoomRepository.AvailabilityAwareCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking booking) {
+                        if (isFinishing() || isDestroyed()) return;
                         dismissSafely(dialog);
                         onPendingBookingCreated(booking, referenceNumber);
                     }
@@ -3035,6 +3065,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         if (isDuplicateReferenceError(message)) {
                             // Same self-vs-genuine ambiguity as submitPaymentToServer()'s
                             // direct branch - this call may have actually succeeded
@@ -3123,12 +3154,14 @@ public class PaymentActivity extends BaseNavigationActivity {
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking created) {
+                        if (isFinishing() || isDestroyed()) return;
                         uploadIdCardIfNeeded(created, () ->
                                 onPendingReservationPaidCreated(dialog, created, referenceNumber, false));
                     }
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         if (isDuplicateReferenceError(message)) {
                             reconcileDuplicateReference(referenceNumber,
                                     () -> onPendingReservationPaidCreated(dialog, currentBooking, referenceNumber, false),
@@ -3230,11 +3263,13 @@ public class PaymentActivity extends BaseNavigationActivity {
         repository.refreshBookings(new RoomRepository.RepositoryCallback<List<Booking>>() {
             @Override
             public void onSuccess(List<Booking> result) {
+                if (isFinishing() || isDestroyed()) return;
                 resolveCurrentBookingAndNavigate(idToResolve, result);
             }
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 if (allowRetry) {
                     refreshBookingsAfterPayment(idToResolve, false);
                 } else {

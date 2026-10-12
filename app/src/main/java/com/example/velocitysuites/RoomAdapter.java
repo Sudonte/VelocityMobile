@@ -178,8 +178,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void replaceItems(List<RoomListItem> newItems) {
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new RoomDiffCallback(this.items, newItems));
+        // Cards slide in only the first time a list appears - a quiet refresh or a filter tweak must not replay it.
+        if (this.items.isEmpty()) lastAnimatedPosition = -1;
         this.items = newItems;
-        lastAnimatedPosition = -1;
         diffResult.dispatchUpdatesTo(this);
     }
 
@@ -221,6 +222,11 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         Context context = holder.itemView.getContext();
 
         holder.roomName.setText(room.getName());
+        if (holder.roomDescription != null) {
+            String description = room.getDescription() == null ? "" : room.getDescription().trim();
+            holder.roomDescription.setText(description);
+            holder.roomDescription.setVisibility(description.isEmpty() ? View.GONE : View.VISIBLE);
+        }
         holder.roomGuestsText.setText(context.getResources().getQuantityString(
                 R.plurals.room_card_guests_format, room.getCapacity(), room.getCapacity()));
         holder.roomSizeText.setText(room.getRoomSize() == null || room.getRoomSize().isEmpty()
@@ -407,18 +413,46 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * onto the next row instead of requiring a scroll or being hidden.
      */
     private void bindAmenities(RoomViewHolder holder, Room room, Context context) {
-        holder.amenitiesChipGroup.removeAllViews();
         List<RoomAmenity> amenities = room.getAmenities();
 
+        // The tags only depend on the amenity names: when a recycled card (or a quantity tap that rebinds it) already
+        // shows exactly this set, leave it alone instead of tearing it down and rebuilding it.
+        StringBuilder key = new StringBuilder();
+        if (amenities != null) {
+            for (RoomAmenity amenity : amenities) key.append(amenity.getName()).append('|');
+        }
+        String newKey = key.toString();
+        if (newKey.equals(holder.amenitiesKey)) return;
+        holder.amenitiesKey = newKey;
+
+        holder.amenitiesChipGroup.removeAllViews();
         if (amenities == null || amenities.isEmpty()) {
-            holder.amenitiesChipGroup.addView(newAmenityChip(context, context.getString(R.string.no_amenities_available), 0));
+            holder.amenitiesChipGroup.addView(newAmenityTag(holder.amenitiesChipGroup, context.getString(R.string.no_amenities_available), 0));
             return;
         }
 
         for (RoomAmenity amenity : amenities) {
             holder.amenitiesChipGroup.addView(
-                    newAmenityChip(context, amenity.getName(), RoomVisuals.getAmenityIcon(amenity.getName())));
+                    newAmenityTag(holder.amenitiesChipGroup, amenity.getName(), RoomVisuals.getAmenityIcon(amenity.getName())));
         }
+    }
+
+    private android.widget.TextView newAmenityTag(ViewGroup parent, String text, int iconRes) {
+        android.widget.TextView tag = (android.widget.TextView) LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_room_amenity_tag, parent, false);
+        tag.setText(text);
+        if (iconRes != 0) {
+            tag.setCompoundDrawablesRelativeWithIntrinsicBounds(iconRes, 0, 0, 0);
+            int size = dpToPx(parent.getContext(), 14);
+            android.graphics.drawable.Drawable[] drawables = tag.getCompoundDrawablesRelative();
+            if (drawables[0] != null) {
+                drawables[0] = drawables[0].mutate();
+                drawables[0].setBounds(0, 0, size, size);
+                drawables[0].setTint(ContextCompat.getColor(parent.getContext(), R.color.velocity_red_primary));
+                tag.setCompoundDrawablesRelative(drawables[0], null, null, null);
+            }
+        }
+        return tag;
     }
 
     private com.google.android.material.chip.Chip newAmenityChip(Context context, String text, int iconRes) {
@@ -453,6 +487,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return chip;
     }
 
+    private static final android.view.animation.Interpolator ENTRANCE_INTERPOLATOR = new android.view.animation.DecelerateInterpolator(1.5f);
+
     private void animateItemEntrance(View itemView, int position) {
         if (position > lastAnimatedPosition) {
             itemView.setAlpha(0f);
@@ -462,7 +498,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     .translationY(0f)
                     .setStartDelay(Math.min(position, 6) * 40L)
                     .setDuration(260)
-                    .setInterpolator(AnimationUtils.loadInterpolator(itemView.getContext(), android.R.interpolator.decelerate_cubic))
+                    .setInterpolator(ENTRANCE_INTERPOLATOR)
                     .start();
             lastAnimatedPosition = position;
         } else {
@@ -545,6 +581,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     static class RoomViewHolder extends RecyclerView.ViewHolder {
         ImageView roomImage;
         ImageButton btnFavorite;
+        /** Names of the amenities the tags currently show - lets bindAmenities() skip a no-op rebuild. */
+        String amenitiesKey;
+        TextView roomDescription;
         TextView roomStatusBadge, roomPrice, roomName, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint;
         com.google.android.material.chip.ChipGroup amenitiesChipGroup;
         MaterialButton btnViewDetails, btnQuickBook, btnReserveNow;
@@ -568,6 +607,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             roomStatusBadge = itemView.findViewById(R.id.roomStatusBadge);
             roomPrice = itemView.findViewById(R.id.roomPrice);
             roomName = itemView.findViewById(R.id.roomName);
+            roomDescription = itemView.findViewById(R.id.roomDescription);
             roomGuestsText = itemView.findViewById(R.id.roomGuestsText);
             roomSizeText = itemView.findViewById(R.id.roomSizeText);
             roomBedType = itemView.findViewById(R.id.roomBedType);

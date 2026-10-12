@@ -11,7 +11,7 @@
         android:background="@drawable/bg_glass_card_white"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="40dp">
+        android:padding="36dp">
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:layout_width="wrap_content"
@@ -25,10 +25,10 @@
             android:id="@+id/loadingMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="22dp"
             android:fontFamily="sans-serif-medium"
             android:text="@string/preparing_stay"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -185,6 +185,7 @@ public class NotificationDetailsActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
                         android.widget.Toast.makeText(NotificationDetailsActivity.this,
                                 getString(R.string.txn_lookup_error_format, message), android.widget.Toast.LENGTH_LONG).show();
                     }

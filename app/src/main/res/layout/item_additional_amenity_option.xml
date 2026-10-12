@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="11dp">
 
         <TextView
             android:id="@+id/tvAmenityOptionName"
@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-bold"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="14sp"
+            android:textSize="13sp"
             tools:text="Extra Bed" />
 
         <TextView
@@ -65,7 +65,7 @@
                 android:gravity="center"
                 android:text="@string/amenity_quantity_zero"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAmenityOptionPlus"
@@ -91,7 +91,7 @@
                 android:fontFamily="sans-serif-bold"
                 android:gravity="end"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 tools:text="₱400.00" />
         </LinearLayout>
     </LinearLayout>

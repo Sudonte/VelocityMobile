@@ -52,7 +52,7 @@
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     tools:text="Reservation #588" />
 
                 <!-- Transaction type - always shown so it's never ambiguous whether this
@@ -296,7 +296,7 @@
                 android:visibility="gone"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:paddingHorizontal="14dp"
+                android:paddingHorizontal="13dp"
                 android:paddingVertical="0dp"
                 android:fontFamily="sans-serif-black"
                 android:text="@string/pay_now"
@@ -317,7 +317,7 @@
             android:lineSpacingExtra="2dp"
             android:padding="10dp"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:visibility="gone"
             tools:text="Remaining balance: ₱1,400.00. Please pay at the Velocity Suites front desk."
             tools:visibility="visible" />

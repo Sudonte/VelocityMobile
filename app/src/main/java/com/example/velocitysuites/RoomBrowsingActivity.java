@@ -251,6 +251,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
+                if (isFinishing() || isDestroyed()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 layoutRoomError.setVisibility(View.GONE);
@@ -265,6 +266,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
             @Override
             public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 noResultsView.setVisibility(View.GONE);

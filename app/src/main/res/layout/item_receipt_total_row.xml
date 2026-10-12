@@ -9,7 +9,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
+    android:layout_marginBottom="14dp"
     android:orientation="vertical">
 
     <View
@@ -31,19 +31,19 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             tools:text="Rooms Total" />
 
         <TextView
             android:id="@+id/tvTotalAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="11dp"
             android:fontFamily="sans-serif-black"
             android:gravity="end"
             android:textAlignment="viewEnd"
             android:textColor="@color/velocity_red_primary"
-            android:textSize="14sp"
+            android:textSize="13sp"
             tools:text="₱27,000.00" />
     </LinearLayout>
 </LinearLayout>

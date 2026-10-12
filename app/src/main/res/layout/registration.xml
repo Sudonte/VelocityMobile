@@ -45,8 +45,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="24dp"
-            android:paddingBottom="24dp">
+            android:paddingHorizontal="22dp"
+            android:paddingBottom="22dp">
 
             <!-- Header Branding Section: a more compact version of the Sign In
                  screen's photo header (same logo/curve treatment) - kept
@@ -78,7 +78,7 @@
                     android:id="@+id/logoContainer"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
-                    android:layout_marginTop="34dp"
+                    android:layout_marginTop="31dp"
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -108,7 +108,7 @@
                     android:text="@string/velocity_suites"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/curvedHeaderView" />
@@ -135,7 +135,7 @@
                 android:id="@+id/registrationLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="25dp"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:visibility="invisible"
@@ -159,7 +159,7 @@
                     android:gravity="center"
                     android:text="@string/registration_subtitle"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <!-- Step Indicator -->
@@ -167,7 +167,7 @@
                 android:id="@+id/stepIndicatorContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:visibility="invisible"
@@ -177,8 +177,8 @@
                 app:layout_constraintTop_toBottomOf="@id/registrationLabel"
                 android:background="@drawable/bg_glass_card_white"
                 android:elevation="0dp"
-                android:paddingHorizontal="22dp"
-                android:paddingVertical="14dp">
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="13dp">
 
                 <TextView
                     android:id="@+id/stepText"
@@ -266,7 +266,7 @@
                 style="@style/Widget.Velocity.Card.Glass.Elevated"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="11dp"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toTopOf="@+id/loginRedirect"
                 app:layout_constraintTop_toBottomOf="@id/stepIndicatorContainer">
@@ -276,8 +276,8 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="22dp"
-                    android:paddingVertical="24dp">
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="22dp">
 
                     <!-- Step 1 Content -->
                     <LinearLayout
@@ -290,7 +290,7 @@
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -308,14 +308,14 @@
                                 style="@style/TextAppearance.Velocity.Label.Section"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="11dp"
                                 android:text="@string/step1_section_title" />
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginBottom="20dp"
+                            android:layout_marginBottom="18dp"
                             android:background="@color/velocity_red_soft" />
 
                         <TextView
@@ -338,16 +338,16 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/first_name_hint"
                                 android:inputType="textPersonName"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/last_name_label" />
 
@@ -364,16 +364,16 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/last_name_hint"
                                 android:inputType="textPersonName"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/middle_name_label" />
 
@@ -390,9 +390,9 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/middle_name_hint"
                                 android:inputType="textPersonName"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
@@ -407,7 +407,7 @@
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -425,14 +425,14 @@
                                 style="@style/TextAppearance.Velocity.Label.Section"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="11dp"
                                 android:text="@string/step2_section_title" />
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:background="@color/velocity_red_soft" />
 
                         <!-- Age / DOB validation banner: hidden unless the entered age or
@@ -441,12 +441,12 @@
                             android:id="@+id/ageValidationErrorContainer"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_soft"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:padding="12dp"
+                            android:padding="11dp"
                             android:visibility="gone"
                             tools:visibility="visible">
 
@@ -490,16 +490,16 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/gender_hint"
                                 android:inputType="none"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/dob_label" />
 
@@ -518,16 +518,16 @@
                                 android:focusable="false"
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/dob_hint"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/age_label" />
 
@@ -548,9 +548,9 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/age_hint"
                                 android:inputType="none"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
@@ -565,7 +565,7 @@
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -583,14 +583,14 @@
                                 style="@style/TextAppearance.Velocity.Label.Section"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="11dp"
                                 android:text="@string/step3_section_title" />
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginBottom="20dp"
+                            android:layout_marginBottom="18dp"
                             android:background="@color/velocity_red_soft" />
 
                         <TextView
@@ -603,7 +603,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="14dp"
+                            android:layout_marginBottom="13dp"
                             android:text="@string/contact_info_section_desc"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp" />
@@ -619,7 +619,7 @@
                             style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="18dp"
+                            android:layout_marginBottom="16dp"
                             app:helperText="@string/helper_email_any"
                             app:startIconDrawable="@drawable/ic_email">
 
@@ -630,9 +630,9 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/email_hint"
                                 android:inputType="textEmailAddress"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
@@ -658,29 +658,29 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/mobile_hint"
                                 android:inputType="phone"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginTop="24dp"
+                            android:layout_marginTop="22dp"
                             android:background="@color/velocity_red_soft" />
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Section"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="4dp"
                             android:text="@string/address_section_title" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="14dp"
+                            android:layout_marginBottom="13dp"
                             android:text="@string/address_section_desc"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp" />
@@ -708,9 +708,9 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/country_hint"
                                 android:inputType="none"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <!-- Shown only for non-Philippine countries: explains why no address
@@ -742,7 +742,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/timezone_label" />
 
@@ -761,9 +761,9 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/timezone_hint"
                                     android:inputType="none"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
@@ -778,7 +778,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/region_label" />
 
@@ -797,9 +797,9 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/region_hint"
                                     android:inputType="none"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
@@ -814,7 +814,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/province_label" />
 
@@ -833,9 +833,9 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/province_hint"
                                     android:inputType="none"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
@@ -850,7 +850,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/city_label" />
 
@@ -869,9 +869,9 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/city_hint"
                                     android:inputType="none"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
@@ -886,7 +886,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/barangay_label" />
 
@@ -905,9 +905,9 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/barangay_hint"
                                     android:inputType="none"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
@@ -922,7 +922,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/street_label" />
 
@@ -940,9 +940,9 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/street_hint"
                                     android:inputType="textPostalAddress|textCapWords"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
@@ -957,7 +957,7 @@
                                 style="@style/TextAppearance.Velocity.Label.Input"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="18dp"
+                                android:layout_marginTop="16dp"
                                 android:layout_marginBottom="8dp"
                                 android:text="@string/zip_label" />
 
@@ -975,23 +975,23 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:hint="@string/zip_hint"
                                     android:inputType="number"
-                                    android:paddingVertical="14dp"
+                                    android:paddingVertical="13dp"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginTop="24dp"
+                            android:layout_marginTop="22dp"
                             android:background="@color/velocity_red_soft" />
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Section"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="4dp"
                             android:text="@string/login_credentials_section_title" />
 
@@ -1007,7 +1007,7 @@
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/password_label" />
 
@@ -1034,16 +1034,16 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/password_hint"
                                 android:inputType="textPassword"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/confirm_password_label" />
 
@@ -1061,9 +1061,9 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:hint="@string/confirm_password_hint"
                                 android:inputType="textPassword"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:textSize="13sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <!-- Profile Picture (optional) -->
@@ -1071,7 +1071,7 @@
                             style="@style/TextAppearance.Velocity.Label.Section"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="24dp"
+                            android:layout_marginTop="22dp"
                             android:text="@string/profile_picture_section_title" />
 
                         <TextView
@@ -1085,7 +1085,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
+                            android:layout_marginTop="13dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -1133,7 +1133,7 @@
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
+                                android:layout_marginStart="14dp"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
@@ -1144,7 +1144,7 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:text="@string/profile_picture_none_selected"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="13sp" />
+                                    android:textSize="12sp" />
 
                                 <TextView
                                     android:id="@+id/regRemovePhotoLink"
@@ -1165,7 +1165,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginTop="24dp"
+                            android:layout_marginTop="22dp"
                             android:background="@color/velocity_red_soft" />
 
                         <!-- Email is the only verification method offered - no channel
@@ -1174,7 +1174,7 @@
                             style="@style/TextAppearance.Velocity.Label.Section"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginBottom="4dp"
                             android:text="@string/otp_channel_section_title" />
 
@@ -1185,7 +1185,7 @@
                             android:backgroundTint="@color/velocity_red_soft"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:padding="14dp">
+                            android:padding="13dp">
 
                             <ImageView
                                 android:layout_width="20dp"
@@ -1202,20 +1202,20 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:text="@string/otp_channel_hint_email"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp" />
+                                android:textSize="12sp" />
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginTop="24dp"
+                            android:layout_marginTop="22dp"
                             android:background="@color/velocity_red_soft" />
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Section"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="14dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/registration_terms_section_title" />
 
@@ -1245,11 +1245,11 @@
                                 android:id="@+id/otpChannelIcon"
                                 android:layout_width="56dp"
                                 android:layout_height="56dp"
-                                android:layout_marginBottom="14dp"
+                                android:layout_marginBottom="13dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
                                 android:contentDescription="@null"
-                                android:padding="14dp"
+                                android:padding="13dp"
                                 android:src="@drawable/ic_email"
                                 app:tint="@color/velocity_red_primary" />
 
@@ -1261,7 +1261,7 @@
                                 android:textColor="@color/velocity_red_dark"
                                 android:textAllCaps="true"
                                 android:letterSpacing="0.03"
-                                android:textSize="18sp" />
+                                android:textSize="16sp" />
 
                             <TextView
                                 android:id="@+id/otpVerifyDescText"
@@ -1273,14 +1273,14 @@
                                 android:lineSpacingExtra="2dp"
                                 android:text="@string/verify_otp_desc_email"
                                 android:textColor="@color/velocity_text_secondary"
-                                android:textSize="13sp" />
+                                android:textSize="12sp" />
                         </LinearLayout>
 
                         <TextView
                             style="@style/TextAppearance.Velocity.Label.Input"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="24dp"
+                            android:layout_marginTop="22dp"
                             android:layout_marginBottom="8dp"
                             android:text="@string/otp_label" />
 
@@ -1300,20 +1300,20 @@
                                 android:inputType="number"
                                 android:letterSpacing="0.5"
                                 android:maxLength="6"
-                                android:paddingVertical="14dp"
+                                android:paddingVertical="13dp"
                                 android:textColor="@color/velocity_red_primary"
-                                android:textSize="20sp" />
+                                android:textSize="18sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="16dp"
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_soft"
                             android:gravity="center"
                             android:orientation="horizontal"
-                            android:paddingVertical="12dp">
+                            android:paddingVertical="11dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -1321,7 +1321,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:text="@string/didnt_receive_code"
                                 android:textColor="@color/velocity_text_secondary"
-                                android:textSize="13sp" />
+                                android:textSize="12sp" />
 
                             <TextView
                                 android:id="@+id/resendOtpLink"
@@ -1333,7 +1333,7 @@
                                 android:padding="4dp"
                                 android:text="@string/resend_otp"
                                 android:textColor="@color/velocity_red_primary"
-                                android:textSize="13sp" />
+                                android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -1346,7 +1346,7 @@
                 android:id="@+id/loginRedirect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="invisible"
@@ -1360,7 +1360,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/already_have_account"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/signInLink"
@@ -1372,7 +1372,7 @@
                     android:padding="4dp"
                     android:text="@string/sign_in"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -1385,7 +1385,7 @@
         android:layout_height="wrap_content"
         android:background="@color/velocity_surface_elevated"
         android:orientation="vertical"
-        android:paddingHorizontal="24dp"
+        android:paddingHorizontal="22dp"
         android:paddingVertical="8dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -1421,7 +1421,7 @@
                             android:layout_height="wrap_content"
                             android:minHeight="48dp"
                             android:text="@string/next_label"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             app:icon="@drawable/ic_arrow_forward"
                             app:iconGravity="textEnd"
                             app:iconSize="18dp"
@@ -1434,7 +1434,7 @@
                             android:layout_height="wrap_content"
                             android:minHeight="48dp"
                             android:text="@string/sign_up_now"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:visibility="gone"
                             app:icon="@drawable/ic_check_circle"
                             app:iconGravity="textStart"
@@ -1446,7 +1446,7 @@
                         android:id="@+id/backToPreviousHint"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="11dp"
                         android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:text="@string/back_step_hint"
@@ -1460,8 +1460,8 @@
         style="@style/Widget.MaterialComponents.Button.Icon"
         android:layout_width="44dp"
         android:layout_height="44dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="14dp"
         android:contentDescription="@string/back_label"
         android:insetLeft="0dp"
         android:insetTop="0dp"

@@ -91,13 +91,13 @@ public class RoomCardLayoutTest {
     // ---- compact vs roomy ----
 
     @Test
-    public void aNormalPhoneWithANormalFont_keepsTheCompactSideBySideCard() {
+    public void aNormalPhoneWithANormalFont_getsPhotoOnTop_detailsBelow_andReserveBookShareARow() {
         View card = card(room("1", 5), 360, 1.0f);
 
         Rect image = bounds(card, R.id.roomImageCard);
         Rect info = bounds(card, R.id.roomInfoColumn);
-        assertTrue("details sit to the right of the photo", info.left >= image.right);
-        assertTrue("and level with it, not below it", info.top < image.bottom);
+        assertTrue("details sit below the photo", info.top >= image.bottom);
+        assertTrue("the photo spans the card width", image.width() > info.width() / 2);
         Rect reserve = bounds(card, R.id.btnReserveNow);
         Rect book = bounds(card, R.id.btnQuickBook);
         assertEquals("Reserve and Book share a row", reserve.top, book.top);

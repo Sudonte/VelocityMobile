@@ -72,24 +72,24 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingTop="84dp"
-                        android:paddingBottom="16dp">
+                        android:paddingTop="76dp"
+                        android:paddingBottom="14dp">
 
                         <TextView
                             android:id="@+id/screenTitle"
                             style="@style/TextAppearance.Velocity.ScreenTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginHorizontal="14dp"
                             android:accessibilityHeading="true"
                             android:text="@string/title_payment"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="20sp" />
+                            android:textSize="18sp" />
 
                         <View
                             android:layout_width="48dp"
                             android:layout_height="4dp"
-                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginHorizontal="14dp"
                             android:layout_marginTop="8dp"
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_primary"
@@ -100,8 +100,8 @@
                             style="@style/Widget.Velocity.Card.Flat"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="16dp"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginTop="14dp"
                             app:cardBackgroundColor="@color/velocity_red_soft"
                             app:strokeColor="@color/velocity_red_subtle">
 
@@ -110,7 +110,7 @@
                                 android:layout_height="wrap_content"
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal"
-                                android:padding="16dp">
+                                android:padding="14dp">
 
                                 <ImageView
                                     android:layout_width="20dp"
@@ -123,13 +123,13 @@
                                     android:id="@+id/paymentGreeting"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="16dp"
+                                    android:layout_marginStart="14dp"
                                     android:layout_weight="1"
                                     android:fontFamily="sans-serif-medium"
                                     android:lineSpacingExtra="2dp"
                                     android:text="@string/payment_greeting"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     tools:text="Hello, Guest! Complete your payment securely using GCash to confirm your reservation. Please upload the official GCash receipt for verification." />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
@@ -166,9 +166,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="16dp"
-                    android:paddingTop="16dp"
-                    android:paddingBottom="24dp">
+                    android:paddingHorizontal="14dp"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="22dp">
 
                     <!-- Book/Reserve Now CTA: only visible when this screen was reached generically (e.g. the
                          Payment nav-drawer item) with no specific transaction being paid right now - hidden by
@@ -178,13 +178,13 @@
                         style="@style/Widget.Velocity.Card.Flat"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginBottom="14dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="14dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -203,7 +203,7 @@
                                 <LinearLayout
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="16dp"
+                                    android:layout_marginStart="14dp"
                                     android:layout_weight="1"
                                     android:orientation="vertical">
 
@@ -213,7 +213,7 @@
                                         android:layout_height="wrap_content"
                                         android:text="@string/book_now_cta_title"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:layout_width="match_parent"
@@ -221,14 +221,14 @@
                                         android:layout_marginTop="4dp"
                                         android:text="@string/book_now_cta_desc"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
                                 </LinearLayout>
                             </LinearLayout>
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="16dp"
+                                android:layout_marginTop="14dp"
                                 android:orientation="horizontal">
 
                                 <com.google.android.material.button.MaterialButton
@@ -241,7 +241,7 @@
                                     android:minHeight="52dp"
                                     android:stateListAnimator="@null"
                                     android:text="@string/book_now"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     app:icon="@drawable/ic_bed"
                                     app:iconGravity="textStart" />
 
@@ -256,7 +256,7 @@
                                     android:stateListAnimator="@null"
                                     android:text="@string/reserve_now"
                                     android:textColor="@color/velocity_action_text"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     app:icon="@drawable/ic_calendar"
                                     app:iconGravity="textStart"
                                     app:iconTint="@color/velocity_action_text" />
@@ -271,7 +271,7 @@
                         android:id="@+id/emptyStateSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:visibility="gone"
@@ -289,7 +289,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="14dp"
                             android:fontFamily="sans-serif-black"
                             android:letterSpacing="0.1"
                             android:text="@string/total_amount_due"
@@ -305,17 +305,17 @@
                             android:fontFamily="sans-serif-black"
                             android:text="@string/zero_amount_display"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="34sp" />
+                            android:textSize="31sp" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="14dp"
                             android:gravity="center"
                             android:lineSpacingExtra="2dp"
                             android:text="@string/empty_payment_balance_msg"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <!-- A confirmed Booking is never paid in the app: the rest of the balance is settled at the front desk.
@@ -324,7 +324,7 @@
                         android:id="@+id/frontDeskSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:visibility="gone"
@@ -342,7 +342,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="14dp"
                             android:fontFamily="sans-serif-black"
                             android:letterSpacing="0.1"
                             android:text="@string/front_desk_title"
@@ -354,13 +354,13 @@
                             android:id="@+id/tvFrontDeskMessage"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="11dp"
                             android:background="@color/velocity_red_soft"
                             android:gravity="center"
                             android:lineSpacingExtra="2dp"
-                            android:padding="16dp"
+                            android:padding="14dp"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             tools:text="Remaining balance: ₱1,400.00. Please pay at the Velocity Suites front desk." />
 
                         <com.google.android.material.button.MaterialButton
@@ -368,7 +368,7 @@
                             style="@style/Widget.Velocity.Flat.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="11dp"
                             android:minHeight="48dp"
                             android:text="@string/back_label"
                             android:textColor="@color/velocity_action_text"
@@ -391,7 +391,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:baselineAligned="false"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
@@ -413,7 +413,7 @@
                                     android:gravity="center"
                                     android:text="@string/payment_step_1"
                                     android:textColor="@color/white"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -430,7 +430,7 @@
                             <View
                                 android:layout_width="40dp"
                                 android:layout_height="2dp"
-                                android:layout_marginBottom="24dp"
+                                android:layout_marginBottom="22dp"
                                 android:background="@color/velocity_red_soft"
                                 android:importantForAccessibility="no" />
 
@@ -450,7 +450,7 @@
                                     android:gravity="center"
                                     android:text="@string/payment_step_2"
                                     android:textColor="@color/velocity_action_text"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -469,7 +469,7 @@
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             app:cardBackgroundColor="@color/velocity_red_primary"
                             app:cardCornerRadius="@dimen/card_corner_radius"
                             app:cardElevation="@dimen/card_elevation"
@@ -479,7 +479,7 @@
                             <RelativeLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:padding="24dp">
+                                android:padding="22dp">
 
                                 <ImageView
                                     android:layout_width="120dp"
@@ -512,13 +512,13 @@
                                     android:fontFamily="sans-serif-black"
                                     android:text="@string/placeholder_amount"
                                     android:textColor="@color/white"
-                                    android:textSize="36sp" />
+                                    android:textSize="32sp" />
 
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_below="@id/tvTotalAmount"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:gravity="center_vertical"
                                     android:orientation="horizontal">
 
@@ -531,7 +531,7 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/placeholder_booking_ref"
                                         android:textColor="@color/white"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         app:drawableStartCompat="@drawable/ic_booking"
                                         app:drawableTint="@color/white" />
 
@@ -544,7 +544,7 @@
                                         android:backgroundTint="#59000000"
                                         android:fontFamily="sans-serif-black"
                                         android:letterSpacing="0.05"
-                                        android:paddingHorizontal="12dp"
+                                        android:paddingHorizontal="11dp"
                                         android:paddingVertical="8dp"
                                         android:text="@string/status_unpaid"
                                         android:textColor="@color/white"
@@ -559,19 +559,19 @@
                             style="@style/Widget.Velocity.Card.Flat"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp">
+                            android:layout_marginBottom="14dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="14dp">
 
                                 <TextView
                                     style="@style/TextAppearance.Velocity.Label.Section"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     android:accessibilityHeading="true"
                                     android:drawablePadding="8dp"
                                     android:text="@string/payment_booking_summary_title"
@@ -590,20 +590,20 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/payment_summary_transaction_type_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvTransactionType"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:text="@string/label_not_available"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
                                 </LinearLayout>
 
                                 <!-- Guest / Representative - hidden entirely when no name is available (never a blank line) -->
@@ -623,19 +623,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/payment_summary_representative_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvRepresentativeSummary"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="Bryan Dela Cruz" />
                                 </LinearLayout>
 
@@ -652,19 +652,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/review_room_summary_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvSummaryRooms"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="2× Deluxe Room, 1× Executive Room" />
                                 </LinearLayout>
 
@@ -681,19 +681,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/review_checkin_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvCheckInSummary"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="Sep 15, 2026" />
                                 </LinearLayout>
 
@@ -710,19 +710,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/review_checkout_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvCheckOutSummary"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="Sep 16, 2026" />
                                 </LinearLayout>
 
@@ -739,19 +739,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/nights_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvNightsSummary"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="1 Night" />
                                 </LinearLayout>
 
@@ -768,19 +768,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/review_guest_count_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvSummaryGuests"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="2 Guests" />
                                 </LinearLayout>
                             </LinearLayout>
@@ -793,19 +793,19 @@
                             style="@style/Widget.Velocity.Card.Flat"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp">
+                            android:layout_marginBottom="14dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="14dp">
 
                                 <TextView
                                     style="@style/TextAppearance.Velocity.Label.Section"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     android:accessibilityHeading="true"
                                     android:drawablePadding="8dp"
                                     android:text="@string/payment_billing_title"
@@ -850,14 +850,14 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:text="@string/payment_summary_no_amenities"
                                     android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     android:visibility="gone"
                                     tools:visibility="visible" />
 
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="1dp"
-                                    android:layout_marginVertical="16dp"
+                                    android:layout_marginVertical="14dp"
                                     android:background="@color/velocity_red_subtle"
                                     android:importantForAccessibility="no" />
 
@@ -874,19 +874,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/room_charges_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvRoomCharges"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="15sp" />
+                                        android:textSize="14sp" />
                                 </LinearLayout>
 
                                 <LinearLayout
@@ -903,19 +903,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/amenities_total_summary_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvAmenitiesTotalSummary"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="15sp" />
+                                        android:textSize="14sp" />
                                 </LinearLayout>
 
                                 <!-- Only when the booking carries an additional-guest fee (it is part of the total below) -->
@@ -936,18 +936,18 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/payment_additional_guest_fee_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvAdditionalGuestFee"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="15sp"
+                                        android:textSize="14sp"
                                         tools:text="₱500.00" />
                                 </LinearLayout>
 
@@ -969,19 +969,19 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/total_amount_summary_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvTotalAmountSummary"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="15sp" />
+                                        android:textSize="14sp" />
                                 </LinearLayout>
 
                                 <!-- Discount - only shown when this transaction actually carries one, never as a fabricated ₱0.00 row -->
@@ -1002,26 +1002,26 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/discount_summary_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvDiscountSummary"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_green_dark"
-                                        android:textSize="15sp"
+                                        android:textSize="14sp"
                                         tools:text="-₱500.00" />
                                 </LinearLayout>
 
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="1dp"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:background="@color/velocity_red_subtle"
                                     android:importantForAccessibility="no" />
 
@@ -1029,7 +1029,7 @@
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:baselineAligned="false"
                                     android:orientation="horizontal">
 
@@ -1040,19 +1040,19 @@
                                         android:fontFamily="sans-serif-black"
                                         android:text="@string/grand_total_label"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="16sp" />
+                                        android:textSize="14sp" />
 
                                     <TextView
                                         android:id="@+id/tvGrandTotal"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-black"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="18sp" />
+                                        android:textSize="16sp" />
                                 </LinearLayout>
 
                                 <!-- Already paid -->
@@ -1070,26 +1070,26 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/already_paid_label"
                                         android:textColor="@color/velocity_text_secondary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <TextView
                                         android:id="@+id/tvAlreadyPaidSummary"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-bold"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_green_dark"
-                                        android:textSize="15sp" />
+                                        android:textSize="14sp" />
                                 </LinearLayout>
 
                                 <com.google.android.material.progressindicator.LinearProgressIndicator
                                     android:id="@+id/paymentBreakdownProgress"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:progress="0"
                                     app:indicatorColor="@color/velocity_green_primary"
                                     app:trackColor="@color/velocity_red_soft"
@@ -1110,13 +1110,13 @@
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:background="@color/velocity_red_soft"
                                     android:baselineAligned="false"
                                     android:gravity="center_vertical"
                                     android:orientation="horizontal"
-                                    android:paddingHorizontal="16dp"
-                                    android:paddingVertical="16dp">
+                                    android:paddingHorizontal="14dp"
+                                    android:paddingVertical="14dp">
 
                                     <TextView
                                         android:layout_width="0dp"
@@ -1127,19 +1127,19 @@
                                         android:text="@string/payment_balance_due_label"
                                         android:textAllCaps="true"
                                         android:textColor="@color/velocity_action_text"
-                                        android:textSize="16sp" />
+                                        android:textSize="14sp" />
 
                                     <TextView
                                         android:id="@+id/tvOutstandingBalanceSummary"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:fontFamily="sans-serif-black"
                                         android:gravity="end"
                                         android:text="@string/placeholder_amount"
                                         android:textAlignment="viewEnd"
                                         android:textColor="@color/velocity_action_text"
-                                        android:textSize="24sp" />
+                                        android:textSize="22sp" />
                                 </LinearLayout>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
@@ -1155,7 +1155,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="14dp">
 
                                 <TextView
                                     style="@style/TextAppearance.Velocity.Label.Section"
@@ -1171,11 +1171,11 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     android:fontFamily="sans-serif-medium"
                                     android:text="@string/payment_option_desc"
                                     android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
 
                                 <TextView
                                     style="@style/TextAppearance.Velocity.Label.Input"
@@ -1189,7 +1189,7 @@
                                     android:id="@+id/cgPaymentMethod"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     app:chipSpacingHorizontal="8dp"
                                     app:selectionRequired="true"
                                     app:singleSelection="true">
@@ -1201,7 +1201,7 @@
                                         android:layout_height="48dp"
                                         android:checked="true"
                                         android:text="@string/payment_method_gcash"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         app:chipIcon="@drawable/ic_payment"
                                         app:chipIconTint="@color/velocity_red_primary"
                                         app:chipIconVisible="true" />
@@ -1212,7 +1212,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="48dp"
                                         android:text="@string/payment_method_cash"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         app:chipIcon="@drawable/ic_cash"
                                         app:chipIconTint="@color/velocity_red_primary"
                                         app:chipIconVisible="true" />
@@ -1222,12 +1222,12 @@
                                     android:id="@+id/tvCashNote"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     android:fontFamily="sans-serif-medium"
                                     android:lineSpacingExtra="2dp"
                                     android:text="@string/payment_cash_note"
                                     android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     android:visibility="gone" />
 
                                 <TextView
@@ -1243,7 +1243,7 @@
                                     android:id="@+id/cgPaymentAmount"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     app:chipSpacingHorizontal="8dp"
                                     app:selectionRequired="true"
                                     app:singleSelection="true">
@@ -1256,7 +1256,7 @@
                                         android:checked="true"
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/percent_20"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipPercent30"
@@ -1265,7 +1265,7 @@
                                         android:layout_height="wrap_content"
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/percent_30"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipPercent40"
@@ -1274,7 +1274,7 @@
                                         android:layout_height="wrap_content"
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/percent_40"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipPercent50"
@@ -1283,7 +1283,7 @@
                                         android:layout_height="wrap_content"
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/percent_50"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
 
                                     <com.google.android.material.chip.Chip
                                         android:id="@+id/chipPercentFull"
@@ -1292,7 +1292,7 @@
                                         android:layout_height="wrap_content"
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/payment_type_full"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
                                 </com.google.android.material.chip.ChipGroup>
 
                                 <TextView
@@ -1300,9 +1300,9 @@
                                     style="@style/TextAppearance.Velocity.Label.Input"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="16dp"
+                                    android:layout_marginBottom="14dp"
                                     android:background="@drawable/bg_glass_card_white"
-                                    android:padding="16dp"
+                                    android:padding="14dp"
                                     android:textColor="@color/velocity_text_primary"
                                     android:visibility="gone"
                                     tools:text="Selected Payment: 30% = ₱1,050.00" />
@@ -1324,7 +1324,7 @@
                                         android:focusableInTouchMode="false"
                                         android:fontFamily="sans-serif-medium"
                                         android:inputType="numberDecimal"
-                                        android:textSize="16sp" />
+                                        android:textSize="14sp" />
                                 </com.google.android.material.textfield.TextInputLayout>
 
                                 <TextView
@@ -1336,18 +1336,18 @@
                                     android:fontFamily="sans-serif-medium"
                                     android:text="@string/error_full_amount_mismatch"
                                     android:textColor="@color/velocity_action_text"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     android:visibility="gone"
                                     tools:visibility="visible" />
 
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:background="@color/velocity_red_soft"
                                     android:baselineAligned="false"
                                     android:orientation="horizontal"
-                                    android:paddingHorizontal="16dp"
+                                    android:paddingHorizontal="14dp"
                                     android:paddingVertical="8dp">
 
                                     <ImageView
@@ -1368,18 +1368,18 @@
                                         android:lineSpacingExtra="2dp"
                                         android:text="@string/partial_percent_label"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="14sp" />
+                                        android:textSize="13sp" />
                                 </LinearLayout>
 
                                 <!-- What this payment leaves behind -->
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:background="@color/velocity_gray_soft"
                                     android:baselineAligned="false"
                                     android:orientation="vertical"
-                                    android:padding="16dp">
+                                    android:padding="14dp">
 
                                     <LinearLayout
                                         android:layout_width="match_parent"
@@ -1395,19 +1395,19 @@
                                             android:fontFamily="sans-serif-medium"
                                             android:text="@string/amount_to_pay_label"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <TextView
                                             android:id="@+id/tvAmountToPay"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginStart="16dp"
+                                            android:layout_marginStart="14dp"
                                             android:fontFamily="sans-serif-black"
                                             android:gravity="end"
                                             android:text="@string/placeholder_amount"
                                             android:textAlignment="viewEnd"
                                             android:textColor="@color/velocity_action_text"
-                                            android:textSize="18sp" />
+                                            android:textSize="16sp" />
                                     </LinearLayout>
 
                                     <View
@@ -1431,19 +1431,19 @@
                                             android:fontFamily="sans-serif-medium"
                                             android:text="@string/remaining_balance_label"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <TextView
                                             android:id="@+id/tvRemainingBalance"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginStart="16dp"
+                                            android:layout_marginStart="14dp"
                                             android:fontFamily="sans-serif-bold"
                                             android:gravity="end"
                                             android:text="@string/placeholder_amount"
                                             android:textAlignment="viewEnd"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="15sp" />
+                                            android:textSize="14sp" />
                                     </LinearLayout>
                                 </LinearLayout>
                             </LinearLayout>
@@ -1477,7 +1477,7 @@
                             style="@style/Widget.Velocity.Card.Flat"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:visibility="gone"
                             tools:visibility="visible">
 
@@ -1485,7 +1485,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="14dp">
 
                                 <LinearLayout
                                     android:layout_width="match_parent"
@@ -1508,13 +1508,13 @@
                                         android:id="@+id/tvPaymentStatusBannerTitle"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
+                                        android:layout_marginStart="14dp"
                                         android:layout_weight="1"
                                         android:accessibilityHeading="true"
                                         android:fontFamily="sans-serif-black"
                                         android:text="@string/status_pending_verification_title"
                                         android:textColor="@color/velocity_text_primary"
-                                        android:textSize="16sp" />
+                                        android:textSize="14sp" />
                                 </LinearLayout>
 
                                 <TextView
@@ -1526,13 +1526,13 @@
                                     android:lineSpacingExtra="2dp"
                                     android:text="@string/status_pending_verification_message"
                                     android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="14sp" />
+                                    android:textSize="13sp" />
 
                                 <LinearLayout
                                     android:id="@+id/layoutPendingPaymentActions"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:orientation="horizontal"
                                     android:visibility="gone"
                                     tools:visibility="visible">
@@ -1564,7 +1564,7 @@
                                     style="@style/Widget.Velocity.Button"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="16dp"
+                                    android:layout_marginTop="14dp"
                                     android:minHeight="52dp"
                                     android:stateListAnimator="@null"
                                     android:text="@string/resubmit_payment_button"
@@ -1581,7 +1581,7 @@
                             android:id="@+id/layoutGcashMacroSteps"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginBottom="14dp"
                             android:gravity="center_horizontal"
                             android:orientation="vertical">
 
@@ -1594,7 +1594,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/gcash_payment_heading"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="18sp" />
+                                android:textSize="16sp" />
 
                             <TextView
                                 android:id="@+id/tvGcashStepLabel"
@@ -1632,7 +1632,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="56dp"
                                     android:background="@color/gcash_blue"
-                                    android:paddingHorizontal="16dp">
+                                    android:paddingHorizontal="14dp">
 
                                     <ImageView
                                         android:id="@+id/ivGcashHeaderIcon"
@@ -1656,14 +1656,14 @@
                                         android:maxLines="1"
                                         android:text="@string/payment_method_gcash"
                                         android:textColor="@color/white"
-                                        android:textSize="22sp" />
+                                        android:textSize="20sp" />
                                 </RelativeLayout>
 
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:orientation="vertical"
-                                    android:padding="16dp">
+                                    android:padding="14dp">
 
                                     <!-- ============ STEP 1 of 5: Scan QR Code ============ -->
                                     <LinearLayout
@@ -1675,12 +1675,12 @@
                                         <TextView
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:accessibilityHeading="true"
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/gcash_how_to_title"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="20sp" />
+                                            android:textSize="18sp" />
 
                                         <!-- How to pay: four numbered steps -->
                                         <LinearLayout
@@ -1699,18 +1699,18 @@
                                                 android:gravity="center"
                                                 android:text="@string/step_number_1"
                                                 android:textColor="@color/white"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
 
                                             <TextView
                                                 android:layout_width="0dp"
                                                 android:layout_height="wrap_content"
-                                                android:layout_marginStart="16dp"
+                                                android:layout_marginStart="14dp"
                                                 android:layout_weight="1"
                                                 android:fontFamily="sans-serif-medium"
                                                 android:minHeight="28dp"
                                                 android:text="@string/gcash_how_to_step_1"
                                                 android:textColor="@color/velocity_text_primary"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
                                         </LinearLayout>
 
                                         <LinearLayout
@@ -1730,18 +1730,18 @@
                                                 android:gravity="center"
                                                 android:text="@string/step_number_2"
                                                 android:textColor="@color/white"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
 
                                             <TextView
                                                 android:layout_width="0dp"
                                                 android:layout_height="wrap_content"
-                                                android:layout_marginStart="16dp"
+                                                android:layout_marginStart="14dp"
                                                 android:layout_weight="1"
                                                 android:fontFamily="sans-serif-medium"
                                                 android:minHeight="28dp"
                                                 android:text="@string/gcash_how_to_step_2"
                                                 android:textColor="@color/velocity_text_primary"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
                                         </LinearLayout>
 
                                         <LinearLayout
@@ -1761,18 +1761,18 @@
                                                 android:gravity="center"
                                                 android:text="@string/step_number_3"
                                                 android:textColor="@color/white"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
 
                                             <TextView
                                                 android:id="@+id/tvHowToPayAmountStep"
                                                 android:layout_width="0dp"
                                                 android:layout_height="wrap_content"
-                                                android:layout_marginStart="16dp"
+                                                android:layout_marginStart="14dp"
                                                 android:layout_weight="1"
                                                 android:fontFamily="sans-serif-medium"
                                                 android:minHeight="28dp"
                                                 android:textColor="@color/velocity_text_primary"
-                                                android:textSize="14sp"
+                                                android:textSize="13sp"
                                                 tools:text="Pay exactly ₱360.00." />
                                         </LinearLayout>
 
@@ -1793,18 +1793,18 @@
                                                 android:gravity="center"
                                                 android:text="@string/step_number_4"
                                                 android:textColor="@color/white"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
 
                                             <TextView
                                                 android:layout_width="0dp"
                                                 android:layout_height="wrap_content"
-                                                android:layout_marginStart="16dp"
+                                                android:layout_marginStart="14dp"
                                                 android:layout_weight="1"
                                                 android:fontFamily="sans-serif-medium"
                                                 android:minHeight="28dp"
                                                 android:text="@string/gcash_how_to_step_4"
                                                 android:textColor="@color/velocity_text_primary"
-                                                android:textSize="14sp" />
+                                                android:textSize="13sp" />
                                         </LinearLayout>
 
                                         <!-- The exact amount to pay, with a copy button -->
@@ -1812,7 +1812,7 @@
                                             style="@style/Widget.Velocity.Card.Flat"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="16dp"
+                                            android:layout_marginTop="14dp"
                                             app:cardBackgroundColor="@color/gcash_blue_soft"
                                             app:strokeColor="@color/velocity_red_subtle">
 
@@ -1820,7 +1820,7 @@
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
                                                 android:orientation="vertical"
-                                                android:padding="16dp">
+                                                android:padding="14dp">
 
                                                 <TextView
                                                     android:layout_width="wrap_content"
@@ -1840,7 +1840,7 @@
                                                     android:fontFamily="sans-serif-black"
                                                     android:text="@string/placeholder_amount"
                                                     android:textColor="@color/velocity_action_text"
-                                                    android:textSize="32sp" />
+                                                    android:textSize="29sp" />
 
                                                 <com.google.android.material.button.MaterialButton
                                                     android:id="@+id/btnCopyAmount"
@@ -1860,23 +1860,23 @@
                                         <TextView
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="24dp"
+                                            android:layout_marginTop="22dp"
                                             android:accessibilityHeading="true"
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/scan_qr_title"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="16sp" />
+                                            android:textSize="14sp" />
 
                                         <TextView
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="4dp"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:fontFamily="sans-serif-medium"
                                             android:lineSpacingExtra="2dp"
                                             android:text="@string/scan_qr_desc"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <!-- The QR fills the width a phone has (up to 300dp), keeping its own proportions - it used
                                              to be a fixed 300dp card, wider than the space on a 360dp phone, so its border was cut off -->
@@ -1924,7 +1924,7 @@
                                             style="@style/Widget.Velocity.Flat.Button.Outlined"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="16dp"
+                                            android:layout_marginTop="14dp"
                                             android:minHeight="48dp"
                                             android:text="@string/download_qr_code_button"
                                             android:textColor="@color/velocity_action_text"
@@ -1949,17 +1949,17 @@
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/or_enter_number_label"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="20sp" />
+                                            android:textSize="18sp" />
 
                                         <TextView
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:fontFamily="sans-serif-medium"
                                             android:lineSpacingExtra="2dp"
                                             android:text="@string/gcash_number_step_desc"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <com.google.android.material.textfield.TextInputLayout
                                             android:id="@+id/tilGcashNumber"
@@ -1981,7 +1981,7 @@
                                                 android:fontFamily="sans-serif-medium"
                                                 android:inputType="phone"
                                                 android:textColor="@color/velocity_text_primary"
-                                                android:textSize="16sp" />
+                                                android:textSize="14sp" />
                                         </com.google.android.material.textfield.TextInputLayout>
                                     </LinearLayout>
 
@@ -2001,17 +2001,17 @@
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/gcash_reference_number_step_title"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="20sp" />
+                                            android:textSize="18sp" />
 
                                         <TextView
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:fontFamily="sans-serif-medium"
                                             android:lineSpacingExtra="2dp"
                                             android:text="@string/gcash_reference_step_desc"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <com.google.android.material.textfield.TextInputLayout
                                             android:id="@+id/tilGcashReferenceNumber"
@@ -2032,7 +2032,7 @@
                                                 android:maxLength="13"
                                                 android:minHeight="56dp"
                                                 android:textColor="@color/velocity_text_primary"
-                                                android:textSize="16sp" />
+                                                android:textSize="14sp" />
                                         </com.google.android.material.textfield.TextInputLayout>
 
                                         <TextView
@@ -2059,18 +2059,18 @@
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/attach_receipt_title"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="20sp" />
+                                            android:textSize="18sp" />
 
                                         <TextView
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="8dp"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:fontFamily="sans-serif-medium"
                                             android:lineSpacingExtra="2dp"
                                             android:text="@string/attach_receipt_desc"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <com.google.android.material.button.MaterialButton
                                             android:id="@+id/btnUploadReceipt"
@@ -2090,7 +2090,7 @@
                                             android:id="@+id/cardReceiptPreview"
                                             android:layout_width="match_parent"
                                             android:layout_height="240dp"
-                                            android:layout_marginTop="16dp"
+                                            android:layout_marginTop="14dp"
                                             android:visibility="gone"
                                             app:cardCornerRadius="@dimen/card_corner_radius"
                                             app:cardElevation="@dimen/card_elevation"
@@ -2116,13 +2116,13 @@
                                             android:text="@string/receipt_not_attached"
                                             android:textAlignment="center"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <LinearLayout
                                             android:id="@+id/layoutReceiptActions"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="16dp"
+                                            android:layout_marginTop="14dp"
                                             android:orientation="horizontal"
                                             android:visibility="gone"
                                             tools:visibility="visible">
@@ -2171,18 +2171,18 @@
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/submit_for_verification_title"
                                             android:textColor="@color/velocity_text_primary"
-                                            android:textSize="20sp" />
+                                            android:textSize="18sp" />
 
                                         <TextView
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="8dp"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:fontFamily="sans-serif-medium"
                                             android:lineSpacingExtra="2dp"
                                             android:text="@string/gcash_review_desc"
                                             android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="14sp" />
+                                            android:textSize="13sp" />
 
                                         <!-- Submission error: stays until the next attempt, tells the guest what to do -->
                                         <com.google.android.material.card.MaterialCardView
@@ -2190,7 +2190,7 @@
                                             style="@style/Widget.Velocity.Card.Flat"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             android:visibility="gone"
                                             app:cardBackgroundColor="@color/velocity_red_soft"
                                             app:strokeColor="@color/velocity_red_primary"
@@ -2201,7 +2201,7 @@
                                                 android:layout_height="wrap_content"
                                                 android:baselineAligned="false"
                                                 android:orientation="horizontal"
-                                                android:padding="16dp">
+                                                android:padding="14dp">
 
                                                 <ImageView
                                                     android:layout_width="24dp"
@@ -2213,7 +2213,7 @@
                                                 <LinearLayout
                                                     android:layout_width="0dp"
                                                     android:layout_height="wrap_content"
-                                                    android:layout_marginStart="16dp"
+                                                    android:layout_marginStart="14dp"
                                                     android:layout_weight="1"
                                                     android:accessibilityLiveRegion="assertive"
                                                     android:orientation="vertical">
@@ -2224,7 +2224,7 @@
                                                         android:fontFamily="sans-serif-black"
                                                         android:text="@string/submit_error_title"
                                                         android:textColor="@color/velocity_action_text"
-                                                        android:textSize="16sp" />
+                                                        android:textSize="14sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvSubmitErrorMessage"
@@ -2233,7 +2233,7 @@
                                                         android:layout_marginTop="4dp"
                                                         android:fontFamily="sans-serif-medium"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="No internet connection. Please check your Wi-Fi or mobile data and try again." />
 
                                                     <TextView
@@ -2243,7 +2243,7 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/submit_error_retry_hint"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
                                                 </LinearLayout>
                                             </LinearLayout>
                                         </com.google.android.material.card.MaterialCardView>
@@ -2253,7 +2253,7 @@
                                             style="@style/Widget.Velocity.Card.Flat"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             app:cardBackgroundColor="@color/velocity_red_bg_end"
                                             app:strokeColor="@color/velocity_red_subtle">
 
@@ -2261,7 +2261,7 @@
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
                                                 android:orientation="vertical"
-                                                android:padding="16dp">
+                                                android:padding="14dp">
 
                                                 <TextView
                                                     android:layout_width="wrap_content"
@@ -2287,13 +2287,13 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_reservation_id_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewBookingIdValue"
                                                         android:layout_width="0dp"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:layout_weight="1"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:gravity="end"
@@ -2301,7 +2301,7 @@
                                                         android:textAlignment="viewEnd"
                                                         android:textColor="@color/velocity_text_primary"
                                                         android:textIsSelectable="true"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="VS-BKG-20260912-000123" />
                                                 </LinearLayout>
 
@@ -2318,19 +2318,19 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_room_summary_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewRoomSummary"
                                                         android:layout_width="0dp"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:layout_weight="1"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:gravity="end"
                                                         android:textAlignment="viewEnd"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="2× Deluxe Room" />
                                                 </LinearLayout>
 
@@ -2348,16 +2348,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_checkin_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewCheckIn"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="Sep 14, 2026" />
                                                 </LinearLayout>
 
@@ -2375,16 +2375,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_checkout_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewCheckOut"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="Sep 16, 2026" />
                                                 </LinearLayout>
 
@@ -2402,16 +2402,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_guest_count_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewGuestCount"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="2 Guests" />
                                                 </LinearLayout>
 
@@ -2428,19 +2428,19 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/details_label_representative_name"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewRepresentativeName"
                                                         android:layout_width="0dp"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:layout_weight="1"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:gravity="end"
                                                         android:textAlignment="viewEnd"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="Juan Dela Cruz" />
                                                 </LinearLayout>
                                             </LinearLayout>
@@ -2451,7 +2451,7 @@
                                             style="@style/Widget.Velocity.Card.Flat"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginBottom="16dp"
+                                            android:layout_marginBottom="14dp"
                                             app:cardBackgroundColor="@color/velocity_red_bg_end"
                                             app:strokeColor="@color/velocity_red_subtle">
 
@@ -2459,7 +2459,7 @@
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
                                                 android:orientation="vertical"
-                                                android:padding="16dp">
+                                                android:padding="14dp">
 
                                                 <TextView
                                                     android:layout_width="wrap_content"
@@ -2486,17 +2486,17 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_payment_method_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewPaymentMethod"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:text="@string/payment_method_gcash"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
                                                 </LinearLayout>
 
                                                 <LinearLayout
@@ -2513,16 +2513,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_payment_type_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewPaymentType"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="Partial Payment" />
                                                 </LinearLayout>
 
@@ -2540,16 +2540,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_payment_percentage_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewPaymentPercentage"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="30%" />
                                                 </LinearLayout>
 
@@ -2567,17 +2567,17 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_total_booking_amount_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewTotalBookingAmount"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:text="@string/placeholder_amount"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="₱5,000.00" />
                                                 </LinearLayout>
 
@@ -2605,16 +2605,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_gcash_number_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewGcashNumber"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="+63 917 123 4567" />
                                                 </LinearLayout>
 
@@ -2632,16 +2632,16 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_reference_number_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewReferenceNumber"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-bold"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="123 4567 890123" />
                                                 </LinearLayout>
 
@@ -2666,17 +2666,17 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_amount_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewAmount"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-black"
                                                         android:text="@string/placeholder_amount"
                                                         android:textColor="@color/velocity_action_text"
-                                                        android:textSize="16sp"
+                                                        android:textSize="14sp"
                                                         tools:text="₱3,000.00" />
                                                 </LinearLayout>
 
@@ -2694,17 +2694,17 @@
                                                         android:fontFamily="sans-serif-medium"
                                                         android:text="@string/review_remaining_balance_label"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp" />
+                                                        android:textSize="13sp" />
 
                                                     <TextView
                                                         android:id="@+id/tvReviewRemainingBalance"
                                                         android:layout_width="wrap_content"
                                                         android:layout_height="wrap_content"
-                                                        android:layout_marginStart="16dp"
+                                                        android:layout_marginStart="14dp"
                                                         android:fontFamily="sans-serif-black"
                                                         android:text="@string/placeholder_amount"
                                                         android:textColor="@color/velocity_text_primary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="₱7,000.00" />
                                                 </LinearLayout>
                                             </LinearLayout>
@@ -2722,7 +2722,7 @@
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
                                                 android:orientation="vertical"
-                                                android:padding="16dp">
+                                                android:padding="14dp">
 
                                                 <TextView
                                                     android:layout_width="wrap_content"
@@ -2761,7 +2761,7 @@
                                                         android:singleLine="true"
                                                         android:text="@string/review_receipt_file_name_unknown"
                                                         android:textColor="@color/velocity_text_secondary"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         tools:text="File: gcash_receipt.jpg" />
 
                                                     <com.google.android.material.button.MaterialButton
@@ -2772,10 +2772,10 @@
                                                         android:layout_marginStart="8dp"
                                                         android:minWidth="0dp"
                                                         android:minHeight="48dp"
-                                                        android:paddingHorizontal="16dp"
+                                                        android:paddingHorizontal="14dp"
                                                         android:text="@string/view_receipt"
                                                         android:textColor="@color/velocity_action_text"
-                                                        android:textSize="14sp"
+                                                        android:textSize="13sp"
                                                         app:icon="@drawable/ic_eye"
                                                         app:iconGravity="textStart"
                                                         app:iconSize="16dp"
@@ -2794,7 +2794,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:alpha="0.8"
                         android:drawablePadding="8dp"
                         android:gravity="center_vertical"
@@ -2834,7 +2834,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="14dp"
                 android:paddingVertical="8dp">
 
                 <LinearLayout
@@ -2853,19 +2853,19 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/amount_to_pay_label"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/tvBarAmount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="14dp"
                         android:fontFamily="sans-serif-black"
                         android:gravity="end"
                         android:text="@string/placeholder_amount"
                         android:textAlignment="viewEnd"
                         android:textColor="@color/velocity_action_text"
-                        android:textSize="20sp" />
+                        android:textSize="18sp" />
                 </LinearLayout>
 
                 <!-- Review Billing -->
@@ -2884,7 +2884,7 @@
                         android:minHeight="52dp"
                         android:stateListAnimator="@null"
                         android:text="@string/proceed_to_gcash"
-                        android:textSize="15sp"
+                        android:textSize="14sp"
                         app:icon="@drawable/ic_payment"
                         app:iconGravity="textStart" />
                 </LinearLayout>
@@ -3037,7 +3037,7 @@
                         android:minHeight="52dp"
                         android:stateListAnimator="@null"
                         android:text="@string/submit_payment_verification_button"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         app:backgroundTint="@color/gcash_blue"
                         app:icon="@drawable/ic_check_circle"
                         app:iconGravity="textStart" />

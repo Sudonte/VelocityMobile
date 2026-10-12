@@ -919,7 +919,7 @@ public final class RoomRepository {
                         // sometimes doesn't show" depending on which record tripped it.
                         try {
                             reservationDerived.add(ApiMapper.toBooking(dto));
-                            if (dto.booking != null) {
+                            if (dto.booking != null && (dto.snapshot_hidden_at == null || dto.snapshot_hidden_at.isEmpty())) {
                                 historicalReservations.add(ApiMapper.toHistoricalReservation(dto));
                             }
                         } catch (RuntimeException mappingError) {
@@ -2005,6 +2005,31 @@ public final class RoomRepository {
      * TRANSACTION_PERMANENT_DELETE_BACKEND_SPEC.md - this call only
      * removes the local cache entry after the server confirms success.
      */
+    /**
+     * The guest removes a "Completed" reservation copy (Booking#isHistoricalReservation()). Only that copy goes: the
+     * live Booking sharing its id, the reservation row and Transaction History are left alone - so unlike
+     * deleteReservationPermanently() this never touches `bookings`.
+     */
+    public void hideCompletedReservationCopy(String reservationId, RepositoryCallback<Void> callback) {
+        api.hideCompletedReservationCopy(reservationId).enqueue(new Callback<ApiMessage>() {
+            @Override
+            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                if (response.isSuccessful()) {
+                    completedHistoricalReservations.removeIf(b -> b.getId().equals(reservationId));
+                    notifyBookingsChanged();
+                    if (callback != null) callback.onSuccess(null);
+                } else {
+                    if (callback != null) callback.onError(deleteErrorMessage("reservation", reservationId, call, response));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
+    }
+
     public void deleteReservationPermanently(String reservationId, RepositoryCallback<Void> callback) {
         api.deleteReservationPermanently(reservationId).enqueue(new Callback<ApiMessage>() {
             @Override

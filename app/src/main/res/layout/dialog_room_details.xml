@@ -43,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
-                android:layout_margin="16dp"
+                android:layout_margin="14dp"
                 android:visibility="gone"
                 app:cardBackgroundColor="#99000000"
                 app:cardCornerRadius="@dimen/card_corner_radius"
@@ -71,7 +71,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|start"
-                android:layout_margin="12dp"
+                android:layout_margin="11dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
@@ -82,7 +82,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:paddingHorizontal="12dp"
+                    android:paddingHorizontal="11dp"
                     android:paddingVertical="7dp"
                     android:text="@string/available_label"
                     android:textColor="@color/velocity_green_primary"
@@ -117,7 +117,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:layout_margin="16dp"
+                android:layout_margin="14dp"
                 app:cardBackgroundColor="@color/velocity_red_primary"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
@@ -128,7 +128,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="14dp"
+                    android:paddingHorizontal="13dp"
                     android:paddingVertical="9dp">
 
                     <TextView
@@ -138,7 +138,7 @@
                         android:fontFamily="sans-serif-black"
                         android:includeFontPadding="false"
                         android:textColor="@color/white"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:letterSpacing="-0.02"
                         tools:text="₱5,500" />
 
@@ -171,8 +171,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="@dimen/room_card_content_padding"
-                android:paddingTop="18dp"
-                android:paddingBottom="20dp">
+                android:paddingTop="16dp"
+                android:paddingBottom="18dp">
 
                 <TextView
                     style="@style/TextAppearance.Velocity.Label.Section"
@@ -188,7 +188,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="19sp"
+                    android:textSize="17sp"
                     android:letterSpacing="-0.03"
                     android:lineSpacingMultiplier="0.95"
                     tools:text="Executive City Suite" />
@@ -223,7 +223,7 @@
                     <View
                         android:layout_width="4dp"
                         android:layout_height="4dp"
-                        android:layout_marginHorizontal="12dp"
+                        android:layout_marginHorizontal="11dp"
                         android:background="@drawable/shape_intro_pill"
                         android:backgroundTint="@color/velocity_inactive_gray"
                         android:alpha="0.4" />
@@ -234,7 +234,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-bold"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         app:drawableStartCompat="@drawable/ic_person"
                         app:drawableTint="@color/velocity_text_secondary"
                         android:drawablePadding="6dp"
@@ -245,11 +245,11 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="14dp"
                     android:background="@drawable/shape_search_field"
                     android:backgroundTint="@color/velocity_red_bg_end"
                     android:orientation="horizontal"
-                    android:paddingVertical="14dp">
+                    android:paddingVertical="13dp">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -272,7 +272,7 @@
                             android:layout_marginTop="6dp"
                             android:fontFamily="sans-serif-black"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             tools:text="King Bed" />
 
                         <TextView
@@ -313,7 +313,7 @@
                             android:layout_marginTop="6dp"
                             android:fontFamily="sans-serif-black"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             tools:text="42 sqm" />
 
                         <TextView
@@ -332,7 +332,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="18dp"
                     android:alpha="0.1"
                     android:background="@color/black" />
 
@@ -341,7 +341,7 @@
                     style="@style/TextAppearance.Velocity.Label.Section"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="18dp"
                     android:text="@string/description_label"
                     android:textSize="10sp" />
 
@@ -352,7 +352,7 @@
                     android:layout_marginTop="8dp"
                     android:lineSpacingExtra="4dp"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:alpha="0.9"
                     tools:text="Spacious suite with premium bedding, work lounge, city view, and complimentary breakfast." />
 
@@ -361,7 +361,7 @@
                     style="@style/TextAppearance.Velocity.Label.Section"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/amenities_label"
                     android:textSize="10sp" />
 
@@ -372,16 +372,16 @@
                     android:layout_marginTop="10dp"
                     android:lineSpacingExtra="6dp"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:background="@drawable/shape_search_field"
                     android:backgroundTint="@color/velocity_red_bg_end"
-                    android:padding="14dp"
+                    android:padding="13dp"
                     tools:text="• Free Wi-Fi\n• Air Conditioning\n• Flat-screen TV" />
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="22dp"
+                    android:layout_marginTop="20dp"
                     android:alpha="0.1"
                     android:background="@color/black" />
 
@@ -394,7 +394,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
+                    android:layout_marginTop="20dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
                     <TextView
@@ -419,7 +419,7 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/shape_search_field"
                     android:backgroundTint="@color/velocity_red_bg_end"
-                    android:padding="14dp"
+                    android:padding="13dp"
                     android:lineSpacingExtra="6dp"
                     android:text="@string/hotel_policies_content"
                     android:textColor="@color/velocity_text_secondary"
@@ -432,12 +432,12 @@
                     android:id="@+id/layoutDetailOccupiedInfo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="18dp"
                     android:background="@drawable/shape_search_field"
                     android:backgroundTint="@color/velocity_red_bg_end"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="14dp"
+                    android:padding="13dp"
                     android:visibility="gone"
                     tools:visibility="visible">
 
@@ -464,7 +464,7 @@
                     android:id="@+id/layoutDetailActions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="22dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -490,7 +490,7 @@
                             android:text="@string/reserve_now"
                             android:textAllCaps="false"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:fontFamily="sans-serif-black"
                             app:cornerRadius="0dp"
                             app:icon="@drawable/ic_reservation"
@@ -507,7 +507,7 @@
                             android:layout_weight="1"
                             android:layout_marginStart="8dp"
                             android:text="@string/book_now"
-                            android:textSize="13sp" />
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -521,7 +521,7 @@
                     android:id="@+id/layoutDetailQuantitySection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="22dp"
                     android:orientation="vertical"
                     android:visibility="gone"
                     tools:visibility="visible">
@@ -538,7 +538,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="11dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -568,7 +568,7 @@
                             android:fontFamily="sans-serif-black"
                             android:gravity="center"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="20sp"
+                            android:textSize="18sp"
                             tools:text="2" />
 
                         <com.google.android.material.button.MaterialButton
@@ -599,19 +599,19 @@
                         android:fontFamily="sans-serif-bold"
                         android:gravity="center"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         tools:text="2 Rooms Selected" />
 
                     <LinearLayout
                         android:id="@+id/layoutDetailSubtotalRow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:layout_marginTop="13dp"
                         android:background="@drawable/shape_search_field"
                         android:backgroundTint="@color/velocity_red_bg_end"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="14dp"
+                        android:padding="13dp"
                         android:visibility="gone"
                         tools:visibility="visible">
 
@@ -622,7 +622,7 @@
                             android:fontFamily="sans-serif-bold"
                             android:text="@string/subtotal_label"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="13sp" />
+                            android:textSize="12sp" />
 
                         <TextView
                             android:id="@+id/tvDetailSubtotalAmount"
@@ -630,7 +630,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
                             android:textColor="@color/velocity_red_primary"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             tools:text="₱14,000.00" />
                     </LinearLayout>
 
@@ -639,9 +639,9 @@
                         style="@style/Widget.Velocity.Button"
                         android:layout_width="match_parent"
                         android:layout_height="52dp"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:text="@string/done_label"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 

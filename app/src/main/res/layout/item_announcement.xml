@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginBottom="11dp"
     android:clickable="true"
     android:focusable="true"
     app:cardBackgroundColor="@color/velocity_surface_elevated"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <TextView
                 android:id="@+id/announcementTitle"
@@ -45,14 +45,14 @@
                 android:fontFamily="sans-serif-black"
                 android:maxLines="2"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 tools:text="Grand Reopening Celebration" />
 
             <TextView
                 android:id="@+id/announcementViewDetails"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="11dp"
                 android:drawablePadding="4dp"
                 android:fontFamily="sans-serif-black"
                 android:text="@string/view_details_label"

@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="22dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -46,17 +46,17 @@
                     style="@style/TextAppearance.Velocity.ScreenTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
+                    android:layout_marginStart="13dp"
                     android:layout_weight="1"
                     android:text="@string/edit_profile"
-                    android:textSize="20sp" />
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <View
                 android:layout_width="48dp"
                 android:layout_height="4dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="14dp"
+                android:layout_marginTop="11dp"
+                android:layout_marginBottom="13dp"
                 android:background="@drawable/shape_intro_pill"
                 android:backgroundTint="@color/velocity_red_primary" />
 
@@ -64,11 +64,11 @@
                 android:id="@+id/editDialogDesc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="18dp"
+                android:layout_marginBottom="16dp"
                 android:alpha="0.8"
                 android:text="@string/edit_profile_desc"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
             <!-- Step Indicator: one combined 4-step flow (Personal -> Contact -> Address ->
                  Review) covering the single one-time profile edit - see
@@ -77,7 +77,7 @@
                 android:id="@+id/stepIndicatorContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="18dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -99,7 +99,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/edit_profile_wizard_step1_title"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="15sp" />
+                    android:textSize="14sp" />
 
                 <LinearLayout
                     android:layout_width="120dp"
@@ -182,12 +182,12 @@
                     android:id="@+id/profileAgeValidationErrorContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     android:background="@drawable/shape_intro_pill"
                     android:backgroundTint="@color/velocity_red_soft"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="12dp"
+                    android:padding="11dp"
                     android:visibility="gone"
                     tools:visibility="visible">
 
@@ -223,7 +223,7 @@
                     style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
+                    android:layout_marginBottom="16dp"
                     app:startIconDrawable="@drawable/ic_person">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editFirstName"
@@ -246,7 +246,7 @@
                     style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
+                    android:layout_marginBottom="16dp"
                     app:startIconDrawable="@drawable/ic_person">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editMiddleName"
@@ -269,7 +269,7 @@
                     style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
+                    android:layout_marginBottom="16dp"
                     app:startIconDrawable="@drawable/ic_person">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editLastName"
@@ -292,7 +292,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
+                    android:layout_marginBottom="16dp"
                     app:boxCornerRadiusTopStart="0dp"
                     app:boxCornerRadiusTopEnd="0dp"
                     app:boxCornerRadiusBottomStart="0dp"
@@ -321,7 +321,7 @@
                     style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
+                    android:layout_marginBottom="16dp"
                     app:helperText="@string/helper_dob_format"
                     app:startIconDrawable="@drawable/ic_calendar">
                     <com.google.android.material.textfield.TextInputEditText
@@ -383,7 +383,7 @@
                     style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     app:startIconDrawable="@drawable/ic_email">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editEmail"
@@ -438,7 +438,7 @@
                     style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     app:endIconMode="dropdown_menu"
                     app:startIconDrawable="@android:drawable/ic_menu_mapmode">
 
@@ -455,7 +455,7 @@
                     android:id="@+id/addrIntlNoteText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="14dp"
                     android:text="@string/addr_intl_note"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp"
@@ -486,7 +486,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         app:endIconMode="dropdown_menu"
                         app:startIconDrawable="@android:drawable/ic_menu_recent_history">
 
@@ -520,7 +520,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         app:endIconMode="dropdown_menu"
                         app:startIconDrawable="@android:drawable/ic_menu_myplaces">
 
@@ -553,7 +553,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         app:endIconMode="dropdown_menu"
                         app:startIconDrawable="@android:drawable/ic_menu_myplaces">
 
@@ -586,7 +586,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         app:endIconMode="dropdown_menu"
                         app:startIconDrawable="@android:drawable/ic_menu_myplaces">
 
@@ -619,7 +619,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         app:endIconMode="dropdown_menu"
                         app:startIconDrawable="@android:drawable/ic_menu_myplaces">
 
@@ -652,7 +652,7 @@
                         style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         app:startIconDrawable="@drawable/ic_edit">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -707,12 +707,12 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="18dp"
+                    android:layout_marginBottom="16dp"
                     android:background="@drawable/shape_intro_pill"
                     android:backgroundTint="@color/velocity_red_soft"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:padding="11dp">
 
                     <ImageView
                         android:layout_width="18dp"
@@ -738,7 +738,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:text="@string/personal_info_title"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/first_name_label" />
                 <TextView android:id="@+id/reviewFirstName" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
@@ -761,7 +761,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginVertical="16dp"
+                    android:layout_marginVertical="14dp"
                     android:background="@color/velocity_red_soft" />
 
                 <TextView
@@ -770,7 +770,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:text="@string/contact_info_title"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/email_label" />
                 <TextView android:id="@+id/reviewEmail" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
@@ -781,7 +781,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginVertical="16dp"
+                    android:layout_marginVertical="14dp"
                     android:background="@color/velocity_red_soft" />
 
                 <TextView
@@ -790,7 +790,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:text="@string/address_info_step_title"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <TextView style="@style/ProfileLabelStyle" android:layout_width="match_parent" android:text="@string/country_label" />
                 <TextView android:id="@+id/reviewCountry" style="@style/ProfileValueStyle" android:layout_width="match_parent" android:layout_marginBottom="10dp" />
@@ -818,7 +818,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="14dp"
                 android:background="@color/velocity_red_soft" />
 
             <LinearLayout
@@ -835,7 +835,7 @@
                     android:text="@string/cancel_label"
                     android:textColor="@color/velocity_text_secondary"
                     android:textAllCaps="false"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <!-- Step 4 only: sits between Back and Confirm Update so all three of
                      Back/Cancel/Confirm Update are available together on the review step -
@@ -849,7 +849,7 @@
                     android:text="@string/cancel_label"
                     android:textColor="@color/velocity_text_secondary"
                     android:textAllCaps="false"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
@@ -858,8 +858,8 @@
                     style="@style/Widget.Velocity.Button"
                     android:layout_width="wrap_content"
                     android:layout_height="42dp"
-                    android:layout_marginStart="12dp"
-                    android:paddingHorizontal="20dp"
+                    android:layout_marginStart="11dp"
+                    android:paddingHorizontal="18dp"
                     android:text="@string/next"
                     android:textAllCaps="false"
                     android:textSize="12sp" />

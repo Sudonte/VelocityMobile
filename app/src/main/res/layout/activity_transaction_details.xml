@@ -34,7 +34,7 @@
             android:fontFamily="sans-serif-black"
             android:text="@string/transaction_details_title"
             android:textColor="@color/white"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -45,7 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:padding="13dp">
 
             <!-- Header card: status badge + reference, the headline, and the money at a glance
                  (grand total, verified paid, balance, anything awaiting verification - filled in by
@@ -55,7 +55,7 @@
                 style="@style/Widget.Velocity.Card.Glass.Compact"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="11dp"
                 app:cardBackgroundColor="@color/velocity_surface_elevated"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation">
@@ -64,7 +64,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -112,7 +112,7 @@
                         android:layout_marginTop="10dp"
                         android:fontFamily="sans-serif-black"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="17sp"
+                        android:textSize="15sp"
                         tools:text="Payment Awaiting Verification" />
 
                     <TextView
@@ -122,7 +122,7 @@
                         android:layout_marginTop="2dp"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         tools:text="Deluxe" />
 
                     <TextView
@@ -138,14 +138,14 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="11dp"
                         android:background="@color/velocity_divider_hairline" />
 
                     <LinearLayout
                         android:id="@+id/sectionTxDetailMoney"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="11dp"
                         android:orientation="vertical" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -159,10 +159,10 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="11dp"
                 android:fontFamily="sans-serif-black"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 app:cornerRadius="0dp"
                 app:icon="@drawable/ic_arrow_forward"
                 app:iconGravity="textEnd"
@@ -180,14 +180,14 @@
                 style="@style/Widget.Velocity.Card.Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="11dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card_white"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="13dp">
 
                     <LinearLayout
                         android:id="@+id/sectionTxDetailInfo"
@@ -204,7 +204,7 @@
                 android:id="@+id/sectionTxDetailReceipts"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="11dp"
                 android:orientation="vertical" />
 
             <!-- Payment Receipt: same gated card/action as BookingDetailsActivity's

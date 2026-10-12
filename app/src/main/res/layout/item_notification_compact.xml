@@ -47,13 +47,13 @@
                 android:id="@+id/tvNotifCompactTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="11dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/black"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 tools:text="Reservation Confirmation" />
 
             <TextView
@@ -91,9 +91,9 @@
             style="@style/Widget.Velocity.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginStart="11dp"
+            android:layout_marginEnd="11dp"
+            android:layout_marginBottom="11dp"
             android:text="@string/view_details"
             android:textSize="12sp"
             android:visibility="gone"

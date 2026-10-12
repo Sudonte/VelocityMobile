@@ -184,6 +184,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         ApiClient.getService(this).getProfile().enqueue(new Callback<ProfileResponse>() {
             @Override
             public void onResponse(Call<ProfileResponse> call, Response<ProfileResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && response.body().user != null) {
                     // A beat's request can still be in flight when the guest leaves; the page it would repaint (and
                     // the Glide load that starts) must not be touched once this screen is gone. (An expired session
@@ -242,6 +243,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 // Keep showing the cached prefs values from the last login/update.
             }
         });
@@ -1062,6 +1064,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         ApiClient.getService(this).updateProfile(request).enqueue(new Callback<ProfileResponse>() {
             @Override
             public void onResponse(Call<ProfileResponse> call, Response<ProfileResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
                 btnSave.setEnabled(true);
                 if (!response.isSuccessful() || response.body() == null) {
                     Toast.makeText(ProfileManagementActivity.this,
@@ -1123,6 +1126,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 btnSave.setEnabled(true);
                 Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
             }
@@ -1168,6 +1172,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     .enqueue(new Callback<ApiMessage>() {
                         @Override
                         public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            if (isFinishing() || isDestroyed()) return;
                             btnContinue.setEnabled(true);
                             // Never held longer than this one request, success or not.
                             if (passwordField.getText() != null) passwordField.getText().clear();
@@ -1187,6 +1192,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
                         @Override
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            if (isFinishing() || isDestroyed()) return;
                             btnContinue.setEnabled(true);
                             if (passwordField.getText() != null) passwordField.getText().clear();
                             Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
@@ -1243,6 +1249,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     .enqueue(new Callback<ApiMessage>() {
                         @Override
                         public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            if (isFinishing() || isDestroyed()) return;
                             btnConfirm.setEnabled(true);
                             if (!response.isSuccessful()) {
                                 String msg = errorMessage(response, getString(R.string.otp_invalid_or_expired));
@@ -1262,6 +1269,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
                         @Override
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            if (isFinishing() || isDestroyed()) return;
                             btnConfirm.setEnabled(true);
                             Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
@@ -1290,6 +1298,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 .enqueue(new Callback<ApiMessage>() {
                     @Override
                     public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                        if (isFinishing() || isDestroyed()) return;
                         if (changePasswordButton != null) changePasswordButton.setEnabled(true);
                         if (!response.isSuccessful()) {
                             Toast.makeText(ProfileManagementActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
@@ -1301,6 +1310,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
                     @Override
                     public void onFailure(Call<ApiMessage> call, Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
                         if (changePasswordButton != null) changePasswordButton.setEnabled(true);
                         Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                     }
@@ -1329,12 +1339,14 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     .enqueue(new Callback<ApiMessage>() {
                         @Override
                         public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            if (isFinishing() || isDestroyed()) return;
                             resendLink.setEnabled(true);
                             Toast.makeText(ProfileManagementActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
                         public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            if (isFinishing() || isDestroyed()) return;
                             resendLink.setEnabled(true);
                             Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
@@ -1364,6 +1376,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     .enqueue(new Callback<AuthResponse>() {
                         @Override
                         public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                            if (isFinishing() || isDestroyed()) return;
                             btnConfirm.setEnabled(true);
                             if (!response.isSuccessful()) {
                                 String msg = errorMessage(response, getString(R.string.otp_invalid_or_expired));
@@ -1391,6 +1404,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
                         @Override
                         public void onFailure(Call<AuthResponse> call, Throwable t) {
+                            if (isFinishing() || isDestroyed()) return;
                             btnConfirm.setEnabled(true);
                             Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
                         }
@@ -1501,6 +1515,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         ApiClient.getService(this).updateProfilePicture(part).enqueue(new Callback<ProfileResponse>() {
             @Override
             public void onResponse(Call<ProfileResponse> call, Response<ProfileResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
                 tempFile.delete();
                 if (!response.isSuccessful() || response.body() == null || response.body().guest == null) {
                     Toast.makeText(ProfileManagementActivity.this, "Failed to upload photo. Please try again.", Toast.LENGTH_SHORT).show();
@@ -1516,6 +1531,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
             @Override
             public void onFailure(Call<ProfileResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
                 tempFile.delete();
                 Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
             }

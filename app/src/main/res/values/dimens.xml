@@ -10,6 +10,7 @@
          Available Rooms + roombrowsing.xml results). Deliberately separate from
          room_card_* above so dialog_room_details.xml's full-width hero image is
          untouched by the list card's compactness pass. -->
+    <dimen name="room_list_card_photo_height">160dp</dimen>
     <dimen name="room_list_card_image_width">140dp</dimen>
     <dimen name="room_list_card_image_height">136dp</dimen>
     <dimen name="room_list_card_content_padding">9dp</dimen>
@@ -39,7 +40,7 @@
     <dimen name="guest_header_menu_icon_size">24dp</dimen>
     <dimen name="guest_header_menu_label_text_size">11sp</dimen>
     <dimen name="guest_header_logo_size">29dp</dimen>
-    <dimen name="guest_header_app_name_text_size">13sp</dimen>
+    <dimen name="guest_header_app_name_text_size">12sp</dimen>
     <dimen name="guest_header_tagline_text_size">10sp</dimen>
     <dimen name="guest_header_notification_size">34dp</dimen>
     <dimen name="guest_header_notification_badge_circle_radius">16dp</dimen>

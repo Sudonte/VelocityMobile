@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="14dp"
+    android:layout_marginTop="13dp"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingVertical="12dp">
+    android:paddingVertical="11dp">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/stateIconContainer"
@@ -34,7 +34,7 @@
         android:layout_marginTop="10dp"
         android:fontFamily="sans-serif-black"
         android:textColor="@color/velocity_text_primary"
-        android:textSize="14sp"
+        android:textSize="13sp"
         tools:text="No Ongoing Promotions" />
 
     <TextView

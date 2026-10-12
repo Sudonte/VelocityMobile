@@ -10,7 +10,7 @@
     android:gravity="top"
     android:minHeight="56dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="14dp"
+    android:paddingHorizontal="13dp"
     android:paddingVertical="10dp">
 
     <View
@@ -36,7 +36,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/black"
-            android:textSize="13sp"
+            android:textSize="12sp"
             tools:text="Reservation Confirmed" />
 
         <TextView
