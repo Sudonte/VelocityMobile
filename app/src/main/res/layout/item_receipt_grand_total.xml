@@ -24,7 +24,7 @@
         android:fontFamily="sans-serif-black"
         android:letterSpacing="0.04"
         android:textAllCaps="true"
-        android:textColor="@color/velocity_red_dark"
+        android:textColor="@color/velocity_red_text"
         android:textSize="12sp"
         tools:text="Grand Total" />
 

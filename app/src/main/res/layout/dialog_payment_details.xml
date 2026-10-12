@@ -22,7 +22,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:text="@string/payment_details_title"
-                android:textColor="@color/velocity_red_dark"
+                android:textColor="@color/velocity_red_text"
                 android:textSize="18sp"
                 android:letterSpacing="-0.02"
                 android:layout_marginBottom="8dp"/>
@@ -162,7 +162,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4dp"
                         android:fontFamily="sans-serif-bold"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="12sp"
                         tools:text="Cancelled on Oct 10, 2023" />
 
@@ -311,7 +311,7 @@
                 android:layout_marginTop="8dp"
                 android:fontFamily="sans-serif-black"
                 android:text="@string/additional_amenities_section_title"
-                android:textColor="@color/velocity_red_dark"
+                android:textColor="@color/velocity_red_text"
                 android:textSize="14sp" />
 
             <TextView

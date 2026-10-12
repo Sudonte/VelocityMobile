@@ -212,7 +212,7 @@
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/age_validation_error"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -735,7 +735,7 @@
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/review_one_time_warning"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="12sp" />
                 </LinearLayout>
 

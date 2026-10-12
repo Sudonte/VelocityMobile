@@ -345,7 +345,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:gravity="center"
                                 android:text="@string/next_stay_error_title"
-                                android:textColor="@color/velocity_red_dark"
+                                android:textColor="@color/velocity_red_text"
                                 android:textSize="13sp" />
 
                             <TextView

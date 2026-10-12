@@ -32,7 +32,7 @@
             android:layout_weight="1"
             android:fontFamily="sans-serif-bold"
             android:lineSpacingExtra="3dp"
-            android:textColor="@color/velocity_red_dark"
+            android:textColor="@color/velocity_red_text"
             android:textSize="12sp"
             tools:text="No rooms are available for the selected check-in and check-out dates. Please choose different dates." />
     </LinearLayout>

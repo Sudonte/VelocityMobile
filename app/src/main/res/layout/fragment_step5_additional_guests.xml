@@ -111,7 +111,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="@string/default_adults_count_display"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="14sp"
                         android:fontFamily="sans-serif-black" />
 
@@ -168,7 +168,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="@string/default_children_count_display"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="14sp"
                         android:fontFamily="sans-serif-black" />
 
@@ -193,7 +193,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-bold"
-                    android:textColor="@color/velocity_red_dark"
+                    android:textColor="@color/velocity_red_text"
                     android:textSize="13sp"
                     tools:text="2 of 4 guests" />
 

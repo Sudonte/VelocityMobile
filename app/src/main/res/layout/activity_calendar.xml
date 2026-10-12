@@ -237,7 +237,7 @@
                         android:layout_marginStart="10dp"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-bold"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="12sp"
                         tools:text="Showing events for Aug 15, 2026" />
 
@@ -306,7 +306,7 @@
                         android:layout_marginTop="11dp"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/no_upcoming_activities_title"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="14sp" />
 
                     <TextView

@@ -339,7 +339,7 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/room_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_primary" android:textSize="13sp"/>
-                        <TextView android:id="@+id/tvBillingStayRoomAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="14sp" tools:text="₱17,400.00"/>
+                        <TextView android:id="@+id/tvBillingStayRoomAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_text" android:textSize="14sp" tools:text="₱17,400.00"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -464,7 +464,7 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/total_amenities_amount_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_primary" android:textSize="13sp"/>
-                        <TextView android:id="@+id/tvAmenitiesSectionTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="14sp" tools:text="₱1,200.00"/>
+                        <TextView android:id="@+id/tvAmenitiesSectionTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_text" android:textSize="14sp" tools:text="₱1,200.00"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -570,7 +570,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/grand_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_dark" android:textSize="14sp" android:textAllCaps="true" android:letterSpacing="0.03"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/grand_total_label" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_text" android:textSize="14sp" android:textAllCaps="true" android:letterSpacing="0.03"/>
                         <TextView android:id="@+id/tvBillingBalanceDue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_red_primary" android:textSize="18sp" tools:text="₱7,000.00"/>
                     </LinearLayout>
                 </LinearLayout>

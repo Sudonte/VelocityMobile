@@ -69,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-bold"
-                android:textColor="@color/velocity_red_dark"
+                android:textColor="@color/velocity_red_text"
                 android:textSize="12sp"
                 tools:text="3 rooms selected" />
 

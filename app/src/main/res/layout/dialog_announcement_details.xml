@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:fontFamily="sans-serif-black"
-            android:textColor="@color/velocity_red_dark"
+            android:textColor="@color/velocity_red_text"
             android:textSize="20sp"
             android:letterSpacing="-0.02"
             app:layout_constraintEnd_toEndOf="parent"

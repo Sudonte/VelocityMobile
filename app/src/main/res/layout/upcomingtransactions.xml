@@ -166,7 +166,7 @@
                         android:layout_marginTop="11dp"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/no_upcoming_activities_title"
-                        android:textColor="@color/velocity_red_dark"
+                        android:textColor="@color/velocity_red_text"
                         android:textSize="14sp" />
 
                     <TextView

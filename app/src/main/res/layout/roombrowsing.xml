@@ -381,7 +381,7 @@
                             android:ellipsize="end"
                             android:includeFontPadding="false"
                             android:maxLines="2"
-                            android:textColor="@color/velocity_red_dark"
+                            android:textColor="@color/velocity_red_text"
                             android:textSize="13sp"
                             tools:text="25 Rooms Found" />
 

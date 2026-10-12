@@ -79,4 +79,6 @@
 
     <!-- Brand-red text for small actions/chips on dark cards - see the light values/colors.xml comment. -->
     <color name="velocity_action_text">#FF8A80</color>
+    <!-- Text in the dark-red family: unchanged in Light, a light red in Dark so it stays readable on dark surfaces. -->
+    <color name="velocity_red_text">#FF8A80</color>
 </resources>
