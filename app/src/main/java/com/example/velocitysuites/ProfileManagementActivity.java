@@ -564,6 +564,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         }
 
         if (userEmailText != null) userEmailText.setText(email);
+        bindProfileHeaderDetails(mobile, gender, dob);
         bindAccountTimestamps();
         if (firstNameText != null) firstNameText.setText(first);
         // Middle Name is genuinely optional, not "unavailable" data - a plain
@@ -599,6 +600,64 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     }
 
     /**
+     * The header's mobile line (the guest ID stands in when there is no number), the profile
+     * completeness line ("Profile complete" or what is still missing) and "Last updated: <date>".
+     * Completeness looks only at what the guest has actually saved - never at the placeholder
+     * address shown on the cards below.
+     */
+    private void bindProfileHeaderDetails(String mobile, String gender, String dob) {
+        TextView mobileView = findViewById(R.id.headerMobileText);
+        TextView statusView = findViewById(R.id.headerStatusText);
+        TextView updatedView = findViewById(R.id.headerLastUpdatedText);
+
+        if (mobileView != null) {
+            long userId = prefs.getLong("userId", -1L);
+            if (!TextUtils.isEmpty(mobile)) {
+                mobileView.setText(mobile);
+                mobileView.setVisibility(View.VISIBLE);
+            } else if (userId > 0) {
+                mobileView.setText(getString(R.string.profile_header_guest_id_format, userId));
+                mobileView.setVisibility(View.VISIBLE);
+            } else {
+                mobileView.setVisibility(View.GONE);
+            }
+        }
+
+        if (statusView != null) {
+            java.util.List<String> missing = new java.util.ArrayList<>();
+            if (TextUtils.isEmpty(mobile)) missing.add(getString(R.string.profile_missing_mobile));
+            if (TextUtils.isEmpty(gender)) missing.add(getString(R.string.profile_missing_gender));
+            if (TextUtils.isEmpty(dob)) missing.add(getString(R.string.profile_missing_dob));
+            if (TextUtils.isEmpty(prefs.getString("userCity", "")) || TextUtils.isEmpty(prefs.getString("userStreet", ""))) {
+                missing.add(getString(R.string.profile_missing_address));
+            }
+            statusView.setText(missing.isEmpty()
+                    ? getString(R.string.profile_status_complete)
+                    : getString(R.string.profile_status_incomplete_format, TextUtils.join(", ", missing)));
+        }
+
+        if (updatedView != null) {
+            String updatedAt = prefs.getString(KEY_PROFILE_LAST_UPDATED_AT, null);
+            if (TextUtils.isEmpty(updatedAt)) updatedAt = prefs.getString("userUpdatedAt", null);
+            if (TextUtils.isEmpty(updatedAt)) {
+                updatedView.setVisibility(View.GONE);
+            } else {
+                updatedView.setText(getString(R.string.profile_header_last_updated_format, TimeUtils.formatDate(updatedAt)));
+                updatedView.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    /** The cover is the Landing screen's background, decoded at roughly screen size instead of full resolution. */
+    private void loadProfileCover() {
+        ImageView cover = findViewById(R.id.profileCoverImage);
+        if (cover == null) return;
+        int widthPx = getResources().getDisplayMetrics().widthPixels;
+        int heightPx = (int) (180 * getResources().getDisplayMetrics().density);
+        Glide.with(this).load(R.drawable.bg_landing_banner_luxury).override(widthPx, heightPx).centerCrop().into(cover);
+    }
+
+    /**
      * "Member since <created_at>" (permanent, from the server's users.created_at -
      * never the device clock) with "Last updated <updated_at>" appended once the
      * account has actually been edited since creation. Hidden entirely on an
@@ -613,11 +672,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             return;
         }
         String createdDisplay = TimeUtils.formatDateTime(createdAtRaw);
-        String updatedAtRaw = prefs.getString("userUpdatedAt", null);
         StringBuilder text = new StringBuilder(getString(R.string.member_since_format, createdDisplay));
-        if (!TextUtils.isEmpty(updatedAtRaw) && !updatedAtRaw.equals(createdAtRaw)) {
-            text.append("  •  ").append(getString(R.string.account_last_updated_format, TimeUtils.formatDateTime(updatedAtRaw)));
-        }
         tvAccountCreated.setText(text.toString());
         tvAccountCreated.setVisibility(View.VISIBLE);
     }
@@ -651,6 +706,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             });
         }
 
+        loadProfileCover();
         updateProfilePictureButton = findViewById(R.id.updateProfilePictureButton);
         if (updateProfilePictureButton != null) {
             updateProfilePictureButton.setOnClickListener(v -> handleProfilePictureTap());

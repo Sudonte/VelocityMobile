@@ -1523,6 +1523,14 @@
     <string name="address_info_step_title">Address Information</string>
     <string name="review_confirm_step_title">Review &amp; Confirm</string>
     <string name="review_one_time_warning">Please review all of your information carefully. You can only update your Personal Information and Contact &amp; Address Information once.</string>
+    <string name="profile_header_guest_id_format">Guest ID: %1$d</string>
+    <string name="profile_header_last_updated_format">Last updated: %1$s</string>
+    <string name="profile_status_complete">Profile complete</string>
+    <string name="profile_status_incomplete_format">Incomplete — add your %1$s</string>
+    <string name="profile_missing_mobile">mobile number</string>
+    <string name="profile_missing_gender">gender</string>
+    <string name="profile_missing_dob">date of birth</string>
+    <string name="profile_missing_address">address</string>
     <string name="profile_no_changes">No changes to save.</string>
     <string name="discard_changes_title">Discard Changes?</string>
     <string name="discard_changes_message">Your profile changes have not been saved.</string>
