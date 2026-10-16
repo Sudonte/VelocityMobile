@@ -206,6 +206,9 @@ public class Booking implements Serializable {
     private long createdAtMillis;
     private String checkedInAtDisplay;
     private String checkedOutAtDisplay;
+    /** The server's own check-in / check-out instants (ISO), kept raw so a screen can format them to the second. */
+    private String checkedInAtRaw;
+    private String checkedOutAtRaw;
     private String completedAtDisplay;
     /** When staff verified the most recent payment - separate from paymentDate (when it was submitted). */
     private String paymentVerifiedAtDisplay;
@@ -609,6 +612,10 @@ public class Booking implements Serializable {
     public long getCreatedAtMillis() { return createdAtMillis; }
     public String getCheckedInAtDisplay() { return checkedInAtDisplay; }
     public String getCheckedOutAtDisplay() { return checkedOutAtDisplay; }
+    public String getCheckedInAtRaw() { return checkedInAtRaw; }
+    public String getCheckedOutAtRaw() { return checkedOutAtRaw; }
+    public void setCheckedInAtRaw(String raw) { this.checkedInAtRaw = raw; }
+    public void setCheckedOutAtRaw(String raw) { this.checkedOutAtRaw = raw; }
     public String getCompletedAtDisplay() { return completedAtDisplay; }
     public String getPaymentVerifiedAtDisplay() { return paymentVerifiedAtDisplay; }
     public String getRoomNumber() { return roomNumber; }

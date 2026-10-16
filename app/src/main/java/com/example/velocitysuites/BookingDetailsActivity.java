@@ -304,6 +304,11 @@ public class BookingDetailsActivity extends AppCompatActivity {
         tvRoomGuestCounts.setText(buildHeaderRoomSelectionSummary());
     }
 
+    private String actualOrExpected(String actualDisplay, java.time.LocalTime posted) {
+        if (actualDisplay != null && !actualDisplay.isEmpty()) return actualDisplay;
+        return getString(R.string.details_expected_time_format, StayCalendarModel.formatTime(posted));
+    }
+
     private String buildHeaderRoomSelectionSummary() {
         return Booking.buildRoomSelectionSummaryText(booking, groupMembers);
     }
@@ -323,6 +328,11 @@ public class BookingDetailsActivity extends AppCompatActivity {
         addInfoRow(container, getString(R.string.details_label_booking_date), booking.getBookingDate());
         addInfoRow(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
         addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
+        // The moment the receptionist actually checked the guest in / out, to the second; until then the hotel's posted time.
+        addInfoRow(container, getString(R.string.details_label_checked_in_at), actualOrExpected(booking.getCheckedInAtDisplay(),
+                StayCalendarModel.CHECK_IN_TIME));
+        addInfoRow(container, getString(R.string.details_label_checked_out_at), actualOrExpected(booking.getCheckedOutAtDisplay(),
+                StayCalendarModel.CHECK_OUT_TIME));
         StayInfo stay = booking.getStay();
         if (stay != null) {
             // In house or finished: the dates and nights the front desk actually billed - scheduled, actual, nights

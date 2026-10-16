@@ -203,7 +203,9 @@ final class DashboardStayCalendar {
             ((TextView) row.findViewById(R.id.tvEntryRef)).setText(
                     TransactionText.reference(context, b.isHasBooking(), b.getDisplayId()));
             TextView kind = row.findViewById(R.id.tvEntryKind);
-            kind.setText(e.checkIn ? R.string.stay_calendar_kind_checkin : R.string.stay_calendar_kind_checkout);
+            kind.setText(e.isActual()
+                    ? (e.checkIn ? R.string.stay_calendar_kind_checked_in : R.string.stay_calendar_kind_checked_out)
+                    : (e.checkIn ? R.string.stay_calendar_kind_checkin : R.string.stay_calendar_kind_checkout));
             ((TextView) row.findViewById(R.id.tvEntryRooms)).setText(TransactionRow.roomTextOf(b));
             ((TextView) row.findViewById(R.id.tvEntryWhen)).setText(context.getString(
                     R.string.stay_calendar_when_format, DAY.format(e.date), e.timeText()));

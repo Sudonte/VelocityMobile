@@ -52,7 +52,7 @@ public class StayCalendarModelTest {
     }
 
     @Test
-    public void cancelledAndFinishedStaysNeverAppearAndAnInHouseStayOnlyKeepsItsDeparture() {
+    public void cancelledStaysNeverAppear_finishedOnesWithNothingRecordedNeither_andAnInHouseStayKeepsOnlyItsDeparture() {
         StayCalendarModel m = new StayCalendarModel(Arrays.asList(
                 stay("1", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 22), "Cancelled"),
                 stay("2", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 22), "Checked-Out"),
@@ -60,6 +60,26 @@ public class StayCalendarModelTest {
         assertFalse(m.hasEntries(LocalDate.of(2026, 10, 20)));
         assertFalse(m.hasEntries(LocalDate.of(2026, 10, 14)));
         assertTrue(m.hasEntries(LocalDate.of(2026, 10, 16)));
+    }
+
+    @Test
+    public void recordedCheckInAndOutShowTheirActualTimeToTheSecond_andUnrecordedOnesUseThePostedTime() {
+        Booking inHouse = stay("1", LocalDate.of(2026, 10, 14), LocalDate.of(2026, 10, 16), "Checked-In");
+        inHouse.setCheckedInAtRaw("2026-10-14T06:03:09Z"); // 14:03:09 in Manila
+        Booking done = stay("2", LocalDate.of(2026, 10, 10), LocalDate.of(2026, 10, 12), "Checked-Out");
+        done.setCheckedInAtRaw("2026-10-10T07:15:00Z");
+        done.setCheckedOutAtRaw("2026-10-12T03:45:30Z"); // 11:45:30
+        StayCalendarModel m = new StayCalendarModel(Arrays.asList(inHouse, done));
+
+        StayCalendarModel.Entry in = m.entriesBetween(LocalDate.of(2026, 10, 14), LocalDate.of(2026, 10, 14)).get(0);
+        assertTrue(in.isActual());
+        assertEquals("02:03:09 PM", in.timeText());
+        StayCalendarModel.Entry out = m.entriesBetween(LocalDate.of(2026, 10, 12), LocalDate.of(2026, 10, 12)).get(0);
+        assertEquals("11:45:30 AM", out.timeText());
+        // the in-house stay's departure has not happened: posted time
+        StayCalendarModel.Entry due = m.entriesBetween(LocalDate.of(2026, 10, 16), LocalDate.of(2026, 10, 16)).get(0);
+        assertFalse(due.isActual());
+        assertEquals("12:00:00 PM", due.timeText());
     }
 
     @Test

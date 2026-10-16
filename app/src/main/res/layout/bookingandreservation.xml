@@ -1069,7 +1069,8 @@
                                 android:text="@string/summary_amenities_header"
                                 android:textColor="@color/velocity_text_secondary"
                                 android:textSize="12sp"
-                                android:textAllCaps="true"
+                                android:fontFamily="sans-serif-bold"
+        android:textAllCaps="true"
                                 android:letterSpacing="0.05" />
 
                             <LinearLayout

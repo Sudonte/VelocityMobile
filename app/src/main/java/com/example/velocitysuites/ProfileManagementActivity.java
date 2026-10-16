@@ -1441,10 +1441,9 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     }
 
     /**
-     * OTP-gated instead of current-password-gated: sends a verification
-     * code to the guest's registered email (the same forgot-password
-     * endpoint the Login screen's Forgot Password flow uses) and opens the
-     * two-step Change Password dialog. The password itself is changed
+     * OTP-gated instead of current-password-gated: opens the three-step Change Password dialog, whose first step
+     * sends a verification code to the guest's registered email (the same forgot-password endpoint the Login
+     * screen's Forgot Password flow uses). The password itself is changed
      * through guest/password/change, which needs the token the server
      * issues once the code is verified.
      */
@@ -1454,35 +1453,11 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             Toast.makeText(this, "Couldn't determine your account email.", Toast.LENGTH_LONG).show();
             return;
         }
-
-        if (changePasswordButton != null) changePasswordButton.setEnabled(false);
-        ApiClient.getService(this).forgotPassword(new com.example.velocitysuites.network.dto.EmailRequest(email))
-                .enqueue(new Callback<ApiMessage>() {
-                    @Override
-                    public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                        if (isFinishing() || isDestroyed()) return;
-                        if (changePasswordButton != null) changePasswordButton.setEnabled(true);
-                        // 429 = the server's 30-second resend cooldown: a code was sent moments ago
-                        // (e.g. the guest closed and reopened this dialog), so it is still valid.
-                        if (!response.isSuccessful() && response.code() != 429) {
-                            Toast.makeText(ProfileManagementActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        Toast.makeText(ProfileManagementActivity.this, getString(R.string.otp_sent_to, OtpBoxes.maskEmail(email)), Toast.LENGTH_SHORT).show();
-                        showChangePasswordOtpDialog(email);
-                    }
-
-                    @Override
-                    public void onFailure(Call<ApiMessage> call, Throwable t) {
-                        if (isFinishing() || isDestroyed()) return;
-                        if (changePasswordButton != null) changePasswordButton.setEnabled(true);
-                        Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
-                    }
-                });
+        showChangePasswordOtpDialog(email);
     }
 
     /**
-     * Change Password, one dialog with two mutually exclusive steps. Step 1 verifies the emailed
+     * Change Password, one dialog with three mutually exclusive steps. Step 1 asks to send the code; step 2 verifies the emailed
      * code with the server, which answers with a short-lived single-use token; only then is step 2
      * (the password fields) shown, and the password change is sent together with that token, so
      * the server itself refuses a change that skipped verification. The token lives only in this
@@ -1496,10 +1471,14 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 .setCancelable(false)
                 .create();
 
+        View stepRequest = dialogView.findViewById(R.id.changePasswordStepRequest);
+        TextView requestDesc = dialogView.findViewById(R.id.changePasswordRequestDesc);
+        TextView requestError = dialogView.findViewById(R.id.changePasswordRequestError);
+        View seg2 = dialogView.findViewById(R.id.changePasswordSeg2);
+        View seg3 = dialogView.findViewById(R.id.changePasswordSeg3);
         View stepOtp = dialogView.findViewById(R.id.changePasswordStepOtp);
         View stepPassword = dialogView.findViewById(R.id.changePasswordStepPassword);
         TextView stepText = dialogView.findViewById(R.id.changePasswordStepText);
-        View progress = dialogView.findViewById(R.id.changePasswordProgress);
         TextView otpDesc = dialogView.findViewById(R.id.changePasswordOtpDesc);
         TextView otpError = dialogView.findViewById(R.id.changePasswordOtpError);
         TextView resendLink = dialogView.findViewById(R.id.resendChangePasswordOtpLink);
@@ -1513,11 +1492,27 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelChangePasswordOtp);
 
         otpDesc.setText(getString(R.string.change_password_otp_sent_desc, OtpBoxes.maskEmail(email)));
+        requestDesc.setText(getString(R.string.change_password_request_desc, OtpBoxes.maskEmail(email)));
 
         // null until the SERVER has accepted the code; step 2 is only reachable when it is set.
         final String[] resetToken = {null};
         final boolean[] busy = {false};
         final OtpBoxes[] otpBoxes = new OtpBoxes[1];
+        final int[] step = {1};
+        final int onColor = getColor(R.color.velocity_red_primary);
+        final int offColor = getColor(R.color.velocity_red_soft);
+
+        // One place that shows a step: its section, "Step n of 3", the progress segments and the main button's label.
+        Runnable showStep = () -> {
+            stepRequest.setVisibility(step[0] == 1 ? View.VISIBLE : View.GONE);
+            stepOtp.setVisibility(step[0] == 2 ? View.VISIBLE : View.GONE);
+            stepPassword.setVisibility(step[0] == 3 ? View.VISIBLE : View.GONE);
+            stepText.setText(getString(R.string.registration_step_format, step[0], 3));
+            seg2.setBackgroundTintList(android.content.res.ColorStateList.valueOf(step[0] >= 2 ? onColor : offColor));
+            seg3.setBackgroundTintList(android.content.res.ColorStateList.valueOf(step[0] >= 3 ? onColor : offColor));
+            btnConfirm.setText(step[0] == 1 ? R.string.change_password_send_code
+                    : step[0] == 2 ? R.string.verify_otp_button : R.string.reset_password_button);
+        };
 
         Runnable verifyCode = () -> {
             if (busy[0] || resetToken[0] != null) return;
@@ -1548,12 +1543,8 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                             }
                             resetToken[0] = body.reset_token;
                             Toast.makeText(ProfileManagementActivity.this, R.string.otp_verified, Toast.LENGTH_SHORT).show();
-                            stepOtp.setVisibility(View.GONE);
-                            stepPassword.setVisibility(View.VISIBLE);
-                            stepText.setText(getString(R.string.registration_step_format, 2, 2));
-                            progress.getLayoutParams().width = (int) (48 * getResources().getDisplayMetrics().density);
-                            progress.requestLayout();
-                            btnConfirm.setText(R.string.reset_password_button);
+                            step[0] = 3;
+                            showStep.run();
                             newPass.requestFocus();
                         }
 
@@ -1573,8 +1564,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             if (complete) verifyCode.run();
         });
 
-        stepText.setText(getString(R.string.registration_step_format, 1, 2));
-        btnConfirm.setText(R.string.verify_otp_button);
+        showStep.run();
 
         // ---- resend with a 30s countdown (same cadence as the email-change flow; the server enforces it too) ----
         final android.os.CountDownTimer[] resendTimer = {null};
@@ -1594,7 +1584,42 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                 }
             }.start();
         };
-        startResendCountdown.run();
+
+        // ---- step 1: send the code. A 429 means one was sent moments ago (still valid), so it counts as sent. ----
+        Runnable sendCode = () -> {
+            if (busy[0]) return;
+            busy[0] = true;
+            btnConfirm.setEnabled(false);
+            requestError.setVisibility(View.GONE);
+            ApiClient.getService(this).forgotPassword(new com.example.velocitysuites.network.dto.EmailRequest(email))
+                    .enqueue(new Callback<ApiMessage>() {
+                        @Override
+                        public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
+                            busy[0] = false;
+                            btnConfirm.setEnabled(true);
+                            if (!response.isSuccessful() && response.code() != 429) {
+                                requestError.setText(errorMessage(response, getString(R.string.reset_code_send_failed)));
+                                requestError.setVisibility(View.VISIBLE);
+                                return;
+                            }
+                            Toast.makeText(ProfileManagementActivity.this, getString(R.string.otp_sent_to, OtpBoxes.maskEmail(email)), Toast.LENGTH_SHORT).show();
+                            step[0] = 2;
+                            showStep.run();
+                            startResendCountdown.run();
+                            otpBoxes[0].focusFirst();
+                        }
+
+                        @Override
+                        public void onFailure(Call<ApiMessage> call, Throwable t) {
+                            if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
+                            busy[0] = false;
+                            btnConfirm.setEnabled(true);
+                            requestError.setText(RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t));
+                            requestError.setVisibility(View.VISIBLE);
+                        }
+                    });
+        };
 
         resendLink.setOnClickListener(v -> {
             resendLink.setEnabled(false);
@@ -1687,12 +1712,8 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                             if (response.code() == 422 && msg.toLowerCase(Locale.ROOT).contains("verification")) {
                                 // The server no longer accepts the verification (expired or already used): start over.
                                 resetToken[0] = null;
-                                stepPassword.setVisibility(View.GONE);
-                                stepOtp.setVisibility(View.VISIBLE);
-                                stepText.setText(getString(R.string.registration_step_format, 1, 2));
-                                progress.getLayoutParams().width = (int) (24 * getResources().getDisplayMetrics().density);
-                                progress.requestLayout();
-                                btnConfirm.setText(R.string.verify_otp_button);
+                                step[0] = 2;
+                                showStep.run();
                                 newPass.setText("");
                                 confirmPass.setText("");
                                 otpBoxes[0].clear();
@@ -1720,7 +1741,9 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         });
 
         btnConfirm.setOnClickListener(v -> {
-            if (resetToken[0] == null) verifyCode.run(); else submitPassword.run();
+            if (step[0] == 1) sendCode.run();
+            else if (step[0] == 2) verifyCode.run();
+            else submitPassword.run();
         });
 
         // ---- leaving: ask first if anything was entered; a verified code is always discarded ----
@@ -1754,7 +1777,6 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
-        otpBoxes[0].focusFirst();
     }
 
     private void showOtpError(TextView errorView, OtpBoxes boxes, String message) {

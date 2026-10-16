@@ -291,10 +291,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-medium"
                             android:letterSpacing="0.08"
                             android:text="@string/bed_type_label"
-                            android:textAllCaps="true"
+                            android:fontFamily="sans-serif-bold"
+        android:textAllCaps="true"
                             android:textColor="@color/velocity_inactive_gray"
                             android:textSize="9sp" />
                     </LinearLayout>
@@ -332,10 +332,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-medium"
                             android:letterSpacing="0.08"
                             android:text="@string/room_size_label"
-                            android:textAllCaps="true"
+                            android:fontFamily="sans-serif-bold"
+        android:textAllCaps="true"
                             android:textColor="@color/velocity_inactive_gray"
                             android:textSize="9sp" />
                     </LinearLayout>

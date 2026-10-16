@@ -58,10 +58,23 @@ public class ChangePasswordFlowTest {
         idle();
 
         activity.findViewById(R.id.changePasswordButton).performClick();
-        api.<ApiMessage>last("forgotPassword").succeed(new ApiMessage());
         idle();
         dialog = (AlertDialog) ShadowDialog.getLatestDialog();
         assertNotNull(dialog);
+        assertEquals("opening the dialog sends nothing: asking for the code is its first step", 0, api.count("forgotPassword"));
+        // the tests below start on the code step, so ask for the code the way the guest does
+        dialog.findViewById(R.id.btnConfirmChangePasswordOtp).performClick();
+        api.<ApiMessage>last("forgotPassword").succeed(new ApiMessage());
+        idle();
+    }
+
+    /** A fresh dialog still on its first (request) step. */
+    private AlertDialog freshRequestStep() {
+        dialog.dismiss();
+        idle();
+        activity.findViewById(R.id.changePasswordButton).performClick();
+        idle();
+        return (AlertDialog) ShadowDialog.getLatestDialog();
     }
 
     @After
@@ -98,6 +111,53 @@ public class ChangePasswordFlowTest {
         ok.reset_token = "tok-123";
         api.<ResetTokenResponse>last("verifyResetOtpForToken").succeed(ok);
         idle();
+    }
+
+    @Test
+    public void thereAreThreeSteps_requestTheCode_enterIt_chooseThePassword() {
+        AlertDialog d = freshRequestStep();
+        assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordStepRequest).getVisibility());
+        assertEquals(View.GONE, d.findViewById(R.id.changePasswordStepOtp).getVisibility());
+        assertEquals(View.GONE, d.findViewById(R.id.changePasswordStepPassword).getVisibility());
+        assertEquals("Step 1 of 3", ((TextView) d.findViewById(R.id.changePasswordStepText)).getText().toString());
+        String desc = ((TextView) d.findViewById(R.id.changePasswordRequestDesc)).getText().toString();
+        assertTrue(desc, desc.contains("a***@example.com"));
+        assertEquals("Send Code", ((android.widget.Button) d.findViewById(R.id.btnConfirmChangePasswordOtp)).getText().toString());
+
+        d.findViewById(R.id.btnConfirmChangePasswordOtp).performClick();
+        api.<ApiMessage>last("forgotPassword").succeed(new ApiMessage());
+        idle();
+        assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordStepOtp).getVisibility());
+        assertEquals("Step 2 of 3", ((TextView) d.findViewById(R.id.changePasswordStepText)).getText().toString());
+        assertEquals("Verify OTP", ((android.widget.Button) d.findViewById(R.id.btnConfirmChangePasswordOtp)).getText().toString());
+    }
+
+    @Test
+    public void aFailedSendStaysOnTheRequestStep_withTheReason_andCanBeRetried() {
+        AlertDialog d = freshRequestStep();
+        d.findViewById(R.id.btnConfirmChangePasswordOtp).performClick();
+        api.<ApiMessage>last("forgotPassword").httpWithBody(500, "{\"message\":\"Mail is down.\"}");
+        idle();
+
+        assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordStepRequest).getVisibility());
+        assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordRequestError).getVisibility());
+        assertTrue(d.findViewById(R.id.btnConfirmChangePasswordOtp).isEnabled());
+    }
+
+    @Test
+    public void aCodeSentMomentsAgo_429_counts_asSent() {
+        AlertDialog d = freshRequestStep();
+        d.findViewById(R.id.btnConfirmChangePasswordOtp).performClick();
+        api.<ApiMessage>last("forgotPassword").http(429);
+        idle();
+        assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordStepOtp).getVisibility());
+    }
+
+    @Test
+    public void theThirdStepShowsStepThreeOfThree() {
+        verifyWithServer();
+        assertEquals("Step 3 of 3", ((TextView) v(R.id.changePasswordStepText)).getText().toString());
+        assertEquals(View.GONE, v(R.id.changePasswordStepRequest).getVisibility());
     }
 
     @Test

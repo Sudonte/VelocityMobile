@@ -711,6 +711,11 @@
     <string name="search_label">Search</string>
     <string name="search_transactions_hint">Search reference or room…</string>
     <string name="more_stays_title">Other Recent and Upcoming Stays</string>
+    <string name="details_label_checked_in_at">Checked-In At</string>
+    <string name="details_label_checked_out_at">Checked-Out At</string>
+    <string name="details_expected_time_format">Expected %1$s</string>
+    <string name="stay_calendar_kind_checked_in">Checked in</string>
+    <string name="stay_calendar_kind_checked_out">Checked out</string>
     <string name="stay_calendar_title">Stay Calendar</string>
     <string name="stay_calendar_desc">Dots mark days with a check-in or check-out. Tap a day to see what is on it.</string>
     <string name="stay_calendar_daily">Daily</string>
@@ -1488,6 +1493,10 @@
     <string name="no_unread_notifications_title">No Unread Notifications</string>
     <string name="no_unread_notifications_desc">You\'re all caught up — no new hotel updates right now.</string>
     <string name="password_changed_success">Your password has been changed successfully. You may change it again after 30 days.</string>
+    <string name="change_password_request_title">Confirm it is you</string>
+    <string name="change_password_request_desc">To change your password we will email a 6-digit code to %1$s.</string>
+    <string name="change_password_request_hint">Enter the code on the next screen, then choose your new password. The code only works for a short time, and you can ask for a new one.</string>
+    <string name="change_password_send_code">Send Code</string>
     <string name="change_password_otp_sent_desc">We sent a 6-digit verification code to %1$s. Enter it below to continue.</string>
     <string name="change_password_new_desc">Code verified. Choose a new password for your account.</string>
     <string name="change_password_discard_message">Your password has not been changed. You will need to verify a new code if you leave now.</string>

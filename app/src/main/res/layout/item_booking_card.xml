@@ -160,10 +160,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0.05"
                     android:text="@string/details_grand_total_label"
-                    android:textAllCaps="true"
+                    android:fontFamily="sans-serif-bold"
+        android:textAllCaps="true"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />
 

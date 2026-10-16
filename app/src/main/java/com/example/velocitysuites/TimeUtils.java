@@ -33,6 +33,10 @@ public final class TimeUtils {
     /** "Sep 9, 2026 - 2:37 AM" - the app-wide compact date+time display format. */
     private static final DateTimeFormatter DATE_TIME_FORMAT =
             DateTimeFormatter.ofPattern("MMM d, yyyy • h:mm a", Locale.ENGLISH);
+    private static final DateTimeFormatter DATE_TIME_SECONDS_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy • hh:mm:ss a", Locale.ENGLISH);
+    private static final DateTimeFormatter TIME_SECONDS_FORMAT =
+            DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter TIME_FORMAT =
@@ -87,6 +91,20 @@ public final class TimeUtils {
         Instant instant = parseInstant(raw);
         if (instant == null) return "N/A";
         return DATE_TIME_FORMAT.format(instant.atZone(ZONE_MANILA));
+    }
+
+    /** "Sep 9, 2026 • 02:37:05 PM" in Asia/Manila (hours, minutes and seconds), or "N/A". */
+    public static String formatDateTimeSeconds(String raw) {
+        Instant instant = parseInstant(raw);
+        if (instant == null) return "N/A";
+        return DATE_TIME_SECONDS_FORMAT.format(instant.atZone(ZONE_MANILA));
+    }
+
+    /** "02:37:05 PM" in Asia/Manila, or "N/A". */
+    public static String formatTimeSeconds(String raw) {
+        Instant instant = parseInstant(raw);
+        if (instant == null) return "N/A";
+        return TIME_SECONDS_FORMAT.format(instant.atZone(ZONE_MANILA));
     }
 
     /** "Sep 9, 2026" in Asia/Manila, or "N/A" for a null/unparseable/empty timestamp. */

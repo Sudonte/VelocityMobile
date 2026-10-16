@@ -31,19 +31,39 @@ public final class StayCalendarModel {
 
     private static final DateTimeFormatter HMS = DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.ENGLISH);
 
+    /** "02:00:00 PM". */
+    public static String formatTime(LocalTime time) {
+        return time.format(HMS);
+    }
+
+    @Nullable
+    private static java.time.LocalDateTime hotelTime(@Nullable String raw) {
+        java.time.Instant instant = TimeUtils.parseInstant(raw);
+        return instant == null ? null : instant.atZone(TimeUtils.ZONE_MANILA).toLocalDateTime();
+    }
+
     /** One transaction on one day: either its arrival or its departure. */
     public static final class Entry {
         public final Booking booking;
         public final LocalDate date;
         public final boolean checkIn;
+        /** The recorded moment the receptionist did it (hotel time), or null when it has not happened yet. */
+        @Nullable public final java.time.LocalDateTime actual;
 
-        Entry(Booking booking, LocalDate date, boolean checkIn) {
+        Entry(Booking booking, LocalDate date, boolean checkIn, @Nullable java.time.LocalDateTime actual) {
             this.booking = booking;
-            this.date = date;
+            this.date = actual != null ? actual.toLocalDate() : date;
             this.checkIn = checkIn;
+            this.actual = actual;
+        }
+
+        /** True once this check-in / check-out really happened - its time is then the recorded one, not the posted 2 PM / 12 PM. */
+        public boolean isActual() {
+            return actual != null;
         }
 
         public LocalTime time() {
+            if (actual != null) return actual.toLocalTime();
             return checkIn ? CHECK_IN_TIME : CHECK_OUT_TIME;
         }
 
@@ -61,13 +81,18 @@ public final class StayCalendarModel {
             if (b == null) continue;
             if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
             String status = b.getStatus() == null ? "" : b.getStatus();
-            if ("Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) continue;
+            boolean finished = "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
             LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
             LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
             if (in == null || out == null) continue;
-            // Once in house only the departure is still ahead.
-            if (!"Checked-In".equalsIgnoreCase(status)) add(new Entry(b, in, true));
-            add(new Entry(b, out, false));
+            // A stay that has happened shows the moments the receptionist recorded (to the second); one that has not
+            // yet falls back to the hotel's posted times.
+            java.time.LocalDateTime actualIn = hotelTime(b.getCheckedInAtRaw());
+            java.time.LocalDateTime actualOut = hotelTime(b.getCheckedOutAtRaw());
+            if (finished && actualIn == null && actualOut == null) continue; // finished with nothing recorded: nothing to show
+            boolean inHouse = "Checked-In".equalsIgnoreCase(status);
+            if (actualIn != null || !inHouse) add(new Entry(b, in, true, actualIn));
+            add(new Entry(b, out, false, finished ? actualOut : null));
         }
         Comparator<Entry> byTime = Comparator.comparing((Entry e) -> e.time())
                 .thenComparing(e -> e.booking.getDisplayId() == null ? "" : e.booking.getDisplayId());
