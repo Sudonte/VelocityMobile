@@ -83,6 +83,9 @@ public class ReceiptDetail implements Serializable {
     @Nullable public String getCheckIn() { return checkIn; }
     @Nullable public String getCheckOut() { return checkOut; }
     public int getNumberOfNights() { return stay != null ? stay.actualNights : numberOfNights; }
+    @Nullable public Highlight getHighlight() { return highlight; }
+    public void setHighlight(@Nullable Highlight highlight) { this.highlight = highlight; }
+    private Highlight highlight;
     @Nullable public CheckinSettlement getCheckinSettlement() { return checkinSettlement; }
     public void setCheckinSettlement(@Nullable CheckinSettlement checkinSettlement) { this.checkinSettlement = checkinSettlement; }
     private CheckinSettlement checkinSettlement;
@@ -96,6 +99,36 @@ public class ReceiptDetail implements Serializable {
     public List<Booking.PaymentTransactionRecord> getPaymentTransactions() { return paymentTransactions; }
     @Nullable public AnchorPayment getAnchorPayment() { return anchorPayment; }
     @Nullable public String getIssuedAt() { return issuedAt; }
+
+    /** The highlighted bottom block of a receipt, exactly as the server froze it (nulls = not part of that receipt). */
+    public static class Highlight implements Serializable {
+        public static final String BOOKING_VERIFICATION = "booking_verification";
+        public static final String CHECKIN_PAYMENT = "checkin_payment";
+        public static final String CHECKOUT_FINAL = "checkout_final";
+
+        public final String kind;
+        @Nullable public final String paymentType;
+        @Nullable public final String paymentMethod;
+        @Nullable public final String amountToPayNote;
+        public final java.util.Map<String, Double> amounts = new java.util.LinkedHashMap<>();
+
+        public Highlight(String kind, @Nullable String paymentType, @Nullable String paymentMethod, @Nullable String amountToPayNote) {
+            this.kind = kind;
+            this.paymentType = paymentType;
+            this.paymentMethod = paymentMethod;
+            this.amountToPayNote = amountToPayNote;
+        }
+
+        /** The amount for a key, or 0 when the receipt did not carry it. */
+        public double amount(String key) {
+            Double v = amounts.get(key);
+            return v == null ? 0 : v;
+        }
+
+        public boolean has(String key) {
+            return amounts.get(key) != null;
+        }
+    }
 
     /** Receipt 2: what was settled in the Check-In module - frozen by the server at that moment. */
     public static class CheckinSettlement implements Serializable {

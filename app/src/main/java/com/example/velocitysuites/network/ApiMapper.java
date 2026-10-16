@@ -800,6 +800,25 @@ public final class ApiMapper {
                 reformatDateTime(dto.issued_at)
         );
         receiptDetail.setStay(StayInfo.from(dto.stay_bill));
+        if (dto.highlight != null) {
+            ReceiptDetailDto.HighlightDto h = dto.highlight;
+            ReceiptDetail.Highlight hl = new ReceiptDetail.Highlight(h.kind, h.payment_type, h.payment_method, h.amount_to_pay_note);
+            hl.amounts.put("amount_paid_now", h.amount_paid_now);
+            hl.amounts.put("previous_payments", h.previous_payments);
+            hl.amounts.put("total_amount", h.total_amount);
+            hl.amounts.put("total_paid", h.total_paid);
+            hl.amounts.put("remaining_balance", h.remaining_balance);
+            hl.amounts.put("amount_to_pay", h.amount_to_pay);
+            hl.amounts.put("room_charges", h.room_charges);
+            hl.amounts.put("amenities_total", h.amenities_total);
+            hl.amounts.put("additional_charges_total", h.additional_charges_total);
+            hl.amounts.put("discount", h.discount);
+            hl.amounts.put("grand_total", h.grand_total);
+            hl.amounts.put("paid_receipt_1", h.paid_receipt_1);
+            hl.amounts.put("paid_receipt_2", h.paid_receipt_2);
+            hl.amounts.put("paid_at_checkout", h.paid_at_checkout);
+            receiptDetail.setHighlight(hl);
+        }
         if (dto.checkin_settlement != null) {
             ReceiptDetailDto.CheckinSettlementDto c = dto.checkin_settlement;
             ReceiptDetailDto.DiscountResultDto d = c.discount;

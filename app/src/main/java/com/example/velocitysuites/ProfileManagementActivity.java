@@ -1476,6 +1476,12 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         TextView requestError = dialogView.findViewById(R.id.changePasswordRequestError);
         View seg2 = dialogView.findViewById(R.id.changePasswordSeg2);
         View seg3 = dialogView.findViewById(R.id.changePasswordSeg3);
+        TextView labelVerify = dialogView.findViewById(R.id.changePasswordLabelVerify);
+        TextView labelNew = dialogView.findViewById(R.id.changePasswordLabelNew);
+        TextView labelDone = dialogView.findViewById(R.id.changePasswordLabelDone);
+        View stepDone = dialogView.findViewById(R.id.changePasswordStepDone);
+        com.google.android.material.progressindicator.LinearProgressIndicator strengthBar = dialogView.findViewById(R.id.changePasswordStrengthBar);
+        TextView strengthText = dialogView.findViewById(R.id.changePasswordStrengthText);
         View stepOtp = dialogView.findViewById(R.id.changePasswordStepOtp);
         View stepPassword = dialogView.findViewById(R.id.changePasswordStepPassword);
         TextView stepText = dialogView.findViewById(R.id.changePasswordStepText);
@@ -1498,20 +1504,32 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         final String[] resetToken = {null};
         final boolean[] busy = {false};
         final OtpBoxes[] otpBoxes = new OtpBoxes[1];
-        final int[] step = {1};
+        final int[] step = {1}; // 1 request the code, 2 enter it (both "Verify"), 3 new password, 4 done
+        final boolean[] changed = {false};
         final int onColor = getColor(R.color.velocity_red_primary);
         final int offColor = getColor(R.color.velocity_red_soft);
 
-        // One place that shows a step: its section, "Step n of 3", the progress segments and the main button's label.
+        // One place that shows a step: its section, the Verify / New password / Done indicator, and the main button's label.
         Runnable showStep = () -> {
             stepRequest.setVisibility(step[0] == 1 ? View.VISIBLE : View.GONE);
             stepOtp.setVisibility(step[0] == 2 ? View.VISIBLE : View.GONE);
             stepPassword.setVisibility(step[0] == 3 ? View.VISIBLE : View.GONE);
-            stepText.setText(getString(R.string.registration_step_format, step[0], 3));
-            seg2.setBackgroundTintList(android.content.res.ColorStateList.valueOf(step[0] >= 2 ? onColor : offColor));
-            seg3.setBackgroundTintList(android.content.res.ColorStateList.valueOf(step[0] >= 3 ? onColor : offColor));
+            stepDone.setVisibility(step[0] == 4 ? View.VISIBLE : View.GONE);
+            int stage = step[0] <= 2 ? 1 : step[0] == 3 ? 2 : 3;
+            stepText.setText(step[0] == 4 ? getString(R.string.change_password_done_title)
+                    : getString(R.string.registration_step_format, stage, 3));
+            seg2.setBackgroundTintList(android.content.res.ColorStateList.valueOf(stage >= 2 ? onColor : offColor));
+            seg3.setBackgroundTintList(android.content.res.ColorStateList.valueOf(stage >= 3 ? onColor : offColor));
+            labelVerify.setTextColor(getColor(stage == 1 ? R.color.velocity_red_primary : R.color.velocity_text_secondary));
+            labelNew.setTextColor(getColor(stage == 2 ? R.color.velocity_red_primary : R.color.velocity_text_secondary));
+            labelDone.setTextColor(getColor(stage == 3 ? R.color.velocity_red_primary : R.color.velocity_text_secondary));
+            for (TextView l : new TextView[]{labelVerify, labelNew, labelDone}) {
+                l.setTypeface(null, l.getCurrentTextColor() == onColor ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            }
             btnConfirm.setText(step[0] == 1 ? R.string.change_password_send_code
-                    : step[0] == 2 ? R.string.verify_otp_button : R.string.reset_password_button);
+                    : step[0] == 2 ? R.string.verify_otp_button
+                    : step[0] == 3 ? R.string.reset_password_button : R.string.change_password_done_button);
+            btnCancel.setVisibility(step[0] == 4 ? View.GONE : View.VISIBLE);
         };
 
         Runnable verifyCode = () -> {
@@ -1651,6 +1669,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         Runnable updateRules = () -> {
             String p = newPass.getText() != null ? newPass.getText().toString() : "";
             String c = confirmPass.getText() != null ? confirmPass.getText().toString() : "";
+            updateStrength(strengthBar, strengthText, p);
             setRuleState(ruleLength, R.string.password_rule_length, p.length() >= 8);
             setRuleState(ruleMatch, R.string.password_rule_match, !p.isEmpty() && p.equals(c));
         };
@@ -1696,14 +1715,21 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                                 // The password is already changed server-side regardless of whether this
                                 // screen is still visible - markUpdated()/logout() always run.
                                 resetToken[0] = null;
-                                dismissSafely(dialog);
                                 markUpdated(KEY_PASSWORD_UPDATED_AT);
-                                if (!isFinishing() && !isDestroyed()) {
-                                    Toast.makeText(ProfileManagementActivity.this, R.string.password_changed_success, Toast.LENGTH_LONG).show();
-                                }
+                                changed[0] = true;
                                 // The server revokes every API token (this device and all others) on a password
-                                // change, so the app signs the guest out to log back in with the new password.
-                                logout();
+                                // change, so the app signs the guest out to log back in with the new password -
+                                // when they leave the success screen (button, back, or the dialog closing).
+                                if (isFinishing() || isDestroyed() || !dialog.isShowing()) {
+                                    logout();
+                                    return;
+                                }
+                                newPass.setText("");
+                                confirmPass.setText("");
+                                busy[0] = false;
+                                btnConfirm.setEnabled(true);
+                                step[0] = 4;
+                                showStep.run();
                                 return;
                             }
                             if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
@@ -1741,13 +1767,18 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         });
 
         btnConfirm.setOnClickListener(v -> {
-            if (step[0] == 1) sendCode.run();
+            if (step[0] == 4) dialog.dismiss();
+            else if (step[0] == 1) sendCode.run();
             else if (step[0] == 2) verifyCode.run();
             else submitPassword.run();
         });
 
         // ---- leaving: ask first if anything was entered; a verified code is always discarded ----
         Runnable requestClose = () -> {
+            if (step[0] == 4) {
+                dialog.dismiss();
+                return;
+            }
             boolean hasInput = resetToken[0] != null || !otpBoxes[0].isEmpty()
                     || (newPass.getText() != null && newPass.getText().length() > 0)
                     || (confirmPass.getText() != null && confirmPass.getText().length() > 0);
@@ -1771,6 +1802,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         dialog.setOnDismissListener(d -> {
             if (resendTimer[0] != null) resendTimer[0].cancel();
             resetToken[0] = null;
+            if (changed[0]) logout();
         });
 
         SafeDialogs.show(dialog);
@@ -1783,6 +1815,26 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         errorView.setText(message);
         errorView.setVisibility(View.VISIBLE);
         boxes.setError(true);
+    }
+
+    /** 0 (empty) to 4: length 8+, mixed case, a digit, a symbol - a hint shown next to the server's own rule (8+ characters). */
+    static int passwordStrength(String p) {
+        if (p == null || p.isEmpty()) return 0;
+        int score = 0;
+        if (p.length() >= 8) score++;
+        if (!p.equals(p.toLowerCase(Locale.ROOT)) && !p.equals(p.toUpperCase(Locale.ROOT))) score++;
+        if (p.matches(".*\\d.*")) score++;
+        if (p.matches(".*[^A-Za-z0-9].*")) score++;
+        if (p.length() < 8) score = Math.min(score, 1);
+        score = Math.max(score, 1); // anything typed is at least "Weak"
+        return score;
+    }
+
+    private void updateStrength(com.google.android.material.progressindicator.LinearProgressIndicator bar, TextView text, String password) {
+        int score = passwordStrength(password);
+        bar.setProgress(score);
+        text.setText(score == 0 ? R.string.password_strength_none : score == 1 ? R.string.password_strength_weak
+                : score == 2 ? R.string.password_strength_fair : score == 3 ? R.string.password_strength_good : R.string.password_strength_strong);
     }
 
     private void setRuleState(TextView rule, int textRes, boolean met) {

@@ -653,6 +653,9 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         // tap away via the Hotel Info section's own website card
         // (cardContactWebsite, unchanged, see openHotelWebsite() below).
         findViewById(R.id.btnExploreNow).setOnClickListener(v -> scrollToAvailableRooms());
+        View scrollHint = findViewById(R.id.landingScrollHint);
+        if (scrollHint != null) scrollHint.setOnClickListener(v -> scrollToAvailableRooms());
+        fitHeroToScreen();
 
         btnToggleRooms.setOnClickListener(v -> {
             roomsExpanded = !roomsExpanded;
@@ -664,6 +667,23 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         findViewById(R.id.cardContactPhone).setOnClickListener(v -> callHotel());
         findViewById(R.id.cardContactEmail).setOnClickListener(v -> emailHotel());
         findViewById(R.id.cardContactWebsite).setOnClickListener(v -> openHotelWebsite());
+    }
+
+    /**
+     * The first screen is the hero: its picture area is as tall as the visible scroller, so Available Rooms starts
+     * just below the fold and only appears when the guest scrolls (or taps Explore Now / the scroll hint). Re-measured
+     * on every layout change so rotation, split screen and big-font settings keep it right.
+     */
+    private void fitHeroToScreen() {
+        final View scroller = findViewById(R.id.landingScroll);
+        final View frame = findViewById(R.id.landingHeroFrame);
+        if (scroller == null || frame == null) return;
+        scroller.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            int viewport = b - t;
+            int topPadding = (int) (14 * getResources().getDisplayMetrics().density);
+            int wanted = Math.max(viewport - topPadding, (int) (260 * getResources().getDisplayMetrics().density));
+            if (frame.getMinimumHeight() != wanted) frame.setMinimumHeight(wanted);
+        });
     }
 
     private void scrollToAvailableRooms() {

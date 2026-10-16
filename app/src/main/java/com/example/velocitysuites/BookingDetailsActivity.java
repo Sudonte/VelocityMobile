@@ -247,7 +247,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
     private void renderAllSections() {
         // Re-rendering (after a refresh/edit) must replace, not append to, what was drawn before.
-        int[] sectionIds = {R.id.sectionBookingInfoContent, R.id.sectionGuestInfoContent, R.id.sectionRoomInfoContent,
+        int[] sectionIds = {R.id.sectionBalanceContent, R.id.sectionBookingInfoContent, R.id.sectionGuestInfoContent, R.id.sectionRoomInfoContent,
                 R.id.sectionPaymentInfoContent, R.id.sectionPaymentSummaryContent, R.id.sectionTimelineContent,
                 R.id.sectionPaymentHistoryContent, R.id.sectionDiscountIdContent};
         for (int id : sectionIds) {
@@ -266,6 +266,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // Card/section-based layout - every section renders and stays visible
         // together (see activity_booking_details.xml), replacing the old
         // 4-tab toggle switcher that hid all but one section at a time.
+        buildBalanceSummary(findViewById(R.id.sectionBalanceContent));
         buildBookingInfoSection(findViewById(R.id.sectionBookingInfoContent));
         buildGuestInfoSection(findViewById(R.id.sectionGuestInfoContent));
         buildRoomInfoSection(findViewById(R.id.sectionRoomInfoContent));
@@ -274,6 +275,125 @@ public class BookingDetailsActivity extends AppCompatActivity {
         buildPaymentSummarySection(findViewById(R.id.sectionPaymentSummaryContent));
         buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
+    }
+
+    // ---- Balance summary + progress tracker ----
+
+    private int dpPx(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    /**
+     * The first card the guest sees: a plain-words payment status, what is still owed, what was paid and the grand
+     * total (all the server's figures - nothing is added up here), then a four-step tracker
+     * Booked -> Verified -> Checked in -> Checked out, each with its receipt once issued or a friendly placeholder.
+     */
+    private void buildBalanceSummary(LinearLayout container) {
+        TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(booking);
+        double grand = TransactionStatusHelper.grandTotalOf(booking);
+        double paid = TransactionStatusHelper.verifiedPaidOf(booking);
+        double balance = Math.max(0, grand - paid);
+        boolean cancelled = "Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus());
+
+        TextView title = new TextView(this);
+        title.setText(R.string.balance_summary_title);
+        title.setAllCaps(true);
+        title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
+        title.setTextColor(getColor(R.color.velocity_red_primary));
+        title.setTextSize(12);
+        container.addView(title);
+
+        PaymentStatusResolver.Result status = PaymentStatusResolver.resolve(this, booking);
+        TextView badge = new TextView(this);
+        badge.setText(status.label);
+        badge.setBackgroundResource(R.drawable.shape_intro_pill);
+        badge.setBackgroundTintList(getColorStateList(status.bgColorRes));
+        badge.setTextColor(getColor(status.fgColorRes));
+        badge.setTypeface(badge.getTypeface(), android.graphics.Typeface.BOLD);
+        badge.setTextSize(12);
+        badge.setPadding(dpPx(10), dpPx(4), dpPx(10), dpPx(4));
+        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        badgeParams.topMargin = dpPx(8);
+        container.addView(badge, badgeParams);
+
+        // The sentence that answers "do I owe anything?"
+        TextView plain = new TextView(this);
+        plain.setText(cancelled ? getString(R.string.balance_plain_cancelled)
+                : balance > 0.004 ? getString(R.string.balance_plain_owe, MoneyFormat.format(balance))
+                : getString(R.string.balance_plain_paid));
+        plain.setTextColor(getColor(R.color.velocity_text_primary));
+        plain.setTypeface(plain.getTypeface(), android.graphics.Typeface.BOLD);
+        plain.setTextSize(15);
+        LinearLayout.LayoutParams plainParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        plainParams.topMargin = dpPx(10);
+        container.addView(plain, plainParams);
+
+        addInfoRow(container, getString(R.string.receipt_hl_remaining), MoneyFormat.format(balance));
+        addInfoRow(container, getString(R.string.receipt_hl_amount_to_pay), MoneyFormat.format(balance));
+        addInfoRow(container, getString(R.string.receipt_hl_total_paid), MoneyFormat.format(paid));
+        addInfoRow(container, getString(R.string.receipt_hl_grand_total), MoneyFormat.format(grand));
+
+        if (cancelled) return;
+        addSectionDivider(container, getString(R.string.tracker_title));
+
+        String st = booking.getStatus() == null ? "" : booking.getStatus();
+        boolean checkedOut = "Checked-Out".equalsIgnoreCase(st) || "Completed".equalsIgnoreCase(st);
+        boolean checkedIn = checkedOut || "Checked-In".equalsIgnoreCase(st);
+        boolean verified = booking.isStaffVerified() || checkedIn;
+        java.util.Map<Integer, Booking.ReceiptSummary> byStage = new java.util.HashMap<>();
+        for (Booking.ReceiptSummary r : booking.getReceipts()) {
+            int stage = ReceiptTypeMapper.stageOf(r.receiptType);
+            if (stage > 0 && !byStage.containsKey(stage)) byStage.put(stage, r);
+        }
+
+        addTrackerStep(container, getString(R.string.tracker_booked), true, null, getString(R.string.tracker_booked_note));
+        addTrackerStep(container, getString(R.string.tracker_verified), verified, byStage.get(1), getString(R.string.tracker_receipt1_placeholder));
+        addTrackerStep(container, getString(R.string.tracker_checked_in), checkedIn, byStage.get(2), getString(R.string.tracker_receipt2_placeholder));
+        addTrackerStep(container, getString(R.string.tracker_checked_out), checkedOut, byStage.get(3), getString(R.string.tracker_receipt3_placeholder));
+    }
+
+    /** One tracker row: a filled or empty dot, the step, and - when it has one - its receipt (tap to open) or why it is not there yet. */
+    private void addTrackerStep(LinearLayout container, String label, boolean reached, @Nullable Booking.ReceiptSummary receipt, String placeholder) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(dpPx(44));
+
+        View dot = new View(this);
+        dot.setBackgroundResource(reached ? R.drawable.shape_status_dot_green : R.drawable.shape_timeline_dot);
+        dot.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        row.addView(dot, new LinearLayout.LayoutParams(dpPx(12), dpPx(12)));
+
+        LinearLayout text = new LinearLayout(this);
+        text.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        textParams.setMarginStart(dpPx(12));
+        row.addView(text, textParams);
+
+        TextView name = new TextView(this);
+        name.setText(label);
+        name.setTextSize(13);
+        name.setTypeface(name.getTypeface(), reached ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        name.setTextColor(getColor(reached ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
+        text.addView(name);
+
+        TextView note = new TextView(this);
+        note.setTextSize(12);
+        if (receipt != null) {
+            note.setText(getString(R.string.tracker_receipt_ready_format, receipt.receiptNumber));
+            note.setTextColor(getColor(R.color.velocity_red_primary));
+            note.setTypeface(note.getTypeface(), android.graphics.Typeface.BOLD);
+            row.setClickable(true);
+            row.setFocusable(true);
+            row.setOnClickListener(v -> {
+                if (clickGuard.tryAcquire()) startActivity(PaymentReceiptActivity.newIntentForReceipt(this, booking, receipt.receiptNumber));
+            });
+        } else {
+            note.setText(placeholder);
+            note.setTextColor(getColor(R.color.velocity_text_secondary));
+        }
+        text.addView(note);
+        container.addView(row);
     }
 
     /** Request Additional Amenities: offered for a stay that exists (not a cancelled one or a finished one); the server's answer enables it or explains why not. */

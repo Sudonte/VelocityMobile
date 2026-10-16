@@ -368,6 +368,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         buildGuestSection(content, detail);
         buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
         buildTransactionHistorySection(content, detail);
+        buildHighlightSection(content, detail);
 
         MaterialButton btnDownload = findViewById(R.id.btnReceiptDownload);
         btnDownload.setVisibility(View.VISIBLE);
@@ -378,6 +379,83 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         });
 
         showContentState();
+    }
+
+    /**
+     * The bottom of the receipt, highlighted: what the guest still owes (Receipts 1 and 2) or the grand total with
+     * everything that was paid (Receipt 3). Every figure is the stored snapshot - nothing is recomputed here.
+     */
+    private void buildHighlightSection(ViewGroup parent, ReceiptDetail detail) {
+        ReceiptDetail.Highlight h = detail.getHighlight();
+        if (h == null) return;
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_summary_title));
+
+        if (ReceiptDetail.Highlight.CHECKOUT_FINAL.equals(h.kind)) {
+            addRow(content, getString(R.string.receipt_hl_room_charges), formatPrice(h.amount("room_charges")));
+            addRow(content, getString(R.string.receipt_hl_amenities), formatPrice(h.amount("amenities_total")));
+            addRow(content, getString(R.string.receipt_hl_additional), formatPrice(h.amount("additional_charges_total")));
+            if (h.amount("discount") > 0.004) addRow(content, getString(R.string.receipt_hl_discount), "-" + formatPrice(h.amount("discount")));
+            addDivider(content, dp(8));
+            addRow(content, getString(R.string.receipt_hl_paid_r1), formatPrice(h.amount("paid_receipt_1")));
+            addRow(content, getString(R.string.receipt_hl_paid_r2), formatPrice(h.amount("paid_receipt_2")));
+            addRow(content, getString(R.string.receipt_hl_paid_checkout), formatPrice(h.amount("paid_at_checkout")));
+            addHighlightPanel(content, new String[]{getString(R.string.receipt_hl_grand_total), getString(R.string.receipt_hl_total_paid), getString(R.string.receipt_hl_final_balance)},
+                    new double[]{h.amount("grand_total"), h.amount("total_paid"), h.amount("remaining_balance")}, null);
+            return;
+        }
+
+        addRow(content, getString(R.string.receipt_hl_total_booking), formatPrice(h.amount("total_amount")));
+        if (ReceiptDetail.Highlight.CHECKIN_PAYMENT.equals(h.kind)) {
+            addRow(content, getString(R.string.receipt_hl_previous), formatPrice(h.amount("previous_payments")));
+            addRow(content, getString(R.string.receipt_hl_paid_checkin), formatPrice(h.amount("amount_paid_now")));
+            addRow(content, getString(R.string.receipt_hl_total_paid), formatPrice(h.amount("total_paid")));
+        } else {
+            String type = "full".equals(h.paymentType) ? getString(R.string.receipt_hl_type_full) : getString(R.string.receipt_hl_type_partial);
+            addRow(content, getString(R.string.receipt_hl_payment_type), type);
+            addRow(content, getString(R.string.receipt_hl_paid_now), formatPrice(h.amount("amount_paid_now")));
+            addRow(content, getString(R.string.receipt_hl_total_paid), formatPrice(h.amount("total_paid")));
+        }
+        addHighlightPanel(content, new String[]{getString(R.string.receipt_hl_remaining), getString(R.string.receipt_hl_amount_to_pay)},
+                new double[]{h.amount("remaining_balance"), h.amount("amount_to_pay")}, h.amountToPayNote);
+    }
+
+    /** Big, tinted rows for the figures a receipt highlights; the last row carries an optional note ("Due at check-in"). */
+    private void addHighlightPanel(ViewGroup parent, String[] labels, double[] values, @Nullable String note) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
+        panel.setPadding(dp(14), dp(12), dp(14), dp(12));
+        for (int i = 0; i < labels.length; i++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(0, dp(4), 0, dp(4));
+            TextView label = new TextView(this);
+            label.setText(labels[i]);
+            label.setAllCaps(true);
+            label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
+            label.setLetterSpacing(0.04f);
+            label.setTextColor(getColor(R.color.velocity_text_primary));
+            label.setTextSize(12);
+            row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            TextView value = new TextView(this);
+            value.setText(formatPrice(values[i]));
+            value.setGravity(android.view.Gravity.END);
+            value.setTypeface(value.getTypeface(), android.graphics.Typeface.BOLD);
+            value.setTextColor(getColor(R.color.velocity_red_primary));
+            value.setTextSize(i == labels.length - 1 ? 20 : 16);
+            row.addView(value, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            panel.addView(row);
+        }
+        if (note != null && !note.isEmpty()) {
+            TextView noteView = new TextView(this);
+            noteView.setText(note);
+            noteView.setGravity(android.view.Gravity.END);
+            noteView.setTextColor(getColor(R.color.velocity_text_secondary));
+            noteView.setTextSize(12);
+            panel.addView(noteView);
+        }
+        parent.addView(panel);
     }
 
     /** Receipt Header + Receipt Status - see item 5 of the Phase 4 checklist. */

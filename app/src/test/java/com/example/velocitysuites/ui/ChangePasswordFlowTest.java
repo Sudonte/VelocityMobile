@@ -128,7 +128,7 @@ public class ChangePasswordFlowTest {
         api.<ApiMessage>last("forgotPassword").succeed(new ApiMessage());
         idle();
         assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordStepOtp).getVisibility());
-        assertEquals("Step 2 of 3", ((TextView) d.findViewById(R.id.changePasswordStepText)).getText().toString());
+        assertEquals("entering the code is still the Verify stage", "Step 1 of 3", ((TextView) d.findViewById(R.id.changePasswordStepText)).getText().toString());
         assertEquals("Verify OTP", ((android.widget.Button) d.findViewById(R.id.btnConfirmChangePasswordOtp)).getText().toString());
     }
 
@@ -156,7 +156,7 @@ public class ChangePasswordFlowTest {
     @Test
     public void theThirdStepShowsStepThreeOfThree() {
         verifyWithServer();
-        assertEquals("Step 3 of 3", ((TextView) v(R.id.changePasswordStepText)).getText().toString());
+        assertEquals("Step 2 of 3", ((TextView) v(R.id.changePasswordStepText)).getText().toString());
         assertEquals(View.GONE, v(R.id.changePasswordStepRequest).getVisibility());
     }
 
@@ -228,6 +228,44 @@ public class ChangePasswordFlowTest {
         assertEquals("tok-123", sent.reset_token);
         assertEquals("LongEnough1", sent.password);
         assertEquals("LongEnough1", sent.password_confirmation);
+    }
+
+    @Test
+    public void aSuccessfulChangeShowsTheDoneScreen_andLogsOutOnlyWhenTheGuestLeavesIt() {
+        verifyWithServer();
+        ((EditText) v(R.id.changePasswordNew)).setText("LongEnough1!");
+        ((EditText) v(R.id.changePasswordConfirmNew)).setText("LongEnough1!");
+        v(R.id.btnConfirmChangePasswordOtp).performClick();
+        api.<ApiMessage>last("changePasswordWithToken").succeed(new ApiMessage());
+        idle();
+
+        assertEquals(View.VISIBLE, v(R.id.changePasswordStepDone).getVisibility());
+        assertEquals(View.GONE, v(R.id.changePasswordStepPassword).getVisibility());
+        assertEquals("Log in again", ((android.widget.Button) v(R.id.btnConfirmChangePasswordOtp)).getText().toString());
+        assertEquals("nothing to cancel any more", View.GONE, v(R.id.btnCancelChangePasswordOtp).getVisibility());
+        assertTrue("still signed in until they leave the success screen", SessionManager.isLoggedIn(ApplicationProvider.getApplicationContext()));
+
+        v(R.id.btnConfirmChangePasswordOtp).performClick();
+        idle();
+        assertFalse(dialog.isShowing());
+        assertFalse("signed out so they log in with the new password", SessionManager.isLoggedIn(ApplicationProvider.getApplicationContext()));
+    }
+
+    @Test
+    public void theStrengthMeterFollowsWhatIsTyped() {
+        verifyWithServer();
+        TextView text = (TextView) v(R.id.changePasswordStrengthText);
+        EditText pw = (EditText) v(R.id.changePasswordNew);
+        assertEquals("Choose a strong password", text.getText().toString());
+        pw.setText("abc");
+        assertEquals("Strength: Weak", text.getText().toString());
+        pw.setText("abcdefgh");
+        assertEquals("Strength: Weak", text.getText().toString());
+        pw.setText("Abcdefgh1");
+        assertEquals("Strength: Good", text.getText().toString());
+        pw.setText("Abcdefgh1!");
+        assertEquals("Strength: Strong", text.getText().toString());
+        assertEquals(4, ((com.google.android.material.progressindicator.LinearProgressIndicator) v(R.id.changePasswordStrengthBar)).getProgress());
     }
 
     @Test

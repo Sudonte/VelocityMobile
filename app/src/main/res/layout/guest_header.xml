@@ -146,7 +146,7 @@
         android:focusable="true"
         android:foreground="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/headerProfileContainer"
+        app:layout_constraintEnd_toStartOf="@id/headerThemeToggle"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.card.MaterialCardView
@@ -202,6 +202,49 @@
         tools:ignore="MissingConstraints"
         tools:text="3"
         tools:visibility="visible" />
+
+    <!-- Light / Dark toggle, just right of the bell: the moon in Light mode (tap = go dark), the sun in Dark mode
+         (tap = go light). Bound for every guest screen by BaseNavigationActivity; the choice is saved by ThemePreferences. -->
+    <FrameLayout
+        android:id="@+id/headerThemeToggle"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:clickable="true"
+        android:contentDescription="@string/theme_toggle_content_description"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/headerProfileContainer"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Velocity.Card.Glass"
+            android:layout_width="@dimen/guest_header_notification_size"
+            android:layout_height="@dimen/guest_header_notification_size"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="@dimen/card_elevation"
+            app:strokeColor="@color/velocity_red_subtle"
+            app:strokeWidth="1.2dp">
+
+            <ImageView
+                android:id="@+id/headerThemeIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="4dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_soft"
+                android:importantForAccessibility="no"
+                android:padding="5dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_dark_mode"
+                app:tint="@color/velocity_red_primary" />
+        </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
     <!-- Header profile thumbnail with a small green "online" indicator -
          same picture BaseNavigationActivity#refreshHeaderProfilePicture()

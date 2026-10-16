@@ -107,6 +107,15 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
             headerNotification.setOnClickListener(v -> onHeaderBellTapped(v));
         }
 
+        // Theme toggle (sun in Dark, moon in Light): saves the choice and applies it app-wide.
+        View headerTheme = findViewById(R.id.headerThemeToggle);
+        android.widget.ImageView headerThemeIcon = findViewById(R.id.headerThemeIcon);
+        if (headerTheme != null && headerThemeIcon != null) {
+            headerThemeIcon.setImageResource(ThemePreferences.isDarkMode(this) ? R.drawable.ic_light_mode : R.drawable.ic_dark_mode);
+            headerTheme.setOnClickListener(v -> ThemePreferences.setMode(this,
+                    ThemePreferences.isDarkMode(this) ? ThemePreferences.MODE_LIGHT : ThemePreferences.MODE_DARK));
+        }
+
         // Header profile thumbnail navigates to Profile Management, same
         // destination as tapping it anywhere else it appears.
         View headerProfile = findViewById(R.id.headerProfileContainer);

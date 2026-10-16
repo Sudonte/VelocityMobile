@@ -29,6 +29,8 @@ public class ReceiptDetailDto {
     public Integer receipt_stage;
     /** Receipt 2 only: the frozen check-in settlement (null for the other receipts). */
     public CheckinSettlementDto checkin_settlement;
+    /** The highlighted bottom block, frozen with the receipt (absent on receipts issued before receipts were stored). */
+    public HighlightDto highlight;
     public long booking_id;
     /** Set only when this booking was converted from a Reservation. */
     public Long reservation_id;
@@ -71,6 +73,29 @@ public class ReceiptDetailDto {
         public DiscountResultDto discount;
         public String settled_at;
         public String verified_by;
+    }
+
+    /** The numbers a receipt highlights at its bottom - every figure the server froze when it issued the receipt. */
+    public static class HighlightDto {
+        /** booking_verification | checkin_payment | checkout_final */
+        public String kind;
+        public String payment_type;
+        public String payment_method;
+        public Double amount_paid_now;
+        public Double previous_payments;
+        public Double total_amount;
+        public Double total_paid;
+        public Double remaining_balance;
+        public Double amount_to_pay;
+        public String amount_to_pay_note;
+        public Double room_charges;
+        public Double amenities_total;
+        public Double additional_charges_total;
+        public Double discount;
+        public Double grand_total;
+        public Double paid_receipt_1;
+        public Double paid_receipt_2;
+        public Double paid_at_checkout;
     }
 
     /** The discount ID result at check-in. */
