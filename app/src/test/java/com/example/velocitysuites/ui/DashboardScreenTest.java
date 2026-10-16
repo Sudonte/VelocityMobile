@@ -213,9 +213,9 @@ public class DashboardScreenTest {
         SimpleDateFormat timeFormat = new SimpleDateFormat(app.getString(R.string.dashboard_time_format), Locale.US);
         timeFormat.setTimeZone(TimeZone.getTimeZone("Asia/Manila"));
 
-        // e.g. "Sunday, October 11, 2026" over "9:19 AM"
+        // e.g. "Sunday, October 11, 2026" over "09:19:05 AM" (hours, minutes and seconds)
         assertEquals(dateFormat.format(new java.util.Date()), text(activity, R.id.dateText));
-        assertTrue(text(activity, R.id.timeText).matches("\\d{1,2}:\\d{2} (AM|PM)"));
+        assertTrue(text(activity, R.id.timeText).matches("\\d{2}:\\d{2}:\\d{2} (AM|PM)"));
         TextView date = activity.findViewById(R.id.dateText);
         TextView time = activity.findViewById(R.id.timeText);
         assertTrue("the time is the larger of the two", time.getTextSize() > date.getTextSize());

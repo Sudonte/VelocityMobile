@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bottom sheet: choose amenities (and how many of each) for ONE room. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvPickerTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityHeading="true"
+        android:fontFamily="sans-serif-black"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="16sp"
+        tools:text="Amenities for Room 101" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/additional_amenities_picker_hint"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp" />
+
+    <com.example.velocitysuites.MaxHeightNestedScrollView
+        android:id="@+id/pickerScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/pickerList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </com.example.velocitysuites.MaxHeightNestedScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPickerDone"
+        style="@style/Widget.Velocity.Flat.Button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/done_label" />
+</LinearLayout>

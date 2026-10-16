@@ -49,6 +49,42 @@ public class ReceiptDetailMappingTest {
     }
 
     @Test
+    public void receipt2_carriesTheFrozenCheckinSettlementAndTheDiscountResult() {
+        ReceiptDetailResponse response = baseResponse();
+        response.receipt.receipt_type = "CHECKIN_SETTLEMENT_RECEIPT";
+        response.receipt.receipt_number = "SR-20261016-000007";
+        ReceiptDetailDto.CheckinSettlementDto c = new ReceiptDetailDto.CheckinSettlementDto();
+        c.settlement_type = "partial_to_full";
+        c.amount_settled = 1000;
+        c.payment_method = "cash";
+        c.total_amount = 1600;
+        c.total_paid = 1600;
+        c.balance = 0;
+        c.discount = new ReceiptDetailDto.DiscountResultDto();
+        c.discount.status = "approved";
+        c.discount.name = "Senior Citizen";
+        c.discount.amount = 400;
+        c.verified_by = "Rita Desk";
+        response.receipt.checkin_settlement = c;
+
+        ReceiptDetail detail = ApiMapper.toReceiptDetail(response);
+
+        ReceiptDetail.CheckinSettlement s = detail.getCheckinSettlement();
+        assertEquals(ReceiptDetail.CheckinSettlement.PARTIAL_TO_FULL, s.settlementType);
+        assertEquals(1000, s.amountSettled, 0.001);
+        assertEquals(1600, s.totalPaid, 0.001);
+        assertEquals(0, s.balance, 0.001);
+        assertEquals("approved", s.discountStatus);
+        assertEquals("Senior Citizen", s.discountName);
+        assertEquals("Rita Desk", s.verifiedBy);
+    }
+
+    @Test
+    public void receiptsWithoutASettlement_haveNone() {
+        assertNull(ApiMapper.toReceiptDetail(baseResponse()).getCheckinSettlement());
+    }
+
+    @Test
     public void extraReceiptNumberConstant_isStable() {
         // Locks the exact Intent-extra key contract notification deep-links
         // and any future caller must use - see EXTRA_RECEIPT_NUMBER's own

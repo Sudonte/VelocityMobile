@@ -258,6 +258,21 @@
                     android:visibility="gone"
                     tools:text="Only 2 room(s) left"
                     tools:visibility="visible" />
+
+                <!-- Hotel-wide No Refund indicator, shown on every room card (landing + Room Browsing). -->
+                <TextView
+                    android:id="@+id/tvNoRefundBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_badge_warning"
+                    android:fontFamily="sans-serif-black"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="7dp"
+                    android:paddingVertical="3dp"
+                    android:text="@string/no_refund_badge"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 

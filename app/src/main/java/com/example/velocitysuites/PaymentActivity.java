@@ -205,7 +205,7 @@ public class PaymentActivity extends BaseNavigationActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.payment);
-        setupGuestNavigation(R.id.nav_payment);
+        setupGuestNavigation(0); // Payment is no longer a drawer entry; it is reached from booking/billing flows
         animateScreenContent();
 
         repository = RoomRepository.getInstance(this);

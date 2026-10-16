@@ -81,9 +81,22 @@
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btnProceed"
+                app:layout_constraintEnd_toStartOf="@id/btnThemeToggle"
                 app:layout_constraintStart_toEndOf="@id/headerLogoCard"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/btnThemeToggle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/theme_toggle_content_description"
+                android:src="@drawable/ic_dark_mode"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btnProceed"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/white" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnProceed"

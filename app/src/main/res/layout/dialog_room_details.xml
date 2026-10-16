@@ -348,12 +348,15 @@
                     android:alpha="0.1"
                     android:background="@color/black" />
 
-                <!-- Description Block -->
+                <!-- Description Block (collapsible: tap the heading) -->
                 <TextView
+                    android:id="@+id/headDescription"
                     style="@style/TextAppearance.Velocity.Label.Section"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:minHeight="40dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp"
                     android:text="@string/description_label"
                     android:textSize="10sp" />
 
@@ -368,12 +371,15 @@
                     android:alpha="0.9"
                     tools:text="Spacious suite with premium bedding, work lounge, city view, and complimentary breakfast." />
 
-                <!-- Amenities Block -->
+                <!-- Amenities Block (collapsible) -->
                 <TextView
+                    android:id="@+id/headAmenities"
                     style="@style/TextAppearance.Velocity.Label.Section"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:minHeight="40dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp"
                     android:text="@string/amenities_label"
                     android:textSize="10sp" />
 
@@ -403,10 +409,42 @@
                      per-room notes field (detailRoomPolicies) is shown
                      underneath, separately labeled, so the two are never
                      confused with each other. -->
-                <LinearLayout
+                <!-- Pricing: what a night costs and that it is not refundable. -->
+                <TextView
+                    style="@style/TextAppearance.Velocity.Label.Section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="40dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/pricing_label"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/detailPricingText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:background="@drawable/shape_search_field"
+                    android:backgroundTint="@color/velocity_red_bg_end"
+                    android:lineSpacingExtra="6dp"
+                    android:padding="13dp"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp"
+                    tools:text="3,500 per night" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:alpha="0.1"
+                    android:background="@color/black" />
+
+                <LinearLayout
+                    android:id="@+id/headPolicies"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:layout_marginTop="10dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
                     <TextView
@@ -426,9 +464,10 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/detailPoliciesBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="2dp"
                     android:background="@drawable/shape_search_field"
                     android:backgroundTint="@color/velocity_red_bg_end"
                     android:padding="13dp"

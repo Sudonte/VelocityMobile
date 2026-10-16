@@ -796,6 +796,15 @@ public final class ApiMapper {
                 reformatDateTime(dto.issued_at)
         );
         receiptDetail.setStay(StayInfo.from(dto.stay_bill));
+        if (dto.checkin_settlement != null) {
+            ReceiptDetailDto.CheckinSettlementDto c = dto.checkin_settlement;
+            ReceiptDetailDto.DiscountResultDto d = c.discount;
+            receiptDetail.setCheckinSettlement(new ReceiptDetail.CheckinSettlement(
+                    c.settlement_type, c.amount_settled, c.payment_method, c.change_returned,
+                    c.total_amount, c.total_paid, c.balance,
+                    d != null ? d.status : null, d != null ? d.name : null, d != null ? d.amount : 0,
+                    d != null ? d.rejection_reason : null, c.verified_by));
+        }
         return receiptDetail;
     }
 

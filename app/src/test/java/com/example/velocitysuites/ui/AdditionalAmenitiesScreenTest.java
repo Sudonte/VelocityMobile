@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** Request Additional Amenities: blocked stays say why, load failures offer Retry, and a request carries the chosen items and note. */
+/** Request Additional Amenities: blocked stays say why, load failures offer Retry, and a request carries each room's chosen amenities. */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -63,6 +63,42 @@ public class AdditionalAmenitiesScreenTest {
         dto.reason = reason;
         dto.requests = new ArrayList<>();
         return dto;
+    }
+
+    private static AdditionalAmenityInfoDto.Room room(long id, String number, String type) {
+        AdditionalAmenityInfoDto.Room r = new AdditionalAmenityInfoDto.Room();
+        r.room_id = id;
+        r.room_number = number;
+        r.room_type = type;
+        return r;
+    }
+
+    private static AdditionalAmenityInfoDto infoWithRooms(AdditionalAmenityInfoDto.Room... rooms) {
+        AdditionalAmenityInfoDto dto = info(true, null);
+        dto.rooms = Arrays.asList(rooms);
+        return dto;
+    }
+
+    /** Taps room card {@code index} and returns the picker's amenity list. */
+    private static android.widget.LinearLayout openPicker(AdditionalAmenitiesActivity a, int index) {
+        ((android.widget.LinearLayout) a.findViewById(R.id.additionalAmenitiesRooms)).getChildAt(index).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        android.app.Dialog dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        return dialog.findViewById(R.id.pickerList);
+    }
+
+    private static void closePicker() {
+        org.robolectric.shadows.ShadowDialog.getLatestDialog().findViewById(R.id.btnPickerDone).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    private AdditionalAmenitiesActivity openWithRooms(AdditionalAmenityInfoDto info) {
+        AdditionalAmenitiesActivity a = open();
+        api.<AdditionalAmenityInfoDto>last("getBookingAdditionalAmenities").succeed(info);
+        shadowOf(Looper.getMainLooper()).idle();
+        api.<List<AmenityDto>>last("getAmenities").succeed(Arrays.asList(amenity(7, "Extra Bed", "200.00", 5), amenity(8, "Breakfast", "75.50", 10)));
+        shadowOf(Looper.getMainLooper()).idle();
+        return a;
     }
 
     private static AmenityDto amenity(long id, String name, String price, int stock) {
@@ -127,45 +163,59 @@ public class AdditionalAmenitiesScreenTest {
     }
 
     @Test
-    public void pickingQuantities_showsEachSubtotal_andTheTotal_andSubmitNeedsAtLeastOneItem() {
-        AdditionalAmenitiesActivity a = openWithCatalog();
+    public void theFormListsEveryRoomOfTheStay_andHasNoGuestNoteField() {
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(
+                room(11, "101", "Standard"), room(12, "201", "Deluxe"), room(13, "202", "Deluxe")));
         assertTrue(visible(a, R.id.additionalAmenitiesForm));
+        android.widget.LinearLayout rooms = a.findViewById(R.id.additionalAmenitiesRooms);
+        assertEquals(3, rooms.getChildCount());
+        assertEquals("Room 101", ((TextView) rooms.getChildAt(0).findViewById(R.id.tvAmenityRoomTitle)).getText().toString());
+        assertEquals("Deluxe", ((TextView) rooms.getChildAt(2).findViewById(R.id.tvAmenityRoomType)).getText().toString());
+        assertEquals(a.getString(R.string.additional_amenities_none_selected),
+                ((TextView) rooms.getChildAt(0).findViewById(R.id.tvAmenityRoomSelection)).getText().toString());
+        assertEquals("the Guest Note field is gone", 0, a.getResources().getIdentifier("additionalAmenitiesNote", "id", a.getPackageName()));
         assertFalse("nothing chosen yet", a.findViewById(R.id.additionalAmenitiesSubmit).isEnabled());
+    }
 
-        android.widget.LinearLayout list = a.findViewById(R.id.additionalAmenitiesList);
+    @Test
+    public void severalAmenitiesCanBePickedForOneRoom_withSubtotals_andTheTotalFollows() {
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(room(11, "101", "Standard")));
+        android.widget.LinearLayout list = openPicker(a, 0);
         assertEquals(2, list.getChildCount());
         View bed = list.getChildAt(0);
-        View plus = bed.findViewById(R.id.btnAmenityOptionPlus);
-        plus.performClick();
-        plus.performClick();
+        bed.findViewById(R.id.btnAmenityOptionPlus).performClick();
+        bed.findViewById(R.id.btnAmenityOptionPlus).performClick();
         assertEquals("2", ((TextView) bed.findViewById(R.id.tvAmenityOptionQty)).getText().toString());
-        assertEquals("₱400.00", ((TextView) bed.findViewById(R.id.tvAmenityOptionSubtotal)).getText().toString());
+        assertEquals("\u20b1400.00", ((TextView) bed.findViewById(R.id.tvAmenityOptionSubtotal)).getText().toString());
         list.getChildAt(1).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
 
-        assertEquals(a.getString(R.string.additional_amenities_total_format, "₱475.50"), text(a, R.id.additionalAmenitiesTotal));
+        assertEquals(a.getString(R.string.additional_amenities_total_format, "\u20b1475.50"), text(a, R.id.additionalAmenitiesTotal));
         assertTrue(a.findViewById(R.id.additionalAmenitiesSubmit).isEnabled());
+        assertEquals(a.getString(R.string.additional_amenities_selected_count_format, 2),
+                ((TextView) ((android.widget.LinearLayout) a.findViewById(R.id.additionalAmenitiesRooms)).getChildAt(0)
+                        .findViewById(R.id.tvAmenityRoomSelection)).getText().toString());
 
-        bed.findViewById(R.id.btnAmenityOptionMinus).performClick();
-        bed.findViewById(R.id.btnAmenityOptionMinus).performClick();
-        bed.findViewById(R.id.btnAmenityOptionMinus).performClick(); // already 0: stays 0
-        assertEquals("0", ((TextView) bed.findViewById(R.id.tvAmenityOptionQty)).getText().toString());
+        // minus never goes below zero
+        list = openPicker(a, 0);
+        for (int i = 0; i < 3; i++) list.getChildAt(0).findViewById(R.id.btnAmenityOptionMinus).performClick();
+        assertEquals("0", ((TextView) list.getChildAt(0).findViewById(R.id.tvAmenityOptionQty)).getText().toString());
     }
 
     @Test
     public void theStepperIsCappedAtStock_andTouchTargetsAre48dp() {
         AdditionalAmenitiesActivity a = open();
-        api.<AdditionalAmenityInfoDto>last("getBookingAdditionalAmenities").succeed(info(true, null));
+        api.<AdditionalAmenityInfoDto>last("getBookingAdditionalAmenities").succeed(infoWithRooms(room(11, "101", "Standard")));
         shadowOf(Looper.getMainLooper()).idle();
         api.<List<AmenityDto>>last("getAmenities").succeed(Arrays.asList(amenity(7, "Extra Bed", "200.00", 2)));
         shadowOf(Looper.getMainLooper()).idle();
 
-        View row = ((android.widget.LinearLayout) a.findViewById(R.id.additionalAmenitiesList)).getChildAt(0);
+        View row = openPicker(a, 0).getChildAt(0);
         for (int i = 0; i < 5; i++) row.findViewById(R.id.btnAmenityOptionPlus).performClick();
         assertEquals("only 2 in stock", "2", ((TextView) row.findViewById(R.id.tvAmenityOptionQty)).getText().toString());
 
         float density = a.getResources().getDisplayMetrics().density;
-        int[] targets = {R.id.btnAmenityOptionPlus, R.id.btnAmenityOptionMinus};
-        for (int id : targets) {
+        for (int id : new int[]{R.id.btnAmenityOptionPlus, R.id.btnAmenityOptionMinus}) {
             ViewGroupLayout.assertMinTouch(row.findViewById(id), density);
         }
         ViewGroupLayout.assertMinTouch(a.findViewById(R.id.additionalAmenitiesSubmit), density);
@@ -173,12 +223,30 @@ public class AdditionalAmenitiesScreenTest {
     }
 
     @Test
-    public void submitting_sendsTheChosenItemsAndNote_thenClosesWithAnOkResult() {
-        AdditionalAmenitiesActivity a = openWithCatalog();
-        android.widget.LinearLayout list = a.findViewById(R.id.additionalAmenitiesList);
+    public void twoRoomTypesThreeRooms_getDifferentAmenities_inOneSubmission_withASummaryFirst() {
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(
+                room(11, "101", "Standard"), room(12, "201", "Deluxe"), room(13, "202", "Deluxe")));
+
+        // room 101: 2 x Extra Bed + 1 x Breakfast; room 201: 1 x Breakfast; room 202: nothing
+        android.widget.LinearLayout list = openPicker(a, 0);
         list.getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
         list.getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
-        ((android.widget.EditText) a.findViewById(R.id.additionalAmenitiesNote)).setText("  Before 8pm  ");
+        list.getChildAt(1).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
+        list = openPicker(a, 1);
+        list.getChildAt(1).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
+
+        // the summary shows each room that has something, with its amenities
+        android.widget.LinearLayout summary = a.findViewById(R.id.additionalAmenitiesSummary);
+        assertTrue(visible(a, R.id.additionalAmenitiesSummaryHeader));
+        StringBuilder all = new StringBuilder();
+        for (int i = 0; i < summary.getChildCount(); i++) all.append(((TextView) summary.getChildAt(i)).getText()).append('\n');
+        String text = all.toString();
+        assertTrue(text, text.contains("Room 101"));
+        assertTrue(text, text.contains("Extra Bed x 2"));
+        assertTrue(text, text.contains("Room 201"));
+        assertFalse("a room with nothing chosen is not in the summary", text.contains("Room 202"));
 
         a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
         shadowOf(Looper.getMainLooper()).idle();
@@ -187,10 +255,15 @@ public class AdditionalAmenitiesScreenTest {
         Object[] args = api.lastArgs.get("submitBookingAdditionalAmenities");
         assertEquals("42", args[0]);
         AdditionalAmenitySubmitRequest request = (AdditionalAmenitySubmitRequest) args[1];
-        assertEquals(1, request.items.size());
-        assertEquals(7L, request.items.get(0).amenity_id);
-        assertEquals(2, request.items.get(0).quantity);
-        assertEquals("Before 8pm", request.note);
+        assertEquals("two rooms asked for something", 2, request.rooms.size());
+        assertEquals(11L, request.rooms.get(0).room_id);
+        assertEquals(2, request.rooms.get(0).items.size());
+        assertEquals(7L, request.rooms.get(0).items.get(0).amenity_id);
+        assertEquals(2, request.rooms.get(0).items.get(0).quantity);
+        assertEquals(12L, request.rooms.get(1).room_id);
+        assertEquals(1, request.rooms.get(1).items.size());
+        assertEquals(8L, request.rooms.get(1).items.get(0).amenity_id);
+        assertEquals("the flat form is not also sent", null, request.items);
         assertFalse("can't be sent twice while in flight", a.findViewById(R.id.additionalAmenitiesSubmit).isEnabled());
 
         api.<AdditionalAmenityInfoDto>last("submitBookingAdditionalAmenities").succeed(info(true, null));
@@ -200,10 +273,26 @@ public class AdditionalAmenitiesScreenTest {
     }
 
     @Test
+    public void aServerWithoutARoomList_stillWorks_withOneGenericRoomAndTheFlatForm() {
+        AdditionalAmenitiesActivity a = openWithCatalog(); // info() has no rooms
+        android.widget.LinearLayout rooms = a.findViewById(R.id.additionalAmenitiesRooms);
+        assertEquals(1, rooms.getChildCount());
+        openPicker(a, 0).getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
+
+        a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        AdditionalAmenitySubmitRequest request = (AdditionalAmenitySubmitRequest) api.lastArgs.get("submitBookingAdditionalAmenities")[1];
+        assertEquals(null, request.rooms);
+        assertEquals(1, request.items.size());
+        assertEquals(7L, request.items.get(0).amenity_id);
+    }
+
+    @Test
     public void aRefusedSubmit_keepsTheFormAndTheChoices_andSaysWhy() {
-        AdditionalAmenitiesActivity a = openWithCatalog();
-        android.widget.LinearLayout list = a.findViewById(R.id.additionalAmenitiesList);
-        list.getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(room(11, "101", "Standard")));
+        openPicker(a, 0).getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
 
         a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
         shadowOf(Looper.getMainLooper()).idle();
@@ -212,7 +301,9 @@ public class AdditionalAmenitiesScreenTest {
 
         assertFalse(a.isFinishing());
         assertTrue(visible(a, R.id.additionalAmenitiesForm));
-        assertEquals("1", ((TextView) list.getChildAt(0).findViewById(R.id.tvAmenityOptionQty)).getText().toString());
+        assertEquals(a.getString(R.string.additional_amenities_selected_count_format, 1),
+                ((TextView) ((android.widget.LinearLayout) a.findViewById(R.id.additionalAmenitiesRooms)).getChildAt(0)
+                        .findViewById(R.id.tvAmenityRoomSelection)).getText().toString());
         assertTrue("can try again", a.findViewById(R.id.additionalAmenitiesSubmit).isEnabled());
         assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().contains("Extra Bed"));
     }

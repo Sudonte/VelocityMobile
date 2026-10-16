@@ -14,6 +14,7 @@ public final class ReceiptTypeMapper {
     public static final String PARTIAL_RECEIPT = "PARTIAL_RECEIPT";
     public static final String FULL_PAYMENT_RECEIPT = "FULL_PAYMENT_RECEIPT";
     public static final String OFFICIAL_RECEIPT = "OFFICIAL_RECEIPT";
+    public static final String CHECKIN_SETTLEMENT_RECEIPT = "CHECKIN_SETTLEMENT_RECEIPT";
 
     public static final String PARTIAL_PAYMENT = "PARTIAL_PAYMENT";
     public static final String FULL_PAYMENT = "FULL_PAYMENT";
@@ -39,10 +40,38 @@ public final class ReceiptTypeMapper {
                 return "Partial Payment Receipt";
             case OFFICIAL_RECEIPT:
                 return "Official Payment Receipt";
+            case CHECKIN_SETTLEMENT_RECEIPT:
+                return "Check-In Settlement Receipt";
             case FULL_PAYMENT_RECEIPT:
             default:
                 return "Payment Receipt";
         }
+    }
+
+    /**
+     * Which of a stay's three receipts this is: 1 = a payment verified in the Booking module (partial or full),
+     * 2 = the balance settled at check-in, 3 = the official receipt at check-out; 0 when the type is unknown.
+     */
+    public static int stageOf(String receiptType) {
+        if (receiptType == null) return 0;
+        switch (receiptType) {
+            case PARTIAL_RECEIPT:
+            case FULL_PAYMENT_RECEIPT:
+                return 1;
+            case CHECKIN_SETTLEMENT_RECEIPT:
+                return 2;
+            case OFFICIAL_RECEIPT:
+                return 3;
+            default:
+                return 0;
+        }
+    }
+
+    /** "Receipt 2 - Check-In Settlement Receipt": the label with its place in the stay's three receipts. */
+    public static String labelWithStage(String receiptType) {
+        int stage = stageOf(receiptType);
+        String label = labelForReceiptType(receiptType);
+        return stage == 0 ? label : "Receipt " + stage + " - " + label;
     }
 
     /**

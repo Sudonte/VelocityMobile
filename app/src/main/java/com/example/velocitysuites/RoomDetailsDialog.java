@@ -285,6 +285,18 @@ final class RoomDetailsDialog {
             tvAmenities.setText(amenities.toString().trim());
         }
 
+        ((TextView) dialogView.findViewById(R.id.detailPricingText)).setText(
+                activity.getString(R.string.pricing_text_format,
+                        activity.getString(R.string.price_format_night, room.getPricePerNight())));
+        // The admin's per-room-type notes (if any) are appended under the hotel-wide policies.
+        TextView policiesBody = dialogView.findViewById(R.id.detailPoliciesBody);
+        if (room.getPolicies() != null && !room.getPolicies().trim().isEmpty()) {
+            policiesBody.setText(activity.getString(R.string.hotel_policies_content) + "\n\n" + room.getPolicies().trim());
+        }
+        makeCollapsible(dialogView.findViewById(R.id.headDescription), tvDesc, true);
+        makeCollapsible(dialogView.findViewById(R.id.headAmenities), tvAmenities, true);
+        makeCollapsible(dialogView.findViewById(R.id.headPolicies), policiesBody, false);
+
         // Cap the scrollable content area so a long description/amenities/policies
         // stack can never push the quantity selector or action row below the
         // dialog's visible bounds on a small screen - see
@@ -294,6 +306,26 @@ final class RoomDetailsDialog {
         scroll.setMaxHeightPx((int) (activity.getResources().getDisplayMetrics().heightPixels * 0.6f));
 
         return dialogView;
+    }
+
+    /**
+     * Tap a section heading to fold/unfold its body; a chevron on the heading shows the current state.
+     * Description and Amenities start open, the long Policies list starts folded.
+     */
+    private static void makeCollapsible(View heading, View body, boolean startOpen) {
+        TextView label = heading instanceof TextView ? (TextView) heading
+                : (TextView) ((android.view.ViewGroup) heading).getChildAt(0);
+        boolean[] open = {startOpen};
+        Runnable apply = () -> {
+            body.setVisibility(open[0] ? View.VISIBLE : View.GONE);
+            label.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0,
+                    open[0] ? R.drawable.ic_expand_less : R.drawable.ic_expand_more, 0);
+            label.setCompoundDrawableTintList(android.content.res.ColorStateList.valueOf(
+                    label.getContext().getColor(R.color.velocity_text_secondary)));
+            heading.setContentDescription(label.getText() + ", " + (open[0] ? "expanded" : "collapsed"));
+        };
+        apply.run();
+        heading.setOnClickListener(v -> { open[0] = !open[0]; apply.run(); });
     }
 
     private static AlertDialog showDialog(AlertDialog dialog) {

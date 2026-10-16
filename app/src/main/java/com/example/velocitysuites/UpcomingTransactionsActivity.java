@@ -431,7 +431,11 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
 
     private View buildAmenityRequestRow(ViewGroup parent, com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto r, java.text.NumberFormat currencyFormat) {
         View row = LayoutInflater.from(this).inflate(R.layout.item_additional_amenity_request, parent, false);
-        ((TextView) row.findViewById(R.id.tvAmenityRequestName)).setText(getString(R.string.amenity_request_name_format, r.name, r.quantity));
+        String requestName = getString(R.string.amenity_request_name_format, r.name, r.quantity);
+        if (r.room_number != null && !r.room_number.isEmpty()) {
+            requestName += " - " + getString(R.string.amenity_request_room_format, r.room_number);
+        }
+        ((TextView) row.findViewById(R.id.tvAmenityRequestName)).setText(requestName);
         ((TextView) row.findViewById(R.id.tvAmenityRequestPrice)).setText(getString(R.string.amenity_request_price_format,
                 currencyFormat.format(r.unit_price), currencyFormat.format(r.subtotal)));
 

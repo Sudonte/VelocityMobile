@@ -18,11 +18,6 @@
             android:title="@string/nav_booking_reservation" />
 
         <item
-            android:id="@+id/nav_payment"
-            android:icon="@drawable/ic_payment_card"
-            android:title="@string/nav_payment" />
-
-        <item
             android:id="@+id/nav_transaction_history"
             android:icon="@drawable/ic_transaction_history"
             android:title="@string/nav_transaction_history" />

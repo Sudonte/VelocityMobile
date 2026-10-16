@@ -25,6 +25,10 @@ public class ReceiptDetailDto {
     /** PARTIAL_RECEIPT | FULL_PAYMENT_RECEIPT | OFFICIAL_RECEIPT. */
     public String receipt_type;
     public String receipt_number;
+    /** 1 = a payment verified in the Booking module, 2 = the balance settled at check-in, 3 = the official receipt at check-out. */
+    public Integer receipt_stage;
+    /** Receipt 2 only: the frozen check-in settlement (null for the other receipts). */
+    public CheckinSettlementDto checkin_settlement;
     public long booking_id;
     /** Set only when this booking was converted from a Reservation. */
     public Long reservation_id;
@@ -52,6 +56,32 @@ public class ReceiptDetailDto {
     public AnchorPaymentDto anchor_payment;
     /** ISO-8601 instant this receipt was issued. */
     public String issued_at;
+
+    /** Receipt 2: what was settled in the Check-In module, as the server froze it. */
+    public static class CheckinSettlementDto {
+        /** partial_to_full | full_payment | full_confirmation */
+        public String settlement_type;
+        public double amount_settled;
+        public String payment_method;
+        public double change_returned;
+        public double total_amount;
+        public double total_paid_before;
+        public double total_paid;
+        public double balance;
+        public DiscountResultDto discount;
+        public String settled_at;
+        public String verified_by;
+    }
+
+    /** The discount ID result at check-in. */
+    public static class DiscountResultDto {
+        public boolean requested;
+        /** not_requested | approved | rejected */
+        public String status;
+        public String name;
+        public double amount;
+        public String rejection_reason;
+    }
 
     public static class AnchorPaymentDto {
         public double amount_paid;

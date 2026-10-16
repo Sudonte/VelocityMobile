@@ -83,6 +83,9 @@ public class ReceiptDetail implements Serializable {
     @Nullable public String getCheckIn() { return checkIn; }
     @Nullable public String getCheckOut() { return checkOut; }
     public int getNumberOfNights() { return stay != null ? stay.actualNights : numberOfNights; }
+    @Nullable public CheckinSettlement getCheckinSettlement() { return checkinSettlement; }
+    public void setCheckinSettlement(@Nullable CheckinSettlement checkinSettlement) { this.checkinSettlement = checkinSettlement; }
+    private CheckinSettlement checkinSettlement;
     @Nullable public StayInfo getStay() { return stay; }
     public void setStay(@Nullable StayInfo stay) { this.stay = stay; }
     private StayInfo stay;
@@ -93,6 +96,45 @@ public class ReceiptDetail implements Serializable {
     public List<Booking.PaymentTransactionRecord> getPaymentTransactions() { return paymentTransactions; }
     @Nullable public AnchorPayment getAnchorPayment() { return anchorPayment; }
     @Nullable public String getIssuedAt() { return issuedAt; }
+
+    /** Receipt 2: what was settled in the Check-In module - frozen by the server at that moment. */
+    public static class CheckinSettlement implements Serializable {
+        public static final String PARTIAL_TO_FULL = "partial_to_full";
+        public static final String FULL_PAYMENT = "full_payment";
+        public static final String FULL_CONFIRMATION = "full_confirmation";
+
+        public final String settlementType;
+        public final double amountSettled;
+        @Nullable public final String paymentMethod;
+        public final double changeReturned;
+        public final double totalAmount;
+        public final double totalPaid;
+        public final double balance;
+        /** not_requested | approved | rejected */
+        public final String discountStatus;
+        @Nullable public final String discountName;
+        public final double discountAmount;
+        @Nullable public final String discountRejectionReason;
+        @Nullable public final String verifiedBy;
+
+        public CheckinSettlement(String settlementType, double amountSettled, @Nullable String paymentMethod, double changeReturned,
+                                 double totalAmount, double totalPaid, double balance, String discountStatus,
+                                 @Nullable String discountName, double discountAmount, @Nullable String discountRejectionReason,
+                                 @Nullable String verifiedBy) {
+            this.settlementType = settlementType;
+            this.amountSettled = amountSettled;
+            this.paymentMethod = paymentMethod;
+            this.changeReturned = changeReturned;
+            this.totalAmount = totalAmount;
+            this.totalPaid = totalPaid;
+            this.balance = balance;
+            this.discountStatus = discountStatus != null ? discountStatus : "not_requested";
+            this.discountName = discountName;
+            this.discountAmount = discountAmount;
+            this.discountRejectionReason = discountRejectionReason;
+            this.verifiedBy = verifiedBy;
+        }
+    }
 
     /** True for a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT (anchored on one specific payment) - false for an OFFICIAL_RECEIPT. */
     public boolean isAnchoredOnSinglePayment() {

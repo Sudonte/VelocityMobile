@@ -147,6 +147,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         startAnimations();
         initClock();
+        stayCalendar = new DashboardStayCalendar(findViewById(R.id.stayCalendar), hotelToday());
     }
 
     private void initializeNewComponents() {
@@ -531,18 +532,10 @@ public class DashboardActivity extends BaseNavigationActivity {
         View layoutRemaining = card.findViewById(R.id.layoutPaymentRemainingBalance);
         TextView tvRemaining = card.findViewById(R.id.tvPaymentRemainingBalance);
         View btnQuickPay = card.findViewById(R.id.btnQuickPay);
-        ImageView ivRoomImage = card.findViewById(R.id.ivPaymentRoomImage);
 
         tvRoomName.setText(b.getRoomName());
         ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        if (ivRoomImage != null) {
-            int fallbackImage = RoomVisuals.getRoomImage(b.getRoomType());
-            if (b.getRoomImageUrl() != null && !b.getRoomImageUrl().isEmpty()) {
-                Glide.with(this).load(b.getRoomImageUrl()).placeholder(fallbackImage).error(fallbackImage).into(ivRoomImage);
-            } else {
-                ivRoomImage.setImageResource(fallbackImage);
-            }
-        }
+        // (the room photo is hidden in this light row - see lightenPaymentCard - so it is not downloaded)
         String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getDisplayId();
         tvRef.setText(getString(R.string.transaction_ref_format, ref));
 
@@ -672,8 +665,26 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
 
         FrontDeskNote.bind(card.findViewById(R.id.tvFrontDeskNote), b);
+        lightenPaymentCard(card);
 
         paymentListContainer.addView(card);
+    }
+
+    /**
+     * The dashboard's Payment Status rows keep only the key facts - reference, status badge, amount and balance. The
+     * photo, room name, transaction reference, payment method, deadline, verification chip, paid column and front-desk
+     * note are all still on the full details screen, which a tap on the row opens.
+     */
+    private static void lightenPaymentCard(View card) {
+        for (int id : new int[]{R.id.tvTransactionTypePill, R.id.tvPaymentRoomName, R.id.tvTransactionRef, R.id.tvPaymentMethod,
+                R.id.tvPaymentDeadline, R.id.tvVerificationStatus, R.id.tvFrontDeskNote}) {
+            View v = card.findViewById(id);
+            if (v != null) v.setVisibility(View.GONE);
+        }
+        View image = card.findViewById(R.id.ivPaymentRoomImage);
+        if (image != null && image.getParent() instanceof View) ((View) image.getParent()).setVisibility(View.GONE);
+        View paid = card.findViewById(R.id.tvAmountPaid);
+        if (paid != null && paid.getParent() instanceof View) ((View) paid.getParent()).setVisibility(View.GONE);
     }
     /** How many of the soonest upcoming check-ins/check-outs the Upcoming Transactions preview shows. */
     private static final int UPCOMING_PREVIEW_LIMIT = 5;
@@ -983,7 +994,7 @@ public class DashboardActivity extends BaseNavigationActivity {
             findViewById(stateId).findViewById(R.id.sectionStateRetry).setOnClickListener(NavUtils.debounce(v -> retryDashboardLoad()));
         }
         findViewById(R.id.btnEditProfile).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, ProfileManagementActivity.class))));
-        findViewById(R.id.dateTimeCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, CalendarActivity.class))));
+        findViewById(R.id.dateTimeCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, UpcomingTransactionsActivity.class))));
 
         View headerNotification = findViewById(R.id.headerNotificationContainer);
         if (headerNotification != null) {
@@ -1155,6 +1166,54 @@ public class DashboardActivity extends BaseNavigationActivity {
         return java.time.LocalDate.now(java.time.ZoneId.of("Asia/Manila"));
     }
 
+    /** The calendar under Next Stay, created on first use (the card is always in the layout). */
+    private DashboardStayCalendar stayCalendar;
+
+    /**
+     * Next Stay shows only the single nearest stay, but a guest can hold several - even on the same day - so every
+     * other upcoming stay (soonest first) and the latest finished ones are listed under it, and the calendar is
+     * refreshed from the same bookings.
+     */
+    private void updateMoreStaysAndCalendar(List<Booking> bookings) {
+        if (stayCalendar == null) {
+            stayCalendar = new DashboardStayCalendar(findViewById(R.id.stayCalendar), hotelToday());
+        }
+        stayCalendar.setBookings(bookings);
+
+        LinearLayout list = findViewById(R.id.moreStaysList);
+        View section = findViewById(R.id.moreStaysSection);
+        list.removeAllViews();
+        List<Booking> upcoming = new ArrayList<>();
+        List<Booking> recent = new ArrayList<>();
+        for (Booking b : bookings) {
+            if (b == null || (currentNextStay != null && b == currentNextStay.booking)) continue;
+            TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
+            if (category == TransactionCategorizer.Category.UPCOMING || category == TransactionCategorizer.Category.ACTIVE) upcoming.add(b);
+            else if (category == TransactionCategorizer.Category.COMPLETED) recent.add(b);
+        }
+        java.util.Comparator<Booking> byCheckIn = (x, y) -> {
+            java.time.LocalDate a = PaymentDates.parseDate(x.getCheckInDate());
+            java.time.LocalDate c = PaymentDates.parseDate(y.getCheckInDate());
+            if (a == null || c == null) return a == null ? (c == null ? 0 : 1) : -1;
+            return a.compareTo(c);
+        };
+        java.util.Collections.sort(upcoming, byCheckIn);
+        java.util.Collections.sort(recent, byCheckIn.reversed());
+        int shownCount = 0;
+        for (Booking b : upcoming) {
+            if (shownCount >= 4) break;
+            addTransactionItemCard(b, true, list, false);
+            shownCount++;
+        }
+        for (Booking b : recent) {
+            if (shownCount >= 6 || list.getChildCount() >= 6) break;
+            if (shownCount >= 4 && recent.indexOf(b) >= 2) break;
+            addTransactionItemCard(b, false, list, false);
+            shownCount++;
+        }
+        section.setVisibility(shownCount > 0 ? View.VISIBLE : View.GONE);
+    }
+
     private void showNextStayState(View visible) {
         for (View state : new View[]{nextStayLoading, nextStayError, nextStayEmpty, nextStayContent}) {
             state.setVisibility(state == visible ? View.VISIBLE : View.GONE);
@@ -1175,9 +1234,11 @@ public class DashboardActivity extends BaseNavigationActivity {
         NextStay stay = NextStay.select(bookings, hotelToday());
         if (stay == null) {
             showNextStayState(nextStayEmpty);
+            updateMoreStaysAndCalendar(bookings);
             return;
         }
         currentNextStay = stay;
+        updateMoreStaysAndCalendar(bookings);
 
         ((TextView) findViewById(R.id.tvNextStayHint)).setText(stay.hint(this));
         ((TextView) findViewById(R.id.tvNextStayRooms)).setText(TransactionRow.roomTextOf(stay.booking));

@@ -120,17 +120,6 @@
                 android:paddingEnd="14dp"
                 android:paddingBottom="36dp">
 
-                <!-- Group label for the profile-data cards below (Profile Summary through
-                     Address Information) - reuses ProfileLabelStyle (already this screen's
-                     small/letter-spaced/muted-caps convention for every field label) as a
-                     page-level section header instead of introducing a new style. -->
-                <TextView
-                    style="@style/ProfileLabelStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/section_group_profile_info" />
-
                 <!-- Profile header: cover photo (the Landing screen's background) edge to edge, the
                      circular profile picture overlapping its bottom edge, and the guest's details
                      centered underneath. The negative margins cancel this column's own padding so

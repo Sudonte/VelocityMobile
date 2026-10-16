@@ -77,7 +77,7 @@ public class BookingDetailsLayoutTest {
         assertEquals(View.VISIBLE, a.findViewById(R.id.cardDiscountId).getVisibility());
         LinearLayout content = a.findViewById(R.id.sectionDiscountIdContent);
         String text = textOf(content);
-        assertTrue(text, text.startsWith("To be verified at check-in"));
+        assertTrue(text, text.startsWith("To be validated at check-in"));
         assertTrue(text.contains("The receptionist will check your ID when you check in. Your discount will be applied to your bill then."));
         assertTrue("amount is marked pending", text.contains("Applied at check-in once your ID is verified"));
     }
@@ -86,7 +86,7 @@ public class BookingDetailsLayoutTest {
     public void approvedId_saysVerified_andTheDiscountIsOnTheCheckInBill() {
         BookingDetailsActivity a = open(booking("approved"));
         String text = textOf(a.findViewById(R.id.sectionDiscountIdContent));
-        assertTrue(text, text.startsWith("ID Verified"));
+        assertTrue(text, text.startsWith("Validated"));
         assertTrue(text.contains("Your ID was successfully verified. Your discount has been applied to your check-in bill."));
     }
 
@@ -94,7 +94,7 @@ public class BookingDetailsLayoutTest {
     public void rejectedId_saysSo_withNoNewFlow() {
         BookingDetailsActivity a = open(booking("rejected"));
         String text = textOf(a.findViewById(R.id.sectionDiscountIdContent));
-        assertTrue(text, text.startsWith("ID Not Verified"));
+        assertTrue(text, text.startsWith("Not validated"));
         assertTrue(text, text.contains("Your ID couldn't be verified. The regular rate applies."));
     }
 

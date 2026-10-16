@@ -207,6 +207,13 @@ public class BookingWizardActivity extends AppCompatActivity {
             // (RoomDetailsDialog's Book Now/Reserve Now, or the multi-room cart)
             // so Step 1 never starts empty when a room was already chosen.
             state.selectedRooms.addAll(PendingWizardRooms.consume());
+            // Dates searched in Room Browsing pre-fill the date step - only if they still satisfy the
+            // check-in window and the stay is at least one night (otherwise the guest just picks again).
+            java.util.Calendar[] searched = PendingWizardRooms.consumeDates();
+            if (searched != null && searched[1].after(searched[0]) && CheckInWindow.isAllowed(searched[0])) {
+                state.checkIn = searched[0];
+                state.checkOut = searched[1];
+            }
 
             // "Book Again"/"Reserve Again" on a cancelled transaction - not an
             // edit (this is a brand-new transaction, never seedStateForEdit()'s

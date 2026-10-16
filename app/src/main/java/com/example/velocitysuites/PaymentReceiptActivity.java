@@ -361,8 +361,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         String typeLabel = ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType());
         ((TextView) findViewById(R.id.tvReceiptHeaderTitle)).setText(typeLabel);
+        String stageLabel = ReceiptTypeMapper.labelWithStage(detail.getReceiptType());
 
-        buildHeaderSection(content, detail, typeLabel);
+        buildHeaderSection(content, detail, stageLabel);
         buildStaySection(content, detail);
         buildGuestSection(content, detail);
         buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
@@ -549,6 +550,12 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         String statusLabel = getString(TransactionStatusHelper.styleFor(statusSummary.status).labelRes);
         Booking.PaymentTransactionRecord paymentRecord = anchorTransactionOf(detail);
 
+        ReceiptDetail.CheckinSettlement settlement = detail.getCheckinSettlement();
+        if (settlement != null) {
+            buildCheckinSettlementRows(content, settlement, statusLabel);
+            return;
+        }
+
         if (summary.paymentPercentage != null) {
             addRow(content, getString(R.string.receipt_payment_percentage_label),
                     PaymentPercentageUtil.formatApiPercentageForDisplay(summary.paymentPercentage));
@@ -585,6 +592,46 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             addDivider(content, dp(12));
             addProminentTotal(content, getString(R.string.receipt_total_amount_paid_label), formatPrice(summary.totalAmountPaid));
         }
+    }
+
+    /**
+     * Receipt 2 - the balance settled in the Check-In module: how it was settled, the amount settled, the total paid, the
+     * balance (always 0 here) and the result of the discount ID validation. Every figure is the server's frozen snapshot.
+     */
+    private void buildCheckinSettlementRows(LinearLayout content, ReceiptDetail.CheckinSettlement c, String statusLabel) {
+        int typeRes = ReceiptDetail.CheckinSettlement.PARTIAL_TO_FULL.equals(c.settlementType) ? R.string.receipt_settlement_partial_to_full
+                : ReceiptDetail.CheckinSettlement.FULL_CONFIRMATION.equals(c.settlementType) ? R.string.receipt_settlement_full_confirmation
+                : R.string.receipt_settlement_full_payment;
+        addRowOrDash(content, getString(R.string.receipt_settlement_type_label), getString(typeRes));
+        addRowOrDash(content, getString(R.string.receipt_total_amount_label), formatPrice(c.totalAmount));
+        addRowOrDash(content, getString(R.string.receipt_amount_settled_label), formatPrice(c.amountSettled));
+        if (c.amountSettled > 0.004) {
+            addPaymentMethodDateTime(content, c.paymentMethod, null);
+        }
+        if (c.changeReturned > 0.004) {
+            addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(c.changeReturned));
+        }
+        addRowOrDash(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(c.totalPaid));
+        addRowOrDash(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(c.balance));
+        addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
+
+        String idResult;
+        switch (c.discountStatus) {
+            case "approved":
+                idResult = c.discountName != null && !c.discountName.isEmpty()
+                        ? getString(R.string.receipt_id_validated_named_format, c.discountName, formatPrice(c.discountAmount))
+                        : getString(R.string.discount_chip_approved);
+                break;
+            case "rejected":
+                idResult = c.discountRejectionReason != null && !c.discountRejectionReason.isEmpty()
+                        ? getString(R.string.receipt_id_not_validated_reason_format, c.discountRejectionReason)
+                        : getString(R.string.discount_chip_rejected);
+                break;
+            default:
+                idResult = getString(R.string.receipt_id_no_discount);
+        }
+        addRowOrDash(content, getString(R.string.receipt_id_validation_label), idResult);
+        addRow(content, getString(R.string.receipt_verified_by_label), c.verifiedBy);
     }
 
     /** The payment transaction this receipt is about: the one that carries its own receipt number, else the most recent. */

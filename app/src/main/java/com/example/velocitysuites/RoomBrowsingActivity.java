@@ -1010,6 +1010,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         isNavigatingToBookingFlow = true;
         List<Room> roomsToCarry = resolveCartRoomsIncluding(room);
         PendingWizardRooms.set(roomsToCarry);
+        PendingWizardRooms.setDates(checkInDate, checkOutDate);
         startActivity(StartingTransactionActivity.newIntent(this,
                 reservation ? BookingWizardState.Mode.RESERVATION : BookingWizardState.Mode.BOOKING));
     }
@@ -1045,6 +1046,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (cartRooms.isEmpty()) return;
         isNavigatingToBookingFlow = true;
         PendingWizardRooms.set(cartRooms);
+        PendingWizardRooms.setDates(checkInDate, checkOutDate);
         startActivity(StartingTransactionActivity.newIntent(this,
                 reservation ? BookingWizardState.Mode.RESERVATION : BookingWizardState.Mode.BOOKING));
     }

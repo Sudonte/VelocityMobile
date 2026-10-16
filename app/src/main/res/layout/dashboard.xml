@@ -214,7 +214,7 @@
                     android:text="@string/next_stay_section_desc"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />
-                <!-- Date and time at the hotel (Asia/Manila), live. Tap to open the Calendar. -->
+                <!-- Date and time at the hotel (Asia/Manila), live. Tap to open Upcoming Transactions. -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/dateTimeCard"
                     style="@style/Widget.Velocity.Card.Glass.Compact"
@@ -531,6 +531,33 @@
                         </LinearLayout>
                     </FrameLayout>
                 </com.google.android.material.card.MaterialCardView>
+
+                <!-- Other recent and upcoming stays (several can fall on the same day), then the calendar. -->
+                <LinearLayout
+                    android:id="@+id/moreStaysSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityHeading="true"
+                        android:text="@string/more_stays_title" />
+
+                    <LinearLayout
+                        android:id="@+id/moreStaysList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+
+                <include
+                    android:id="@+id/stayCalendar"
+                    layout="@layout/view_stay_calendar" />
 
                                 <!-- Section header: a clear title and one line saying what the section is for -->
                 <TextView

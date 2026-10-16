@@ -33,6 +33,22 @@ public class ReceiptTypeMapperTest {
     }
 
     @Test
+    public void checkinSettlementReceipt_isReceipt2() {
+        assertEquals("Check-In Settlement Receipt", ReceiptTypeMapper.labelForReceiptType("CHECKIN_SETTLEMENT_RECEIPT"));
+        assertEquals(2, ReceiptTypeMapper.stageOf("CHECKIN_SETTLEMENT_RECEIPT"));
+        assertEquals("Receipt 2 - Check-In Settlement Receipt", ReceiptTypeMapper.labelWithStage("CHECKIN_SETTLEMENT_RECEIPT"));
+    }
+
+    @Test
+    public void everyReceiptKnowsWhichOfTheThreeItIs() {
+        assertEquals(1, ReceiptTypeMapper.stageOf("PARTIAL_RECEIPT"));
+        assertEquals(1, ReceiptTypeMapper.stageOf("FULL_PAYMENT_RECEIPT"));
+        assertEquals(3, ReceiptTypeMapper.stageOf("OFFICIAL_RECEIPT"));
+        assertEquals(0, ReceiptTypeMapper.stageOf("SOMETHING_NEW"));
+        assertEquals("a future type keeps its plain label", "Payment Receipt", ReceiptTypeMapper.labelWithStage("SOMETHING_NEW"));
+    }
+
+    @Test
     public void unknownFutureReceiptType_fallsBackToGenericPaymentReceipt_neverCrashes() {
         assertEquals("Payment Receipt", ReceiptTypeMapper.labelForReceiptType("SOME_NEW_RECEIPT_TYPE_FROM_A_FUTURE_BACKEND"));
     }

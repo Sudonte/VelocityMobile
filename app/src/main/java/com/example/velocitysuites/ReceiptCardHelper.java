@@ -137,7 +137,7 @@ final class ReceiptCardHelper {
         LayoutInflater inflater = LayoutInflater.from(activity);
         for (Booking.ReceiptSummary receipt : receipts) {
             View card = inflater.inflate(R.layout.item_receipt_summary_card, container, false);
-            ((TextView) card.findViewById(R.id.tvReceiptCardType)).setText(ReceiptTypeMapper.labelForReceiptType(receipt.receiptType));
+            ((TextView) card.findViewById(R.id.tvReceiptCardType)).setText(ReceiptTypeMapper.labelWithStage(receipt.receiptType));
             ((TextView) card.findViewById(R.id.tvReceiptCardNumber)).setText(receipt.receiptNumber);
             ((TextView) card.findViewById(R.id.tvReceiptCardAmount)).setText(formatPrice(receipt.amount));
 

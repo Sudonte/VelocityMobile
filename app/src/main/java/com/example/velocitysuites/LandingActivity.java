@@ -642,6 +642,12 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
             navigateToWelcome();
         };
         findViewById(R.id.btnProceed).setOnClickListener(authRequiredClick);
+        // Theme toggle: shows the mode you would switch TO (moon in Light, sun in Dark). setMode()
+        // persists the choice and AppCompat recreates every open screen, so it applies app-wide.
+        android.widget.ImageButton themeToggle = findViewById(R.id.btnThemeToggle);
+        themeToggle.setImageResource(ThemePreferences.isDarkMode(this) ? R.drawable.ic_light_mode : R.drawable.ic_dark_mode);
+        themeToggle.setOnClickListener(v -> ThemePreferences.setMode(this,
+                ThemePreferences.isDarkMode(this) ? ThemePreferences.MODE_LIGHT : ThemePreferences.MODE_DARK));
         // "Explore Now" smoothly scrolls to the Available Rooms section
         // instead of leaving the app - the real hotel website is still one
         // tap away via the Hotel Info section's own website card
