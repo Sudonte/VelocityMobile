@@ -329,19 +329,19 @@
                                 android:id="@+id/editProfileButton"
                                 style="@style/Widget.MaterialComponents.Button.TextButton"
                                 android:layout_width="wrap_content"
-                                android:layout_height="26dp"
-                                android:layout_marginStart="8dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
                                 android:contentDescription="@string/edit_profile"
                                 android:fontFamily="sans-serif-black"
                                 android:insetTop="0dp"
                                 android:insetBottom="0dp"
                                 android:minWidth="0dp"
-                                android:minHeight="0dp"
-                                android:paddingHorizontal="10dp"
+                                android:minHeight="48dp"
+                                android:paddingHorizontal="14dp"
                                 android:text="@string/edit_profile"
                                 android:textAllCaps="false"
                                 android:textColor="@color/velocity_red_primary"
-                                android:textSize="11sp"
+                                android:textSize="13sp"
                                 app:backgroundTint="@color/velocity_red_soft"
                                 app:cornerRadius="0dp"
                                 app:icon="@drawable/ic_edit"
@@ -463,8 +463,8 @@
                             android:text="@string/profile_update_status_eligible"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="12sp"
-                            android:visibility="gone"
-                            tools:visibility="gone" />
+                            android:visibility="visible"
+                            tools:visibility="visible" />
 
                         <!-- Locked state - exact server-provided dates, shown as two rows. -->
                         <LinearLayout
@@ -472,7 +472,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:visibility="visible"
+                            android:visibility="gone"
                             tools:visibility="visible">
 
                             <LinearLayout

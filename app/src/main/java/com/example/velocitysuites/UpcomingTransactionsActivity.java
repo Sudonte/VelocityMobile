@@ -50,6 +50,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     private View emptyState, loadingOverlay;
     private androidx.core.widget.NestedScrollView screenContent;
     private ChipGroup chipGroupFilters;
+    private ChipGroup chipGroupPeriod;
+    private StayCalendarModel.Mode periodMode = null; // null = any date
     private RoomRepository repository;
     private final List<UpcomingEvent> allEvents = new ArrayList<>();
     private String currentFilter = "All";
@@ -70,11 +72,13 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         loadingOverlay = findViewById(R.id.loadingOverlay);
         screenContent = findViewById(R.id.screenContent);
         chipGroupFilters = findViewById(R.id.chipGroupUpcomingFilters);
+        chipGroupPeriod = findViewById(R.id.chipGroupUpcomingPeriod);
 
         selectedBookingId = getIntent().getStringExtra(EXTRA_SELECTED_BOOKING_ID);
         pendingScrollToSelected = selectedBookingId != null;
 
         setupFilters();
+        setupPeriodFilter();
 
         loadEvents();
     }
@@ -93,6 +97,26 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             else currentFilter = "All";
             renderEvents();
         });
+    }
+
+    private void setupPeriodFilter() {
+        if (chipGroupPeriod == null) return;
+        chipGroupPeriod.setOnCheckedStateChangeListener((group, ids) -> {
+            if (ids.contains(R.id.chipPeriodDaily)) periodMode = StayCalendarModel.Mode.DAILY;
+            else if (ids.contains(R.id.chipPeriodWeekly)) periodMode = StayCalendarModel.Mode.WEEKLY;
+            else if (ids.contains(R.id.chipPeriodMonthly)) periodMode = StayCalendarModel.Mode.MONTHLY;
+            else periodMode = null;
+            renderEvents();
+        });
+    }
+
+    /** True when the event falls in the chosen Daily / Weekly / Monthly window around today (hotel time); always true for "Any date". */
+    private boolean inPeriod(UpcomingEvent e) {
+        if (periodMode == null) return true;
+        java.time.LocalDate day = PaymentDates.parseDate(e.dateLabel);
+        if (day == null) return false;
+        java.time.LocalDate today = java.time.LocalDate.now(TimeUtils.ZONE_MANILA);
+        return !day.isBefore(StayCalendarModel.windowStart(periodMode, today)) && !day.isAfter(StayCalendarModel.windowEnd(periodMode, today));
     }
 
     private void loadEvents() {
@@ -187,7 +211,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
                 case "Reservations": matches = !e.booking.isHasBooking(); break;
                 default: matches = true;
             }
-            if (matches) filtered.add(e);
+            if (matches && inPeriod(e)) filtered.add(e);
         }
 
         if (filtered.isEmpty()) {
@@ -492,47 +516,41 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         Booking b = e.booking;
 
         TextView tvTomorrowBadge = card.findViewById(R.id.tvTomorrowBadge);
-        TextView tvTypePill = card.findViewById(R.id.tvTransactionTypePill);
-        TextView tvBookingId = card.findViewById(R.id.tvTransactionBookingId);
-        TextView tvTitle = card.findViewById(R.id.tvTransactionTitle);
-        TextView tvRoomType = card.findViewById(R.id.tvTransactionRoomType);
-        TextView tvCheckIn = card.findViewById(R.id.tvTransactionCheckIn);
-        TextView tvCheckInTime = card.findViewById(R.id.tvTransactionCheckInTime);
-        TextView tvCheckOut = card.findViewById(R.id.tvTransactionCheckOut);
-        TextView tvCheckOutTime = card.findViewById(R.id.tvTransactionCheckOutTime);
-        TextView tvGuests = card.findViewById(R.id.tvTransactionGuests);
-        TextView tvTotal = card.findViewById(R.id.tvTransactionTotal);
         TextView tvStatus = card.findViewById(R.id.tvTransactionStatus);
         TextView tvPaymentStatus = card.findViewById(R.id.tvTransactionPaymentStatus);
 
-        tvTypePill.setText(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-        // The ID leads each item, labelled so a booking and a reservation can be told apart: "Booking #338" / "Reservation #588".
-        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        tvTitle.setText(b.getRoomName());
-        tvRoomType.setText(getString(R.string.booking_detail_room_type,
-                android.text.TextUtils.join(", ", b.getAllRoomTypeNames())));
-        tvCheckIn.setText(b.getCheckInDate());
-        tvCheckInTime.setText(R.string.check_in_time);
-        tvCheckOut.setText(b.getCheckOutDate());
-        tvCheckOutTime.setText(R.string.check_out_time);
-        tvGuests.setText(getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
+        // The reference leads: "Booking #338" / "Reservation #588".
+        ((TextView) card.findViewById(R.id.tvTransactionBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
+        ((TextView) card.findViewById(R.id.tvTransactionTitle)).setText(TransactionRow.roomTextOf(b));
 
-        java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-        tvTotal.setText(currencyFormat.format(b.getTotalAmount()));
+        // What happens and when - date and time to the second (the hotel's posted time).
+        ((TextView) card.findViewById(R.id.tvEventKind)).setText(e.isCheckIn ? R.string.stay_calendar_kind_checkin : R.string.stay_calendar_kind_checkout);
+        ((TextView) card.findViewById(R.id.tvEventWhen)).setText(getString(R.string.stay_calendar_when_format, e.dateLabel,
+                StayCalendarModel.formatTime(e.isCheckIn ? StayCalendarModel.CHECK_IN_TIME : StayCalendarModel.CHECK_OUT_TIME)));
+        ((TextView) card.findViewById(R.id.tvTransactionStay)).setText(getString(R.string.upcoming_stay_format,
+                b.getCheckInDate(), b.getCheckOutDate(), getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests())));
 
-        // Booking/reservation status - same color convention as TransactionAdapter.
+        // Balance still to pay, from the same helper as every other status in the app.
+        ((TextView) card.findViewById(R.id.tvTransactionBalance)).setText(MoneyFormat.format(TransactionStatusHelper.summarize(b).balance));
+
         String status = b.getStatus();
         tvStatus.setText(status);
+        // Night-aware status colours (the same ones Next Stay uses), so the badge reads in light and dark.
+        int bg;
+        int fg;
         if ("Confirmed".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status) || "Checked-Out".equalsIgnoreCase(status) || "Verified".equalsIgnoreCase(status)) {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_success);
-            tvStatus.setTextColor(getColor(R.color.velocity_green_dark));
+            bg = R.color.status_paid_bg;
+            fg = R.color.status_paid_fg;
         } else if ("Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)) {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_error);
-            tvStatus.setTextColor(getColor(R.color.velocity_red_dark));
+            bg = R.color.velocity_red_status_soft;
+            fg = R.color.velocity_red_status_dark;
         } else {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_warning);
-            tvStatus.setTextColor(getColor(R.color.velocity_orange_primary));
+            bg = R.color.status_pending_bg;
+            fg = R.color.status_pending_fg;
         }
+        tvStatus.setBackgroundResource(R.drawable.shape_intro_pill);
+        tvStatus.setBackgroundTintList(getColorStateList(bg));
+        tvStatus.setTextColor(getColor(fg));
 
         PaymentStatusResolver.Result paymentStatus = PaymentStatusResolver.resolve(this, b);
         tvPaymentStatus.setText(paymentStatus.label);
@@ -546,24 +564,17 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             tvTomorrowBadge.setVisibility(View.GONE);
         }
 
-        // Visually highlight the very next (soonest) upcoming transaction so it's
-        // unmistakable at a glance which one is coming up first.
+        // The very next (soonest) one is outlined so it is unmistakable which comes first.
         com.google.android.material.card.MaterialCardView cardView = card.findViewById(R.id.cardUpcomingTransaction);
         if (isNext) {
             cardView.setStrokeColor(getColor(R.color.velocity_red_primary));
             cardView.setStrokeWidth((int) (2 * getResources().getDisplayMetrics().density));
-            cardView.setCardElevation(0f);
         }
 
-        card.setOnClickListener(v -> {
-            String section = b.isHasBooking()
-                    ? BookingAndReservationActivity.SECTION_BOOKING
-                    : BookingAndReservationActivity.SECTION_RESERVATION;
-            android.content.Intent intent = new android.content.Intent(this, BookingAndReservationActivity.class);
-            intent.putExtra(BookingAndReservationActivity.EXTRA_OPEN_SECTION, section);
-            intent.putExtra(BookingAndReservationActivity.EXTRA_HIGHLIGHT_ID, b.getId());
-            startActivity(intent);
-        });
+        // View Full Details (and a tap anywhere on the card) opens this transaction's complete details.
+        View.OnClickListener openDetails = v -> showTransactionDetailsDialog(b);
+        card.findViewById(R.id.btnViewFullDetails).setOnClickListener(openDetails);
+        card.setOnClickListener(openDetails);
 
         listContainer.addView(card);
         return card;

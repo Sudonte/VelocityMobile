@@ -103,6 +103,52 @@
                         </com.google.android.material.chip.ChipGroup>
                     </HorizontalScrollView>
 
+                    <!-- Period, same as the dashboard calendar: today, this week, this month. -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupUpcomingPeriod"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="22dp"
+                            app:chipSpacingHorizontal="8dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipPeriodAny"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true"
+                                android:text="@string/upcoming_period_any" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipPeriodDaily"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stay_calendar_daily" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipPeriodWeekly"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stay_calendar_weekly" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipPeriodMonthly"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stay_calendar_monthly" />
+                        </com.google.android.material.chip.ChipGroup>
+                    </HorizontalScrollView>
+
                 </LinearLayout>
 
                 <androidx.appcompat.widget.Toolbar

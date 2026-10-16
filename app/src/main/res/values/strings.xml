@@ -716,6 +716,9 @@
     <string name="details_expected_time_format">Expected %1$s</string>
     <string name="stay_calendar_kind_checked_in">Checked in</string>
     <string name="stay_calendar_kind_checked_out">Checked out</string>
+    <string name="upcoming_period_any">Any date</string>
+    <string name="upcoming_balance_label">Balance</string>
+    <string name="upcoming_stay_format">Stay: %1$s to %2$s - %3$s</string>
     <string name="stay_calendar_title">Stay Calendar</string>
     <string name="stay_calendar_desc">Dots mark days with a check-in or check-out. Tap a day to see what is on it.</string>
     <string name="stay_calendar_daily">Daily</string>

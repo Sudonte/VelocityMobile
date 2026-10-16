@@ -74,8 +74,29 @@ public class BookingDetailsActivity extends AppCompatActivity {
      * Details uses - and the page is rebuilt only if something about it really changed.
      */
     private final VisiblePoller visiblePoller = new VisiblePoller(() -> {
-        if (booking != null) refreshFromServer(false);
+        if (booking == null) return;
+        refreshFromServer(false);
+        // Nothing else polls notifications while this screen is open, so check here: a receipt / verification
+        // notification then reaches arrivalListener below and refreshes the page at once.
+        RoomRepository.getInstance(this).pollNotifications(null);
     });
+
+    /**
+     * A booking / payment / receipt notification arrived (the receptionist just verified, checked in or out):
+     * refresh now instead of waiting for the next 30-second beat. Only ones about THIS transaction, or carrying
+     * a receipt, count - another booking's news must not redraw this page.
+     */
+    private final RoomRepository.NotificationArrivalListener arrivalListener = arrived -> {
+        if (isFinishing() || isDestroyed() || booking == null) return;
+        for (Notification n : arrived) {
+            boolean aboutThis = booking.getId() != null && booking.getId().equals(n.getReferenceId());
+            boolean transactional = NotificationPrimaryActionResolver.isTransactionCategory(n.getType());
+            if (transactional && (aboutThis || n.hasStructuredReceipt())) {
+                refreshFromServer(false);
+                return;
+            }
+        }
+    };
     private final ChangeGate detailsGate = new ChangeGate();
     /** onCreate() already refreshed once, so the very first onResume() must not refresh again. */
     private boolean firstResume = true;
@@ -125,6 +146,18 @@ public class BookingDetailsActivity extends AppCompatActivity {
             refreshFromServer(false); // back on the screen: catch up silently
         }
         visiblePoller.start();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        RoomRepository.getInstance(this).addNotificationArrivalListener(arrivalListener);
+    }
+
+    @Override
+    protected void onStop() {
+        RoomRepository.getInstance(this).removeNotificationArrivalListener(arrivalListener);
+        super.onStop();
     }
 
     @Override
