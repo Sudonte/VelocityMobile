@@ -3245,7 +3245,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // the refresh below fails - overwritten by the real server state on success.
         if (currentBooking != null) {
             currentBooking.setPaymentMethod(selectedPaymentMethod);
-            currentBooking.setPaymentDate(new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.US).format(new Date()));
+            currentBooking.setPaymentDate(TimeUtils.formatDateTime(java.time.Instant.now().toString()));
             currentBooking.setAmountPaid(alreadyPaidValue + payNowValue);
             boolean fullyPaid = currentBooking.getRemainingBalance() <= 0.009;
             currentBooking.setBillingStatus(fullyPaid ? "paid" : "partial");

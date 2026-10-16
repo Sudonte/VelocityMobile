@@ -32,7 +32,7 @@ public final class TimeUtils {
 
     /** "Sep 9, 2026 - 2:37 AM" - the app-wide compact date+time display format. */
     private static final DateTimeFormatter DATE_TIME_FORMAT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy • h:mm a", Locale.ENGLISH);
+            DateTimeFormatter.ofPattern("MMM d, yyyy • hh:mm:ss a", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_TIME_SECONDS_FORMAT =
             DateTimeFormatter.ofPattern("MMM d, yyyy • hh:mm:ss a", Locale.ENGLISH);
     private static final DateTimeFormatter TIME_SECONDS_FORMAT =
@@ -40,7 +40,7 @@ public final class TimeUtils {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter TIME_FORMAT =
-            DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
+            DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.ENGLISH);
 
     private TimeUtils() {
     }

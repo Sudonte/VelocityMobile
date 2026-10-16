@@ -190,7 +190,7 @@ public class ReceiptScreenTest {
         PaymentReceiptActivity activity = open(DebugReceiptFixtures.partialReceipt());
         assertEquals("GCash", valueOf(activity, "Payment Method"));
         assertEquals("Sep 20, 2026", valueOf(activity, "Payment Date"));
-        assertEquals("2:15 PM", valueOf(activity, "Payment Time"));
+        assertEquals("02:15:00 PM", valueOf(activity, "Payment Time"));
     }
 
     @Test

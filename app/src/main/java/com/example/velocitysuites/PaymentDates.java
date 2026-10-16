@@ -25,6 +25,7 @@ final class PaymentDates {
     }
 
     private static final DateTimeFormatter[] DATE_TIME = {
+            DateTimeFormatter.ofPattern("MMM d, yyyy • hh:mm:ss a", Locale.ENGLISH),
             DateTimeFormatter.ofPattern("MMM d, yyyy • h:mm a", Locale.ENGLISH),
             DateTimeFormatter.ofPattern("MMM dd, yyyy h:mm a", Locale.ENGLISH),
     };
@@ -33,20 +34,20 @@ final class PaymentDates {
             DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH),
     };
 
-    /** Epoch millis of a payment/display date-time string in the device's zone (the zone the old SimpleDateFormat code used), or 0 when unknown. */
+    /** Epoch millis of a payment/display date-time string in Asia/Manila (the zone those strings were formatted in), or 0 when unknown. */
     static long parseMillis(@Nullable String text) {
         if (text == null) return 0;
         String s = text.trim();
         if (s.isEmpty()) return 0;
         for (DateTimeFormatter f : DATE_TIME) {
             try {
-                return LocalDateTime.parse(s, f).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                return LocalDateTime.parse(s, f).atZone(TimeUtils.ZONE_MANILA).toInstant().toEpochMilli();
             } catch (DateTimeParseException ignored) {
                 // try the next shape
             }
         }
         LocalDate date = parseDate(s);
-        return date != null ? date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() : 0;
+        return date != null ? date.atStartOfDay(TimeUtils.ZONE_MANILA).toInstant().toEpochMilli() : 0;
     }
 
     /** A calendar date like "Oct 01, 2026" (the check-in/out display format), or null when unknown. Calendar-date arithmetic, not instants, so a time zone can never shift it by a day. */

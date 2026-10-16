@@ -399,6 +399,7 @@ public class LoginActivity extends AppCompatActivity {
         try {
             java.text.SimpleDateFormat input = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US);
             java.text.SimpleDateFormat output = new java.text.SimpleDateFormat("MMMM dd, yyyy", Locale.US);
+            output.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Manila"));
             return output.format(input.parse(isoDate));
         } catch (Exception e) {
             return isoDate;

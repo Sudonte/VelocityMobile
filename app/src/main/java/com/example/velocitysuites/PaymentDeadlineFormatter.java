@@ -28,7 +28,7 @@ public final class PaymentDeadlineFormatter {
 
     static {
         ISO_UTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-        DISPLAY.setTimeZone(TimeZone.getDefault());
+        DISPLAY.setTimeZone(TimeZone.getTimeZone("Asia/Manila")); // the hotel's clock, whatever the phone is set to
     }
 
     private PaymentDeadlineFormatter() {
