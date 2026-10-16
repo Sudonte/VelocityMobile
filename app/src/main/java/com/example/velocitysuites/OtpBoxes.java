@@ -86,7 +86,7 @@ final class OtpBoxes {
      * on the input connection instead - so the key listener alone misses Backspace-to-previous-box.
      * This turns that call (and a real DEL key) on an empty box into the same DEL key event.
      */
-    private static final class BackspaceAwareEditText extends EditText {
+    private static final class BackspaceAwareEditText extends androidx.appcompat.widget.AppCompatEditText {
         BackspaceAwareEditText(Context context) {
             super(context);
         }

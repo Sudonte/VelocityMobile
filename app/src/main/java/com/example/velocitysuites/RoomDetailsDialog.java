@@ -36,9 +36,9 @@ import java.util.Locale;
  *    quantity change back to the caller's staged-selection state immediately
  *    (no separate "confirm" step beyond closing this dialog).
  */
-final class RoomDetailsDialog {
+public final class RoomDetailsDialog {
 
-    interface ActionListener {
+    public interface ActionListener {
         void onBook(Room room);
         void onReserve(Room room);
     }
@@ -49,7 +49,7 @@ final class RoomDetailsDialog {
 
     private RoomDetailsDialog() {}
 
-    static AlertDialog show(Activity activity, Room room, String action,
+    public static AlertDialog show(Activity activity, Room room, String action,
                              String occupiedRangeText, ActionListener listener) {
         View dialogView = inflateAndBindCommonFields(activity, room);
         AlertDialog dialog = new SafeDialogs.Plain(activity, R.style.VelocityDialogTheme)
