@@ -46,6 +46,14 @@ public class NextStayTest {
 
     private final Context c = ApplicationProvider.getApplicationContext();
 
+    @Test
+    public void aGuestCheckedInBeforeTheirFirstDayIsToldSo_notGivenACheckoutCountdown() {
+        Booking early = stay("9", TODAY.plusDays(2), TODAY.plusDays(3), "Checked-In", true, true, false);
+        assertEquals("Checked in early - your stay starts Oct 13, 2026", NextStay.select(Collections.singletonList(early), TODAY).hint(c));
+        Booking onTime = stay("8", TODAY, TODAY.plusDays(3), "Checked-In", true, true, false);
+        assertEquals("Checking out in 3 days", NextStay.select(Collections.singletonList(onTime), TODAY).hint(c));
+    }
+
     // ---- which stay
 
     @Test

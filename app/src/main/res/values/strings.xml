@@ -477,6 +477,7 @@
         <item quantity="other">Check-in is %1$d days away</item>
     </plurals>
     <string name="next_stay_hint_checkin_on">Check-in on %1$s</string>
+    <string name="next_stay_hint_checked_in_early">Checked in early - your stay starts %1$s</string>
     <string name="next_stay_hint_checkout_today">Checking out today</string>
     <string name="next_stay_hint_checkout_tomorrow">Checking out tomorrow</string>
     <plurals name="next_stay_hint_checkout_days">

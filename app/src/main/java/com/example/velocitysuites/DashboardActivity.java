@@ -1252,9 +1252,11 @@ public class DashboardActivity extends BaseNavigationActivity {
             // Same wording as Booking Details' balance card.
             balanceLabel.setText(R.string.next_stay_payment_label);
             balance.setText(getString(R.string.balance_plain_owe, MoneyFormat.format(stay.balance)));
+            balance.setTextColor(getColor(R.color.velocity_text_primary));
         } else {
             balanceLabel.setText(R.string.next_stay_payment_label);
             balance.setText(R.string.balance_plain_paid);
+            balance.setTextColor(getColor(R.color.status_paid_fg));
         }
         findViewById(R.id.btnNextStayRequestAmenities).setVisibility(
                 stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);

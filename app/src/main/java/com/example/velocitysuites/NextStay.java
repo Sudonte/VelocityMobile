@@ -50,16 +50,19 @@ public final class NextStay {
     public final LocalDate checkOut;
     /** Days from today to the check-in (UPCOMING) or the check-out (IN_HOUSE); negative when that day has passed. */
     public final long daysToEvent;
+    /** Days from today to the scheduled check-in day; positive for a guest who was checked in before their stay's first day. */
+    public final long daysToCheckIn;
     public final long nights;
     public final PlainStatus status;
     public final double balance;
 
-    private NextStay(Booking booking, Phase phase, LocalDate checkIn, LocalDate checkOut, long daysToEvent) {
+    private NextStay(Booking booking, Phase phase, LocalDate checkIn, LocalDate checkOut, long daysToEvent, LocalDate today) {
         this.booking = booking;
         this.phase = phase;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
         this.daysToEvent = daysToEvent;
+        this.daysToCheckIn = ChronoUnit.DAYS.between(today, checkIn);
         this.nights = Math.max(1, ChronoUnit.DAYS.between(checkIn, checkOut));
         this.status = plainStatus(booking);
         this.balance = TransactionStatusHelper.summarize(booking).balance;
@@ -85,9 +88,9 @@ public final class NextStay {
 
             NextStay candidate;
             if ("Checked-In".equalsIgnoreCase(status)) {
-                candidate = new NextStay(b, Phase.IN_HOUSE, in, out, ChronoUnit.DAYS.between(today, out));
+                candidate = new NextStay(b, Phase.IN_HOUSE, in, out, ChronoUnit.DAYS.between(today, out), today);
             } else if (!in.isBefore(today)) {
-                candidate = new NextStay(b, Phase.UPCOMING, in, out, ChronoUnit.DAYS.between(today, in));
+                candidate = new NextStay(b, Phase.UPCOMING, in, out, ChronoUnit.DAYS.between(today, in), today);
             } else {
                 continue;
             }
@@ -110,6 +113,8 @@ public final class NextStay {
     /** The one-line hint: "Check-in tomorrow", "Checking out today", "Check-in on Oct 20, 2026", ... */
     public String hint(@NonNull Context c) {
         if (phase == Phase.IN_HOUSE) {
+            // Checked in ahead of the booked dates: say so, rather than counting down to a check-out that is days away.
+            if (daysToCheckIn > 0) return c.getString(R.string.next_stay_hint_checked_in_early, checkIn.format(SHORT));
             if (daysToEvent < 0) return c.getString(R.string.next_stay_hint_checkout_due, checkOut.format(SHORT));
             if (daysToEvent == 0) return c.getString(R.string.next_stay_hint_checkout_today);
             if (daysToEvent == 1) return c.getString(R.string.next_stay_hint_checkout_tomorrow);
