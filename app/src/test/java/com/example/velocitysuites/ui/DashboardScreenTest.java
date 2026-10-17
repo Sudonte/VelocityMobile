@@ -1,6 +1,7 @@
 package com.example.velocitysuites.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -12,6 +13,7 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -35,6 +37,8 @@ import org.robolectric.annotation.GraphicsMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -240,6 +244,66 @@ public class DashboardScreenTest {
         assertEquals("Waiting for payment", text(activity, R.id.tvNextStayStatus));
         assertEquals(app.getString(R.string.next_stay_payment_label), text(activity, R.id.tvNextStayBalanceLabel));
         assertEquals("You still need to pay ₱1,800.00", text(activity, R.id.tvNextStayBalance));
+    }
+
+    @Test
+    public void nextStay_inHouse_showsCheckInTotal_approvedAmenities_remainingBalanceAndFinalTotal() {
+        DashboardActivity activity = launch();
+        ScreenTestSupport.answerBookingLoad(api, 0, ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(StayMoneyScreensTest.inHouseWithMoney()));
+        idle();
+
+        assertOnly(activity, R.id.nextStayContent);
+        LinearLayout money = activity.findViewById(R.id.nextStayMoney);
+        assertEquals(View.VISIBLE, money.getVisibility());
+        List<String> rows = new ArrayList<>();
+        collectText(money, rows);
+        String all = String.join(" | ", rows);
+        int last = -1;
+        for (String needle : new String[]{"Check-in Total", "₱1,600.00", "Approved amenities", "Breakfast (×1)", "₱200.00", "Broken lamp", "₱300.00",
+                "Amenities total", "Remaining Balance – payable at check-out", "₱500.00", "Final Total", "₱2,100.00", "1 amenity request awaiting approval"}) {
+            int at = all.indexOf(needle, Math.max(0, last));
+            assertTrue(needle + " missing or out of order in: " + all, at >= 0);
+            last = at;
+        }
+        assertFalse("a pending request is never part of the numbers", all.contains("₱100.00"));
+    }
+
+    @Test
+    public void aBookingNotification_refreshesYourNextStayAtOnce_andOtherNotificationsDoNot() {
+        launch();
+        answer(stay(588, 1, 2));
+        com.example.velocitysuites.RoomRepository repository = com.example.velocitysuites.RoomRepository.getInstance(app);
+        repository.pollNotifications(null);
+        api.<com.example.velocitysuites.network.dto.PaginatedResponse<com.example.velocitysuites.network.dto.NotificationDto>>last("getNotifications")
+                .succeed(ScreenTestSupport.notificationPage(1, ScreenTestSupport.notification(1, "Older", "booking", 588L, true))); // first load: nothing is new
+        idle();
+        int before = api.count("getReservations");
+
+        repository.pollNotifications(null);
+        api.<com.example.velocitysuites.network.dto.PaginatedResponse<com.example.velocitysuites.network.dto.NotificationDto>>last("getNotifications")
+                .succeed(ScreenTestSupport.notificationPage(2, ScreenTestSupport.notification(2, "Promo", "promotion", 588L, false),
+                        ScreenTestSupport.notification(1, "Older", "booking", 588L, true)));
+        idle();
+        assertEquals("a promotion says nothing about the stay", before, api.count("getReservations"));
+
+        repository.pollNotifications(null);
+        api.<com.example.velocitysuites.network.dto.PaginatedResponse<com.example.velocitysuites.network.dto.NotificationDto>>last("getNotifications")
+                .succeed(ScreenTestSupport.notificationPage(3, ScreenTestSupport.notification(3, "Amenity Request Approved", "booking", 588L, false),
+                        ScreenTestSupport.notification(2, "Promo", "promotion", 588L, false), ScreenTestSupport.notification(1, "Older", "booking", 588L, true)));
+        idle();
+        assertEquals("the approval re-reads the bookings straight away", before + 1, api.count("getReservations"));
+    }
+
+    @Test
+    public void nextStay_beforeCheckIn_hasNoMoneySummary() {
+        DashboardActivity activity = launch();
+        answer(stay(588, 1, 2));
+        assertEquals(View.GONE, activity.findViewById(R.id.nextStayMoney).getVisibility());
+    }
+
+    private static void collectText(View v, List<String> out) {
+        if (v instanceof TextView && ((TextView) v).getText().length() > 0) out.add(((TextView) v).getText().toString());
+        if (v instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) collectText(((ViewGroup) v).getChildAt(i), out);
     }
 
     @Test

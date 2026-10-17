@@ -221,7 +221,15 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
      * in the background. The first tick is 30 seconds after the screen comes back; whether it also reloads the
      * instant it comes back is each screen's own onResume() business.
      */
-    private final VisiblePoller visiblePoller = new VisiblePoller(this::onVisiblePoll);
+    private final VisiblePoller visiblePoller = new VisiblePoller(this::onVisiblePoll, visiblePollIntervalMs());
+
+    /**
+     * How often {@link #onVisiblePoll()} runs while this screen shows. Must return a constant: it is read while the
+     * base class is still being constructed, before a subclass's own fields exist.
+     */
+    protected long visiblePollIntervalMs() {
+        return VisiblePoller.INTERVAL_MS;
+    }
 
     /**
      * Called on every beat of the visible-only poller. The default keeps the header bell's unread badge current

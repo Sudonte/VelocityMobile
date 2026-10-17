@@ -25,6 +25,13 @@ public final class VisiblePoller {
     /** The app-wide beat - the same 30 seconds the website's notifications page refreshes on. */
     public static final long INTERVAL_MS = 30_000L;
 
+    /**
+     * The beat of the screens a guest watches for the front desk's next move - the dashboard's "Your Next Stay" and
+     * Booking Details: a receptionist action (approve, check-in, a charge, a payment) shows up within this long even
+     * when its notification has not arrived yet. A notification that does arrive refreshes them at once.
+     */
+    public static final long LIVE_BOOKING_INTERVAL_MS = 15_000L;
+
     /** Where ticks are scheduled: a main-looper Handler in the app, a hand-cranked fake in the tests. */
     public interface Scheduler {
         void postDelayed(Runnable runnable, long delayMs);
@@ -42,6 +49,11 @@ public final class VisiblePoller {
     /** A poller on the main looper at the app-wide interval. */
     public VisiblePoller(Runnable task) {
         this(task, INTERVAL_MS, new MainLooperScheduler());
+    }
+
+    /** A poller on the main looper at the given interval. */
+    public VisiblePoller(Runnable task, long intervalMs) {
+        this(task, intervalMs, new MainLooperScheduler());
     }
 
     public VisiblePoller(Runnable task, long intervalMs, Scheduler scheduler) {

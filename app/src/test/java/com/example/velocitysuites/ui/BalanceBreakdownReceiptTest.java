@@ -122,7 +122,7 @@ public class BalanceBreakdownReceiptTest {
         List<String> t = texts(receipt(BREAKDOWN, HIGHLIGHT));
         String[] order = {"Check-in summary (fully paid)", "Room rate × 2 nights", "₱5,000.00", "Discount (Senior Citizen, 20%)", "-₱1,000.00",
                 "Check-in Grand Total", "₱4,000.00", "Amount Paid at Check-in", "PAID IN FULL", "Extra Towel × 2 @ ₱50.00", "Broken lamp × 1 @ ₱300.00",
-                "Subtotal of Additional", "₱400.00", "REMAINING BALANCE", "Final grand total", "₱4,400.00", "Total paid", "-₱4,400.00", "Balance due", "₱0.00"};
+                "Subtotal of Additional", "₱400.00", "REMAINING BALANCE", "Check-in Grand Total (after discount)", "+ Remaining Balance (amenities + additional charges)", "+₱400.00", "Final grand total", "₱4,400.00", "Total paid", "-₱4,400.00", "Balance due", "₱0.00"};
         int last = -1;
         for (String needle : order) {
             int at = indexOf(t.subList(Math.max(0, last), t.size()), needle);

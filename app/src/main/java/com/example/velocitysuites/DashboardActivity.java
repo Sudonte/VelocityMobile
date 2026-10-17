@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
@@ -243,12 +244,17 @@ public class DashboardActivity extends BaseNavigationActivity {
     }
 
     /**
-     * The 30s beat (started/stopped with the screen by BaseNavigationActivity): while the guest stays on the
+     * The 15s beat (started/stopped with the screen by BaseNavigationActivity): while the guest stays on the
      * dashboard, quietly check for new or changed bookings and notifications - the same light checks
      * Transaction History and Notifications use - and redraw ONLY if something really changed. No spinner and no
      * error message (a background miss is invisible; the next beat or any real action tries again), and an
      * unchanged dashboard is left exactly as it is, so a card the guest has open stays open.
      */
+    @Override
+    protected long visiblePollIntervalMs() {
+        return VisiblePoller.LIVE_BOOKING_INTERVAL_MS; // "Your Next Stay" follows the front desk closely
+    }
+
     @Override
     protected void onVisiblePoll() {
         RoomRepository repository = RoomRepository.getInstance(this);
@@ -1258,9 +1264,88 @@ public class DashboardActivity extends BaseNavigationActivity {
             balance.setText(R.string.balance_plain_paid);
             balance.setTextColor(getColor(R.color.status_paid_fg));
         }
+        bindNextStayMoney(stay);
         findViewById(R.id.btnNextStayRequestAmenities).setVisibility(
                 stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
         showNextStayState(nextStayContent);
+    }
+
+    /**
+     * The compact money summary of a stay that is in house and was paid at check-in: Check-in Total, the approved
+     * amenities and desk charges with their amounts, the Remaining Balance (payable at check-out) and the Final Total -
+     * the server's own figures (the same ones Booking Details and the 3rd receipt print). Requests still awaiting the
+     * front desk are mentioned but never counted. Hidden for any other stay.
+     */
+    private void bindNextStayMoney(NextStay stay) {
+        LinearLayout box = findViewById(R.id.nextStayMoney);
+        box.removeAllViews();
+        StayInfo info = stay.booking.getStay();
+        BalanceBreakdown b = info != null ? info.balanceBreakdown : null;
+        if (b == null) {
+            box.setVisibility(View.GONE);
+            return;
+        }
+        addMoneyRow(box, getString(R.string.next_stay_checkin_total), MoneyFormat.format(b.checkinGrandTotal), false);
+        if (!b.amenities.isEmpty()) {
+            addMoneyCaption(box, getString(R.string.next_stay_approved_amenities));
+            for (BalanceBreakdown.Item item : b.amenities) {
+                addMoneyRow(box, getString(R.string.payment_summary_amenity_name_format, item.name, item.quantity), MoneyFormat.format(item.subtotal), false);
+            }
+        }
+        for (BalanceBreakdown.Item item : b.charges) {
+            addMoneyRow(box, item.name, MoneyFormat.format(item.subtotal), false);
+        }
+        if (!b.amenities.isEmpty()) addMoneyRow(box, getString(R.string.next_stay_amenities_total), MoneyFormat.format(b.amenitiesTotal), false);
+        addMoneyRow(box, getString(R.string.remaining_balance_payable_at_checkout), MoneyFormat.format(b.remainingBalance), true);
+        addMoneyRow(box, getString(R.string.next_stay_final_total), MoneyFormat.format(b.finalGrandTotal), true);
+        int pending = 0;
+        for (StayInfo.RequestedAmenity r : info.requestedAmenities) if (!r.rejected) pending++;
+        if (pending > 0) {
+            TextView note = new TextView(this);
+            note.setText(getResources().getQuantityString(R.plurals.next_stay_pending_requests, pending, pending));
+            note.setTextColor(getColor(R.color.velocity_text_secondary));
+            note.setTextSize(12);
+            note.setPadding(0, dp(4), 0, 0);
+            box.addView(note);
+        }
+        box.setVisibility(View.VISIBLE);
+    }
+
+    private void addMoneyRow(LinearLayout box, String label, String value, boolean strong) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(0, dp(2), 0, dp(2));
+        TextView l = new TextView(this);
+        l.setText(label);
+        l.setTextSize(strong ? 13 : 12);
+        l.setTextColor(getColor(strong ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
+        if (strong) l.setTypeface(l.getTypeface(), android.graphics.Typeface.BOLD);
+        row.addView(l, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        TextView v = new TextView(this);
+        v.setText(value);
+        v.setGravity(android.view.Gravity.END);
+        v.setTextSize(strong ? 14 : 12);
+        v.setTextColor(getColor(R.color.velocity_text_primary));
+        if (strong) v.setTypeface(v.getTypeface(), android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams vp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        vp.setMarginStart(dp(10));
+        row.addView(v, vp);
+        box.addView(row);
+    }
+
+    private void addMoneyCaption(LinearLayout box, String text) {
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextSize(11);
+        t.setAllCaps(true);
+        t.setLetterSpacing(0.04f);
+        t.setTextColor(getColor(R.color.velocity_text_secondary));
+        t.setPadding(0, dp(6), 0, dp(2));
+        box.addView(t);
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density);
     }
 
     /** Status chip: colour AND icon AND words, so it never relies on colour alone. */
@@ -1532,6 +1617,39 @@ public class DashboardActivity extends BaseNavigationActivity {
             updateDateTime();
             clockHandler.postDelayed(clockRunnable, 1000);
         }
+    }
+
+    /**
+     * A booking / payment / check-in notification just arrived (the receptionist verified, approved an amenity, checked
+     * the guest in, added a charge, took a payment): re-read the bookings now, so "Your Next Stay" shows the new
+     * status and balance at once instead of waiting for the next beat. Redraws only if something really changed.
+     */
+    private final RoomRepository.NotificationArrivalListener arrivalListener = arrived -> {
+        if (isFinishing() || isDestroyed()) return;
+        for (Notification n : arrived) {
+            if (NotificationPrimaryActionResolver.isTransactionCategory(n.getType())) {
+                RoomRepository repository = RoomRepository.getInstance(this);
+                repository.pollBookingsSplit((merged, reservationsError, directError) -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    List<Booking> bookings = repository.getBookings();
+                    List<Notification> notifications = repository.getNotifications();
+                    if (dashboardGate.accept(bookings, notifications, ChangeGate.today())) populateDashboard(bookings, notifications);
+                });
+                return;
+            }
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        RoomRepository.getInstance(this).addNotificationArrivalListener(arrivalListener);
+    }
+
+    @Override
+    protected void onStop() {
+        RoomRepository.getInstance(this).removeNotificationArrivalListener(arrivalListener);
+        super.onStop();
     }
 
     @Override

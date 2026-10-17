@@ -483,6 +483,16 @@
                                 android:layout_marginVertical="11dp"
                                 android:background="@color/velocity_divider_hairline" />
 
+                            <!-- Check-in total, approved amenities, remaining balance, final total - filled from the server's
+                                 stay bill once the stay is in house; gone before that. -->
+                            <LinearLayout
+                                android:id="@+id/nextStayMoney"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="8dp"
+                                android:orientation="vertical"
+                                android:visibility="gone" />
+
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"

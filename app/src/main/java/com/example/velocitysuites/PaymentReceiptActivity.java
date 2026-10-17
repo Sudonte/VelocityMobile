@@ -405,9 +405,17 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         buildHeaderSection(content, detail, stageLabel);
         buildStaySection(content, detail);
         buildGuestSection(content, detail);
-        buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
-        buildTransactionHistorySection(content, detail);
+        // Receipt 3 of a stay settled at check-in reads: booking details, check-in billing, remaining balance, final
+        // summary - the server's breakdown IS the money part, so the generic payment summary (which would repeat the same
+        // figures in another order) is left out and the payment history closes the receipt.
+        boolean breakdownReceipt = "OFFICIAL_RECEIPT".equals(detail.getReceiptType())
+                && detail.getStay() != null && detail.getStay().balanceBreakdown != null;
+        if (!breakdownReceipt) {
+            buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
+            buildTransactionHistorySection(content, detail);
+        }
         buildHighlightSection(content, detail);
+        if (breakdownReceipt) buildTransactionHistorySection(content, detail);
     }
 
     /**
@@ -530,6 +538,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         addProminentTotal(content, getString(R.string.receipt_bd_remaining_balance), formatPrice(b.remainingBalance));
 
         addDivider(content, dp(8));
+        // Final summary: how the final amount was reached, line by line.
+        addRow(content, getString(R.string.receipt_bd_final_checkin_total), formatPrice(b.checkinGrandTotal));
+        addRow(content, getString(R.string.receipt_bd_final_plus_remaining), "+" + formatPrice(b.remainingBalance));
         addHighlightPanel(content,
                 new String[]{getString(R.string.receipt_bd_final_grand_total), getString(R.string.receipt_bd_total_paid), getString(R.string.receipt_bd_balance_due)},
                 new String[]{formatPrice(b.finalGrandTotal), "-" + formatPrice(b.totalPaid), formatPrice(b.balanceDue)}, null);

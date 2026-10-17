@@ -70,7 +70,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
     /**
      * While this screen is open a guest may be waiting for the receptionist to verify a payment or an ID, so the
-     * transaction is re-read every 30s (and when the guest returns to the screen) - the same beat Transaction
+     * transaction is re-read every 15s (and when the guest returns to the screen) - the same beat Transaction
      * Details uses - and the page is rebuilt only if something about it really changed.
      */
     private final VisiblePoller visiblePoller = new VisiblePoller(() -> {
@@ -79,11 +79,11 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // Nothing else polls notifications while this screen is open, so check here: a receipt / verification
         // notification then reaches arrivalListener below and refreshes the page at once.
         RoomRepository.getInstance(this).pollNotifications(null);
-    });
+    }, VisiblePoller.LIVE_BOOKING_INTERVAL_MS);
 
     /**
      * A booking / payment / receipt notification arrived (the receptionist just verified, checked in or out):
-     * refresh now instead of waiting for the next 30-second beat. Only ones about THIS transaction, or carrying
+     * refresh now instead of waiting for the next beat. Only ones about THIS transaction, or carrying
      * a receipt, count - another booking's news must not redraw this page.
      */
     private final RoomRepository.NotificationArrivalListener arrivalListener = arrived -> {
@@ -895,6 +895,57 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
     // ---- Payment Summary section ----
 
+    /**
+     * The money of a stay that is in house or done, in three groups: Check-in Billing (room, discount taken once, the
+     * check-in grand total and what was paid), Amenities & Charges (every approved amenity and desk charge - the
+     * remaining balance, payable at check-out - with the requests that are NOT counted listed apart), and the Payment
+     * Summary that closes it. Every figure is the server's (StayBill); nothing is recomputed on the phone.
+     */
+    private void buildStayBillGroups(LinearLayout container, StayInfo stay, BalanceBreakdown b) {
+        addSectionDivider(container, getString(R.string.details_group_checkin_billing));
+        addInfoRow(container, getString(R.string.receipt_bd_room_rate_nights,
+                getResources().getQuantityString(R.plurals.receipt_nights_count, stay.scheduledNights, stay.scheduledNights)), formatPrice(b.roomCharge));
+        if (b.bookedAmenities > 0.009) addInfoRow(container, getString(R.string.receipt_bd_booked_amenities), formatPrice(b.bookedAmenities));
+        if (b.discount > 0.009) {
+            addInfoRow(container, b.discountName == null ? getString(R.string.details_label_discount)
+                    : getString(R.string.receipt_bd_discount_named, b.discountName), "-" + formatPrice(b.discount));
+        }
+        addTotalRow(container, getString(R.string.receipt_bd_checkin_grand_total), formatPrice(b.checkinGrandTotal));
+        addInfoRow(container, getString(R.string.receipt_bd_paid_at_checkin), formatPrice(b.amountPaidAtCheckin));
+
+        addSectionDivider(container, getString(R.string.details_group_amenities_charges));
+        if (b.amenities.isEmpty() && b.charges.isEmpty() && Math.abs(b.stayAdjustment) < 0.005) {
+            addInfoRow(container, getString(R.string.details_none_added), formatPrice(0));
+        }
+        for (BalanceBreakdown.Item item : b.amenities) {
+            addInfoRow(container, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
+        }
+        if (!b.amenities.isEmpty()) addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(b.amenitiesTotal));
+        for (BalanceBreakdown.Item item : b.charges) {
+            addInfoRow(container, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
+        }
+        if (!b.charges.isEmpty()) addTotalRow(container, getString(R.string.receipt_bd_additional_charges), formatPrice(b.chargesTotal));
+        if (Math.abs(b.stayAdjustment) >= 0.005) {
+            addInfoRow(container, getString(R.string.receipt_bd_stay_adjustment), (b.stayAdjustment < 0 ? "-" : "") + formatPrice(Math.abs(b.stayAdjustment)));
+        }
+        addGrandTotalRow(container, getString(R.string.remaining_balance_payable_at_checkout), formatPrice(b.remainingBalance));
+        // Requests the front desk has not approved: shown apart so the guest knows their status, never in a total.
+        for (StayInfo.RequestedAmenity r : stay.requestedAmenities) {
+            String name = getString(R.string.receipt_bd_item_format, r.name, r.quantity, formatPrice(r.subtotal / r.quantity));
+            String status = r.rejected
+                    ? (r.reason == null || r.reason.isEmpty() ? getString(R.string.details_request_rejected) : getString(R.string.details_request_rejected_reason, r.reason))
+                    : getString(R.string.details_request_pending);
+            addInfoRow(container, name, status);
+        }
+
+        addSectionDivider(container, getString(R.string.payment_summary_section_title));
+        addInfoRow(container, getString(R.string.receipt_bd_final_checkin_total), formatPrice(b.checkinGrandTotal));
+        addInfoRow(container, getString(R.string.receipt_bd_final_plus_remaining), "+" + formatPrice(b.remainingBalance));
+        addTotalRow(container, getString(R.string.receipt_bd_final_grand_total), formatPrice(b.finalGrandTotal));
+        addInfoRow(container, getString(R.string.receipt_bd_total_paid), formatPrice(b.totalPaid));
+        addGrandTotalRow(container, getString(R.string.receipt_bd_balance_due), formatPrice(b.balanceDue));
+    }
+
     private void buildPaymentSummarySection(LinearLayout container) {
         // Room Total itself is NOT recomputed here - buildRoomInfoSection() (which
         // always runs first, see renderAllSections()) already computed the
@@ -935,66 +986,75 @@ public class BookingDetailsActivity extends AppCompatActivity {
             remainingBalance = booking.getEffectiveRemainingBalance();
         }
 
-        // ---- 1. Selected Amenities: every selected amenity, then Amenities
-        // Total at the bottom of THIS section (never outside it). amenitiesTotalValue
-        // is cached so section 3 below (Grand Total Amount) can show the exact
-        // same figure again rather than recalculating it.
-        // Itemized amenity breakdown (Booking#getAmenities()) only ever populates
-        // once the backend ships the multi-room contract - falls back to the
-        // single amenityCharge dollar total computed either from this one
-        // record's own Billing row or summed across the legacy group.
-        double amenitiesTotalValue = amenityCharge;
-        if (!booking.getAmenities().isEmpty()) {
-            addSectionDivider(container, getString(R.string.details_label_amenities_section));
-            double itemizedAmenityTotal = 0;
-            for (BookingAmenity amenity : booking.getAmenities()) {
-                double unitPrice = amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal();
-                addAmenityDetailBlock(container, amenity.getAmenityName(), amenity.getQuantity(), unitPrice, amenity.getSubtotal());
-                itemizedAmenityTotal += amenity.getSubtotal();
+        // A stay that is in house or finished and was paid at check-in: the server's own breakdown, grouped
+        // Check-in Billing / Amenities & Charges / Payment Summary (the same figures the 3rd receipt prints).
+        // Anything else keeps the generic summary below.
+        StayInfo billStay = groupMembers == null ? booking.getStay() : null;
+        BalanceBreakdown breakdown = billStay != null ? billStay.balanceBreakdown : null;
+        if (breakdown != null) {
+            buildStayBillGroups(container, billStay, breakdown);
+        } else {
+            // ---- 1. Selected Amenities: every selected amenity, then Amenities
+            // Total at the bottom of THIS section (never outside it). amenitiesTotalValue
+            // is cached so section 3 below (Grand Total Amount) can show the exact
+            // same figure again rather than recalculating it.
+            // Itemized amenity breakdown (Booking#getAmenities()) only ever populates
+            // once the backend ships the multi-room contract - falls back to the
+            // single amenityCharge dollar total computed either from this one
+            // record's own Billing row or summed across the legacy group.
+            double amenitiesTotalValue = amenityCharge;
+            if (!booking.getAmenities().isEmpty()) {
+                addSectionDivider(container, getString(R.string.details_label_amenities_section));
+                double itemizedAmenityTotal = 0;
+                for (BookingAmenity amenity : booking.getAmenities()) {
+                    double unitPrice = amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal();
+                    addAmenityDetailBlock(container, amenity.getAmenityName(), amenity.getQuantity(), unitPrice, amenity.getSubtotal());
+                    itemizedAmenityTotal += amenity.getSubtotal();
+                }
+                addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(itemizedAmenityTotal));
+                amenitiesTotalValue = itemizedAmenityTotal;
+            } else if (amenityCharge > 0.009) {
+                addSectionDivider(container, getString(R.string.details_label_amenities_section));
+                addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(amenityCharge));
             }
-            addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(itemizedAmenityTotal));
-            amenitiesTotalValue = itemizedAmenityTotal;
-        } else if (amenityCharge > 0.009) {
-            addSectionDivider(container, getString(R.string.details_label_amenities_section));
-            addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(amenityCharge));
-        }
 
-        // ---- 2. Payment Balance: purely payment PROGRESS (what's been paid
-        // so far vs. what's left) - never mixed with the totals below it.
-        // Required Payment is deliberately not shown anywhere in this screen.
-        addSectionDivider(container, getString(R.string.payment_balance_section_title));
-        if (amountPaid > 0.009) {
-            addInfoRow(container, getString(R.string.details_label_amount_paid), formatPrice(amountPaid));
-        }
-        // A plain Reservation with no payment made yet and no Booking row
-        // behind it has no real payment obligation established - showing
-        // "Remaining Balance: <full total>" there would be booking-only
-        // payment info leaking into a transaction where no payment is
-        // actually involved yet. Once either is true (some amount was
-        // already paid, or a real Booking exists), the balance is meaningful.
-        if (remainingBalance > 0.009 && (amountPaid > 0.009 || booking.isHasBooking())) {
-            addInfoRow(container, getString(R.string.details_label_remaining_balance), formatPrice(remainingBalance));
-        }
-        if (PaymentEligibility.needsFrontDeskPayment(booking)) {
-            TextView note = (TextView) LayoutInflater.from(this).inflate(R.layout.view_front_desk_note, container, false);
-            note.setText(FrontDeskNote.messageFor(this, booking));
-            container.addView(note);
-        }
+            // ---- 2. Payment Balance: purely payment PROGRESS (what's been paid
+            // so far vs. what's left) - never mixed with the totals below it.
+            // Required Payment is deliberately not shown anywhere in this screen.
+            addSectionDivider(container, getString(R.string.payment_balance_section_title));
+            if (amountPaid > 0.009) {
+                addInfoRow(container, getString(R.string.details_label_amount_paid), formatPrice(amountPaid));
+            }
+            // A plain Reservation with no payment made yet and no Booking row
+            // behind it has no real payment obligation established - showing
+            // "Remaining Balance: <full total>" there would be booking-only
+            // payment info leaking into a transaction where no payment is
+            // actually involved yet. Once either is true (some amount was
+            // already paid, or a real Booking exists), the balance is meaningful.
+            if (remainingBalance > 0.009 && (amountPaid > 0.009 || booking.isHasBooking())) {
+                addInfoRow(container, getString(R.string.details_label_remaining_balance), formatPrice(remainingBalance));
+            }
+            if (PaymentEligibility.needsFrontDeskPayment(booking)) {
+                TextView note = (TextView) LayoutInflater.from(this).inflate(R.layout.view_front_desk_note, container, false);
+                note.setText(FrontDeskNote.messageFor(this, booking));
+                container.addView(note);
+            }
 
-        // ---- 3. Grand Total Amount: Amenities Total (same value as section 1
-        // above, never recalculated), Room Total (same value already shown at
-        // the bottom of Room Information), then Grand Total LAST, most
-        // strongly highlighted.
-        addSectionDivider(container, getString(R.string.grand_total_amount_section_title));
-        addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(amenitiesTotalValue));
-        addTotalRow(container, getString(R.string.room_total_label), formatPrice(roomTotalAmount));
-        if (additionalGuestFee > 0.009) {
-            addInfoRow(container, getString(R.string.details_label_additional_guest_fee), formatPrice(additionalGuestFee));
+            // ---- 3. Grand Total Amount: Amenities Total (same value as section 1
+            // above, never recalculated), Room Total (same value already shown at
+            // the bottom of Room Information), then Grand Total LAST, most
+            // strongly highlighted.
+            addSectionDivider(container, getString(R.string.grand_total_amount_section_title));
+            addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(amenitiesTotalValue));
+            addTotalRow(container, getString(R.string.room_total_label), formatPrice(roomTotalAmount));
+            if (additionalGuestFee > 0.009) {
+                addInfoRow(container, getString(R.string.details_label_additional_guest_fee), formatPrice(additionalGuestFee));
+            }
+            if (booking.getDiscountAmount() > 0.009) {
+                addInfoRow(container, getString(R.string.details_label_discount), formatPrice(booking.getDiscountAmount()));
+            }
+            addGrandTotalRow(container, getString(R.string.details_grand_total_label), formatPrice(totalAmount));
         }
-        if (booking.getDiscountAmount() > 0.009) {
-            addInfoRow(container, getString(R.string.details_label_discount), formatPrice(booking.getDiscountAmount()));
-        }
-        addGrandTotalRow(container, getString(R.string.details_grand_total_label), formatPrice(totalAmount));
 
         buildReceiptActionCard(container);
 

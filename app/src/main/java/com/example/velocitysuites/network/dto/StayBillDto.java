@@ -30,6 +30,8 @@ public class StayBillDto {
     /** Approved extra amenities the guest asked for (or the desk added) after booking - already inside {@link #total}. */
     public List<Amenity> additional_amenities;
     public double additional_amenities_total;
+    /** The guest's amenity requests the desk has not approved yet (pending) or turned down (rejected) - never part of any total. */
+    public List<RequestedAmenity> requested_amenities;
     /** The 3rd receipt's balance breakdown - present once the stay was settled at check-in; null for older stays. */
     public ReceiptBreakdown receipt_breakdown;
 
@@ -70,6 +72,15 @@ public class StayBillDto {
         public int quantity;
         public double unit_price;
         public double subtotal;
+    }
+
+    public static class RequestedAmenity {
+        public String amenity_name;
+        public int quantity;
+        public double subtotal;
+        /** "pending" or "rejected". */
+        public String status;
+        public String reason;
     }
 
     public static class Amenity {

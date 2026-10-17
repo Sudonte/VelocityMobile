@@ -254,7 +254,9 @@
     <string name="receipt_bd_status">Status</string>
     <string name="receipt_bd_status_paid">PAID IN FULL</string>
     <string name="receipt_bd_status_partial">PARTIALLY PAID</string>
-    <string name="receipt_bd_additional_title">Additional charges</string>
+    <string name="receipt_bd_additional_title">Remaining balance: amenities &amp; charges</string>
+    <string name="receipt_bd_final_checkin_total">Check-in Grand Total (after discount)</string>
+    <string name="receipt_bd_final_plus_remaining">+ Remaining Balance (amenities + additional charges)</string>
     <string name="receipt_bd_none">No additional charges</string>
     <string name="receipt_bd_item_format">%1$s × %2$d @ %3$s</string>
     <string name="receipt_bd_amenity_requests">Amenity requests</string>
@@ -306,6 +308,22 @@
     <string name="details_price_per_night_label">Price Per Room/Night</string>
     <string name="details_amenity_price_label">Price</string>
     <string name="details_amenities_total_label">Amenities Total</string>
+    <string name="details_group_checkin_billing">Check-in Billing</string>
+    <string name="details_group_amenities_charges">Amenities &amp; Charges</string>
+    <string name="payment_summary_section_title">Final Summary</string>
+    <string name="details_none_added">No amenities or charges added</string>
+    <string name="remaining_balance_payable_at_checkout">Remaining Balance – payable at check-out</string>
+    <string name="details_request_pending">Pending approval – not counted</string>
+    <string name="details_request_rejected">Not approved – not counted</string>
+    <string name="details_request_rejected_reason">Not approved (%1$s) – not counted</string>
+    <string name="next_stay_checkin_total">Check-in Total</string>
+    <string name="next_stay_approved_amenities">Approved amenities</string>
+    <string name="next_stay_amenities_total">Amenities total</string>
+    <string name="next_stay_final_total">Final Total</string>
+    <plurals name="next_stay_pending_requests">
+        <item quantity="one">%d amenity request awaiting approval – not counted yet</item>
+        <item quantity="other">%d amenity requests awaiting approval – not counted yet</item>
+    </plurals>
     <string name="details_grand_total_label">Grand Total</string>
     <string name="details_label_additional_guest_fee">Additional Guest Fee</string>
     <string name="payment_balance_section_title">Payment Balance</string>

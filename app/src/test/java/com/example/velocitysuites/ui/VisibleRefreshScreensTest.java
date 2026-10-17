@@ -81,7 +81,10 @@ import java.util.Set;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class VisibleRefreshScreensTest {
 
-    private static final int BEAT_SECONDS = 30;
+    /** The usual beat; the dashboard's Your Next Stay and Booking Details follow the front desk more closely (15s). */
+    private static final int STANDARD_BEAT_SECONDS = 30;
+    private static final int LIVE_BEAT_SECONDS = 15;
+    private int beatSeconds = STANDARD_BEAT_SECONDS;
 
     private Context app;
     private FakeApi api;
@@ -185,23 +188,23 @@ public class VisibleRefreshScreensTest {
      */
     private int secondsUntilBeat(String marker) {
         int before = api.count(marker);
-        for (int seconds = 1; seconds <= BEAT_SECONDS + 5; seconds++) {
+        for (int seconds = 1; seconds <= beatSeconds + 5; seconds++) {
             advance(Duration.ofSeconds(1));
             if (api.count(marker) > before) {
                 assertEquals("one beat makes one '" + marker + "' request (two would mean two timers)", before + 1, api.count(marker));
                 return seconds;
             }
         }
-        throw new AssertionError("no '" + marker + "' request within " + (BEAT_SECONDS + 5) + " seconds");
+        throw new AssertionError("no '" + marker + "' request within " + (beatSeconds + 5) + " seconds");
     }
 
     /**
-     * Beats are 30 seconds apart. One second of slack: the clock is stepped in whole seconds and the harness can use a
+     * Beats are one interval apart (30s, or 15s on the live booking screens). One second of slack: the clock is stepped in whole seconds and the harness can use a
      * few milliseconds inside idle() on a screen with an animated overlay, which can make a 30s gap read as 29.
      * A second timer would show as a doubled request (caught in secondsUntilBeat) or a gap of about 15.
      */
-    private static void assertBeatGap(String message, int gapSeconds) {
-        assertTrue(message + " (measured " + gapSeconds + "s)", gapSeconds >= BEAT_SECONDS - 1 && gapSeconds <= BEAT_SECONDS);
+    private void assertBeatGap(String message, int gapSeconds) {
+        assertTrue(message + " (measured " + gapSeconds + "s)", gapSeconds >= beatSeconds - 1 && gapSeconds <= beatSeconds);
     }
 
     // ---- Part 1: the visible-only beat, for every screen ----
@@ -236,7 +239,7 @@ public class VisibleRefreshScreensTest {
         int first = secondsUntilBeat(marker);
         assertTrue(name + ": after coming back the timer starts afresh - the first beat is 30 seconds after resuming "
                         + "(it came " + first + "s later, resuming itself used " + consumed + "s)",
-                first <= BEAT_SECONDS && first >= BEAT_SECONDS - consumed - 1);
+                first <= beatSeconds && first >= beatSeconds - consumed - 1);
         failAllPending();
         assertBeatGap(name + ": and it stays one timer", secondsUntilBeat(marker));
         failAllPending();
@@ -249,6 +252,7 @@ public class VisibleRefreshScreensTest {
 
     @Test
     public void dashboard_beatsWhileVisibleOnly() {
+        beatSeconds = LIVE_BEAT_SECONDS;
         assertVisibleOnlyBeat(DashboardActivity.class, plain(DashboardActivity.class), "getNotifications");
     }
 
@@ -328,7 +332,7 @@ public class VisibleRefreshScreensTest {
         failAllPending();
         int first = secondsUntilBeat("getReservations");
         assertTrue("a fresh 30-second timer after coming back (first beat " + first + "s later, resuming used " + consumed + "s)",
-                first <= BEAT_SECONDS && first >= BEAT_SECONDS - consumed - 1);
+                first <= beatSeconds && first >= beatSeconds - consumed - 1);
         answerBookings(oneReservation(1800));
         failAllPending();
         assertBeatGap("and still one timer", secondsUntilBeat("getReservations"));
@@ -336,6 +340,7 @@ public class VisibleRefreshScreensTest {
 
     @Test
     public void bookingDetails_beatsWhileVisibleOnly() {
+        beatSeconds = LIVE_BEAT_SECONDS;
         Booking booking = ApiMapper.toBooking(ScreenTestSupport.reservation(588, 1800));
         assertVisibleOnlyBeat(BookingDetailsActivity.class,
                 plain(BookingDetailsActivity.class).putExtra(BookingDetailsActivity.EXTRA_BOOKING, booking), "getReservation");

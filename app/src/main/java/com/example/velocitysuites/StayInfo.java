@@ -79,15 +79,62 @@ public final class StayInfo implements Serializable {
     @Nullable public final BalanceBreakdown balanceBreakdown;
     /** "Name x qty" / amount, one per approved additional amenity. */
     private final List<String[]> additionalAmenities;
+    /** The approved amenities with their amounts - they make up the remaining balance, payable at check-out. */
+    public final List<AmenityLine> approvedAmenities;
+    public final double approvedAmenitiesTotal;
+    /** Requests still waiting for the front desk, and ones it turned down: shown apart, never counted. */
+    public final List<RequestedAmenity> requestedAmenities;
+
+    /** One approved amenity: name, quantity and what it adds to the balance. */
+    public static final class AmenityLine implements Serializable {
+        public final String name;
+        public final int quantity;
+        public final double subtotal;
+
+        AmenityLine(String name, int quantity, double subtotal) {
+            this.name = name != null ? name : "";
+            this.quantity = Math.max(1, quantity);
+            this.subtotal = subtotal;
+        }
+    }
+
+    /** One amenity request that is not on the bill. */
+    public static final class RequestedAmenity implements Serializable {
+        public final String name;
+        public final int quantity;
+        public final double subtotal;
+        public final boolean rejected;
+        @Nullable public final String reason;
+
+        RequestedAmenity(String name, int quantity, double subtotal, boolean rejected, @Nullable String reason) {
+            this.name = name != null ? name : "";
+            this.quantity = Math.max(1, quantity);
+            this.subtotal = subtotal;
+            this.rejected = rejected;
+            this.reason = reason;
+        }
+    }
 
     private StayInfo(StayBillDto d, List<RoomLine> rooms) {
         List<String[]> extras = new ArrayList<>();
+        List<AmenityLine> approved = new ArrayList<>();
         if (d.additional_amenities != null) {
             for (StayBillDto.Amenity a : d.additional_amenities) {
-                if (a != null) extras.add(new String[]{a.amenity_name + " × " + a.quantity, MoneyFormat.format(a.subtotal)});
+                if (a == null) continue;
+                extras.add(new String[]{a.amenity_name + " × " + a.quantity, MoneyFormat.format(a.subtotal)});
+                approved.add(new AmenityLine(a.amenity_name, a.quantity, a.subtotal));
             }
         }
         this.additionalAmenities = Collections.unmodifiableList(extras);
+        this.approvedAmenities = Collections.unmodifiableList(approved);
+        this.approvedAmenitiesTotal = d.additional_amenities_total;
+        List<RequestedAmenity> requested = new ArrayList<>();
+        if (d.requested_amenities != null) {
+            for (StayBillDto.RequestedAmenity r : d.requested_amenities) {
+                if (r != null) requested.add(new RequestedAmenity(r.amenity_name, r.quantity, r.subtotal, "rejected".equals(r.status), r.reason));
+            }
+        }
+        this.requestedAmenities = Collections.unmodifiableList(requested);
         this.checkIn = d.check_in;
         this.scheduledCheckOut = d.scheduled_check_out;
         this.actualCheckOut = d.actual_check_out;
