@@ -1,5 +1,7 @@
 package com.example.velocitysuites;
 
+import androidx.annotation.NonNull;
+
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -89,7 +91,12 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         selectedRoomActionFromLanding = getIntent().getStringExtra("ROOM_ACTION");
         shouldOpenSelectedRoom = getIntent().getBooleanExtra("OPEN_ROOM_DETAILS", selectedRoomIdFromLanding != null);
         String roomIdsCsv = getIntent().getStringExtra("ROOM_IDS");
-        if (roomIdsCsv != null && !roomIdsCsv.isEmpty()) {
+        if (savedInstanceState != null) {
+            // Recreated (dark-mode toggle, system kill): the guest's own cart, dates and filters win over the launch extras,
+            // and the one-time "open this room / the cart summary" hand-off from the landing page must not fire again.
+            restoreBrowsingState(savedInstanceState);
+            shouldOpenSelectedRoom = false;
+        } else if (roomIdsCsv != null && !roomIdsCsv.isEmpty()) {
             // Each unit of quantity is one repeated id in the CSV (the same
             // "duplicates ARE the quantity" convention PendingRoomSelection/
             // PendingWizardRooms/BookingWizardState already use) - count
@@ -125,6 +132,76 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         animateScreenContent();
         updatePersonalizedGreeting();
+        applyRestoredDates();
+    }
+
+    // ---- surviving recreation (dark-mode toggle, process death) ----
+
+    private static final String STATE_CART_IDS = "cart_ids";
+    private static final String STATE_CART_QTY = "cart_qty";
+    private static final String STATE_CHECK_IN = "check_in_utc";
+    private static final String STATE_CHECK_OUT = "check_out_utc";
+    private static final String STATE_CAPACITY = "capacity";
+    private static final String STATE_MAX_PRICE = "max_price";
+    private static final String STATE_SORT = "sort_mode";
+    private static final String STATE_TYPE = "type_filter";
+    private static final String STATE_STATUS = "status_filter";
+    private static final String STATE_FILTERS_APPLIED = "filters_applied";
+    /** Dates read back from a saved state, applied to the fields and searched once the screen is built (applyRestoredDates). */
+    private long restoredCheckInUtc = -1L, restoredCheckOutUtc = -1L;
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        String[] ids = selectedQuantities.keySet().toArray(new String[0]);
+        int[] qty = new int[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            Integer q = selectedQuantities.get(ids[i]);
+            qty[i] = q == null ? 0 : q;
+        }
+        outState.putStringArray(STATE_CART_IDS, ids);
+        outState.putIntArray(STATE_CART_QTY, qty);
+        outState.putLong(STATE_CHECK_IN, checkInDate != null ? toUtcMidnight(checkInDate) : -1L);
+        outState.putLong(STATE_CHECK_OUT, checkOutDate != null ? toUtcMidnight(checkOutDate) : -1L);
+        outState.putInt(STATE_CAPACITY, selectedCapacity);
+        outState.putFloat(STATE_MAX_PRICE, selectedMaxPrice);
+        outState.putString(STATE_SORT, currentSortMode);
+        outState.putString(STATE_TYPE, selectedRoomTypeFilter);
+        outState.putString(STATE_STATUS, selectedStatusFilter);
+        outState.putBoolean(STATE_FILTERS_APPLIED, filtersApplied);
+    }
+
+    private void restoreBrowsingState(Bundle state) {
+        String[] ids = state.getStringArray(STATE_CART_IDS);
+        int[] qty = state.getIntArray(STATE_CART_QTY);
+        if (ids != null && qty != null) {
+            for (int i = 0; i < ids.length && i < qty.length; i++) {
+                if (qty[i] > 0) selectedQuantities.put(ids[i], qty[i]);
+            }
+        }
+        restoredCheckInUtc = state.getLong(STATE_CHECK_IN, -1L);
+        restoredCheckOutUtc = state.getLong(STATE_CHECK_OUT, -1L);
+        selectedCapacity = state.getInt(STATE_CAPACITY, 0);
+        selectedMaxPrice = state.getFloat(STATE_MAX_PRICE, 15000);
+        currentSortMode = state.getString(STATE_SORT, "Default");
+        selectedRoomTypeFilter = state.getString(STATE_TYPE, "All");
+        selectedStatusFilter = state.getString(STATE_STATUS, "All");
+        filtersApplied = state.getBoolean(STATE_FILTERS_APPLIED, false);
+    }
+
+    /** Puts the restored dates back in the fields and re-runs the date-aware availability search (the plain load that onCreate started is superseded). */
+    private void applyRestoredDates() {
+        if (restoredCheckInUtc < 0) return;
+        checkInDate = fromUtcMidnight(restoredCheckInUtc);
+        etCheckIn.setText(fieldDateFormat.format(checkInDate.getTime()));
+        checkOutLayout.setEnabled(true);
+        if (restoredCheckOutUtc >= 0) {
+            checkOutDate = fromUtcMidnight(restoredCheckOutUtc);
+            etCheckOut.setText(fieldDateFormat.format(checkOutDate.getTime()));
+        }
+        updateDateSummary();
+        if (checkOutDate != null && checkOutDate.after(checkInDate)) performSearchWithLoading();
+        restoredCheckInUtc = restoredCheckOutUtc = -1L;
     }
 
     /** The room-details dialog has its own heart: when it closes, redraw the card hearts from the store. */
@@ -238,7 +315,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         findViewById(R.id.btnCartClear).setOnClickListener(v -> {
             selectedQuantities.clear();
-            adapter.notifyDataSetChanged();
+            adapter.notifyQuantitiesChanged(null);
             updateSelectionSummaryBar();
         });
         findViewById(R.id.btnCartReserve).setOnClickListener(v -> navigateToBookingWithCart(true));
@@ -256,7 +333,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (selected.isEmpty()) return;
         SelectedRoomsDialog.show(this, selected, room -> {
             selectedQuantities.remove(room.getId());
-            adapter.notifyDataSetChanged();
+            adapter.notifyQuantitiesChanged(room.getId());
             updateSelectionSummaryBar();
         });
     }
@@ -323,10 +400,12 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     @Override
     protected void onVisiblePoll() {
         super.onVisiblePoll();
+        // A search / reload that starts after this beat (the guest changed the dates) must not be overwritten by this older answer.
+        final int seq = roomsRequestSeq;
         RoomRepository.getInstance(this).refreshRoomsFresh(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
-                if (isFinishing() || isDestroyed() || result == null) return;
+                if (isFinishing() || isDestroyed() || result == null || seq != roomsRequestSeq) return;
                 if (!roomsGate.accept(result)) return;
                 allRooms = result;
                 refreshRoomTypeDropdownOptions();

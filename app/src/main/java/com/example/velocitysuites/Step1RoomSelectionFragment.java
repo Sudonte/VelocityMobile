@@ -117,8 +117,13 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         loadAvailableRooms();
     }
 
+    /** Bumped by every availability fetch so a slow, older response can never overwrite a newer one. */
+    private int availabilityRequestSeq;
+
     /** Runs the date-aware availability fetch that backs this step's room list - called from onViewCreated() and again from the error state's Retry button. */
     private void loadAvailableRooms() {
+        // Retry, or a second load after the guest changed something, must not be overwritten by an older, slower answer.
+        final int seq = ++availabilityRequestSeq;
         layoutCheckingAvailability.setVisibility(View.VISIBLE);
         layoutRoomSelectionContent.setVisibility(View.GONE);
         layoutNoRoomsAvailableForDates.setVisibility(View.GONE);
@@ -126,7 +131,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         repository.refreshRoomsFresh(getState().checkIn, getState().checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
-                if (!isAdded()) return;
+                if (!isAdded() || seq != availabilityRequestSeq) return;
                 allRooms = result;
                 roomsLoadedSuccessfullyOnce = true;
                 reconcileSelectedRoomsWithAvailability();
@@ -135,7 +140,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
 
             @Override
             public void onError(String message) {
-                if (!isAdded()) return;
+                if (!isAdded() || seq != availabilityRequestSeq) return;
                 layoutCheckingAvailability.setVisibility(View.GONE);
                 if (roomsLoadedSuccessfullyOnce) {
                     // A later background re-check (e.g. from Add Room) failing

@@ -204,6 +204,33 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return new RoomViewHolder(view);
     }
 
+    /** Payload for "only this card's quantity stepper changed": the rest of the card (image, amenities...) is left untouched. */
+    private static final Object PAYLOAD_QUANTITY = new Object();
+
+    /**
+     * The cart changed outside a card's own stepper (Clear, or Remove in the selected-rooms dialog): rebind only the steppers -
+     * the one room's card, or every card when {@code roomId} is null - instead of notifyDataSetChanged() rebuilding the list.
+     */
+    public void notifyQuantitiesChanged(@androidx.annotation.Nullable String roomId) {
+        for (int i = 0; i < items.size(); i++) {
+            RoomListItem item = items.get(i);
+            if (item.viewType != TYPE_ROOM || item.room == null) continue;
+            if (roomId == null || roomId.equals(item.room.getId())) notifyItemChanged(i, PAYLOAD_QUANTITY);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position, @NonNull java.util.List<Object> payloads) {
+        if (!payloads.isEmpty() && payloads.contains(PAYLOAD_QUANTITY) && viewHolder instanceof RoomViewHolder) {
+            Room room = items.get(position).room;
+            if (room != null) {
+                bindQuantityStepper((RoomViewHolder) viewHolder, room, room.isAvailable(), viewHolder.itemView.getContext());
+                return;
+            }
+        }
+        super.onBindViewHolder(viewHolder, position, payloads);
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
         RoomListItem item = items.get(position);
@@ -382,7 +409,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 selectedQuantities.put(room.getId(), current - 1);
             }
             int position = holder.getBindingAdapterPosition();
-            if (position != RecyclerView.NO_POSITION) notifyItemChanged(position);
+            if (position != RecyclerView.NO_POSITION) notifyItemChanged(position, PAYLOAD_QUANTITY);
             listener.onRoomSelectionChanged();
         });
         holder.btnRoomQtyPlus.setOnClickListener(v -> {
@@ -393,7 +420,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             selectedQuantities.put(room.getId(), current + 1);
             int position = holder.getBindingAdapterPosition();
-            if (position != RecyclerView.NO_POSITION) notifyItemChanged(position);
+            if (position != RecyclerView.NO_POSITION) notifyItemChanged(position, PAYLOAD_QUANTITY);
             listener.onRoomSelectionChanged();
         });
     }
