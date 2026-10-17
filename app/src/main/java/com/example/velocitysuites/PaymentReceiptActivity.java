@@ -452,6 +452,12 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      */
     private void buildHighlightSection(ViewGroup parent, ReceiptDetail detail) {
         ReceiptDetail.Highlight h = detail.getHighlight();
+        BalanceBreakdown breakdown = detail.getStay() != null ? detail.getStay().balanceBreakdown : null;
+        if (breakdown != null && "OFFICIAL_RECEIPT".equals(detail.getReceiptType())) {
+            // Receipt 3 of a stay paid in full at check-in: the server's own breakdown, identical to the front desk's.
+            buildBalanceBreakdownSection(parent, breakdown, detail.getStay().scheduledNights);
+            return;
+        }
         if (h == null) return;
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_summary_title));
 
@@ -484,8 +490,84 @@ public class PaymentReceiptActivity extends AppCompatActivity {
                 new double[]{h.amount("remaining_balance"), h.amount("amount_to_pay")}, h.amountToPayNote);
     }
 
+    /**
+     * Receipt 3 for a stay settled at check-in, in the agreed order: CHECK-IN SUMMARY (discount taken once, paid in
+     * full), ADDITIONAL CHARGES (amenities + the desk's charges, itemized), REMAINING BALANCE, then the highlighted
+     * FINAL GRAND TOTAL / TOTAL PAID / BALANCE DUE. Every figure is the server's (StayBill), shown as it sent it.
+     */
+    private void buildBalanceBreakdownSection(ViewGroup parent, BalanceBreakdown b, int nights) {
+        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_bd_title));
+        addSubheadingText(content, getString(R.string.receipt_bd_checkin_title,
+                getString(b.paidInFull ? R.string.receipt_bd_fully_paid : R.string.receipt_bd_not_fully_paid)));
+        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, nights, nights);
+        addRow(content, getString(R.string.receipt_bd_room_rate_nights, nightsText), formatPrice(b.roomCharge));
+        if (b.bookedAmenities > 0.004) addRow(content, getString(R.string.receipt_bd_booked_amenities), formatPrice(b.bookedAmenities));
+        if (b.discount > 0.004) {
+            String label = b.discountName == null ? getString(R.string.details_label_discount)
+                    : b.discountPercent == null ? getString(R.string.receipt_bd_discount_named, b.discountName)
+                    : getString(R.string.receipt_bd_discount_named_percent, b.discountName, trimPercent(b.discountPercent));
+            addRow(content, label, "-" + formatPrice(b.discount));
+        }
+        addRow(content, getString(R.string.receipt_bd_checkin_grand_total), formatPrice(b.checkinGrandTotal));
+        addRow(content, getString(R.string.receipt_bd_paid_at_checkin), "-" + formatPrice(b.amountPaidAtCheckin));
+        addRow(content, getString(R.string.receipt_bd_status), getString(b.paidInFull ? R.string.receipt_bd_status_paid : R.string.receipt_bd_status_partial));
+
+        addDivider(content, dp(8));
+        addSubheadingText(content, getString(R.string.receipt_bd_additional_title));
+        for (BalanceBreakdown.Item item : b.amenities) {
+            addRow(content, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
+        }
+        for (BalanceBreakdown.Item item : b.charges) {
+            addRow(content, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
+        }
+        if (!b.hasAdditionalCharges()) addNoteText(content, getString(R.string.receipt_bd_none));
+        addRow(content, getString(R.string.receipt_bd_amenity_requests), formatPrice(b.amenitiesTotal));
+        addRow(content, getString(R.string.receipt_bd_additional_charges), formatPrice(b.chargesTotal));
+        if (Math.abs(b.stayAdjustment) >= 0.005) {
+            addRow(content, getString(R.string.receipt_bd_stay_adjustment), (b.stayAdjustment < 0 ? "-" : "") + formatPrice(Math.abs(b.stayAdjustment)));
+        }
+        addRow(content, getString(R.string.receipt_bd_additional_subtotal), formatPrice(b.additionalSubtotal));
+        addProminentTotal(content, getString(R.string.receipt_bd_remaining_balance), formatPrice(b.remainingBalance));
+
+        addDivider(content, dp(8));
+        addHighlightPanel(content,
+                new String[]{getString(R.string.receipt_bd_final_grand_total), getString(R.string.receipt_bd_total_paid), getString(R.string.receipt_bd_balance_due)},
+                new String[]{formatPrice(b.finalGrandTotal), "-" + formatPrice(b.totalPaid), formatPrice(b.balanceDue)}, null);
+    }
+
+    private static String trimPercent(double percent) {
+        return percent == Math.rint(percent) ? String.valueOf((long) percent) : String.valueOf(percent);
+    }
+
+    private void addSubheadingText(ViewGroup parent, String text) {
+        TextView view = new TextView(ui);
+        view.setText(text);
+        view.setAllCaps(true);
+        view.setTypeface(view.getTypeface(), android.graphics.Typeface.BOLD);
+        view.setLetterSpacing(0.04f);
+        view.setTextSize(12);
+        view.setTextColor(ui.getColor(R.color.velocity_text_secondary));
+        view.setPadding(0, dp(4), 0, dp(4));
+        parent.addView(view);
+    }
+
+    private void addNoteText(ViewGroup parent, String text) {
+        TextView view = new TextView(ui);
+        view.setText(text);
+        view.setTextSize(13);
+        view.setTextColor(ui.getColor(R.color.velocity_text_secondary));
+        view.setPadding(0, dp(2), 0, dp(6));
+        parent.addView(view);
+    }
+
     /** Big, tinted rows for the figures a receipt highlights; the last row carries an optional note ("Due at check-in"). */
     private void addHighlightPanel(ViewGroup parent, String[] labels, double[] values, @Nullable String note) {
+        String[] formatted = new String[values.length];
+        for (int i = 0; i < values.length; i++) formatted[i] = formatPrice(values[i]);
+        addHighlightPanel(parent, labels, formatted, note);
+    }
+
+    private void addHighlightPanel(ViewGroup parent, String[] labels, String[] values, @Nullable String note) {
         LinearLayout panel = new LinearLayout(ui);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
@@ -504,7 +586,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             label.setTextSize(12);
             row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
             TextView value = new TextView(ui);
-            value.setText(formatPrice(values[i]));
+            value.setText(values[i]);
             value.setGravity(android.view.Gravity.END);
             value.setTypeface(value.getTypeface(), android.graphics.Typeface.BOLD);
             value.setTextColor(ui.getColor(R.color.velocity_action_text)); // the red that stays readable in Dark too

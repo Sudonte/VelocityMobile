@@ -30,6 +30,47 @@ public class StayBillDto {
     /** Approved extra amenities the guest asked for (or the desk added) after booking - already inside {@link #total}. */
     public List<Amenity> additional_amenities;
     public double additional_amenities_total;
+    /** The 3rd receipt's balance breakdown - present once the stay was settled at check-in; null for older stays. */
+    public ReceiptBreakdown receipt_breakdown;
+
+    public static class ReceiptBreakdown {
+        public Checkin checkin;
+        public AfterCheckin after_checkin;
+        public double remaining_balance;
+        public double final_grand_total;
+        public double total_paid;
+        public double balance_due;
+    }
+
+    /** The check-in summary, frozen when the guest paid. */
+    public static class Checkin {
+        public double room_charge;
+        public double booked_amenities;
+        public String discount_name;
+        public Double discount_percent;
+        public double discount;
+        public double grand_total;
+        public double amount_paid;
+        public boolean paid_in_full;
+        public String status;
+    }
+
+    /** What was added after check-in: amenity requests and the receptionist's additional charges. */
+    public static class AfterCheckin {
+        public List<Line> amenities;
+        public double amenities_total;
+        public List<Line> charges;
+        public double charges_total;
+        public double stay_adjustment;
+        public double subtotal;
+    }
+
+    public static class Line {
+        public String name;
+        public int quantity;
+        public double unit_price;
+        public double subtotal;
+    }
 
     public static class Amenity {
         public String amenity_name;

@@ -75,6 +75,8 @@ public final class StayInfo implements Serializable {
     @Nullable public final String discountName;
     public final double total;
     public final List<RoomLine> rooms;
+    /** The 3rd receipt's balance breakdown, when the stay was settled at check-in. */
+    @Nullable public final BalanceBreakdown balanceBreakdown;
     /** "Name x qty" / amount, one per approved additional amenity. */
     private final List<String[]> additionalAmenities;
 
@@ -98,6 +100,7 @@ public final class StayInfo implements Serializable {
         this.discountName = d.discount_name;
         this.total = d.total;
         this.rooms = Collections.unmodifiableList(rooms);
+        this.balanceBreakdown = BalanceBreakdown.from(d.receipt_breakdown);
     }
 
     /** Null in, null out - a stay that is not in house yet has no itemized bill. */
