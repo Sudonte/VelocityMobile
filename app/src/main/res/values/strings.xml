@@ -2110,6 +2110,10 @@
     <string name="upcoming_stay_short_format">%1$s to %2$s · %3$s</string>
     <string name="upcoming_clear_filters">Clear filters</string>
     <string name="upcoming_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
+    <string name="open_in_upcoming">Open in Upcoming</string>
+    <string name="quick_actions_summary">Browse rooms · Booking · Reservation · History</string>
+    <string name="support_collapsed_summary">Contact the front desk anytime</string>
+    <string name="summary_overview_format">Active %1$d · Past %2$d · Cancelled %3$d</string>
 </resources>
 
 

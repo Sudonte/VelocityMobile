@@ -519,13 +519,44 @@
                     layout="@layout/view_stay_calendar" />
 
                                 <!-- Section header: a clear title and one line saying what the section is for -->
-                <TextView
-                    style="@style/TextAppearance.Velocity.Label.Section"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:accessibilityHeading="true"
-                    android:text="@string/quick_actions" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:accessibilityHeading="true"
+                        android:text="@string/quick_actions" />
+                    <ImageButton
+                    android:id="@+id/quickActionsToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/quickActionsSummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+                <LinearLayout
+                    android:id="@+id/quickActionsBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
                 <TextView
                     style="@style/TextAppearance.Velocity.Body"
                     android:layout_width="match_parent"
@@ -773,6 +804,7 @@
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
                 </LinearLayout>
+                </LinearLayout>
 
                 <!-- Booking and Reservation Summary -->
                 <com.google.android.material.card.MaterialCardView
@@ -810,7 +842,31 @@
                                 android:layout_marginStart="11dp"
                                 android:layout_weight="1"
                                 android:text="@string/booking_reservation_summary_title" />
+                            <ImageButton
+                    android:id="@+id/summaryToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+                        <TextView
+                    android:id="@+id/summarySummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+                        <LinearLayout
+                            android:id="@+id/summaryBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -989,6 +1045,7 @@
                                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/br_summary_cancel_reservations" android:textSize="12sp" android:fontFamily="sans-serif-black" android:textColor="@color/velocity_text_secondary" android:textAllCaps="true" android:alpha="0.8" android:letterSpacing="0.02"/>
                             </LinearLayout>
                         </GridLayout>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -1669,6 +1726,7 @@
                                 android:textColor="@color/white"
                                 android:textSize="14sp" />
                             <TextView
+                                android:id="@+id/supportDesc"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
@@ -1677,6 +1735,16 @@
                                 android:text="@string/support_need_help_desc"
                                 android:textColor="@color/white"
                                 android:textSize="12sp" />
+                            <TextView
+                                android:id="@+id/supportSummary"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:alpha="0.9"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:visibility="gone" />
                         </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
@@ -1697,6 +1765,15 @@
                             app:iconGravity="textStart"
                             app:iconSize="16dp"
                             app:iconTint="@color/white" />
+
+                        <ImageButton
+                            android:id="@+id/supportToggle"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/section_collapse"
+                            android:src="@drawable/ic_expand_less"
+                            app:tint="@color/white" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

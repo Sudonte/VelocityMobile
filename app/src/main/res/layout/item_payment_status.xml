@@ -55,6 +55,26 @@
                     android:textSize="13sp"
                     tools:text="Reservation #588" />
 
+                <TextView
+                    android:id="@+id/btnPaymentOpenUpcoming"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_upcoming_link"
+                    android:clickable="true"
+                    app:drawableEndCompat="@drawable/ic_chevron_right"
+                    android:drawablePadding="2dp"
+                    app:drawableTint="@color/velocity_red_primary"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-bold"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="6dp"
+                    android:text="@string/open_in_upcoming"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="12sp" />
+
                 <!-- Transaction type - always shown so it's never ambiguous whether this
                      card is a view-only Booking or a still-payable Reservation, regardless
                      of payment/verification status shown elsewhere on the card. -->

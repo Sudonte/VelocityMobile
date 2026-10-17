@@ -53,6 +53,9 @@ public class DashboardActivity extends BaseNavigationActivity {
     private TextView bookingCountBadge, notificationCountBadge, paymentCountBadge;
     /** Collapse / expand controls: every dashboard section except Account Summary. (Stay Calendar owns its own.) */
     private CollapsibleSection nextStaySection, moreStaysSection, bookingsSection, notificationsSection, paymentsSection;
+    private CollapsibleSection quickActionsSection, summarySection, supportSection;
+    /** Everything Other Stays could list, soonest first / latest first - the collapsed preview shows a few, expanded shows all. */
+    private List<Booking> moreStaysUpcoming = new ArrayList<>(), moreStaysRecent = new ArrayList<>();
     /** Every stay "Your Next Stay" currently shows (all the transactions on the nearest day). */
     private List<NextStay> currentNextStays = new ArrayList<>();
 
@@ -186,8 +189,18 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         nextStaySection = new CollapsibleSection(this, "next_stay", findViewById(R.id.nextStayToggle),
                 findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard));
+        // Other Stays keeps its list visible when collapsed (a capped preview); expanding it shows every stay.
         moreStaysSection = new CollapsibleSection(this, "more_stays", findViewById(R.id.moreStaysToggle),
-                findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody));
+                findViewById(R.id.moreStaysSummary));
+        moreStaysSection.setOnToggle(this::renderMoreStays);
+        quickActionsSection = new CollapsibleSection(this, "quick_actions", findViewById(R.id.quickActionsToggle),
+                findViewById(R.id.quickActionsSummary), findViewById(R.id.quickActionsBody));
+        quickActionsSection.setSummary(getString(R.string.quick_actions_summary));
+        summarySection = new CollapsibleSection(this, "booking_summary", findViewById(R.id.summaryToggle),
+                findViewById(R.id.summarySummary), findViewById(R.id.summaryBody));
+        supportSection = new CollapsibleSection(this, "support", findViewById(R.id.supportToggle),
+                findViewById(R.id.supportSummary), findViewById(R.id.supportDesc), findViewById(R.id.btnContactSupport));
+        supportSection.setSummary(getString(R.string.support_collapsed_summary));
         bookingsSection = new CollapsibleSection(this, "recent_bookings", findViewById(R.id.bookingsToggle),
                 findViewById(R.id.bookingsSummary), findViewById(R.id.bookingsBody));
         notificationsSection = new CollapsibleSection(this, "notifications", findViewById(R.id.notificationsToggle),
@@ -330,6 +343,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         // allBookings itself, so it's added here too - Past Reservations must always
         // equal that list's exact total, not just the non-converted subset above.
         pastReservations += repository.getCompletedHistoricalReservations().size();
+        summarySection.setSummary(getString(R.string.summary_overview_format,
+                activeBookings + activeReservations, pastBookings + pastReservations, cancelBookings + cancelReservations));
         if (activeReservationsCountText != null) activeReservationsCountText.setText(String.valueOf(activeReservations));
         if (cancelReservationsCountText != null) cancelReservationsCountText.setText(String.valueOf(cancelReservations));
         if (activeBookingsCountText != null) activeBookingsCountText.setText(String.valueOf(activeBookings));
@@ -569,7 +584,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         tvRoomName.setText(b.getRoomName());
         ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        card.findViewById(R.id.tvPaymentBookingId).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
+        card.findViewById(R.id.btnPaymentOpenUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
         // (the room photo is hidden in this light row - see lightenPaymentCard - so it is not downloaded)
         String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getDisplayId();
         tvRef.setText(getString(R.string.transaction_ref_format, ref));
@@ -1156,9 +1171,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
         stayCalendar.setBookings(bookings);
 
-        LinearLayout list = findViewById(R.id.moreStaysList);
-        View section = findViewById(R.id.moreStaysSection);
-        list.removeAllViews();
         List<Booking> upcoming = new ArrayList<>();
         List<Booking> recent = new ArrayList<>();
         for (Booking b : bookings) {
@@ -1175,25 +1187,27 @@ public class DashboardActivity extends BaseNavigationActivity {
         };
         java.util.Collections.sort(upcoming, byCheckIn);
         java.util.Collections.sort(recent, byCheckIn.reversed());
-        int shownCount = 0;
-        Booking first = null;
-        for (Booking b : upcoming) {
-            if (shownCount >= 4) break;
-            addCompactStayRow(b, true, list);
-            if (first == null) first = b;
-            shownCount++;
-        }
-        for (Booking b : recent) {
-            if (shownCount >= 6 || list.getChildCount() >= 6) break;
-            if (shownCount >= 4 && recent.indexOf(b) >= 2) break;
-            addCompactStayRow(b, false, list);
-            if (first == null) first = b;
-            shownCount++;
-        }
-        section.setVisibility(shownCount > 0 ? View.VISIBLE : View.GONE);
+        moreStaysUpcoming = upcoming;
+        moreStaysRecent = recent;
+        renderMoreStays();
+    }
+
+    /** Collapsed: the preview (first 4 upcoming, first 2 finished). Expanded: every stay. */
+    private void renderMoreStays() {
+        LinearLayout list = findViewById(R.id.moreStaysList);
+        View section = findViewById(R.id.moreStaysSection);
+        list.removeAllViews();
+        boolean all = moreStaysSection.isExpanded();
+        int upcomingShown = all ? moreStaysUpcoming.size() : Math.min(4, moreStaysUpcoming.size());
+        int recentShown = all ? moreStaysRecent.size() : Math.min(2, moreStaysRecent.size());
+        for (int i = 0; i < upcomingShown; i++) addCompactStayRow(moreStaysUpcoming.get(i), true, list);
+        for (int i = 0; i < recentShown; i++) addCompactStayRow(moreStaysRecent.get(i), false, list);
+        int total = moreStaysUpcoming.size() + moreStaysRecent.size();
+        section.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
+        Booking first = !moreStaysUpcoming.isEmpty() ? moreStaysUpcoming.get(0) : (!moreStaysRecent.isEmpty() ? moreStaysRecent.get(0) : null);
         if (first != null) {
             moreStaysSection.setSummary(getString(R.string.summary_with_first,
-                    getResources().getQuantityString(R.plurals.summary_stays_count, shownCount, shownCount),
+                    getResources().getQuantityString(R.plurals.summary_stays_count, total, total),
                     getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
                             TransactionStatusChip.label(first.getStatus()))));
         }
@@ -1438,8 +1452,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         tvRoomName.setText(b.getRoomName());
         // The ID leads each item: "Booking #338" / "Reservation #588" (the format Transaction History uses).
         tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        // The ID itself is a link to this transaction in Upcoming Hotel Transactions; the rest of the row keeps its own target.
-        tvBookingId.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
+        // A clearly separate action (a pill button) opens this transaction in Upcoming Hotel Transactions; the row keeps its own target.
+        card.findViewById(R.id.btnNextItemOpenUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
 
         String relevantDate = isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate();
         tvDate.setText(getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format, relevantDate));

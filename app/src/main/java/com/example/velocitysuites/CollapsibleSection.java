@@ -26,11 +26,12 @@ final class CollapsibleSection {
     private final View[] bodies;
     private boolean expanded;
     private CharSequence summaryText = "";
+    private Runnable onToggle;
 
     /**
      * @param toggle  the chevron button
      * @param summary the one-line summary shown while collapsed
-     * @param bodies  everything that is hidden while collapsed
+     * @param bodies  everything that is hidden while collapsed (may be empty when the section re-renders itself, see setOnToggle)
      */
     CollapsibleSection(@NonNull android.content.Context context, @NonNull String key, @NonNull ImageView toggle,
                        @NonNull TextView summary, @NonNull View... bodies) {
@@ -44,8 +45,14 @@ final class CollapsibleSection {
             expanded = !expanded;
             prefs.edit().putBoolean(KEY_PREFIX + this.key, expanded).apply();
             apply();
+            if (onToggle != null) onToggle.run();
         });
         apply();
+    }
+
+    /** Called after the guest expands or collapses the section, for sections whose content depends on the state. */
+    void setOnToggle(@Nullable Runnable onToggle) {
+        this.onToggle = onToggle;
     }
 
     boolean isExpanded() {

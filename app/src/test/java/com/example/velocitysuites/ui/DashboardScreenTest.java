@@ -507,11 +507,13 @@ public class DashboardScreenTest {
 
         int[][] sections = {
                 {R.id.nextStayToggle, R.id.nextStaySummary, R.id.nextStayCard},
-                {R.id.moreStaysToggle, R.id.moreStaysSummary, R.id.moreStaysBody},
                 {R.id.stayCalToggle, R.id.stayCalCollapsedSummary, R.id.stayCalBody},
                 {R.id.bookingsToggle, R.id.bookingsSummary, R.id.bookingsBody},
                 {R.id.notificationsToggle, R.id.notificationsSummary, R.id.notificationsBody},
-                {R.id.paymentsToggle, R.id.paymentsSummary, R.id.paymentsBody}};
+                {R.id.paymentsToggle, R.id.paymentsSummary, R.id.paymentsBody},
+                {R.id.quickActionsToggle, R.id.quickActionsSummary, R.id.quickActionsBody},
+                {R.id.summaryToggle, R.id.summarySummary, R.id.summaryBody},
+                {R.id.supportToggle, R.id.supportSummary, R.id.supportDesc}};
         for (int[] s : sections) {
             String name = activity.getResources().getResourceEntryName(s[0]);
             assertEquals(name + " starts expanded", View.VISIBLE, activity.findViewById(s[2]).getVisibility());
@@ -565,11 +567,50 @@ public class DashboardScreenTest {
 
         // Recent Bookings: the booking's reference (the rest of that row still opens Transaction History).
         ViewGroup recent = activity.findViewById(R.id.bookingListContainer);
-        tap(recent.getChildAt(0).findViewById(R.id.tvNextItemBookingId));
+        tap(recent.getChildAt(0).findViewById(R.id.btnNextItemOpenUpcoming));
         Intent booking = nextScreen(activity);
         assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), booking.getComponent());
         assertEquals("338", booking.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
         assertEquals(true, booking.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, false));
+    }
+
+    @Test
+    public void paymentStatusId_hasItsOwnButton_thatOpensUpcomingFocusedOnThatTransaction() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 3)));
+
+        ViewGroup payments = activity.findViewById(R.id.paymentListContainer);
+        assertTrue(payments.getChildCount() > 0);
+        View row = payments.getChildAt(0);
+        String shown = ((TextView) row.findViewById(R.id.tvPaymentBookingId)).getText().toString();
+        View button = row.findViewById(R.id.btnPaymentOpenUpcoming);
+        assertEquals(app.getString(R.string.open_in_upcoming), ((TextView) button).getText().toString());
+        assertTrue("a comfortable touch target", button.getMinimumHeight() >= (int) (48 * app.getResources().getDisplayMetrics().density) - 1);
+        assertEquals("the ID text itself is plain text", false, row.findViewById(R.id.tvPaymentBookingId).hasOnClickListeners());
+
+        tap(button);
+        Intent opened = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
+        boolean direct = shown.startsWith("Booking");
+        assertEquals(shown.substring(shown.indexOf('#') + 1), opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+        assertEquals(direct, opened.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, !direct));
+    }
+
+    @Test
+    public void otherStays_collapsedKeepsThePreviewCap_expandedShowsEveryStay() {
+        DashboardActivity activity = launch();
+        // 1 next stay + 7 further upcoming stays (the preview cap is 4)
+        ReservationDto[] reservations = new ReservationDto[8];
+        for (int i = 0; i < 8; i++) reservations[i] = stay(600 + i, 2 + i, 1);
+        answerWith(ScreenTestSupport.reservations(reservations), ScreenTestSupport.directBookings());
+
+        ViewGroup more = activity.findViewById(R.id.moreStaysList);
+        assertEquals("expanded: every stay", 7, more.getChildCount());
+        activity.findViewById(R.id.moreStaysToggle).performClick();
+        assertEquals("collapsed: the preview", 4, more.getChildCount());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysSummary).getVisibility());
+        activity.findViewById(R.id.moreStaysToggle).performClick();
+        assertEquals(7, more.getChildCount());
     }
 
     private static final int[] STATE_VIEWS = {R.id.stateSummary, R.id.stateRecent, R.id.statePayments, R.id.stateNotifications};
