@@ -72,7 +72,7 @@ public class ReceiptsAndHeaderScreensTest {
     private static void drainStaleWindowCallbacks() {
         for (int i = 0; i < 3; i++) {
             try {
-                shadowOf(Looper.getMainLooper()).idle();
+                shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500)); // frames only fire as the clock advances
             } catch (IllegalStateException staleWindow) {
                 // a leaked window from another test class; its callback is consumed by running it
             }
