@@ -733,7 +733,7 @@ public final class ApiMapper {
                     dto.amount_paid, dto.payment_status, dto.verification_status,
                     dto.gcash_number, dto.gcash_reference_number, dto.reference_number,
                     dto.payment_percentage, dto.verified_by, dto.verified_at,
-                    dto.rejection_reason, dto.payment_date != null && !dto.payment_date.trim().isEmpty() ? dto.payment_date : dto.verified_at,
+                    dto.rejection_reason, firstNonBlank(dto.payment_date, dto.verified_at, dto.created_at),
                     dto.total_paid_after_transaction, dto.remaining_balance_after_transaction,
                     dto.receipt_type, dto.receipt_number
             );
@@ -1037,10 +1037,16 @@ public final class ApiMapper {
         return result;
     }
 
-    /** When a payment happened: its payment_date, else (a legacy row without one) when staff verified it. */
+    @androidx.annotation.Nullable
+    private static String firstNonBlank(@androidx.annotation.Nullable String... values) {
+        for (String v : values) if (v != null && !v.trim().isEmpty()) return v;
+        return null;
+    }
+
+    /** When a payment happened: its payment_date, else (a legacy row without one) when staff verified it, else when the row was created. */
     @androidx.annotation.Nullable
     private static String paymentTimestamp(com.example.velocitysuites.network.dto.PaymentDto payment) {
-        return payment.payment_date != null && !payment.payment_date.trim().isEmpty() ? payment.payment_date : payment.verified_at;
+        return firstNonBlank(payment.payment_date, payment.verified_at, payment.created_at);
     }
 
     /** Same instant-aware conversion as reformatDateTime(), but date-only - see Booking#getPaymentDateOnly(). */

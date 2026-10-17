@@ -8,6 +8,8 @@ public class PaymentDto {
     public String amount_paid;
     public String payment_status;
     public String payment_date;
+    /** Last-resort payment timestamp for legacy rows that have neither payment_date nor verified_at. */
+    public String created_at;
     public BillingDto billing;
     /** Registered GCash mobile number the guest paid from - new as of the receipt-verification workflow. */
     public String gcash_number;

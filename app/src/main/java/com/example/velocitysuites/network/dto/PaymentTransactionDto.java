@@ -42,6 +42,8 @@ public class PaymentTransactionDto {
     public String verified_at;
     public String rejection_reason;
     public String payment_date;
+    /** Last-resort payment timestamp for legacy rows that have neither payment_date nor verified_at. */
+    public String created_at;
     /** Running total paid AFTER this transaction, in chronological order - already backend-computed, never re-derive client-side. */
     public double total_paid_after_transaction;
     /** Running remaining balance AFTER this transaction - see total_paid_after_transaction's identical contract. */

@@ -213,12 +213,12 @@
                                     android:text="@string/landing_banner_luxury_title"
                                     android:textAllCaps="true"
                                     android:textColor="@color/white"
-                                    android:autoSizeMaxTextSize="48sp"
-                                    android:autoSizeMinTextSize="30sp"
+                                    android:autoSizeMaxTextSize="34sp"
+                                    android:autoSizeMinTextSize="22sp"
                                     android:autoSizeStepGranularity="1sp"
                                     android:autoSizeTextType="uniform"
                                     android:maxLines="1"
-                                    android:textSize="44sp" />
+                                    android:textSize="34sp" />
 
                                 <TextView
                                     android:layout_width="match_parent"
