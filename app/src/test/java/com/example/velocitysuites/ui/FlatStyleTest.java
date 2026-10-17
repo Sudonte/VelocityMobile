@@ -67,7 +67,9 @@ public class FlatStyleTest {
     private static void collect(View v, List<String> problems, String where) {
         String name = v.getClass().getSimpleName() + idName(v);
         // Controls stay flat; only cards carry the app-wide subtle elevation (checked below).
-        if (!(v instanceof MaterialCardView) && v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
+        // The shared guest header carries a soft shadow that separates it from the content (guest_header.xml, 4dp).
+        boolean sharedHeader = v instanceof androidx.constraintlayout.widget.ConstraintLayout && (name.endsWith("#header") || name.endsWith("#guestHeaderRoot"));
+        if (!(v instanceof MaterialCardView) && !sharedHeader && v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
         if (v instanceof MaterialButton) {
             MaterialButton b = (MaterialButton) v;
             // The landing page's two hero actions (Sign In / Sign Up and Explore Now) are the one place controls are rounded: 12dp.

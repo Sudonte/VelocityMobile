@@ -7,7 +7,7 @@
     android:layout_height="@dimen/guest_header_height"
     android:background="@drawable/bg_guest_header"
     android:paddingHorizontal="@dimen/guest_header_padding_horizontal"
-    android:elevation="0dp"
+    android:elevation="4dp"
     android:translationZ="0dp"
     android:clickable="true"
     android:focusable="true">
@@ -67,8 +67,11 @@
         android:layout_width="@dimen/guest_header_logo_size"
         android:layout_height="@dimen/guest_header_logo_size"
         android:layout_marginStart="2dp"
-        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="@dimen/guest_header_button_corner_radius"
         app:cardElevation="@dimen/card_elevation"
+        app:strokeColor="@color/velocity_red_subtle"
+        app:strokeWidth="1.2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/menuButtonControl"
         app:layout_constraintTop_toTopOf="parent">
@@ -76,10 +79,9 @@
         <ImageView
             android:id="@+id/headerLogoImage"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/bg_glass_card_white"
+            android:layout_height="match_parent"
             android:contentDescription="@string/app_logo"
-            android:padding="5dp"
+            android:padding="4dp"
             android:scaleType="fitCenter"
             android:src="@drawable/velocity_suites_logo" />
     </com.google.android.material.card.MaterialCardView>
@@ -166,8 +168,8 @@
             android:clickable="false"
             android:focusable="false"
             android:importantForAccessibility="no"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="@dimen/guest_header_button_corner_radius"
             app:cardElevation="@dimen/card_elevation"
             app:strokeColor="@color/velocity_red_subtle"
             app:strokeWidth="1.2dp">
@@ -175,12 +177,9 @@
         <ImageView
             android:id="@+id/headerNotificationIcon"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="4dp"
-            android:background="@drawable/shape_intro_pill"
-            android:backgroundTint="@color/white"
+            android:layout_height="match_parent"
             android:contentDescription="@string/title_notifications"
-            android:padding="5dp"
+            android:padding="7dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_notifications"
             app:tint="@color/velocity_red_primary" />
@@ -233,8 +232,8 @@
             android:clickable="false"
             android:focusable="false"
             android:importantForAccessibility="no"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="@dimen/guest_header_button_corner_radius"
             app:cardElevation="@dimen/card_elevation"
             app:strokeColor="@color/velocity_red_subtle"
             app:strokeWidth="1.2dp">
@@ -242,12 +241,9 @@
             <ImageView
                 android:id="@+id/headerThemeIcon"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="4dp"
-                android:background="@drawable/shape_intro_pill"
-                android:backgroundTint="@color/white"
+                android:layout_height="match_parent"
                 android:importantForAccessibility="no"
-                android:padding="5dp"
+                android:padding="7dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_dark_mode"
                 app:tint="@color/velocity_red_primary" />
