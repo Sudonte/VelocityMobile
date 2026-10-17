@@ -47,13 +47,17 @@ public class DashboardActivity extends BaseNavigationActivity {
     private enum SectionState { OK, LOADING, ERROR }
     private TextView activeReservationsCountText, cancelReservationsCountText, activeBookingsCountText, cancelBookingsCountText;
     private TextView pastBookingsCountText, pastReservationsCountText;
-    private LinearLayout bookingListContainer, paymentListContainer, upcomingListContainer, notificationListContainer;
-    private TextView noBookingsText, noUpcomingText, noNotificationsText, noPaymentsText;
+    private LinearLayout bookingListContainer, paymentListContainer, notificationListContainer;
+    private TextView noBookingsText, noNotificationsText, noPaymentsText;
     private View noBookingsIcon, btnEmptyBookNow;
-    private TextView bookingCountBadge, upcomingCountBadge, notificationCountBadge, paymentCountBadge;
+    private TextView bookingCountBadge, notificationCountBadge, paymentCountBadge;
+    /** Collapse / expand controls: every dashboard section except Account Summary. (Stay Calendar owns its own.) */
+    private CollapsibleSection nextStaySection, moreStaysSection, bookingsSection, notificationsSection, paymentsSection;
+    /** Every stay "Your Next Stay" currently shows (all the transactions on the nearest day). */
+    private List<NextStay> currentNextStays = new ArrayList<>();
 
     /**
-     * Dashboard preview cards (Recent Bookings, Upcoming Transactions, Notifications) use a
+     * Dashboard preview cards (Notifications) use a
      * select-then-view-details flow: tapping a card highlights it and reveals its "View Details"
      * button rather than navigating immediately. Each section tracks its own single selection so
      * picking a different card in the same section collapses the previous one.
@@ -66,7 +70,6 @@ public class DashboardActivity extends BaseNavigationActivity {
             this.viewDetailsButton = viewDetailsButton;
         }
     }
-    private SelectableCard selectedUpcomingCard;
     private SelectableCard selectedNotificationCard;
     private TextView accountFullNameText, accountEmailText, accountMobileText, membershipStatusText, profileCompletionText, accountStatusText;
     private final Handler clockHandler = new Handler(Looper.getMainLooper());
@@ -166,7 +169,6 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         bookingListContainer = findViewById(R.id.bookingListContainer);
         paymentListContainer = findViewById(R.id.paymentListContainer);
-        upcomingListContainer = findViewById(R.id.upcomingListContainer);
         notificationListContainer = findViewById(R.id.notificationListContainer);
 
         noBookingsText = findViewById(R.id.noBookingsText);
@@ -175,14 +177,23 @@ public class DashboardActivity extends BaseNavigationActivity {
         if (btnEmptyBookNow != null) {
             btnEmptyBookNow.setOnClickListener(v -> openBookingSection(BookingAndReservationActivity.SECTION_BOOKING));
         }
-        noUpcomingText = findViewById(R.id.noUpcomingText);
         noNotificationsText = findViewById(R.id.noNotificationsText);
         noPaymentsText = findViewById(R.id.noPaymentsText);
 
         bookingCountBadge = findViewById(R.id.bookingCountBadge);
-        upcomingCountBadge = findViewById(R.id.upcomingCountBadge);
         notificationCountBadge = findViewById(R.id.notificationCountBadge);
         paymentCountBadge = findViewById(R.id.paymentCountBadge);
+
+        nextStaySection = new CollapsibleSection(this, "next_stay", findViewById(R.id.nextStayToggle),
+                findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard));
+        moreStaysSection = new CollapsibleSection(this, "more_stays", findViewById(R.id.moreStaysToggle),
+                findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody));
+        bookingsSection = new CollapsibleSection(this, "recent_bookings", findViewById(R.id.bookingsToggle),
+                findViewById(R.id.bookingsSummary), findViewById(R.id.bookingsBody));
+        notificationsSection = new CollapsibleSection(this, "notifications", findViewById(R.id.notificationsToggle),
+                findViewById(R.id.notificationsSummary), findViewById(R.id.notificationsBody));
+        paymentsSection = new CollapsibleSection(this, "payment_status", findViewById(R.id.paymentsToggle),
+                findViewById(R.id.paymentsSummary), findViewById(R.id.paymentsBody));
 
         accountFullNameText = findViewById(R.id.accountFullNameText);
         accountEmailText = findViewById(R.id.accountEmailText);
@@ -338,7 +349,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         // Populate Sections
         populateBookings(allBookings);
         populatePayments(allBookings);
-        populateUpcoming(allBookings);
         populateNotifications(allNotifications);
         applySectionStates(allBookings, allNotifications);
 
@@ -421,6 +431,15 @@ public class DashboardActivity extends BaseNavigationActivity {
             }
         }
         setCountBadge(bookingCountBadge, displayBookings.size());
+        if (displayBookings.isEmpty()) {
+            bookingsSection.setSummary(getString(R.string.no_bookings_found));
+        } else {
+            Booking latest = displayBookings.get(0);
+            bookingsSection.setSummary(getString(R.string.summary_with_latest,
+                    getResources().getQuantityString(R.plurals.summary_bookings_count, displayBookings.size(), displayBookings.size()),
+                    getString(R.string.summary_ref_status, TransactionText.reference(this, true, latest.getDisplayId()),
+                            TransactionStatusChip.label(latest.getStatus()))));
+        }
     }
     /**
      * Recent Bookings reuses the same compact row design as Upcoming Stays/
@@ -434,7 +453,7 @@ public class DashboardActivity extends BaseNavigationActivity {
      * as soon as the dashboard reloads.
      */
     private void addBookingCard(Booking b) {
-        addTransactionItemCard(b, true, bookingListContainer, false, () -> openTransactionHistoryForRecentBooking(b));
+        addTransactionItemCard(b, true, bookingListContainer, () -> openTransactionHistoryForRecentBooking(b));
     }
 
     private long parseDateSafe(SimpleDateFormat format, String date) {
@@ -524,6 +543,15 @@ public class DashboardActivity extends BaseNavigationActivity {
             }
         }
         setCountBadge(paymentCountBadge, paymentBookings.size());
+        if (paymentBookings.isEmpty()) {
+            paymentsSection.setSummary(getString(R.string.no_active_payment_status));
+        } else {
+            Booking first = paymentBookings.get(0);
+            paymentsSection.setSummary(getString(R.string.summary_with_first,
+                    getResources().getQuantityString(R.plurals.summary_payments_count, paymentBookings.size(), paymentBookings.size()),
+                    getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
+                            PaymentStatusResolver.resolve(this, first).label)));
+        }
     }
     private void addPaymentItem(Booking b) {
         View card = LayoutInflater.from(this).inflate(R.layout.item_payment_status, paymentListContainer, false);
@@ -541,6 +569,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         tvRoomName.setText(b.getRoomName());
         ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
+        card.findViewById(R.id.tvPaymentBookingId).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
         // (the room photo is hidden in this light row - see lightenPaymentCard - so it is not downloaded)
         String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getDisplayId();
         tvRef.setText(getString(R.string.transaction_ref_format, ref));
@@ -692,71 +721,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         View paid = card.findViewById(R.id.tvAmountPaid);
         if (paid != null && paid.getParent() instanceof View) ((View) paid.getParent()).setVisibility(View.GONE);
     }
-    /** How many of the soonest upcoming check-ins/check-outs the Upcoming Transactions preview shows. */
-    private static final int UPCOMING_PREVIEW_LIMIT = 5;
-
-    /**
-     * Every future check-in (not yet checked in) or future check-out (already
-     * checked in), soonest first - same window/eligibility rule as
-     * UpcomingTransactionsActivity.buildEvents(), just capped for a compact
-     * dashboard preview. Each card carries its Booking so tapping it deep-links
-     * straight to that exact record in the full Upcoming Hotel Transactions List.
-     */
-    private void populateUpcoming(List<Booking> bookings) {
-        upcomingListContainer.removeAllViews();
-        selectedUpcomingCard = null;
-
-        class UpcomingEvent {
-            final Booking booking;
-            final boolean isCheckIn;
-            final long timeMillis;
-
-            UpcomingEvent(Booking booking, boolean isCheckIn, long timeMillis) {
-                this.booking = booking;
-                this.isCheckIn = isCheckIn;
-                this.timeMillis = timeMillis;
-            }
-        }
-
-        List<UpcomingEvent> events = new java.util.ArrayList<>();
-        SimpleDateFormat sdf = new SimpleDateFormat(getString(R.string.date_format_short), Locale.US);
-        long now = System.currentTimeMillis();
-
-        for (Booking b : bookings) {
-            if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
-
-            try {
-                long checkInTime = sdf.parse(b.getCheckInDate()).getTime();
-                long checkOutTime = sdf.parse(b.getCheckOutDate()).getTime();
-
-                // Add Check-in if in future or today and not checked in yet
-                if (checkInTime >= now - 86400000 && !"Checked-In".equalsIgnoreCase(b.getStatus()) && !"Checked-Out".equalsIgnoreCase(b.getStatus())) {
-                    events.add(new UpcomingEvent(b, true, checkInTime));
-                }
-
-                // Add Check-out if checked in and not checked out yet
-                if (checkOutTime >= now - 86400000 && "Checked-In".equalsIgnoreCase(b.getStatus())) {
-                    events.add(new UpcomingEvent(b, false, checkOutTime));
-                }
-            } catch (Exception ignored) {}
-        }
-
-        java.util.Collections.sort(events, (a, c) -> Long.compare(a.timeMillis, c.timeMillis));
-
-        if (events.isEmpty()) {
-            noUpcomingText.setVisibility(View.VISIBLE);
-            setCountBadge(upcomingCountBadge, 0);
-        } else {
-            noUpcomingText.setVisibility(View.GONE);
-            int count = 0;
-            for (UpcomingEvent e : events) {
-                if (count >= UPCOMING_PREVIEW_LIMIT) break;
-                addTransactionItemCard(e.booking, e.isCheckIn, upcomingListContainer, true);
-                count++;
-            }
-            setCountBadge(upcomingCountBadge, count);
-        }
-    }
 
 
     private void populateNotifications(List<Notification> notifications) {
@@ -776,6 +740,15 @@ public class DashboardActivity extends BaseNavigationActivity {
                 count++;
             }
             setCountBadge(notificationCountBadge, count);
+        }
+        if (notifications.isEmpty()) {
+            notificationsSection.setSummary(getString(R.string.no_notifications));
+        } else {
+            int unread = 0;
+            for (Notification n : notifications) if (!n.isRead()) unread++;
+            String counts = getResources().getQuantityString(R.plurals.summary_notifications_count, notifications.size(), notifications.size());
+            if (unread > 0) counts = getString(R.string.summary_with_first, counts, getString(R.string.summary_unread_count, unread));
+            notificationsSection.setSummary(getString(R.string.summary_with_latest, counts, notifications.get(0).getTitle()));
         }
     }
 
@@ -967,7 +940,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         findViewById(R.id.actionHistory).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, TransactionHistoryActivity.class))));
 
         findViewById(R.id.btnViewAllBookings).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryBookings()));
-        findViewById(R.id.btnViewAllUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, UpcomingTransactionsActivity.class))));
+        findViewById(R.id.btnViewAllUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentAllStatuses(this))));
         findViewById(R.id.btnViewAllNotifications).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, NotificationActivity.class))));
         findViewById(R.id.btnViewAllPayments).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryPayments()));
 
@@ -983,24 +956,14 @@ public class DashboardActivity extends BaseNavigationActivity {
                 BookingAndReservationActivity.SECTION_BOOKING, BookingAndReservationActivity.FILTER_CANCELLED)));
         findViewById(R.id.tileCancelReservation).setOnClickListener(NavUtils.debounce(v -> openBookingSectionFiltered(
                 BookingAndReservationActivity.SECTION_RESERVATION, BookingAndReservationActivity.FILTER_CANCELLED)));
-        findViewById(R.id.nextStayCard).setOnClickListener(NavUtils.debounce(v -> {
-            // Only the filled card opens anything; the loading / error / empty states have their own buttons.
-            if (currentNextStay != null && nextStayContent.getVisibility() == View.VISIBLE) {
-                startActivity(new android.content.Intent(this, BookingDetailsActivity.class)
-                        .putExtra(BookingDetailsActivity.EXTRA_BOOKING, currentNextStay.booking));
-            }
-        }));
-        findViewById(R.id.btnNextStayRequestAmenities).setOnClickListener(NavUtils.debounce(v -> {
-            if (currentNextStay != null) startActivity(AdditionalAmenitiesEntry.intent(this, currentNextStay.booking));
-        }));
         findViewById(R.id.btnNextStayBook).setOnClickListener(NavUtils.debounce(v ->
                 startActivity(new android.content.Intent(this, RoomBrowsingActivity.class))));
         findViewById(R.id.btnNextStayRetry).setOnClickListener(NavUtils.debounce(v -> retryDashboardLoad()));
-        for (int stateId : new int[]{R.id.stateSummary, R.id.stateRecent, R.id.stateNotifications, R.id.stateUpcoming, R.id.statePayments}) {
+        for (int stateId : new int[]{R.id.stateSummary, R.id.stateRecent, R.id.stateNotifications, R.id.statePayments}) {
             findViewById(stateId).findViewById(R.id.sectionStateRetry).setOnClickListener(NavUtils.debounce(v -> retryDashboardLoad()));
         }
         findViewById(R.id.btnEditProfile).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, ProfileManagementActivity.class))));
-        findViewById(R.id.dateTimeCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, UpcomingTransactionsActivity.class))));
+        findViewById(R.id.dateTimeCard).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentAllStatuses(this))));
 
         View headerNotification = findViewById(R.id.headerNotificationContainer);
         if (headerNotification != null) {
@@ -1008,7 +971,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
 
         findViewById(R.id.bookingDetailsCard).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryBookings()));
-        findViewById(R.id.upcomingTransactionsCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, UpcomingTransactionsActivity.class))));
         findViewById(R.id.paymentStatusCard).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryPayments()));
         findViewById(R.id.notificationsCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, NotificationActivity.class))));
         findViewById(R.id.accountSummaryCard).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, ProfileManagementActivity.class))));
@@ -1147,7 +1109,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         bindSectionState(R.id.stateSummary, fromBookings, summaryGrid);
         if (fromBookings == SectionState.OK) summaryGrid.setVisibility(View.VISIBLE);
         bindSectionState(R.id.stateRecent, fromBookings, noBookingsText, noBookingsIcon, btnEmptyBookNow);
-        bindSectionState(R.id.stateUpcoming, fromBookings, noUpcomingText);
         bindSectionState(R.id.statePayments, fromBookings, noPaymentsText);
         bindSectionState(R.id.stateNotifications, fromNotifications, noNotificationsText);
     }
@@ -1175,10 +1136,19 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** The calendar under Next Stay, created on first use (the card is always in the layout). */
     private DashboardStayCalendar stayCalendar;
 
+    /** True when this transaction is already shown in "Your Next Stay" (so the lists below do not repeat it). */
+    private boolean isShownAsNextStay(Booking b) {
+        for (NextStay stay : currentNextStays) {
+            if (stay.booking == b) return true;
+        }
+        return false;
+    }
+
     /**
-     * Next Stay shows only the single nearest stay, but a guest can hold several - even on the same day - so every
-     * other upcoming stay (soonest first) and the latest finished ones are listed under it, and the calendar is
-     * refreshed from the same bookings.
+     * Next Stay shows every transaction on the nearest day (a guest can hold several, even on the same day), so every
+     * other upcoming stay (soonest first) and the latest finished ones are listed under it as compact rows, and the
+     * calendar is refreshed from the same bookings. Tapping a row opens that transaction in Upcoming Hotel
+     * Transactions; "View All Upcoming Transactions" opens the whole list.
      */
     private void updateMoreStaysAndCalendar(List<Booking> bookings) {
         if (stayCalendar == null) {
@@ -1192,7 +1162,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         List<Booking> upcoming = new ArrayList<>();
         List<Booking> recent = new ArrayList<>();
         for (Booking b : bookings) {
-            if (b == null || (currentNextStay != null && b == currentNextStay.booking)) continue;
+            if (b == null || isShownAsNextStay(b)) continue;
             TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
             if (category == TransactionCategorizer.Category.UPCOMING || category == TransactionCategorizer.Category.ACTIVE) upcoming.add(b);
             else if (category == TransactionCategorizer.Category.COMPLETED) recent.add(b);
@@ -1206,18 +1176,40 @@ public class DashboardActivity extends BaseNavigationActivity {
         java.util.Collections.sort(upcoming, byCheckIn);
         java.util.Collections.sort(recent, byCheckIn.reversed());
         int shownCount = 0;
+        Booking first = null;
         for (Booking b : upcoming) {
             if (shownCount >= 4) break;
-            addTransactionItemCard(b, true, list, false);
+            addCompactStayRow(b, true, list);
+            if (first == null) first = b;
             shownCount++;
         }
         for (Booking b : recent) {
             if (shownCount >= 6 || list.getChildCount() >= 6) break;
             if (shownCount >= 4 && recent.indexOf(b) >= 2) break;
-            addTransactionItemCard(b, false, list, false);
+            addCompactStayRow(b, false, list);
+            if (first == null) first = b;
             shownCount++;
         }
         section.setVisibility(shownCount > 0 ? View.VISIBLE : View.GONE);
+        if (first != null) {
+            moreStaysSection.setSummary(getString(R.string.summary_with_first,
+                    getResources().getQuantityString(R.plurals.summary_stays_count, shownCount, shownCount),
+                    getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
+                            TransactionStatusChip.label(first.getStatus()))));
+        }
+    }
+
+    /** One compact row: reference, what and when, status. Everything else is in Upcoming Hotel Transactions / Transaction History. */
+    private void addCompactStayRow(Booking b, boolean isCheckInEvent, LinearLayout container) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_stay_compact, container, false);
+        ((TextView) row.findViewById(R.id.tvStayCompactRef)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
+        String type = getString(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
+        String when = getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format,
+                isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate());
+        ((TextView) row.findViewById(R.id.tvStayCompactWhen)).setText(getString(R.string.stay_calendar_entry_when, type, when));
+        TransactionStatusChip.apply(this, row.findViewById(R.id.tvStayCompactStatus), b.getStatus());
+        row.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
+        container.addView(row);
     }
 
     private void showNextStayState(View visible) {
@@ -1226,34 +1218,79 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     }
 
-    /** The Next Stay card: loading until the first answer, an error with Retry when nothing could be loaded, an empty state with one action, or the stay itself. */
+    /**
+     * The Next Stay card: loading until the first answer, an error with Retry when nothing could be loaded, an empty state
+     * with one action, or the stays themselves - ALL the transactions on the nearest day, whether one or several and
+     * whether they are bookings or reservations.
+     */
     private void updateNextStay(List<Booking> bookings) {
         currentNextStay = null;
+        currentNextStays = new ArrayList<>();
         if (!bookingsResolved && bookings.isEmpty()) {
             showNextStayState(nextStayLoading);
+            nextStaySection.setSummary(getString(R.string.dashboard_section_loading));
             return;
         }
         if (bookingsLoadFailed && bookings.isEmpty()) {
             showNextStayState(nextStayError);
+            nextStaySection.setSummary(getString(R.string.dashboard_section_error));
             return;
         }
-        NextStay stay = NextStay.select(bookings, hotelToday());
-        if (stay == null) {
+        List<NextStay> stays = NextStay.selectAll(bookings, hotelToday());
+        if (stays.isEmpty()) {
             showNextStayState(nextStayEmpty);
+            nextStaySection.setSummary(getString(R.string.next_stay_empty_title));
             updateMoreStaysAndCalendar(bookings);
             return;
         }
-        currentNextStay = stay;
+        currentNextStays = stays;
+        currentNextStay = stays.get(0);
         updateMoreStaysAndCalendar(bookings);
 
-        ((TextView) findViewById(R.id.tvNextStayHint)).setText(stay.hint(this));
-        ((TextView) findViewById(R.id.tvNextStayRooms)).setText(TransactionRow.roomTextOf(stay.booking));
-        ((TextView) findViewById(R.id.tvNextStayDates)).setText(stay.datesText(this));
-        ((TextView) findViewById(R.id.tvNextStayNights)).setText(stay.nightsText(this));
-        styleNextStayStatus((TextView) findViewById(R.id.tvNextStayStatus), stay.status);
+        LinearLayout content = (LinearLayout) nextStayContent;
+        content.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        if (stays.size() > 1) {
+            TextView note = new TextView(this);
+            note.setText(getString(R.string.next_stay_same_day_note, stays.size()));
+            note.setTextColor(getColor(R.color.velocity_red_primary));
+            note.setTextSize(13);
+            note.setTypeface(note.getTypeface(), android.graphics.Typeface.BOLD);
+            note.setPadding(dp(14), dp(12), dp(14), 0);
+            content.addView(note);
+        }
+        for (int i = 0; i < stays.size(); i++) {
+            if (i > 0) {
+                View divider = new View(this);
+                divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
+                content.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
+            }
+            View item = inflater.inflate(R.layout.item_next_stay, content, false);
+            bindNextStayItem(item, stays.get(i));
+            content.addView(item);
+        }
+        NextStay head = stays.get(0);
+        String headText = getString(R.string.summary_ref_hint,
+                TransactionText.reference(this, head.booking.isHasBooking(), head.booking.getDisplayId()), head.hint(this));
+        nextStaySection.setSummary(stays.size() == 1 ? headText
+                : getString(R.string.summary_with_first,
+                        getResources().getQuantityString(R.plurals.summary_stays_count, stays.size(), stays.size()), headText));
+        showNextStayState(nextStayContent);
+    }
 
-        TextView balanceLabel = findViewById(R.id.tvNextStayBalanceLabel);
-        TextView balance = findViewById(R.id.tvNextStayBalance);
+    /** Fills one stay's block and wires its taps: the block opens its Booking Details, the button asks for amenities. */
+    private void bindNextStayItem(View item, NextStay stay) {
+        ((TextView) item.findViewById(R.id.tvNextStayHint)).setText(stay.hint(this));
+        TextView ref = item.findViewById(R.id.tvNextStayRef);
+        ref.setText(TransactionText.reference(this, stay.booking.isHasBooking(), stay.booking.getDisplayId()));
+        ref.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, stay.booking))));
+        ((TextView) item.findViewById(R.id.tvNextStayRooms)).setText(TransactionRow.roomTextOf(stay.booking));
+        ((TextView) item.findViewById(R.id.tvNextStayDates)).setText(stay.datesText(this));
+        ((TextView) item.findViewById(R.id.tvNextStayNights)).setText(stay.nightsText(this));
+        styleNextStayStatus((TextView) item.findViewById(R.id.tvNextStayStatus), stay.status);
+
+        TextView balanceLabel = item.findViewById(R.id.tvNextStayBalanceLabel);
+        TextView balance = item.findViewById(R.id.tvNextStayBalance);
         if (stay.hasBalanceDue()) {
             // Same wording as Booking Details' balance card.
             balanceLabel.setText(R.string.next_stay_payment_label);
@@ -1264,10 +1301,13 @@ public class DashboardActivity extends BaseNavigationActivity {
             balance.setText(R.string.balance_plain_paid);
             balance.setTextColor(getColor(R.color.status_paid_fg));
         }
-        bindNextStayMoney(stay);
-        findViewById(R.id.btnNextStayRequestAmenities).setVisibility(
-                stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
-        showNextStayState(nextStayContent);
+        bindNextStayMoney(item, stay);
+
+        View amenities = item.findViewById(R.id.btnNextStayRequestAmenities);
+        amenities.setVisibility(stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
+        amenities.setOnClickListener(NavUtils.debounce(v -> startActivity(AdditionalAmenitiesEntry.intent(this, stay.booking))));
+        item.setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, BookingDetailsActivity.class)
+                .putExtra(BookingDetailsActivity.EXTRA_BOOKING, stay.booking))));
     }
 
     /**
@@ -1276,8 +1316,8 @@ public class DashboardActivity extends BaseNavigationActivity {
      * the server's own figures (the same ones Booking Details and the 3rd receipt print). Requests still awaiting the
      * front desk are mentioned but never counted. Hidden for any other stay.
      */
-    private void bindNextStayMoney(NextStay stay) {
-        LinearLayout box = findViewById(R.id.nextStayMoney);
+    private void bindNextStayMoney(View stayView, NextStay stay) {
+        LinearLayout box = stayView.findViewById(R.id.nextStayMoney);
         box.removeAllViews();
         StayInfo info = stay.booking.getStay();
         BalanceBreakdown b = info != null ? info.balanceBreakdown : null;
@@ -1377,26 +1417,11 @@ public class DashboardActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Shared by the Next Hotel Transaction and Upcoming Transactions dashboard
-     * sections - both show the same compact, fully-detailed card (type, room,
-     * Booking ID, date, status, payment status) and deep-link the same way,
-     * they just differ in which bookings feed into them.
+     * The Recent Bookings row (type, room, Booking ID, date, status, payment status).
+     *
+     * @param customClickAction what a tap does - Recent Bookings deep-links into Transaction History.
      */
-    private void addTransactionItemCard(Booking b, boolean isCheckInEvent, LinearLayout container, boolean selectableTwoStep) {
-        addTransactionItemCard(b, isCheckInEvent, container, selectableTwoStep, null);
-    }
-
-    /**
-     * @param customClickAction when non-null, replaces the default "open
-     *                          UpcomingTransactionsActivity" tap behavior -
-     *                          used by Recent Bookings to deep-link into
-     *                          Transaction History instead, while reusing
-     *                          this same compact row design (room/type pill/
-     *                          booking id/date/status/payment-status) so
-     *                          every dashboard transaction list looks and
-     *                          behaves consistently.
-     */
-    private void addTransactionItemCard(Booking b, boolean isCheckInEvent, LinearLayout container, boolean selectableTwoStep, Runnable customClickAction) {
+    private void addTransactionItemCard(Booking b, boolean isCheckInEvent, LinearLayout container, Runnable customClickAction) {
         View card = LayoutInflater.from(this).inflate(R.layout.item_next_transaction, container, false);
 
         TextView tvTypePill = card.findViewById(R.id.tvNextItemTypePill);
@@ -1413,6 +1438,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         tvRoomName.setText(b.getRoomName());
         // The ID leads each item: "Booking #338" / "Reservation #588" (the format Transaction History uses).
         tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
+        // The ID itself is a link to this transaction in Upcoming Hotel Transactions; the rest of the row keeps its own target.
+        tvBookingId.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
 
         String relevantDate = isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate();
         tvDate.setText(getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format, relevantDate));
@@ -1453,34 +1480,13 @@ public class DashboardActivity extends BaseNavigationActivity {
         tvPaymentStatus.setTextColor(ContextCompat.getColor(this, paymentStatus.fgColorRes));
         applyPillIcon(tvPaymentStatus, paymentStatus.iconRes, paymentStatus.fgColorRes);
 
-        View btnViewDetails = card.findViewById(R.id.btnNextItemViewDetails);
         // rowNextItemHeader (not the outer card) is the view that's actually clickable+has a
         // ripple foreground, so the listener must go here - a click on the outer MaterialCardView
         // would never fire, since this inner row consumes the touch first.
         View header = card.findViewById(R.id.rowNextItemHeader);
-        View.OnClickListener openThisTransaction = v -> {
-            if (customClickAction != null) {
-                customClickAction.run();
-                return;
-            }
-            android.content.Intent intent = new android.content.Intent(this, UpcomingTransactionsActivity.class);
-            intent.putExtra(UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID, b.getId());
-            startActivity(intent);
-        };
-
-        if (selectableTwoStep) {
-            // Upcoming Transactions section: tapping the card only selects it and reveals
-            // "View Details" - that button is what deep-links to the exact transaction in the
-            // Upcoming Hotel Transaction List (scrolled to + highlighted + opened).
-            com.google.android.material.card.MaterialCardView cardRoot = (com.google.android.material.card.MaterialCardView) card;
-            header.setOnClickListener(v -> selectedUpcomingCard = toggleSelection(selectedUpcomingCard, cardRoot, btnViewDetails));
-            btnViewDetails.setOnClickListener(openThisTransaction);
-        } else {
-            // Next Hotel Transaction hub: tapping the card deep-links straight to that exact
-            // transaction, same as before - this preview isn't part of the select-then-view-details flow.
-            if (btnViewDetails != null) btnViewDetails.setVisibility(View.GONE);
-            header.setOnClickListener(openThisTransaction);
-        }
+        View btnViewDetails = card.findViewById(R.id.btnNextItemViewDetails);
+        if (btnViewDetails != null) btnViewDetails.setVisibility(View.GONE);
+        header.setOnClickListener(v -> customClickAction.run());
 
         container.addView(card);
     }

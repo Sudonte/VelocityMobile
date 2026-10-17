@@ -477,7 +477,7 @@
     <string name="greeting_good_evening">Good Evening,</string>
     <string name="welcome_name_format">%1$s!</string>
     <string name="guest_first_last_name">John Paul Ombid</string>
-    <string name="dashboard_welcome_subtitle">Your stay, your payments and your receipts - all in one place.</string>
+    <string name="dashboard_welcome_subtitle">Here is a quick look at your stays, payments and receipts. Everything for your next visit is just below. Tap any section to see more.</string>
     <string name="guest_user">John Paul Abe Ombid</string>
     <string name="guest_first_name">John Paul</string>
     <string name="guest_middle_name">Abe</string>
@@ -594,7 +594,7 @@
     <string name="payment_details_title">Payment Details</string>
     <string name="title_payment_breakdown">Payment Breakdown</string>
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
-    <string name="upcoming_transactions_screen_desc">Every upcoming check-in and check-out from your bookings and reservations, in chronological order.</string>
+    <string name="upcoming_transactions_screen_desc">All your bookings and reservations in one place, whatever their status. Tap one to see its full record in Transaction History.</string>
     <string name="filter_upcoming_bookings">Upcoming Bookings</string>
     <string name="filter_upcoming_reservations">Upcoming Reservations</string>
 
@@ -605,8 +605,8 @@
     <string name="filter_upcoming_reservation">Upcoming Reservation</string>
     <string name="calendar_selected_date_format">Showing events for %1$s</string>
     <string name="clear_date_filter">Clear</string>
-    <string name="no_upcoming_activities_title">No Upcoming Activities</string>
-    <string name="no_upcoming_activities_desc">You have no scheduled check-ins or check-outs right now.</string>
+    <string name="no_upcoming_activities_title">No Transactions Found</string>
+    <string name="no_upcoming_activities_desc">No transactions match the filters you chose. Try a different type, status or date.</string>
     <string name="upcoming_event_booking_prefix">Booking</string>
     <string name="upcoming_event_reservation_prefix">Reservation</string>
     <string name="upcoming_event_title_format">%1$s: %2$s</string>
@@ -1991,7 +1991,7 @@
     <string name="sending_code">Sending code…</string>
     <string name="verifying">Verifying…</string>
     <string name="landing_features_heading">Why guests love Velocity Suites</string>
-    <string name="landing_description">Velocity Suites is a comfortable hotel built around your convenience. Choose from elegant rooms and suites, each with the amenities you need for a relaxing stay. You can browse live room availability, pick your dates and book or reserve in just a few taps - no queues and no phone calls. Pay securely online, by GCash or at the front desk, and get a digital receipt at every step. Follow the status of every booking and reservation from your dashboard, and get notified the moment anything changes. From your first tap to your check-out, our friendly team is here to make every stay smooth and memorable.</string>
+    <string name="landing_description">Velocity Suites is a comfortable hotel built around your convenience. Browse live room availability, then book or reserve in a few taps and pay by GCash or at the front desk. Follow every booking, receipt and update from your dashboard until check-out.</string>
     <string name="landing_feature_booking_title">Easy Room Booking</string>
     <string name="landing_feature_booking_desc">Book or reserve in a few taps.</string>
     <string name="landing_feature_status_title">Real-Time Status</string>
@@ -2054,6 +2054,62 @@
     <string name="ph_status_rejected">Rejected</string>
     <string name="ph_method_type_format">%1$s · %2$s</string>
     <string name="ph_reference_format">Ref. %1$s</string>
+
+    <!-- ============ Dashboard sections: collapse / expand, summaries, Upcoming Hotel Transactions ============ -->
+    <string name="section_collapse">Collapse section</string>
+    <string name="section_expand">Expand section</string>
+    <string name="view_all_upcoming_transactions">View All Upcoming Transactions</string>
+    <plurals name="summary_stays_count">
+        <item quantity="one">%d stay</item>
+        <item quantity="other">%d stays</item>
+    </plurals>
+    <plurals name="summary_transactions_count">
+        <item quantity="one">%d transaction</item>
+        <item quantity="other">%d transactions</item>
+    </plurals>
+    <plurals name="summary_notifications_count">
+        <item quantity="one">%d notification</item>
+        <item quantity="other">%d notifications</item>
+    </plurals>
+    <plurals name="summary_payments_count">
+        <item quantity="one">%d payment to track</item>
+        <item quantity="other">%d payments to track</item>
+    </plurals>
+    <plurals name="summary_bookings_count">
+        <item quantity="one">%d recent booking</item>
+        <item quantity="other">%d recent bookings</item>
+    </plurals>
+    <string name="summary_with_latest">%1$s · Latest: %2$s</string>
+    <string name="summary_with_next">%1$s · Next: %2$s</string>
+    <string name="summary_with_first">%1$s · %2$s</string>
+    <string name="summary_ref_status">%1$s (%2$s)</string>
+    <string name="summary_ref_hint">%1$s - %2$s</string>
+    <string name="summary_nothing_scheduled">Nothing scheduled in this period</string>
+    <string name="summary_unread_count">%d unread</string>
+    <string name="summary_calendar_format">%1$s · %2$s</string>
+    <string name="stay_calendar_pick_date">Pick a date</string>
+    <string name="stay_calendar_entry_when">%1$s · %2$s</string>
+    <string name="stay_calendar_pick_date_title">Choose a date</string>
+    <string name="next_stay_same_day_note">%d stays on this day</string>
+
+    <string name="upcoming_status_all">All Statuses</string>
+    <string name="upcoming_status_pending">Pending</string>
+    <string name="upcoming_status_confirmed">Confirmed</string>
+    <string name="upcoming_status_checked_in">Checked In</string>
+    <string name="upcoming_status_checked_out">Checked Out</string>
+    <string name="upcoming_status_cancelled">Cancelled</string>
+    <string name="upcoming_status_rejected">Rejected</string>
+    <string name="upcoming_filter_type_label">Type</string>
+    <string name="upcoming_filter_status_label">Status</string>
+    <string name="upcoming_filter_date_label">Date</string>
+    <string name="upcoming_view_in_history">View in Transaction History</string>
+    <string name="upcoming_results_format">Showing %1$d of %2$d</string>
+    <string name="upcoming_group_active">Upcoming and in house</string>
+    <string name="upcoming_group_closed">Completed and closed</string>
+    <string name="upcoming_event_cancelled">Cancelled</string>
+    <string name="upcoming_stay_short_format">%1$s to %2$s · %3$s</string>
+    <string name="upcoming_clear_filters">Clear filters</string>
+    <string name="upcoming_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
 </resources>
 
 

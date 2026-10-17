@@ -13,7 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.datepicker.MaterialDatePicker;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -25,9 +27,10 @@ import java.util.Locale;
 
 /**
  * Drives the Dashboard's Stay Calendar card (view_stay_calendar.xml): a month grid with a dot on every day that
- * has a check-in or check-out, a Daily / Weekly / Monthly filter, and a short summary of the transactions in the
- * chosen window. "View Full Details" opens that transaction inside Upcoming Transactions. What is listed and how
- * the window is cut lives in {@link StayCalendarModel}; this class only draws it.
+ * has a check-in or check-out, a date filter (a specific date, Daily, Weekly, Monthly), and a short list of the
+ * transactions in the chosen window - date, reference, type and status only. Tapping one opens it in Upcoming
+ * Hotel Transactions; "Open Upcoming Transactions" opens that screen on All Statuses. What is listed and how the
+ * window is cut lives in {@link StayCalendarModel}; this class only draws it.
  */
 final class DashboardStayCalendar {
 
@@ -42,6 +45,8 @@ final class DashboardStayCalendar {
     private final LinearLayout summary;
     private final TextView emptyText;
     private final ChipGroup modeGroup;
+    private final Chip dateChip;
+    private final CollapsibleSection section;
 
     private StayCalendarModel model = new StayCalendarModel(Collections.emptyList());
     private StayCalendarModel.Mode mode = StayCalendarModel.Mode.DAILY;
@@ -57,19 +62,54 @@ final class DashboardStayCalendar {
         this.summary = root.findViewById(R.id.stayCalSummary);
         this.emptyText = root.findViewById(R.id.stayCalEmpty);
         this.modeGroup = root.findViewById(R.id.stayCalMode);
+        this.dateChip = root.findViewById(R.id.stayCalModeDate);
+        this.section = new CollapsibleSection(context, "stay_calendar", root.findViewById(R.id.stayCalToggle),
+                root.findViewById(R.id.stayCalCollapsedSummary), root.findViewById(R.id.stayCalBody));
         this.selected = today;
         this.shown = YearMonth.from(today);
 
         root.findViewById(R.id.stayCalPrev).setOnClickListener(v -> shiftMonth(-1));
         root.findViewById(R.id.stayCalNext).setOnClickListener(v -> shiftMonth(1));
-        root.findViewById(R.id.stayCalOpenAll).setOnClickListener(v -> openUpcoming(null));
+        root.findViewById(R.id.stayCalOpenAll).setOnClickListener(v -> openAllUpcoming());
         modeGroup.setOnCheckedStateChangeListener((group, ids) -> {
             if (ids.contains(R.id.stayCalModeWeekly)) mode = StayCalendarModel.Mode.WEEKLY;
             else if (ids.contains(R.id.stayCalModeMonthly)) mode = StayCalendarModel.Mode.MONTHLY;
             else mode = StayCalendarModel.Mode.DAILY;
+            // Leaving the specific-date chip puts its label back.
+            if (!ids.contains(R.id.stayCalModeDate)) dateChip.setText(R.string.stay_calendar_pick_date);
             render();
         });
+        // A tap on the chip (even when it is already selected) opens the date picker.
+        dateChip.setOnClickListener(v -> showDatePicker());
         render();
+    }
+
+    /** Any specific date: the list below becomes that one day. Cancelling keeps what was selected before. */
+    private void showDatePicker() {
+        if (!(context instanceof androidx.fragment.app.FragmentActivity)) return;
+        androidx.fragment.app.FragmentActivity activity = (androidx.fragment.app.FragmentActivity) context;
+        long selection = selected.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli();
+        MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText(R.string.stay_calendar_pick_date_title)
+                .setSelection(selection)
+                .build();
+        picker.addOnPositiveButtonClickListener(millis -> {
+            selected = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneOffset.UTC).toLocalDate();
+            shown = YearMonth.from(selected);
+            mode = StayCalendarModel.Mode.DAILY;
+            dateChip.setText(SHORT_DAY.format(selected));
+            render();
+        });
+        picker.addOnCancelListener(d -> restoreModeChip());
+        picker.addOnNegativeButtonClickListener(v -> restoreModeChip());
+        picker.show(activity.getSupportFragmentManager(), "stayCalendarDate");
+    }
+
+    private void restoreModeChip() {
+        if (dateChip.getText().toString().equals(context.getString(R.string.stay_calendar_pick_date))) {
+            modeGroup.check(mode == StayCalendarModel.Mode.WEEKLY ? R.id.stayCalModeWeekly
+                    : mode == StayCalendarModel.Mode.MONTHLY ? R.id.stayCalModeMonthly : R.id.stayCalModeDaily);
+        }
     }
 
     /** Replaces the data (called whenever the Dashboard's bookings change) and redraws, keeping the chosen day. */
@@ -202,26 +242,41 @@ final class DashboardStayCalendar {
             Booking b = e.booking;
             ((TextView) row.findViewById(R.id.tvEntryRef)).setText(
                     TransactionText.reference(context, b.isHasBooking(), b.getDisplayId()));
-            TextView kind = row.findViewById(R.id.tvEntryKind);
-            kind.setText(e.isActual()
+            int kind = e.isActual()
                     ? (e.checkIn ? R.string.stay_calendar_kind_checked_in : R.string.stay_calendar_kind_checked_out)
-                    : (e.checkIn ? R.string.stay_calendar_kind_checkin : R.string.stay_calendar_kind_checkout));
-            ((TextView) row.findViewById(R.id.tvEntryRooms)).setText(TransactionRow.roomTextOf(b));
-            ((TextView) row.findViewById(R.id.tvEntryWhen)).setText(context.getString(
-                    R.string.stay_calendar_when_format, DAY.format(e.date), e.timeText()));
-            ((TextView) row.findViewById(R.id.tvEntryStay)).setText(context.getString(
-                    R.string.stay_calendar_stay_format, b.getCheckInDate(), b.getCheckOutDate()));
-            ((TextView) row.findViewById(R.id.tvEntryBalance)).setText(context.getString(
-                    R.string.stay_calendar_balance_format, MoneyFormat.format(TransactionStatusHelper.summarize(b).balance)));
-            row.findViewById(R.id.btnEntryDetails).setOnClickListener(v -> openUpcoming(b));
+                    : (e.checkIn ? R.string.stay_calendar_kind_checkin : R.string.stay_calendar_kind_checkout);
+            ((TextView) row.findViewById(R.id.tvEntryWhen)).setText(
+                    context.getString(R.string.stay_calendar_entry_when, context.getString(kind), DAY.format(e.date)));
+            TransactionStatusChip.apply(context, row.findViewById(R.id.tvEntryStatus), b.getStatus());
+            row.setOnClickListener(v -> openUpcoming(b));
             summary.addView(row);
+        }
+
+        // The one-line summary shown while the section is collapsed: how many, and what comes first.
+        if (entries.isEmpty()) {
+            section.setSummary(context.getString(R.string.summary_calendar_format,
+                    rangeLabel.getText(), context.getString(R.string.summary_nothing_scheduled)));
+        } else {
+            StayCalendarModel.Entry first = entries.get(0);
+            String firstText = context.getString(R.string.summary_ref_status,
+                    TransactionText.reference(context, first.booking.isHasBooking(), first.booking.getDisplayId()),
+                    TransactionStatusChip.label(first.booking.getStatus()));
+            section.setSummary(context.getString(R.string.summary_calendar_format,
+                    rangeLabel.getText(),
+                    context.getString(R.string.summary_with_first,
+                            context.getResources().getQuantityString(R.plurals.summary_transactions_count, entries.size(), entries.size()),
+                            firstText)));
         }
     }
 
-    private void openUpcoming(@Nullable Booking booking) {
-        Intent intent = new Intent(context, UpcomingTransactionsActivity.class);
-        if (booking != null) intent.putExtra(UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID, booking.getId());
-        context.startActivity(intent);
+    /** One transaction: opens Upcoming Hotel Transactions scrolled to and highlighting it. */
+    private void openUpcoming(@NonNull Booking booking) {
+        context.startActivity(UpcomingTransactionsActivity.intentFor(context, booking));
+    }
+
+    /** "Open Upcoming Transactions": the whole list, on All Statuses. */
+    private void openAllUpcoming() {
+        context.startActivity(UpcomingTransactionsActivity.intentAllStatuses(context));
     }
 
     View root() {

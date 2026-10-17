@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One Stay Calendar entry, kept to the essentials: date, reference, type and status. The full record is in Upcoming
+     Hotel Transactions and Transaction History; tapping the row opens it there. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,81 +8,62 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:background="@drawable/bg_flat_box"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/tvEntryRef"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:ellipsize="end"
             android:fontFamily="sans-serif-black"
+            android:maxLines="1"
             android:textColor="@color/velocity_text_primary"
             android:textSize="14sp"
             tools:text="Booking #338" />
 
         <TextView
-            android:id="@+id/tvEntryKind"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvEntryWhen"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_badge_success"
-            android:fontFamily="sans-serif-black"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="3dp"
-            android:textColor="@color/velocity_green_dark"
-            android:textSize="11sp"
-            tools:text="Check-in" />
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="Check-in · Oct 20, 2026" />
     </LinearLayout>
 
     <TextView
-        android:id="@+id/tvEntryRooms"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textColor="@color/velocity_text_secondary"
-        android:textSize="12sp"
-        tools:text="Deluxe Room x2" />
-
-    <TextView
-        android:id="@+id/tvEntryWhen"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/velocity_text_primary"
-        android:textSize="12sp"
-        tools:text="Oct 20, 2026 - 02:00:00 PM" />
-
-    <TextView
-        android:id="@+id/tvEntryStay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/velocity_text_secondary"
-        android:textSize="12sp"
-        tools:text="Stay: Oct 20, 2026 to Oct 22, 2026" />
-
-    <TextView
-        android:id="@+id/tvEntryBalance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:fontFamily="sans-serif-bold"
-        android:textColor="@color/velocity_text_primary"
-        android:textSize="12sp"
-        tools:text="Balance: PHP 1,500.00" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnEntryDetails"
-        style="@style/Widget.Velocity.Flat.Button.Outlined"
+        android:id="@+id/tvEntryStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:minHeight="48dp"
-        android:text="@string/stay_calendar_view_full" />
+        android:layout_marginStart="8dp"
+        android:background="@drawable/shape_intro_pill"
+        android:fontFamily="sans-serif-black"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="4dp"
+        android:textSize="12sp"
+        tools:text="Confirmed" />
+
+    <ImageView
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="6dp"
+        android:alpha="0.4"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_chevron_right"
+        app:tint="@color/velocity_text_secondary" />
 </LinearLayout>

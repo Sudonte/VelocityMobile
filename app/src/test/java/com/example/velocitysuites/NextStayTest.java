@@ -118,6 +118,35 @@ public class NextStayTest {
         assertEquals(2600.0, next.balance, 0.01);
     }
 
+    // ---- several transactions on the same day
+
+    @Test
+    public void everyTransactionOnTheNearestDayIsKept_bookingsAndReservationsAlike() {
+        Booking booking = upcoming("1", 2, 1);
+        Booking reservation = stay("2", TODAY.plusDays(2), TODAY.plusDays(4), "Pending", false, false, false);
+        Booking later = upcoming("3", 5, 1);
+        java.util.List<NextStay> all = NextStay.selectAll(Arrays.asList(later, reservation, booking), TODAY);
+        assertEquals(2, all.size());
+        assertTrue(all.get(0).booking == booking && all.get(1).booking == reservation);
+        assertSame("select() is the first of them", booking, NextStay.select(Arrays.asList(later, reservation, booking), TODAY).booking);
+    }
+
+    @Test
+    public void aSingleNearestStayIsAListOfOne_andNothingIsAnEmptyList() {
+        assertEquals(1, NextStay.selectAll(Arrays.asList(upcoming("1", 2, 1), upcoming("2", 3, 1)), TODAY).size());
+        assertTrue(NextStay.selectAll(null, TODAY).isEmpty());
+        assertTrue(NextStay.selectAll(Collections.emptyList(), TODAY).isEmpty());
+    }
+
+    @Test
+    public void inHouseStaysComeFirstAmongTheSameDay() {
+        Booking arriving = upcoming("1", 2, 1);
+        Booking leaving = stay("2", TODAY.minusDays(1), TODAY.plusDays(2), "Checked-In", true, true, false);
+        java.util.List<NextStay> all = NextStay.selectAll(Arrays.asList(arriving, leaving), TODAY);
+        assertEquals(2, all.size());
+        assertSame(leaving, all.get(0).booking);
+    }
+
     // ---- the plain hint
 
     @Test

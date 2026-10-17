@@ -132,7 +132,7 @@ public class DashboardScreenTest {
 
         int[] order = {R.id.welcomeCard, R.id.dateTimeCard, R.id.nextStayCard, R.id.actionBrowseRooms,
                 R.id.bookingReservationSummaryCard, R.id.bookingDetailsCard, R.id.notificationsCard,
-                R.id.upcomingTransactionsCard, R.id.paymentStatusCard, R.id.accountSummaryCard};
+                R.id.paymentStatusCard, R.id.accountSummaryCard};
         int previous = -1;
         for (int id : order) {
             int index = topLevelIndex(content, activity.findViewById(id));
@@ -311,7 +311,7 @@ public class DashboardScreenTest {
         DashboardActivity activity = launch();
         answer(stay(588, 3, 1));
 
-        tap(activity.findViewById(R.id.nextStayCard));
+        tap(activity.findViewById(R.id.nextStayItem));
         Intent opened = nextScreen(activity);
         assertEquals(new ComponentName(activity, BookingDetailsActivity.class), opened.getComponent());
         assertNotNull(opened.getSerializableExtra(BookingDetailsActivity.EXTRA_BOOKING));
@@ -393,11 +393,11 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void recentBookings_andUpcoming_highlightTheBookingNumber_withTheRoomNameSmallerBelow() {
+    public void recentBookings_highlightTheBookingNumber_withTheRoomNameSmallerBelow() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(booking(338, 2)));
 
-        for (int listId : new int[]{R.id.bookingListContainer, R.id.upcomingListContainer}) {
+        for (int listId : new int[]{R.id.bookingListContainer}) {
             ViewGroup list = activity.findViewById(listId);
             TextView id = first(list, R.id.tvNextItemBookingId);
             TextView room = first(list, R.id.tvNextItemRoomName);
@@ -414,10 +414,15 @@ public class DashboardScreenTest {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 3)));
 
-        ViewGroup upcoming = activity.findViewById(R.id.upcomingListContainer);
         java.util.List<String> labels = new java.util.ArrayList<>();
-        for (int i = 0; i < upcoming.getChildCount(); i++) {
-            labels.add(((TextView) upcoming.getChildAt(i).findViewById(R.id.tvNextItemBookingId)).getText().toString());
+        ViewGroup nextStays = activity.findViewById(R.id.nextStayContent);
+        for (int i = 0; i < nextStays.getChildCount(); i++) {
+            TextView ref = nextStays.getChildAt(i).findViewById(R.id.tvNextStayRef);
+            if (ref != null) labels.add(ref.getText().toString());
+        }
+        ViewGroup more = activity.findViewById(R.id.moreStaysList);
+        for (int i = 0; i < more.getChildCount(); i++) {
+            labels.add(((TextView) more.getChildAt(i).findViewById(R.id.tvStayCompactRef)).getText().toString());
         }
         assertTrue(labels.toString(), labels.contains("Reservation #588") && labels.contains("Booking #338"));
 
@@ -450,8 +455,125 @@ public class DashboardScreenTest {
         }
     }
 
-    private static final int[] STATE_VIEWS = {R.id.stateSummary, R.id.stateRecent, R.id.stateUpcoming, R.id.statePayments, R.id.stateNotifications};
-    private static final int[] EMPTY_MESSAGES = {R.id.noBookingsText, R.id.noUpcomingText, R.id.noPaymentsText, R.id.noNotificationsText};
+    @Test
+    public void twoTransactionsOnTheSameDay_areBothShownInNextStay() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 2)));
+
+        ViewGroup content = activity.findViewById(R.id.nextStayContent);
+        java.util.List<String> refs = new java.util.ArrayList<>();
+        for (int i = 0; i < content.getChildCount(); i++) {
+            TextView ref = content.getChildAt(i).findViewById(R.id.tvNextStayRef);
+            if (ref != null) refs.add(ref.getText().toString());
+        }
+        assertEquals(refs.toString(), 2, refs.size());
+        assertTrue(refs.toString(), refs.contains("Reservation #588") && refs.contains("Booking #338"));
+        java.util.List<String> all = new java.util.ArrayList<>();
+        collectText(content, all);
+        assertTrue("a note says there are several: " + all, all.contains(app.getString(R.string.next_stay_same_day_note, 2)));
+    }
+
+    @Test
+    public void aStayIsShownOnlyOnceAcrossNextStayAndTheOtherStays() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
+
+        ViewGroup more = activity.findViewById(R.id.moreStaysList);
+        assertEquals(1, more.getChildCount());
+        assertEquals("Booking #338", ((TextView) more.getChildAt(0).findViewById(R.id.tvStayCompactRef)).getText().toString());
+    }
+
+    @Test
+    public void otherStays_openThatTransactionInUpcoming_andViewAllOpensTheWholeList() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
+
+        tap(activity.<ViewGroup>findViewById(R.id.moreStaysList).getChildAt(0));
+        Intent opened = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
+        assertEquals("338", opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+        assertTrue(opened.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, false));
+
+        tap(activity.findViewById(R.id.btnViewAllUpcoming));
+        opened = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
+        assertEquals(null, opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+    }
+
+    @Test
+    public void everySectionCollapsesToAOneLineSummary_andExpandsAgain() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
+
+        int[][] sections = {
+                {R.id.nextStayToggle, R.id.nextStaySummary, R.id.nextStayCard},
+                {R.id.moreStaysToggle, R.id.moreStaysSummary, R.id.moreStaysBody},
+                {R.id.stayCalToggle, R.id.stayCalCollapsedSummary, R.id.stayCalBody},
+                {R.id.bookingsToggle, R.id.bookingsSummary, R.id.bookingsBody},
+                {R.id.notificationsToggle, R.id.notificationsSummary, R.id.notificationsBody},
+                {R.id.paymentsToggle, R.id.paymentsSummary, R.id.paymentsBody}};
+        for (int[] s : sections) {
+            String name = activity.getResources().getResourceEntryName(s[0]);
+            assertEquals(name + " starts expanded", View.VISIBLE, activity.findViewById(s[2]).getVisibility());
+            assertEquals(name + " summary hidden while expanded", View.GONE, activity.findViewById(s[1]).getVisibility());
+
+            activity.findViewById(s[0]).performClick();
+            assertEquals(name + " body hidden", View.GONE, activity.findViewById(s[2]).getVisibility());
+            assertEquals(name + " summary shown", View.VISIBLE, activity.findViewById(s[1]).getVisibility());
+            assertTrue(name + " summary says something", text(activity, s[1]).length() > 0);
+
+            activity.findViewById(s[0]).performClick();
+            assertEquals(name + " body back", View.VISIBLE, activity.findViewById(s[2]).getVisibility());
+        }
+    }
+
+    @Test
+    public void stayCalendar_listsOnlyTheEssentials_andLinksIntoUpcoming() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 0, 1)), ScreenTestSupport.directBookings());
+
+        ViewGroup entries = activity.findViewById(R.id.stayCalSummary);
+        assertTrue("today's check-in is listed", entries.getChildCount() >= 1);
+        View entry = entries.getChildAt(0);
+        assertEquals("Reservation #588", ((TextView) entry.findViewById(R.id.tvEntryRef)).getText().toString());
+        assertTrue(((TextView) entry.findViewById(R.id.tvEntryWhen)).getText().toString().startsWith("Check-in"));
+        assertTrue(((TextView) entry.findViewById(R.id.tvEntryStatus)).getText().length() > 0);
+        assertEquals("no balance, rooms or stay lines any more", null, entry.findViewById(R.id.btnNextStayBook));
+
+        tap(entry);
+        Intent focused = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), focused.getComponent());
+        assertEquals("588", focused.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+
+        tap(activity.findViewById(R.id.stayCalOpenAll));
+        Intent all = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), all.getComponent());
+        assertEquals("ALL", all.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_STATUS_FILTER));
+    }
+
+    @Test
+    public void tappingAnIdOnTheDashboard_opensUpcomingFocusedOnThatTransaction() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
+
+        // Your Next Stay: the reference of the reservation.
+        tap(activity.findViewById(R.id.tvNextStayRef));
+        Intent next = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), next.getComponent());
+        assertEquals("588", next.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+        assertEquals(false, next.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, true));
+
+        // Recent Bookings: the booking's reference (the rest of that row still opens Transaction History).
+        ViewGroup recent = activity.findViewById(R.id.bookingListContainer);
+        tap(recent.getChildAt(0).findViewById(R.id.tvNextItemBookingId));
+        Intent booking = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), booking.getComponent());
+        assertEquals("338", booking.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+        assertEquals(true, booking.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, false));
+    }
+
+    private static final int[] STATE_VIEWS = {R.id.stateSummary, R.id.stateRecent, R.id.statePayments, R.id.stateNotifications};
+    private static final int[] EMPTY_MESSAGES = {R.id.noBookingsText, R.id.noPaymentsText, R.id.noNotificationsText};
 
     @Test
     public void everySectionSaysLoadingFirst_notThatYouHaveNone() {
@@ -490,12 +612,12 @@ public class DashboardScreenTest {
         failEverythingPending();
         int before = api.count("getReservations");
 
-        tap(activity.findViewById(R.id.stateUpcoming).findViewById(R.id.sectionStateRetry));
+        tap(activity.findViewById(R.id.stateRecent).findViewById(R.id.sectionStateRetry));
         idle();
 
         assertTrue("asked the server again", api.count("getReservations") > before);
         assertEquals(app.getString(R.string.dashboard_section_loading),
-                ((TextView) activity.findViewById(R.id.stateUpcoming).findViewById(R.id.sectionStateText)).getText().toString());
+                ((TextView) activity.findViewById(R.id.stateRecent).findViewById(R.id.sectionStateText)).getText().toString());
     }
 
     @Test

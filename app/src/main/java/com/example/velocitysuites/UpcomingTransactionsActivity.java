@@ -1,62 +1,118 @@
 package com.example.velocitysuites;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.ChipGroup;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Dedicated "Upcoming Hotel Transactions" screen: every future check-in/check-out
- * across both Bookings and Reservations, in chronological order, filterable by
- * All Transactions / Upcoming Bookings / Upcoming Reservations. Supports a
- * deep-link entry point from the dashboard's Next Hotel Transaction and Upcoming
- * Transactions sections: {@link #EXTRA_SELECTED_BOOKING_ID} scrolls to, highlights,
- * and opens the full detail dialog for one specific item.
+ * "Upcoming Hotel Transactions": EVERY booking and reservation the guest has, whatever its status (pending, confirmed,
+ * checked in, checked out, cancelled, rejected), one card per transaction. Nothing is dropped by the client - the only
+ * things that narrow the list are the filters the guest picks (type, status, date), and a transaction that was checked
+ * out or cancelled stays here for tracking.
+ * <p>
+ * Deep link: {@link #EXTRA_SELECTED_BOOKING_ID} (+ {@link #EXTRA_SELECTED_DIRECT} to tell a direct booking from a
+ * reservation, whose ids are separate sequences) scrolls to and highlights that transaction. If the active filters would
+ * hide it they are reset first. Each card links to the transaction's record in Transaction History, where the full
+ * details live.
  */
 public class UpcomingTransactionsActivity extends BaseNavigationActivity {
 
     /** Optional: scrolls to and highlights this exact Booking ID, from a specific dashboard item tap. */
     public static final String EXTRA_SELECTED_BOOKING_ID = "EXTRA_SELECTED_BOOKING_ID";
+    /** Optional, with the id: true for a direct booking, false for a reservation-derived transaction (their ids overlap). */
+    public static final String EXTRA_SELECTED_DIRECT = "EXTRA_SELECTED_DIRECT";
+    /** Optional: opens with this status filter (a {@link StatusFilter} name); absent means All Statuses. */
+    public static final String EXTRA_STATUS_FILTER = "EXTRA_STATUS_FILTER";
 
-    private static class UpcomingEvent {
-        final Booking booking;
-        final String title;
-        final long timeMillis;
-        final String dateLabel;
-        final boolean isCheckIn;
+    /** The Status filter - All Statuses plus each individual status. */
+    enum StatusFilter {
+        ALL(R.id.chipStatusAll, null),
+        PENDING(R.id.chipStatusPending, "Pending"),
+        CONFIRMED(R.id.chipStatusConfirmed, "Confirmed"),
+        CHECKED_IN(R.id.chipStatusCheckedIn, "Checked-In"),
+        CHECKED_OUT(R.id.chipStatusCheckedOut, "Checked-Out"),
+        CANCELLED(R.id.chipStatusCancelled, "Cancelled"),
+        REJECTED(R.id.chipStatusRejected, "Rejected");
 
-        UpcomingEvent(Booking booking, String title, long timeMillis, String dateLabel, boolean isCheckIn) {
-            this.booking = booking;
-            this.title = title;
-            this.timeMillis = timeMillis;
-            this.dateLabel = dateLabel;
-            this.isCheckIn = isCheckIn;
+        final int chipId;
+        @Nullable final String status;
+
+        StatusFilter(int chipId, @Nullable String status) {
+            this.chipId = chipId;
+            this.status = status;
         }
+
+        boolean matches(@NonNull Booking b) {
+            if (status == null) return true;
+            String s = b.getStatus();
+            if (status.equalsIgnoreCase(s)) return true;
+            // "Completed" is the same lifecycle step as Checked-Out.
+            return this == CHECKED_OUT && "Completed".equalsIgnoreCase(s);
+        }
+
+        static StatusFilter fromName(@Nullable String name) {
+            if (name != null) {
+                for (StatusFilter f : values()) {
+                    if (f.name().equalsIgnoreCase(name)) return f;
+                }
+            }
+            return ALL;
+        }
+    }
+
+    private enum TypeFilter { ALL, BOOKINGS, RESERVATIONS }
+
+    /** Opens Upcoming Hotel Transactions on All Statuses (and All Upcoming), with nothing focused. */
+    public static Intent intentAllStatuses(@NonNull Context context) {
+        return new Intent(context, UpcomingTransactionsActivity.class)
+                .putExtra(EXTRA_STATUS_FILTER, StatusFilter.ALL.name());
+    }
+
+    /** Opens Upcoming Hotel Transactions scrolled to and highlighting exactly this transaction. */
+    public static Intent intentFor(@NonNull Context context, @NonNull Booking booking) {
+        return new Intent(context, UpcomingTransactionsActivity.class)
+                .putExtra(EXTRA_SELECTED_BOOKING_ID, booking.getId())
+                .putExtra(EXTRA_SELECTED_DIRECT, booking.isDirectBooking());
     }
 
     private LinearLayout listContainer;
     private View emptyState, loadingOverlay;
+    private TextView resultCount;
     private androidx.core.widget.NestedScrollView screenContent;
-    private ChipGroup chipGroupFilters;
-    private ChipGroup chipGroupPeriod;
+    private ChipGroup chipGroupType, chipGroupStatus, chipGroupPeriod;
     private StayCalendarModel.Mode periodMode = null; // null = any date
     private RoomRepository repository;
-    private final List<UpcomingEvent> allEvents = new ArrayList<>();
-    private String currentFilter = "All";
-    private String selectedBookingId;
+
+    /** Every transaction the app holds for the guest - the full set, never trimmed by the client. */
+    private final List<Booking> allTransactions = new ArrayList<>();
+    private TypeFilter typeFilter = TypeFilter.ALL;
+    private StatusFilter statusFilter = StatusFilter.ALL;
+
+    private String selectedId;
+    private Boolean selectedDirect;
     private boolean pendingScrollToSelected;
+    private boolean attemptedLookup;
+    /** The first answer (or cached list) has been drawn - before that an unknown id may just not have loaded yet. */
+    private boolean loadedOnce;
+    /** True while chips are being set by code (a deep link resetting the filters), so that does not re-render per chip. */
+    private boolean settingChips;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,17 +126,25 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         listContainer = findViewById(R.id.upcomingTransactionsListContainer);
         emptyState = findViewById(R.id.layoutUpcomingEmptyState);
         loadingOverlay = findViewById(R.id.loadingOverlay);
+        resultCount = findViewById(R.id.tvUpcomingResultCount);
         screenContent = findViewById(R.id.screenContent);
-        chipGroupFilters = findViewById(R.id.chipGroupUpcomingFilters);
+        chipGroupType = findViewById(R.id.chipGroupUpcomingFilters);
+        chipGroupStatus = findViewById(R.id.chipGroupUpcomingStatus);
         chipGroupPeriod = findViewById(R.id.chipGroupUpcomingPeriod);
 
-        selectedBookingId = getIntent().getStringExtra(EXTRA_SELECTED_BOOKING_ID);
-        pendingScrollToSelected = selectedBookingId != null;
-
         setupFilters();
-        setupPeriodFilter();
+        findViewById(R.id.btnUpcomingClearFilters).setOnClickListener(v -> resetFilters());
 
+        readIntent(getIntent());
         loadEvents();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        readIntent(intent);
+        renderEvents();
     }
 
     @Override
@@ -89,34 +153,89 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         loadEvents();
     }
 
-    private void setupFilters() {
-        if (chipGroupFilters == null) return;
-        chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.contains(R.id.chipFilterBookings)) currentFilter = "Bookings";
-            else if (checkedIds.contains(R.id.chipFilterReservations)) currentFilter = "Reservations";
-            else currentFilter = "All";
-            renderEvents();
-        });
+    /** Reads the deep link (a focused transaction) and the opening status filter. */
+    private void readIntent(Intent intent) {
+        selectedId = intent.getStringExtra(EXTRA_SELECTED_BOOKING_ID);
+        if (selectedId != null && selectedId.trim().isEmpty()) selectedId = null;
+        selectedDirect = intent.hasExtra(EXTRA_SELECTED_DIRECT) ? intent.getBooleanExtra(EXTRA_SELECTED_DIRECT, false) : null;
+        pendingScrollToSelected = selectedId != null;
+        attemptedLookup = false;
+        if (intent.hasExtra(EXTRA_STATUS_FILTER)) {
+            statusFilter = StatusFilter.fromName(intent.getStringExtra(EXTRA_STATUS_FILTER));
+            checkChips();
+        }
     }
 
-    private void setupPeriodFilter() {
-        if (chipGroupPeriod == null) return;
+    private void setupFilters() {
+        chipGroupType.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (settingChips) return;
+            if (checkedIds.contains(R.id.chipFilterBookings)) typeFilter = TypeFilter.BOOKINGS;
+            else if (checkedIds.contains(R.id.chipFilterReservations)) typeFilter = TypeFilter.RESERVATIONS;
+            else typeFilter = TypeFilter.ALL;
+            renderEvents();
+        });
+        chipGroupStatus.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (settingChips) return;
+            statusFilter = StatusFilter.ALL;
+            for (StatusFilter f : StatusFilter.values()) {
+                if (checkedIds.contains(f.chipId)) statusFilter = f;
+            }
+            renderEvents();
+        });
         chipGroupPeriod.setOnCheckedStateChangeListener((group, ids) -> {
+            if (settingChips) return;
             if (ids.contains(R.id.chipPeriodDaily)) periodMode = StayCalendarModel.Mode.DAILY;
             else if (ids.contains(R.id.chipPeriodWeekly)) periodMode = StayCalendarModel.Mode.WEEKLY;
             else if (ids.contains(R.id.chipPeriodMonthly)) periodMode = StayCalendarModel.Mode.MONTHLY;
             else periodMode = null;
             renderEvents();
         });
+        checkChips();
     }
 
-    /** True when the event falls in the chosen Daily / Weekly / Monthly window around today (hotel time); always true for "Any date". */
-    private boolean inPeriod(UpcomingEvent e) {
+    /** Makes the chips show the current filter values. */
+    private void checkChips() {
+        if (chipGroupType == null) return;
+        settingChips = true;
+        chipGroupType.check(typeFilter == TypeFilter.BOOKINGS ? R.id.chipFilterBookings
+                : typeFilter == TypeFilter.RESERVATIONS ? R.id.chipFilterReservations : R.id.chipFilterAll);
+        chipGroupStatus.check(statusFilter.chipId);
+        chipGroupPeriod.check(periodMode == StayCalendarModel.Mode.DAILY ? R.id.chipPeriodDaily
+                : periodMode == StayCalendarModel.Mode.WEEKLY ? R.id.chipPeriodWeekly
+                : periodMode == StayCalendarModel.Mode.MONTHLY ? R.id.chipPeriodMonthly : R.id.chipPeriodAny);
+        settingChips = false;
+    }
+
+    /** All Upcoming + All Statuses + Any date: the way out of an over-filtered list, and what a deep link needs to be visible. */
+    private void resetFilters() {
+        typeFilter = TypeFilter.ALL;
+        statusFilter = StatusFilter.ALL;
+        periodMode = null;
+        checkChips();
+        renderEvents();
+    }
+
+    private boolean anyFilterActive() {
+        return typeFilter != TypeFilter.ALL || statusFilter != StatusFilter.ALL || periodMode != null;
+    }
+
+    private boolean passesFilters(@NonNull Booking b) {
+        if (typeFilter == TypeFilter.BOOKINGS && !b.isHasBooking()) return false;
+        if (typeFilter == TypeFilter.RESERVATIONS && b.isHasBooking()) return false;
+        if (!statusFilter.matches(b)) return false;
+        return inPeriod(b);
+    }
+
+    /** True when the stay overlaps the chosen Daily / Weekly / Monthly window around today (hotel time); always true for "Any date". */
+    private boolean inPeriod(@NonNull Booking b) {
         if (periodMode == null) return true;
-        java.time.LocalDate day = PaymentDates.parseDate(e.dateLabel);
-        if (day == null) return false;
-        java.time.LocalDate today = java.time.LocalDate.now(TimeUtils.ZONE_MANILA);
-        return !day.isBefore(StayCalendarModel.windowStart(periodMode, today)) && !day.isAfter(StayCalendarModel.windowEnd(periodMode, today));
+        LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+        LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+        if (in == null) return false;
+        if (out == null || out.isBefore(in)) out = in;
+        LocalDate today = LocalDate.now(TimeUtils.ZONE_MANILA);
+        return !in.isAfter(StayCalendarModel.windowEnd(periodMode, today))
+                && !out.isBefore(StayCalendarModel.windowStart(periodMode, today));
     }
 
     private void loadEvents() {
@@ -126,130 +245,148 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             public void onSuccess(List<Booking> result) {
                 if (isFinishing() || isDestroyed()) return;
                 if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-                List<Booking> shown = result != null ? result : repository.getBookings();
+                List<Booking> shown = repository.getAllBookings();
                 eventsGate.accept(shown, ChangeGate.today()); // what is about to be drawn - see onVisiblePoll()
-                buildEvents(shown);
+                setTransactions(shown);
             }
 
             @Override
             public void onError(String message) {
                 if (isFinishing() || isDestroyed()) return;
                 if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-                List<Booking> shown = repository.getBookings();
+                List<Booking> shown = repository.getAllBookings();
                 eventsGate.accept(shown, ChangeGate.today());
-                buildEvents(shown);
+                setTransactions(shown);
                 Toast.makeText(UpcomingTransactionsActivity.this,
                         "Couldn't refresh upcoming transactions: " + message, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    /** What the event list was last drawn from, so the silent 30s check redraws only on a real change. */
+    /** What the list was last drawn from, so the silent 30s check redraws only on a real change. */
     private final ChangeGate eventsGate = new ChangeGate();
 
     /**
      * The 30s beat (started/stopped with the screen by BaseNavigationActivity): a light, silent check for changes,
      * with no loading overlay and no message if it fails. The list is rebuilt only if the bookings changed or the
-     * day rolled over (which moves a stay from "upcoming" to "checked in"). The base class's badge check is kept.
+     * day rolled over. The base class's badge check is kept.
      */
     @Override
     protected void onVisiblePoll() {
         super.onVisiblePoll();
         repository.pollBookingsSplit((merged, reservationsError, directError) -> {
             if (isFinishing() || isDestroyed() || (reservationsError != null && directError != null)) return;
-            if (eventsGate.accept(merged, ChangeGate.today())) buildEvents(merged);
+            if (eventsGate.accept(merged, ChangeGate.today())) setTransactions(repository.getAllBookings());
         });
     }
 
-    /**
-     * Every future check-in (not yet checked in) or future check-out (already
-     * checked in) across all non-cancelled bookings/reservations, recomputed
-     * fresh from "now" on every load so the list rolls forward automatically -
-     * no manual refresh or daily maintenance required.
-     */
-    private void buildEvents(List<Booking> bookings) {
-        allEvents.clear();
-        SimpleDateFormat sdf = new SimpleDateFormat(getString(R.string.date_format_short), Locale.US);
-        long now = System.currentTimeMillis();
-
+    private void setTransactions(List<Booking> bookings) {
+        loadedOnce = true;
+        allTransactions.clear();
         for (Booking b : bookings) {
-            String status = b.getStatus();
-            if ("Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)) continue;
-
-            try {
-                long checkInTime = sdf.parse(b.getCheckInDate()).getTime();
-                long checkOutTime = sdf.parse(b.getCheckOutDate()).getTime();
-
-                if (checkInTime >= now - 86400000 && !"Checked-In".equalsIgnoreCase(status) && !"Checked-Out".equalsIgnoreCase(status)) {
-                    String kind = getString(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-                    allEvents.add(new UpcomingEvent(b,
-                            getString(R.string.upcoming_event_title_format, kind, b.getRoomName()),
-                            checkInTime, b.getCheckInDate(), true));
-                }
-                if (checkOutTime >= now - 86400000 && "Checked-In".equalsIgnoreCase(status)) {
-                    String kind = getString(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-                    allEvents.add(new UpcomingEvent(b,
-                            getString(R.string.upcoming_event_title_format, kind, b.getRoomName()),
-                            checkOutTime, b.getCheckOutDate(), false));
-                }
-            } catch (Exception ignored) {
-                // Unparseable dates on a record can't be placed on the timeline - skip it.
-            }
+            if (b != null) allTransactions.add(b);
         }
-
-        Collections.sort(allEvents, (a, c) -> Long.compare(a.timeMillis, c.timeMillis));
         renderEvents();
     }
 
+    // ---- Ordering ----
+
+    /** Pending / confirmed / in-house stays are still ahead of the guest; checked-out, cancelled and rejected are closed. */
+    private static boolean isOpen(@NonNull Booking b) {
+        String s = b.getStatus();
+        return !("Checked-Out".equalsIgnoreCase(s) || "Completed".equalsIgnoreCase(s)
+                || "Cancelled".equalsIgnoreCase(s) || "Rejected".equalsIgnoreCase(s));
+    }
+
+    private static final Comparator<Booking> BY_CHECK_IN_ASC = (x, y) -> compareDates(
+            PaymentDates.parseDate(x.getCheckInDate()), PaymentDates.parseDate(y.getCheckInDate()), false);
+    private static final Comparator<Booking> BY_CHECK_IN_DESC = (x, y) -> compareDates(
+            PaymentDates.parseDate(x.getCheckInDate()), PaymentDates.parseDate(y.getCheckInDate()), true);
+
+    /** Unreadable dates always sort last. */
+    private static int compareDates(@Nullable LocalDate a, @Nullable LocalDate b, boolean descending) {
+        if (a == null || b == null) return a == null ? (b == null ? 0 : 1) : -1;
+        return descending ? b.compareTo(a) : a.compareTo(b);
+    }
+
+    // ---- Rendering ----
+
     private void renderEvents() {
-        listContainer.removeAllViews();
-        List<UpcomingEvent> filtered = new ArrayList<>();
-        for (UpcomingEvent e : allEvents) {
-            boolean matches;
-            switch (currentFilter) {
-                case "Bookings": matches = e.booking.isHasBooking(); break;
-                case "Reservations": matches = !e.booking.isHasBooking(); break;
-                default: matches = true;
-            }
-            if (matches && inPeriod(e)) filtered.add(e);
+        if (listContainer == null) return;
+        List<Booking> open = new ArrayList<>();
+        List<Booking> closed = new ArrayList<>();
+        for (Booking b : allTransactions) {
+            if (!passesFilters(b)) continue;
+            (isOpen(b) ? open : closed).add(b);
+        }
+        Collections.sort(open, BY_CHECK_IN_ASC);
+        Collections.sort(closed, BY_CHECK_IN_DESC);
+        int shown = open.size() + closed.size();
+
+        // A deep link must always be able to land: if the active filters hide the focused transaction, drop them.
+        Booking focus = selectedId == null ? null
+                : TransactionNavigator.pick(allTransactions, selectedId, selectedDirect, null, null);
+        if (focus != null && !open.contains(focus) && !closed.contains(focus) && anyFilterActive()) {
+            resetFilters(); // re-enters renderEvents() with nothing filtered
+            return;
         }
 
-        if (filtered.isEmpty()) {
-            emptyState.setVisibility(View.VISIBLE);
-        } else {
-            emptyState.setVisibility(View.GONE);
-            View selectedCard = null;
-            Booking selectedBooking = null;
-            for (int i = 0; i < filtered.size(); i++) {
-                UpcomingEvent e = filtered.get(i);
-                View card = addEventCard(e, i == 0);
-                if (selectedBookingId != null && selectedBookingId.equals(e.booking.getId())) {
-                    selectedCard = card;
-                    selectedBooking = e.booking;
-                }
+        listContainer.removeAllViews();
+        emptyState.setVisibility(shown == 0 ? View.VISIBLE : View.GONE);
+        resultCount.setVisibility(shown == 0 ? View.GONE : View.VISIBLE);
+        resultCount.setText(getString(R.string.upcoming_results_format, shown, allTransactions.size()));
+
+        View focusCard = null;
+        if (!open.isEmpty()) {
+            addGroupHeader(R.string.upcoming_group_active, !closed.isEmpty());
+            for (Booking b : open) {
+                View card = addEventCard(b);
+                if (b == focus) focusCard = card;
             }
-            scrollToSelectedIfPending(selectedCard, selectedBooking);
         }
+        if (!closed.isEmpty()) {
+            addGroupHeader(R.string.upcoming_group_closed, !open.isEmpty());
+            for (Booking b : closed) {
+                View card = addEventCard(b);
+                if (b == focus) focusCard = card;
+            }
+        }
+        applyFocus(focus, focusCard);
+    }
+
+    /** A small heading, only when both groups are showing (a single group needs no label). */
+    private void addGroupHeader(int titleRes, boolean needed) {
+        if (!needed) return;
+        TextView header = new TextView(this);
+        androidx.core.widget.TextViewCompat.setTextAppearance(header, R.style.TextAppearance_Velocity_Label_Section);
+        header.setText(titleRes);
+        header.setAccessibilityHeading(true);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = (int) (6 * getResources().getDisplayMetrics().density);
+        lp.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        listContainer.addView(header, lp);
     }
 
     /**
-     * Scrolls to, highlights, and opens the full detail dialog for the Booking ID passed via
-     * {@link #EXTRA_SELECTED_BOOKING_ID} (e.g. tapping one specific item in the dashboard's
-     * Next Hotel Transaction / Upcoming Transactions list) - fires once per launch so it
-     * doesn't fight the guest's own scrolling afterwards. The highlight itself is re-applied
-     * on every render (filter change, refresh) so it survives those, but the scroll/auto-open
-     * only fire once.
+     * Highlights the focused transaction on every render (so the highlight survives a refresh or filter change) and, once
+     * per launch, scrolls it into view. A transaction that is not loaded at all is fetched by id exactly once.
      */
-    private void scrollToSelectedIfPending(View selectedCard, Booking selectedBooking) {
-        if (selectedCard == null) return;
-        if (selectedCard instanceof com.google.android.material.card.MaterialCardView) {
-            com.google.android.material.card.MaterialCardView cardView = (com.google.android.material.card.MaterialCardView) selectedCard;
+    private void applyFocus(@Nullable Booking focus, @Nullable View focusCard) {
+        if (selectedId == null) return;
+        if (focus == null || focusCard == null) {
+            if (focus == null && !attemptedLookup && loadedOnce) lookUpSelected();
+            return;
+        }
+        if (focusCard instanceof MaterialCardView) {
+            MaterialCardView cardView = (MaterialCardView) focusCard;
             cardView.setStrokeColor(getColor(R.color.velocity_red_primary));
-            cardView.setStrokeWidth((int) (2 * getResources().getDisplayMetrics().density));
+            cardView.setStrokeWidth((int) (3 * getResources().getDisplayMetrics().density));
+            cardView.setCardElevation(6 * getResources().getDisplayMetrics().density);
         }
         if (!pendingScrollToSelected || screenContent == null) return;
         pendingScrollToSelected = false;
-        final View target = selectedCard;
+        final View target = focusCard;
         screenContent.post(() -> {
             int offset = 0;
             View v = target;
@@ -261,341 +398,108 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             }
             screenContent.smoothScrollTo(0, Math.max(0, offset - 24));
         });
-        if (selectedBooking != null) {
-            showTransactionDetailsDialog(selectedBooking);
-        }
     }
 
-    /**
-     * Full booking/reservation/payment/hotel detail dialog for the selected upcoming
-     * transaction - same dialog_payment_details.xml layout the dashboard's Recent Bookings
-     * and Payment Status sections open in TransactionHistoryActivity, so a guest deep-linked
-     * here from a specific dashboard item sees the exact record's complete details, not just
-     * a highlighted card. Download-receipt is hidden here since export isn't wired on this
-     * screen (available from Transaction History instead).
-     */
-    private void showTransactionDetailsDialog(Booking booking) {
-        View detailView = LayoutInflater.from(this).inflate(R.layout.dialog_payment_details, null);
-        java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
-
-        TextView tvBookingId = detailView.findViewById(R.id.detailPaymentBookingId);
-        TextView tvBookingRef = detailView.findViewById(R.id.detailPaymentBookingRef);
-        TextView tvRoomInfo = detailView.findViewById(R.id.detailPaymentRoomInfo);
-        TextView tvCurrentStatus = detailView.findViewById(R.id.detailPaymentCurrentStatus);
-        TextView tvLastMethod = detailView.findViewById(R.id.detailPaymentLastMethod);
-        TextView tvLastDate = detailView.findViewById(R.id.detailPaymentLastDate);
-
-        View cardCancellation = detailView.findViewById(R.id.cardPaymentCancellation);
-        TextView tvCancelDate = detailView.findViewById(R.id.detailPaymentCancelDate);
-        TextView tvCancelReason = detailView.findViewById(R.id.detailPaymentCancelReason);
-
-        TextView tvTotal = detailView.findViewById(R.id.detailPaymentTotal);
-        TextView tvPaid = detailView.findViewById(R.id.detailPaymentPaid);
-        TextView tvRemaining = detailView.findViewById(R.id.detailPaymentRemaining);
-        com.google.android.material.progressindicator.LinearProgressIndicator progress =
-                detailView.findViewById(R.id.detailPaymentProgress);
-
-        LinearLayout historyContainer = detailView.findViewById(R.id.detailPaymentHistoryContainer);
-        TextView tvHistoryEmpty = detailView.findViewById(R.id.detailPaymentHistoryEmpty);
-
-        tvBookingId.setText(getString(booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId()));
-
-        String payRef;
-        if (booking.getTransactionRef() != null) {
-            payRef = booking.getTransactionRef();
-            if (booking.isPaymentPendingVerification()) {
-                payRef += " (" + getString(R.string.awaiting_verification_label) + ")";
-            }
-        } else if (!booking.isHasBooking()) {
-            payRef = getString(R.string.no_payment_yet_label);
-        } else {
-            payRef = getString(R.string.label_pending_payment);
-        }
-        tvBookingRef.setText(getString(R.string.transaction_ref_label, payRef));
-
-        String cin = booking.getActualCheckIn() != null ? booking.getActualCheckIn() : booking.getCheckInDate();
-        String cout = booking.getActualCheckOut() != null ? booking.getActualCheckOut() : booking.getCheckOutDate();
-        tvRoomInfo.setText(getString(R.string.booking_item_format, booking.getRoomName(),
-                        android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()))
-                + "  •  " + cin + " - " + cout);
-
-        PaymentStatusResolver.Result statusResult = PaymentStatusResolver.resolve(this, booking);
-        tvCurrentStatus.setText(statusResult.label);
-        tvCurrentStatus.setBackgroundTintList(getColorStateList(statusResult.bgColorRes));
-        tvCurrentStatus.setTextColor(getColor(statusResult.fgColorRes));
-
-        tvLastMethod.setText(getString(R.string.payment_method_label,
-                booking.getPaymentMethod() != null ? booking.getPaymentMethod() : getString(R.string.label_not_available)));
-        String payDate = booking.getPaymentDate() != null ? booking.getPaymentDate() : getString(R.string.label_not_available);
-        tvLastDate.setText(getString(R.string.label_paid_on, payDate));
-
-        if ("Cancelled".equalsIgnoreCase(booking.getStatus())) {
-            cardCancellation.setVisibility(View.VISIBLE);
-            tvCancelDate.setText(getString(R.string.label_cancelled_on,
-                    booking.getCancellationDate() != null ? booking.getCancellationDate() : getString(R.string.label_not_available)));
-            tvCancelReason.setText(getString(R.string.label_reason,
-                    booking.getCancellationReason() != null ? booking.getCancellationReason() : getString(R.string.label_customer_request)));
-        } else {
-            cardCancellation.setVisibility(View.GONE);
-        }
-
-        // Receptionist-verified money only, from the same helper that decides the status pill shown right
-        // above (TransactionStatusHelper).
-        double total = TransactionStatusHelper.grandTotalOf(booking);
-        double paid = TransactionStatusHelper.verifiedPaidOf(booking);
-        double remaining = Math.max(0, total - paid);
-        tvTotal.setText(currencyFormat.format(total));
-        tvPaid.setText(currencyFormat.format(paid));
-        tvRemaining.setText(currencyFormat.format(remaining));
-        progress.setProgress(total > 0 ? (int) Math.min(100, Math.round((paid / total) * 100)) : 0);
-
-        List<Booking.PaymentRecord> history = booking.getPaymentHistory();
-        historyContainer.removeAllViews();
-        if (history == null || history.isEmpty()) {
-            tvHistoryEmpty.setVisibility(View.VISIBLE);
-        } else {
-            tvHistoryEmpty.setVisibility(View.GONE);
-            for (Booking.PaymentRecord record : history) {
-                historyContainer.addView(buildPaymentHistoryRow(historyContainer, record, currencyFormat));
-            }
-        }
-
-        View btnDownload = detailView.findViewById(R.id.btnDownloadPaymentReceipt);
-        if (btnDownload != null) btnDownload.setVisibility(View.GONE);
-
-        bindAdditionalAmenities(detailView, booking, currencyFormat);
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder builder =
-                new SafeDialogs.Material(this);
-        builder.setView(detailView);
-        androidx.appcompat.app.AlertDialog dialog = builder.create();
-        detailView.findViewById(R.id.btnClosePaymentDetail).setOnClickListener(v -> dialog.dismiss());
-        SafeDialogs.show(dialog);
-    }
-
-    /** Re-fetches the open Payment Details dialog's amenity requests after the guest sent a new one. */
-    private Runnable amenityRequestsReload;
-
-    private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> additionalAmenitiesLauncher =
-            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && amenityRequestsReload != null) amenityRequestsReload.run();
-            });
-
-    /**
-     * Payment Details' "Additional amenity requests": the requests with Pending / Approved / Rejected (+ reason), and the
-     * "Request Additional Amenities" button - disabled with the server's plain-language reason when the stay can't
-     * request (not the guest's, checked out, cancelled). Loading, empty and error-with-Retry states are all shown.
-     */
-    private void bindAdditionalAmenities(View detailView, Booking booking, java.text.NumberFormat currencyFormat) {
-        TextView state = detailView.findViewById(R.id.detailAmenityRequestsState);
-        View retry = detailView.findViewById(R.id.detailAmenityRequestsRetry);
-        LinearLayout container = detailView.findViewById(R.id.detailAmenityRequestsContainer);
-        TextView reason = detailView.findViewById(R.id.detailAmenityRequestsReason);
-        View button = detailView.findViewById(R.id.btnRequestAdditionalAmenities);
-
-        Runnable load = new Runnable() {
+    /** The focused transaction is older than the loaded window: ask for it by id once (a real 404 shows the friendly message once). */
+    private void lookUpSelected() {
+        attemptedLookup = true;
+        List<RoomRepository.TransactionFamily> order = selectedDirect != null
+                ? Collections.singletonList(selectedDirect ? RoomRepository.TransactionFamily.DIRECT_BOOKING : RoomRepository.TransactionFamily.RESERVATION)
+                : TransactionNavigator.lookupOrder(null);
+        repository.lookupTransaction(selectedId, order, new RoomRepository.TransactionLookupCallback() {
             @Override
-            public void run() {
-                state.setVisibility(View.VISIBLE);
-                state.setText(R.string.additional_amenities_loading);
-                retry.setVisibility(View.GONE);
-                container.removeAllViews();
-                reason.setVisibility(View.GONE);
-                button.setEnabled(false);
-                RoomRepository.getInstance(UpcomingTransactionsActivity.this).fetchAdditionalAmenities(booking.isDirectBooking(), booking.getId(),
-                        new RoomRepository.RepositoryCallback<com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto>() {
-                            @Override
-                            public void onSuccess(com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto info) {
-                                if (isFinishing()) return;
-                                renderAmenityRequests(info, state, container, reason, button, currencyFormat);
-                            }
-
-                            @Override
-                            public void onError(String message) {
-                                if (isFinishing()) return;
-                                state.setVisibility(View.VISIBLE);
-                                state.setText(message);
-                                retry.setVisibility(View.VISIBLE);
-                            }
-                        });
+            public void onFound(Booking booking) {
+                if (isFinishing() || isDestroyed()) return;
+                setTransactions(repository.getAllBookings()); // re-enters applyFocus(), which now finds it
             }
-        };
-        amenityRequestsReload = load;
-        retry.setOnClickListener(v -> load.run());
-        button.setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(this, AdditionalAmenitiesActivity.class);
-            intent.putExtra(AdditionalAmenitiesActivity.EXTRA_DIRECT_BOOKING, booking.isDirectBooking());
-            intent.putExtra(AdditionalAmenitiesActivity.EXTRA_ID, booking.getId());
-            additionalAmenitiesLauncher.launch(intent);
+
+            @Override
+            public void onNotFound() {
+                if (isFinishing() || isDestroyed()) return;
+                pendingScrollToSelected = false;
+                TransactionNavigator.showNotFoundDialog(UpcomingTransactionsActivity.this);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                pendingScrollToSelected = false;
+                Toast.makeText(UpcomingTransactionsActivity.this,
+                        getString(R.string.upcoming_lookup_error_format, message), Toast.LENGTH_LONG).show();
+            }
         });
-        load.run();
     }
 
-    private void renderAmenityRequests(com.example.velocitysuites.network.dto.AdditionalAmenityInfoDto info, TextView state, LinearLayout container,
-                                       TextView reason, View button, java.text.NumberFormat currencyFormat) {
-        container.removeAllViews();
-        java.util.List<com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto> requests = info.requests;
-        if (requests == null || requests.isEmpty()) {
-            state.setVisibility(View.VISIBLE);
-            state.setText(R.string.additional_amenities_none);
-        } else {
-            state.setVisibility(View.GONE);
-            for (com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto r : requests) {
-                container.addView(buildAmenityRequestRow(container, r, currencyFormat));
-            }
-        }
-        button.setEnabled(info.can_request);
-        if (!info.can_request) {
-            reason.setVisibility(View.VISIBLE);
-            reason.setText(info.reason != null ? info.reason : getString(R.string.additional_amenities_not_available));
-        } else {
-            reason.setVisibility(View.GONE);
-        }
-    }
+    // ---- Card ----
 
-    private View buildAmenityRequestRow(ViewGroup parent, com.example.velocitysuites.network.dto.AdditionalAmenityRequestDto r, java.text.NumberFormat currencyFormat) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_additional_amenity_request, parent, false);
-        String requestName = getString(R.string.amenity_request_name_format, r.name, r.quantity);
-        if (r.room_number != null && !r.room_number.isEmpty()) {
-            requestName += " - " + getString(R.string.amenity_request_room_format, r.room_number);
-        }
-        ((TextView) row.findViewById(R.id.tvAmenityRequestName)).setText(requestName);
-        ((TextView) row.findViewById(R.id.tvAmenityRequestPrice)).setText(getString(R.string.amenity_request_price_format,
-                currencyFormat.format(r.unit_price), currencyFormat.format(r.subtotal)));
-
-        TextView chip = row.findViewById(R.id.tvAmenityRequestStatus);
-        int label;
-        int bg;
-        int fg;
-        if ("approved".equals(r.status)) {
-            label = R.string.amenity_request_status_approved;
-            bg = R.color.velocity_blue_soft;
-            fg = R.color.velocity_blue_primary;
-        } else if ("rejected".equals(r.status)) {
-            label = R.string.amenity_request_status_rejected;
-            bg = R.color.velocity_red_status_soft;
-            fg = R.color.velocity_red_status_dark;
-        } else {
-            label = R.string.amenity_request_status_pending;
-            bg = R.color.velocity_orange_soft;
-            fg = R.color.velocity_orange_primary;
-        }
-        chip.setText(label);
-        chip.setBackgroundTintList(getColorStateList(bg));
-        chip.setTextColor(getColor(fg));
-
-        TextView why = row.findViewById(R.id.tvAmenityRequestReason);
-        if ("rejected".equals(r.status) && r.rejection_reason != null && !r.rejection_reason.isEmpty()) {
-            why.setVisibility(View.VISIBLE);
-            why.setText(getString(R.string.amenity_request_rejected_reason_format, r.rejection_reason));
-        }
-        return row;
-    }
-
-    private View buildPaymentHistoryRow(ViewGroup parent, Booking.PaymentRecord record, java.text.NumberFormat currencyFormat) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_payment_history_entry, parent, false);
-        TextView tvMethod = row.findViewById(R.id.tvHistoryMethod);
-        TextView tvDate = row.findViewById(R.id.tvHistoryDate);
-        TextView tvAmount = row.findViewById(R.id.tvHistoryAmount);
-        TextView tvStatus = row.findViewById(R.id.tvHistoryStatus);
-
-        tvMethod.setText(record.method != null ? record.method : getString(R.string.label_not_available));
-        tvDate.setText(record.date != null ? record.date : getString(R.string.label_not_available));
-        try {
-            tvAmount.setText(currencyFormat.format(Double.parseDouble(record.amount)));
-        } catch (NumberFormatException | NullPointerException e) {
-            tvAmount.setText(record.amount != null ? record.amount : "");
-        }
-        tvStatus.setText(record.status != null ? record.status : "");
-
-        return row;
-    }
-
-    private View addEventCard(UpcomingEvent e, boolean isNext) {
+    private View addEventCard(@NonNull Booking b) {
         View card = LayoutInflater.from(this).inflate(R.layout.item_upcoming_transaction_detail, listContainer, false);
-        Booking b = e.booking;
 
         TextView tvTomorrowBadge = card.findViewById(R.id.tvTomorrowBadge);
-        TextView tvStatus = card.findViewById(R.id.tvTransactionStatus);
         TextView tvPaymentStatus = card.findViewById(R.id.tvTransactionPaymentStatus);
 
         // The reference leads: "Booking #338" / "Reservation #588".
         ((TextView) card.findViewById(R.id.tvTransactionBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
         ((TextView) card.findViewById(R.id.tvTransactionTitle)).setText(TransactionRow.roomTextOf(b));
+        TransactionStatusChip.apply(this, card.findViewById(R.id.tvTransactionStatus), b.getStatus());
 
-        // What happens and when - date and time to the second (the hotel's posted time).
-        ((TextView) card.findViewById(R.id.tvEventKind)).setText(e.isCheckIn ? R.string.stay_calendar_kind_checkin : R.string.stay_calendar_kind_checkout);
-        ((TextView) card.findViewById(R.id.tvEventWhen)).setText(getString(R.string.stay_calendar_when_format, e.dateLabel,
-                StayCalendarModel.formatTime(e.isCheckIn ? StayCalendarModel.CHECK_IN_TIME : StayCalendarModel.CHECK_OUT_TIME)));
+        // What happens (or happened) and when.
+        TextView tvKind = card.findViewById(R.id.tvEventKind);
+        TextView tvWhen = card.findViewById(R.id.tvEventWhen);
+        String status = b.getStatus();
+        boolean upcomingCheckIn = false;
+        String tomorrowDate = null;
+        if ("Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)) {
+            tvKind.setText(R.string.upcoming_event_cancelled);
+            tvWhen.setText(b.getCancellationDate() != null ? b.getCancellationDate() : b.getCheckInDate());
+        } else if ("Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) {
+            tvKind.setText(R.string.stay_calendar_kind_checked_out);
+            tvWhen.setText(b.getActualCheckOut() != null ? b.getActualCheckOut() : b.getCheckOutDate());
+        } else if ("Checked-In".equalsIgnoreCase(status)) {
+            tvKind.setText(R.string.stay_calendar_kind_checkout);
+            tvWhen.setText(getString(R.string.stay_calendar_when_format, b.getCheckOutDate(),
+                    StayCalendarModel.formatTime(StayCalendarModel.CHECK_OUT_TIME)));
+            tomorrowDate = b.getCheckOutDate();
+        } else {
+            tvKind.setText(R.string.stay_calendar_kind_checkin);
+            tvWhen.setText(getString(R.string.stay_calendar_when_format, b.getCheckInDate(),
+                    StayCalendarModel.formatTime(StayCalendarModel.CHECK_IN_TIME)));
+            upcomingCheckIn = true;
+            tomorrowDate = b.getCheckInDate();
+        }
         ((TextView) card.findViewById(R.id.tvTransactionStay)).setText(getString(R.string.upcoming_stay_format,
                 b.getCheckInDate(), b.getCheckOutDate(), getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests())));
 
         // Balance still to pay, from the same helper as every other status in the app.
         ((TextView) card.findViewById(R.id.tvTransactionBalance)).setText(MoneyFormat.format(TransactionStatusHelper.summarize(b).balance));
 
-        String status = b.getStatus();
-        tvStatus.setText(status);
-        // Night-aware status colours (the same ones Next Stay uses), so the badge reads in light and dark.
-        int bg;
-        int fg;
-        if ("Confirmed".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status) || "Checked-Out".equalsIgnoreCase(status) || "Verified".equalsIgnoreCase(status)) {
-            bg = R.color.status_paid_bg;
-            fg = R.color.status_paid_fg;
-        } else if ("Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)) {
-            bg = R.color.velocity_red_status_soft;
-            fg = R.color.velocity_red_status_dark;
-        } else {
-            bg = R.color.status_pending_bg;
-            fg = R.color.status_pending_fg;
-        }
-        tvStatus.setBackgroundResource(R.drawable.shape_intro_pill);
-        tvStatus.setBackgroundTintList(getColorStateList(bg));
-        tvStatus.setTextColor(getColor(fg));
-
         PaymentStatusResolver.Result paymentStatus = PaymentStatusResolver.resolve(this, b);
         tvPaymentStatus.setText(paymentStatus.label);
         tvPaymentStatus.setBackgroundTintList(getColorStateList(paymentStatus.bgColorRes));
         tvPaymentStatus.setTextColor(getColor(paymentStatus.fgColorRes));
 
-        if (isDateTomorrow(e.dateLabel)) {
+        LocalDate tomorrow = LocalDate.now(TimeUtils.ZONE_MANILA).plusDays(1);
+        if (tomorrowDate != null && tomorrow.equals(PaymentDates.parseDate(tomorrowDate))) {
             tvTomorrowBadge.setVisibility(View.VISIBLE);
-            tvTomorrowBadge.setText(e.isCheckIn ? R.string.check_in_tomorrow_label : R.string.check_out_tomorrow_label);
+            tvTomorrowBadge.setText(upcomingCheckIn ? R.string.check_in_tomorrow_label : R.string.check_out_tomorrow_label);
         } else {
             tvTomorrowBadge.setVisibility(View.GONE);
         }
 
-        // The very next (soonest) one is outlined so it is unmistakable which comes first.
-        com.google.android.material.card.MaterialCardView cardView = card.findViewById(R.id.cardUpcomingTransaction);
-        if (isNext) {
-            cardView.setStrokeColor(getColor(R.color.velocity_red_primary));
-            cardView.setStrokeWidth((int) (2 * getResources().getDisplayMetrics().density));
-        }
-
-        // View Full Details (and a tap anywhere on the card) opens this transaction's complete details.
-        View.OnClickListener openDetails = v -> showTransactionDetailsDialog(b);
-        card.findViewById(R.id.btnViewFullDetails).setOnClickListener(openDetails);
-        card.setOnClickListener(openDetails);
+        // The button (and a tap anywhere on the card) opens this transaction's record in Transaction History.
+        View.OnClickListener openHistory = v -> openInTransactionHistory(b);
+        card.findViewById(R.id.btnViewFullDetails).setOnClickListener(openHistory);
+        card.setOnClickListener(openHistory);
 
         listContainer.addView(card);
         return card;
     }
 
-    /** True when dateStr (yyyy/M/d-style, per date_format_short) falls exactly on tomorrow's calendar date. */
-    private boolean isDateTomorrow(String dateStr) {
-        if (dateStr == null) return false;
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(getString(R.string.date_format_short), Locale.US);
-            long time = sdf.parse(dateStr).getTime();
-            Calendar todayCal = Calendar.getInstance();
-            todayCal.set(Calendar.HOUR_OF_DAY, 0);
-            todayCal.set(Calendar.MINUTE, 0);
-            todayCal.set(Calendar.SECOND, 0);
-            todayCal.set(Calendar.MILLISECOND, 0);
-            long tomorrowStart = todayCal.getTimeInMillis() + 86400000L;
-            long tomorrowEnd = tomorrowStart + 86400000L;
-            return time >= tomorrowStart && time < tomorrowEnd;
-        } catch (Exception ex) {
-            return false;
-        }
+    /** Transaction History, with this exact record highlighted and opened (its id plus which table it lives in). */
+    private void openInTransactionHistory(@NonNull Booking b) {
+        Intent intent = new Intent(this, TransactionHistoryActivity.class);
+        intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, b.getId());
+        intent.putExtra(TransactionHistoryActivity.EXTRA_SELECTED_DIRECT, b.isDirectBooking());
+        startActivity(intent);
     }
 }

@@ -9,6 +9,8 @@ import androidx.annotation.StringRes;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -75,8 +77,20 @@ public final class NextStay {
      */
     @Nullable
     public static NextStay select(@Nullable List<Booking> bookings, @NonNull LocalDate today) {
-        NextStay best = null;
-        if (bookings == null) return null;
+        List<NextStay> all = selectAll(bookings, today);
+        return all.isEmpty() ? null : all.get(0);
+    }
+
+    /**
+     * Every transaction that falls on the nearest event day - one stay or several, bookings and reservations alike.
+     * A guest can hold more than one transaction on the same day, and none of them may be hidden behind "the" next
+     * stay. In-house stays come first, then by reference so the order is stable between refreshes. Empty when
+     * nothing qualifies.
+     */
+    @NonNull
+    public static List<NextStay> selectAll(@Nullable List<Booking> bookings, @NonNull LocalDate today) {
+        List<NextStay> candidates = new ArrayList<>();
+        if (bookings == null) return candidates;
         for (Booking b : bookings) {
             if (b == null) continue;
             if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
@@ -86,20 +100,26 @@ public final class NextStay {
             LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
             if (in == null || out == null) continue;
 
-            NextStay candidate;
             if ("Checked-In".equalsIgnoreCase(status)) {
-                candidate = new NextStay(b, Phase.IN_HOUSE, in, out, ChronoUnit.DAYS.between(today, out), today);
+                candidates.add(new NextStay(b, Phase.IN_HOUSE, in, out, ChronoUnit.DAYS.between(today, out), today));
             } else if (!in.isBefore(today)) {
-                candidate = new NextStay(b, Phase.UPCOMING, in, out, ChronoUnit.DAYS.between(today, in), today);
-            } else {
-                continue;
-            }
-            if (best == null || candidate.daysToEvent < best.daysToEvent
-                    || (candidate.daysToEvent == best.daysToEvent && candidate.phase == Phase.IN_HOUSE && best.phase != Phase.IN_HOUSE)) {
-                best = candidate;
+                candidates.add(new NextStay(b, Phase.UPCOMING, in, out, ChronoUnit.DAYS.between(today, in), today));
             }
         }
-        return best;
+        if (candidates.isEmpty()) return candidates;
+        long nearest = Long.MAX_VALUE;
+        for (NextStay c : candidates) nearest = Math.min(nearest, c.daysToEvent);
+        List<NextStay> out = new ArrayList<>();
+        for (NextStay c : candidates) {
+            if (c.daysToEvent == nearest) out.add(c);
+        }
+        Collections.sort(out, (x, y) -> {
+            if (x.phase != y.phase) return x.phase == Phase.IN_HOUSE ? -1 : 1;
+            String a = x.booking.getDisplayId() == null ? "" : x.booking.getDisplayId();
+            String c = y.booking.getDisplayId() == null ? "" : y.booking.getDisplayId();
+            return a.compareTo(c);
+        });
+        return out;
     }
 
     public static PlainStatus plainStatus(@NonNull Booking b) {

@@ -66,6 +66,18 @@
                         android:text="@string/upcoming_transactions_screen_desc"
                         android:textColor="@color/velocity_text_secondary" />
 
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="@string/upcoming_filter_type_label"
+                        android:textAllCaps="true"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp" />
+
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -103,7 +115,90 @@
                         </com.google.android.material.chip.ChipGroup>
                     </HorizontalScrollView>
 
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="@string/upcoming_filter_status_label"
+                        android:textAllCaps="true"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupUpcomingStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="22dp"
+                            app:chipSpacingHorizontal="8dp"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusAll"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="true"
+                                android:text="@string/upcoming_status_all" />
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusPending"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upcoming_status_pending" />
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusConfirmed"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upcoming_status_confirmed" />
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusCheckedIn"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upcoming_status_checked_in" />
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusCheckedOut"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upcoming_status_checked_out" />
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusCancelled"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upcoming_status_cancelled" />
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipStatusRejected"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/upcoming_status_rejected" />
+                        </com.google.android.material.chip.ChipGroup>
+                    </HorizontalScrollView>
+
                     <!-- Period, same as the dashboard calendar: today, this week, this month. -->
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="@string/upcoming_filter_date_label"
+                        android:textAllCaps="true"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp" />
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -182,6 +277,17 @@
                 android:paddingTop="14dp"
                 android:paddingBottom="36dp">
 
+                <TextView
+                    android:id="@+id/tvUpcomingResultCount"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
                 <LinearLayout
                     android:id="@+id/upcomingTransactionsListContainer"
                     android:layout_width="match_parent"
@@ -223,6 +329,15 @@
                         android:text="@string/no_upcoming_activities_desc"
                         android:textColor="@color/velocity_text_secondary"
                         android:textSize="12sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUpcomingClearFilters"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:minHeight="48dp"
+                        android:text="@string/upcoming_clear_filters" />
                 </LinearLayout>
 
             </LinearLayout>

@@ -198,13 +198,39 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Section header: a clear title and one line saying what the section is for -->
-                <TextView
-                    style="@style/TextAppearance.Velocity.Label.Section"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:accessibilityHeading="true"
-                    android:text="@string/next_stay_section_title" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:accessibilityHeading="true"
+                        android:text="@string/next_stay_section_title" />
+                    <ImageButton
+                    android:id="@+id/nextStayToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/nextStaySummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
                 <TextView
                     style="@style/TextAppearance.Velocity.Body"
                     android:layout_width="match_parent"
@@ -265,7 +291,7 @@
                                 android:fontFamily="sans-serif-medium"
                                 android:text="@string/loading_date"
                                 android:textColor="@color/velocity_text_secondary"
-                                android:textSize="12sp" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/timeText"
@@ -274,7 +300,7 @@
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/time_placeholder"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="16sp" />
+                                android:textSize="20sp" />
                         </LinearLayout>
 
                         <ImageView
@@ -412,134 +438,13 @@
                                 android:text="@string/next_stay_book_action" />
                         </LinearLayout>
 
+                        <!-- One item_next_stay per transaction on the nearest day (see DashboardActivity#updateNextStay). -->
                         <LinearLayout
                             android:id="@+id/nextStayContent"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="14dp"
-                            android:visibility="gone">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/tvNextStayHint"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:fontFamily="sans-serif-black"
-                                    android:textColor="@color/velocity_red_primary"
-                                    android:textSize="14sp"
-                                    tools:text="Check-in tomorrow" />
-
-                                <TextView
-                                    android:id="@+id/tvNextStayStatus"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="8dp"
-                                    android:background="@drawable/shape_flat_badge"
-                                    android:fontFamily="sans-serif-black"
-                                    android:paddingHorizontal="8dp"
-                                    android:paddingVertical="4dp"
-                                    android:textSize="12sp"
-                                    tools:text="Confirmed" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:id="@+id/tvNextStayRooms"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="11dp"
-                                android:fontFamily="sans-serif-black"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp"
-                                tools:text="Deluxe ×2" />
-
-                            <TextView
-                                android:id="@+id/tvNextStayDates"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="12sp"
-                                tools:text="Oct 12, 2026 → Oct 14, 2026" />
-
-                            <TextView
-                                android:id="@+id/tvNextStayNights"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="@color/velocity_text_secondary"
-                                android:textSize="12sp"
-                                tools:text="2 nights" />
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"
-                                android:layout_marginVertical="11dp"
-                                android:background="@color/velocity_divider_hairline" />
-
-                            <!-- Check-in total, approved amenities, remaining balance, final total - filled from the server's
-                                 stay bill once the stay is in house; gone before that. -->
-                            <LinearLayout
-                                android:id="@+id/nextStayMoney"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="8dp"
-                                android:orientation="vertical"
-                                android:visibility="gone" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:minHeight="48dp"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/tvNextStayBalanceLabel"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="10dp"
-                                    android:text="@string/next_stay_balance_due"
-                                    android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="12sp" />
-
-                                <TextView
-                                    android:id="@+id/tvNextStayBalance"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:gravity="end"
-                                    android:fontFamily="sans-serif-black"
-                                    android:textColor="@color/velocity_text_primary"
-                                    android:textSize="14sp"
-                                    tools:text="₱1,800.00" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:gravity="end"
-                                android:text="@string/next_stay_view_details"
-                                android:textColor="@color/velocity_action_text"
-                                android:textSize="12sp" />
-
-                            <!-- Only while the guest is staying: ask the front desk for extra amenities. -->
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnNextStayRequestAmenities"
-                                style="@style/Widget.Velocity.Flat.Button.Outlined"
-                                android:layout_width="match_parent"
-                                android:layout_height="48dp"
-                                android:layout_marginTop="8dp"
-                                android:text="@string/request_additional_amenities_button"
-                                android:visibility="gone" />
-                        </LinearLayout>
+                            android:visibility="gone" />
                     </FrameLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -552,18 +457,61 @@
                     android:orientation="vertical"
                     android:visibility="gone">
 
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Label.Section"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:accessibilityHeading="true"
-                        android:text="@string/more_stays_title" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Label.Section"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:accessibilityHeading="true"
+                            android:text="@string/more_stays_title" />
+                        <ImageButton
+                    android:id="@+id/moreStaysToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
+                    </LinearLayout>
+
+                    <TextView
+                    android:id="@+id/moreStaysSummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
 
                     <LinearLayout
-                        android:id="@+id/moreStaysList"
+                        android:id="@+id/moreStaysBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical" />
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:id="@+id/moreStaysList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewAllUpcoming"
+                            style="@style/Widget.Velocity.Flat.Button.Outlined"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:minHeight="48dp"
+                            android:text="@string/view_all_upcoming_transactions" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <include
@@ -1119,7 +1067,33 @@
                                 android:textColor="@color/velocity_red_primary"
                                 android:textSize="12sp"
                                 android:fontFamily="sans-serif-bold"/>
+                        <ImageButton
+                    android:id="@+id/bookingsToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+
+                        <TextView
+                    android:id="@+id/bookingsSummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/bookingsBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -1182,6 +1156,7 @@
                                 android:layout_marginTop="11dp"
                                 android:text="@string/book_now"
                                 android:visibility="gone" />
+                        </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -1260,7 +1235,33 @@
                                 android:textColor="@color/velocity_red_primary"
                                 android:textSize="12sp"
                                 android:fontFamily="sans-serif-bold"/>
+                        <ImageButton
+                    android:id="@+id/notificationsToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+
+                        <TextView
+                    android:id="@+id/notificationsSummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/notificationsBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -1294,118 +1295,7 @@
                             android:textColor="@color/velocity_text_secondary"
                             android:fontFamily="sans-serif-medium"
                             android:visibility="gone"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- 2. Upcoming Transactions (Check-in/out) -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/upcomingTransactionsCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:padding="6dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_green_soft"
-                                android:importantForAccessibility="no"
-                                android:padding="7dp"
-                                android:src="@drawable/ic_calendar"
-                                app:tint="@color/velocity_green_dark" />
-                            <TextView
-                                android:id="@+id/upcomingTransactionsTitle"
-                                style="@style/TextAppearance.Velocity.Label.Section"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="11dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:textSize="12sp"
-                                android:text="@string/upcoming_transactions" />
-                            <TextView
-                                android:id="@+id/upcomingCountBadge"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_green_dark"
-                                android:fontFamily="sans-serif-black"
-                                android:gravity="center"
-                                android:minWidth="22dp"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="2dp"
-                                android:text="@string/zero"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
-                                android:visibility="gone"
-                                tools:visibility="visible"
-                                tools:text="3" />
-                            <TextView
-                                android:id="@+id/btnViewAllUpcoming"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:gravity="center"
-                                android:minHeight="48dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="8dp"
-                                android:text="@string/see_all"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif-bold"/>
                         </LinearLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/upcoming_transactions_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp"
-                            android:alpha="0.72" />
-
-                        <LinearLayout
-                            android:id="@+id/upcomingListContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-                        <include
-                            android:id="@+id/stateUpcoming"
-                            layout="@layout/view_dashboard_section_state"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-
-                        <TextView
-                            android:id="@+id/noUpcomingText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/no_upcoming_stays_dashboard"
-                            android:gravity="center"
-                            android:paddingVertical="11dp"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:fontFamily="sans-serif-medium"
-                            android:visibility="gone"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -1484,7 +1374,33 @@
                                 android:textColor="@color/velocity_red_primary"
                                 android:textSize="12sp"
                                 android:fontFamily="sans-serif-bold"/>
+                        <ImageButton
+                    android:id="@+id/paymentsToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
+
+                        <TextView
+                    android:id="@+id/paymentsSummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/paymentsBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -1518,6 +1434,7 @@
                             android:textColor="@color/velocity_text_secondary"
                             android:fontFamily="sans-serif-medium"
                             android:visibility="gone"/>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

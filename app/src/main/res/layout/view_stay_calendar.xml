@@ -16,12 +16,47 @@
         android:orientation="vertical"
         android:padding="14dp">
 
-        <TextView
-            style="@style/TextAppearance.Velocity.Label.Section"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:accessibilityHeading="true"
-            android:text="@string/stay_calendar_title" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/TextAppearance.Velocity.Label.Section"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:accessibilityHeading="true"
+                android:text="@string/stay_calendar_title" />
+
+            <ImageButton
+                android:id="@+id/stayCalToggle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="-10dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/section_collapse"
+                android:src="@drawable/ic_expand_less"
+                app:tint="@color/velocity_text_secondary" />
+        </LinearLayout>
+
+        <!-- Shown instead of the body while the section is collapsed. -->
+        <TextView
+            android:id="@+id/stayCalCollapsedSummary"
+            style="@style/TextAppearance.Velocity.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/stayCalBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
         <TextView
             style="@style/TextAppearance.Velocity.Body"
@@ -60,6 +95,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/stay_calendar_monthly" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/stayCalModeDate"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stay_calendar_pick_date" />
         </com.google.android.material.chip.ChipGroup>
 
         <LinearLayout
@@ -144,5 +186,6 @@
             android:layout_marginTop="10dp"
             android:minHeight="48dp"
             android:text="@string/stay_calendar_open_all" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

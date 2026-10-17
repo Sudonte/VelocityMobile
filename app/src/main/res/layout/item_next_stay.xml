@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One stay in the Dashboard's "Your Next Stay" section. A guest can hold several transactions on the same day, so
+     DashboardActivity inflates one of these for each. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nextStayItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvNextStayHint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="14sp"
+            tools:text="Check-in tomorrow" />
+
+        <TextView
+            android:id="@+id/tvNextStayStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/shape_flat_badge"
+            android:fontFamily="sans-serif-black"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:textSize="12sp"
+            tools:text="Confirmed" />
+    </LinearLayout>
+
+    <!-- The reference; tapping it opens this transaction in Upcoming Hotel Transactions. -->
+    <TextView
+        android:id="@+id/tvNextStayRef"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:textColor="@color/velocity_red_primary"
+        android:textSize="15sp"
+        tools:text="Booking #338" />
+
+    <TextView
+        android:id="@+id/tvNextStayRooms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:fontFamily="sans-serif-black"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="14sp"
+        tools:text="Deluxe ×2" />
+
+    <TextView
+        android:id="@+id/tvNextStayDates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="12sp"
+        tools:text="Oct 12, 2026 → Oct 14, 2026" />
+
+    <TextView
+        android:id="@+id/tvNextStayNights"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp"
+        tools:text="2 nights" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="11dp"
+        android:background="@color/velocity_divider_hairline" />
+
+    <!-- Check-in total, approved amenities, remaining balance, final total - filled from the server's
+         stay bill once the stay is in house; gone before that. -->
+    <LinearLayout
+        android:id="@+id/nextStayMoney"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvNextStayBalanceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="@string/next_stay_balance_due"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvNextStayBalance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp"
+            tools:text="₱1,800.00" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="end"
+        android:text="@string/next_stay_view_details"
+        android:textColor="@color/velocity_action_text"
+        android:textSize="12sp" />
+
+    <!-- Only while the guest is staying: ask the front desk for extra amenities. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNextStayRequestAmenities"
+        style="@style/Widget.Velocity.Flat.Button.Outlined"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/request_additional_amenities_button"
+        android:visibility="gone" />
+</LinearLayout>
