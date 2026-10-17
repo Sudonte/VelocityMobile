@@ -121,12 +121,13 @@ public class ReceiptsAndHeaderScreensTest {
 
     @Test
     public void landingSaysVelocitySuites_hasTheHighlightsAndAScrollHint_andFitsTheHeroToTheScreen() {
-        LandingActivity a = Robolectric.buildActivity(LandingActivity.class, new Intent(app, LandingActivity.class)).setup().get();
+        ActivityController<LandingActivity> landing = Robolectric.buildActivity(LandingActivity.class, new Intent(app, LandingActivity.class)).setup();
+        LandingActivity a = landing.get();
         shadowOf(Looper.getMainLooper()).idle();
         String text = all(a.findViewById(R.id.landingHeroCard));
         assertTrue(text, text.contains("Velocity Suites"));
         assertFalse("the old heading is gone", text.contains("Luxury Redefined"));
-        for (String highlight : new String[]{"Comfortable rooms", "Great amenities", "Easy online booking", "24/7 front desk"}) {
+        for (String highlight : new String[]{"Easy Online Booking", "Secure Payments & Digital Receipts"}) {
             assertTrue(highlight + " in: " + text, text.contains(highlight));
         }
         assertNotNull(a.findViewById(R.id.landingScrollHint));
@@ -139,6 +140,7 @@ public class ReceiptsAndHeaderScreensTest {
             assertTrue("hero is as tall as the screen: " + hero.getMinimumHeight() + " vs " + scroller.getHeight(),
                     hero.getMinimumHeight() >= scroller.getHeight() - topPadding - 2);
         }
+        landing.pause().stop().destroy(); // leave no live window behind for the next test
     }
 
     // ---- receipts: the highlighted bottom block

@@ -1730,7 +1730,7 @@
 
     <!-- ============ Landing Page (Public Homepage) ============ -->
     <string name="landing_welcome_guest">👋 Welcome, Guest</string>
-    <string name="landing_greeting">Welcome to Velocity Suites, where comfort, convenience, and exceptional hospitality await you. Explore our elegant rooms, modern amenities, exclusive promotions, and premium services designed to make every stay relaxing and memorable.</string>
+    <string name="landing_greeting">Comfortable stays, easy booking and secure payments - all in one app.</string>
 
     <!-- Banner slider -->
     <string name="landing_banner_luxury_title">Velocity Suites</string>
@@ -1943,14 +1943,10 @@
     <string name="signing_in">Signing in…</string>
     <string name="sending_code">Sending code…</string>
     <string name="verifying">Verifying…</string>
-    <string name="landing_feature_booking_title">Comfortable rooms</string>
-    <string name="landing_feature_booking_desc">Clean, well-kept rooms for every kind of stay.</string>
-    <string name="landing_feature_payment_title">Great amenities</string>
-    <string name="landing_feature_payment_desc">Add extras like breakfast to make your stay easier.</string>
-    <string name="landing_feature_realtime_title">Easy online booking</string>
-    <string name="landing_feature_realtime_desc">Browse, book or reserve in a few taps.</string>
-    <string name="landing_feature_notify_title">24/7 front desk</string>
-    <string name="landing_feature_notify_desc">Our team is here around the clock to help you.</string>
+    <string name="landing_feature_booking_title">Easy Online Booking</string>
+    <string name="landing_feature_booking_desc">Browse, book or reserve your room in a few taps.</string>
+    <string name="landing_feature_payment_title">Secure Payments &amp; Digital Receipts</string>
+    <string name="landing_feature_payment_desc">Pay by GCash or cash and get a receipt at every step.</string>
     <string name="booking_card_payment_format">Payment: %1$s</string>
     <string name="booking_card_paid_remaining_format">Paid %1$s · Remaining %2$s</string>
     <string name="booking_card_paid_format">Paid %1$s</string>

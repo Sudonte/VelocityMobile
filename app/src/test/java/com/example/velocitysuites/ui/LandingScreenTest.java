@@ -134,6 +134,18 @@ public class LandingScreenTest {
         shadowOf(Looper.getMainLooper()).idleFor(d);
     }
 
+    /** Leave no live window behind for the next test class (a leaked one breaks later theme-recreate tests). */
+    @org.junit.After
+    public void destroyLaunchedScreen() {
+        if (controller == null) return;
+        try {
+            controller.pause().stop().destroy();
+        } catch (RuntimeException ignored) {
+            // already destroyed by the test
+        }
+        controller = null;
+    }
+
     private void launch() {
         controller = Robolectric.buildActivity(LandingActivity.class);
         controller.setup();
