@@ -182,7 +182,7 @@
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="bottom"
+                                android:layout_gravity="top"
                                 android:orientation="vertical"
                                 android:padding="14dp">
 
@@ -197,7 +197,7 @@
                                     android:text="@string/landing_welcome_guest"
                                     android:textAllCaps="true"
                                     android:textColor="@color/white"
-                                    android:textSize="11sp" />
+                                    android:textSize="15sp" />
 
                                 <TextView
                                     android:id="@+id/landingHeroTitle"
@@ -213,12 +213,12 @@
                                     android:text="@string/landing_banner_luxury_title"
                                     android:textAllCaps="true"
                                     android:textColor="@color/white"
-                                    android:autoSizeMaxTextSize="38sp"
-                                    android:autoSizeMinTextSize="24sp"
+                                    android:autoSizeMaxTextSize="48sp"
+                                    android:autoSizeMinTextSize="30sp"
                                     android:autoSizeStepGranularity="1sp"
                                     android:autoSizeTextType="uniform"
                                     android:maxLines="1"
-                                    android:textSize="34sp" />
+                                    android:textSize="44sp" />
 
                                 <TextView
                                     android:layout_width="match_parent"
@@ -259,12 +259,21 @@
                                     android:id="@+id/landingGreeting"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="14dp"
+                                    android:layout_marginTop="16dp"
                                     android:fontFamily="sans-serif-medium"
                                     android:lineSpacingExtra="3dp"
-                                    android:text="@string/landing_greeting"
+                                    android:text="@string/landing_description"
                                     android:textColor="@color/white"
-                                    android:textSize="12sp" />
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="18dp"
+                                    android:fontFamily="sans-serif-black"
+                                    android:text="@string/landing_features_heading"
+                                    android:textColor="@color/white"
+                                    android:textSize="15sp" />
 
                                 <LinearLayout
                                     android:id="@+id/landingFeatures"
@@ -273,98 +282,290 @@
                                     android:layout_marginTop="8dp"
                                     android:orientation="vertical">
 
-                                    <LinearLayout android:baselineAligned="false"
+                                    <LinearLayout
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginTop="8dp"
-                                        android:gravity="center_vertical"
-                                        android:orientation="horizontal"
-                                        android:screenReaderFocusable="true">
-
-                                        <FrameLayout
-                                            android:layout_width="34dp"
-                                            android:layout_height="34dp"
-                                            android:background="@drawable/bg_icon_circle_badge"
-                                            android:importantForAccessibility="no">
-
-                                            <ImageView
-                                                android:layout_width="20dp"
-                                                android:layout_height="20dp"
-                                                android:layout_gravity="center"
-                                                android:importantForAccessibility="no"
-                                                android:src="@drawable/ic_room_search"
-                                                app:tint="@color/velocity_action_text" />
-                                        </FrameLayout>
+                                        android:layout_marginTop="0dp"
+                                        android:baselineAligned="false"
+                                        android:orientation="horizontal">
 
                                         <LinearLayout
                                             android:layout_width="0dp"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginStart="11dp"
+                                            android:layout_height="match_parent"
+                                            android:layout_marginStart="0dp"
                                             android:layout_weight="1"
-                                            android:orientation="vertical">
+                                            android:background="@drawable/bg_landing_feature_tile"
+                                            android:orientation="vertical"
+                                            android:padding="10dp"
+                                            android:screenReaderFocusable="true">
+
+                                            <FrameLayout
+                                                android:layout_width="34dp"
+                                                android:layout_height="34dp"
+                                                android:background="@drawable/bg_icon_circle_badge"
+                                                android:importantForAccessibility="no">
+
+                                                <ImageView
+                                                    android:layout_width="20dp"
+                                                    android:layout_height="20dp"
+                                                    android:layout_gravity="center"
+                                                    android:importantForAccessibility="no"
+                                                    android:src="@drawable/ic_room_search"
+                                                    app:tint="@color/velocity_action_text" />
+                                            </FrameLayout>
 
                                             <TextView
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
+                                                android:layout_marginTop="8dp"
                                                 android:fontFamily="sans-serif-bold"
                                                 android:text="@string/landing_feature_booking_title"
                                                 android:textColor="@color/white"
-                                                android:textSize="12sp" />
+                                                android:textSize="13sp" />
 
                                             <TextView
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:alpha="0.9"
                                                 android:text="@string/landing_feature_booking_desc"
                                                 android:textColor="@color/white"
-                                                android:alpha="0.85"
+                                                android:textSize="12sp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:layout_marginStart="8dp"
+                                            android:layout_weight="1"
+                                            android:background="@drawable/bg_landing_feature_tile"
+                                            android:orientation="vertical"
+                                            android:padding="10dp"
+                                            android:screenReaderFocusable="true">
+
+                                            <FrameLayout
+                                                android:layout_width="34dp"
+                                                android:layout_height="34dp"
+                                                android:background="@drawable/bg_icon_circle_badge"
+                                                android:importantForAccessibility="no">
+
+                                                <ImageView
+                                                    android:layout_width="20dp"
+                                                    android:layout_height="20dp"
+                                                    android:layout_gravity="center"
+                                                    android:importantForAccessibility="no"
+                                                    android:src="@drawable/ic_reservation"
+                                                    app:tint="@color/velocity_action_text" />
+                                            </FrameLayout>
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="8dp"
+                                                android:fontFamily="sans-serif-bold"
+                                                android:text="@string/landing_feature_status_title"
+                                                android:textColor="@color/white"
+                                                android:textSize="13sp" />
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:alpha="0.9"
+                                                android:text="@string/landing_feature_status_desc"
+                                                android:textColor="@color/white"
                                                 android:textSize="12sp" />
                                         </LinearLayout>
                                     </LinearLayout>
 
-                                    <LinearLayout android:baselineAligned="false"
+                                    <LinearLayout
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="8dp"
-                                        android:gravity="center_vertical"
-                                        android:orientation="horizontal"
-                                        android:screenReaderFocusable="true">
-
-                                        <FrameLayout
-                                            android:layout_width="34dp"
-                                            android:layout_height="34dp"
-                                            android:background="@drawable/bg_icon_circle_badge"
-                                            android:importantForAccessibility="no">
-
-                                            <ImageView
-                                                android:layout_width="20dp"
-                                                android:layout_height="20dp"
-                                                android:layout_gravity="center"
-                                                android:importantForAccessibility="no"
-                                                android:src="@drawable/ic_payment"
-                                                app:tint="@color/velocity_action_text" />
-                                        </FrameLayout>
+                                        android:baselineAligned="false"
+                                        android:orientation="horizontal">
 
                                         <LinearLayout
                                             android:layout_width="0dp"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginStart="11dp"
+                                            android:layout_height="match_parent"
+                                            android:layout_marginStart="0dp"
                                             android:layout_weight="1"
-                                            android:orientation="vertical">
+                                            android:background="@drawable/bg_landing_feature_tile"
+                                            android:orientation="vertical"
+                                            android:padding="10dp"
+                                            android:screenReaderFocusable="true">
+
+                                            <FrameLayout
+                                                android:layout_width="34dp"
+                                                android:layout_height="34dp"
+                                                android:background="@drawable/bg_icon_circle_badge"
+                                                android:importantForAccessibility="no">
+
+                                                <ImageView
+                                                    android:layout_width="20dp"
+                                                    android:layout_height="20dp"
+                                                    android:layout_gravity="center"
+                                                    android:importantForAccessibility="no"
+                                                    android:src="@drawable/ic_shield_check"
+                                                    app:tint="@color/velocity_action_text" />
+                                            </FrameLayout>
 
                                             <TextView
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
+                                                android:layout_marginTop="8dp"
                                                 android:fontFamily="sans-serif-bold"
                                                 android:text="@string/landing_feature_payment_title"
                                                 android:textColor="@color/white"
-                                                android:textSize="12sp" />
+                                                android:textSize="13sp" />
 
                                             <TextView
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:alpha="0.9"
                                                 android:text="@string/landing_feature_payment_desc"
                                                 android:textColor="@color/white"
-                                                android:alpha="0.85"
+                                                android:textSize="12sp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:layout_marginStart="8dp"
+                                            android:layout_weight="1"
+                                            android:background="@drawable/bg_landing_feature_tile"
+                                            android:orientation="vertical"
+                                            android:padding="10dp"
+                                            android:screenReaderFocusable="true">
+
+                                            <FrameLayout
+                                                android:layout_width="34dp"
+                                                android:layout_height="34dp"
+                                                android:background="@drawable/bg_icon_circle_badge"
+                                                android:importantForAccessibility="no">
+
+                                                <ImageView
+                                                    android:layout_width="20dp"
+                                                    android:layout_height="20dp"
+                                                    android:layout_gravity="center"
+                                                    android:importantForAccessibility="no"
+                                                    android:src="@drawable/ic_payment_card"
+                                                    app:tint="@color/velocity_action_text" />
+                                            </FrameLayout>
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="8dp"
+                                                android:fontFamily="sans-serif-bold"
+                                                android:text="@string/landing_feature_receipt_title"
+                                                android:textColor="@color/white"
+                                                android:textSize="13sp" />
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:alpha="0.9"
+                                                android:text="@string/landing_feature_receipt_desc"
+                                                android:textColor="@color/white"
+                                                android:textSize="12sp" />
+                                        </LinearLayout>
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="8dp"
+                                        android:baselineAligned="false"
+                                        android:orientation="horizontal">
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:layout_marginStart="0dp"
+                                            android:layout_weight="1"
+                                            android:background="@drawable/bg_landing_feature_tile"
+                                            android:orientation="vertical"
+                                            android:padding="10dp"
+                                            android:screenReaderFocusable="true">
+
+                                            <FrameLayout
+                                                android:layout_width="34dp"
+                                                android:layout_height="34dp"
+                                                android:background="@drawable/bg_icon_circle_badge"
+                                                android:importantForAccessibility="no">
+
+                                                <ImageView
+                                                    android:layout_width="20dp"
+                                                    android:layout_height="20dp"
+                                                    android:layout_gravity="center"
+                                                    android:importantForAccessibility="no"
+                                                    android:src="@drawable/ic_notifications"
+                                                    app:tint="@color/velocity_action_text" />
+                                            </FrameLayout>
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="8dp"
+                                                android:fontFamily="sans-serif-bold"
+                                                android:text="@string/landing_feature_notify_title"
+                                                android:textColor="@color/white"
+                                                android:textSize="13sp" />
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:alpha="0.9"
+                                                android:text="@string/landing_feature_notify_desc"
+                                                android:textColor="@color/white"
+                                                android:textSize="12sp" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:layout_marginStart="8dp"
+                                            android:layout_weight="1"
+                                            android:background="@drawable/bg_landing_feature_tile"
+                                            android:orientation="vertical"
+                                            android:padding="10dp"
+                                            android:screenReaderFocusable="true">
+
+                                            <FrameLayout
+                                                android:layout_width="34dp"
+                                                android:layout_height="34dp"
+                                                android:background="@drawable/bg_icon_circle_badge"
+                                                android:importantForAccessibility="no">
+
+                                                <ImageView
+                                                    android:layout_width="20dp"
+                                                    android:layout_height="20dp"
+                                                    android:layout_gravity="center"
+                                                    android:importantForAccessibility="no"
+                                                    android:src="@drawable/ic_headset"
+                                                    app:tint="@color/velocity_action_text" />
+                                            </FrameLayout>
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="8dp"
+                                                android:fontFamily="sans-serif-bold"
+                                                android:text="@string/landing_feature_support_title"
+                                                android:textColor="@color/white"
+                                                android:textSize="13sp" />
+
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:alpha="0.9"
+                                                android:text="@string/landing_feature_support_desc"
+                                                android:textColor="@color/white"
                                                 android:textSize="12sp" />
                                         </LinearLayout>
                                     </LinearLayout>

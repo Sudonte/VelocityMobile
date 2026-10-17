@@ -5,14 +5,14 @@
     style="@style/Widget.Velocity.Card.Glass.Compact"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_glass_card_white"
         android:orientation="vertical"
-        android:padding="11dp">
+        android:padding="9dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,8 +21,8 @@
             android:orientation="horizontal">
 
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation">
 
@@ -52,7 +52,7 @@
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     tools:text="Reservation #588" />
 
                 <!-- Transaction type - always shown so it's never ambiguous whether this
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
                     android:background="@drawable/shape_intro_pill"
-                    android:paddingHorizontal="6dp"
+                    android:paddingHorizontal="7dp"
                     android:paddingVertical="2dp"
                     android:textAllCaps="true"
                     android:textSize="12sp"
@@ -143,11 +143,11 @@
                     android:layout_gravity="end"
                     android:background="@drawable/shape_intro_pill"
                     android:backgroundTint="@color/velocity_red_subtle"
-                    android:paddingHorizontal="6dp"
+                    android:paddingHorizontal="7dp"
                     android:paddingVertical="2dp"
                     android:text="@string/status_pending"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-black"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -164,10 +164,10 @@
                     android:layout_marginTop="3dp"
                     android:background="@drawable/shape_intro_pill"
                     android:backgroundTint="@color/velocity_gray_soft"
-                    android:paddingHorizontal="6dp"
+                    android:paddingHorizontal="7dp"
                     android:paddingVertical="2dp"
                     android:textColor="@color/velocity_inactive_gray"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-black"
                     android:maxLines="1"
                     android:ellipsize="end"

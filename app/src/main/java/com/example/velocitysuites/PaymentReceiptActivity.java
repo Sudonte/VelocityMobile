@@ -695,7 +695,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         ReceiptDetail.CheckinSettlement settlement = detail.getCheckinSettlement();
         if (settlement != null) {
-            buildCheckinSettlementRows(content, settlement, statusLabel);
+            buildCheckinSettlementRows(content, settlement, statusLabel, detail);
             return;
         }
 
@@ -716,7 +716,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             addRowOrDash(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
             addRowOrDash(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
             addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
-            addPaymentMethodDateTime(content, anchor.paymentMethod, paymentRecord);
+            addPaymentMethodDateTime(content, anchor.paymentMethod, paymentRecord, detail.getIssuedAtRaw());
             // Only ever present for a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - an OFFICIAL_RECEIPT's
             // checkout-recorded payment has no separate staff-verification step at all (backend's own
             // transactionType() doc), so anchor_payment (and therefore this field) is genuinely null there.
@@ -727,7 +727,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             // OFFICIAL_RECEIPT - final settlement; Total Amount Paid made prominent below.
             addRowOrDash(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
             addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
-            addPaymentMethodDateTime(content, paymentRecord != null ? paymentRecord.paymentMethod : null, paymentRecord);
+            addPaymentMethodDateTime(content, paymentRecord != null ? paymentRecord.paymentMethod : null, paymentRecord, detail.getIssuedAtRaw());
             if (paymentRecord != null && "cash".equalsIgnoreCase(paymentRecord.paymentMethod) && paymentRecord.cashReceived != null) {
                 addRowOrDash(content, getString(R.string.receipt_cash_received_label), formatPrice(paymentRecord.cashReceived));
                 addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(paymentRecord.changeGiven != null ? paymentRecord.changeGiven : 0));
@@ -741,7 +741,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * Receipt 2 - the balance settled in the Check-In module: how it was settled, the amount settled, the total paid, the
      * balance (always 0 here) and the result of the discount ID validation. Every figure is the server's frozen snapshot.
      */
-    private void buildCheckinSettlementRows(LinearLayout content, ReceiptDetail.CheckinSettlement c, String statusLabel) {
+    private void buildCheckinSettlementRows(LinearLayout content, ReceiptDetail.CheckinSettlement c, String statusLabel, ReceiptDetail detail) {
         int typeRes = ReceiptDetail.CheckinSettlement.PARTIAL_TO_FULL.equals(c.settlementType) ? R.string.receipt_settlement_partial_to_full
                 : ReceiptDetail.CheckinSettlement.FULL_CONFIRMATION.equals(c.settlementType) ? R.string.receipt_settlement_full_confirmation
                 : R.string.receipt_settlement_full_payment;
@@ -749,7 +749,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         addRowOrDash(content, getString(R.string.receipt_total_amount_label), formatPrice(c.totalAmount));
         addRowOrDash(content, getString(R.string.receipt_amount_settled_label), formatPrice(c.amountSettled));
         if (c.amountSettled > 0.004) {
-            addPaymentMethodDateTime(content, c.paymentMethod, null);
+            addPaymentMethodDateTime(content, c.paymentMethod, null, detail.getIssuedAtRaw());
         }
         if (c.changeReturned > 0.004) {
             addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(c.changeReturned));
@@ -791,15 +791,21 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         return transactions.get(transactions.size() - 1);
     }
 
-    /** Payment Method, Payment Date and Payment Time - each "—" when the payload can't tell (never a blank or "N/A"). */
-    private void addPaymentMethodDateTime(ViewGroup content, @Nullable String method, @Nullable Booking.PaymentTransactionRecord record) {
+    /**
+     * Payment Method, Payment Date and Payment Time. The payment's own timestamp when it has one; otherwise the receipt's
+     * issue time (the check-in receipt has no payment row of its own, and a legacy payment can have no timestamp) - "—"
+     * only when the payload carries neither (never a blank or "N/A").
+     */
+    private void addPaymentMethodDateTime(ViewGroup content, @Nullable String method, @Nullable Booking.PaymentTransactionRecord record,
+                                          @Nullable String fallbackRawTimestamp) {
         String methodLabel = method == null || method.trim().isEmpty() ? null
                 : "cash".equalsIgnoreCase(method.trim()) ? getString(R.string.payment_method_cash)
                 : "gcash".equalsIgnoreCase(method.trim()) ? getString(R.string.payment_method_gcash)
                 : method.trim();
         addRowOrDash(content, getString(R.string.details_label_payment_method), methodLabel);
 
-        String rawDate = record != null ? record.paymentDate : null;
+        String rawDate = record != null && record.paymentDate != null && !record.paymentDate.trim().isEmpty()
+                ? record.paymentDate : fallbackRawTimestamp;
         String date = rawDate == null ? null : TimeUtils.formatDate(rawDate);
         String time = rawDate == null ? null : TimeUtils.formatTime(rawDate);
         addRowOrDash(content, getString(R.string.details_label_payment_date), "N/A".equals(date) ? null : date);

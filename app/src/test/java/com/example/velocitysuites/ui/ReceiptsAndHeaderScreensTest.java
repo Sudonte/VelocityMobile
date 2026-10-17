@@ -145,7 +145,7 @@ public class ReceiptsAndHeaderScreensTest {
         String text = all(a.findViewById(R.id.landingHeroCard));
         assertTrue(text, text.contains("Velocity Suites"));
         assertFalse("the old heading is gone", text.contains("Luxury Redefined"));
-        for (String highlight : new String[]{"Easy Online Booking", "Secure Payments & Digital Receipts"}) {
+        for (String highlight : new String[]{"Easy Room Booking", "Real-Time Status", "Secure Payments", "Digital Receipts", "Booking Notifications", "24/7 Guest Support"}) {
             assertTrue(highlight + " in: " + text, text.contains(highlight));
         }
         assertNotNull(a.findViewById(R.id.landingScrollHint));
@@ -176,6 +176,18 @@ public class ReceiptsAndHeaderScreensTest {
         ReceiptDetail.Highlight h = new ReceiptDetail.Highlight(kind, "partial", "cash", "Due at check-in");
         for (int i = 0; i < pairs.length; i += 2) h.amounts.put((String) pairs[i], ((Number) pairs[i + 1]).doubleValue());
         return h;
+    }
+
+    @Test
+    public void receipt2_showsThePaymentDateAndTime_fromWhenTheReceiptWasIssued() {
+        ReceiptDetail partial = DebugReceiptFixtures.allReceiptDetails().values().stream()
+                .filter(d -> "PARTIAL_RECEIPT".equals(d.getReceiptType())).findFirst().get();
+        partial.setCheckinSettlement(new ReceiptDetail.CheckinSettlement(ReceiptDetail.CheckinSettlement.PARTIAL_TO_FULL, 500, "cash", 0,
+                2000, 2000, 0, "not_requested", null, 0, null, "Desk"));
+        partial.setIssuedAtRaw("2026-10-17T02:01:09+00:00"); // 10:01:09 AM in Manila
+        String text = all(open(partial).findViewById(R.id.layoutDynamicReceiptContent));
+        assertTrue(text, text.contains("Oct 17, 2026"));
+        assertTrue(text, text.contains("10:01:09 AM"));
     }
 
     @Test

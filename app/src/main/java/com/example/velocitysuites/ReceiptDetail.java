@@ -100,6 +100,11 @@ public class ReceiptDetail implements Serializable {
     @Nullable public AnchorPayment getAnchorPayment() { return anchorPayment; }
     @Nullable public String getIssuedAt() { return issuedAt; }
 
+    /** The server's raw issue timestamp - the date/time source of last resort when a receipt row has no payment of its own. */
+    @Nullable private String issuedAtRaw;
+    @Nullable public String getIssuedAtRaw() { return issuedAtRaw; }
+    public void setIssuedAtRaw(@Nullable String issuedAtRaw) { this.issuedAtRaw = issuedAtRaw; }
+
     /** The highlighted bottom block of a receipt, exactly as the server froze it (nulls = not part of that receipt). */
     public static class Highlight implements Serializable {
         public static final String BOOKING_VERIFICATION = "booking_verification";

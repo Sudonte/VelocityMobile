@@ -356,9 +356,9 @@ public final class ApiMapper {
             if (booking.getPaymentMethod() == null && latestPayment.payment_method != null) {
                 booking.setPaymentMethod(latestPayment.payment_method.toUpperCase(Locale.US));
             }
-            booking.setPaymentDate(reformatDateTime(latestPayment.payment_date));
-            booking.setPaymentDateOnly(reformatDateOnly(latestPayment.payment_date));
-            booking.setPaymentTimeOnly(reformatTimeOnly(latestPayment.payment_date));
+            booking.setPaymentDate(reformatDateTime(paymentTimestamp(latestPayment)));
+            booking.setPaymentDateOnly(reformatDateOnly(paymentTimestamp(latestPayment)));
+            booking.setPaymentTimeOnly(reformatTimeOnly(paymentTimestamp(latestPayment)));
             booking.setLatestPaymentId(String.valueOf(latestPayment.id));
             booking.setGcashNumber(latestPayment.gcash_number);
             booking.setReceiptUrl(latestPayment.receipt_url);
@@ -663,9 +663,9 @@ public final class ApiMapper {
         }
         if (latestPayment != null) {
             booking.setTransactionRef(latestPayment.reference_number);
-            booking.setPaymentDate(reformatDateTime(latestPayment.payment_date));
-            booking.setPaymentDateOnly(reformatDateOnly(latestPayment.payment_date));
-            booking.setPaymentTimeOnly(reformatTimeOnly(latestPayment.payment_date));
+            booking.setPaymentDate(reformatDateTime(paymentTimestamp(latestPayment)));
+            booking.setPaymentDateOnly(reformatDateOnly(paymentTimestamp(latestPayment)));
+            booking.setPaymentTimeOnly(reformatTimeOnly(paymentTimestamp(latestPayment)));
             booking.setLatestPaymentId(String.valueOf(latestPayment.id));
             booking.setGcashNumber(latestPayment.gcash_number);
             booking.setReceiptUrl(latestPayment.receipt_url);
@@ -733,7 +733,7 @@ public final class ApiMapper {
                     dto.amount_paid, dto.payment_status, dto.verification_status,
                     dto.gcash_number, dto.gcash_reference_number, dto.reference_number,
                     dto.payment_percentage, dto.verified_by, dto.verified_at,
-                    dto.rejection_reason, dto.payment_date,
+                    dto.rejection_reason, dto.payment_date != null && !dto.payment_date.trim().isEmpty() ? dto.payment_date : dto.verified_at,
                     dto.total_paid_after_transaction, dto.remaining_balance_after_transaction,
                     dto.receipt_type, dto.receipt_number
             );
@@ -799,6 +799,7 @@ public final class ApiMapper {
                 anchor,
                 reformatDateTime(dto.issued_at)
         );
+        receiptDetail.setIssuedAtRaw(dto.issued_at);
         receiptDetail.setStay(StayInfo.from(dto.stay_bill));
         if (dto.highlight != null) {
             ReceiptDetailDto.HighlightDto h = dto.highlight;
@@ -1034,6 +1035,12 @@ public final class ApiMapper {
                     toTheSecond ? reformatDateTimeSeconds(step.at) : reformatDateTime(step.at)));
         }
         return result;
+    }
+
+    /** When a payment happened: its payment_date, else (a legacy row without one) when staff verified it. */
+    @androidx.annotation.Nullable
+    private static String paymentTimestamp(com.example.velocitysuites.network.dto.PaymentDto payment) {
+        return payment.payment_date != null && !payment.payment_date.trim().isEmpty() ? payment.payment_date : payment.verified_at;
     }
 
     /** Same instant-aware conversion as reformatDateTime(), but date-only - see Booking#getPaymentDateOnly(). */

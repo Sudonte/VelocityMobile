@@ -1730,7 +1730,6 @@
 
     <!-- ============ Landing Page (Public Homepage) ============ -->
     <string name="landing_welcome_guest">👋 Welcome, Guest</string>
-    <string name="landing_greeting">Comfortable stays, easy booking and secure payments - all in one app.</string>
 
     <!-- Banner slider -->
     <string name="landing_banner_luxury_title">Velocity Suites</string>
@@ -1943,10 +1942,20 @@
     <string name="signing_in">Signing in…</string>
     <string name="sending_code">Sending code…</string>
     <string name="verifying">Verifying…</string>
-    <string name="landing_feature_booking_title">Easy Online Booking</string>
-    <string name="landing_feature_booking_desc">Browse, book or reserve your room in a few taps.</string>
-    <string name="landing_feature_payment_title">Secure Payments &amp; Digital Receipts</string>
-    <string name="landing_feature_payment_desc">Pay by GCash or cash and get a receipt at every step.</string>
+    <string name="landing_features_heading">Why guests love Velocity Suites</string>
+    <string name="landing_description">Velocity Suites is a comfortable hotel built around your convenience. Choose from elegant rooms and suites, each with the amenities you need for a relaxing stay. You can browse live room availability, pick your dates and book or reserve in just a few taps - no queues and no phone calls. Pay securely online, by GCash or at the front desk, and get a digital receipt at every step. Follow the status of every booking and reservation from your dashboard, and get notified the moment anything changes. From your first tap to your check-out, our friendly team is here to make every stay smooth and memorable.</string>
+    <string name="landing_feature_booking_title">Easy Room Booking</string>
+    <string name="landing_feature_booking_desc">Book or reserve in a few taps.</string>
+    <string name="landing_feature_status_title">Real-Time Status</string>
+    <string name="landing_feature_status_desc">Track every reservation live.</string>
+    <string name="landing_feature_payment_title">Secure Payments</string>
+    <string name="landing_feature_payment_desc">Pay by GCash or cash safely.</string>
+    <string name="landing_feature_receipt_title">Digital Receipts</string>
+    <string name="landing_feature_receipt_desc">A receipt at every step.</string>
+    <string name="landing_feature_notify_title">Booking Notifications</string>
+    <string name="landing_feature_notify_desc">Instant updates on your stay.</string>
+    <string name="landing_feature_support_title">24/7 Guest Support</string>
+    <string name="landing_feature_support_desc">We are always here to help.</string>
     <string name="booking_card_payment_format">Payment: %1$s</string>
     <string name="booking_card_paid_remaining_format">Paid %1$s · Remaining %2$s</string>
     <string name="booking_card_paid_format">Paid %1$s</string>

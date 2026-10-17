@@ -993,7 +993,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="8dp">
+                        android:padding="6dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1001,12 +1001,12 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_red_soft"
                                 android:importantForAccessibility="no"
-                                android:padding="8dp"
+                                android:padding="7dp"
                                 android:src="@drawable/ic_reservation"
                                 app:tint="@color/velocity_red_primary" />
                             <TextView
@@ -1246,7 +1246,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="8dp">
+                        android:padding="6dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1254,12 +1254,12 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_green_soft"
                                 android:importantForAccessibility="no"
-                                android:padding="8dp"
+                                android:padding="7dp"
                                 android:src="@drawable/ic_calendar"
                                 app:tint="@color/velocity_green_dark" />
                             <TextView
@@ -1358,7 +1358,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/bg_glass_card_white"
-                        android:padding="8dp">
+                        android:padding="6dp">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1366,12 +1366,12 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:background="@drawable/shape_intro_pill"
                                 android:backgroundTint="@color/velocity_orange_soft"
                                 android:importantForAccessibility="no"
-                                android:padding="8dp"
+                                android:padding="7dp"
                                 android:src="@drawable/ic_payment_card"
                                 app:tint="@color/velocity_orange_primary" />
                             <TextView

@@ -33,16 +33,16 @@
          more compact than the original values while keeping every touch
          target at/above the 48dp accessibility minimum (enforced via
          minWidth/minHeight on menuButtonControl, not these visual sizes). -->
-    <dimen name="guest_header_height">60dp</dimen>
+    <dimen name="guest_header_height">54dp</dimen>
     <dimen name="guest_header_padding_horizontal">10dp</dimen>
-    <dimen name="guest_header_menu_icon_size">22dp</dimen>
-    <dimen name="guest_header_menu_label_text_size">10sp</dimen>
-    <dimen name="guest_header_logo_size">29dp</dimen>
-    <dimen name="guest_header_app_name_text_size">12sp</dimen>
-    <dimen name="guest_header_tagline_text_size">10sp</dimen>
-    <dimen name="guest_header_notification_size">30dp</dimen>
+    <dimen name="guest_header_menu_icon_size">20dp</dimen>
+    <dimen name="guest_header_menu_label_text_size">9sp</dimen>
+    <dimen name="guest_header_logo_size">26dp</dimen>
+    <dimen name="guest_header_app_name_text_size">11sp</dimen>
+    <dimen name="guest_header_tagline_text_size">9sp</dimen>
+    <dimen name="guest_header_notification_size">28dp</dimen>
     <dimen name="guest_header_notification_badge_circle_radius">14dp</dimen>
-    <dimen name="guest_header_profile_size">30dp</dimen>
+    <dimen name="guest_header_profile_size">28dp</dimen>
     <!-- One card look app-wide: 12dp corners, subtle elevation. -->
     <dimen name="card_corner_radius">12dp</dimen>
     <!-- Introduction: logo centred on the screen, loading / offline status anchored near the bottom edge. -->
