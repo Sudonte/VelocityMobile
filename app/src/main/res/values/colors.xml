@@ -27,6 +27,11 @@
          bg_glass_card_white's translucent card look since these are solid,
          opaque surfaces. Overridden per-theme in values-night/colors.xml -
          see Dark Mode support. -->
+    <!-- A card / chip / stepper-button surface that must be white in Light and a dark surface in Dark (unlike "white",
+         which stays white on purpose for logos, text on red, and photo overlays). -->
+    <color name="velocity_card_surface">#FFFFFF</color>
+    <!-- The empty track of a step-progress bar. -->
+    <color name="velocity_track">#F0F0F0</color>
     <color name="velocity_surface_elevated">#FFFFFF</color>
 
     <!-- Status Colors (mapped to red shades to keep the red & white palette) -->

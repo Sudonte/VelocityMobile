@@ -89,7 +89,8 @@ public class ReceiptsAndHeaderScreensTest {
     @Test
     public void theGuestHeaderHasAThemeToggleRightOfTheBell_thatSwitchesAndSavesTheMode() {
         SessionManager.saveSession(app, "t", 1L, "Ana", "Reyes", "", "Ana Reyes", "ana@example.com", "09171234567", "Female", "Jan 01, 1990", "");
-        ProfileManagementActivity a = Robolectric.buildActivity(ProfileManagementActivity.class).setup().get();
+        ActivityController<ProfileManagementActivity> ctl = Robolectric.buildActivity(ProfileManagementActivity.class).setup();
+        ProfileManagementActivity a = ctl.get();
         shadowOf(Looper.getMainLooper()).idle();
         View toggle = a.findViewById(R.id.headerThemeToggle);
         assertNotNull(toggle);
@@ -102,6 +103,7 @@ public class ReceiptsAndHeaderScreensTest {
 
         toggle.performClick();
         assertTrue("one tap turns Dark on and remembers it", ThemePreferences.isDarkMode(app));
+        ctl.pause().stop().destroy();
     }
 
     @Test

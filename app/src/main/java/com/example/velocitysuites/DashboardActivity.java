@@ -1249,11 +1249,12 @@ public class DashboardActivity extends BaseNavigationActivity {
         TextView balanceLabel = findViewById(R.id.tvNextStayBalanceLabel);
         TextView balance = findViewById(R.id.tvNextStayBalance);
         if (stay.hasBalanceDue()) {
-            balanceLabel.setText(R.string.next_stay_balance_due);
-            balance.setText(MoneyFormat.format(stay.balance));
+            // Same wording as Booking Details' balance card.
+            balanceLabel.setText(R.string.next_stay_payment_label);
+            balance.setText(getString(R.string.balance_plain_owe, MoneyFormat.format(stay.balance)));
         } else {
             balanceLabel.setText(R.string.next_stay_payment_label);
-            balance.setText(R.string.next_stay_fully_paid);
+            balance.setText(R.string.balance_plain_paid);
         }
         findViewById(R.id.btnNextStayRequestAmenities).setVisibility(
                 stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);

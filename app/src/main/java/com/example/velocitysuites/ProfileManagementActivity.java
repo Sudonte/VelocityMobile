@@ -671,7 +671,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             tvAccountCreated.setVisibility(View.GONE);
             return;
         }
-        String createdDisplay = TimeUtils.formatDateTime(createdAtRaw);
+        String createdDisplay = TimeUtils.formatDate(createdAtRaw); // a date is enough for "member since"
         StringBuilder text = new StringBuilder(getString(R.string.member_since_format, createdDisplay));
         tvAccountCreated.setText(text.toString());
         tvAccountCreated.setVisibility(View.VISIBLE);

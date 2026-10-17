@@ -268,7 +268,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/shape_flat_badge"
-                    android:backgroundTint="@color/white"
+                    android:backgroundTint="@color/velocity_card_surface"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     android:text="@string/no_rooms_selected_yet"

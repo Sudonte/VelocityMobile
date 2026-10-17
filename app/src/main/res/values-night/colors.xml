@@ -38,6 +38,8 @@
     <color name="velocity_red_bg_end">#140B0B</color>
 
     <!-- Elevated surface (navigation drawer + its header). -->
+    <color name="velocity_card_surface">#221616</color>
+    <color name="velocity_track">#3A2A2A</color>
     <color name="velocity_surface_elevated">#221616</color>
 
     <!-- Hairline dividers - 10% black is invisible on a dark surface;

@@ -123,6 +123,31 @@ public class ScreenshotsTest {
         c.pause().stop().destroy();
     }
 
+    private void dashboard(String mode) throws Exception {
+        com.example.velocitysuites.ThemePreferences.setMode(app, "dark".equals(mode) ? com.example.velocitysuites.ThemePreferences.MODE_DARK : com.example.velocitysuites.ThemePreferences.MODE_LIGHT);
+        org.robolectric.android.controller.ActivityController<com.example.velocitysuites.DashboardActivity> c =
+                Robolectric.buildActivity(com.example.velocitysuites.DashboardActivity.class).setup();
+        com.example.velocitysuites.DashboardActivity a = c.get();
+        shadowOf(Looper.getMainLooper()).idle();
+        ReservationDto next = ScreenTestSupport.reservation(588, 3600);
+        next.check_in = day(2);
+        next.check_out = day(4);
+        ScreenTestSupport.answerBookingLoad(api, api.count("getReservations") - 1, ScreenTestSupport.reservations(next), new ArrayList<>());
+        shadowOf(Looper.getMainLooper()).idle();
+        render(a, "dashboard_" + mode, 6500);
+        c.pause().stop().destroy();
+    }
+
+    @Test
+    public void dashboardLight() throws Exception {
+        dashboard("light");
+    }
+
+    @Test
+    public void dashboardDark() throws Exception {
+        dashboard("dark");
+    }
+
     @Test
     public void profileLight() throws Exception {
         profile("light");

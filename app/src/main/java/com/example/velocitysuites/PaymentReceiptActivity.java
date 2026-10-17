@@ -442,7 +442,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             value.setText(formatPrice(values[i]));
             value.setGravity(android.view.Gravity.END);
             value.setTypeface(value.getTypeface(), android.graphics.Typeface.BOLD);
-            value.setTextColor(getColor(R.color.velocity_red_primary));
+            value.setTextColor(getColor(R.color.velocity_action_text)); // the red that stays readable in Dark too
             value.setTextSize(i == labels.length - 1 ? 20 : 16);
             row.addView(value, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             panel.addView(row);
@@ -1275,7 +1275,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(target.getWidth(), target.getHeight(), 1).create();
             PdfDocument.Page page = document.startPage(pageInfo);
             Canvas canvas = page.getCanvas();
-            canvas.drawColor(android.graphics.Color.WHITE);
+            canvas.drawColor(getColor(R.color.velocity_red_bg_end)); // the screen's own background, so light/dark text is always readable
             target.draw(canvas);
             document.finishPage(page);
 

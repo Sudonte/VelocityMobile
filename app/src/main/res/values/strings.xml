@@ -434,7 +434,7 @@
     <string name="greeting_good_evening">Good Evening,</string>
     <string name="welcome_name_format">%1$s!</string>
     <string name="guest_first_last_name">John Paul Ombid</string>
-    <string name="dashboard_welcome_subtitle">Welcome back to Velocity Suites. Manage your bookings, reservations, and payments right from your dashboard. We\'re here to make every stay comfortable and worry-free.</string>
+    <string name="dashboard_welcome_subtitle">Your stay, your payments and your receipts - all in one place.</string>
     <string name="guest_user">John Paul Abe Ombid</string>
     <string name="guest_first_name">John Paul</string>
     <string name="guest_middle_name">Abe</string>
@@ -631,7 +631,9 @@
     <string name="guest_mobile">+63 912 345 6789</string>
     <string name="profile_image_desc">Profile picture of the user</string>
     <string name="edit_profile_pic_desc">Edit profile picture</string>
-    <string name="section_group_preferences">Preferences &amp; Security</string>
+    <string name="section_group_preferences">Preferences</string>
+    <string name="section_group_details">Your details</string>
+    <string name="logout_button">Log out</string>
     <string name="personal_info_title">Personal Information</string>
     <string name="contact_info_title">Contact Information</string>
     <string name="security_section_title">Security</string>
@@ -1541,6 +1543,7 @@
     <string name="password_strength_fair">Strength: Fair</string>
     <string name="password_strength_good">Strength: Good</string>
     <string name="password_strength_strong">Strength: Strong</string>
+    <string name="change_password_otp_expiry_hint">The code works once and expires in 15 minutes. Wrong or expired? Tap Resend for a new one.</string>
     <string name="change_password_request_title">Confirm it is you</string>
     <string name="change_password_request_desc">To change your password we will email a 6-digit code to %1$s.</string>
     <string name="change_password_request_hint">Enter the code on the next screen, then choose your new password. The code only works for a short time, and you can ask for a new one.</string>

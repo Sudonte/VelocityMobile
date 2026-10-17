@@ -238,8 +238,8 @@ public class DashboardScreenTest {
         assertEquals("2 nights", text(activity, R.id.tvNextStayNights));
         assertTrue(text(activity, R.id.tvNextStayDates).contains(" → "));
         assertEquals("Waiting for payment", text(activity, R.id.tvNextStayStatus));
-        assertEquals(app.getString(R.string.next_stay_balance_due), text(activity, R.id.tvNextStayBalanceLabel));
-        assertEquals("₱1,800.00", text(activity, R.id.tvNextStayBalance));
+        assertEquals(app.getString(R.string.next_stay_payment_label), text(activity, R.id.tvNextStayBalanceLabel));
+        assertEquals("You still need to pay ₱1,800.00", text(activity, R.id.tvNextStayBalance));
     }
 
     @Test

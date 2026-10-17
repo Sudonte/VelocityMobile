@@ -259,7 +259,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:gravity="center"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         android:visibility="gone"
                         tools:text="Member since Sep 9, 2026 • 2:37 AM"
                         tools:visibility="visible" />
@@ -531,6 +531,16 @@
                             android:textSize="11sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
+                <!-- Group label: the guest's details (Personal, Contact, Address), then Preferences and Security below. -->
+                <TextView
+                    style="@style/ProfileLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp"
+                    android:accessibilityHeading="true"
+                    android:text="@string/section_group_details" />
 
                 <!-- Personal Information Card -->
                 <com.google.android.material.card.MaterialCardView
@@ -1374,7 +1384,8 @@
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:importantForAccessibility="no"
-                                android:src="@drawable/ic_light_mode" />
+                                android:src="@drawable/ic_light_mode"
+                                app:tint="@color/velocity_red_primary" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -1419,7 +1430,8 @@
                                 android:layout_height="20dp"
                                 android:layout_marginStart="8dp"
                                 android:importantForAccessibility="no"
-                                android:src="@drawable/ic_dark_mode" />
+                                android:src="@drawable/ic_dark_mode"
+                                app:tint="@color/velocity_red_primary" />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -1560,141 +1572,28 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Account Card - Logout only. Deliberately neutral styling (no red) since
-                     logging out is not a destructive action. Last card on this screen - see
-                     the 24dp marginBottom below. -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
+                <!-- Log out: its own button, set apart from the cards above (a normal, non-destructive action). -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@color/velocity_divider_hairline"
+                    android:importantForAccessibility="no" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/logoutButton"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="22dp"
-                    android:clickable="false"
-                    android:focusable="false">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:orientation="vertical">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="11dp"
-                            android:paddingTop="11dp"
-                            android:paddingBottom="10dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="@dimen/card_corner_radius"
-                                app:cardElevation="@dimen/card_elevation">
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_logout"
-                                    app:tint="@color/velocity_red_primary" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/account_section_title"
-                                    android:textSize="13sp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="@string/account_section_subtitle"
-                                    android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginHorizontal="13dp"
-                            android:background="@color/velocity_red_soft" />
-
-                        <LinearLayout
-                            android:id="@+id/logoutButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="13dp"
-                            android:paddingVertical="9dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="@dimen/card_corner_radius"
-                                app:cardElevation="@dimen/card_elevation">
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:importantForAccessibility="no"
-                                    android:src="@drawable/ic_logout"
-                                    app:tint="@color/velocity_red_primary" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="11dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <!-- Neutral (not red/black-weight) title - logout is a normal
-                                     account action, not a destructive one like Delete Account. -->
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:text="@string/logout"
-                                    android:textColor="@color/velocity_text_primary"
-                                    android:textSize="13sp" />
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="1dp"
-                                    android:text="@string/logout_hint"
-                                    android:textColor="@color/velocity_text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_chevron_right"
-                                app:tint="@color/velocity_text_secondary" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    android:layout_marginBottom="24dp"
+                    android:minHeight="52dp"
+                    android:text="@string/logout_button"
+                    android:textColor="@color/velocity_action_text"
+                    app:icon="@drawable/ic_logout"
+                    app:iconGravity="textStart"
+                    app:iconTint="@color/velocity_action_text"
+                    app:strokeColor="@color/velocity_action_text" />
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
