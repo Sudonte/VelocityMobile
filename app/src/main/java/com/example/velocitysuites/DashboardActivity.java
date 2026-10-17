@@ -54,7 +54,7 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** Collapse / expand controls: every dashboard section except Account Summary. (Stay Calendar owns its own.) */
     private CollapsibleSection nextStaySection, moreStaysSection, bookingsSection, notificationsSection, paymentsSection;
     private CollapsibleSection quickActionsSection, summarySection, supportSection;
-    /** Everything Other Stays could list, soonest first / latest first - the collapsed preview shows a few, expanded shows all. */
+    /** Every stay Other Stays lists: upcoming soonest first, finished latest first. */
     private List<Booking> moreStaysUpcoming = new ArrayList<>(), moreStaysRecent = new ArrayList<>();
     /** Every stay "Your Next Stay" currently shows (all the transactions on the nearest day). */
     private List<NextStay> currentNextStays = new ArrayList<>();
@@ -189,10 +189,8 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         nextStaySection = new CollapsibleSection(this, "next_stay", findViewById(R.id.nextStayToggle),
                 findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard));
-        // Other Stays keeps its list visible when collapsed (a capped preview); expanding it shows every stay.
         moreStaysSection = new CollapsibleSection(this, "more_stays", findViewById(R.id.moreStaysToggle),
-                findViewById(R.id.moreStaysSummary));
-        moreStaysSection.setOnToggle(this::renderMoreStays);
+                findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody));
         quickActionsSection = new CollapsibleSection(this, "quick_actions", findViewById(R.id.quickActionsToggle),
                 findViewById(R.id.quickActionsSummary), findViewById(R.id.quickActionsBody));
         quickActionsSection.setSummary(getString(R.string.quick_actions_summary));
@@ -1192,16 +1190,13 @@ public class DashboardActivity extends BaseNavigationActivity {
         renderMoreStays();
     }
 
-    /** Collapsed: the preview (first 4 upcoming, first 2 finished). Expanded: every stay. */
+    /** Every stay (upcoming first, then the finished ones); collapsing the section hides the list and leaves the summary. */
     private void renderMoreStays() {
         LinearLayout list = findViewById(R.id.moreStaysList);
         View section = findViewById(R.id.moreStaysSection);
         list.removeAllViews();
-        boolean all = moreStaysSection.isExpanded();
-        int upcomingShown = all ? moreStaysUpcoming.size() : Math.min(4, moreStaysUpcoming.size());
-        int recentShown = all ? moreStaysRecent.size() : Math.min(2, moreStaysRecent.size());
-        for (int i = 0; i < upcomingShown; i++) addCompactStayRow(moreStaysUpcoming.get(i), true, list);
-        for (int i = 0; i < recentShown; i++) addCompactStayRow(moreStaysRecent.get(i), false, list);
+        for (Booking b : moreStaysUpcoming) addCompactStayRow(b, true, list);
+        for (Booking b : moreStaysRecent) addCompactStayRow(b, false, list);
         int total = moreStaysUpcoming.size() + moreStaysRecent.size();
         section.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
         Booking first = !moreStaysUpcoming.isEmpty() ? moreStaysUpcoming.get(0) : (!moreStaysRecent.isEmpty() ? moreStaysRecent.get(0) : null);

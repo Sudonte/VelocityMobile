@@ -1681,7 +1681,7 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Help / Customer Support -->
+                <!-- Help / Customer Support: header row (icon, title, chevron), then the description and the button full width. -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/supportCard"
                     android:layout_width="match_parent"
@@ -1693,65 +1693,81 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:padding="8dp">
 
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            app:cardBackgroundColor="@color/velocity_white_15"
-                            app:cardCornerRadius="@dimen/card_corner_radius"
-                            app:cardElevation="@dimen/card_elevation">
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="@string/contact_support_button"
-                                android:src="@drawable/ic_headset"
-                                app:tint="@color/white" />
-                        </com.google.android.material.card.MaterialCardView>
-
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="11dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                app:cardBackgroundColor="@color/velocity_white_15"
+                                app:cardCornerRadius="@dimen/card_corner_radius"
+                                app:cardElevation="@dimen/card_elevation">
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@string/contact_support_button"
+                                    android:src="@drawable/ic_headset"
+                                    app:tint="@color/white" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-black"
-                                android:text="@string/support_need_help_title"
-                                android:textColor="@color/white"
-                                android:textSize="14sp" />
-                            <TextView
-                                android:id="@+id/supportDesc"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.9"
-                                android:fontFamily="sans-serif-medium"
-                                android:text="@string/support_need_help_desc"
-                                android:textColor="@color/white"
-                                android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/supportSummary"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.9"
-                                android:fontFamily="sans-serif-medium"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
-                                android:visibility="gone" />
+                                android:layout_marginStart="11dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-black"
+                                    android:text="@string/support_need_help_title"
+                                    android:textColor="@color/white"
+                                    android:textSize="14sp" />
+                                <TextView
+                                    android:id="@+id/supportSummary"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:alpha="0.9"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="@color/white"
+                                    android:textSize="12sp"
+                                    android:visibility="gone" />
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/supportToggle"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/section_collapse"
+                                android:src="@drawable/ic_expand_less"
+                                app:tint="@color/white" />
                         </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/supportDesc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:alpha="0.9"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/support_need_help_desc"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnContactSupport"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:layout_marginStart="11dp"
+                            android:layout_marginTop="8dp"
                             android:backgroundTint="@color/velocity_white_20"
                             android:paddingHorizontal="14dp"
                             android:text="@string/contact_support_button"
@@ -1765,15 +1781,6 @@
                             app:iconGravity="textStart"
                             app:iconSize="16dp"
                             app:iconTint="@color/white" />
-
-                        <ImageButton
-                            android:id="@+id/supportToggle"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/section_collapse"
-                            android:src="@drawable/ic_expand_less"
-                            app:tint="@color/white" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

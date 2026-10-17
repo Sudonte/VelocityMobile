@@ -37,6 +37,7 @@ import org.robolectric.annotation.GraphicsMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -507,6 +508,7 @@ public class DashboardScreenTest {
 
         int[][] sections = {
                 {R.id.nextStayToggle, R.id.nextStaySummary, R.id.nextStayCard},
+                {R.id.moreStaysToggle, R.id.moreStaysSummary, R.id.moreStaysBody},
                 {R.id.stayCalToggle, R.id.stayCalCollapsedSummary, R.id.stayCalBody},
                 {R.id.bookingsToggle, R.id.bookingsSummary, R.id.bookingsBody},
                 {R.id.notificationsToggle, R.id.notificationsSummary, R.id.notificationsBody},
@@ -584,7 +586,8 @@ public class DashboardScreenTest {
         View row = payments.getChildAt(0);
         String shown = ((TextView) row.findViewById(R.id.tvPaymentBookingId)).getText().toString();
         View button = row.findViewById(R.id.btnPaymentOpenUpcoming);
-        assertEquals(app.getString(R.string.open_in_upcoming), ((TextView) button).getText().toString());
+        assertEquals(app.getString(R.string.open_in_upcoming_short), ((TextView) button).getText().toString());
+        assertEquals(app.getString(R.string.open_in_upcoming), button.getContentDescription().toString());
         assertTrue("a comfortable touch target", button.getMinimumHeight() >= (int) (48 * app.getResources().getDisplayMetrics().density) - 1);
         assertEquals("the ID text itself is plain text", false, row.findViewById(R.id.tvPaymentBookingId).hasOnClickListeners());
 
@@ -597,20 +600,62 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void otherStays_collapsedKeepsThePreviewCap_expandedShowsEveryStay() {
+    public void otherStays_collapsedShowsOnlyTheSummary_expandedShowsEveryStay() {
         DashboardActivity activity = launch();
-        // 1 next stay + 7 further upcoming stays (the preview cap is 4)
+        // 1 next stay + 7 further upcoming stays
         ReservationDto[] reservations = new ReservationDto[8];
         for (int i = 0; i < 8; i++) reservations[i] = stay(600 + i, 2 + i, 1);
         answerWith(ScreenTestSupport.reservations(reservations), ScreenTestSupport.directBookings());
 
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
         assertEquals("expanded: every stay", 7, more.getChildCount());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysBody).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.moreStaysSummary).getVisibility());
+
         activity.findViewById(R.id.moreStaysToggle).performClick();
-        assertEquals("collapsed: the preview", 4, more.getChildCount());
+        assertEquals("collapsed: no list, no button", View.GONE, activity.findViewById(R.id.moreStaysBody).getVisibility());
         assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysSummary).getVisibility());
+        assertTrue(text(activity, R.id.moreStaysSummary).startsWith("7 stays"));
+
         activity.findViewById(R.id.moreStaysToggle).performClick();
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysBody).getVisibility());
         assertEquals(7, more.getChildCount());
+    }
+
+    @Test
+    public void stayCalendar_pickADate_opensThePicker_andFiltersTheListToThatDate() throws Exception {
+        DashboardActivity activity = launch();
+        // Reservation 588 arrives tomorrow (leaves in 2 days); reservation 589 arrives in 3 days.
+        answerWith(ScreenTestSupport.reservations(stay(588, 1, 1), stay(589, 3, 1)), ScreenTestSupport.directBookings());
+        ViewGroup entries = activity.findViewById(R.id.stayCalSummary);
+        assertEquals("nothing today", 0, entries.getChildCount());
+
+        activity.findViewById(R.id.stayCalModeDate).performClick();
+        idle();
+        androidx.fragment.app.Fragment fragment = activity.getSupportFragmentManager().findFragmentByTag("stayCalendarDate");
+        assertNotNull("the date picker is open", fragment);
+        @SuppressWarnings("unchecked")
+        com.google.android.material.datepicker.MaterialDatePicker<Long> picker =
+                (com.google.android.material.datepicker.MaterialDatePicker<Long>) fragment;
+        assertTrue(picker.getDialog().isShowing());
+
+        // choose today + 3 days in the picker, then confirm
+        LocalDate wanted = manilaToday().plusDays(3);
+        java.lang.reflect.Field selectorField = picker.getClass().getDeclaredField("dateSelector");
+        selectorField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        com.google.android.material.datepicker.DateSelector<Long> selector =
+                (com.google.android.material.datepicker.DateSelector<Long>) selectorField.get(picker);
+        selector.select(wanted.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli());
+        picker.getDialog().findViewById(com.google.android.material.R.id.confirm_button).performClick();
+        idle();
+
+        assertEquals("only the transaction on that date", 1, entries.getChildCount());
+        assertEquals("Reservation #589", ((TextView) entries.getChildAt(0).findViewById(R.id.tvEntryRef)).getText().toString());
+        assertTrue(((TextView) entries.getChildAt(0).findViewById(R.id.tvEntryWhen)).getText().toString().startsWith("Check-in"));
+        assertEquals("the chip shows the chosen date", DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH).format(wanted),
+                ((TextView) activity.findViewById(R.id.stayCalModeDate)).getText().toString());
+        assertEquals(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH).format(wanted), text(activity, R.id.stayCalRange));
     }
 
     private static final int[] STATE_VIEWS = {R.id.stateSummary, R.id.stateRecent, R.id.statePayments, R.id.stateNotifications};
