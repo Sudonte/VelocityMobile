@@ -746,7 +746,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // The verification status leads the section - read fresh from the server on open, resume and pull-to-refresh.
         int chipText = approved ? R.string.discount_chip_approved : rejected ? R.string.discount_chip_rejected : R.string.discount_chip_pending;
         int chipBg = approved ? R.color.velocity_green_soft : rejected ? R.color.velocity_red_subtle : R.color.velocity_orange_soft;
-        int chipFg = approved ? R.color.velocity_green_dark : rejected ? R.color.velocity_red_dark : R.color.velocity_orange_primary;
+        int chipFg = approved ? R.color.velocity_green_dark : rejected ? R.color.velocity_red_text : R.color.velocity_orange_primary;
         int chipIcon = approved ? R.drawable.ic_check_circle : rejected ? R.drawable.ic_close : R.drawable.ic_clock;
         container.addView(buildStatusChip(chipText, chipBg, chipFg, chipIcon));
 
@@ -1188,14 +1188,14 @@ public class BookingDetailsActivity extends AppCompatActivity {
             String text;
             if (step.statusText != null && when != null) text = step.statusText + " • " + when;
             else if (step.statusText != null) text = step.statusText;
-            else text = when != null ? when : getString(R.string.timeline_pending);
+            else text = when != null ? when : getString(step.reached ? R.string.timeline_done : R.string.timeline_pending);
             timeLabel.setText(text);
             timeLabel.setTextSize(11);
             timeLabel.setTextColor(getResources().getColor(step.reached ? R.color.velocity_text_secondary : R.color.velocity_inactive_gray));
             textColumn.addView(timeLabel);
         } else if (step.reached) {
             TextView timeLabel = new TextView(this);
-            timeLabel.setText(!TextUtils.isEmpty(step.timestamp) ? step.timestamp : getString(R.string.timeline_pending));
+            timeLabel.setText(!TextUtils.isEmpty(step.timestamp) ? step.timestamp : getString(R.string.timeline_done));
             timeLabel.setTextSize(11);
             timeLabel.setTextColor(getResources().getColor(R.color.velocity_text_secondary));
             textColumn.addView(timeLabel);
@@ -1282,7 +1282,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         if ("verified".equals(verification) || (verification.isEmpty() && "completed".equals(paymentStatus))) {
             setPayStatus(row, R.string.ph_status_verified, R.color.velocity_green_soft, R.color.velocity_green_dark);
         } else if ("rejected".equals(verification) || "rejected".equals(paymentStatus) || "failed".equals(paymentStatus)) {
-            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_dark);
+            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_text);
         } else {
             setPayStatus(row, R.string.ph_status_pending, R.color.velocity_orange_soft, R.color.velocity_orange_primary);
         }
@@ -1301,7 +1301,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         row.reference = TextUtils.isEmpty(record.referenceNumber) ? null : (gcash ? GcashReferenceFormatter.format(record.referenceNumber) : record.referenceNumber);
         String st = record.status == null ? "" : record.status.toLowerCase(Locale.ROOT);
         if (st.contains("reject") || st.contains("fail")) {
-            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_dark);
+            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_text);
         } else if (st.contains("verif") || st.contains("complet") || st.contains("paid")) {
             setPayStatus(row, R.string.ph_status_verified, R.color.velocity_green_soft, R.color.velocity_green_dark);
         } else {

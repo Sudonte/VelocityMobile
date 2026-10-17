@@ -89,6 +89,18 @@ public class CalendarActivity extends BaseNavigationActivity {
     protected void onResume() {
         super.onResume();
         loadEvents();
+        // The clock only ticks while the screen is in front.
+        if (clockRunnable != null) {
+            clockHandler.removeCallbacks(clockRunnable);
+            updateDateTime();
+            clockHandler.postDelayed(clockRunnable, 1000);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (clockRunnable != null) clockHandler.removeCallbacks(clockRunnable);
     }
 
     @Override
@@ -297,13 +309,20 @@ public class CalendarActivity extends BaseNavigationActivity {
             }
         };
         updateDateTime();
-        clockHandler.postDelayed(clockRunnable, 1000);
     }
+
+    private SimpleDateFormat clockDateFormat;
+    private SimpleDateFormat clockTimeFormat;
 
     private void updateDateTime() {
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat(getString(R.string.date_format_full), Locale.getDefault());
-        SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.time_format_seconds), Locale.getDefault());
+        if (clockDateFormat == null) {
+            // built once, not twice a second
+            clockDateFormat = new SimpleDateFormat(getString(R.string.date_format_full), Locale.getDefault());
+            clockTimeFormat = new SimpleDateFormat(getString(R.string.time_format_seconds), Locale.getDefault());
+        }
+        SimpleDateFormat dateFormat = clockDateFormat;
+        SimpleDateFormat timeFormat = clockTimeFormat;
 
         if (calendarDateText != null) {
             calendarDateText.setText(dateFormat.format(calendar.getTime()));

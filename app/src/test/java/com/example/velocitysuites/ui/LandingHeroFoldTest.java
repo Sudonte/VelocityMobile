@@ -95,6 +95,18 @@ public class LandingHeroFoldTest {
     }
 
     @Test
+    @Config(sdk = 35, qualifiers = "w411dp-h891dp-xxhdpi", application = TestApplication.class)
+    public void onAMediumPhone_theRoomsAreNotInTheFirstView() {
+        assertRoomsBelowTheFirstView(411, 891);
+    }
+
+    @Test
+    @Config(sdk = 35, qualifiers = "w480dp-h1000dp-xxhdpi", application = TestApplication.class)
+    public void onALargePhone_theRoomsAreNotInTheFirstView_andTheHeroFillsTheWindow() {
+        assertRoomsBelowTheFirstView(480, 1000);
+    }
+
+    @Test
     @Config(sdk = 35, qualifiers = "w360dp-h640dp-xxhdpi", application = TestApplication.class)
     public void exploreNowScrollsDownToTheRooms() {
         float density = ApplicationProvider.getApplicationContext().getResources().getDisplayMetrics().density;

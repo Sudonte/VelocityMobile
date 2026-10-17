@@ -203,7 +203,7 @@
                                     android:id="@+id/landingHeroTitle"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
+                                    android:layout_marginTop="10dp"
                                     android:fontFamily="sans-serif-black"
                                     android:includeFontPadding="false"
                                     android:letterSpacing="0.02"
@@ -213,17 +213,17 @@
                                     android:text="@string/landing_banner_luxury_title"
                                     android:textAllCaps="true"
                                     android:textColor="@color/white"
-                                    android:autoSizeMaxTextSize="34sp"
-                                    android:autoSizeMinTextSize="22sp"
+                                    android:autoSizeMaxTextSize="26sp"
+                                    android:autoSizeMinTextSize="18sp"
                                     android:autoSizeStepGranularity="1sp"
                                     android:autoSizeTextType="uniform"
                                     android:maxLines="1"
-                                    android:textSize="34sp" />
+                                    android:textSize="26sp" />
 
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
+                                    android:layout_marginTop="8dp"
                                     android:fontFamily="sans-serif-medium"
                                     android:lineSpacingExtra="2dp"
                                     android:shadowColor="@color/velocity_scrim_60"

@@ -91,4 +91,29 @@ public class StatusColorContrastTest {
         assertEquals(21.0, contrast(0x000000, 0xFFFFFF), 0.01);   // black on white
         assertEquals(1.0, contrast(0x777777, 0x777777), 0.001);   // identical
     }
+
+    /** The text/background pairs the booking and dashboard chips use (Confirmed, Verified, Rejected...) must stay readable in Dark too. */
+    @Test
+    public void bookingChipColorPairsAreReadableInBothThemes() throws Exception {
+        Map<String, Integer> light = readColors("src/main/res/values/colors.xml");
+        Map<String, Integer> dark = new HashMap<>(light);
+        dark.putAll(readColors("src/main/res/values-night/colors.xml"));
+        String[][] pairs = {
+                {"velocity_green_dark", "velocity_green_soft"},
+                {"velocity_green_dark", "velocity_green_subtle"},
+                {"velocity_red_text", "velocity_red_subtle"},
+                {"velocity_red_text", "velocity_red_soft"},
+                {"velocity_red_status_dark", "velocity_red_status_soft"},
+        };
+        for (Map.Entry<String, Map<String, Integer>> theme : java.util.Map.of("light", light, "dark", dark).entrySet()) {
+            for (String[] pair : pairs) {
+                Integer fg = theme.getValue().get(pair[0]);
+                Integer bg = theme.getValue().get(pair[1]);
+                assertTrue(pair[0] + "/" + pair[1] + " must be defined", fg != null && bg != null);
+                double ratio = contrast(bg, fg);
+                assertTrue(String.format("%s: %s on %s is %.2f:1 (needs %.1f:1)", theme.getKey(), pair[0], pair[1], ratio, AA_SMALL_TEXT),
+                        ratio >= AA_SMALL_TEXT);
+            }
+        }
+    }
 }

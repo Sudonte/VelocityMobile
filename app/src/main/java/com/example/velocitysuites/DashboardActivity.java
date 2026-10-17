@@ -1500,19 +1500,24 @@ public class DashboardActivity extends BaseNavigationActivity {
             }
         };
         updateDateTime();
-        clockHandler.postDelayed(clockRunnable, 1000);
     }
+
+    private SimpleDateFormat clockDateFormat;
+    private SimpleDateFormat clockTimeFormat;
 
     /** The date ("Sunday, October 11, 2026") with the time ("9:19 AM") below it, in hotel time (Asia/Manila), whatever the phone's own zone is. */
     private void updateDateTime() {
-        java.util.TimeZone manila = java.util.TimeZone.getTimeZone("Asia/Manila");
-        SimpleDateFormat dateFormat = new SimpleDateFormat(getString(R.string.dashboard_date_format), Locale.US);
-        SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.dashboard_time_format), Locale.US);
-        dateFormat.setTimeZone(manila);
-        timeFormat.setTimeZone(manila);
+        if (clockDateFormat == null) {
+            // built once, not twice a second
+            java.util.TimeZone manila = java.util.TimeZone.getTimeZone("Asia/Manila");
+            clockDateFormat = new SimpleDateFormat(getString(R.string.dashboard_date_format), Locale.US);
+            clockTimeFormat = new SimpleDateFormat(getString(R.string.dashboard_time_format), Locale.US);
+            clockDateFormat.setTimeZone(manila);
+            clockTimeFormat.setTimeZone(manila);
+        }
         java.util.Date now = new java.util.Date();
-        if (dateText != null) dateText.setText(dateFormat.format(now));
-        if (timeText != null) timeText.setText(timeFormat.format(now));
+        if (dateText != null) dateText.setText(clockDateFormat.format(now));
+        if (timeText != null) timeText.setText(clockTimeFormat.format(now));
     }
 
     @Override
@@ -1521,12 +1526,19 @@ public class DashboardActivity extends BaseNavigationActivity {
         loadUserInfo();
         loadDashboardData();
         notifTimeRefreshHandler.postDelayed(notifTimeRefreshRunnable, NOTIF_TIME_REFRESH_MS);
+        // The clock only ticks while the screen is in front (it used to keep waking the phone from the background).
+        if (clockRunnable != null) {
+            clockHandler.removeCallbacks(clockRunnable);
+            updateDateTime();
+            clockHandler.postDelayed(clockRunnable, 1000);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         notifTimeRefreshHandler.removeCallbacks(notifTimeRefreshRunnable);
+        if (clockRunnable != null) clockHandler.removeCallbacks(clockRunnable);
     }
 
     @Override

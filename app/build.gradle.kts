@@ -70,8 +70,8 @@ android {
         // own UI displays. versionName is the human-facing "1.1.0"-style label; bump its
         // patch/minor/major segment per normal semver judgement, versionCode always by
         // exactly 1 regardless of how big the versionName jump is.
-        versionCode = 28
-        versionName = "1.18.3"
+        versionCode = 29
+        versionName = "1.18.4"
 
         // The Secrets Gradle Plugin (see the `secrets` block above) puts the real MAPS_API_KEY
         // into every app variant's manifest placeholders, but not into the unit-test manifest

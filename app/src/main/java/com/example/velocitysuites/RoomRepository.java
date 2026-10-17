@@ -1038,10 +1038,7 @@ public final class RoomRepository {
                     return;
                 }
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Notification> mapped = new ArrayList<>();
-                    for (NotificationDto dto : response.body().items()) {
-                        mapped.add(ApiMapper.toNotification(dto));
-                    }
+                    List<Notification> mapped = mapNotificationsSkippingMalformed(response.body().items());
                     int unreadCount = reconcilePendingReadStates(mapped, response.body().unread_count);
                     List<Notification> arrived = findArrivals(notifications, mapped);
                     notifications = mapped;
@@ -1183,10 +1180,7 @@ public final class RoomRepository {
             public void onResponse(Call<PaginatedResponse<NotificationDto>> call, Response<PaginatedResponse<NotificationDto>> response) {
                 if (requestGeneration != accountGeneration) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Notification> fetched = new ArrayList<>();
-                    for (NotificationDto dto : response.body().items()) {
-                        fetched.add(ApiMapper.toNotification(dto));
-                    }
+                    List<Notification> fetched = mapNotificationsSkippingMalformed(response.body().items());
                     int unreadCount = reconcilePendingReadStates(fetched, response.body().unread_count);
                     List<Notification> arrived = findArrivals(notifications, fetched);
                     mergeNotifications(fetched);
@@ -2742,6 +2736,24 @@ public final class RoomRepository {
         }
     }
 
+    /**
+     * Maps a notifications page the way the bookings/reservations loops do: one null or unexpected row is skipped instead
+     * of throwing out of the Retrofit callback (which runs on the main thread) and taking the whole app down.
+     */
+    static List<Notification> mapNotificationsSkippingMalformed(@Nullable List<NotificationDto> dtos) {
+        List<Notification> out = new ArrayList<>();
+        if (dtos == null) return out;
+        for (NotificationDto dto : dtos) {
+            if (dto == null) continue;
+            try {
+                out.add(ApiMapper.toNotification(dto));
+            } catch (RuntimeException mappingError) {
+                com.example.velocitysuites.network.DiagnosticLog.e("notifications.mappingFailed", "notificationId=" + dto.id, mappingError);
+            }
+        }
+        return out;
+    }
+
     private String errorMessage(Response<?> response) {
         return errorMessage(response.code(), readErrorBody(response));
     }
@@ -2871,8 +2883,12 @@ public final class RoomRepository {
         api.getReceipt(receiptNumber).enqueue(new Callback<ReceiptDetailResponse>() {
             @Override
             public void onResponse(Call<ReceiptDetailResponse> call, Response<ReceiptDetailResponse> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().receipt != null) {
-                    if (callback != null) callback.onSuccess(ApiMapper.toReceiptDetail(response.body()));
+                ReceiptDetail mapped = response.isSuccessful() ? ApiMapper.toReceiptDetailOrNull(response.body()) : null;
+                if (mapped != null) {
+                    if (callback != null) callback.onSuccess(mapped);
+                } else if (response.isSuccessful()) {
+                    // 200 but an empty / unreadable body: an error the guest can retry, not a crash on the main thread
+                    if (callback != null) callback.onError(appContext.getString(R.string.receipt_not_available_desc));
                 } else if (response.code() == 404) {
                     if (callback != null) callback.onError(appContext.getString(R.string.receipt_not_available_desc));
                 } else {

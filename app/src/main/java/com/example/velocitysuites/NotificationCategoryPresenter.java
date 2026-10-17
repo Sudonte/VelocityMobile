@@ -45,7 +45,7 @@ public final class NotificationCategoryPresenter {
             return new Result(R.drawable.ic_booking, R.color.velocity_red_bg_start, R.color.velocity_red_primary, R.string.notif_category_booking);
         }
         if (Notification.TYPE_RESERVATION.equals(type)) {
-            return new Result(R.drawable.ic_reservation, R.color.velocity_red_subtle, R.color.velocity_red_dark, R.string.notif_category_reservation);
+            return new Result(R.drawable.ic_reservation, R.color.velocity_red_subtle, R.color.velocity_red_text, R.string.notif_category_reservation);
         }
         if (Notification.TYPE_CHECK_IN.equals(type)) {
             return new Result(R.drawable.ic_clock, R.color.velocity_orange_primary, R.color.white, R.string.notif_category_check_in);
@@ -54,7 +54,7 @@ public final class NotificationCategoryPresenter {
             return new Result(R.drawable.ic_star, R.color.velocity_red_dark, R.color.white, R.string.notif_category_promotion);
         }
         if (Notification.TYPE_SMS.equals(type)) {
-            return new Result(R.drawable.ic_info, R.color.velocity_red_soft, R.color.velocity_red_dark, R.string.notif_category_sms);
+            return new Result(R.drawable.ic_info, R.color.velocity_red_soft, R.color.velocity_red_text, R.string.notif_category_sms);
         }
         if (Notification.TYPE_ANNOUNCEMENT.equals(type)) {
             return new Result(R.drawable.ic_info, R.color.velocity_blue_soft, R.color.velocity_blue_primary, R.string.notif_category_announcement);

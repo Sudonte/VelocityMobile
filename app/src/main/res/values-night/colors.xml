@@ -88,6 +88,9 @@
     <color name="velocity_gray_soft">#2A1C1C</color>
     <color name="gcash_blue_soft">#3D1F1F</color>
     <color name="velocity_blue_soft">#3D1F1F</color>
+    <!-- Text/tint "green" (this brand's success family is red): maroon in Light, light red in Dark so Confirmed / Checked-In / Verified chips stay readable on the dark chip background. -->
+    <color name="velocity_green_dark">#FF8A80</color>
+    <color name="velocity_red_status_dark">#FF8A80</color>
     <color name="velocity_green_soft">#3D1F1F</color>
     <color name="velocity_green_subtle">#4A2424</color>
     <color name="velocity_orange_soft">#3D1F1F</color>

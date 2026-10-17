@@ -452,4 +452,38 @@ public class DashboardScreenTest {
         assertEquals("Recent Bookings", app.getString(R.string.recent_bookings_title));
         assertNotNull(findText(activity, R.string.recent_bookings_title));
     }
+
+    @Test
+    public void allSixSummaryCounters_shareOneSize_andEveryCounterHasALabelUnderIt() {
+        DashboardActivity a = launch();
+        answer(stay(1, 3, 2));
+        int[] counts = {R.id.activeBookingsCountText, R.id.activeReservationsCountText, R.id.pastBookingsCountText,
+                R.id.pastReservationsCountText, R.id.cancelBookingsCountText, R.id.cancelReservationsCountText};
+        float size = ((TextView) a.findViewById(counts[0])).getTextSize();
+        for (int id : counts) {
+            TextView count = a.findViewById(id);
+            assertEquals(a.getResources().getResourceEntryName(id), size, count.getTextSize(), 0.01f);
+            ViewGroup column = (ViewGroup) count.getParent();
+            TextView label = (TextView) column.getChildAt(column.indexOfChild(count) + 1);
+            assertTrue("label under " + a.getResources().getResourceEntryName(id), label.getText().length() > 0);
+            assertTrue("the value is the larger of the two", count.getTextSize() > label.getTextSize());
+        }
+    }
+
+    @Test
+    public void theClockStopsWhileTheScreenIsInTheBackground_andCatchesUpOnReturn() {
+        ActivityController<DashboardActivity> controller = Robolectric.buildActivity(DashboardActivity.class).setup();
+        idle();
+        DashboardActivity a = controller.get();
+        String before = text(a, R.id.timeText);
+        controller.pause();
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMinutes(3));
+        assertEquals("no tick while paused", before, text(a, R.id.timeText));
+        ((TextView) a.findViewById(R.id.timeText)).setText("stale");
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(5));
+        assertEquals("still stale while paused", "stale", text(a, R.id.timeText));
+        controller.resume();
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(2));
+        assertTrue("back in front it shows the time again", !text(a, R.id.timeText).equals("stale"));
+    }
 }

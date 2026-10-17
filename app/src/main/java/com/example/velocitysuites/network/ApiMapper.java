@@ -763,6 +763,16 @@ public final class ApiMapper {
      * critical "display the snapshot exactly as returned" contract for a
      * PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT.
      */
+    @androidx.annotation.Nullable
+    public static ReceiptDetail toReceiptDetailOrNull(@androidx.annotation.Nullable ReceiptDetailResponse response) {
+        if (response == null || response.receipt == null) return null;
+        try {
+            return toReceiptDetail(response);
+        } catch (RuntimeException malformed) {
+            return null;
+        }
+    }
+
     public static ReceiptDetail toReceiptDetail(ReceiptDetailResponse response) {
         ReceiptDetailDto dto = response.receipt;
         ReceiptDetail.AnchorPayment anchor = null;

@@ -311,6 +311,7 @@
     <string name="timeline_status_pending">Pending</string>
     <string name="timeline_status_rejected">Rejected</string>
     <string name="timeline_pending">Pending</string>
+    <string name="timeline_done">Done</string>
     <string name="member_since_format">Member since %1$s</string>
     <!-- Transaction History card: stay dates and "N Receipts Available". -->
     <string name="ptx_stay_label">Stay</string>

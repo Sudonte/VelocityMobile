@@ -138,7 +138,7 @@ final class ReceiptCardHelper {
         for (Booking.ReceiptSummary receipt : receipts) {
             View card = inflater.inflate(R.layout.item_receipt_summary_card, container, false);
             ((TextView) card.findViewById(R.id.tvReceiptCardType)).setText(ReceiptTypeMapper.labelWithStage(receipt.receiptType));
-            ((TextView) card.findViewById(R.id.tvReceiptCardNumber)).setText(receipt.receiptNumber);
+            ((TextView) card.findViewById(R.id.tvReceiptCardNumber)).setText(receipt.receiptNumber != null && !receipt.receiptNumber.trim().isEmpty() ? receipt.receiptNumber : activity.getString(R.string.value_missing));
             ((TextView) card.findViewById(R.id.tvReceiptCardAmount)).setText(formatPrice(receipt.amount));
 
             TextView statusView = card.findViewById(R.id.tvReceiptCardStatus);
@@ -173,7 +173,7 @@ final class ReceiptCardHelper {
         String typeLabel = ReceiptTypeMapper.labelForTransactionType(tx.transactionType);
         ((TextView) row.findViewById(R.id.tvTxTitle)).setText(methodLabel + " " + typeLabel);
         ((TextView) row.findViewById(R.id.tvTxDate)).setText(
-                tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "");
+                tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : activity.getString(R.string.value_missing));
 
         TextView statusView = row.findViewById(R.id.tvTxStatus);
         String statusLabel;
