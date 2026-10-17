@@ -181,8 +181,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public void setHighlightedNotificationId(String notificationId) {
+        String previous = this.highlightedNotificationId;
         this.highlightedNotificationId = notificationId;
-        notifyDataSetChanged();
+        // only the row that lost the highlight and the one that gained it change
+        for (int i = 0; i < rows.size(); i++) {
+            String id = rows.get(i).notification.getId();
+            if (id != null && (id.equals(previous) || id.equals(notificationId))) notifyItemChanged(i);
+        }
     }
 
     /** Payload marker for refreshVisibleTimestamps() below - onBindViewHolder(holder, position, payloads) checks for this to do a time-only partial rebind instead of the full bind every other notify path triggers. */

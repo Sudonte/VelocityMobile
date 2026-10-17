@@ -24,6 +24,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private final OnTransactionClickListener listener;
     private final OnDeleteClickListener deleteListener;
     private String highlightedBookingId;
+    /** Ids / content keys of the rows as last reported to RecyclerView, so the next updateList() can diff against them. */
+    private List<String> shownIds = new java.util.ArrayList<>();
+    private List<String> shownKeys = new java.util.ArrayList<>();
 
     public interface OnTransactionClickListener {
         void onDetailsClick(Booking booking);
@@ -41,6 +44,17 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         this.bookings = bookings;
         this.listener = listener;
         this.deleteListener = deleteListener;
+        snapshot(shownIds, shownKeys);
+    }
+
+    private void snapshot(List<String> ids, List<String> keys) {
+        for (Booking b : bookings) {
+            ids.add(String.valueOf(b.getId()) + (b.isHasBooking() ? "#b" : "#r"));
+            keys.add(ListDiff.key(b.getId(), b.getDisplayId(), b.isHasBooking(), b.getStatus(), b.isNoShow(), b.getRoomName(),
+                    b.getCheckInDate(), b.getCheckOutDate(), b.getTotalAmount(), b.getPaymentMethod(), b.getPaymentDate(),
+                    b.getTransactionRef(), b.getPaymentVerificationStatus(), b.isStaffVerified(), b.isPaymentRejected(),
+                    b.getGuests(), android.text.TextUtils.join(",", b.getAllRoomTypeNames())));
+        }
     }
 
     @NonNull
@@ -147,14 +161,24 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     }
 
     public void updateList(List<Booking> newList) {
+        List<String> newIds = new java.util.ArrayList<>();
+        List<String> newKeys = new java.util.ArrayList<>();
         this.bookings.clear();
         this.bookings.addAll(newList);
-        notifyDataSetChanged();
+        snapshot(newIds, newKeys);
+        ListDiff.diff(shownIds, shownKeys, newIds, newKeys).dispatchUpdatesTo(this);
+        shownIds = newIds;
+        shownKeys = newKeys;
     }
 
     public void setHighlightedBookingId(String bookingId) {
+        String previous = this.highlightedBookingId;
         this.highlightedBookingId = bookingId;
-        notifyDataSetChanged();
+        // only the card that lost the outline and the one that gained it change
+        for (int i = 0; i < bookings.size(); i++) {
+            String id = bookings.get(i).getId();
+            if (id != null && (id.equals(previous) || id.equals(bookingId))) notifyItemChanged(i);
+        }
     }
 
     @Override

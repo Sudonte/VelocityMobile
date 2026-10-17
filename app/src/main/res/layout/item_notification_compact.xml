@@ -63,7 +63,7 @@
                 android:layout_marginStart="8dp"
                 android:fontFamily="sans-serif-bold"
                 android:textColor="@color/velocity_inactive_gray"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:textAllCaps="true"
                 tools:text="10:30 AM" />
 

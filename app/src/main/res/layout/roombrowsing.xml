@@ -594,7 +594,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/view_details_label"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="10sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <LinearLayout

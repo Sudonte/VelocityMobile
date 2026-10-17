@@ -178,6 +178,7 @@ public class ScreenshotMatrixTest {
                 idle();
                 Activity a = c.get();
                 render(a, "landing_" + size[0] + "_" + mode, px(a, Integer.parseInt(size[2])), false, 0);
+                render(a, "landing_full_" + size[0] + "_" + mode, px(a, 4200), true, 0);
                 c.pause().stop().destroy();
             }
         }

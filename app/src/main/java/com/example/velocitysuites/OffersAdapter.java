@@ -34,9 +34,32 @@ public class OffersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     /** Replaces the whole combined list - callers concatenate promotions + discounts before calling this. */
     public void updateList(List<Object> newOffers) {
+        List<String> oldIds = new ArrayList<>();
+        List<String> oldKeys = new ArrayList<>();
+        snapshot(offers, oldIds, oldKeys);
         offers.clear();
         if (newOffers != null) offers.addAll(newOffers);
-        notifyDataSetChanged();
+        List<String> newIds = new ArrayList<>();
+        List<String> newKeys = new ArrayList<>();
+        snapshot(offers, newIds, newKeys);
+        ListDiff.diff(oldIds, oldKeys, newIds, newKeys).dispatchUpdatesTo(this);
+    }
+
+    private static void snapshot(List<Object> items, List<String> ids, List<String> keys) {
+        for (Object o : items) {
+            if (o instanceof Discount) {
+                Discount d = (Discount) o;
+                ids.add("d" + d.getId());
+                keys.add(ListDiff.key(d.getBadgeLabel(), d.getName(), d.getDescription()));
+            } else if (o instanceof Promotion) {
+                Promotion p = (Promotion) o;
+                ids.add("p" + p.getId());
+                keys.add(ListDiff.key(p.getImageUrl(), p.getName(), p.getDescription(), p.getRoomTypeName(), p.getValidityRange(), p.getIncludedAmenities()));
+            } else {
+                ids.add(String.valueOf(o));
+                keys.add("");
+            }
+        }
     }
 
     @Override

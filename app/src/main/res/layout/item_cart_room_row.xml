@@ -72,7 +72,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="2dp"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="9sp"
+                    android:textSize="11sp"
                     tools:text="Deluxe" />
             </LinearLayout>
 
@@ -84,7 +84,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:visibility="gone"
                 tools:text="Spacious room with a king bed and city view."
                 tools:visibility="visible" />

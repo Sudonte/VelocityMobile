@@ -33,9 +33,22 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
     }
 
     public void updateList(List<Announcement> newAnnouncements) {
+        List<String> oldIds = new ArrayList<>();
+        List<String> oldKeys = new ArrayList<>();
+        snapshot(announcements, oldIds, oldKeys);
         announcements.clear();
         if (newAnnouncements != null) announcements.addAll(newAnnouncements);
-        notifyDataSetChanged();
+        List<String> newIds = new ArrayList<>();
+        List<String> newKeys = new ArrayList<>();
+        snapshot(announcements, newIds, newKeys);
+        ListDiff.diff(oldIds, oldKeys, newIds, newKeys).dispatchUpdatesTo(this);
+    }
+
+    private static void snapshot(List<Announcement> items, List<String> ids, List<String> keys) {
+        for (Announcement a : items) {
+            ids.add(String.valueOf(a.getId()));
+            keys.add(ListDiff.key(a.getId(), a.getTitle(), a.getFirstImageUrl()));
+        }
     }
 
     @NonNull

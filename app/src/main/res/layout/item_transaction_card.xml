@@ -59,7 +59,7 @@
             android:paddingHorizontal="9dp"
             android:paddingVertical="4dp"
             android:textColor="@color/velocity_green_dark"
-            android:textSize="9sp"
+            android:textSize="11sp"
             android:textAllCaps="true"
             android:letterSpacing="0.1"
             app:layout_constraintEnd_toEndOf="parent"
@@ -118,7 +118,7 @@
             android:paddingVertical="4dp"
             android:fontFamily="sans-serif-black"
             android:textColor="@color/velocity_green_dark"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:textAllCaps="true"
             app:layout_constraintStart_toStartOf="@id/tvBookingId"
             app:layout_constraintTop_toBottomOf="@id/tvStayDates"
@@ -139,7 +139,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:alpha="0.85"
                 tools:text="Payment Method: GCash" />
 
@@ -149,7 +149,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:alpha="0.85"
                 tools:text="Payment Date &amp; Time: Oct 12, 2023 3:45 PM" />
 
@@ -159,7 +159,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/velocity_text_secondary"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:alpha="0.85"
                 tools:text="Transaction Ref: GCASH-9123456" />
         </LinearLayout>
@@ -231,7 +231,7 @@
                     android:fontFamily="sans-serif-black"
                     android:text="@string/total_paid_label"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1"
                     android:alpha="0.6" />

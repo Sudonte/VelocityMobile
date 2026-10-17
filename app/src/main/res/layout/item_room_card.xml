@@ -71,7 +71,7 @@
                         android:paddingVertical="3dp"
                         android:text="@string/available_label"
                         android:textColor="@color/velocity_green_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:textAllCaps="true"
                         android:letterSpacing="0.05" />
 

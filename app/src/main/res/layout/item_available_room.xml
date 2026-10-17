@@ -63,7 +63,7 @@
                     android:textAllCaps="true"
                     android:letterSpacing="0.05"
                     android:textColor="@color/velocity_green_primary"
-                    android:textSize="9sp"
+                    android:textSize="11sp"
                     tools:text="Available: 5" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -142,7 +142,7 @@
                     android:letterSpacing="0.05"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="9sp"
+                    android:textSize="11sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/roomName"
                     tools:text="Deluxe Room &#8226; 2 Guests" />
@@ -177,7 +177,7 @@
                     android:fontFamily="sans-serif-bold"
                     android:singleLine="true"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     tools:text="King Bed" />
 
                 <View
@@ -203,7 +203,7 @@
                     android:fontFamily="sans-serif-bold"
                     android:singleLine="true"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     tools:text="42 sqm" />
             </LinearLayout>
 

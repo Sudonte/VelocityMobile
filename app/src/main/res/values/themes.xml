@@ -51,6 +51,15 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
+    <!-- The window itself paints the screen colour, so these screens' root views do not paint it a second time (overdraw). -->
+    <style name="Theme.VelocitySuites.RedBg" parent="Theme.VelocitySuites">
+        <item name="android:windowBackground">@color/velocity_red_bg_end</item>
+    </style>
+
+    <style name="Theme.VelocitySuites.ElevatedBg" parent="Theme.VelocitySuites">
+        <item name="android:windowBackground">@color/velocity_surface_elevated</item>
+    </style>
+
     <style name="Theme.VelocitySuites.Introduction" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>

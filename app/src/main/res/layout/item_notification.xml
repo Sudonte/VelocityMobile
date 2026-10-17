@@ -184,7 +184,7 @@
                         android:paddingHorizontal="7dp"
                         android:paddingVertical="2dp"
                         android:textAllCaps="true"
-                        android:textSize="9sp"
+                        android:textSize="11sp"
                         android:visibility="gone"
                         tools:text="Pending"
                         tools:visibility="visible" />
@@ -204,7 +204,7 @@
                         android:paddingVertical="2dp"
                         android:textAllCaps="true"
                         android:textColor="@color/velocity_action_text"
-                        android:textSize="9sp"
+                        android:textSize="11sp"
                         tools:text="Payment" />
                 </LinearLayout>
 
@@ -216,7 +216,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:maxLines="1"
                     android:textColor="@color/velocity_text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     tools:text="Sep 30 • 10:09 PM" />
             </LinearLayout>
 

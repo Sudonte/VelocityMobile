@@ -272,7 +272,7 @@
                         android:gravity="center"
                         android:text="@string/days_remaining_format"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:visibility="gone"
                         tools:visibility="visible" />
 
@@ -321,7 +321,7 @@
                                         android:text="@string/guest_role"
                                         android:textAllCaps="true"
                                         android:textColor="@color/white"
-                                        android:textSize="9sp" />
+                                        android:textSize="11sp" />
                                 </LinearLayout>
                             </com.google.android.material.card.MaterialCardView>
 
@@ -486,7 +486,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/profile_update_status_last_updated_label" />
 
                                 <TextView
@@ -509,7 +509,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/profile_update_status_next_update_label" />
 
                                 <TextView
@@ -645,7 +645,7 @@
                             <TextView
                                 style="@style/ProfileLabelStyle"
                                 android:layout_width="match_parent"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:text="@string/last_name_label" />
 
                             <TextView
@@ -668,7 +668,7 @@
                             <TextView
                                 style="@style/ProfileLabelStyle"
                                 android:layout_width="match_parent"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:text="@string/first_name_label" />
 
                             <TextView
@@ -691,7 +691,7 @@
                             <TextView
                                 style="@style/ProfileLabelStyle"
                                 android:layout_width="match_parent"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:text="@string/middle_name_label" />
 
                             <TextView
@@ -738,7 +738,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="9sp"
+                                    android:textSize="11sp"
                                     android:text="@string/gender_label" />
 
                                 <TextView
@@ -780,7 +780,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="9sp"
+                                    android:textSize="11sp"
                                     android:text="@string/dob_label" />
 
                                 <TextView
@@ -822,7 +822,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="9sp"
+                                    android:textSize="11sp"
                                     android:text="@string/age_label" />
 
                                 <TextView
@@ -954,7 +954,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/email_label" />
 
                                 <TextView
@@ -995,7 +995,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/mobile_label" />
 
                                 <TextView
@@ -1117,7 +1117,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/country_label" />
 
                                 <TextView
@@ -1140,7 +1140,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/region_label" />
 
                                 <TextView
@@ -1172,7 +1172,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/province_label" />
 
                                 <TextView
@@ -1195,7 +1195,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/city_label" />
 
                                 <TextView
@@ -1227,7 +1227,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/barangay_label" />
 
                                 <TextView
@@ -1250,7 +1250,7 @@
                                 <TextView
                                     style="@style/ProfileLabelStyle"
                                     android:layout_width="match_parent"
-                                    android:textSize="10sp"
+                                    android:textSize="11sp"
                                     android:text="@string/zip_label" />
 
                                 <TextView
@@ -1274,7 +1274,7 @@
                             <TextView
                                 style="@style/ProfileLabelStyle"
                                 android:layout_width="match_parent"
-                                android:textSize="10sp"
+                                android:textSize="11sp"
                                 android:text="@string/street_label" />
 
                             <TextView

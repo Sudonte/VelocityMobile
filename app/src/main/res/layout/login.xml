@@ -359,7 +359,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/feature_secure_safe"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="10sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <View
@@ -388,7 +388,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/feature_247_support"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="10sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <View
@@ -417,7 +417,7 @@
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/feature_best_rate"
                         android:textColor="@color/velocity_text_secondary"
-                        android:textSize="10sp"
+                        android:textSize="11sp"
                         android:gravity="center" />
                 </LinearLayout>
 

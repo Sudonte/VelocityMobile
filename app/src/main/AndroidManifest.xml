@@ -109,13 +109,13 @@
             android:name=".BookingDetailsActivity"
             android:parentActivityName=".BookingAndReservationActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.VelocitySuites.Flat" />
+            android:theme="@style/Theme.VelocitySuites.RedBg" />
 
         <activity
             android:name=".PaymentReceiptActivity"
             android:parentActivityName=".BookingDetailsActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.VelocitySuites" />
+            android:theme="@style/Theme.VelocitySuites.ElevatedBg" />
 
         <activity
             android:name=".BookingWizardActivity"
@@ -170,7 +170,7 @@
             android:name=".NotificationDetailsActivity"
             android:parentActivityName=".NotificationActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.VelocitySuites" />
+            android:theme="@style/Theme.VelocitySuites.RedBg" />
 
         <activity
             android:name=".ProfileManagementActivity"
@@ -185,7 +185,7 @@
         <activity
             android:name=".CalendarActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.VelocitySuites" />
+            android:theme="@style/Theme.VelocitySuites.RedBg" />
     </application>
 
 </manifest>

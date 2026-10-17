@@ -312,7 +312,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
 
         findViewById(R.id.btnCartClear).setOnClickListener(v -> {
             selectedQuantities.clear();
-            roomAdapter.notifyDataSetChanged();
+            roomAdapter.notifyQuantitiesChanged(null);
             updateSelectionSummaryBar();
         });
         findViewById(R.id.btnCartReserve).setOnClickListener(v -> handleCartAction(PendingRoomSelection.ACTION_RESERVE));
@@ -325,7 +325,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         if (selected.isEmpty()) return;
         SelectedRoomsDialog.show(this, selected, room -> {
             selectedQuantities.remove(room.getId());
-            roomAdapter.notifyDataSetChanged();
+            roomAdapter.notifyQuantitiesChanged(room.getId());
             updateSelectionSummaryBar();
         });
     }

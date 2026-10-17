@@ -142,7 +142,7 @@ public class ReceiptsAndHeaderScreensTest {
         ActivityController<LandingActivity> landing = Robolectric.buildActivity(LandingActivity.class, new Intent(app, LandingActivity.class)).setup();
         LandingActivity a = landing.get();
         shadowOf(Looper.getMainLooper()).idle();
-        String text = all(a.findViewById(R.id.landingHeroCard));
+        String text = all(a.findViewById(R.id.landingHeroFrame));
         assertTrue(text, text.contains("Velocity Suites"));
         assertFalse("the old heading is gone", text.contains("Luxury Redefined"));
         for (String highlight : new String[]{"Easy Room Booking", "Real-Time Status", "Secure Payments", "Digital Receipts", "Booking Notifications", "24/7 Guest Support"}) {

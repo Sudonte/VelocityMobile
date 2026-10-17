@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The 36dp soft-red icon tile used in landing section headers: what a MaterialCardView (flat style: hairline border,
+     12dp corners) drew around a single ImageView, as one drawable so the tile is one view instead of two. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/velocity_red_soft" />
+    <stroke android:width="1dp" android:color="@color/velocity_divider_hairline" />
+    <corners android:radius="12dp" />
+</shape>
