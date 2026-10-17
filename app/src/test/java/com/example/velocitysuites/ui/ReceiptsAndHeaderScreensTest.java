@@ -57,11 +57,26 @@ public class ReceiptsAndHeaderScreensTest {
     @Before
     public void setUp() {
         app = ApplicationProvider.getApplicationContext();
+        drainStaleWindowCallbacks();
         ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
         ScreenTestSupport.goOnline(app);
         ThemePreferences.setMode(app, ThemePreferences.MODE_LIGHT);
         PaymentReceiptActivity.debugPreviewFixtures.clear();
         PaymentReceiptActivity.debugPreviewAmenities.clear();
+    }
+
+    /**
+     * Windows other test classes left behind can still have a frame callback queued; it runs (and throws a barrier-token
+     * error) during THIS class's first activity recreate. Run those callbacks now, where the error is harmless.
+     */
+    private static void drainStaleWindowCallbacks() {
+        for (int i = 0; i < 3; i++) {
+            try {
+                shadowOf(Looper.getMainLooper()).idle();
+            } catch (IllegalStateException staleWindow) {
+                // a leaked window from another test class; its callback is consumed by running it
+            }
+        }
     }
 
     @After

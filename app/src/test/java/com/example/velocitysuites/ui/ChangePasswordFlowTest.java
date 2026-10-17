@@ -54,7 +54,8 @@ public class ChangePasswordFlowTest {
         setApiClientService(api.proxy());
         SessionManager.saveSession(app, "test-token", 1L, "Ana", "Reyes", "", "Ana Reyes", "ana@example.com",
                 "09171234567", "Female", "Jan 01, 1990", "");
-        activity = Robolectric.buildActivity(ProfileManagementActivity.class).setup().get();
+        controller = Robolectric.buildActivity(ProfileManagementActivity.class).setup();
+        activity = controller.get();
         idle();
 
         activity.findViewById(R.id.changePasswordButton).performClick();
@@ -77,8 +78,17 @@ public class ChangePasswordFlowTest {
         return (AlertDialog) ShadowDialog.getLatestDialog();
     }
 
+    private org.robolectric.android.controller.ActivityController<ProfileManagementActivity> controller;
+
     @After
     public void tearDown() throws Exception {
+        // Leave no live window behind for the next test class (a leaked one breaks later theme-recreate tests).
+        try {
+            if (dialog != null) dialog.dismiss();
+            if (controller != null) controller.pause().stop().destroy();
+        } catch (RuntimeException ignored) {
+            // already closed by the test
+        }
         setApiClientService(null);
     }
 
