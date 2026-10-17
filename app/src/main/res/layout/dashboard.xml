@@ -631,6 +631,17 @@
                                     android:maxLines="2"
                                     android:ellipsize="end"
                                     android:gravity="center" />
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:alpha="0.75"
+                                    android:ellipsize="end"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="@string/quick_hint_browse_rooms"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
@@ -674,6 +685,17 @@
                                     android:maxLines="2"
                                     android:ellipsize="end"
                                     android:gravity="center" />
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:alpha="0.75"
+                                    android:ellipsize="end"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="@string/quick_hint_my_bookings"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
@@ -724,6 +746,17 @@
                                     android:maxLines="2"
                                     android:ellipsize="end"
                                     android:gravity="center" />
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:alpha="0.75"
+                                    android:ellipsize="end"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="@string/quick_hint_my_reservations"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
@@ -767,6 +800,17 @@
                                     android:maxLines="2"
                                     android:ellipsize="end"
                                     android:gravity="center" />
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:alpha="0.75"
+                                    android:ellipsize="end"
+                                    android:gravity="center"
+                                    android:maxLines="2"
+                                    android:text="@string/quick_hint_history"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
@@ -819,6 +863,17 @@
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp"
                             android:alpha="0.75" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:background="@drawable/shape_intro_pill"
+                            android:backgroundTint="@color/velocity_red_soft"
+                            android:fontFamily="sans-serif-medium"
+                            android:padding="8dp"
+                            android:text="@string/booking_reservation_summary_explainer"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp" />
                         <include
                             android:id="@+id/stateSummary"
                             layout="@layout/view_dashboard_section_state"

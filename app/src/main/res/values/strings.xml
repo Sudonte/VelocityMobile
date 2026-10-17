@@ -446,6 +446,11 @@
     <string name="quick_action_browse_rooms">Browse rooms</string>
     <string name="quick_action_my_bookings">My bookings</string>
     <string name="quick_action_my_reservations">My reservations</string>
+    <string name="quick_hint_browse_rooms">See rooms and prices</string>
+    <string name="quick_hint_my_bookings">Stays you have paid for</string>
+    <string name="quick_hint_my_reservations">Rooms held for you</string>
+    <string name="quick_hint_history">Payments and receipts</string>
+    <string name="booking_reservation_summary_explainer">New here? A booking confirms your stay once you pay. A reservation holds a room with no payment now - pay later to turn it into a booking.</string>
     <string name="quick_action_history">Transaction history</string>
     <!-- Dashboard: next stay -->
     <string name="next_stay_section_title">Your Next Stay</string>

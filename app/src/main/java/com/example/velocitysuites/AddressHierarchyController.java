@@ -104,6 +104,9 @@ public class AddressHierarchyController {
 
     /** Shared across both screens for the lifetime of the process - the region list never changes. */
     private static List<PsgcRegion> regionCache;
+    /** Province / city / barangay lists never change within a session; a code that was looked up once is not fetched again. */
+    private static final java.util.Map<String, List<?>> lookupCache = new java.util.HashMap<>();
+
 
     private final Context context;
     private final AutoCompleteTextView countryField, regionField, provinceField, cityField, barangayField, timezoneField;
@@ -409,6 +412,12 @@ public class AddressHierarchyController {
 
     private void loadProvinces(String regionCode, Runnable after) {
         final int generation = selectionGeneration;
+        @SuppressWarnings("unchecked") List<PsgcProvince> cachedProvinces = (List<PsgcProvince>) lookupCache.get("p:" + regionCode);
+        if (cachedProvinces != null) {
+            applyProvinceAdapter(cachedProvinces);
+            if (after != null) after.run();
+            return;
+        }
         PsgcApiClient.getService().getProvinces(regionCode).enqueue(new Callback<List<PsgcProvince>>() {
             @Override
             public void onResponse(Call<List<PsgcProvince>> call, Response<List<PsgcProvince>> response) {
@@ -421,6 +430,7 @@ public class AddressHierarchyController {
                     loadCitiesForRegion(regionCode, after);
                 } else {
                     provinceHasNoProvinces = false;
+                    lookupCache.put("p:" + regionCode, list);
                     applyProvinceAdapter(list);
                     if (after != null) after.run();
                 }
@@ -436,11 +446,18 @@ public class AddressHierarchyController {
 
     private void loadCitiesForRegion(String regionCode, Runnable after) {
         final int generation = selectionGeneration;
+        @SuppressWarnings("unchecked") List<PsgcCityMunicipality> cachedCities = (List<PsgcCityMunicipality>) lookupCache.get("rc:" + regionCode);
+        if (cachedCities != null) {
+            applyCityAdapter(cachedCities);
+            if (after != null) after.run();
+            return;
+        }
         PsgcApiClient.getService().getRegionCitiesMunicipalities(regionCode).enqueue(new Callback<List<PsgcCityMunicipality>>() {
             @Override
             public void onResponse(Call<List<PsgcCityMunicipality>> call, Response<List<PsgcCityMunicipality>> response) {
                 if (generation != selectionGeneration) return;
                 List<PsgcCityMunicipality> list = response.isSuccessful() && response.body() != null ? response.body() : new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) lookupCache.put("rc:" + regionCode, list);
                 applyCityAdapter(list);
                 if (after != null) after.run();
             }
@@ -455,11 +472,18 @@ public class AddressHierarchyController {
 
     private void loadCitiesForProvince(String provinceCode, Runnable after) {
         final int generation = selectionGeneration;
+        @SuppressWarnings("unchecked") List<PsgcCityMunicipality> cachedCities = (List<PsgcCityMunicipality>) lookupCache.get("pc:" + provinceCode);
+        if (cachedCities != null) {
+            applyCityAdapter(cachedCities);
+            if (after != null) after.run();
+            return;
+        }
         PsgcApiClient.getService().getProvinceCitiesMunicipalities(provinceCode).enqueue(new Callback<List<PsgcCityMunicipality>>() {
             @Override
             public void onResponse(Call<List<PsgcCityMunicipality>> call, Response<List<PsgcCityMunicipality>> response) {
                 if (generation != selectionGeneration) return; // province changed again while this was in flight
                 List<PsgcCityMunicipality> list = response.isSuccessful() && response.body() != null ? response.body() : new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) lookupCache.put("pc:" + provinceCode, list);
                 applyCityAdapter(list);
                 if (after != null) after.run();
             }
@@ -474,11 +498,18 @@ public class AddressHierarchyController {
 
     private void loadBarangays(String cityCode, Runnable after) {
         final int generation = selectionGeneration;
+        @SuppressWarnings("unchecked") List<PsgcBarangay> cachedBarangays = (List<PsgcBarangay>) lookupCache.get("b:" + cityCode);
+        if (cachedBarangays != null) {
+            applyBarangayAdapter(cachedBarangays);
+            if (after != null) after.run();
+            return;
+        }
         PsgcApiClient.getService().getBarangays(cityCode).enqueue(new Callback<List<PsgcBarangay>>() {
             @Override
             public void onResponse(Call<List<PsgcBarangay>> call, Response<List<PsgcBarangay>> response) {
                 if (generation != selectionGeneration) return; // city changed again while this was in flight
                 List<PsgcBarangay> list = response.isSuccessful() && response.body() != null ? response.body() : new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) lookupCache.put("b:" + cityCode, list);
                 applyBarangayAdapter(list);
                 if (after != null) after.run();
             }
