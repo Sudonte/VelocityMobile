@@ -1856,7 +1856,7 @@
     <string name="txn_headline_rejected">Transaction Rejected</string>
 
     <!-- Shown wherever a field has no value, instead of a blank, "null" or "N/A". -->
-    <string name="value_missing">—</string>
+    <string name="value_missing">N/A</string>
 
     <!-- ===== Transaction History card / detail header ===== -->
     <string name="txn_payment_label">Payment</string>

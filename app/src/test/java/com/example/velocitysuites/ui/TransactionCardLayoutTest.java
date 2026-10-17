@@ -294,8 +294,8 @@ public class TransactionCardLayoutTest {
         b.setRoomType(null);
         b.setRoomName(null);
         View root = card(context, b, 360);
-        assertEquals("—", text(root, R.id.tvTxnRoom).getText().toString());
-        assertEquals("—", text(root, R.id.tvTxnStay).getText().toString());
+        assertEquals("N/A", text(root, R.id.tvTxnRoom).getText().toString());
+        assertEquals("N/A", text(root, R.id.tvTxnStay).getText().toString());
         assertFalse(text(root, R.id.tvTxnPayment).getText().toString().contains("null"));
     }
 

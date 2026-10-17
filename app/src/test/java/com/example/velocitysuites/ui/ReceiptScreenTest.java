@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * The real Payment Receipt screen, rendered from the project's own receipt fixtures (no network): it must open
  * without crashing from every receipt shape, show the status badge the shared rules give (Partial -> Partially
- * Paid, Full/Official -> Paid), show every required field - and "—" (never a blank, "null" or a crash) for any
+ * Paid, Full/Official -> Paid), show every required field - and "N/A" (never a blank, "null" or a crash) for any
  * field the payload lacks.
  */
 @RunWith(AndroidJUnit4.class)
@@ -222,17 +222,17 @@ public class ReceiptScreenTest {
 
         assertEquals(View.VISIBLE, activity.findViewById(R.id.receiptScrollView).getVisibility());
         assertEquals("FR-SPARSE-1", valueOf(activity, "Payment Reference"));
-        assertEquals("—", valueOf(activity, "Booking ID"));
-        assertEquals("—", valueOf(activity, "Guest Account Name"));
-        assertEquals("—", valueOf(activity, "Room Type"));
-        assertEquals("—", valueOf(activity, "Room Rate"));
-        assertEquals("—", valueOf(activity, "Check-in"));
-        assertEquals("—", valueOf(activity, "Check-out"));
-        assertEquals("—", valueOf(activity, "Number of Nights"));
-        assertEquals("—", valueOf(activity, "Receipt Date"));
-        assertEquals("—", valueOf(activity, "Grand Total"));
-        assertEquals("—", valueOf(activity, "Amount Paid"));
-        assertEquals("—", valueOf(activity, "Remaining Balance"));
+        assertEquals("N/A", valueOf(activity, "Booking ID"));
+        assertEquals("N/A", valueOf(activity, "Guest Account Name"));
+        assertEquals("N/A", valueOf(activity, "Room Type"));
+        assertEquals("N/A", valueOf(activity, "Room Rate"));
+        assertEquals("N/A", valueOf(activity, "Check-in"));
+        assertEquals("N/A", valueOf(activity, "Check-out"));
+        assertEquals("N/A", valueOf(activity, "Number of Nights"));
+        assertEquals("N/A", valueOf(activity, "Receipt Date"));
+        assertEquals("N/A", valueOf(activity, "Grand Total"));
+        assertEquals("N/A", valueOf(activity, "Amount Paid"));
+        assertEquals("N/A", valueOf(activity, "Remaining Balance"));
         assertFalse(texts(activity).toString().contains("null"));
     }
 
@@ -246,9 +246,9 @@ public class ReceiptScreenTest {
                 "Oct 01, 2026", "Oct 02, 2026", 1, null, 2, 0, summary, Collections.singletonList(bare), anchor, "2026-09-30T14:09:00Z");
         PaymentReceiptActivity activity = open(detail);
 
-        assertEquals("—", valueOf(activity, "Payment Method"));
-        assertEquals("—", valueOf(activity, "Payment Date"));
-        assertEquals("—", valueOf(activity, "Payment Time"));
+        assertEquals("N/A", valueOf(activity, "Payment Method"));
+        assertEquals("N/A", valueOf(activity, "Payment Date"));
+        assertEquals("N/A", valueOf(activity, "Payment Time"));
         assertEquals("Partially Paid", valueOf(activity, "Payment Status"));
     }
 

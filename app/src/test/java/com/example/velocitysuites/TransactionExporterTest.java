@@ -138,7 +138,7 @@ public class TransactionExporterTest {
         bare.setCheckOutDate(null);
         String[] lines = TransactionExporter.pdfLines(context, TransactionRow.from(bare));
         assertEquals("Reservation #9  ·  PENDING", lines[0]);
-        assertTrue(lines[1], lines[1].startsWith("—  ·  Total ₱0.00"));
+        assertTrue(lines[1], lines[1].startsWith("N/A  ·  Total ₱0.00"));
         assertFalse(lines[0] + lines[1], (lines[0] + lines[1]).contains("null"));
     }
 
