@@ -133,6 +133,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         animateScreenContent();
         updatePersonalizedGreeting();
         applyRestoredDates();
+        reattachRestoredPickerListeners();
     }
 
     // ---- surviving recreation (dark-mode toggle, process death) ----
@@ -648,6 +649,15 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 .setSelection(initialSelection)
                 .build();
 
+        attachCheckInListeners(picker);
+        picker.show(getSupportFragmentManager(), TAG_CHECK_IN_PICKER);
+    }
+
+    private static final String TAG_CHECK_IN_PICKER = "CHECK_IN_PICKER";
+    private static final String TAG_CHECK_OUT_PICKER = "CHECK_OUT_PICKER";
+
+    /** What choosing a check-in date does. Listeners are not saved with a picker fragment, so this also runs for one restored after recreation. */
+    private void attachCheckInListeners(MaterialDatePicker<Long> picker) {
         picker.addOnPositiveButtonClickListener(selection -> {
             checkInDate = fromUtcMidnight(selection);
             etCheckIn.setText(fieldDateFormat.format(checkInDate.getTime()));
@@ -666,9 +676,30 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             checkOutLayout.setEnabled(true);
             updateDateSummary();
         });
-
         highlightWhileOpen(checkInLayout, picker);
-        picker.show(getSupportFragmentManager(), "CHECK_IN_PICKER");
+    }
+
+    /** What choosing a check-out date does (see attachCheckInListeners). */
+    private void attachCheckOutListeners(MaterialDatePicker<Long> picker) {
+        picker.addOnPositiveButtonClickListener(selection -> {
+            checkOutDate = fromUtcMidnight(selection);
+            etCheckOut.setText(fieldDateFormat.format(checkOutDate.getTime()));
+            checkOutLayout.setError(null);
+            updateDateSummary();
+        });
+        highlightWhileOpen(checkOutLayout, picker);
+    }
+
+    /**
+     * A date picker that was open when the screen was recreated (dark-mode toggle, system kill) comes back from the
+     * FragmentManager with its dialog but without its click listeners: re-attach them, so choosing a date still works.
+     */
+    @SuppressWarnings("unchecked")
+    private void reattachRestoredPickerListeners() {
+        androidx.fragment.app.Fragment checkIn = getSupportFragmentManager().findFragmentByTag(TAG_CHECK_IN_PICKER);
+        if (checkIn instanceof MaterialDatePicker) attachCheckInListeners((MaterialDatePicker<Long>) checkIn);
+        androidx.fragment.app.Fragment checkOut = getSupportFragmentManager().findFragmentByTag(TAG_CHECK_OUT_PICKER);
+        if (checkOut instanceof MaterialDatePicker) attachCheckOutListeners((MaterialDatePicker<Long>) checkOut);
     }
 
     private void showCheckOutPicker() {
@@ -696,15 +727,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 .setSelection(initialSelection)
                 .build();
 
-        picker.addOnPositiveButtonClickListener(selection -> {
-            checkOutDate = fromUtcMidnight(selection);
-            etCheckOut.setText(fieldDateFormat.format(checkOutDate.getTime()));
-            checkOutLayout.setError(null);
-            updateDateSummary();
-        });
-
-        highlightWhileOpen(checkOutLayout, picker);
-        picker.show(getSupportFragmentManager(), "CHECK_OUT_PICKER");
+        attachCheckOutListeners(picker);
+        picker.show(getSupportFragmentManager(), TAG_CHECK_OUT_PICKER);
     }
 
     // MaterialDatePicker works in UTC-midnight millis while the rest of the

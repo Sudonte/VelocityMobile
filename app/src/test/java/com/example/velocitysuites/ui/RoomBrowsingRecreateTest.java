@@ -111,4 +111,32 @@ public class RoomBrowsingRecreateTest {
         assertFalse(((TextView) c.get().findViewById(R.id.etCheckIn)).getText().length() > 0);
         c.pause().stop().destroy();
     }
+
+    @Test
+    public void aDatePickerOpenDuringRecreationStillAppliesTheChosenDate() throws Exception {
+        Context app = ApplicationProvider.getApplicationContext();
+        ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
+        ActivityController<RoomBrowsingActivity> controller = Robolectric.buildActivity(RoomBrowsingActivity.class, new Intent(app, RoomBrowsingActivity.class)).setup();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        controller.get().findViewById(R.id.etCheckIn).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("the picker is showing", controller.get().getSupportFragmentManager().findFragmentByTag("CHECK_IN_PICKER") != null);
+
+        controller.recreate(); // dark-mode toggle / system kill with the picker open
+        shadowOf(Looper.getMainLooper()).idle();
+        RoomBrowsingActivity recreated = controller.get();
+
+        androidx.fragment.app.Fragment picker = recreated.getSupportFragmentManager().findFragmentByTag("CHECK_IN_PICKER");
+        assertTrue("the picker came back", picker instanceof com.google.android.material.datepicker.MaterialDatePicker);
+        View confirm = ((androidx.fragment.app.DialogFragment) picker).getDialog().findViewById(com.google.android.material.R.id.confirm_button);
+        confirm.performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        Field in = RoomBrowsingActivity.class.getDeclaredField("checkInDate");
+        in.setAccessible(true);
+        assertTrue("the date picked in the restored picker was applied", in.get(recreated) != null);
+        assertTrue(((TextView) recreated.findViewById(R.id.etCheckIn)).getText().length() > 0);
+        controller.pause().stop().destroy();
+    }
 }

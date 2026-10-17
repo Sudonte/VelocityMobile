@@ -192,6 +192,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             applyFilters();
         }
         loadTransactions(true);
+        reattachRestoredPickerListeners();
     }
 
     @Override
@@ -640,6 +641,14 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
                     criteria.to.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()));
         }
         MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = builder.build();
+        attachDateRangeListeners(picker);
+        picker.show(getSupportFragmentManager(), TAG_DATE_PICKER);
+    }
+
+    private static final String TAG_DATE_PICKER = "DATE_PICKER";
+
+    /** What choosing a date range does. Listeners are not saved with a picker fragment, so this also runs for one restored after recreation. */
+    private void attachDateRangeListeners(MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker) {
         picker.addOnPositiveButtonClickListener(selection -> {
             if (selection == null || selection.first == null || selection.second == null) return;
             criteria.from = Instant.ofEpochMilli(selection.first).atZone(ZoneOffset.UTC).toLocalDate();
@@ -647,7 +656,13 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             updateChips();
             applyFilters();
         });
-        picker.show(getSupportFragmentManager(), "DATE_PICKER");
+    }
+
+    /** A range picker open during recreation comes back without its listeners: re-attach them. */
+    @SuppressWarnings("unchecked")
+    private void reattachRestoredPickerListeners() {
+        androidx.fragment.app.Fragment restored = getSupportFragmentManager().findFragmentByTag(TAG_DATE_PICKER);
+        if (restored instanceof MaterialDatePicker) attachDateRangeListeners((MaterialDatePicker<androidx.core.util.Pair<Long, Long>>) restored);
     }
 
     // ---- Deep link: highlight + open the EXACT transaction ----

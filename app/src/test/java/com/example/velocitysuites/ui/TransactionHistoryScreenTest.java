@@ -456,4 +456,42 @@ public class TransactionHistoryScreenTest {
         @Override public void onError(String message) { }
     }
 
+
+    @Test
+    public void aDateRangePickerOpenDuringRecreationStillAppliesTheChosenRange() throws Exception {
+        ActivityController<TransactionHistoryActivity> controller = launch();
+        shadowOf(Looper.getMainLooper()).idle();
+        // A range already chosen, so the picker opens with a selection (its confirm button is then enabled and is saved with it).
+        Object criteria = field(controller.get(), "criteria");
+        field(criteria, "from", java.time.LocalDate.of(2026, 10, 12));
+        field(criteria, "to", java.time.LocalDate.of(2026, 10, 14));
+        controller.get().findViewById(R.id.chipDateFilter).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        controller.recreate();
+        shadowOf(Looper.getMainLooper()).idle();
+        TransactionHistoryActivity recreated = controller.get();
+        assertEquals("a fresh screen has no range yet", null, field(field(recreated, "criteria"), "from"));
+
+        androidx.fragment.app.Fragment picker = recreated.getSupportFragmentManager().findFragmentByTag("DATE_PICKER");
+        assertTrue("the picker came back", picker instanceof com.google.android.material.datepicker.MaterialDatePicker);
+        ((androidx.fragment.app.DialogFragment) picker).getDialog().findViewById(com.google.android.material.R.id.confirm_button).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(java.time.LocalDate.of(2026, 10, 12), field(field(recreated, "criteria"), "from"));
+        assertEquals(java.time.LocalDate.of(2026, 10, 14), field(field(recreated, "criteria"), "to"));
+        controller.pause().stop().destroy();
+    }
+
+    private static Object field(Object target, String name) throws Exception {
+        java.lang.reflect.Field f = target.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(target);
+    }
+
+    private static void field(Object target, String name, Object value) throws Exception {
+        java.lang.reflect.Field f = target.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        f.set(target, value);
+    }
 }
