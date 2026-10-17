@@ -66,17 +66,20 @@ public class ReceiptsAndHeaderScreensTest {
     }
 
     /**
-     * Windows other test classes left behind can still have a frame callback queued; it runs (and throws a barrier-token
-     * error) during THIS class's first activity recreate. Run those callbacks now, where the error is harmless.
+     * ThemePreferences.setMode() makes AppCompat recreate EVERY activity it still tracks (a static list), including ones other
+     * test classes left open - and recreating those, mid-test, throws a barrier-token error. Forget the old ones here, so only
+     * the activities this test opens are affected.
      */
+    @SuppressWarnings("unchecked")
     private static void drainStaleWindowCallbacks() {
-        for (int i = 0; i < 3; i++) {
-            try {
-                shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500)); // frames only fire as the clock advances
-            } catch (IllegalStateException staleWindow) {
-                // a leaked window from another test class; its callback is consumed by running it
-            }
+        try {
+            java.lang.reflect.Field f = androidx.appcompat.app.AppCompatDelegate.class.getDeclaredField("sActivityDelegates");
+            f.setAccessible(true);
+            ((java.util.Collection<Object>) f.get(null)).clear();
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            throw new AssertionError("AppCompatDelegate no longer keeps its delegates in sActivityDelegates - update this helper", e);
         }
+        shadowOf(Looper.getMainLooper()).idle();
     }
 
     @After
