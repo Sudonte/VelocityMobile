@@ -29,6 +29,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         void onToggleReadClick(Notification notification);
         /** Tapped the card's own "View Transaction" button - distinct from the whole-card tap, which opens the notification detail screen instead. Only ever bound when NotificationPrimaryActionResolver#canViewTransaction() is true for this row (see bindActions()). */
         void onViewTransactionDetailsClick(Notification notification);
+
+        /** "View Receipt" on a receipt notification: opens that receipt directly. */
+        default void onViewReceiptClick(Notification notification) {
+            onViewTransactionDetailsClick(notification);
+        }
     }
 
     public NotificationAdapter(Context context, List<Notification> notifications, OnNotificationClickListener listener) {
@@ -385,8 +390,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         });
 
         boolean canViewTransaction = NotificationPrimaryActionResolver.canViewTransaction(notification.getType(), notification.getReferenceId());
-        holder.btnViewTransactionDetails.setVisibility(canViewTransaction ? View.VISIBLE : View.GONE);
-        if (canViewTransaction) {
+        // A receipt notification's one action opens that receipt in a single tap; the others open the transaction.
+        boolean hasReceipt = notification.hasStructuredReceipt();
+        holder.btnViewTransactionDetails.setVisibility(canViewTransaction || hasReceipt ? View.VISIBLE : View.GONE);
+        if (hasReceipt) {
+            holder.btnViewTransactionDetails.setText(R.string.view_receipt_button_label);
+            setCompoundIcons(holder.btnViewTransactionDetails, 0, R.drawable.ic_arrow_forward);
+            holder.btnViewTransactionDetails.setContentDescription(ctx.getString(R.string.cd_view_receipt_format, title));
+            holder.btnViewTransactionDetails.setOnClickListener(v -> {
+                if (listener != null) listener.onViewReceiptClick(notification);
+            });
+        } else if (canViewTransaction) {
+            holder.btnViewTransactionDetails.setText(R.string.view_transaction_label);
             setCompoundIcons(holder.btnViewTransactionDetails, 0, R.drawable.ic_arrow_forward);
             holder.btnViewTransactionDetails.setContentDescription(ctx.getString(R.string.cd_view_transaction_format, title));
             holder.btnViewTransactionDetails.setOnClickListener(v -> {

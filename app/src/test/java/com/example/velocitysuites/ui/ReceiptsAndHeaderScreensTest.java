@@ -230,4 +230,43 @@ public class ReceiptsAndHeaderScreensTest {
         String text = all(details(b).findViewById(R.id.sectionBalanceContent));
         assertTrue(text, text.contains("Fully paid - you owe nothing") || text.contains("You still need to pay"));
     }
+
+    // ---- the receipt PDF is paper: white page, dark text, in either theme
+
+    private static void collectTextColors(View v, List<String> darkOnly, List<String> offenders) {
+        if (v instanceof TextView && v.getVisibility() == View.VISIBLE && ((TextView) v).getText().length() > 0) {
+            int c = ((TextView) v).getCurrentTextColor();
+            double lum = (0.299 * ((c >> 16) & 0xFF) + 0.587 * ((c >> 8) & 0xFF) + 0.114 * (c & 0xFF)) / 255.0;
+            (lum > 0.6 ? offenders : darkOnly).add(((TextView) v).getText() + " #" + Integer.toHexString(c));
+        }
+        if (v instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) collectTextColors(((ViewGroup) v).getChildAt(i), darkOnly, offenders);
+        }
+    }
+
+    @Test
+    public void thePdfIsAWhitePageWithDarkText_evenWhenTheAppIsInDarkMode() {
+        ThemePreferences.setMode(app, ThemePreferences.MODE_DARK);
+        Map<String, ReceiptDetail> all = DebugReceiptFixtures.allReceiptDetails();
+        ReceiptDetail partial = all.values().stream().filter(d -> "PARTIAL_RECEIPT".equals(d.getReceiptType())).findFirst().get();
+        partial.setHighlight(highlight("booking_verification", "total_amount", 2000, "amount_paid_now", 500, "total_paid", 500, "remaining_balance", 1500, "amount_to_pay", 1500));
+        PaymentReceiptActivity screen = open(partial);
+
+        View page = screen.buildReceiptForPdf(1080);
+
+        assertEquals("a white page", android.graphics.Color.WHITE, ((android.graphics.drawable.ColorDrawable) page.getBackground()).getColor());
+        List<String> dark = new ArrayList<>();
+        List<String> light = new ArrayList<>();
+        collectTextColors(page, dark, light);
+        assertTrue("there is text on the page", dark.size() > 10);
+        assertTrue("no light-coloured text on the white page: " + light, light.isEmpty());
+        assertTrue("the highlighted totals are in the PDF", all(page).contains("Remaining balance"));
+        assertTrue("laid out with a real height", page.getMeasuredHeight() > 600);
+
+        // the on-screen receipt is unchanged: still the dark theme's own light text
+        List<String> screenDark = new ArrayList<>();
+        List<String> screenLight = new ArrayList<>();
+        collectTextColors(screen.findViewById(R.id.layoutDynamicReceiptContent), screenDark, screenLight);
+        assertFalse("the screen keeps following the dark theme", screenLight.isEmpty());
+    }
 }

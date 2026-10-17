@@ -65,8 +65,24 @@ public class NotificationScreenTest {
 
     // ---- helpers ----
 
+    private final java.util.List<ActivityController<NotificationActivity>> launched = new java.util.ArrayList<>();
+
+    /** Leave no live window behind for the next test class (a leaked one breaks later theme-recreate tests). */
+    @org.junit.After
+    public void destroyLaunchedScreens() {
+        for (ActivityController<NotificationActivity> c : launched) {
+            try {
+                c.pause().stop().destroy();
+            } catch (RuntimeException ignored) {
+                // already finished by the test
+            }
+        }
+        launched.clear();
+    }
+
     private ActivityController<NotificationActivity> launch() {
         ActivityController<NotificationActivity> controller = Robolectric.buildActivity(NotificationActivity.class, new Intent(app, NotificationActivity.class));
+        launched.add(controller);
         controller.setup();
         idle();
         return controller;
@@ -250,6 +266,27 @@ public class NotificationScreenTest {
         PaymentTransaction opened = (PaymentTransaction) started.getSerializableExtra(TransactionDetailsActivity.EXTRA_TRANSACTION);
         assertTrue("a Reservation notification opens the reservation, not the booking sharing its id", !opened.parentBooking.isDirectBooking());
         assertEquals(1800, opened.parentBooking.getTotalAmount(), 0.01);
+        assertNull("no second screen from the second tap", shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test
+    public void aReceiptNotification_hasAOneTapViewReceipt_thatOpensThatReceipt() {
+        NotificationActivity activity = launch().get();
+        com.example.velocitysuites.network.dto.NotificationDto withReceipt = ScreenTestSupport.notification(1, "Checked In - Receipt 2 Ready", "booking", 5L, false);
+        withReceipt.receipt_number = "SR-000123";
+        withReceipt.receipt_type = "CHECKIN_SETTLEMENT_RECEIPT";
+        answerNotifications(1, withReceipt);
+
+        TextView view = row(list(activity), 0).findViewById(R.id.btnViewTransactionDetails);
+        assertEquals(View.VISIBLE, view.getVisibility());
+        assertEquals("View Receipt", view.getText().toString());
+        view.performClick();
+        view.performClick();
+
+        Intent started = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(started);
+        assertEquals(com.example.velocitysuites.PaymentReceiptActivity.class.getName(), started.getComponent().getClassName());
+        assertEquals("SR-000123", started.getStringExtra(com.example.velocitysuites.PaymentReceiptActivity.EXTRA_RECEIPT_NUMBER));
         assertNull("no second screen from the second tap", shadowOf(activity).getNextStartedActivity());
     }
 

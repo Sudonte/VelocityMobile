@@ -165,7 +165,7 @@ final class ReceiptCardHelper {
      * flat item_payment_history_entry.xml row, once the backend has attached
      * payment_transactions to this Booking.
      */
-    static View buildTransactionRow(Activity activity, ViewGroup parent, Booking.PaymentTransactionRecord tx, boolean isLast) {
+    static View buildTransactionRow(android.content.Context activity, ViewGroup parent, Booking.PaymentTransactionRecord tx, boolean isLast) {
         View row = LayoutInflater.from(activity).inflate(R.layout.item_receipt_transaction_entry, parent, false);
 
         String methodLabel = "gcash".equalsIgnoreCase(tx.paymentMethod)
@@ -242,7 +242,7 @@ final class ReceiptCardHelper {
         return row;
     }
 
-    static void bindInflatedRow(Activity activity, View parent, int includeId, String label, @Nullable String value) {
+    static void bindInflatedRow(android.content.Context activity, View parent, int includeId, String label, @Nullable String value) {
         View row = parent.findViewById(includeId);
         if (row == null) return;
         if (value == null || value.trim().isEmpty()) {

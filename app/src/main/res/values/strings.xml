@@ -1891,6 +1891,7 @@
 
     <!-- ===== Notification card ===== -->
     <string name="view_transaction_label">View Transaction</string>
+    <string name="cd_view_receipt_format">View receipt for %1$s</string>
     <string name="cd_view_transaction_format">View transaction for %1$s</string>
     <string name="cd_mark_read_format">Mark as read: %1$s</string>
     <string name="cd_mark_unread_format">Mark as unread: %1$s</string>

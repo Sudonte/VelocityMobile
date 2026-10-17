@@ -79,6 +79,26 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     private ReceiptDetail receiptDetail;
     /** The View actually visible on screen right now (receiptCard in legacy mode, layoutDynamicReceiptContent in receipt-number mode) - what Download Receipt renders to PDF. */
     private View activeReceiptView;
+
+    /** What views, colours and the inflater are built from: this activity normally, a Light-themed context while the PDF is made. */
+    private Context ui;
+    /** When set, the legacy receipt binds into this (a light copy of the layout) instead of the on-screen one. */
+    private View bindRoot;
+    private ReceiptDetail shownDetail;
+    @Nullable private List<BookingAmenity> shownAmenities;
+    private double shownAggregateAmenityCharge;
+
+    @SuppressWarnings("unchecked")
+    private <T extends View> T fv(int id) {
+        return (T) (bindRoot != null ? bindRoot.findViewById(id) : findViewById(id));
+    }
+
+    /** A copy of this activity's context forced to Light (day) mode, with the app theme. */
+    private Context lightContext() {
+        android.content.res.Configuration config = new android.content.res.Configuration(getResources().getConfiguration());
+        config.uiMode = (config.uiMode & ~android.content.res.Configuration.UI_MODE_NIGHT_MASK) | android.content.res.Configuration.UI_MODE_NIGHT_NO;
+        return new androidx.appcompat.view.ContextThemeWrapper(createConfigurationContext(config), R.style.Theme_VelocitySuites);
+    }
     /**
      * Every sibling Booking/Reservation created together with this one as a
      * multi-room-type transaction (see BookingGroupState/BookingDetailsActivity's
@@ -130,6 +150,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ui = this;
         setContentView(R.layout.activity_payment_receipt);
 
         ImageButton btnBack = findViewById(R.id.btnReceiptBack);
@@ -363,12 +384,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.tvReceiptHeaderTitle)).setText(typeLabel);
         String stageLabel = ReceiptTypeMapper.labelWithStage(detail.getReceiptType());
 
-        buildHeaderSection(content, detail, stageLabel);
-        buildStaySection(content, detail);
-        buildGuestSection(content, detail);
-        buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
-        buildTransactionHistorySection(content, detail);
-        buildHighlightSection(content, detail);
+        shownDetail = detail;
+        shownAmenities = amenities;
+        shownAggregateAmenityCharge = aggregateAmenityCharge;
+        buildReceiptBody(content, detail, amenities, aggregateAmenityCharge);
 
         MaterialButton btnDownload = findViewById(R.id.btnReceiptDownload);
         btnDownload.setVisibility(View.VISIBLE);
@@ -379,6 +398,52 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         });
 
         showContentState();
+    }
+
+    private void buildReceiptBody(ViewGroup content, ReceiptDetail detail, @Nullable List<BookingAmenity> amenities, double aggregateAmenityCharge) {
+        String stageLabel = ReceiptTypeMapper.labelWithStage(detail.getReceiptType());
+        buildHeaderSection(content, detail, stageLabel);
+        buildStaySection(content, detail);
+        buildGuestSection(content, detail);
+        buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
+        buildTransactionHistorySection(content, detail);
+        buildHighlightSection(content, detail);
+    }
+
+    /**
+     * The receipt as a PDF always looks like paper: this rebuilds the same receipt in Light mode (white page, dark text)
+     * whatever theme the app is in, and returns it measured and laid out at {@code widthPx}. The on-screen receipt is
+     * untouched and keeps following the theme.
+     */
+    public View buildReceiptForPdf(int widthPx) {
+        Context previous = ui;
+        ui = lightContext();
+        try {
+            LinearLayout page = new LinearLayout(ui);
+            page.setOrientation(LinearLayout.VERTICAL);
+            page.setBackgroundColor(android.graphics.Color.WHITE);
+            page.setPadding(dp(14), dp(14), dp(14), dp(14));
+            if (shownDetail != null) {
+                buildReceiptBody(page, shownDetail, shownAmenities, shownAggregateAmenityCharge);
+            } else if (booking != null) {
+                // Legacy receipt: bind a Light copy of the layout.
+                View root = android.view.LayoutInflater.from(ui).inflate(R.layout.activity_payment_receipt, null, false);
+                bindRoot = root;
+                try {
+                    populateReceipt();
+                } finally {
+                    bindRoot = null;
+                }
+                View card = root.findViewById(R.id.receiptCard);
+                ((ViewGroup) card.getParent()).removeView(card);
+                page.addView(card);
+            }
+            page.measure(View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            page.layout(0, 0, page.getMeasuredWidth(), page.getMeasuredHeight());
+            return page;
+        } finally {
+            ui = previous;
+        }
     }
 
     /**
@@ -421,37 +486,37 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
     /** Big, tinted rows for the figures a receipt highlights; the last row carries an optional note ("Due at check-in"). */
     private void addHighlightPanel(ViewGroup parent, String[] labels, double[] values, @Nullable String note) {
-        LinearLayout panel = new LinearLayout(this);
+        LinearLayout panel = new LinearLayout(ui);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
         panel.setPadding(dp(14), dp(12), dp(14), dp(12));
         for (int i = 0; i < labels.length; i++) {
-            LinearLayout row = new LinearLayout(this);
+            LinearLayout row = new LinearLayout(ui);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
             row.setPadding(0, dp(4), 0, dp(4));
-            TextView label = new TextView(this);
+            TextView label = new TextView(ui);
             label.setText(labels[i]);
             label.setAllCaps(true);
             label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
             label.setLetterSpacing(0.04f);
-            label.setTextColor(getColor(R.color.velocity_text_primary));
+            label.setTextColor(ui.getColor(R.color.velocity_text_primary));
             label.setTextSize(12);
             row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            TextView value = new TextView(this);
+            TextView value = new TextView(ui);
             value.setText(formatPrice(values[i]));
             value.setGravity(android.view.Gravity.END);
             value.setTypeface(value.getTypeface(), android.graphics.Typeface.BOLD);
-            value.setTextColor(getColor(R.color.velocity_action_text)); // the red that stays readable in Dark too
+            value.setTextColor(ui.getColor(R.color.velocity_action_text)); // the red that stays readable in Dark too
             value.setTextSize(i == labels.length - 1 ? 20 : 16);
             row.addView(value, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             panel.addView(row);
         }
         if (note != null && !note.isEmpty()) {
-            TextView noteView = new TextView(this);
+            TextView noteView = new TextView(ui);
             noteView.setText(note);
             noteView.setGravity(android.view.Gravity.END);
-            noteView.setTextColor(getColor(R.color.velocity_text_secondary));
+            noteView.setTextColor(ui.getColor(R.color.velocity_text_secondary));
             noteView.setTextSize(12);
             panel.addView(noteView);
         }
@@ -462,7 +527,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     private void buildHeaderSection(ViewGroup parent, ReceiptDetail detail, String typeLabel) {
         LinearLayout content = newSectionCard(parent, null);
 
-        ImageView logo = new ImageView(this);
+        ImageView logo = new ImageView(ui);
         LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(56), dp(56));
         logoParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
         logo.setLayoutParams(logoParams);
@@ -497,7 +562,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
     /** The centered status pill of the receipt header - text, colors and icon all from the shared status style. */
     private TextView newStatusBadge(TransactionStatusHelper.Status status) {
-        TextView badge = new TextView(this);
+        TextView badge = new TextView(ui);
         badge.setBackgroundResource(R.drawable.shape_intro_pill);
         badge.setPadding(dp(14), dp(6), dp(14), dp(6));
         badge.setGravity(android.view.Gravity.CENTER_VERTICAL);
@@ -611,7 +676,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             return;
         }
 
-        ReceiptSummaryRenderer.render(this, content, ReceiptBreakdown.forReceiptDetail(detail, amenities, aggregateAmenityCharge));
+        ReceiptSummaryRenderer.render(ui, content, ReceiptBreakdown.forReceiptDetail(detail, amenities, aggregateAmenityCharge));
         buildPaymentDetailsSection(parent, detail, summary);
     }
 
@@ -757,16 +822,16 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         List<Booking.PaymentTransactionRecord> transactions = detail.getPaymentTransactions();
 
         if (transactions.isEmpty()) {
-            TextView empty = new TextView(this);
+            TextView empty = new TextView(ui);
             empty.setText(R.string.receipt_no_transactions_desc);
-            empty.setTextColor(getColor(R.color.velocity_text_secondary));
+            empty.setTextColor(ui.getColor(R.color.velocity_text_secondary));
             empty.setTextSize(12);
             content.addView(empty);
             return;
         }
 
         for (int i = 0; i < transactions.size(); i++) {
-            View row = ReceiptCardHelper.buildTransactionRow(this, content, transactions.get(i), i == transactions.size() - 1);
+            View row = ReceiptCardHelper.buildTransactionRow(ui, content, transactions.get(i), i == transactions.size() - 1);
             content.addView(row);
         }
     }
@@ -775,24 +840,24 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
     /** New rounded card appended to parent; returns its inner content LinearLayout for callers to add rows into. Null title omits the section-title TextView (used for the header card, which has its own bespoke title treatment). */
     private LinearLayout newSectionCard(ViewGroup parent, @Nullable String title) {
-        com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(this);
+        com.google.android.material.card.MaterialCardView card = new com.google.android.material.card.MaterialCardView(ui);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         cardParams.bottomMargin = dp(14);
         card.setLayoutParams(cardParams);
         card.setRadius(getResources().getDimension(R.dimen.card_corner_radius));
         card.setCardElevation(getResources().getDimension(R.dimen.card_elevation));
         card.setStrokeWidth(dp(1));
-        card.setStrokeColor(getColor(R.color.velocity_red_soft));
-        card.setCardBackgroundColor(getColor(R.color.velocity_surface_elevated));
+        card.setStrokeColor(ui.getColor(R.color.velocity_red_soft));
+        card.setCardBackgroundColor(ui.getColor(R.color.velocity_surface_elevated));
 
-        LinearLayout content = new LinearLayout(this);
+        LinearLayout content = new LinearLayout(ui);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(18), dp(18), dp(18), dp(18));
 
         if (title != null) {
-            TextView titleView = new TextView(this);
+            TextView titleView = new TextView(ui);
             titleView.setText(title);
-            titleView.setTextColor(getColor(R.color.velocity_red_primary));
+            titleView.setTextColor(ui.getColor(R.color.velocity_red_primary));
             titleView.setTypeface(titleView.getTypeface(), android.graphics.Typeface.BOLD);
             titleView.setTextSize(12);
             titleView.setLetterSpacing(0.04f);
@@ -810,7 +875,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     /** Reuses item_receipt_row.xml (the same label/value row template the legacy card already uses) - hides itself when value is null/empty, matching bindRow()'s established convention. */
     private void addRow(ViewGroup parent, String label, @Nullable String value) {
         if (value == null || value.trim().isEmpty()) return;
-        View row = getLayoutInflater().inflate(R.layout.item_receipt_row, parent, false);
+        View row = android.view.LayoutInflater.from(ui).inflate(R.layout.item_receipt_row, parent, false);
         ((TextView) row.findViewById(R.id.tvRowLabel)).setText(label);
         ((TextView) row.findViewById(R.id.tvRowValue)).setText(value);
         parent.addView(row);
@@ -822,37 +887,37 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     }
 
     private void addDivider(ViewGroup parent, int topMarginPx) {
-        View divider = new View(this);
+        View divider = new View(ui);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1));
         params.topMargin = topMarginPx;
         params.bottomMargin = dp(10);
         divider.setLayoutParams(params);
-        divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
+        divider.setBackgroundColor(ui.getColor(R.color.velocity_divider_hairline));
         parent.addView(divider);
     }
 
     /** The visually prominent "TOTAL AMOUNT PAID" panel for an Official Receipt - item 10. */
     private void addProminentTotal(ViewGroup parent, String label, String value) {
-        LinearLayout panel = new LinearLayout(this);
+        LinearLayout panel = new LinearLayout(ui);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setGravity(android.view.Gravity.CENTER);
         panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
         panel.setPadding(0, dp(16), 0, dp(16));
 
-        TextView labelView = new TextView(this);
+        TextView labelView = new TextView(ui);
         labelView.setText(label);
         labelView.setAllCaps(true);
         labelView.setGravity(android.view.Gravity.CENTER);
-        labelView.setTextColor(getColor(R.color.velocity_text_secondary));
+        labelView.setTextColor(ui.getColor(R.color.velocity_text_secondary));
         labelView.setTextSize(11);
         labelView.setLetterSpacing(0.04f);
         panel.addView(labelView);
 
-        TextView valueView = new TextView(this);
+        TextView valueView = new TextView(ui);
         valueView.setText(value);
         valueView.setGravity(android.view.Gravity.CENTER);
         valueView.setTypeface(valueView.getTypeface(), android.graphics.Typeface.BOLD);
-        valueView.setTextColor(getColor(R.color.velocity_red_primary));
+        valueView.setTextColor(ui.getColor(R.color.velocity_red_primary));
         // One step below the Grand Total's 22sp panel (item_receipt_grand_total.xml) - this is
         // what was PAID, the Grand Total is what is OWED, and the outlined Grand Total panel
         // should read as the primary figure on the page.
@@ -866,10 +931,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     }
 
     private TextView centeredText(String text, float sizeSp, boolean bold, int colorRes, int topMarginPx) {
-        TextView view = new TextView(this);
+        TextView view = new TextView(ui);
         view.setText(text);
         view.setGravity(android.view.Gravity.CENTER);
-        view.setTextColor(getColor(colorRes));
+        view.setTextColor(ui.getColor(colorRes));
         view.setTextSize(sizeSp);
         if (bold) view.setTypeface(view.getTypeface(), android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -944,7 +1009,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         double remainingBalance = Math.max(0, totalAmount - amountPaid);
         // The status badge: the same rule Transaction History applies, on this receipt's own figures.
         TransactionStatusHelper.Status status = TransactionStatusHelper.resolve(booking.getStatus(), false, totalAmount, amountPaid);
-        StatusBadges.bind(findViewById(R.id.tvReceiptStatusBadge), status);
+        StatusBadges.bind(fv(R.id.tvReceiptStatusBadge), status);
         // paymentId is the system-generated internal payment id (Payment
         // Reference) - never to be confused with the guest-entered GCash
         // reference number bound to rowGcashReference below, which is a
@@ -954,7 +1019,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // "Payment Reference"), rendering as the redundant "Payment
         // Reference   Payment Reference: 235" - now just "Ref: 235".
         String paymentId = booking.getLatestPaymentId();
-        ((TextView) findViewById(R.id.tvReceiptReference)).setText(
+        ((TextView) fv(R.id.tvReceiptReference)).setText(
                 getString(R.string.receipt_reference_value_prefix) + " " + (paymentId != null ? paymentId : booking.getId()));
         // Receipt date for the header: when staff verified the payment (the moment this
         // receipt became available) if on record, else the payment's own date - a legacy
@@ -1035,7 +1100,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         bindRowOrDash(R.id.rowPaymentTime, getString(R.string.details_label_payment_time), booking.getPaymentTimeOnly());
 
         // --- Payment Summary ---
-        TextView paymentTypeBadge = findViewById(R.id.tvPaymentTypeBadge);
+        TextView paymentTypeBadge = fv(R.id.tvPaymentTypeBadge);
         paymentTypeBadge.setText(fullyPaid ? R.string.receipt_payment_type_full : R.string.receipt_payment_type_partial);
 
         // Itemized Selected Rooms/Amenities/charges -> Grand Total, from the Booking's own
@@ -1047,7 +1112,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         // Booking has no discount_preview source at all, so it correctly stays 0/hidden
         // for that path rather than showing a fabricated value.
         long stayNights = StayDateCalculator.nightsBetween(booking.getCheckInDate(), booking.getCheckOutDate());
-        ReceiptSummaryRenderer.render(this, (ViewGroup) findViewById(R.id.layoutPaymentSummaryBreakdown),
+        ReceiptSummaryRenderer.render(ui, (ViewGroup) fv(R.id.layoutPaymentSummaryBreakdown),
                 ReceiptBreakdown.forLegacyBooking(booking, groupMembers, stayNights, totalAmount, amenityCharge, additionalGuestFee));
 
         // Payment PROGRESS - moved out of the Payment Summary (see the layout) so the Grand Total closes it.
@@ -1063,7 +1128,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         bindRow(R.id.rowVerifiedBy, getString(R.string.receipt_verified_by_label), null);
         bindRow(R.id.rowVerifiedAt, getString(R.string.receipt_verified_at_label), booking.getPaymentVerifiedAtDisplay());
 
-        ((TextView) findViewById(R.id.tvTotalAmountPaid)).setText(formatPrice(amountPaid));
+        ((TextView) fv(R.id.tvTotalAmountPaid)).setText(formatPrice(amountPaid));
     }
 
     /** Like bindRow(), but a missing value reads "—" instead of the row disappearing - for the fields a receipt is expected to show. */
@@ -1072,7 +1137,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     }
 
     private void bindRow(int includeId, String label, @Nullable String value) {
-        View row = findViewById(includeId);
+        View row = fv(includeId);
         if (row == null) return;
         if (value == null || value.trim().isEmpty()) {
             row.setVisibility(View.GONE);
@@ -1090,7 +1155,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
      * no-op if the row was hidden by bindRow() above (no value to emphasize).
      */
     private void emphasizeRowValue(int includeId) {
-        View row = findViewById(includeId);
+        View row = fv(includeId);
         if (row == null || row.getVisibility() != View.VISIBLE) return;
         TextView value = row.findViewById(R.id.tvRowValue);
         value.setTypeface(value.getTypeface(), android.graphics.Typeface.BOLD);
@@ -1272,11 +1337,13 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         android.net.Uri uri = null;
         try {
             document = new PdfDocument();
-            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(target.getWidth(), target.getHeight(), 1).create();
+            // Always a white page with dark text, in either theme - rebuilt in Light mode, not a screenshot of the screen.
+            View pdfPage = buildReceiptForPdf(target.getWidth());
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pdfPage.getMeasuredWidth(), Math.max(1, pdfPage.getMeasuredHeight()), 1).create();
             PdfDocument.Page page = document.startPage(pageInfo);
             Canvas canvas = page.getCanvas();
-            canvas.drawColor(getColor(R.color.velocity_red_bg_end)); // the screen's own background, so light/dark text is always readable
-            target.draw(canvas);
+            canvas.drawColor(android.graphics.Color.WHITE);
+            pdfPage.draw(canvas);
             document.finishPage(page);
 
             ContentValues values = new ContentValues();

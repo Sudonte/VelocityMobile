@@ -105,6 +105,18 @@ public class PaymentScreenTest {
         shadowOf(cm).setNetworkCapabilities(cm.getActiveNetwork(), caps);
     }
 
+    /** Leave no live window behind for the next test class (a leaked one breaks later theme-recreate tests). */
+    @org.junit.After
+    public void destroyLaunchedScreen() {
+        if (controller == null) return;
+        try {
+            controller.pause().stop().destroy();
+        } catch (RuntimeException ignored) {
+            // already finished by the test
+        }
+        controller = null;
+    }
+
     private PaymentActivity launch(ReservationDto reservation) {
         Intent intent = new Intent(app, PaymentActivity.class).putExtra("BOOKING_ID", String.valueOf(reservation.id));
         controller = Robolectric.buildActivity(PaymentActivity.class, intent);

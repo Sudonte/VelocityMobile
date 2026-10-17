@@ -353,6 +353,13 @@ public class NotificationActivity extends BaseNavigationActivity {
                 if (!clickGuard.tryAcquire()) return;
                 openTransaction(notification);
             }
+
+            @Override
+            public void onViewReceiptClick(Notification notification) {
+                if (!clickGuard.tryAcquire()) return;
+                markReadIfUnread(notification);
+                startActivity(PaymentReceiptActivity.newIntentForReceipt(NotificationActivity.this, notification.getReceiptNumber()));
+            }
         });
         rvNotifications.setAdapter(adapter);
     }
