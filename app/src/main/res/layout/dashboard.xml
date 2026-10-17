@@ -220,7 +220,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="11dp"
+                    android:layout_marginBottom="8dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
@@ -231,17 +231,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_glass_card_white"
-                        android:minHeight="56dp"
-                        android:padding="11dp">
+                        android:minHeight="44dp"
+                        android:padding="8dp">
 
                         <ImageView
                             android:id="@+id/clockIcon"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_soft"
                             android:contentDescription="@string/system_clock_label"
-                            android:padding="8dp"
+                            android:padding="6dp"
                             android:src="@drawable/ic_clock"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -271,11 +271,10 @@
                                 android:id="@+id/timeText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/time_placeholder"
                                 android:textColor="@color/velocity_text_primary"
-                                android:textSize="22sp" />
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <ImageView
