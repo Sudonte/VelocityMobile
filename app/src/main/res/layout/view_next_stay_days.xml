@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingTop="8dp">
+        android:paddingTop="4dp">
 
         <TextView
             android:id="@+id/nextStayDayInfo"
@@ -35,7 +35,10 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:accessibilityLiveRegion="polite"
+            android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
+            android:gravity="center_vertical"
+            android:maxLines="1"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="13sp" />
 

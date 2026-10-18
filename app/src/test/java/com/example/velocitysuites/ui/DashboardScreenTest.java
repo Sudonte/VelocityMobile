@@ -586,7 +586,8 @@ public class DashboardScreenTest {
         }
         assertEquals(refs.toString(), 2, refs.size());
         assertTrue(refs.toString(), refs.contains("Reservation #588") && refs.contains("Booking #338"));
-        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).endsWith("2 stays"));
+        assertEquals("the chip badge carries the count", "2",
+                ((TextView) activity.<ViewGroup>findViewById(R.id.nextStayDayStrip).getChildAt(14 + 2).findViewById(R.id.tvDayCount)).getText().toString());
     }
 
     @Test
@@ -600,7 +601,7 @@ public class DashboardScreenTest {
         assertEquals("Today", ((TextView) strip.getChildAt(14).findViewById(R.id.tvDayName)).getText().toString());
         assertEquals("Tomorrow", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayName)).getText().toString());
         assertTrue("nothing today, so the nearest day with a stay is selected", strip.getChildAt(15).isSelected());
-        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Your next stay · Tomorrow"));
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).equals("Your next stay · tomorrow"));
         selectDay(activity, 0);
         assertTrue("Today is selected", strip.getChildAt(14).isSelected());
         assertEquals("tomorrow has two transactions", "2", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayCount)).getText().toString());
@@ -610,8 +611,7 @@ public class DashboardScreenTest {
         selectDay(activity, -1);
         assertEquals("a stay that ended yesterday still shows on its check-out day", 1, activity.<ViewGroup>findViewById(R.id.nextStayDayCards).getChildCount());
         selectDay(activity, 2);
-        assertTrue("a stay also covers its check-out day: " + text(activity, R.id.nextStayDayInfo),
-                text(activity, R.id.nextStayDayInfo).endsWith("2 stays"));
+        assertEquals("a stay also covers its check-out day", "In 2 days", text(activity, R.id.nextStayDayInfo));
     }
 
     @Test
@@ -621,14 +621,14 @@ public class DashboardScreenTest {
 
         ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
         assertTrue(strip.getChildAt(14 + 3).isSelected());
-        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Your next stay · In 3 days"));
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).equals("Your next stay · in 3 days"));
         assertEquals("the Today button shows while another day is selected", View.VISIBLE, activity.findViewById(R.id.btnNextStayToday).getVisibility());
 
         tap(activity.findViewById(R.id.btnNextStayToday));
         idle();
         assertTrue(strip.getChildAt(14).isSelected());
         assertEquals("no Today button once Today is selected", View.GONE, activity.findViewById(R.id.btnNextStayToday).getVisibility());
-        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Today"));
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).equals("Today"));
         assertEquals("empty state on a quiet Today", View.VISIBLE, activity.findViewById(R.id.nextStayDayEmpty).getVisibility());
     }
 
@@ -640,7 +640,7 @@ public class DashboardScreenTest {
         ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
         assertTrue("check-in day", strip.getChildAt(14 + 2).isSelected());
         assertFalse("not the check-out day", strip.getChildAt(14 + 3).isSelected());
-        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Your next stay · In 2 days · 1 stay"));
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).equals("Your next stay · in 2 days"));
 
         // lay the screen out as on a phone, then the selected chip must sit inside the strip's visible window
         View decor = activity.getWindow().getDecorView();
@@ -719,6 +719,22 @@ public class DashboardScreenTest {
         TextView balance = activity.findViewById(R.id.tvNextStayBalance);
         assertTrue("the balance reads on the card surface",
                 androidx.core.graphics.ColorUtils.calculateContrast(balance.getCurrentTextColor(), surface) >= 3.0);
+    }
+
+    @Test
+    public void nextStayCard_typeChipIsNeutral_dayRoleChipKeepsTheRedAccent_andTheHeaderBadgeIsSolidRed() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        TextView type = activity.findViewById(R.id.tvNextStayType);
+        TextView role = activity.findViewById(R.id.tvNextStayHint);
+        assertEquals("neutral gray text on the type chip", app.getColor(R.color.status_cancelled_fg), type.getCurrentTextColor());
+        assertEquals("red accent on the day-role chip", app.getColor(R.color.velocity_red_primary), role.getCurrentTextColor());
+        assertFalse("the two chips differ", type.getCurrentTextColor() == role.getCurrentTextColor());
+
+        TextView badge = activity.findViewById(R.id.nextStayCount);
+        assertEquals("white number", app.getColor(R.color.white), badge.getCurrentTextColor());
+        assertTrue("solid red, readable in dark mode too", androidx.core.graphics.ColorUtils.calculateContrast(
+                badge.getCurrentTextColor(), app.getColor(R.color.velocity_red_primary)) >= 3.0);
     }
 
     @Test

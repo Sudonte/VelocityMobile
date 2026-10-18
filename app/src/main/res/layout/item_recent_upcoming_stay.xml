@@ -75,12 +75,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/shape_intro_pill"
-                android:backgroundTint="@color/velocity_red_soft"
+                android:backgroundTint="@color/status_cancelled_bg"
                 android:fontFamily="sans-serif-black"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
                 android:textAllCaps="true"
-                android:textColor="@color/velocity_red_primary"
+                android:textColor="@color/status_cancelled_fg"
                 android:textSize="11sp"
                 tools:text="Booking" />
 

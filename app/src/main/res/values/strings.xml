@@ -2148,10 +2148,13 @@
         <item quantity="one">%d day ago</item>
         <item quantity="other">%d days ago</item>
     </plurals>
-    <string name="next_stay_ctx_next_prefix">Your next stay · %1$s</string>
-    <string name="next_stay_ctx_none">No stays</string>
-    <string name="next_stay_ctx_format">%1$s · %2$s · %3$s</string>
     <string name="next_stay_paid">Paid</string>
+    <string name="next_stay_ctx_next_today">Your next stay · today</string>
+    <string name="next_stay_ctx_next_tomorrow">Your next stay · tomorrow</string>
+    <plurals name="next_stay_ctx_next_in_days">
+        <item quantity="one">Your next stay · in %d day</item>
+        <item quantity="other">Your next stay · in %d days</item>
+    </plurals>
 </resources>
 
 

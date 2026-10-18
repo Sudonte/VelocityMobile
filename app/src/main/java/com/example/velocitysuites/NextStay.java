@@ -170,6 +170,13 @@ public final class NextStay {
 
     public static final int LOOKAHEAD_DAYS = 120;
 
+    /** The nearest day from Today on that has a transaction (Today itself when it has one), or null when there is none. */
+    @Nullable
+    public static LocalDate nearestStayDay(@Nullable List<Booking> bookings, @NonNull LocalDate today) {
+        if (!forDay(bookings, today, today).isEmpty()) return today;
+        return nextDayWithStay(bookings, today);
+    }
+
     /** The nearest day after {@code today} that has a transaction, or null when there is none. */
     @Nullable
     public static LocalDate nextDayWithStay(@Nullable List<Booking> bookings, @NonNull LocalDate today) {

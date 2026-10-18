@@ -175,15 +175,53 @@ public class StayCardAndDetailsTest {
     }
 
     @Test
-    public void contextLine_readsDateRelativeDayAndStayCount() {
+    public void contextLine_saysOnlyHowFarTheDayIs() {
         Context context = themed();
         LocalDate today = LocalDate.of(2026, 10, 18);
-        assertEquals("Tue, Oct 20 · Your next stay · In 2 days · 1 stay",
-                NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true, 1));
-        assertEquals("Sun, Oct 18 · Today · 3 stays", NextStayDayText.line(context, today, today, false, 3));
-        assertEquals("Mon, Oct 19 · Tomorrow · No stays", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, false, 0));
-        assertEquals("Fri, Oct 16 · 2 days ago · 1 stay", NextStayDayText.line(context, LocalDate.of(2026, 10, 16), today, false, 1));
-        assertEquals("Wed, Oct 21 · In 3 days · 1 stay", NextStayDayText.line(context, LocalDate.of(2026, 10, 21), today, false, 1));
+        // the nearest stay day
+        assertEquals("Your next stay · in 2 days", NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true));
+        assertEquals("Your next stay · tomorrow", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, true));
+        assertEquals("Your next stay · today", NextStayDayText.line(context, today, today, true));
+        // any other day
+        assertEquals("In 5 days", NextStayDayText.line(context, LocalDate.of(2026, 10, 23), today, false));
+        assertEquals("2 days ago", NextStayDayText.line(context, LocalDate.of(2026, 10, 16), today, false));
+        assertEquals("Tomorrow", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, false));
+        assertEquals("Yesterday", NextStayDayText.line(context, LocalDate.of(2026, 10, 17), today, false));
+        assertEquals("Today", NextStayDayText.line(context, today, today, false));
+        // a past day is never "your next stay"
+        assertEquals("Yesterday", NextStayDayText.line(context, LocalDate.of(2026, 10, 17), today, true));
+    }
+
+    @Test
+    public void nearestStayDay_isTodayWhenItHasAStay_otherwiseTheNextDayThatDoes() {
+        LocalDate today = LocalDate.of(2026, 10, 18);
+        Booking later = stay("1", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 21), "Confirmed", 1750);
+        assertEquals(LocalDate.of(2026, 10, 20), NextStay.nearestStayDay(Arrays.asList(later), today));
+        Booking now = stay("2", LocalDate.of(2026, 10, 17), LocalDate.of(2026, 10, 19), "Checked-In", 1750);
+        assertEquals(today, NextStay.nearestStayDay(Arrays.asList(later, now), today));
+        assertNull(NextStay.nearestStayDay(new ArrayList<>(), today));
+    }
+
+    @Test
+    public void contextRow_isOneLineAt360dp_evenForTheLongestText_andTheTodayButtonIsCentredWithIt() {
+        Context context = themed();
+        FrameLayout parent = new FrameLayout(context);
+        View body = android.view.LayoutInflater.from(context).inflate(R.layout.view_next_stay_days, parent, false);
+        TextView info = body.findViewById(R.id.nextStayDayInfo);
+        View todayButton = body.findViewById(R.id.btnNextStayToday);
+        todayButton.setVisibility(View.VISIBLE);
+        info.setText(NextStayDayText.line(context, LocalDate.of(2027, 2, 14), LocalDate.of(2026, 10, 18), true)); // "Your next stay · in 119 days"
+
+        int width = Math.round(360 * context.getResources().getDisplayMetrics().density);
+        body.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        body.layout(0, 0, body.getMeasuredWidth(), body.getMeasuredHeight());
+
+        assertEquals("one line", 1, info.getLineCount());
+        assertEquals(1, info.getMaxLines());
+        View row = body.findViewById(R.id.nextStayDayInfoRow);
+        int infoCentre = row.getTop() + info.getTop() + info.getHeight() / 2;
+        int buttonCentre = row.getTop() + todayButton.getTop() + todayButton.getHeight() / 2;
+        assertTrue("the Today button is centred with the text", Math.abs(infoCentre - buttonCentre) <= 2);
     }
 
     // ---- 4. transaction details
