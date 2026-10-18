@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ONE notification row, shared by the Dashboard's Notifications section and the bell popup (NotificationRowBinder):
+       [round category icon]  Title (bold while unread)                 4m ago
+                              1-2 line message preview, secondary         ●
+     Plain LinearLayouts, so a long title or a big system font ellipsizes or wraps instead of overlapping the time. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rowNotification"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:baselineAligned="false"
+    android:clickable="true"
+    android:focusable="true"
+    android:minHeight="56dp"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <FrameLayout
+        android:id="@+id/frameNotifIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/shape_notification_icon_circle"
+        android:backgroundTint="@color/velocity_red_soft">
+
+        <ImageView
+            android:id="@+id/ivNotifIcon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_notifications"
+            app:tint="@color/velocity_red_primary" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNotifTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Amenity Request Approved" />
+
+        <TextView
+            android:id="@+id/tvNotifMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="1 x Additional Pillow (Room 1-001) (₱50.00) was approved and added to your bill." />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNotifTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="11sp"
+            tools:text="4m ago" />
+
+        <View
+            android:id="@+id/viewNotifUnreadDot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_notification_dot"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+</LinearLayout>

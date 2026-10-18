@@ -34,19 +34,21 @@ final class SectionPreview {
         return total > PREVIEW_COUNT;
     }
 
+    /** "Show all (4)", or "Show all (99+)" once the list is longer than 99 - a number that big is never worth its width. */
+    @NonNull
+    static String showAllText(@NonNull Context context, int total) {
+        return total > 99 ? context.getString(R.string.preview_show_all_overflow) : context.getString(R.string.preview_show_all_format, total);
+    }
+
     /** Adds the "Show all (N)" / "Show less" button at the end of a list (nothing, and null, when {@link #needsToggle} is false). */
     @Nullable
     static MaterialButton addToggle(@NonNull Context context, @NonNull ViewGroup container, int total, boolean expanded,
                                     @NonNull Runnable onToggle) {
         if (!needsToggle(total)) return null;
-        MaterialButton button = new MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        button.setId(R.id.btnPreviewToggle);
-        button.setText(expanded ? context.getString(R.string.preview_show_less) : context.getString(R.string.preview_show_all_format, total));
-        float density = context.getResources().getDisplayMetrics().density;
-        button.setMinHeight((int) (48 * density));
-        ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.topMargin = (int) (10 * density);
-        container.addView(button, lp);
+        MaterialButton button = (MaterialButton) android.view.LayoutInflater.from(context).inflate(R.layout.view_preview_toggle, container, false);
+        button.setText(expanded ? context.getString(R.string.preview_show_less) : showAllText(context, total));
+        button.setIconResource(expanded ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
+        container.addView(button);
         button.setOnClickListener(v -> onToggle.run());
         return button;
     }

@@ -61,6 +61,18 @@ final class StayCardText {
         return context.getString(R.string.stay_card_nights_guests_format, nights, guests);
     }
 
+    /** "Oct 20 → Oct 21, 2026 · 1 night" - the dates, then the length of the stay; either part alone when the other is unknown. */
+    @NonNull
+    static String datesAndNights(@NonNull Context context, @NonNull Booking b) {
+        String dates = dates(b);
+        LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+        LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+        if (in == null || out == null) return dates;
+        int n = (int) Math.max(1, ChronoUnit.DAYS.between(in, out));
+        String nights = context.getResources().getQuantityString(R.plurals.receipt_nights_count, n, n);
+        return dates.isEmpty() ? nights : context.getString(R.string.recent_booking_dates_format, dates, nights);
+    }
+
     @NonNull
     private static String clean(@Nullable String s) {
         return s == null ? "" : s.trim();

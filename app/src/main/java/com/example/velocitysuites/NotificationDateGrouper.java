@@ -4,27 +4,28 @@ import android.content.Context;
 import java.util.Calendar;
 
 /**
- * Buckets a notification's raw created_at into "Today"/"Yesterday"/"Earlier" for
- * NotificationAdapter's inline date-group headers. daysBetween() takes both
- * timestamps explicitly (not System.currentTimeMillis() internally) so the
- * calendar-day boundary logic is deterministically unit-testable. A notification
- * with no raw timestamp (createdAtMillis <= 0 - any Notification built by a
- * constructor that predates this field) falls back to "Earlier" rather than
- * mis-bucketing as "Today".
+ * Buckets a notification's raw created_at into "Today" / "Yesterday" / "Earlier this week" / "Older" for the Notifications
+ * screen's date-group headers. daysBetween() takes both timestamps explicitly (not System.currentTimeMillis() internally)
+ * so the calendar-day boundary logic is deterministically unit-testable. A notification with no raw timestamp
+ * (createdAtMillis <= 0) falls back to "Older" rather than mis-bucketing as "Today".
  */
 public final class NotificationDateGrouper {
+
+    /** Within this many calendar days (but not today / yesterday) a notification is "Earlier this week". */
+    static final int THIS_WEEK_DAYS = 6;
 
     private NotificationDateGrouper() {
     }
 
     public static String groupLabel(Context ctx, long createdAtMillis, long nowMillis) {
         if (createdAtMillis <= 0) {
-            return ctx.getString(R.string.notif_date_group_earlier);
+            return ctx.getString(R.string.notif_date_group_older);
         }
         int daysAgo = daysBetween(createdAtMillis, nowMillis);
         if (daysAgo == 0) return ctx.getString(R.string.notif_date_group_today);
         if (daysAgo == 1) return ctx.getString(R.string.notif_date_group_yesterday);
-        return ctx.getString(R.string.notif_date_group_earlier);
+        if (daysAgo <= THIS_WEEK_DAYS) return ctx.getString(R.string.notif_date_group_earlier);
+        return ctx.getString(R.string.notif_date_group_older);
     }
 
     /**

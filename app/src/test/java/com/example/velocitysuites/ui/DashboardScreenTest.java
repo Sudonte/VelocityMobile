@@ -509,20 +509,17 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void recentBookings_highlightTheBookingNumber_withTheRoomNameSmallerBelow() {
+    public void recentBookings_leadWithTheBookingNumber_boldInPrimaryText_withTheRoomTypeSmallerBelow() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(booking(338, 2)));
 
-        for (int listId : new int[]{R.id.bookingListContainer}) {
-            ViewGroup list = activity.findViewById(listId);
-            TextView id = first(list, R.id.tvNextItemBookingId);
-            TextView room = first(list, R.id.tvNextItemRoomName);
-            assertEquals("Booking #338", id.getText().toString());
-            assertTrue("the ID is the larger line", id.getTextSize() > room.getTextSize());
-            assertEquals("in the brand colour", androidx.core.content.ContextCompat.getColor(app, R.color.velocity_red_primary), id.getCurrentTextColor());
-            assertTrue("the room name is secondary text", room.getCurrentTextColor() != id.getCurrentTextColor());
-            assertTrue("12sp minimum", room.getTextSize() >= 12 * app.getResources().getDisplayMetrics().scaledDensity - 0.5f);
-        }
+        ViewGroup list = activity.findViewById(R.id.bookingListContainer);
+        TextView id = first(list, R.id.tvRecentBookingRef);
+        TextView room = first(list, R.id.tvRecentBookingRoom);
+        assertEquals("Booking #338", id.getText().toString());
+        assertTrue("the ID is the larger line", id.getTextSize() > room.getTextSize());
+        assertEquals("primary text colour (it was red)", androidx.core.content.ContextCompat.getColor(app, R.color.velocity_text_primary), id.getCurrentTextColor());
+        assertTrue("12sp minimum", room.getTextSize() >= 12 * app.getResources().getDisplayMetrics().scaledDensity - 0.5f);
     }
 
     @Test
@@ -1266,7 +1263,7 @@ public class DashboardScreenTest {
 
         int[][] expected = {
                 {R.string.payment_chip_paid, R.color.status_paid_fg}, {R.string.payment_chip_partial, R.color.status_pending_fg},
-                {R.string.payment_chip_unpaid, R.color.velocity_red_primary}};
+                {R.string.payment_chip_unpaid, R.color.status_unpaid_fg}};
         String[] refs = {"Reservation #721", "Reservation #722", "Reservation #723"};
         for (int i = 0; i < refs.length; i++) {
             TextView chip = paymentValue(activity, refs[i], R.id.tvPaymentStatus);

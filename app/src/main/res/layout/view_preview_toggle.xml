@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Show all (N)" / "Show less" at the end of a Dashboard list (SectionPreview): one compact, centred, wrap-content outlined
+     button - 40dp to look at, 48dp to touch, normal-case text with no letter-spacing - the same in every section. -->
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btnPreviewToggle"
+    style="@style/Widget.Velocity.Flat.Button.Compact"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginTop="6dp"
+    android:maxLines="1"
+    app:icon="@drawable/ic_expand_more"
+    app:iconGravity="textEnd"
+    app:iconPadding="6dp"
+    app:iconSize="18dp" />

@@ -1,6 +1,7 @@
 package com.example.velocitysuites.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -115,6 +116,22 @@ public class NotificationScreenTest {
         return holder.itemView;
     }
 
+    private static boolean isUnread(View row) {
+        return row.findViewById(R.id.viewNotifUnreadDot).getVisibility() == View.VISIBLE;
+    }
+
+    /** Opens the card's overflow menu and picks its one item ("Mark as read" / "Mark as unread"); returns that item's title. */
+    private static String pickOverflow(View row) {
+        row.findViewById(R.id.btnNotifOverflow).performClick();
+        android.widget.PopupMenu menu = org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
+        assertNotNull("the overflow menu opened", menu);
+        android.view.MenuItem item = menu.getMenu().getItem(0);
+        String title = item.getTitle().toString();
+        org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu();
+        shadowOf(menu).getOnMenuItemClickListener().onMenuItemClick(item);
+        return title;
+    }
+
     private static String summary(NotificationActivity activity) {
         return ((TextView) activity.findViewById(R.id.tvUnreadSummary)).getText().toString();
     }
@@ -153,7 +170,7 @@ public class NotificationScreenTest {
         answerNotifications(2,
                 ScreenTestSupport.notification(2, "Payment Pending Validation", "payment", 588L, false),
                 ScreenTestSupport.notification(1, "Booking Confirmed", "booking", 5L, false));
-        assertEquals("2 unread notifications", summary(activity));
+        assertEquals("2 unread", summary(activity));
         assertEquals("2", badgeText(activity));
     }
 
@@ -185,8 +202,9 @@ public class NotificationScreenTest {
         assertEquals("You're all caught up", summary(activity));
         assertEquals("(hidden)", badgeText(activity));
         RecyclerView rv = list(activity);
-        assertEquals("every row flipped to read", "Mark as unread", ((TextView) row(rv, 0).findViewById(R.id.btnToggleReadState)).getText().toString());
-        assertEquals("Mark as unread", ((TextView) row(rv, 1).findViewById(R.id.btnToggleReadState)).getText().toString());
+        assertFalse("every row flipped to read", isUnread(row(rv, 0)));
+        assertFalse(isUnread(row(rv, 1)));
+        assertEquals("Mark all as read has nothing left to do", View.GONE, activity.findViewById(R.id.btnMarkAllRead).getVisibility());
 
         FakeCall<Object> request = api.last("markAllNotificationsRead");
         request.succeed(new Object());
@@ -206,40 +224,39 @@ public class NotificationScreenTest {
         FakeCall<Object> request = api.last("markAllNotificationsRead");
         request.offline();
         idle();
-        assertEquals("1 unread notification", summary(activity));
+        assertEquals("1 unread", summary(activity));
         assertEquals("1", badgeText(activity));
     }
 
     @Test
-    public void theToggleLabelSwitchesBetweenMarkAsReadAndMarkAsUnread_andTheBadgeFollows() {
+    public void theOverflowMenuSwitchesBetweenMarkAsReadAndMarkAsUnread_andTheBadgeFollows() {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Booking Confirmed", "booking", 5L, false));
         RecyclerView rv = list(activity);
-        TextView toggle = row(rv, 0).findViewById(R.id.btnToggleReadState);
-        assertEquals("Mark as read", toggle.getText().toString());
+        assertTrue(isUnread(row(rv, 0)));
         assertEquals("1", badgeText(activity));
 
-        toggle.performClick();
+        assertEquals("an unread card offers Mark as read", "Mark as read", pickOverflow(row(rv, 0)));
         confirmLatestDialog();
         rv = list(activity);
-        assertEquals("Mark as unread", ((TextView) row(rv, 0).findViewById(R.id.btnToggleReadState)).getText().toString());
+        assertFalse(isUnread(row(rv, 0)));
         assertEquals("(hidden)", badgeText(activity));
         assertEquals("You're all caught up", summary(activity));
 
         idleFor(800); // past the double-tap guard window, so this is a NEW tap, not a repeat of the last one
-        ((TextView) row(rv, 0).findViewById(R.id.btnToggleReadState)).performClick();
+        assertEquals("a read card offers Mark as unread", "Mark as unread", pickOverflow(row(rv, 0)));
         confirmLatestDialog();
         rv = list(activity);
-        assertEquals("Mark as read", ((TextView) row(rv, 0).findViewById(R.id.btnToggleReadState)).getText().toString());
+        assertTrue(isUnread(row(rv, 0)));
         assertEquals("1", badgeText(activity));
-        assertEquals("1 unread notification", summary(activity));
+        assertEquals("1 unread", summary(activity));
     }
 
     @Test
-    public void tappingAnUnreadRow_marksItRead_andOpensItsDetails() {
+    public void tappingAnUnreadCard_marksItRead_andOpensItsDetails() {
         NotificationActivity activity = launch().get();
         answerNotifications(2,
-                ScreenTestSupport.notification(1, "Booking Confirmed", "booking", 5L, false),
+                ScreenTestSupport.notification(1, "New Promotion", "promotion", null, false),
                 ScreenTestSupport.notification(2, "Payment Received", "payment", 6L, false));
         assertEquals("2", badgeText(activity));
 
@@ -247,10 +264,8 @@ public class NotificationScreenTest {
         idle();
 
         assertEquals("the badge dropped at once", "1", badgeText(activity));
-        assertEquals("Mark as unread",
-                ((TextView) row(list(activity), 0).findViewById(R.id.btnToggleReadState)).getText().toString());
-        assertEquals("the other row is untouched", "Mark as read",
-                ((TextView) row(list(activity), 1).findViewById(R.id.btnToggleReadState)).getText().toString());
+        assertFalse(isUnread(row(list(activity), 0)));
+        assertTrue("the other row is untouched", isUnread(row(list(activity), 1)));
         assertEquals(com.example.velocitysuites.NotificationDetailsActivity.class.getName(),
                 shadowOf(activity).getNextStartedActivity().getComponent().getClassName());
     }
@@ -258,14 +273,15 @@ public class NotificationScreenTest {
     // ---- View Transaction ----
 
     @Test
-    public void noTransactionButton_onANotificationThatIsntAboutATransaction() {
+    public void aCardWithNoTransaction_opensItsOwnDetails_andOneWithATransactionShowsItsLinkedId() {
         NotificationActivity activity = launch().get();
         answerNotifications(1,
                 ScreenTestSupport.notification(2, "New Promotion", "promotion", null, false),
                 ScreenTestSupport.notification(1, "Payment Pending Validation", "payment", 588L, false));
         RecyclerView rv = list(activity);
-        assertEquals(View.GONE, row(rv, 0).findViewById(R.id.btnViewTransactionDetails).getVisibility());
-        assertEquals(View.VISIBLE, row(rv, 1).findViewById(R.id.btnViewTransactionDetails).getVisibility());
+        assertEquals(View.GONE, row(rv, 0).findViewById(R.id.tvNotifLinked).getVisibility());
+        assertEquals(View.VISIBLE, row(rv, 1).findViewById(R.id.tvNotifLinked).getVisibility());
+        assertEquals("Booking #588", ((TextView) row(rv, 1).findViewById(R.id.tvNotifLinked)).getText().toString());
     }
 
     @Test
@@ -275,8 +291,7 @@ public class NotificationScreenTest {
         repositoryHasBookings(ScreenTestSupport.reservation(5, 1800), ScreenTestSupport.directBooking(5, 3000));
         answerNotifications(1, ScreenTestSupport.notification(1, "Reservation Confirmed", "reservation", 5L, true));
 
-        TextView view = row(list(activity), 0).findViewById(R.id.btnViewTransactionDetails);
-        assertEquals("View Transaction", view.getText().toString());
+        View view = row(list(activity), 0).findViewById(R.id.cardNotification);
         view.performClick();
         view.performClick();
 
@@ -290,16 +305,14 @@ public class NotificationScreenTest {
     }
 
     @Test
-    public void aReceiptNotification_hasAOneTapViewReceipt_thatOpensThatReceipt() {
+    public void aReceiptNotification_opensThatReceiptInOneTap() {
         NotificationActivity activity = launch().get();
         com.example.velocitysuites.network.dto.NotificationDto withReceipt = ScreenTestSupport.notification(1, "Checked In - Receipt 2 Ready", "booking", 5L, false);
         withReceipt.receipt_number = "SR-000123";
         withReceipt.receipt_type = "CHECKIN_SETTLEMENT_RECEIPT";
         answerNotifications(1, withReceipt);
 
-        TextView view = row(list(activity), 0).findViewById(R.id.btnViewTransactionDetails);
-        assertEquals(View.VISIBLE, view.getVisibility());
-        assertEquals("View Receipt", view.getText().toString());
+        View view = row(list(activity), 0).findViewById(R.id.cardNotification);
         view.performClick();
         view.performClick();
 
@@ -315,7 +328,7 @@ public class NotificationScreenTest {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Booking Pending", "booking", 77L, true));
 
-        row(list(activity), 0).findViewById(R.id.btnViewTransactionDetails).performClick();
+        row(list(activity), 0).findViewById(R.id.cardNotification).performClick();
         idle();
         assertEquals("a Booking notification asks the booking table first", "getDirectBooking(77)", api.log.get(api.log.size() - 1));
 
@@ -333,7 +346,7 @@ public class NotificationScreenTest {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Payment Pending Validation", "payment", 9999L, true));
 
-        row(list(activity), 0).findViewById(R.id.btnViewTransactionDetails).performClick();
+        row(list(activity), 0).findViewById(R.id.cardNotification).performClick();
         idle();
         FakeCall<ReservationDto> reservation = api.last("getReservation");
         reservation.http(404);
@@ -353,7 +366,7 @@ public class NotificationScreenTest {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Payment Pending Validation", "payment", 9999L, true));
 
-        TextView view = row(list(activity), 0).findViewById(R.id.btnViewTransactionDetails);
+        View view = row(list(activity), 0).findViewById(R.id.cardNotification);
         view.performClick();
         idle();
         FakeCall<ReservationDto> reservation = api.last("getReservation");

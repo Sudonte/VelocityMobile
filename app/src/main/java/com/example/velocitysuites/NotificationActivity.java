@@ -40,6 +40,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     /** Optional: when set, only this notification's detail screen is auto-opened on load. */
     public static final String EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID";
     private static final String KEY_CURRENT_FILTER = "KEY_CURRENT_FILTER";
+    private static final String KEY_SEARCH_QUERY = "KEY_SEARCH_QUERY";
     private static final String FILTER_UNREAD = "Unread";
 
     /** Internal filter keys, position-matched with NOTIF_FILTER_LABEL_RES below - the dropdown's selection maps back to the correct key regardless of locale. Required order: All, Unread, Booking, Reservation, Payment, Check-in, Promotions, System. */
@@ -49,7 +50,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     };
     private static final int[] NOTIF_FILTER_LABEL_RES = {
             R.string.notif_filter_all_label, R.string.filter_unread, R.string.quick_action_booking, R.string.quick_action_reservation,
-            R.string.payment_status, R.string.notif_filter_checkin, R.string.notif_filter_promotion,
+            R.string.notif_filter_payment, R.string.notif_filter_checkin, R.string.notif_filter_promotion,
             R.string.notif_filter_system
     };
 
@@ -88,7 +89,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearchNotifications;
     private com.google.android.material.textfield.TextInputLayout layoutNotificationStatusFilter;
-    private com.google.android.material.textfield.MaterialAutoCompleteTextView dropdownNotificationStatus;
+    private android.widget.AutoCompleteTextView dropdownNotificationStatus;
     private NotificationFilterDropdownAdapter filterDropdownAdapter;
     private NotificationAdapter adapter;
     private RoomRepository repository;
@@ -110,6 +111,11 @@ public class NotificationActivity extends BaseNavigationActivity {
     private boolean pollInFlight = false;
     /** The first load failed and nothing has loaded since - the header then says so instead of "all caught up". */
     private boolean initialLoadFailed = false;
+    /** The empty state's button: "Clear filters" while a search/filter hides everything, else "Refresh". */
+    private boolean emptyActionClearsFilters = false;
+    /** Pages auto-loaded for the current search/filter (capped so a server that keeps reporting "more" cannot loop forever). */
+    private int autoPagesLoaded = 0;
+    private static final int MAX_AUTO_PAGES = 100;
 
     private final ClickGuard clickGuard = new ClickGuard();
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
@@ -158,6 +164,8 @@ public class NotificationActivity extends BaseNavigationActivity {
                 currentFilter = restoredFilter;
                 selectDropdownFilter(restoredFilter);
             }
+            String restoredQuery = savedInstanceState.getString(KEY_SEARCH_QUERY);
+            if (restoredQuery != null) searchQuery = restoredQuery;
         }
 
         View btnRefreshEmpty = findViewById(R.id.btnEmptyAction);
@@ -168,7 +176,9 @@ public class NotificationActivity extends BaseNavigationActivity {
                 ((com.google.android.material.button.MaterialButton) btnRefreshEmpty).setIconResource(R.drawable.ic_clock);
             }
             btnRefreshEmpty.setOnClickListener(v -> {
-                if (clickGuard.tryAcquire()) loadNotifications(true);
+                if (!clickGuard.tryAcquire()) return;
+                if (emptyActionClearsFilters) clearSearchAndFilter();
+                else loadNotifications(true);
             });
         }
 
@@ -249,6 +259,7 @@ public class NotificationActivity extends BaseNavigationActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(KEY_CURRENT_FILTER, currentFilter);
+        outState.putString(KEY_SEARCH_QUERY, searchQuery);
     }
 
     @Override
@@ -336,29 +347,15 @@ public class NotificationActivity extends BaseNavigationActivity {
             @Override
             public void onNotificationClick(Notification notification) {
                 if (!clickGuard.tryAcquire()) return;
-                showNotificationDetails(notification);
-                markReadIfUnread(notification);
+                openNotification(notification);
             }
 
             @Override
             public void onToggleReadClick(Notification notification) {
-                // The explicit "Mark as read"/"Mark as unread" button - the only read-state change that asks
-                // first (opening a notification marking it read is implicit and expected).
+                // "Mark as read" / "Mark as unread" from the card's overflow - the only read-state change that asks first
+                // (opening a notification marking it read is implicit and expected).
                 if (!clickGuard.tryAcquire()) return;
                 confirmReadStateChange(notification);
-            }
-
-            @Override
-            public void onViewTransactionDetailsClick(Notification notification) {
-                if (!clickGuard.tryAcquire()) return;
-                openTransaction(notification);
-            }
-
-            @Override
-            public void onViewReceiptClick(Notification notification) {
-                if (!clickGuard.tryAcquire()) return;
-                markReadIfUnread(notification);
-                startActivity(PaymentReceiptActivity.newIntentForReceipt(NotificationActivity.this, notification.getReceiptNumber()));
             }
         });
         rvNotifications.setAdapter(adapter);
@@ -369,15 +366,13 @@ public class NotificationActivity extends BaseNavigationActivity {
     }
 
     /**
-     * "View Transaction": opens the EXACT reservation/booking the notification refers to (see
-     * TransactionNavigator - straight away when it is loaded, else after fetching it by id). A transaction that
-     * no longer exists gets a friendly message; a failed lookup says why and can simply be tapped again.
-     * Marks the notification read too, same as opening its own detail screen would - the guest has now seen
-     * and acted on this update either way.
+     * Tapping a card: marks it read and opens its target - the receipt it announces, else the EXACT reservation/booking it
+     * is about (straight away when it is loaded, else after fetching it by id - see TransactionNavigator), else its own
+     * detail screen. A transaction that no longer exists gets a friendly message; a failed lookup says why and can simply
+     * be tapped again.
      */
-    private void openTransaction(Notification notification) {
-        markReadIfUnread(notification);
-        TransactionNavigator.openFromNotification(this, notification, new TransactionNavigator.Listener() {
+    private void openNotification(Notification notification) {
+        NotificationOpener.open(this, notification, new TransactionNavigator.Listener() {
             @Override
             public void onLookupStarted() {
                 swipeRefresh.setRefreshing(true); // the record is being fetched - show that something is happening
@@ -399,6 +394,8 @@ public class NotificationActivity extends BaseNavigationActivity {
                 if (!isUiAlive()) return;
                 Toast.makeText(NotificationActivity.this, getString(R.string.txn_lookup_error_format, message), Toast.LENGTH_LONG).show();
             }
+        }, () -> {
+            if (isUiAlive()) syncFromRepository();
         });
     }
 
@@ -503,12 +500,15 @@ public class NotificationActivity extends BaseNavigationActivity {
             // Unknown is not zero: before the first successful load (or after a failed one) the count can't be
             // claimed to be 0, so the summary must not say "You're all caught up".
             tvUnreadSummary.setText(initialLoadFailed ? R.string.notif_unread_unavailable : R.string.notif_unread_checking);
+            findViewById(R.id.btnMarkAllRead).setVisibility(View.GONE);
             return;
         }
         int unread = repository.getUnreadNotificationCount();
         tvUnreadSummary.setText(unread > 0
-                ? getResources().getQuantityString(R.plurals.notif_unread_summary, unread, unread)
+                ? getString(R.string.summary_unread_count, unread)
                 : getString(R.string.notif_all_caught_up));
+        // "Mark all as read" has nothing to do at 0 unread.
+        findViewById(R.id.btnMarkAllRead).setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -624,6 +624,7 @@ public class NotificationActivity extends BaseNavigationActivity {
                 @Override
                 public void afterTextChanged(Editable s) {
                     searchQuery = s.toString().trim().toLowerCase(Locale.US);
+                    autoPagesLoaded = 0;
                     // Debounced: filtering on every keystroke re-ran the whole list per letter.
                     searchHandler.removeCallbacks(applyFiltersRunnable);
                     searchHandler.postDelayed(applyFiltersRunnable, SEARCH_DEBOUNCE_MS);
@@ -648,6 +649,7 @@ public class NotificationActivity extends BaseNavigationActivity {
             updateFilterLabelsWithCounts();
             dropdownNotificationStatus.setOnItemClickListener((parent, view, position, id) -> {
                 currentFilter = NOTIF_FILTER_KEYS[position];
+                autoPagesLoaded = 0;
                 // The CLOSED box always shows the plain label (no count suffix) - the popup rows are where counts live.
                 dropdownNotificationStatus.setText(labels[position], false);
                 updateDropdownStartIcon(currentFilter);
@@ -771,22 +773,20 @@ public class NotificationActivity extends BaseNavigationActivity {
                 rvNotifications.setVisibility(View.GONE);
                 scrollEmptyState.setVisibility(View.VISIBLE);
                 layoutInitialLoading.setVisibility(View.GONE);
-                if (!searchQuery.isEmpty()) {
-                    // A search with zero matches is a distinct case from "genuinely no notifications exist".
+                // Something hides everything: say so and offer "Clear filters". Genuinely nothing at all: "No notifications yet".
+                emptyActionClearsFilters = isFiltering();
+                if (emptyActionClearsFilters) {
                     if (emptyTitle != null) emptyTitle.setText(R.string.no_search_results_title);
                     if (emptyDesc != null) emptyDesc.setText(R.string.no_search_results_desc);
-                } else if (FILTER_UNREAD.equals(currentFilter)) {
-                    if (emptyTitle != null) emptyTitle.setText(R.string.no_unread_notifications_title);
-                    if (emptyDesc != null) emptyDesc.setText(R.string.no_unread_notifications_desc);
-                } else if (!"All".equals(currentFilter)) {
-                    // A specific category filter with zero matches - more specific than the generic message,
-                    // which would otherwise wrongly imply the account has no notifications at all.
-                    String label = currentFilterDisplayLabel();
-                    if (emptyTitle != null) emptyTitle.setText(getString(R.string.no_category_notifications_title_format, label));
-                    if (emptyDesc != null) emptyDesc.setText(getString(R.string.no_category_notifications_desc_format, label));
                 } else {
                     if (emptyTitle != null) emptyTitle.setText(R.string.no_notifications_title);
                     if (emptyDesc != null) emptyDesc.setText(R.string.no_notifications_desc);
+                }
+                View action = findViewById(R.id.btnEmptyAction);
+                if (action instanceof com.google.android.material.button.MaterialButton) {
+                    com.google.android.material.button.MaterialButton button = (com.google.android.material.button.MaterialButton) action;
+                    button.setText(emptyActionClearsFilters ? R.string.notif_clear_filters : R.string.refresh_label);
+                    button.setIconResource(emptyActionClearsFilters ? 0 : R.drawable.ic_clock);
                 }
             }
         } else {
@@ -799,6 +799,55 @@ public class NotificationActivity extends BaseNavigationActivity {
         // changes - see NotificationAdapter's own doc. A filter switch that leaves the same items visible in
         // the same order dispatches zero operations.
         adapter.submitList(notificationList);
+        loadRemainingPagesWhileFiltering();
+    }
+
+    /** True while a search or a Show filter is narrowing the list. */
+    private boolean isFiltering() {
+        return !searchQuery.isEmpty() || !"All".equals(currentFilter);
+    }
+
+    /** Back to "All notifications" with an empty search (the empty state's "Clear filters"). */
+    private void clearSearchAndFilter() {
+        searchQuery = "";
+        currentFilter = "All";
+        autoPagesLoaded = 0;
+        if (etSearchNotifications != null) etSearchNotifications.setText("");
+        selectDropdownFilter("All");
+        applyFilters();
+    }
+
+    /**
+     * Notifications are fetched a page at a time (200 first, 200 more as the guest scrolls). A search or filter has to cover
+     * ALL of them, not just the pages that happen to be loaded - "Unread" must find an unread one from last month. So while
+     * one is active and the server reports more, the next page is fetched and the filter re-applied, until every page is in
+     * (the same approach as Transaction History). With no search and "All notifications" nothing extra is fetched: scrolling
+     * loads the next page as before.
+     */
+    private void loadRemainingPagesWhileFiltering() {
+        if (!isFiltering() || loadingMoreNotifications || !repository.hasMoreNotifications() || autoPagesLoaded >= MAX_AUTO_PAGES) return;
+        loadingMoreNotifications = true;
+        autoPagesLoaded++;
+        swipeRefresh.setRefreshing(true);
+        repository.loadMoreNotifications(new RoomRepository.RepositoryCallback<List<Notification>>() {
+            @Override
+            public void onSuccess(List<Notification> result) {
+                loadingMoreNotifications = false;
+                if (!isUiAlive()) return;
+                swipeRefresh.setRefreshing(refreshInFlight);
+                allNotifications = result != null ? result : allNotifications;
+                updateFilterLabelsWithCounts();
+                applyFilters();
+            }
+
+            @Override
+            public void onError(String message) {
+                loadingMoreNotifications = false;
+                if (!isUiAlive()) return;
+                swipeRefresh.setRefreshing(refreshInFlight);
+                Toast.makeText(NotificationActivity.this, R.string.network_error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**

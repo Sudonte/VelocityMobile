@@ -318,7 +318,7 @@ public class TransactionCardLayoutTest {
         Context context = LayoutHarness.themedContext(1.0f);
         TextView unpaid = text(card(context, pendingSubmitted(), 360), R.id.tvTxnStatusBadge);
         assertEquals(context.getColor(R.color.velocity_red_status_soft), unpaid.getBackgroundTintList().getDefaultColor());
-        assertEquals(context.getColor(R.color.velocity_red_primary), unpaid.getCurrentTextColor());
+        assertEquals(context.getColor(R.color.status_unpaid_fg), unpaid.getCurrentTextColor());
         TextView paid = text(card(context, paid(), 360), R.id.tvTxnStatusBadge);
         assertEquals(context.getColor(R.color.status_paid_bg), paid.getBackgroundTintList().getDefaultColor());
         assertEquals(context.getColor(R.color.status_paid_fg), paid.getCurrentTextColor());

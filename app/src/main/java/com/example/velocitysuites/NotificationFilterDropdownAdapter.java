@@ -5,13 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +34,8 @@ public class NotificationFilterDropdownAdapter extends ArrayAdapter<String> {
 
     /** Position-matched with the label array - each row's "All"/"Unread"/Notification.TYPE_... key, for its icon lookup. */
     private final String[] filterKeys;
+    /** The rows' labels - the very list ArrayAdapter draws from, so the filter below can hand it back whole. */
+    private final ArrayList<String> labels;
     @Nullable
     private String selectedKey;
 
@@ -45,7 +46,12 @@ public class NotificationFilterDropdownAdapter extends ArrayAdapter<String> {
         // every load. Passing an explicit, genuinely mutable ArrayList copy instead
         // is the fix (this is the actual crash the notification bell hit 100% of
         // the time on open, caught by NotificationScreenInstrumentedTest).
-        super(context, R.layout.item_notification_filter_dropdown, new ArrayList<>(Arrays.asList(labels)));
+        this(context, new ArrayList<>(Arrays.asList(labels)), filterKeys);
+    }
+
+    private NotificationFilterDropdownAdapter(@NonNull Context context, ArrayList<String> labels, String[] filterKeys) {
+        super(context, R.layout.item_notification_filter_dropdown, labels);
+        this.labels = labels;
         this.filterKeys = filterKeys;
     }
 
@@ -61,13 +67,33 @@ public class NotificationFilterDropdownAdapter extends ArrayAdapter<String> {
         notifyDataSetChanged();
     }
 
+    /** The list is ALWAYS the full list, whatever the box's text says (see NonFilteringArrayAdapter). */
+    @NonNull
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                FilterResults results = new FilterResults();
+                results.values = labels;
+                results.count = labels.size();
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                notifyDataSetChanged();
+            }
+        };
+    }
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView != null ? convertView
                 : LayoutInflater.from(getContext()).inflate(R.layout.item_notification_filter_dropdown, parent, false);
 
-        MaterialCardView iconContainer = view.findViewById(R.id.iconContainerFilterOption);
+        View iconContainer = view.findViewById(R.id.iconContainerFilterOption);
         ImageView icon = view.findViewById(R.id.ivFilterOptionIcon);
         TextView label = view.findViewById(R.id.tvFilterOptionLabel);
         ImageView check = view.findViewById(R.id.ivFilterOptionCheck);
@@ -81,7 +107,7 @@ public class NotificationFilterDropdownAdapter extends ArrayAdapter<String> {
         // NotificationCategoryPresenter, rather than a fabricated category icon.
         NotificationCategoryPresenter.Result category = NotificationCategoryPresenter.resolve(key);
         icon.setImageResource(category.iconRes);
-        iconContainer.setCardBackgroundColor(getContext().getColor(category.bgColorRes));
+        iconContainer.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getContext().getColor(category.bgColorRes)));
         icon.setColorFilter(getContext().getColor(category.fgColorRes));
 
         boolean isSelected = key.equals(selectedKey);

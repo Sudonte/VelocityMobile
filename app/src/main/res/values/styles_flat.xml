@@ -187,4 +187,32 @@
         <item name="hintEnabled">true</item>
         <item name="hintAnimationEnabled">true</item>
     </style>
+
+    <!-- A search field next to the filter fields: outlined and square, the same quiet gray border (red only while focused). The
+         placeholder is the EditText's own hint (the theme turns floating labels off). -->
+    <style name="Widget.Velocity.TextInputLayout.Filter.Search" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxCornerRadiusBottomStart">0dp</item>
+        <item name="boxCornerRadiusTopEnd">0dp</item>
+        <item name="boxCornerRadiusTopStart">0dp</item>
+        <item name="boxStrokeColor">@color/filter_box_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="startIconTint">@color/velocity_text_secondary</item>
+        <item name="endIconTint">@color/velocity_text_secondary</item>
+        <item name="hintEnabled">false</item>
+    </style>
+
+    <!-- "Show all (4)" / "Show less" under a Dashboard list, and the Pay Now button: compact, wrap-content, 40dp to look at and
+         48dp to touch (the 4dp insets are inside the touch target), normal-case text with no letter-spacing. -->
+    <style name="Widget.Velocity.Flat.Button.Compact" parent="Widget.Velocity.Flat.Button.Outlined">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:insetTop">4dp</item>
+        <item name="android:insetBottom">4dp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
 </resources>

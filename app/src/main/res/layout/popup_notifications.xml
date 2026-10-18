@@ -86,11 +86,19 @@
             android:layout_height="1dp"
             android:background="@color/velocity_red_subtle" />
 
-        <LinearLayout
-            android:id="@+id/layoutNotifPopupRows"
+        <!-- The latest few rows; a tall list scrolls inside the popup instead of running off a short screen. -->
+        <com.example.velocitysuites.MaxHeightNestedScrollView
+            android:id="@+id/scrollNotifPopupRows"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:id="@+id/layoutNotifPopupRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </com.example.velocitysuites.MaxHeightNestedScrollView>
 
         <TextView
             android:id="@+id/tvNotifPopupEmpty"

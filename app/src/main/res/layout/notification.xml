@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -38,14 +38,6 @@
                     android:paddingBottom="13dp"
                     app:layout_collapseMode="parallax">
 
-                    <!-- Premium Background Accent -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="140dp"
-                        android:background="@drawable/shape_intro_red_glow"
-                        android:alpha="0.15"
-                        app:layout_constraintTop_toTopOf="parent" />
-
                     <TextView
                         android:id="@+id/screenTitle"
                         style="@style/TextAppearance.Velocity.ScreenTitle"
@@ -83,57 +75,58 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSearchNotifications"
-                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        style="@style/Widget.Velocity.TextInputLayout.Filter.Search"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="22dp"
                         android:layout_marginTop="14dp"
                         android:layout_marginEnd="22dp"
-                        android:hint="@string/search_notifications_hint"
                         app:endIconMode="clear_text"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/screenDescription"
-                        app:startIconDrawable="@drawable/ic_room_search"
-                        app:startIconTint="@color/velocity_red_primary">
+                        app:startIconDrawable="@drawable/ic_search">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etSearchNotifications"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:hint="@string/search_notifications_hint"
                             android:imeOptions="actionSearch"
                             android:inputType="text"
                             android:maxLines="1"
-                            android:textSize="12sp" />
+                            android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Filter by status: a single full-width combo box (Material's exposed dropdown
-                         menu - TextInputLayout + non-editable MaterialAutoCompleteTextView) showing all
-                         8 options with their category icon and a checkmark on the selected one. -->
+                    <!-- Show: one outlined exposed dropdown, the same style as the Transaction History filters - a floating
+                         "Show" label, a gray border (red only while focused / open), a non-filtering adapter so the menu always
+                         lists every option, each with its category icon in the shared round circle. -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/layoutNotificationStatusFilter"
-                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                        style="@style/Widget.Velocity.TextInputLayout.Filter.Dropdown"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="22dp"
                         android:layout_marginTop="10dp"
                         android:layout_marginEnd="22dp"
-                        android:hint="@string/filter_by_status_label"
+                        android:hint="@string/notif_filter_label"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tilSearchNotifications">
 
-                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        <AutoCompleteTextView
                             android:id="@+id/dropdownNotificationStatus"
                             android:layout_width="match_parent"
-                            android:layout_height="56dp"
-                            android:fontFamily="sans-serif-bold"
-                            android:includeFontPadding="false"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="sans-serif-medium"
                             android:inputType="none"
-                            android:paddingVertical="8dp"
+                            android:maxLines="1"
+                            android:singleLine="true"
                             android:text="@string/notif_filter_all_label"
                             android:textColor="@color/velocity_text_primary"
-                            android:textSize="12sp"
+                            android:textSize="14sp"
                             tools:ignore="LabelFor" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -168,7 +161,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/velocity_sticky_bar_bg"
                     android:paddingHorizontal="22dp"
-                    android:paddingVertical="13dp">
+                    android:paddingVertical="2dp">
 
                     <View
                         android:layout_width="match_parent"
@@ -176,54 +169,36 @@
                         android:background="@color/velocity_divider_hairline"
                         app:layout_constraintBottom_toBottomOf="parent" />
 
-                    <!-- Title + live unread summary stacked at the start, both bounded by
-                         the "Mark all as read" button at the end (0dp = match constraints)
-                         so a long summary or a large system font wraps instead of running
-                         underneath the button. -->
-                    <TextView
-                        android:id="@+id/tvAlertsCount"
-                        style="@style/TextAppearance.Velocity.Price"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:includeFontPadding="false"
-                        android:textColor="@color/velocity_red_text"
-                        android:textSize="14sp"
-                        android:letterSpacing="-0.01"
-                        android:text="@string/recent_alerts_label"
-                        app:layout_constraintBottom_toTopOf="@+id/tvUnreadSummary"
-                        app:layout_constraintEnd_toStartOf="@+id/btnMarkAllRead"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintVertical_chainStyle="packed" />
-
+                    <!-- "12 unread" (or "You're all caught up" only when nothing is unread) at the start, "Mark all as read" at
+                         the end (hidden at 0 unread). The summary is bounded by the button (0dp = match constraints) so a large
+                         system font wraps it instead of running underneath. -->
                     <TextView
                         android:id="@+id/tvUnreadSummary"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
                         android:layout_marginEnd="8dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-bold"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="14sp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/btnMarkAllRead"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvAlertsCount"
-                        tools:text="3 unread notifications" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="12 unread" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnMarkAllRead"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/mark_all_read_label"
                         android:textColor="@color/velocity_red_primary"
-                        android:textSize="11sp"
-                        android:fontFamily="sans-serif-black"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif-bold"
                         android:textAllCaps="false"
-                        android:letterSpacing="0.02"
-                        android:paddingHorizontal="14dp"
+                        android:letterSpacing="0"
+                        android:paddingHorizontal="10dp"
                         app:cornerRadius="0dp"
                         app:rippleColor="@color/velocity_red_soft"
                         app:layout_constraintBottom_toBottomOf="parent"

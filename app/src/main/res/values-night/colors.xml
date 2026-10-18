@@ -96,4 +96,6 @@
     <color name="velocity_orange_soft">#3D1F1F</color>
     <color name="velocity_red_status_soft">#3D1F1F</color>
     <color name="velocity_filter_stroke">#A39797</color>
+    <!-- "Unpaid": red text on its soft chip. Light mode keeps the brand red; dark mode lightens it so it stays readable on the dark chip. -->
+    <color name="status_unpaid_fg">#FF8A80</color>
 </resources>

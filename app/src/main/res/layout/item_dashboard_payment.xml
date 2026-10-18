@@ -165,14 +165,12 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnQuickPay"
-                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                    style="@style/Widget.Velocity.Flat.Button.Compact"
                     android:layout_width="wrap_content"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:ellipsize="none"
-                    android:letterSpacing="0"
                     android:maxLines="1"
                     android:text="@string/pay_now"
-                    android:textSize="13sp"
                     android:visibility="gone" />
 
                 <TextView

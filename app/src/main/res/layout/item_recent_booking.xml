@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A Dashboard Recent Bookings card (RecentBookingCard) - the shared stay card:
+       Row 1  "Booking #569" (bold, primary text, never cut off) ........................ >
+       Row 2  chips on one line, wrapping when they do not fit: [Today / Tomorrow] [booking status] [payment]
+       Row 3  room type
+       Row 4  "Oct 20 -> Oct 21, 2026 - 1 night"
+     Tapping opens the booking in Transaction History. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardRecentBooking"
+    style="@style/Widget.Velocity.Card.Flat"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="12dp">
+
+        <TextView
+            android:id="@+id/tvRecentBookingRef"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="6dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center_vertical"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="16sp"
+            app:drawableEndCompat="@drawable/ic_chevron_right"
+            app:drawableTint="@color/velocity_text_secondary"
+            tools:text="Booking #569" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipsRecentBooking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="4dp" />
+
+        <TextView
+            android:id="@+id/tvRecentBookingRoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Deluxe" />
+
+        <TextView
+            android:id="@+id/tvRecentBookingDates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="Oct 20 → Oct 21, 2026 · 1 night" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -578,7 +578,7 @@
     <string name="br_summary_cancel_bookings">Cancelled Bookings</string>
     <string name="br_summary_cancel_reservations">Cancelled Reservations</string>
     <string name="recent_bookings_title">Recent Bookings</string>
-    <string name="recent_bookings_desc">Your latest bookings and payments</string>
+    <string name="recent_bookings_desc">Your latest bookings</string>
     <string name="payment_details_title">Payment Details</string>
     <string name="title_payment_breakdown">Payment Breakdown</string>
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
@@ -596,19 +596,18 @@
     <string name="upcoming_event_booking_prefix">Booking</string>
     <string name="upcoming_event_reservation_prefix">Reservation</string>
     <string name="upcoming_event_title_format">%1$s: %2$s</string>
-    <string name="search_notifications_hint">Search notifications, reference number, room type, payment status, or keyword</string>
-    <string name="notif_filter_all_label">All Notifications</string>
+    <string name="search_notifications_hint">Search notifications</string>
+    <string name="notif_filter_all_label">All notifications</string>
     <string name="notif_filter_checkin">Check-in</string>
-    <string name="notif_filter_promotion">Promotions &amp; Discounts</string>
+    <string name="notif_filter_promotion">Promotions &amp; discounts</string>
     <string name="notif_filter_system">System</string>
     <string name="notif_filter_count_format">%1$s (%2$d)</string>
     <string name="no_notifications_load_error_title">Unable to Load Notifications</string>
     <string name="no_notifications_load_error_desc">Please check your internet connection and try again.</string>
-    <string name="no_category_notifications_title_format">No %1$s Notifications</string>
-    <string name="no_category_notifications_desc_format">No %1$s notifications yet.</string>
     <string name="notif_date_group_today">Today</string>
     <string name="notif_date_group_yesterday">Yesterday</string>
-    <string name="notif_date_group_earlier">Earlier</string>
+    <string name="notif_date_group_earlier">Earlier this week</string>
+    <string name="notif_date_group_older">Older</string>
 
     <string name="booking_detail_room_type">Room Type: %1$s</string>
     <string name="no_bookings_found">No recent active bookings.</string>
@@ -631,8 +630,6 @@
     <string name="cancel_reservation_button">Cancel Reservation</string>
     <!-- yes_delete removed 2026-09-15: superseded by delete_permanently_button_label, the single consistent CTA text for the permanent-delete flow (see BookingAndReservationActivity#confirmDeleteTransaction()/TransactionListActivity#confirmDelete()). -->
     <string name="no_label">No</string>
-    <string name="upcoming_check_in_format">Check-in: %1$s</string>
-    <string name="upcoming_check_out_format">Check-out: %1$s</string>
     <string name="date_format_full">EEEE, MMM dd, yyyy</string>
     <string name="time_format_seconds">hh:mm:ss a</string>
     <string name="date_format_short">MMM dd, yyyy</string>
@@ -1048,8 +1045,7 @@
     <string name="book_now_cta_desc">Select your rooms and dates, then come back here to complete payment.</string>
     <string name="empty_payment_balance_msg">You do not have any selected rooms for booking. Tap the Book Now button to select one or more rooms.</string>
     <string name="zero_amount_display">₱0.00</string>
-    <string name="notification_screen_desc">Stay updated with your reservations, payments, reminders, and promotional announcements.</string>
-    <string name="recent_alerts_label">RECENT ALERTS</string>
+    <string name="notification_screen_desc">Your stay, payment and account updates</string>
     <string name="mark_all_read_label">Mark all as read</string>
     <string name="confirm_mark_all_read_msg">Mark all notifications as read? This can\'t be undone.</string>
     <string name="mark_as_read_action">Mark as read</string>
@@ -1064,10 +1060,6 @@
     <string name="error_notification_update_failed">Couldn\'t update this notification. Check your connection and try again.</string>
     <string name="notif_unread_indicator_desc">Unread</string>
     <string name="notif_all_caught_up">You\'re all caught up</string>
-    <plurals name="notif_unread_summary">
-        <item quantity="one">%d unread notification</item>
-        <item quantity="other">%d unread notifications</item>
-    </plurals>
     <string name="error_load_notifications_format">Couldn\'t load notifications: %1$s</string>
 
     <!-- Booking and Reservation Module Strings -->
@@ -1176,7 +1168,6 @@
     <!-- Filter by Status combo box (bookingandreservation.xml) - one dropdown per
          tab, each self-descriptive since there's no toggle-button row anymore
          to lean on the tab above for Booking/Reservation context. -->
-    <string name="filter_by_status_label">Filter by Status</string>
     <!-- Sort By / Room Type: two separate exposed-dropdown controls on the
          Booking &amp; Reservation list (not combined into one Filter dialog) -
          reuses sort_row_label/room_type_row_label, the same labels
@@ -1544,10 +1535,8 @@
     <string name="msg_mark_all_read">All notifications marked as read</string>
     <string name="no_notifications_title">No notifications yet</string>
     <string name="no_notifications_desc">You have no notifications at this time. New updates and alerts will appear here.</string>
-    <string name="no_search_results_title">No Notifications Found</string>
-    <string name="no_search_results_desc">We couldn\'t find any notifications matching your current search or filter. Try another keyword or select a different notification category.</string>
-    <string name="no_unread_notifications_title">No Unread Notifications</string>
-    <string name="no_unread_notifications_desc">You\'re all caught up — no new hotel updates right now.</string>
+    <string name="no_search_results_title">No notifications match</string>
+    <string name="no_search_results_desc">Nothing matches your search or filter. Try another word or clear the filters.</string>
     <string name="password_changed_success">Your password has been changed successfully. You may change it again after 30 days.</string>
     <string name="change_password_stage_verify">1 Verify</string>
     <string name="change_password_stage_new">2 New password</string>
@@ -1904,10 +1893,6 @@
 
     <!-- ===== Notification card ===== -->
     <string name="view_transaction_label">View Transaction</string>
-    <string name="cd_view_receipt_format">View receipt for %1$s</string>
-    <string name="cd_view_transaction_format">View transaction for %1$s</string>
-    <string name="cd_mark_read_format">Mark as read: %1$s</string>
-    <string name="cd_mark_unread_format">Mark as unread: %1$s</string>
     <string name="notif_category_booking">Booking</string>
     <string name="notif_category_reservation">Reservation</string>
     <string name="notif_category_payment">Payment</string>
@@ -1947,7 +1932,7 @@
     <string name="receipt_image_missing">No receipt image is available for this payment.</string>
     <string name="receipt_image_load_failed">The receipt image could not be loaded. Check your connection and try again.</string>
     <string name="receipt_image_content_description">GCash payment receipt</string>
-    <string name="notif_popup_empty">No new notifications</string>
+    <string name="notif_popup_empty">You\'re all caught up</string>
     <string name="notif_popup_close">Close notifications</string>
     <string name="notif_popup_view_all">View all notifications</string>
     <string name="notif_popup_unread_format">%1$d unread</string>
@@ -2204,6 +2189,22 @@
         <item quantity="other">Show filters (%1$d active)</item>
     </plurals>
     <string name="filter_value_all">All</string>
+    <string name="notif_filter_label">Show</string>
+    <string name="notif_filter_payment">Payment</string>
+    <string name="notif_category_amenity">Amenities</string>
+    <string name="notif_more">More</string>
+    <string name="notif_less">Less</string>
+    <string name="notif_more_options">More options</string>
+    <string name="notif_clear_filters">Clear filters</string>
+    <string name="notif_unread_badge_cd">%1$s unread notifications</string>
+    <string name="today_badge_short">Today</string>
+    <string name="preview_show_all_overflow">Show all (99+)</string>
+    <string name="notif_time_yesterday">Yesterday</string>
+    <string name="notif_time_just_now">Just now</string>
+    <string name="notif_time_minutes_format">%dm ago</string>
+    <string name="notif_time_hours_format">%dh ago</string>
+    <string name="recent_booking_dates_format">%1$s · %2$s</string>
+    <string name="cd_notification_options_format">Options for %1$s</string>
 </resources>
 
 

@@ -28,7 +28,7 @@ import java.util.List;
  */
 public final class NotificationPopup {
 
-    static final int MAX_ROWS = 5;
+    static final int MAX_ROWS = 8;
 
     private final Activity activity;
     private final Runnable onReadStateChanged;
@@ -135,27 +135,23 @@ public final class NotificationPopup {
         long now = System.currentTimeMillis();
         for (Notification n : all) {
             if (n == null || shown >= MAX_ROWS) break;
-            View row = LayoutInflater.from(activity).inflate(R.layout.item_notification_popup, rows, false);
-            ((TextView) row.findViewById(R.id.tvPopupNotifTitle)).setText(n.getTitle());
-            ((TextView) row.findViewById(R.id.tvPopupNotifMessage)).setText(n.getMessage());
-            TextView time = row.findViewById(R.id.tvPopupNotifTime);
-            time.setText(TimeUtils.formatCompact(n.getCreatedAtMillis(), now));
-            row.findViewById(R.id.unreadDotPopup).setVisibility(n.isRead() ? View.INVISIBLE : View.VISIBLE);
+            View row = LayoutInflater.from(activity).inflate(R.layout.item_notification_row, rows, false);
+            NotificationRowBinder.bind(row, n, n.isRead(), now);
+            // A long title wraps to two lines here instead of being cut.
+            ((TextView) row.findViewById(R.id.tvNotifTitle)).setMaxLines(2);
             if (!n.isRead()) row.setBackgroundResource(R.drawable.bg_popup_row_unread); // unread: tinted; read: plain
-            else row.findViewById(R.id.tvPopupNotifMessage).setAlpha(0.8f);
-            TextView title = row.findViewById(R.id.tvPopupNotifTitle);
-            title.setTypeface(title.getTypeface(), n.isRead() ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
-            View markRead = row.findViewById(R.id.btnPopupNotifMarkRead);
-            markRead.setVisibility(n.isRead() ? View.GONE : View.VISIBLE);
-            markRead.setOnClickListener(v -> markRead(content, n));
             row.setOnClickListener(v -> onRowTapped(n));
             rows.addView(row);
             shown++;
         }
+        View scroll = content.findViewById(R.id.scrollNotifPopupRows);
+        if (scroll instanceof MaxHeightNestedScrollView) {
+            ((MaxHeightNestedScrollView) scroll).setMaxHeightPx((int) (activity.getResources().getDisplayMetrics().heightPixels * 0.55f));
+        }
 
         boolean any = shown > 0;
         boolean loadingNow = content.findViewById(R.id.progressNotifPopup).getVisibility() == View.VISIBLE;
-        rows.setVisibility(any ? View.VISIBLE : View.GONE);
+        scroll.setVisibility(any ? View.VISIBLE : View.GONE);
         empty.setVisibility(any || loadingNow ? View.GONE : View.VISIBLE);
 
         int unread = repository.getUnreadNotificationCount();
@@ -179,17 +175,6 @@ public final class NotificationPopup {
         });
     }
 
-    /** Marks one row read and keeps the popup open. The repository flips its cache at once, so the row and the header badge repaint now; a failed save reverts it and says so. */
-    private void markRead(View content, Notification n) {
-        RoomRepository.getInstance(activity).setNotificationReadState(n.getId(), true, success -> {
-            if (!success) {
-                Toast.makeText(activity.getApplicationContext(), R.string.error_notification_update_failed, Toast.LENGTH_LONG).show();
-            }
-            repaint(content);
-        });
-        repaint(content);
-    }
-
     private void markAllRead(View content) {
         RoomRepository.getInstance(activity).markAllNotificationsAsRead(success -> {
             if (!success) {
@@ -208,42 +193,6 @@ public final class NotificationPopup {
 
     private void onRowTapped(Notification n) {
         dismiss();
-        if (activity.isFinishing() || activity.isDestroyed()) return;
-        RoomRepository repository = RoomRepository.getInstance(activity);
-        if (!n.isRead()) {
-            repository.setNotificationReadState(n.getId(), true, success -> {
-                if (!success) {
-                    Toast.makeText(activity.getApplicationContext(), R.string.error_notification_update_failed, Toast.LENGTH_LONG).show();
-                }
-                onReadStateChanged.run();
-            });
-            onReadStateChanged.run();
-        }
-        if (NotificationPrimaryActionResolver.canViewTransaction(n.getType(), n.getReferenceId())) {
-            TransactionNavigator.openFromNotification(activity, n, new TransactionNavigator.Listener() {
-                @Override
-                public void onLookupStarted() {
-                }
-
-                @Override
-                public void onLookupFinished() {
-                }
-
-                @Override
-                public void onNotFound() {
-                    if (!activity.isFinishing() && !activity.isDestroyed()) {
-                        TransactionNavigator.showNotFoundDialog(activity);
-                    }
-                }
-
-                @Override
-                public void onError(String message) {
-                    Toast.makeText(activity.getApplicationContext(),
-                            activity.getString(R.string.txn_lookup_error_format, message), Toast.LENGTH_LONG).show();
-                }
-            });
-        } else {
-            activity.startActivity(NotificationDetailsActivity.newIntent(activity, n));
-        }
+        NotificationOpener.open(activity, n, null, onReadStateChanged);
     }
 }

@@ -11,7 +11,7 @@ import androidx.annotation.StringRes;
 enum PaymentBalanceTone {
     PAID(R.color.status_paid_fg, R.color.status_paid_bg, R.string.payment_chip_paid),
     PARTIAL(R.color.status_pending_fg, R.color.status_pending_bg, R.string.payment_chip_partial),
-    OWED(R.color.velocity_red_primary, R.color.velocity_red_status_soft, R.string.payment_chip_unpaid);
+    OWED(R.color.status_unpaid_fg, R.color.velocity_red_status_soft, R.string.payment_chip_unpaid);
 
     /** The balance, the progress bar and the chip's text all use this one colour. */
     @ColorRes final int colorRes;

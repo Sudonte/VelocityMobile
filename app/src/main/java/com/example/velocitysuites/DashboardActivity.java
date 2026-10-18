@@ -70,21 +70,6 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** Set when the day strip should scroll the selected day into view on its next draw (first draw, Today shortcut). */
     private boolean scrollStripToSelected;
 
-    /**
-     * Dashboard preview cards (Notifications) use a
-     * select-then-view-details flow: tapping a card highlights it and reveals its "View Details"
-     * button rather than navigating immediately. Each section tracks its own single selection so
-     * picking a different card in the same section collapses the previous one.
-     */
-    private static class SelectableCard {
-        final com.google.android.material.card.MaterialCardView card;
-        final View viewDetailsButton;
-        SelectableCard(com.google.android.material.card.MaterialCardView card, View viewDetailsButton) {
-            this.card = card;
-            this.viewDetailsButton = viewDetailsButton;
-        }
-    }
-    private SelectableCard selectedNotificationCard;
     private TextView accountFullNameText, accountEmailText, accountMobileText, membershipStatusText, accountStatusText;
     private final Handler clockHandler = new Handler(Looper.getMainLooper());
     private Runnable clockRunnable;
@@ -100,7 +85,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         @Override
         public void run() {
             for (androidx.core.util.Pair<TextView, Notification> pair : compactNotificationTimeViews) {
-                pair.first.setText(TimeUtils.formatRelative(pair.second.getCreatedAtMillis()));
+                pair.first.setText(NotificationRowBinder.timeOf(DashboardActivity.this, pair.second, System.currentTimeMillis()));
             }
             notifTimeRefreshHandler.postDelayed(this, NOTIF_TIME_REFRESH_MS);
         }
@@ -485,7 +470,7 @@ public class DashboardActivity extends BaseNavigationActivity {
      * as soon as the dashboard reloads.
      */
     private void addBookingCard(Booking b) {
-        addTransactionItemCard(b, true, bookingListContainer, () -> openTransactionHistoryForRecentBooking(b));
+        RecentBookingCard.add(this, bookingListContainer, b, TimeUtils.nowInManila().toLocalDate(), () -> openTransactionHistoryForRecentBooking(b));
     }
 
     private long parseDateSafe(SimpleDateFormat format, String date) {
@@ -497,19 +482,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     }
 
-    /** True when dateStr falls exactly on today's calendar date, offset by {@code dayOffset} days. */
-    private boolean isSameCalendarDay(String dateStr, int dayOffset) {
-        if (dateStr == null) return false;
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(getString(R.string.date_format_short), Locale.US);
-            long time = sdf.parse(dateStr).getTime();
-            long dayStart = getTodayStartMillis() + (dayOffset * 86400000L);
-            long dayEnd = dayStart + 86400000L;
-            return time >= dayStart && time < dayEnd;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     private void populatePayments(List<Booking> bookings) {
         paymentListContainer.removeAllViews();
@@ -622,20 +594,18 @@ public class DashboardActivity extends BaseNavigationActivity {
     private void populateNotifications(List<Notification> notifications) {
         notificationListContainer.removeAllViews();
         compactNotificationTimeViews.clear();
-        selectedNotificationCard = null;
         if (notifications.isEmpty()) {
             noNotificationsText.setVisibility(View.VISIBLE);
-            setCountBadge(notificationCountBadge, 0);
         } else {
             noNotificationsText.setVisibility(View.GONE);
             // The first few while collapsed, every notification once expanded.
             for (Notification n : SectionPreview.visible(notifications, notificationsSection.isExpanded())) {
-                addNotificationCardCompact(n, notificationListContainer);
+                addNotificationRow(n, notificationListContainer);
             }
             SectionPreview.addToggle(this, notificationListContainer, notifications.size(), notificationsSection.isExpanded(),
                     notificationsSection::toggle);
-            setCountBadge(notificationCountBadge, notifications.size());
         }
+        updateNotificationSectionBadge();
         if (notifications.isEmpty()) {
             notificationsSection.setSummary(getString(R.string.no_notifications));
         } else {
@@ -648,57 +618,36 @@ public class DashboardActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Applies a PaymentStatusResolver.Result's leading icon to a status pill
-     * TextView, tinted to match its own text color - the app stays strictly
-     * red &amp; white (per product decision), so every status is differentiated
-     * by icon/shape/label instead of a distinct hue.
+     * The Notifications section's count badge is the UNREAD count - the very number the bell badge in the top bar shows
+     * (RoomRepository#getUnreadNotificationCount()), "99+" above 99, hidden at 0. It used to count every loaded
+     * notification (the 200-row page window), so it read "200" for a guest with nothing unread.
      */
-    private void applyPillIcon(TextView pill, int iconRes, int fgColorRes) {
-        android.graphics.drawable.Drawable icon = ContextCompat.getDrawable(this, iconRes);
-        if (icon == null) return;
-        int size = (int) (12 * getResources().getDisplayMetrics().density);
-        icon.setBounds(0, 0, size, size);
-        icon.setTint(ContextCompat.getColor(this, fgColorRes));
-        pill.setCompoundDrawables(icon, null, null, null);
-        pill.setCompoundDrawablePadding((int) (4 * getResources().getDisplayMetrics().density));
+    private void updateNotificationSectionBadge() {
+        if (notificationCountBadge == null) return;
+        int unread = RoomRepository.getInstance(this).getUnreadNotificationCount();
+        notificationCountBadge.setText(NotificationRowBinder.badgeText(this, unread));
+        notificationCountBadge.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
+        notificationCountBadge.setContentDescription(unread > 0 ? getString(R.string.notif_unread_badge_cd, notificationCountBadge.getText()) : null);
     }
 
-    /**
-     * Compact preview used only by the dashboard's "Notifications" section -
-     * "See All" already opens the full NotificationActivity list where the
-     * message body, category, and status pills live, so this card shows
-     * just title, time, and unread state.
-     */
-    private void addNotificationCardCompact(Notification n, LinearLayout container) {
-        View card = LayoutInflater.from(this).inflate(R.layout.item_notification_compact, container, false);
-        com.google.android.material.card.MaterialCardView cardRoot = (com.google.android.material.card.MaterialCardView) card;
+    @Override
+    protected void updateNotificationBadge() {
+        super.updateNotificationBadge();
+        updateNotificationSectionBadge();
+    }
 
-        TextView tvTitle = card.findViewById(R.id.tvNotifCompactTitle);
-        TextView tvTime = card.findViewById(R.id.tvNotifCompactTime);
-        View unreadDot = card.findViewById(R.id.unreadDotCompact);
-        ImageView ivIcon = card.findViewById(R.id.ivNotifCompactIcon);
 
-        tvTitle.setText(n.getTitle());
-        tvTime.setText(n.getTimestamp());
-        compactNotificationTimeViews.add(new androidx.core.util.Pair<>(tvTime, n));
-        unreadDot.setVisibility(n.isRead() ? View.GONE : View.VISIBLE);
-
-        if (Notification.TYPE_PAYMENT.equals(n.getType())) {
-            ivIcon.setImageResource(R.drawable.ic_payment_card);
-        } else if (Notification.TYPE_BOOKING.equals(n.getType())) {
-            ivIcon.setImageResource(R.drawable.ic_reservation);
-        }
-
-        View header = card.findViewById(R.id.rowNotifCompactHeader);
-        View btnViewDetails = card.findViewById(R.id.btnNotifCompactViewDetails);
-        header.setOnClickListener(v -> selectedNotificationCard = toggleSelection(selectedNotificationCard, cardRoot, btnViewDetails));
-        btnViewDetails.setOnClickListener(v -> {
-            RoomRepository.getInstance(this).markNotificationAsRead(n.getId(), success -> loadDashboardData());
-            android.content.Intent intent = new android.content.Intent(this, NotificationActivity.class);
-            intent.putExtra(NotificationActivity.EXTRA_NOTIFICATION_ID, n.getId());
-            startActivity(intent);
-        });
-
+    /** One notification on the Dashboard: the shared row (round category icon, title, 2-line preview, time and unread dot). A tap opens its target and marks it read. */
+    private void addNotificationRow(Notification n, LinearLayout container) {
+        View card = LayoutInflater.from(this).inflate(R.layout.item_notification_dashboard, container, false);
+        NotificationRowBinder.bind(card, n, n.isRead(), System.currentTimeMillis());
+        compactNotificationTimeViews.add(new androidx.core.util.Pair<>(card.findViewById(R.id.tvNotifTime), n));
+        card.findViewById(R.id.rowNotification).setOnClickListener(NavUtils.debounce(v ->
+                NotificationOpener.open(this, n, null, () -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    updateNotificationBadge();
+                    populateNotifications(lastNotifications);
+                })));
         container.addView(card);
     }
 
@@ -942,25 +891,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         badge.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
     }
 
-    /**
-     * Tapping a card in a select-then-view-details section: collapses whichever card in this
-     * section was previously selected, then toggles selection on the tapped card. Returns the
-     * new selection state for the caller to store (null when the tap deselected it).
-     */
-    private SelectableCard toggleSelection(SelectableCard previous, com.google.android.material.card.MaterialCardView card, View viewDetailsButton) {
-        if (previous != null && previous.card != card) {
-            setCardSelected(previous.card, previous.viewDetailsButton, false);
-        }
-        boolean nowSelected = viewDetailsButton.getVisibility() != View.VISIBLE;
-        setCardSelected(card, viewDetailsButton, nowSelected);
-        return nowSelected ? new SelectableCard(card, viewDetailsButton) : null;
-    }
 
-    private void setCardSelected(com.google.android.material.card.MaterialCardView card, View viewDetailsButton, boolean selected) {
-        viewDetailsButton.setVisibility(selected ? View.VISIBLE : View.GONE);
-        card.setStrokeWidth(dpToPx(selected ? 2 : 1));
-        card.setStrokeColor(ContextCompat.getColor(this, selected ? R.color.velocity_red_primary : R.color.velocity_red_alpha_20));
-    }
 
     private int dpToPx(int dp) {
         return Math.round(dp * getResources().getDisplayMetrics().density);
@@ -1468,107 +1399,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         chip.setCompoundDrawablePadding((int) (4 * getResources().getDisplayMetrics().density));
     }
 
-    /**
-     * The Recent Bookings row (type, room, Booking ID, date, status, payment status).
-     *
-     * @param customClickAction what a tap does - Recent Bookings deep-links into Transaction History.
-     */
-    private void addTransactionItemCard(Booking b, boolean isCheckInEvent, LinearLayout container, Runnable customClickAction) {
-        View card = LayoutInflater.from(this).inflate(R.layout.item_next_transaction, container, false);
 
-        TextView tvTypePill = card.findViewById(R.id.tvNextItemTypePill);
-        TextView tvRoomName = card.findViewById(R.id.tvNextItemRoomName);
-        TextView tvBookingId = card.findViewById(R.id.tvNextItemBookingId);
-        TextView tvDate = card.findViewById(R.id.tvNextItemDate);
-        TextView tvTomorrowBadge = card.findViewById(R.id.tvNextItemTomorrowBadge);
-        TextView tvStatus = card.findViewById(R.id.tvNextItemStatus);
-        TextView tvPaymentStatus = card.findViewById(R.id.tvNextItemPaymentStatus);
-        ImageView ivIcon = card.findViewById(R.id.ivNextItemIcon);
-        com.google.android.material.card.MaterialCardView iconContainer = card.findViewById(R.id.iconContainerNextItem);
 
-        tvTypePill.setText(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-        tvRoomName.setText(b.getRoomName());
-        // The ID leads each item: "Booking #338" / "Reservation #588" (the format Transaction History uses).
-        tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-
-        String relevantDate = isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate();
-        tvDate.setText(getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format, relevantDate));
-
-        if (isCheckInEvent) {
-            ivIcon.setImageResource(R.drawable.ic_calendar);
-            iconContainer.setCardBackgroundColor(ContextCompat.getColor(this, R.color.velocity_red_soft));
-            ivIcon.setImageTintList(ContextCompat.getColorStateList(this, R.color.velocity_red_primary));
-        } else {
-            ivIcon.setImageResource(R.drawable.ic_clock);
-            iconContainer.setCardBackgroundColor(ContextCompat.getColor(this, R.color.velocity_green_soft));
-            ivIcon.setImageTintList(ContextCompat.getColorStateList(this, R.color.velocity_green_primary));
-        }
-
-        if (isDateTomorrow(relevantDate)) {
-            tvTomorrowBadge.setVisibility(View.VISIBLE);
-            tvTomorrowBadge.setText(R.string.tomorrow_badge_short);
-        } else {
-            tvTomorrowBadge.setVisibility(View.GONE);
-        }
-
-        String status = b.getStatus();
-        tvStatus.setText(status);
-        if ("Confirmed".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status) || "Checked-Out".equalsIgnoreCase(status) || "Verified".equalsIgnoreCase(status)) {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_success);
-            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.velocity_green_dark));
-        } else if ("Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)) {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_error);
-            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.velocity_red_dark));
-        } else {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_warning);
-            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.velocity_orange_primary));
-        }
-
-        PaymentStatusResolver.Result paymentStatus = PaymentStatusResolver.resolve(this, b);
-        tvPaymentStatus.setText(paymentStatus.label);
-        tvPaymentStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, paymentStatus.bgColorRes));
-        tvPaymentStatus.setTextColor(ContextCompat.getColor(this, paymentStatus.fgColorRes));
-        applyPillIcon(tvPaymentStatus, paymentStatus.iconRes, paymentStatus.fgColorRes);
-
-        // rowNextItemHeader (not the outer card) is the view that's actually clickable+has a
-        // ripple foreground, so the listener must go here - a click on the outer MaterialCardView
-        // would never fire, since this inner row consumes the touch first.
-        View header = card.findViewById(R.id.rowNextItemHeader);
-        View btnViewDetails = card.findViewById(R.id.btnNextItemViewDetails);
-        if (btnViewDetails != null) btnViewDetails.setVisibility(View.GONE);
-        header.setOnClickListener(v -> customClickAction.run());
-
-        container.addView(card);
-    }
-
-    /**
-     * Nearest future check-in not yet checked-in, or nearest future check-out
-     * while checked-in - same selection rule as before, just returning the
-     * Booking itself instead of a pre-formatted single-line string so the
-     * card can show full detail (Booking ID, room, dates, status).
-     */
-    private long getTodayStartMillis() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTimeInMillis();
-    }
-
-    /** True when dateStr (yyyy/M/d-style, per date_format_short) falls exactly on tomorrow's calendar date. */
-    private boolean isDateTomorrow(String dateStr) {
-        if (dateStr == null) return false;
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(getString(R.string.date_format_short), Locale.US);
-            long time = sdf.parse(dateStr).getTime();
-            long tomorrowStart = getTodayStartMillis() + 86400000L;
-            long tomorrowEnd = tomorrowStart + 86400000L;
-            return time >= tomorrowStart && time < tomorrowEnd;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     /** Payment Status section (card + "See all") always opens the Payments section of Transaction History. */
     private void openTransactionHistoryPayments() {

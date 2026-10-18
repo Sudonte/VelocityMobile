@@ -102,7 +102,7 @@ public class ProfileAndPaymentLogicTest {
         assertEquals(PaymentBalanceTone.OWED, PaymentBalanceTone.of(2800, 0));
         assertEquals(R.color.status_paid_fg, PaymentBalanceTone.PAID.colorRes);
         assertEquals(R.color.status_pending_fg, PaymentBalanceTone.PARTIAL.colorRes);
-        assertEquals(R.color.velocity_red_primary, PaymentBalanceTone.OWED.colorRes);
+        assertEquals(R.color.status_unpaid_fg, PaymentBalanceTone.OWED.colorRes);
     }
 
     @Test
@@ -130,7 +130,7 @@ public class ProfileAndPaymentLogicTest {
         unpaid.setAmountPaid(0);
         TransactionRow owed = TransactionRow.from(unpaid);
         CharSequence owedLine = TransactionHistoryAdapter.paymentWithToneOnBalance(context, TransactionText.payment(context, owed.summary), owed.summary);
-        assertEquals("owing is red", context.getColor(R.color.velocity_red_primary), colourAt(owedLine, owedLine.toString().indexOf("2,800.00 balance")));
+        assertEquals("owing is red", context.getColor(R.color.status_unpaid_fg), colourAt(owedLine, owedLine.toString().indexOf("2,800.00 balance")));
     }
 
     private static int colourAt(CharSequence text, int position) {

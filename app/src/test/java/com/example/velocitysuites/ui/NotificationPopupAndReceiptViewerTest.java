@@ -3,6 +3,7 @@ package com.example.velocitysuites.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -85,16 +86,17 @@ public class NotificationPopupAndReceiptViewerTest {
         return (PopupWindow) windowField.get(popup);
     }
 
+    /** Ten notifications, the first three unread - more than the popup shows. */
     private static NotificationDto[] seven() {
-        NotificationDto[] items = new NotificationDto[7];
-        for (int i = 0; i < 7; i++) {
+        NotificationDto[] items = new NotificationDto[10];
+        for (int i = 0; i < 10; i++) {
             items[i] = ScreenTestSupport.notification(i + 1, "Notice " + (i + 1), "booking", 10L + i, i >= 3);
         }
         return items;
     }
 
     @Test
-    public void bellOpensADropdownOfTheLatestFive_withUnreadDots_andViewAll() throws Exception {
+    public void bellOpensADropdownOfTheLatestEight_withUnreadDots_andViewAll() throws Exception {
         UpcomingTransactionsActivity activity = launch().get();
         activity.findViewById(R.id.headerNotificationContainer).performClick();
         idle();
@@ -105,10 +107,11 @@ public class NotificationPopupAndReceiptViewerTest {
         assertTrue(popup.isShowing());
         View content = popup.getContentView();
         LinearLayout rows = content.findViewById(R.id.layoutNotifPopupRows);
-        assertEquals("only the five most recent", 5, rows.getChildCount());
-        assertEquals("Notice 1", ((TextView) rows.getChildAt(0).findViewById(R.id.tvPopupNotifTitle)).getText().toString());
-        assertEquals("an unread one has its dot", View.VISIBLE, rows.getChildAt(0).findViewById(R.id.unreadDotPopup).getVisibility());
-        assertEquals("a read one does not", View.INVISIBLE, rows.getChildAt(4).findViewById(R.id.unreadDotPopup).getVisibility());
+        assertEquals("only the eight most recent", 8, rows.getChildCount());
+        assertEquals("Notice 1", ((TextView) rows.getChildAt(0).findViewById(R.id.tvNotifTitle)).getText().toString());
+        assertEquals("an unread one has its dot", View.VISIBLE, rows.getChildAt(0).findViewById(R.id.viewNotifUnreadDot).getVisibility());
+        assertEquals("a read one does not", View.GONE, rows.getChildAt(4).findViewById(R.id.viewNotifUnreadDot).getVisibility());
+        assertEquals("the header counts the unread", "3 unread", ((TextView) content.findViewById(R.id.tvNotifPopupUnread)).getText().toString());
         assertEquals(View.VISIBLE, content.findViewById(R.id.btnNotifPopupViewAll).getVisibility());
         assertEquals(View.GONE, content.findViewById(R.id.tvNotifPopupEmpty).getVisibility());
 
@@ -118,7 +121,7 @@ public class NotificationPopupAndReceiptViewerTest {
     }
 
     @Test
-    public void withNothingToShow_itSaysNoNewNotifications() throws Exception {
+    public void withNothingToShow_itSaysAllCaughtUp() throws Exception {
         UpcomingTransactionsActivity activity = launch().get();
         activity.findViewById(R.id.headerNotificationContainer).performClick();
         idle();
@@ -127,8 +130,8 @@ public class NotificationPopupAndReceiptViewerTest {
         View content = popupOf(activity).getContentView();
         TextView empty = content.findViewById(R.id.tvNotifPopupEmpty);
         assertEquals(View.VISIBLE, empty.getVisibility());
-        assertEquals("No new notifications", empty.getText().toString());
-        assertEquals(View.GONE, content.findViewById(R.id.layoutNotifPopupRows).getVisibility());
+        assertEquals("You're all caught up", empty.getText().toString());
+        assertEquals(View.GONE, content.findViewById(R.id.scrollNotifPopupRows).getVisibility());
     }
 
     @Test
@@ -149,23 +152,23 @@ public class NotificationPopupAndReceiptViewerTest {
     }
 
     @Test
-    public void markAsReadOnOneRow_keepsThePopupOpen_andDropsTheBadgeCount() throws Exception {
+    public void popupRows_shareTheRowDesign_roundIcon_boldUnreadTitle_dot_twoLinePreview_noLeftIndent() throws Exception {
         UpcomingTransactionsActivity activity = launch().get();
         activity.findViewById(R.id.headerNotificationContainer).performClick();
         idle();
         answerNotifications(3, seven());
 
-        View content = popupOf(activity).getContentView();
-        LinearLayout rows = content.findViewById(R.id.layoutNotifPopupRows);
-        assertEquals("a read row has no Mark as read", View.GONE, rows.getChildAt(4).findViewById(R.id.btnPopupNotifMarkRead).getVisibility());
-        rows.getChildAt(0).findViewById(R.id.btnPopupNotifMarkRead).performClick();
-        idle();
-
-        assertEquals(2, repository.getUnreadNotificationCount());
-        assertTrue("still open", popupOf(activity).isShowing());
-        rows = popupOf(activity).getContentView().findViewById(R.id.layoutNotifPopupRows);
-        assertEquals("the row repainted as read", View.INVISIBLE, rows.getChildAt(0).findViewById(R.id.unreadDotPopup).getVisibility());
-        assertEquals(View.GONE, rows.getChildAt(0).findViewById(R.id.btnPopupNotifMarkRead).getVisibility());
+        LinearLayout rows = popupOf(activity).getContentView().findViewById(R.id.layoutNotifPopupRows);
+        View unread = rows.getChildAt(0);
+        View read = rows.getChildAt(4);
+        assertEquals("an unread title is bold", android.graphics.Typeface.BOLD, ((TextView) unread.findViewById(R.id.tvNotifTitle)).getTypeface().getStyle());
+        assertEquals("a read title is regular", android.graphics.Typeface.NORMAL,
+                ((TextView) read.findViewById(R.id.tvNotifTitle)).getTypeface() == null ? android.graphics.Typeface.NORMAL
+                        : ((TextView) read.findViewById(R.id.tvNotifTitle)).getTypeface().getStyle());
+        assertNotNull("a category icon circle on the left", unread.findViewById(R.id.frameNotifIcon));
+        assertEquals("a title may wrap to two lines here", 2, ((TextView) unread.findViewById(R.id.tvNotifTitle)).getMaxLines());
+        assertEquals("a two-line message preview", 2, ((TextView) unread.findViewById(R.id.tvNotifMessage)).getMaxLines());
+        assertNull("no per-row Mark as read (the header has Mark all as read)", unread.findViewById(R.id.btnNotifOverflow));
     }
 
     @Test
@@ -185,6 +188,10 @@ public class NotificationPopupAndReceiptViewerTest {
         content = popupOf(activity).getContentView();
         assertEquals(View.GONE, content.findViewById(R.id.btnNotifPopupMarkAll).getVisibility());
         assertEquals(View.GONE, content.findViewById(R.id.tvNotifPopupUnread).getVisibility());
+        LinearLayout rows = content.findViewById(R.id.layoutNotifPopupRows);
+        for (int i = 0; i < rows.getChildCount(); i++) {
+            assertEquals("every row repainted as read", View.GONE, rows.getChildAt(i).findViewById(R.id.viewNotifUnreadDot).getVisibility());
+        }
     }
 
     @Test

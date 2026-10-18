@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A Dashboard notification: the shared row (item_notification_row) on the flat stay-card surface. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardNotificationRow"
+    style="@style/Widget.Velocity.Card.Flat"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp">
+
+    <include layout="@layout/item_notification_row" />
+</com.google.android.material.card.MaterialCardView>
