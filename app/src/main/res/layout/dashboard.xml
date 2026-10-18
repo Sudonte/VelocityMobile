@@ -129,7 +129,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact.Elevated"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    
                     app:cardElevation="@dimen/card_elevation">
 
                     <FrameLayout
@@ -204,7 +204,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="0dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
@@ -277,9 +277,10 @@
 
                 <!-- Section header: a clear title and one line saying what the section is for -->
                 <LinearLayout
+                    android:id="@+id/nextStayHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     android:gravity="center_vertical"
                     android:minHeight="48dp"
                     android:orientation="horizontal">
@@ -345,7 +346,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:layout_marginBottom="14dp">
+                    >
 
                         <LinearLayout
                             android:id="@+id/nextStayLoading"
@@ -469,9 +470,10 @@
 
                 <!-- Section header: a clear title and one line saying what the section is for -->
                 <LinearLayout
+                    android:id="@+id/quickActionsHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
                     <ImageView
@@ -511,7 +513,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginBottom="0dp"
                     android:orientation="vertical">
 
                     <LinearLayout
@@ -720,7 +722,7 @@
                     android:id="@+id/moreStaysSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     android:orientation="vertical"
                     android:visibility="gone">
 
@@ -800,13 +802,13 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Recent Upcoming Stay: the guest's Pending / Confirmed bookings and reservations (5, or all when expanded). -->
+                <!-- Pending &amp; Confirmed Stays: the guest's Pending / Confirmed bookings and reservations (5, or all when expanded). -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/recentUpcomingCard"
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -898,7 +900,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1147,7 +1149,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1312,7 +1314,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1447,7 +1449,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardBackgroundColor="@android:color/transparent"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp"
@@ -1582,7 +1584,7 @@
                     style="@style/Widget.Velocity.Card.Glass.Compact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="29dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardElevation="@dimen/card_elevation"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
@@ -1820,7 +1822,7 @@
                     android:id="@+id/supportCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     app:cardBackgroundColor="@color/velocity_red_primary"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation">
@@ -1858,12 +1860,12 @@
                                 android:layout_weight="1"
                                 android:orientation="vertical">
                                 <TextView
+                                    android:id="@+id/supportTitle"
+                                    style="@style/TextAppearance.Velocity.Section.Title"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-black"
                                     android:text="@string/support_need_help_title"
-                                    android:textColor="@color/white"
-                                    android:textSize="14sp" />
+                                    android:textColor="@color/white" />
                                 <TextView
                                     android:id="@+id/supportSummary"
                                     android:layout_width="match_parent"

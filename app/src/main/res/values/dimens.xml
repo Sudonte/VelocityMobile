@@ -50,4 +50,8 @@
     <dimen name="intro_logo_size">144dp</dimen>
     <dimen name="intro_bottom_padding">40dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
+
+    <!-- The one vertical gap between neighbouring Dashboard sections. Each section's first view carries it as a top margin
+         (nothing carries a bottom margin), so a hidden section takes its gap with it - never a double gap, never a missing one. -->
+    <dimen name="dashboard_section_gap">24dp</dimen>
 </resources>

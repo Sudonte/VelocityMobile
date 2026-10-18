@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The shared stay card (StayCardBinder): Dashboard Stay Calendar, Other Stays, Recent Upcoming Stay.
+<!-- The shared stay card (StayCardBinder): Dashboard Stay Calendar, Other Stays, Pending & Confirmed Stays.
        Row 1  the full ID (never cut off - it wraps instead) ........ status chip  >
        Row 2  type chip + Upcoming / Recent chip (their own line, so they can never squeeze the ID)
        Row 3  room        Row 4  compact dates on one line        Row 5  nights - guests

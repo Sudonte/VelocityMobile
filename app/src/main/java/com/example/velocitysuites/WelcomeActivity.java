@@ -32,6 +32,17 @@ public class WelcomeActivity extends AppCompatActivity {
                     .start();
         }
 
+        // "Already have an account? Sign in": the line is one button; "Sign in" is picked out in bold primary red.
+        com.google.android.material.button.MaterialButton signIn = findViewById(R.id.loginButton);
+        android.text.SpannableString line = new android.text.SpannableString(getString(R.string.welcome_action_sign_in));
+        int at = line.toString().lastIndexOf(getString(R.string.welcome_sign_in_link));
+        if (at >= 0) {
+            int end = at + getString(R.string.welcome_sign_in_link).length();
+            line.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), at, end, 0);
+            line.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.velocity_action_text)), at, end, 0);
+        }
+        signIn.setText(line);
+
         // Setup Buttons
         findViewById(R.id.loginButton).setOnClickListener(v -> {
             startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));

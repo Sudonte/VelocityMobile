@@ -22,20 +22,22 @@
     <string name="introduction_error_no_internet_desc">Please connect to Wi-Fi or mobile data and try again.</string>
     <string name="introduction_error_backend_desc">Velocity Suites is temporarily unavailable. Please try again.</string>
     <string name="sign_in_sign_up_label">Sign In / Sign Up</string>
+    <string name="welcome_brand">VELOCITY SUITES</string>
+    <string name="welcome_sign_in_link">Sign in</string>
     <string name="welcome_tagline">Your comfort is our service</string>
     <!-- Welcome screen: what the app is and does, then what to do next. Only describes what the app itself does. -->
     <string name="welcome_headline">Welcome, Guest!</string>
-    <string name="welcome_support">Step into a stay designed around you. At Velocity Suites Hotel, every room and every service is prepared with your rest and convenience in mind. Book rooms, manage your reservations, and track your payments — all in one app.</string>
+    <string name="welcome_support">Book rooms, manage reservations and track payments — all in one app.</string>
     <string name="welcome_point_rooms_title">Easy room booking</string>
-    <string name="welcome_point_rooms_desc">Browse rooms, then book or reserve in a few taps.</string>
+    <string name="welcome_point_rooms_desc">Browse and book in a few taps.</string>
     <string name="welcome_point_pay_title">Secure GCash payments</string>
-    <string name="welcome_point_pay_desc">Pay by GCash and upload your receipt.</string>
-    <string name="welcome_point_track_title">Track all your transactions</string>
-    <string name="welcome_point_track_desc">Follow every booking, reservation and payment.</string>
+    <string name="welcome_point_pay_desc">Pay and upload your receipt.</string>
+    <string name="welcome_point_track_title">Track transactions</string>
+    <string name="welcome_point_track_desc">Follow every booking and payment.</string>
     <string name="welcome_point_notify_title">Friendly front-desk support</string>
-    <string name="welcome_point_notify_desc">Our front-desk team is here whenever you need us.</string>
-    <string name="welcome_action_create_account">Create an Account</string>
-    <string name="welcome_action_sign_in">Already have an account? Sign In</string>
+    <string name="welcome_point_notify_desc">Help whenever you need us.</string>
+    <string name="welcome_action_create_account">Create an account</string>
+    <string name="welcome_action_sign_in">Already have an account? Sign in</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
     <string name="login_heading">Welcome Back</string>
@@ -2009,8 +2011,8 @@
     <!-- ============ Dashboard sections: collapse / expand, summaries, Upcoming Hotel Transactions ============ -->
     <string name="section_collapse">Collapse section</string>
     <string name="section_expand">Expand section</string>
-    <string name="recent_upcoming_title">Recent Upcoming Stay</string>
-    <string name="recent_upcoming_desc">Pending and confirmed stays</string>
+    <string name="recent_upcoming_title">Pending &amp; Confirmed Stays</string>
+    <string name="recent_upcoming_desc">Stays waiting for approval or confirmed</string>
     <string name="recent_upcoming_empty">No pending or confirmed upcoming stays right now.</string>
     <plurals name="summary_stays_count">
         <item quantity="one">%d stay</item>

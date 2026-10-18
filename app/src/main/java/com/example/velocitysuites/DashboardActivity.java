@@ -58,7 +58,7 @@ public class DashboardActivity extends BaseNavigationActivity {
     private CollapsibleSection summarySection, supportSection;
     /** Every stay Other Stays lists: upcoming soonest first, finished latest first. */
     private List<Booking> moreStaysUpcoming = new ArrayList<>(), moreStaysRecent = new ArrayList<>();
-    /** "Recent Upcoming Stay": every Pending / Confirmed transaction, and whether the full list is showing. */
+    /** "Pending & Confirmed Stays": every Pending / Confirmed transaction, and whether the full list is showing. */
     private List<Booking> recentUpcoming = new ArrayList<>();
     /** The day chosen in Your Next Stay's day selector (null until first drawn: then Today), and the data it draws from. */
     private java.time.LocalDate selectedStayDay;
@@ -198,7 +198,8 @@ public class DashboardActivity extends BaseNavigationActivity {
                 .collapsedHides(findViewById(R.id.tilePastBooking), findViewById(R.id.tilePastReservation),
                         findViewById(R.id.tileCancelBooking), findViewById(R.id.tileCancelReservation));
         recentUpcomingSection = new CollapsibleSection(this, "recent_upcoming", findViewById(R.id.recentUpcomingToggle),
-                null, findViewById(R.id.recentUpcomingList)).previewList(this::renderRecentUpcoming);
+                null, findViewById(R.id.recentUpcomingList)).previewList(this::renderRecentUpcoming)
+                .named(getString(R.string.recent_upcoming_title));
         supportSection = new CollapsibleSection(this, "support", findViewById(R.id.supportToggle),
                 findViewById(R.id.supportSummary), findViewById(R.id.supportDesc), findViewById(R.id.btnContactSupport));
         supportSection.setSummary(getString(R.string.support_collapsed_summary));
@@ -1005,7 +1006,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     }
 
-    /** Redraws "Recent Upcoming Stay" from these bookings (Pending / Confirmed only). */
+    /** Redraws "Pending & Confirmed Stays" from these bookings (Pending / Confirmed only). */
     private void updateRecentUpcoming(List<Booking> bookings) {
         recentUpcoming = RecentUpcomingStays.select(bookings);
         renderRecentUpcoming();

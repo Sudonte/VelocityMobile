@@ -123,258 +123,322 @@
                     android:src="@drawable/velocity_suites_logo" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 2. Headline -->
+            <!-- 2. Brand name, then its tagline and the short divider -->
             <TextView
-                android:id="@+id/welcomeTitleText"
-                style="@style/TextAppearance.Velocity.ScreenTitle"
+                android:id="@+id/welcomeBrandText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:accessibilityHeading="true"
+                android:layout_marginTop="16dp"
+                android:fontFamily="sans-serif-black"
                 android:gravity="center"
-                android:text="@string/welcome_headline"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="25sp" />
+                android:letterSpacing="0"
+                android:text="@string/welcome_brand"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/welcomeTaglineText"
                 style="@style/TextAppearance.Velocity.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:text="@string/welcome_tagline"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="14sp" />
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp" />
 
             <View
+                android:id="@+id/welcomeDivider"
                 android:layout_width="40dp"
                 android:layout_height="2dp"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/shape_intro_pill"
                 android:backgroundTint="@color/velocity_red_primary"
                 android:importantForAccessibility="no" />
 
-            <!-- 3. One supporting line -->
+            <!-- 3. Headline -->
+            <TextView
+                android:id="@+id/welcomeTitleText"
+                style="@style/TextAppearance.Velocity.ScreenTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:accessibilityHeading="true"
+                android:fontFamily="sans-serif-black"
+                android:gravity="center"
+                android:text="@string/welcome_headline"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="24sp" />
+
+            <!-- 4. One short supporting line -->
             <TextView
                 android:id="@+id/welcomeDescriptionText"
                 style="@style/TextAppearance.Velocity.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:alpha="1"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:lineSpacingMultiplier="1.2"
                 android:text="@string/welcome_support"
+                android:textColor="@color/velocity_text_secondary"
                 android:textSize="14sp" />
 
-            <!-- 4. What the app does: five short value points -->
+            <!-- 5. What the app does: a 2 x 2 grid of equal cards, like the landing page's feature grid -->
             <LinearLayout
                 android:id="@+id/welcomePoints"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="0dp"
                     android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal"
-                    android:screenReaderFocusable="true">
+                    android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_icon_circle_badge"
-                        android:importantForAccessibility="no">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_room_search"
-                            app:tint="@color/velocity_action_text" />
-                    </FrameLayout>
-
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/welcomeCardRooms"
+                        style="@style/Widget.Velocity.Card.Flat"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
+                        android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:minHeight="132dp"
+                        android:layout_marginEnd="6dp"
+                        android:screenReaderFocusable="true">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="@string/welcome_point_rooms_title"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:padding="12dp">
 
-                        <TextView
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/shape_notification_icon_circle"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:importantForAccessibility="no">
+
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_bed"
+                                    app:tint="@color/velocity_red_primary" />
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/welcomeCardRoomsTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_rooms_title"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/welcomeCardRoomsDesc"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_rooms_desc"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/welcomeCardPay"
+                        style="@style/Widget.Velocity.Card.Flat"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:minHeight="132dp"
+                        android:layout_marginStart="6dp"
+                        android:screenReaderFocusable="true">
+
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/welcome_point_rooms_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:padding="12dp">
+
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/shape_notification_icon_circle"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:importantForAccessibility="no">
+
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_payment_card"
+                                    app:tint="@color/velocity_red_primary" />
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/welcomeCardPayTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_pay_title"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/welcomeCardPayDesc"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_pay_desc"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal"
-                    android:screenReaderFocusable="true">
+                    android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_icon_circle_badge"
-                        android:importantForAccessibility="no">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_payment"
-                            app:tint="@color/velocity_action_text" />
-                    </FrameLayout>
-
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/welcomeCardTrack"
+                        style="@style/Widget.Velocity.Card.Flat"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
+                        android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:minHeight="132dp"
+                        android:layout_marginEnd="6dp"
+                        android:screenReaderFocusable="true">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="@string/welcome_point_pay_title"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/welcome_point_pay_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/shape_notification_icon_circle"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:importantForAccessibility="no">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal"
-                    android:screenReaderFocusable="true">
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_transaction_history"
+                                    app:tint="@color/velocity_red_primary" />
+                            </FrameLayout>
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_icon_circle_badge"
-                        android:importantForAccessibility="no">
+                            <TextView
+                                android:id="@+id/welcomeCardTrackTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_track_title"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp" />
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_transaction_history"
-                            app:tint="@color/velocity_action_text" />
-                    </FrameLayout>
-
-                    <LinearLayout
+                            <TextView
+                                android:id="@+id/welcomeCardTrackDesc"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_track_desc"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/welcomeCardSupport"
+                        style="@style/Widget.Velocity.Card.Flat"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
+                        android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:minHeight="132dp"
+                        android:layout_marginStart="6dp"
+                        android:screenReaderFocusable="true">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="@string/welcome_point_track_title"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/welcome_point_track_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/shape_notification_icon_circle"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:importantForAccessibility="no">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal"
-                    android:screenReaderFocusable="true">
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_headset"
+                                    app:tint="@color/velocity_red_primary" />
+                            </FrameLayout>
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_icon_circle_badge"
-                        android:importantForAccessibility="no">
+                            <TextView
+                                android:id="@+id/welcomeCardSupportTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_notify_title"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp" />
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_person"
-                            app:tint="@color/velocity_action_text" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="@string/welcome_point_notify_title"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="@string/welcome_point_notify_desc"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/welcomeCardSupportDesc"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="center"
+                                android:minLines="2"
+                                android:text="@string/welcome_point_notify_desc"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -410,23 +474,30 @@
                 style="@style/Widget.Velocity.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:letterSpacing="0"
                 android:minHeight="52dp"
                 android:stateListAnimator="@null"
                 android:text="@string/welcome_action_create_account"
-                android:textSize="14sp"
+                android:textAllCaps="false"
+                android:textSize="15sp"
                 app:icon="@drawable/ic_person"
                 app:iconGravity="textStart"
                 app:iconTint="@color/white" />
 
+            <!-- "Already have an account? Sign in": the whole line taps; "Sign in" is picked out in bold red (WelcomeActivity). -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/loginButton"
-                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                style="@style/Widget.Velocity.Flat.Button.Text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0"
                 android:minHeight="48dp"
                 android:text="@string/welcome_action_sign_in"
-                android:textColor="@color/velocity_action_text"
+                android:textAllCaps="false"
+                android:textColor="@color/velocity_text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>
     </LinearLayout>

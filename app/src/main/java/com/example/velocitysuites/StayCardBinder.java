@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat;
 /**
  * The Dashboard's one compact stay card (item_recent_upcoming_stay.xml): type chip, optional tag (Upcoming / Recent),
  * reference, room, "check-in → check-out · N nights", status chip and a chevron. Used by the Stay Calendar list, Other
- * Recent and Upcoming Stays and Recent Upcoming Stay so all three look and read the same. A tap opens Upcoming Hotel
+ * Recent and Upcoming Stays and Pending & Confirmed Stays so all three look and read the same. A tap opens Upcoming Hotel
  * Transactions with the transaction's type and status filters set, scrolled to and showing it.
  */
 final class StayCardBinder {

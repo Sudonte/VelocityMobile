@@ -125,13 +125,13 @@ public class DashboardScreenTest {
         }
     }
 
-    // ---- Recent Upcoming Stay
+    // ---- Pending & Confirmed Stays
 
     @Test
     public void recentUpcomingStay_sitsBelowTheSummary_showsFive_expandsToAll_andOpensFilteredUpcoming() {
         DashboardActivity activity = launch();
         View content = (View) activity.findViewById(R.id.welcomeCard).getParent();
-        assertTrue("Recent Upcoming Stay now comes before the summary",
+        assertTrue("Pending & Confirmed Stays now comes before the summary",
                 topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
                 < topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard)));
         assertTrue(topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard))
@@ -1495,19 +1495,22 @@ public class DashboardScreenTest {
         for (int id : toggles) {
             View toggle = activity.findViewById(id);
             String name = activity.getResources().getResourceEntryName(id);
-            assertEquals(name + " starts collapsed", app.getString(R.string.section_expand), toggle.getContentDescription().toString());
+            // The Pending & Confirmed Stays toggle is named ("Expand Pending & Confirmed Stays"); the rest read "Expand section".
+            String expand = id == R.id.recentUpcomingToggle ? app.getString(R.string.section_expand_named, app.getString(R.string.recent_upcoming_title)) : app.getString(R.string.section_expand);
+            String collapse = id == R.id.recentUpcomingToggle ? app.getString(R.string.section_collapse_named, app.getString(R.string.recent_upcoming_title)) : app.getString(R.string.section_collapse);
+            assertEquals(name + " starts collapsed", expand, toggle.getContentDescription().toString());
             assertEquals(name + " chevron points down", 0f, toggle.getRotation(), 0.01f);
 
             toggle.performClick(); // the chevron
             idle();
             shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
-            assertEquals(name + " expanded", app.getString(R.string.section_collapse), toggle.getContentDescription().toString());
+            assertEquals(name + " expanded", collapse, toggle.getContentDescription().toString());
             assertEquals(name + " chevron turned over", 180f, toggle.getRotation(), 0.01f);
 
             ((View) toggle.getParent()).performClick(); // the header row
             idle();
             shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
-            assertEquals(name + " collapsed again from the header row", app.getString(R.string.section_expand), toggle.getContentDescription().toString());
+            assertEquals(name + " collapsed again from the header row", expand, toggle.getContentDescription().toString());
         }
     }
 

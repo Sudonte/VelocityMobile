@@ -124,7 +124,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
 
     /**
      * Opens Upcoming Hotel Transactions with the Type (Booking / Reservation) and Status filters set to this transaction's
-     * own, scrolled to and highlighting exactly it - the Dashboard's "Recent Upcoming Stay" tap.
+     * own, scrolled to and highlighting exactly it - the Dashboard's "Pending & Confirmed Stays" tap.
      */
     public static Intent intentWithFilters(@NonNull Context context, @NonNull Booking booking) {
         return intentFor(context, booking)

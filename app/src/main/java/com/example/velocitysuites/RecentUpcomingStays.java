@@ -10,7 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * What the Dashboard's "Recent Upcoming Stay" lists: every booking and reservation whose status is Pending or Confirmed,
+ * What the Dashboard's "Pending & Confirmed Stays" lists: every booking and reservation whose status is Pending or Confirmed,
  * soonest check-in first (an unreadable date sorts last). Collapsed it shows {@link #COLLAPSED_LIMIT} of them, expanded all.
  */
 final class RecentUpcomingStays {

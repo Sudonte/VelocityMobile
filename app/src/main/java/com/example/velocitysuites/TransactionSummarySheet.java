@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * The details view of one booking or reservation as a bottom sheet: reference no., type, status, room, check-in and
  * check-out, guests, the amounts and the payment method. A fact the API did not send is left out (never a placeholder).
- * Opened from a card in Upcoming Hotel Transactions and when the Dashboard's Recent Upcoming Stay sends the guest there;
+ * Opened from a card in Upcoming Hotel Transactions and when the Dashboard's Pending & Confirmed Stays sends the guest there;
  * its button goes on to the full record in Transaction History.
  */
 final class TransactionSummarySheet {
