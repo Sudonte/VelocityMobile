@@ -152,17 +152,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/guest_account_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/guest_account_label"/>
                         <TextView android:id="@+id/tvBillingPrimaryGuest"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Ana Reyes" />
                     </LinearLayout>
                     <LinearLayout
@@ -171,17 +171,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/details_label_representative_name"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_representative_label"/>
                         <TextView android:id="@+id/tvBillingRepresentativeName"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Ana Reyes" />
                     </LinearLayout>
                     <LinearLayout
@@ -190,17 +190,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/total_guests_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/total_guests_label"/>
                         <TextView android:id="@+id/tvBillingGuestCount"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="2 guests" />
                     </LinearLayout>
                     <LinearLayout
@@ -210,17 +210,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/id_type_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/id_type_label"/>
                         <TextView android:id="@+id/tvBillingIdType"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Driver License" />
                     </LinearLayout>
                     <LinearLayout
@@ -275,17 +275,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_type_summary_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_type_summary_label"/>
                         <TextView android:id="@+id/tvBillingRoomType"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Deluxe Room" />
                     </LinearLayout>
                     <LinearLayout
@@ -299,17 +299,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/selected_room_quantity_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/selected_room_quantity_label"/>
                         <TextView android:id="@+id/tvBillingRoomQuantity"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="2 Room(s)" />
                     </LinearLayout>
                     <LinearLayout
@@ -318,17 +318,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_rate_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_rate_label"/>
                         <TextView android:id="@+id/tvBillingSingleRoomRate"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="₱3,500.00 / Night" />
                     </LinearLayout>
                     </LinearLayout>
@@ -344,17 +344,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/stay_dates_summary_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/stay_dates_summary_label"/>
                         <TextView android:id="@+id/tvBillingDates"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Oct 20, 2026 - Oct 22, 2026" />
                     </LinearLayout>
                     <LinearLayout
@@ -363,17 +363,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/nights_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/nights_label"/>
                         <TextView android:id="@+id/tvBillingNights"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="2 night(s)" />
                     </LinearLayout>
                     <View
@@ -388,12 +388,12 @@
                         android:layout_marginBottom="0dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_total_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_total_label"/>
                         <TextView android:id="@+id/tvBillingStayRoomAmount"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_red_text"
@@ -454,12 +454,12 @@
                         android:layout_marginBottom="0dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/total_amenities_amount_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_amenities_total_label"/>
                         <TextView android:id="@+id/tvAmenitiesSectionTotal"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_red_text"
@@ -501,17 +501,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/review_payment_method_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/review_payment_method_label"/>
                         <TextView android:id="@+id/tvBillingPaymentMethod"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="GCash" />
                     </LinearLayout>
                     <LinearLayout
@@ -521,17 +521,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/review_payment_type_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/review_payment_type_label"/>
                         <TextView android:id="@+id/tvBillingPaymentType"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Partial Payment" />
                     </LinearLayout>
                     <LinearLayout
@@ -541,17 +541,17 @@
                         android:layout_marginBottom="0dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/payment_status"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/payment_status"/>
                         <TextView android:id="@+id/tvBillingPaymentStatus"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="Awaiting Payment" />
                     </LinearLayout>
                 </LinearLayout>
@@ -577,7 +577,7 @@
                         android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
                         android:text="@string/payment_breakdown_title"
-                        app:drawableStartCompat="@drawable/ic_payment_card"
+                        app:drawableStartCompat="@drawable/ic_receipt"
                         app:drawableTint="@color/velocity_red_primary" />
 
                     <LinearLayout
@@ -586,17 +586,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_total_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/room_total_label"/>
                         <TextView android:id="@+id/tvBillingRate"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="₱7,000.00" />
                     </LinearLayout>
                     <LinearLayout
@@ -605,17 +605,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/total_amenities_amount_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_amenities_total_label"/>
                         <TextView android:id="@+id/tvBillingTotalAmenities"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="₱1,200.00" />
                     </LinearLayout>
                     <LinearLayout
@@ -626,17 +626,17 @@
                         android:gravity="top"
                         android:orientation="horizontal"
                         android:visibility="gone">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/discount_applied_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/discount_applied_label"/>
                         <TextView android:id="@+id/tvBillingDiscount"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_green_dark"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="-₱500.00" />
                     </LinearLayout>
                     <View
@@ -651,12 +651,12 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/grand_total_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/grand_total_label"/>
                         <TextView android:id="@+id/tvBillingBalanceDue"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
@@ -670,17 +670,17 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_amount_paid_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_amount_paid_label"/>
                         <TextView android:id="@+id/tvBillingAlreadyPaid"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
-                            android:textColor="@color/velocity_green_dark"
+                            android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp"
-                            android:fontFamily="sans-serif-bold"
+                            android:fontFamily="sans-serif-medium"
                             tools:text="₱0.00" />
                     </LinearLayout>
                     <LinearLayout
@@ -689,12 +689,12 @@
                         android:layout_marginBottom="0dp"
                         android:gravity="top"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_remaining_balance_label"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/billing_remaining_balance_label"/>
                         <TextView android:id="@+id/tvBillingRemaining"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
-                            android:layout_weight="1.3"
+                            android:layout_weight="1"
                             android:gravity="end"
                             android:textAlignment="viewEnd"
                             android:textColor="@color/velocity_text_primary"
@@ -733,18 +733,20 @@
 
                     <TextView
                         android:id="@+id/tvBillingPayNowOption"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10dp"
-                        android:layout_weight="1"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/velocity_text_primary"
                         android:textSize="14sp"
-                        tools:text="Grand Total" />
+                        android:visibility="gone"
+                        tools:text="Remaining Balance" />
 
                     <TextView
                         android:id="@+id/tvBillingPayNowAmount"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:gravity="start"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
                         android:includeFontPadding="false"
@@ -783,7 +785,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="14dp"
                         android:drawablePadding="8dp"
-                        android:text="@string/terms_and_agreement_title"
+                        android:text="@string/billing_terms_title"
                         app:drawableStartCompat="@drawable/ic_lock"
                         app:drawableTint="@color/velocity_red_primary" />
 
@@ -865,15 +867,6 @@
                         android:textColor="@color/velocity_text_primary"
                         android:textSize="13sp"
                         app:buttonTint="@color/velocity_red_primary" />
-
-                    <TextView
-                        android:id="@+id/tvBillingTermsHint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="32dp"
-                        android:text="@string/terms_view_required_hint"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
@@ -906,8 +899,11 @@
             android:layout_height="54dp"
             android:enabled="false"
             android:text="@string/confirm_booking_label"
+            android:textColor="@color/billing_confirm_text"
             android:textSize="14sp"
+            app:backgroundTint="@color/billing_confirm_bg"
             app:icon="@drawable/ic_payment_card"
+            app:iconTint="@color/billing_confirm_text"
             app:iconGravity="textStart"
             app:iconPadding="10dp" />
     </LinearLayout>

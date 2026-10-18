@@ -420,7 +420,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
                 layoutBillingRoomsRows.setVisibility(View.VISIBLE);
                 layoutBillingRoomsRows.removeAllViews();
                 for (BookingRoom line : roomLines) {
-                    layoutBillingRoomsRows.addView(buildRoomLineRow(line));
+                    layoutBillingRoomsRows.addView(buildRoomLineRow(line, roomLines.size() > 1));
                 }
             }
         } else if (layoutBillingRoomsRows != null) {
@@ -457,7 +457,11 @@ public class BillingSummaryActivity extends AppCompatActivity {
         tvBillingAlreadyPaid.setText(MoneyFormat.format(amounts.alreadyPaid));
         tvBillingRemaining.setText(MoneyFormat.format(amounts.remaining));
         tvBillingPayNowAmount.setText(MoneyFormat.format(amounts.amountToPay));
-        tvBillingPayNowOption.setText(amounts.paymentMade ? R.string.billing_remaining_balance_label : R.string.grand_total_label);
+        tvBillingPayNowAmount.setGravity(amounts.paymentMade ? android.view.Gravity.END : android.view.Gravity.START);
+        // Before a payment the block is just the amount (the Grand Total is already in the header and the breakdown).
+        tvBillingPayNowOption.setText(R.string.billing_remaining_balance_label);
+        tvBillingPayNowOption.setVisibility(amounts.paymentMade ? View.VISIBLE : View.GONE);
+        tvBillingAlreadyPaid.setTextColor(getColor(amounts.paymentMade ? R.color.velocity_green_dark : R.color.velocity_text_primary));
         tvBillingPayNowNote.setVisibility(amounts.paymentMade ? View.GONE : View.VISIBLE);
     }
 
@@ -492,36 +496,28 @@ public class BillingSummaryActivity extends AppCompatActivity {
     }
 
 
-    /** One itemized room-type row: name header + price/night, quantity, nights, subtotal -
-     *  mirrors buildAmenityRow()'s label/value line style. */
-    private View buildRoomLineRow(BookingRoom room) {
+    /**
+     * One itemized room-type block: price per night, quantity, and the subtotal only when more than one room of this
+     * type was booked (with one room it would repeat Room Total). The type name leads only when several types are listed
+     * (a single type is already the "Room Type" row). Same label/value style as every other row.
+     */
+    private View buildRoomLineRow(BookingRoom room, boolean showName) {
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        int vPad = (int) (getResources().getDisplayMetrics().density * 6);
-        container.setPadding(0, vPad, 0, vPad);
 
-        if (hasText(room.getRoomTypeName())) {
-            TextView tvName = new TextView(this);
-            tvName.setText(room.getRoomTypeName());
-            tvName.setTextSize(14f);
-            tvName.setTypeface(tvName.getTypeface(), android.graphics.Typeface.BOLD);
-            tvName.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
-            container.addView(tvName);
+        if (showName && hasText(room.getRoomTypeName())) {
+            container.addView(buildAmenityRow(getString(R.string.room_type_summary_label), room.getRoomTypeName()));
         }
-
-        // Nights is deliberately NOT repeated per room - every room in this reservation
-        // shares the same single stay period, already shown once at reservation level
-        // (Stay Dates/Nights rows above Room Total). Still used internally for
-        // room.getSubtotal() (rate x quantity x nights) - only the redundant display row
-        // is removed.
+        // Nights is not repeated per room: every room shares the one stay period shown once in Stay Information.
         container.addView(buildAmenityRow(getString(R.string.price_per_room_night_label),
                 MoneyFormat.format(room.getPricePerNight())));
         container.addView(buildAmenityRow(getString(R.string.selected_room_quantity_label),
                 String.valueOf(room.getQuantity())));
-        container.addView(buildAmenityRow(getString(R.string.room_line_subtotal_label),
-                MoneyFormat.format(room.getSubtotal())));
-
+        if (room.getQuantity() > 1) {
+            container.addView(buildAmenityRow(getString(R.string.room_line_subtotal_label),
+                    MoneyFormat.format(room.getSubtotal())));
+        }
         return container;
     }
 
@@ -563,22 +559,31 @@ public class BillingSummaryActivity extends AppCompatActivity {
         updateBillingBreakdownAmounts();
     }
 
+    /** A label/value line in the same style as the layout's rows: label left, value right, 10dp between lines. */
     private View buildAmenityRow(String label, String amount) {
+        float density = getResources().getDisplayMetrics().density;
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        row.setPadding(0, (int) (getResources().getDisplayMetrics().density * 3), 0, (int) (getResources().getDisplayMetrics().density * 3));
+        row.setPadding(0, 0, 0, (int) (10 * density));
 
+        android.graphics.Typeface medium = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL);
         TextView tvLabel = new TextView(this);
-        tvLabel.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        tvLabel.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         tvLabel.setText(label);
-        tvLabel.setTextSize(14f);
-        tvLabel.setTextColor(getResources().getColor(R.color.velocity_text_secondary, getTheme()));
+        tvLabel.setTextSize(13f);
+        tvLabel.setTypeface(medium);
+        tvLabel.setTextColor(getColor(R.color.velocity_text_secondary));
 
         TextView tvAmount = new TextView(this);
+        LinearLayout.LayoutParams valueParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        valueParams.setMarginStart((int) (12 * density));
+        tvAmount.setLayoutParams(valueParams);
+        tvAmount.setGravity(android.view.Gravity.END);
         tvAmount.setText(amount);
-        tvAmount.setTextSize(14f);
-        tvAmount.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
+        tvAmount.setTextSize(13f);
+        tvAmount.setTypeface(medium);
+        tvAmount.setTextColor(getColor(R.color.velocity_text_primary));
 
         row.addView(tvLabel);
         row.addView(tvAmount);

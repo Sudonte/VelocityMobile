@@ -934,9 +934,12 @@
     <string name="billing_amount_paid_label">Amount Already Paid</string>
     <string name="billing_remaining_balance_label">Remaining Balance</string>
     <string name="billing_total_to_pay_label">Total Amount to Pay</string>
+    <string name="billing_representative_label">Representative</string>
+    <string name="billing_amenities_total_label">Amenities Total</string>
+    <string name="billing_terms_title">Terms &amp; Agreement</string>
     <string name="billing_pay_now_note">Choose partial (20%–50%) or full payment on the next step.</string>
-    <string name="billing_confirm_hint_read">Open and read the Terms and Policy first, then tick the box to continue.</string>
-    <string name="billing_confirm_hint_tick">Tick the box above to continue to payment.</string>
+    <string name="billing_confirm_hint_read">Read the Terms and tick the box to continue.</string>
+    <string name="billing_confirm_hint_tick">Tick the box to continue.</string>
     <string name="billing_terms_notice">Please read the Terms and Policy first. You must open and read them before you can check the box below and continue to payment.</string>
     <string name="room_type_summary_label">Room Type</string>
     <string name="stay_dates_summary_label">Stay Dates</string>

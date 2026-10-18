@@ -84,7 +84,7 @@ public class BillingSummaryScreenTest {
         BillingSummaryActivity a = open(ScreenTestSupport.reservation(588, 1800));
 
         assertEquals("₱1,800.00", text(a, R.id.tvBillingHeaderGrandTotal));
-        assertEquals("Grand Total", text(a, R.id.tvBillingPayNowOption));
+        assertEquals("the block is just the amount - no repeated label", View.GONE, a.findViewById(R.id.tvBillingPayNowOption).getVisibility());
         assertEquals("₱1,800.00", text(a, R.id.tvBillingPayNowAmount));
         assertEquals(View.VISIBLE, a.findViewById(R.id.tvBillingPayNowNote).getVisibility());
         assertTrue(text(a, R.id.tvBillingPayNowNote).contains("20%"));
@@ -100,6 +100,7 @@ public class BillingSummaryScreenTest {
 
         assertEquals("₱500.00", text(a, R.id.tvBillingAlreadyPaid));
         assertEquals("₱1,300.00", text(a, R.id.tvBillingRemaining));
+        assertEquals(View.VISIBLE, a.findViewById(R.id.tvBillingPayNowOption).getVisibility());
         assertEquals("Remaining Balance", text(a, R.id.tvBillingPayNowOption));
         assertEquals("₱1,300.00", text(a, R.id.tvBillingPayNowAmount));
         assertEquals(View.GONE, a.findViewById(R.id.tvBillingPayNowNote).getVisibility());
@@ -121,6 +122,34 @@ public class BillingSummaryScreenTest {
             assertFalse("placeholder text on screen: '" + t + "'", t.equalsIgnoreCase("null") || t.equalsIgnoreCase("N/A")
                     || t.equals("-") || t.contains("[id") || t.contains("No room selected") || t.contains("null"));
         }
+    }
+
+    @Test
+    public void noRepetition_grandTotalTwice_oneTermsNotice_shortLabels() {
+        BillingSummaryActivity a = open(ScreenTestSupport.reservation(588, 1800));
+        List<String> shown = new ArrayList<>();
+        collect(a.findViewById(android.R.id.content), shown);
+
+        int grandTotals = 0, amenitiesTotals = 0;
+        for (String t : shown) {
+            if (t.equals("Grand Total")) grandTotals++;
+            if (t.equals("Amenities Total")) amenitiesTotals++;
+        }
+        // The header and Billing Breakdown carry "Grand Total"; the highlighted block shows only the amount.
+        assertEquals(2, grandTotals);
+        assertEquals("Add-on Amenities and Billing Breakdown", 2, amenitiesTotals);
+        assertEquals("Representative", a.getString(R.string.billing_representative_label)); // its row shows only when a name was captured
+        assertTrue(shown.contains("Terms & Agreement"));
+        assertEquals("no hint under the checkbox any more", 0,
+                a.getResources().getIdentifier("tvBillingTermsHint", "id", a.getPackageName()));
+        assertTrue("the hint above the button is one short line", text(a, R.id.tvBillingConfirmHint).length() < 50);
+    }
+
+    @Test
+    public void amountAlreadyPaid_isGreenOnlyOnceSomethingWasPaid() {
+        BillingSummaryActivity before = open(ScreenTestSupport.reservation(588, 1800));
+        int normal = before.getColor(R.color.velocity_text_primary);
+        assertEquals(normal, ((TextView) before.findViewById(R.id.tvBillingAlreadyPaid)).getCurrentTextColor());
     }
 
     @Test

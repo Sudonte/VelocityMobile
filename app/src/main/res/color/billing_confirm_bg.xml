@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Confirm Booking: brand red when enabled, a plain grey when it cannot be used yet. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/velocity_divider_hairline" android:state_enabled="false" />
+    <item android:color="@color/velocity_red_primary" />
+</selector>
