@@ -60,6 +60,9 @@ final class DashboardStayCalendar {
     private LocalDate selected;
     private YearMonth shown;
     @Nullable private Listener listener;
+    @Nullable private List<Booking> bookings;
+    @Nullable private java.util.function.Predicate<Booking> shade;
+    private boolean mutedShading;
     /** True while {@link #setWindow} drives the mode chips, so that is not reported back as a guest choice. */
     private boolean settingWindow;
 
@@ -125,12 +128,22 @@ final class DashboardStayCalendar {
 
     /** Replaces the data (called whenever the Dashboard's bookings change) and redraws, keeping the chosen day. */
     void setBookings(@Nullable List<Booking> bookings) {
-        setBookings(bookings, false);
+        this.bookings = bookings;
+        rebuildModel();
     }
 
-    /** {@code everyStatus}: also shade the days of cancelled and rejected stays (for a screen that lists every status). */
-    void setBookings(@Nullable List<Booking> bookings, boolean everyStatus) {
-        model = new StayCalendarModel(bookings, everyStatus);
+    /**
+     * Which stays have their days shaded. {@code muted} draws them dashed and grey instead of red, for stays that are
+     * not active bookings (cancelled, rejected). Default: every active stay, in red.
+     */
+    void setShading(@Nullable java.util.function.Predicate<Booking> shade, boolean muted) {
+        this.shade = shade;
+        this.mutedShading = muted;
+        rebuildModel();
+    }
+
+    private void rebuildModel() {
+        model = new StayCalendarModel(bookings, shade);
         render();
     }
 
@@ -189,7 +202,9 @@ final class DashboardStayCalendar {
         LinearLayout cell = new LinearLayout(context);
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER);
-        if (model.isStayDay(date)) cell.setBackgroundResource(R.drawable.bg_calendar_stay_day);
+        if (model.isStayDay(date)) {
+            cell.setBackgroundResource(mutedShading ? R.drawable.bg_calendar_stay_day_muted : R.drawable.bg_calendar_stay_day);
+        }
         cell.setClickable(true);
         cell.setFocusable(true);
         android.util.TypedValue ripple = new android.util.TypedValue();

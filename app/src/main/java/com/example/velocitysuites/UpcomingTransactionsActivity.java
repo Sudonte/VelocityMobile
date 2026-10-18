@@ -132,6 +132,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     private AutoCompleteTextView dropdownType, dropdownStatus, dropdownDate;
     private TextView clock;
     private DashboardStayCalendar calendar;
+    /** Type + Status the calendar's shading was last built for. */
+    private String shadingKey;
     private StayCalendarModel.Mode periodMode = null; // null = any date
     /** The day the Daily / Weekly / Monthly window is cut around - the calendar's selected day. */
     private LocalDate periodDate = LocalDate.now(TimeUtils.ZONE_MANILA);
@@ -281,10 +283,30 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     }
 
     private boolean passesFilters(@NonNull Booking b) {
-        if (typeFilter == TypeFilter.BOOKINGS && !b.isHasBooking()) return false;
-        if (typeFilter == TypeFilter.RESERVATIONS && b.isHasBooking()) return false;
-        if (!statusFilter.matches(b)) return false;
+        if (!typeMatches(b) || !statusFilter.matches(b)) return false;
+        // Same rule the calendar shades by: with a date chosen, "All" means the active stays - cancelled and rejected ones
+        // are listed (and shaded, muted) only when that status is picked.
+        if (periodMode != null && statusFilter == StatusFilter.ALL && StayCalendarModel.isClosed(b)) return false;
         return inPeriod(b);
+    }
+
+    private boolean typeMatches(@NonNull Booking b) {
+        if (typeFilter == TypeFilter.BOOKINGS) return b.isHasBooking();
+        if (typeFilter == TypeFilter.RESERVATIONS) return !b.isHasBooking();
+        return true;
+    }
+
+    /**
+     * The calendar shades the days of exactly the stays the Type and Status filters let through: active stays in red, or -
+     * only when Cancelled / Rejected is the chosen status - those stays dashed and grey, so they never look like bookings.
+     */
+    private void syncShading() {
+        if (calendar == null) return;
+        String key = typeFilter + "/" + statusFilter;
+        if (key.equals(shadingKey)) return;
+        shadingKey = key;
+        final boolean closedOnly = statusFilter == StatusFilter.CANCELLED || statusFilter == StatusFilter.REJECTED;
+        calendar.setShading(b -> typeMatches(b) && statusFilter.matches(b) && StayCalendarModel.isClosed(b) == closedOnly, closedOnly);
     }
 
     /** True when the stay overlaps the chosen Daily / Weekly / Monthly window around the calendar's selected day; always true for "All". */
@@ -346,7 +368,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         for (Booking b : bookings) {
             if (b != null) allTransactions.add(b);
         }
-        calendar.setBookings(allTransactions, true); // every status is listed here, so every stay day is shaded
+        calendar.setBookings(allTransactions);
         renderEvents();
     }
 
@@ -374,6 +396,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
 
     private void renderEvents() {
         if (listContainer == null) return;
+        syncShading();
         List<Booking> open = new ArrayList<>();
         List<Booking> closed = new ArrayList<>();
         for (Booking b : allTransactions) {

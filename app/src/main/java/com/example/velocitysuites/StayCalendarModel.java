@@ -80,18 +80,18 @@ public final class StayCalendarModel {
     private final Set<LocalDate> stayDays = new HashSet<>();
 
     public StayCalendarModel(@Nullable List<Booking> bookings) {
-        this(bookings, false);
+        this(bookings, null);
     }
 
     /**
-     * @param everyStatus true to shade the days of cancelled and rejected stays too (a screen that lists every status);
-     *                    false leaves those out. The check-in / check-out entries never include cancelled ones.
+     * @param shade which stays have their days shaded (null: every stay that is not cancelled or rejected). The
+     *              check-in / check-out entries are unaffected - cancelled ones are never listed.
      */
-    public StayCalendarModel(@Nullable List<Booking> bookings, boolean everyStatus) {
+    public StayCalendarModel(@Nullable List<Booking> bookings, @Nullable java.util.function.Predicate<Booking> shade) {
         if (bookings == null) return;
         for (Booking b : bookings) {
             if (b == null) continue;
-            addStayDays(b, everyStatus);
+            addStayDays(b, shade);
             if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
             String status = b.getStatus() == null ? "" : b.getStatus();
             boolean finished = "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
@@ -112,8 +112,8 @@ public final class StayCalendarModel {
         for (List<Entry> day : byDate.values()) Collections.sort(day, byTime);
     }
 
-    private void addStayDays(Booking b, boolean everyStatus) {
-        if (!everyStatus && TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) return;
+    private void addStayDays(Booking b, @Nullable java.util.function.Predicate<Booking> shade) {
+        if (shade == null ? isClosed(b) : !shade.test(b)) return;
         LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
         if (in == null) return;
         LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
@@ -129,6 +129,11 @@ public final class StayCalendarModel {
     /** True when at least one transaction arrives or leaves on that day (the dot on the calendar). */
     public boolean hasEntries(@NonNull LocalDate day) {
         return byDate.containsKey(day);
+    }
+
+    /** A cancelled or rejected stay. */
+    public static boolean isClosed(@NonNull Booking b) {
+        return TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED;
     }
 
     /** True when a stay covers this day (check-in, check-out or any night between) - the day is shaded on the calendar. */

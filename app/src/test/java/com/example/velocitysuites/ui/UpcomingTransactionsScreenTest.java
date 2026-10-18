@@ -264,14 +264,62 @@ public class UpcomingTransactionsScreenTest {
     }
 
     @Test
-    public void everyDayOfAStay_isShadedOnTheCalendar_matchingTheDateFilter() {
+    public void everyDayOfAnActiveStay_isShadedOnTheCalendar_andClosedStaysAreNot() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
-        // Booking #10 checks in at +2 and out at +3 (a rejected/cancelled one counts too, as the list shows every status).
+        // Booking #10 checks in at +2 and out at +3.
         assertTrue(dayCellShaded(activity, today().plusDays(2)));
         assertTrue(dayCellShaded(activity, today().plusDays(3)));
         assertFalse(dayCellShaded(activity, today().plusDays(4)));
-        // Booking #13 (cancelled) is listed by the Date filter for +8..+9, so those days are shaded as well.
-        assertTrue(dayCellShaded(activity, today().plusDays(8)));
+        // Reservation #2 (rejected, +6..+7; the pending Reservation #1 covers +5..+6, so +7 is the rejected one alone) and Booking #13 (cancelled, +8..+9): not shaded while Status is All.
+        assertFalse(dayCellShaded(activity, today().plusDays(7)));
+        assertFalse(dayCellShaded(activity, today().plusDays(8)));
+    }
+
+    @Test
+    public void pickingCancelled_shadesOnlyCancelledStays_mutedAndDashed() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        pick(activity, R.id.dropdownUpcomingStatus, "Cancelled");
+
+        android.graphics.drawable.Drawable muted = androidx.core.content.ContextCompat.getDrawable(activity, R.drawable.bg_calendar_stay_day_muted);
+        android.graphics.drawable.Drawable active = androidx.core.content.ContextCompat.getDrawable(activity, R.drawable.bg_calendar_stay_day);
+        View cancelledDay = dayCell(activity, today().plusDays(8));
+        assertNotNull(cancelledDay.getBackground());
+        assertEquals("muted, not the red active style", muted.getConstantState(), cancelledDay.getBackground().getConstantState());
+        assertTrue(!active.getConstantState().equals(cancelledDay.getBackground().getConstantState()));
+        assertEquals("the active stay is no longer shaded", null, dayCell(activity, today().plusDays(2)).getBackground());
+        assertEquals("rejected is a different status", null, dayCell(activity, today().plusDays(7)).getBackground());
+
+        pick(activity, R.id.dropdownUpcomingStatus, "Rejected");
+        assertNotNull(dayCell(activity, today().plusDays(7)).getBackground());
+        assertEquals(null, dayCell(activity, today().plusDays(8)).getBackground());
+
+        pick(activity, R.id.dropdownUpcomingStatus, "All");
+        assertNotNull("back to the active style", dayCell(activity, today().plusDays(2)).getBackground());
+        assertEquals(null, dayCell(activity, today().plusDays(8)).getBackground());
+    }
+
+    @Test
+    public void withADateChosen_theListFollowsTheShading() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        tapCalendarDay(activity, today().plusDays(8));
+        assertEquals("All + a shaded-less day: the cancelled booking is not listed", java.util.Collections.emptyList(), refs(activity));
+
+        pick(activity, R.id.dropdownUpcomingStatus, "Cancelled");
+        assertEquals(java.util.Collections.singletonList("Booking #13"), refs(activity));
+    }
+
+    private static View dayCell(UpcomingTransactionsActivity activity, LocalDate day) {
+        String key = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH).format(day);
+        int[] pages = {R.id.stayCalNext, R.id.stayCalPrev, R.id.stayCalPrev, R.id.stayCalPrev}; // this month, next, then back past the start
+        for (int attempt = 0; attempt < pages.length; attempt++) {
+            ViewGroup grid = activity.findViewById(R.id.stayCalGrid);
+            for (int i = 0; i < grid.getChildCount(); i++) {
+                CharSequence cd = grid.getChildAt(i).getContentDescription();
+                if (cd != null && cd.toString().contains(key)) return grid.getChildAt(i);
+            }
+            activity.findViewById(pages[attempt]).performClick();
+        }
+        throw new AssertionError("day " + key + " not on the calendar");
     }
 
     private static boolean dayCellShaded(UpcomingTransactionsActivity activity, LocalDate day) {
