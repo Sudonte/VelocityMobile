@@ -199,8 +199,11 @@ public class DashboardActivity extends BaseNavigationActivity {
         paymentCountBadge = findViewById(R.id.paymentCountBadge);
 
         // List sections keep their list on screen: collapsed = the first few items + "Show all (N)", expanded = everything.
-        nextStaySection = new CollapsibleSection(this, "next_stay", findViewById(R.id.nextStayToggle),
-                findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard)).previewList(this::renderNextStayDaysIfShown);
+        // Your Next Stay collapses completely (header only) and opens to the strip, the context line and every card.
+        // It opens expanded; "next_stay_full" is a new key so the old collapsed-preview choice does not carry over.
+        nextStaySection = new CollapsibleSection(this, "next_stay_full", findViewById(R.id.nextStayToggle),
+                null, true, findViewById(R.id.nextStayCard))
+                .named(getString(R.string.next_stay_section_title)).animated().onChange(this::onNextStayToggled);
         moreStaysSection = new CollapsibleSection(this, "more_stays", findViewById(R.id.moreStaysToggle),
                 findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody)).previewList(this::renderMoreStays);
         // Quick Actions has no collapse control: all four actions are always shown.
@@ -1289,18 +1292,28 @@ public class DashboardActivity extends BaseNavigationActivity {
             scrollNow.run();
             return;
         }
-        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+        Object previous = scroll.getTag(R.id.sectionAnimator);
+        if (previous instanceof View.OnLayoutChangeListener) scroll.removeOnLayoutChangeListener((View.OnLayoutChangeListener) previous);
+        View.OnLayoutChangeListener listener = new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
-                if (chip.getWidth() == 0) return;
+                if (chip.getWidth() == 0 || scroll.getWidth() == 0) return;
                 scroll.removeOnLayoutChangeListener(this);
+                scroll.setTag(R.id.sectionAnimator, null);
                 scrollNow.run();
             }
-        });
+        };
+        scroll.setTag(R.id.sectionAnimator, listener);
+        scroll.addOnLayoutChangeListener(listener);
     }
 
-    private void renderNextStayDaysIfShown() {
-        if (nextStayContent.getVisibility() == View.VISIBLE && selectedStayDay != null) renderNextStayDays();
+    /** Opening the section re-centres the selected chip (it could not be measured while hidden); the chosen day is kept. */
+    private void onNextStayToggled() {
+        if (!nextStaySection.isExpanded()) return;
+        if (nextStayContent.getVisibility() == View.VISIBLE && selectedStayDay != null) {
+            scrollStripToSelected = true;
+            renderNextStayDays();
+        }
     }
 
     /** True when at least one non-cancelled transaction has a readable check-in date (so the day selector has something to show). */
@@ -1414,13 +1427,12 @@ public class DashboardActivity extends BaseNavigationActivity {
         cards.removeAllViews();
         bindNextStayInfo(content, today);
         empty.setVisibility(dayStays.isEmpty() ? View.VISIBLE : View.GONE);
-        List<NextStay> shownStays = SectionPreview.visible(dayStays, nextStaySection.isExpanded());
+        List<NextStay> shownStays = dayStays; // every stay of the day: this section has no 3-item preview
         for (int i = 0; i < shownStays.size(); i++) {
             View item = inflater.inflate(R.layout.item_next_stay, cards, false);
             bindNextStayItem(item, shownStays.get(i), selectedStayDay);
             cards.addView(item);
         }
-        SectionPreview.addToggle(this, cards, dayStays.size(), nextStaySection.isExpanded(), nextStaySection::toggle);
         TextView stayCount = findViewById(R.id.nextStayCount);
         stayCount.setText(String.valueOf(dayStays.size()));
         stayCount.setVisibility(dayStays.isEmpty() ? View.GONE : View.VISIBLE);

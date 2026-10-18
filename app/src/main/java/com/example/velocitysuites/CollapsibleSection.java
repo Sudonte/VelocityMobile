@@ -39,6 +39,9 @@ final class CollapsibleSection {
     private boolean previewMode;
     @Nullable private Runnable onChange;
     private View[] collapsedHides = new View[0];
+    @Nullable private String title;
+    private boolean animated;
+    @Nullable private View header;
 
     /**
      * @param toggle  the chevron button (its parent row is made tappable too)
@@ -62,7 +65,7 @@ final class CollapsibleSection {
         View.OnClickListener flip = v -> setExpanded(!expanded);
         toggle.setOnClickListener(flip);
         if (toggle.getParent() instanceof View) {
-            View header = (View) toggle.getParent();
+            header = (View) toggle.getParent();
             header.setOnClickListener(flip);
         }
         apply(false);
@@ -81,6 +84,25 @@ final class CollapsibleSection {
         this.previewMode = true;
         this.collapsedHides = views;
         apply(false);
+        return this;
+    }
+
+    /** The section's name: the header and chevron then read "Collapse Your Next Stay" / "Expand Your Next Stay", and a change is announced. */
+    CollapsibleSection named(@NonNull String name) {
+        this.title = name;
+        apply(false);
+        return this;
+    }
+
+    /** Opens and closes the body with a short height animation (plain form only). */
+    CollapsibleSection animated() {
+        this.animated = true;
+        return this;
+    }
+
+    /** Told after every change, whatever the form. */
+    CollapsibleSection onChange(@Nullable Runnable onChange) {
+        this.onChange = onChange;
         return this;
     }
 
@@ -104,7 +126,9 @@ final class CollapsibleSection {
     /** Sets the collapsed-state summary of the plain form; shown immediately if the section is collapsed. */
     void setSummary(@Nullable CharSequence text) {
         summaryText = text == null ? "" : text;
-        apply(false);
+        if (previewMode || summary == null) return;
+        summary.setText(summaryText);
+        summary.setVisibility(!expanded && summaryText.length() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void apply(boolean animate) {
@@ -113,7 +137,10 @@ final class CollapsibleSection {
             for (View v : collapsedHides) v.setVisibility(expanded ? View.VISIBLE : View.GONE);
             if (summary != null) summary.setVisibility(View.GONE);
         } else {
-            for (View body : bodies) body.setVisibility(expanded ? View.VISIBLE : View.GONE);
+            for (View body : bodies) {
+                if (animated) SectionAnimator.set(body, expanded, animate);
+                else body.setVisibility(expanded ? View.VISIBLE : View.GONE);
+            }
             if (summary != null) {
                 summary.setText(summaryText);
                 summary.setVisibility(!expanded && summaryText.length() > 0 ? View.VISIBLE : View.GONE);
@@ -123,6 +150,17 @@ final class CollapsibleSection {
         float target = expanded ? 180f : 0f;
         if (animate) toggle.animate().rotation(target).setDuration(TURN_MS).start();
         else toggle.setRotation(target);
-        toggle.setContentDescription(toggle.getContext().getString(expanded ? R.string.section_collapse : R.string.section_expand));
+        android.content.Context context = toggle.getContext();
+        String description = title == null
+                ? context.getString(expanded ? R.string.section_collapse : R.string.section_expand)
+                : context.getString(expanded ? R.string.section_collapse_named : R.string.section_expand_named, title);
+        toggle.setContentDescription(description);
+        if (title != null && header != null) {
+            header.setContentDescription(description);
+            if (animate) {
+                header.announceForAccessibility(context.getString(
+                        expanded ? R.string.section_state_expanded_named : R.string.section_state_collapsed_named, title));
+            }
+        }
     }
 }

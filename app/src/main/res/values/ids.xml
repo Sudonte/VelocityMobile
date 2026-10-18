@@ -2,4 +2,5 @@
 <resources>
     <!-- The "Show all (N)" / "Show less" button a Dashboard list section appends under its items. -->
     <item name="btnPreviewToggle" type="id" />
+    <item name="sectionAnimator" type="id" />
 </resources>

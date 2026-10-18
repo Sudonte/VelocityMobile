@@ -2155,6 +2155,10 @@
         <item quantity="one">Your next stay · in %d day</item>
         <item quantity="other">Your next stay · in %d days</item>
     </plurals>
+    <string name="section_collapse_named">Collapse %1$s</string>
+    <string name="section_expand_named">Expand %1$s</string>
+    <string name="section_state_expanded_named">%1$s expanded</string>
+    <string name="section_state_collapsed_named">%1$s collapsed</string>
 </resources>
 
 

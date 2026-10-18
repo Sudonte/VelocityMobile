@@ -755,6 +755,130 @@ public class DashboardScreenTest {
         }
     }
 
+    // ---- Your Next Stay: full collapse / full expand
+
+    private void settle() {
+        idle();
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1)); // the 180 ms height animation
+    }
+
+    private static void layOut(DashboardActivity activity, Context ctx) {
+        View decor = activity.getWindow().getDecorView();
+        int w = ctx.getResources().getDisplayMetrics().widthPixels;
+        int h = ctx.getResources().getDisplayMetrics().heightPixels;
+        decor.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+        decor.layout(0, 0, w, h);
+    }
+
+    @Test
+    public void nextStay_opensExpanded_withTheChevronUp_andTheNamedDescription() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        View toggle = activity.findViewById(R.id.nextStayToggle);
+        assertTrue(activity.findViewById(R.id.nextStayDayStrip).isShown());
+        assertTrue(activity.findViewById(R.id.nextStayDayInfo).isShown());
+        assertTrue(activity.findViewById(R.id.tvNextStayRef).isShown());
+        assertEquals("chevron up while open", 180f, toggle.getRotation(), 0.01f);
+        assertEquals("Collapse Your Next Stay", toggle.getContentDescription().toString());
+        assertEquals("the header row says the same", "Collapse Your Next Stay", ((View) toggle.getParent()).getContentDescription().toString());
+        assertTrue("the header is at least 48dp tall",
+                ((View) toggle.getParent()).getMinimumHeight() >= Math.round(48 * app.getResources().getDisplayMetrics().density));
+    }
+
+    @Test
+    public void nextStay_collapsed_showsOnlyTheHeader_andTheCountBadgeStays_andItTogglesRepeatedlyViaChevronAndHeader() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        View chevron = activity.findViewById(R.id.nextStayToggle);
+        View header = (View) chevron.getParent();
+
+        for (int round = 0; round < 3; round++) {
+            chevron.performClick(); // collapse via the chevron
+            settle();
+            assertFalse("strip hidden", activity.findViewById(R.id.nextStayDayStrip).isShown());
+            assertFalse("context line hidden", activity.findViewById(R.id.nextStayDayInfo).isShown());
+            assertFalse("Today button hidden", activity.findViewById(R.id.btnNextStayToday).isShown());
+            assertFalse("cards hidden", activity.findViewById(R.id.tvNextStayRef).isShown());
+            assertNull("no Show all control", activity.findViewById(R.id.nextStayDayCards).findViewById(R.id.btnPreviewToggle));
+            assertTrue("the header count badge stays", activity.findViewById(R.id.nextStayCount).isShown());
+            assertEquals("chevron down", 0f, chevron.getRotation(), 0.01f);
+            assertEquals("Expand Your Next Stay", chevron.getContentDescription().toString());
+
+            header.performClick(); // expand via the header row
+            settle();
+            assertTrue(activity.findViewById(R.id.nextStayDayStrip).isShown());
+            assertTrue(activity.findViewById(R.id.tvNextStayRef).isShown());
+            assertEquals(180f, chevron.getRotation(), 0.01f);
+            assertEquals("Collapse Your Next Stay", chevron.getContentDescription().toString());
+        }
+    }
+
+    @Test
+    public void nextStay_expanded_showsEveryStayOfTheDay_withNoPreviewLimitAndNoShowAllButton() {
+        DashboardActivity activity = launch();
+        ReservationDto[] five = new ReservationDto[5];
+        for (int i = 0; i < five.length; i++) five[i] = stay(700 + i, 2, 1);
+        answer(five);
+        ViewGroup cards = activity.findViewById(R.id.nextStayDayCards);
+        int stays = 0;
+        for (int i = 0; i < cards.getChildCount(); i++) if (cards.getChildAt(i).findViewById(R.id.tvNextStayRef) != null) stays++;
+        assertEquals("all five, not a 3-item preview", 5, stays);
+        assertNull("no Show all / Show less in this section", cards.findViewById(R.id.btnPreviewToggle));
+    }
+
+    @Test
+    public void nextStay_remembersItsState_whenTheScreenIsOpenedAgain() {
+        DashboardActivity first = launch();
+        answer(stay(567, 2, 1));
+        first.findViewById(R.id.nextStayToggle).performClick();
+        settle();
+        assertFalse(first.findViewById(R.id.nextStayDayStrip).isShown());
+
+        DashboardActivity again = launch();
+        assertEquals("opens collapsed, as it was left", View.GONE, again.findViewById(R.id.nextStayCard).getVisibility());
+        assertEquals(0f, again.findViewById(R.id.nextStayToggle).getRotation(), 0.01f);
+        assertEquals("Expand Your Next Stay", again.findViewById(R.id.nextStayToggle).getContentDescription().toString());
+    }
+
+    @Test
+    public void nextStay_afterExpanding_keepsTheChosenDay_andCentresItsChip() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1), stay(568, 6, 1));
+        selectDay(activity, 6); // the guest picks another day
+        layOut(activity, app);
+        idle();
+
+        activity.findViewById(R.id.nextStayToggle).performClick(); // collapse
+        settle();
+        activity.findViewById(R.id.nextStayToggle).performClick(); // expand
+        settle();
+        layOut(activity, app); // the strip can only be measured now that it is shown again
+        idle();
+
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        assertTrue("the day chosen before collapsing is still selected", strip.getChildAt(14 + 6).isSelected());
+        android.widget.HorizontalScrollView scroll = activity.findViewById(R.id.nextStayDayScroll);
+        View chip = strip.getChildAt(14 + 6);
+        assertTrue("selected chip fully inside the window (left)", chip.getLeft() >= scroll.getScrollX());
+        assertTrue("selected chip fully inside the window (right)", chip.getRight() <= scroll.getScrollX() + scroll.getWidth());
+        int chipCentre = chip.getLeft() + chip.getWidth() / 2 - scroll.getScrollX();
+        assertTrue("and centred (to within a chip)", Math.abs(chipCentre - scroll.getWidth() / 2) <= chip.getWidth());
+    }
+
+    @Test
+    public void nextStay_cardTapsStillDeepLink_afterACollapseAndExpand() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        activity.findViewById(R.id.nextStayToggle).performClick();
+        settle();
+        activity.findViewById(R.id.nextStayToggle).performClick();
+        settle();
+        tap(activity.findViewById(R.id.nextStayItem));
+        Intent next = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), next.getComponent());
+        assertEquals("567", next.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
+    }
+
     @Test
     public void nextStayCard_paymentRow_showsBalanceDueInRed_orPaidWithACheck() {
         DashboardActivity activity = launch();
@@ -868,7 +992,7 @@ public class DashboardScreenTest {
                     View.VISIBLE, activity.findViewById(body).getVisibility());
         }
 
-        int[] toggles = {R.id.nextStayToggle, R.id.moreStaysToggle, R.id.stayCalToggle, R.id.recentUpcomingToggle, R.id.bookingsToggle,
+        int[] toggles = {R.id.moreStaysToggle, R.id.stayCalToggle, R.id.recentUpcomingToggle, R.id.bookingsToggle,
                 R.id.notificationsToggle, R.id.paymentsToggle, R.id.supportToggle}; // the Summary opens expanded and is tested on its own
         for (int id : toggles) {
             View toggle = activity.findViewById(id);
