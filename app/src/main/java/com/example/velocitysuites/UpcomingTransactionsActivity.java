@@ -50,6 +50,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     public static final String EXTRA_STATUS_FILTER = "EXTRA_STATUS_FILTER";
     /** Optional: opens with this type filter (a {@link TypeFilter} name); absent means All types. */
     public static final String EXTRA_TYPE_FILTER = "EXTRA_TYPE_FILTER";
+    /** Optional: true opens the focused transaction's details sheet as soon as it is on screen. */
+    public static final String EXTRA_OPEN_DETAILS = "EXTRA_OPEN_DETAILS";
 
     /** The Status filter - All Statuses plus each individual status. */
     enum StatusFilter {
@@ -127,7 +129,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     public static Intent intentWithFilters(@NonNull Context context, @NonNull Booking booking) {
         return intentFor(context, booking)
                 .putExtra(EXTRA_TYPE_FILTER, (booking.isHasBooking() ? TypeFilter.BOOKINGS : TypeFilter.RESERVATIONS).name())
-                .putExtra(EXTRA_STATUS_FILTER, statusFilterOf(booking).name());
+                .putExtra(EXTRA_STATUS_FILTER, statusFilterOf(booking).name())
+                .putExtra(EXTRA_OPEN_DETAILS, true);
     }
 
     private static StatusFilter statusFilterOf(@NonNull Booking booking) {
@@ -172,6 +175,9 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     private String selectedId;
     private Boolean selectedDirect;
     private boolean pendingScrollToSelected;
+    /** The deep link asked for the details sheet; cleared once it has been shown. */
+    private boolean pendingOpenDetails;
+    private com.google.android.material.bottomsheet.BottomSheetDialog detailsSheet;
     private boolean attemptedLookup;
     /** The first answer (or cached list) has been drawn - before that an unknown id may just not have loaded yet. */
     private boolean loadedOnce;
@@ -220,6 +226,10 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     @Override
     protected void onPause() {
         clockHandler.removeCallbacks(clockTick);
+        if (detailsSheet != null) {
+            detailsSheet.dismiss();
+            detailsSheet = null;
+        }
         super.onPause();
     }
 
@@ -229,6 +239,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         if (selectedId != null && selectedId.trim().isEmpty()) selectedId = null;
         selectedDirect = intent.hasExtra(EXTRA_SELECTED_DIRECT) ? intent.getBooleanExtra(EXTRA_SELECTED_DIRECT, false) : null;
         pendingScrollToSelected = selectedId != null;
+        pendingOpenDetails = selectedId != null && intent.getBooleanExtra(EXTRA_OPEN_DETAILS, false);
         attemptedLookup = false;
         if (intent.hasExtra(EXTRA_STATUS_FILTER) || intent.hasExtra(EXTRA_TYPE_FILTER)) {
             statusFilter = StatusFilter.fromName(intent.getStringExtra(EXTRA_STATUS_FILTER));
@@ -455,6 +466,10 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             if (focus == null && !attemptedLookup && loadedOnce) lookUpSelected();
             return;
         }
+        if (pendingOpenDetails) {
+            pendingOpenDetails = false;
+            showDetails(focus);
+        }
         if (focusCard instanceof MaterialCardView) {
             MaterialCardView cardView = (MaterialCardView) focusCard;
             cardView.setStrokeColor(getColor(R.color.velocity_red_primary));
@@ -515,6 +530,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         TextView tvTomorrowBadge = card.findViewById(R.id.tvTomorrowBadge);
         TextView tvPaymentStatus = card.findViewById(R.id.tvTransactionPaymentStatus);
 
+        ((TextView) card.findViewById(R.id.tvTransactionType)).setText(
+                b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
         // The reference leads: "Booking #338" / "Reservation #588".
         ((TextView) card.findViewById(R.id.tvTransactionBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
         ((TextView) card.findViewById(R.id.tvTransactionTitle)).setText(TransactionRow.roomTextOf(b));
@@ -564,13 +581,20 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             tvTomorrowBadge.setVisibility(View.GONE);
         }
 
-        // The button (and a tap anywhere on the card) opens this transaction's record in Transaction History.
-        View.OnClickListener openHistory = v -> openInTransactionHistory(b);
-        card.findViewById(R.id.btnViewFullDetails).setOnClickListener(openHistory);
-        card.setOnClickListener(openHistory);
+        // The button (and a tap anywhere on the card) opens this transaction's details sheet, which leads on to its
+        // full record in Transaction History.
+        View.OnClickListener openDetails = v -> showDetails(b);
+        card.findViewById(R.id.btnViewFullDetails).setOnClickListener(openDetails);
+        card.setOnClickListener(openDetails);
 
         listContainer.addView(card);
         return card;
+    }
+
+    /** The details bottom sheet for this transaction (one at a time). */
+    private void showDetails(@NonNull Booking b) {
+        if (detailsSheet != null) detailsSheet.dismiss();
+        detailsSheet = TransactionSummarySheet.show(this, b, () -> openInTransactionHistory(b));
     }
 
     /** Fades the details of a cancelled or rejected card; its reference and status badge stay at full strength. */

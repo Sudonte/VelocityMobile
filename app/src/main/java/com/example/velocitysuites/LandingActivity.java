@@ -680,7 +680,7 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
         if (scroller == null || frame == null) return;
         scroller.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             int viewport = b - t;
-            int topPadding = (int) (14 * getResources().getDisplayMetrics().density);
+            int topPadding = (int) (8 * getResources().getDisplayMetrics().density); // the page's top padding
             int wanted = Math.max(viewport - topPadding, (int) (260 * getResources().getDisplayMetrics().density));
             if (frame.getMinimumHeight() != wanted) frame.setMinimumHeight(wanted);
         });

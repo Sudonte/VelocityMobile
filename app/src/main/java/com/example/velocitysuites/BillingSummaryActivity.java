@@ -36,14 +36,14 @@ public class BillingSummaryActivity extends AppCompatActivity {
     private String reservationId;
     private Booking booking;
 
-    private TextView tvBillingRef, tvBillingStatus, tvBillingRoomHeadline, tvBillingRoomType, tvBillingDates,
-            tvBillingNights, tvBillingRate, tvBillingRoomRate, tvBillingDiscount, tvBillingPrimaryGuest, tvBillingRepresentativeName, tvBillingGuestCount, tvBillingIdType,
+    private TextView tvBillingRef, tvBillingStatus, tvBillingHeaderGrandTotal, tvBillingRoomType, tvBillingDates,
+            tvBillingNights, tvBillingRate, tvBillingDiscount, tvBillingPrimaryGuest, tvBillingRepresentativeName, tvBillingGuestCount, tvBillingIdType,
             tvBillingTotalAmenities, tvBillingBalanceDue, tvBillingAlreadyPaid, tvBillingRemaining,
             tvBillingPayNowOption, tvBillingPayNowAmount,
             tvBillingPaymentMethod, tvBillingPaymentType, tvBillingPaymentStatus,
             tvAmenitiesSectionTotal, tvNoAmenitiesMessage,
-            tvBillingBreakdownRoomRate, tvBillingBreakdownNights,
-            tvBillingRoomQuantity, tvBillingSingleRoomRate, tvBillingRoomSubtotalPerNight, tvBillingStayRoomAmount;
+            tvBillingRoomQuantity, tvBillingSingleRoomRate, tvBillingStayRoomAmount,
+            tvBillingPayNowNote, tvBillingConfirmHint;
     private View tvViewBillingTerms;
     private View layoutBillingAdditionalGuestsSection;
     private LinearLayout layoutBillingAdditionalGuests;
@@ -57,7 +57,6 @@ public class BillingSummaryActivity extends AppCompatActivity {
     private LinearLayout layoutBillingRoomsRows;
     /** "Room Rate Per Night" only makes sense for a single room type/rate - hidden whenever
      *  the itemized rows above already show each room type's own rate individually. */
-    private View layoutBillingRoomRatePerNightRow, layoutBillingBreakdownRoomRateRow;
     private View cardBillingPaymentInfo, layoutBillingPaymentMethod, layoutBillingPaymentType, layoutBillingPaymentStatus;
     private MaterialCheckBox cbAcceptBillingTerms;
     private MaterialButton btnConfirmBilling;
@@ -68,6 +67,10 @@ public class BillingSummaryActivity extends AppCompatActivity {
     /** Set once in populateSummary(); reused by updateBillingBreakdownAmounts() (called again
      *  later from populateAmenities()) so nights-based math never needs a second computation. */
     private long nights = 0;
+    /** What bindPayNow() last computed - the Payment Information card reads "already paid" from it. */
+    private BillingAmounts amounts;
+    /** The guest has opened and read the Terms and Policy (this visit). */
+    private boolean termsRead;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,12 +175,13 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
         tvBillingRef = findViewById(R.id.tvBillingRef);
         tvBillingStatus = findViewById(R.id.tvBillingStatus);
-        tvBillingRoomHeadline = findViewById(R.id.tvBillingRoomHeadline);
+        tvBillingHeaderGrandTotal = findViewById(R.id.tvBillingHeaderGrandTotal);
+        tvBillingPayNowNote = findViewById(R.id.tvBillingPayNowNote);
+        tvBillingConfirmHint = findViewById(R.id.tvBillingConfirmHint);
         tvBillingRoomType = findViewById(R.id.tvBillingRoomType);
         tvBillingDates = findViewById(R.id.tvBillingDates);
         tvBillingNights = findViewById(R.id.tvBillingNights);
         tvBillingRate = findViewById(R.id.tvBillingRate);
-        tvBillingRoomRate = findViewById(R.id.tvBillingRoomRate);
         layoutBillingDiscount = findViewById(R.id.layoutBillingDiscount);
         tvBillingDiscount = findViewById(R.id.tvBillingDiscount);
         cardBillingAmenities = findViewById(R.id.cardBillingAmenities);
@@ -194,16 +198,11 @@ public class BillingSummaryActivity extends AppCompatActivity {
         tvBillingPayNowAmount = findViewById(R.id.tvBillingPayNowAmount);
         tvAmenitiesSectionTotal = findViewById(R.id.tvAmenitiesSectionTotal);
         tvNoAmenitiesMessage = findViewById(R.id.tvNoAmenitiesMessage);
-        tvBillingBreakdownRoomRate = findViewById(R.id.tvBillingBreakdownRoomRate);
-        tvBillingBreakdownNights = findViewById(R.id.tvBillingBreakdownNights);
         tvBillingRoomQuantity = findViewById(R.id.tvBillingRoomQuantity);
         tvBillingSingleRoomRate = findViewById(R.id.tvBillingSingleRoomRate);
-        tvBillingRoomSubtotalPerNight = findViewById(R.id.tvBillingRoomSubtotalPerNight);
         tvBillingStayRoomAmount = findViewById(R.id.tvBillingStayRoomAmount);
         layoutBillingSingleRoomInfo = findViewById(R.id.layoutBillingSingleRoomInfo);
         layoutBillingRoomsRows = findViewById(R.id.layoutBillingRoomsRows);
-        layoutBillingRoomRatePerNightRow = findViewById(R.id.layoutBillingRoomRatePerNightRow);
-        layoutBillingBreakdownRoomRateRow = findViewById(R.id.layoutBillingBreakdownRoomRateRow);
 
         cardBillingPaymentInfo = findViewById(R.id.cardBillingPaymentInfo);
         layoutBillingPaymentMethod = findViewById(R.id.layoutBillingPaymentMethod);
@@ -228,13 +227,37 @@ public class BillingSummaryActivity extends AppCompatActivity {
      */
     private void setupTermsGate() {
         tvViewBillingTerms.setOnClickListener(v -> showTermsDialog());
-        cbAcceptBillingTerms.setOnCheckedChangeListener((buttonView, isChecked) -> btnConfirmBilling.setEnabled(isChecked));
+        cbAcceptBillingTerms.setOnCheckedChangeListener((buttonView, isChecked) -> updateConfirmState());
         btnConfirmBilling.setOnClickListener(v -> confirmAndProceedToPayment());
+        updateConfirmState();
+    }
+
+    /** Confirm Booking needs both: the Terms and Policy opened and read, and the box ticked. */
+    static boolean canConfirm(boolean termsRead, boolean checked) {
+        return termsRead && checked;
+    }
+
+    /** The short reason Confirm Booking is disabled, or 0 when it is enabled. */
+    static int confirmHintRes(boolean termsRead, boolean checked) {
+        if (canConfirm(termsRead, checked)) return 0;
+        return termsRead ? R.string.billing_confirm_hint_tick : R.string.billing_confirm_hint_read;
+    }
+
+    private void updateConfirmState() {
+        boolean checked = cbAcceptBillingTerms.isChecked();
+        btnConfirmBilling.setEnabled(canConfirm(termsRead, checked));
+        int hint = confirmHintRes(termsRead, checked);
+        tvBillingConfirmHint.setVisibility(hint == 0 ? View.GONE : View.VISIBLE);
+        if (hint != 0) tvBillingConfirmHint.setText(hint);
     }
 
     /** Read-only Terms and Policy viewer - the same shared one every consent screen uses. Reading it to the end unlocks the box. */
     private void showTermsDialog() {
-        TermsPolicyDialog.show(this, null, () -> cbAcceptBillingTerms.setEnabled(true));
+        TermsPolicyDialog.show(this, null, () -> {
+            termsRead = true;
+            cbAcceptBillingTerms.setEnabled(true);
+            updateConfirmState();
+        });
     }
 
     private void loadReservation() {
@@ -262,14 +285,13 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
     private void populateSummary() {
         tvBillingRef.setText(getString(booking.isHasBooking() ? R.string.booking_ref_label : R.string.reservation_ref_label, booking.getDisplayId()));
-        tvBillingStatus.setText(orDefault(booking.getStatus(), getString(R.string.status_pending)).toUpperCase(Locale.US));
-        tvBillingRoomHeadline.setText(roomHeadline());
-        tvBillingRoomType.setText(orDefault(android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()), getString(R.string.no_room_selected)));
-        tvBillingDates.setText(getString(R.string.date_range_format,
-                orDefault(booking.getCheckInDate(), getString(R.string.not_specified)),
-                orDefault(booking.getCheckOutDate(), getString(R.string.not_specified))));
+        tvBillingStatus.setText((hasText(booking.getStatus()) ? booking.getStatus() : getString(R.string.status_pending)).toUpperCase(Locale.US));
+        logRawReservationForDebug();
+        setRow(tvBillingRoomType, roomHeadline());
+        setRow(tvBillingDates, hasText(booking.getCheckInDate()) && hasText(booking.getCheckOutDate())
+                ? getString(R.string.date_range_format, booking.getCheckInDate(), booking.getCheckOutDate()) : null);
         nights = nightsBetween(booking.getCheckInDate(), booking.getCheckOutDate());
-        tvBillingNights.setText(getString(R.string.nights_count_format, (int) nights));
+        tvBillingNights.setText(getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights));
         if (layoutBillingDiscount != null && tvBillingDiscount != null) {
             // Hidden rather than shown as ₱0.00 - only a genuine discount
             // (active promotion or Senior/PWD statutory 20%, see backend
@@ -281,20 +303,14 @@ public class BillingSummaryActivity extends AppCompatActivity {
             }
         }
 
-        tvBillingPrimaryGuest.setText(guestAccountName());
-        if (tvBillingRepresentativeName != null) {
-            // Transaction-specific: the name captured on THIS booking at creation time
-            // (booking.guestFirstName/MiddleName/LastName), never the authenticated
-            // account's own name above - a guest can book a stay for someone else.
-            String representativeName = booking.getRepresentativeName();
-            tvBillingRepresentativeName.setText(representativeName == null || representativeName.trim().isEmpty()
-                    ? getString(R.string.not_provided_label) : representativeName);
-        }
+        setRow(tvBillingPrimaryGuest, guestAccountName());
+        // Transaction-specific: the name captured on THIS booking at creation time, never the signed-in account's own
+        // name above - a guest can book a stay for someone else.
+        setRow(tvBillingRepresentativeName, booking.getRepresentativeName());
         tvBillingGuestCount.setText(getResources().getQuantityString(R.plurals.guests_count, booking.getGuests(), booking.getGuests()));
 
         String idType = booking.getIdCardType();
-        tvBillingIdType.setText(idType == null || idType.equalsIgnoreCase("None")
-                ? getString(R.string.no_id_uploaded) : idType);
+        setRow(tvBillingIdType, idType == null || idType.equalsIgnoreCase("None") ? null : idType);
 
         List<Booking.AdditionalGuest> additionalGuests = booking.getAdditionalGuests();
         boolean hasAdditionalGuests = additionalGuests != null && !additionalGuests.isEmpty();
@@ -303,8 +319,8 @@ public class BillingSummaryActivity extends AppCompatActivity {
         if (hasAdditionalGuests) {
             for (Booking.AdditionalGuest guest : additionalGuests) {
                 TextView row = new TextView(this);
-                row.setText(getString(R.string.details_guest_entry, orDefault(guest.name, getString(R.string.not_specified)),
-                        orDefault(guest.relationship, getString(R.string.not_specified))));
+                row.setText(hasText(guest.relationship)
+                        ? getString(R.string.details_guest_entry, guest.name, guest.relationship) : String.valueOf(guest.name));
                 row.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
                 row.setTextSize(13f);
                 row.setPadding(0, 0, 0, (int) (getResources().getDisplayMetrics().density * 4));
@@ -319,53 +335,39 @@ public class BillingSummaryActivity extends AppCompatActivity {
         // same figure in the Add-on Amenities section vs. this Billing Breakdown card.
         updateBillingBreakdownAmounts();
 
-        double alreadyPaid = booking.getAmountPaid();
-
-        // Payment Information card: hidden entirely (rather than shown with fabricated/
-        // placeholder values) until this specific reservation actually carries a payment
-        // method/attempt - a fresh, never-paid reservation has none of these yet.
-        boolean hasPaymentMethod = booking.getPaymentMethod() != null && !booking.getPaymentMethod().trim().isEmpty();
-        boolean hasPaymentType = alreadyPaid > 0.009;
-        boolean hasPaymentStatus = booking.isHasBooking();
-        if (layoutBillingPaymentMethod != null) {
-            layoutBillingPaymentMethod.setVisibility(hasPaymentMethod ? View.VISIBLE : View.GONE);
-            if (hasPaymentMethod && tvBillingPaymentMethod != null) {
-                tvBillingPaymentMethod.setText("cash".equalsIgnoreCase(booking.getPaymentMethod())
-                        ? getString(R.string.payment_method_cash) : getString(R.string.payment_method_gcash));
-            }
+        // Payment Information: the method on record, else GCash - the payment screen that Confirm Booking opens is the
+        // GCash one. The type shows only once something was paid; the status is always the shared transaction status.
+        boolean hasPaymentType = amounts != null && amounts.alreadyPaid > 0.009;
+        String method = booking.getPaymentMethod();
+        tvBillingPaymentMethod.setText("cash".equalsIgnoreCase(method) ? getString(R.string.payment_method_cash)
+                : getString(R.string.payment_method_gcash));
+        layoutBillingPaymentType.setVisibility(hasPaymentType ? View.VISIBLE : View.GONE);
+        if (hasPaymentType) {
+            tvBillingPaymentType.setText(PaymentStateUtil.isFullyPaid(booking)
+                    ? R.string.review_payment_type_full : R.string.review_payment_type_partial);
         }
-        if (layoutBillingPaymentType != null) {
-            layoutBillingPaymentType.setVisibility(hasPaymentType ? View.VISIBLE : View.GONE);
-            if (hasPaymentType && tvBillingPaymentType != null) {
-                tvBillingPaymentType.setText(PaymentStateUtil.isFullyPaid(booking)
-                        ? R.string.review_payment_type_full : R.string.review_payment_type_partial);
-            }
-        }
-        if (layoutBillingPaymentStatus != null) {
-            layoutBillingPaymentStatus.setVisibility(hasPaymentStatus ? View.VISIBLE : View.GONE);
-            if (hasPaymentStatus && tvBillingPaymentStatus != null) {
-                tvBillingPaymentStatus.setText(BookingStatusPresenter.paymentStatusPillText(this, booking));
-            }
-        }
-        if (cardBillingPaymentInfo != null) {
-            cardBillingPaymentInfo.setVisibility(hasPaymentMethod || hasPaymentType || hasPaymentStatus ? View.VISIBLE : View.GONE);
-        }
+        tvBillingPaymentStatus.setText(BookingStatusPresenter.paymentStatusPillText(this, booking));
+        cardBillingPaymentInfo.setVisibility(View.VISIBLE);
     }
 
-    /** First selected room type's name, joined with the others when more than one was
-     *  selected in this single reservation transaction (e.g. "Bryan Dela Cruz + Deluxe") -
-     *  never a fake averaged/combined room name. */
+    /**
+     * The room (type) name for this reservation, taken from the first source that has one: the itemized room lines
+     * (room_lines[].room_type), then the reservation's room type (room_type.name), then its room name. A generic
+     * "Room" is the mapper's own stand-in for "the API sent no name", so it does not count. Null when the API sent
+     * none - the caller then hides the row instead of printing a placeholder.
+     */
+    @androidx.annotation.Nullable
     private String roomHeadline() {
-        List<BookingRoom> roomLines = booking.getRooms();
-        if (roomLines == null || roomLines.isEmpty()) {
-            return orDefault(booking.getRoomName(), getString(R.string.no_room_selected));
-        }
-        StringBuilder sb = new StringBuilder();
-        for (BookingRoom line : roomLines) {
-            if (sb.length() > 0) sb.append(" + ");
-            sb.append(orDefault(line.getRoomTypeName(), getString(R.string.no_room_selected)));
-        }
-        return sb.toString();
+        return roomNameOf(booking);
+    }
+
+    @androidx.annotation.Nullable
+    static String roomNameOf(Booking b) {
+        List<String> names = b.getAllRoomTypeNames();
+        if (!names.isEmpty()) return android.text.TextUtils.join(" + ", names);
+        if (hasText(b.getRoomType())) return b.getRoomType().trim();
+        String name = b.getRoomName();
+        return hasText(name) && !"Room".equalsIgnoreCase(name.trim()) ? name.trim() : null;
     }
 
     /**
@@ -405,18 +407,14 @@ public class BillingSummaryActivity extends AppCompatActivity {
                     ? Math.max(0, booking.getTotalAmount() - totalAmenitiesAmount)
                     : booking.getTotalAmount();
         }
-        double grandTotal = roomTotal + totalAmenitiesAmount;
+        // The server's own total when it already bundles the amenities (what the payment screen charges against);
+        // otherwise the sum of what this screen lists.
+        double grandTotal = booking.isTotalIncludesAmenities() && booking.getTotalAmount() > 0.009
+                ? booking.getTotalAmount() : roomTotal + totalAmenitiesAmount;
 
         if (layoutBillingSingleRoomInfo != null) {
             layoutBillingSingleRoomInfo.setVisibility(hasItemizedRooms ? View.GONE : View.VISIBLE);
         }
-        if (layoutBillingRoomRatePerNightRow != null) {
-            layoutBillingRoomRatePerNightRow.setVisibility(hasItemizedRooms ? View.GONE : View.VISIBLE);
-        }
-        if (layoutBillingBreakdownRoomRateRow != null) {
-            layoutBillingBreakdownRoomRateRow.setVisibility(hasItemizedRooms ? View.GONE : View.VISIBLE);
-        }
-
         if (hasItemizedRooms) {
             if (layoutBillingRoomsRows != null) {
                 layoutBillingRoomsRows.setVisibility(View.VISIBLE);
@@ -434,47 +432,65 @@ public class BillingSummaryActivity extends AppCompatActivity {
             int roomQuantity = Math.max(1, booking.getRoomsRequested());
             double totalRoomRatePerNight = nights > 0 ? roomTotal / nights : roomTotal;
             double perRoomRate = totalRoomRatePerNight / roomQuantity;
-            double roomSubtotalPerNight = perRoomRate * roomQuantity;
 
             if (tvBillingRoomQuantity != null) tvBillingRoomQuantity.setText(getString(R.string.rooms_quantity_format, roomQuantity));
             if (tvBillingSingleRoomRate != null) tvBillingSingleRoomRate.setText(getString(R.string.price_per_night_format, perRoomRate));
-            if (tvBillingRoomSubtotalPerNight != null) tvBillingRoomSubtotalPerNight.setText(MoneyFormat.format(roomSubtotalPerNight));
-            if (tvBillingRoomRate != null) tvBillingRoomRate.setText(MoneyFormat.format(totalRoomRatePerNight));
-            if (tvBillingBreakdownRoomRate != null) tvBillingBreakdownRoomRate.setText(MoneyFormat.format(totalRoomRatePerNight));
         }
 
-        if (tvBillingBreakdownNights != null) tvBillingBreakdownNights.setText(String.valueOf(nights));
         if (tvBillingStayRoomAmount != null) tvBillingStayRoomAmount.setText(MoneyFormat.format(roomTotal));
         if (tvBillingRate != null) tvBillingRate.setText(MoneyFormat.format(roomTotal));
 
+        if (tvAmenitiesSectionTotal != null) tvAmenitiesSectionTotal.setText(MoneyFormat.format(totalAmenitiesAmount)); // never blank while the add-ons load
         if (tvBillingTotalAmenities != null) tvBillingTotalAmenities.setText(MoneyFormat.format(totalAmenitiesAmount));
         if (tvBillingBalanceDue != null) tvBillingBalanceDue.setText(MoneyFormat.format(grandTotal));
+        if (tvBillingHeaderGrandTotal != null) tvBillingHeaderGrandTotal.setText(MoneyFormat.format(grandTotal));
         bindPayNow(grandTotal);
 
-        if (tvBillingRoomHeadline != null) tvBillingRoomHeadline.setText(roomHeadline());
     }
 
     /**
-     * Amount Already Paid, Remaining Balance and the highlighted Total Amount to Pay - for the option the guest chose
-     * (Partial = its percentage, Full = everything left), else the plain balance. Always real peso figures, never blank.
+     * Amount Already Paid, Remaining Balance and the highlighted Total Amount to Pay: the Grand Total before any
+     * payment (the guest picks Partial 20-50% or Full on the next screen), the Remaining Balance after one.
      */
     private void bindPayNow(double grandTotal) {
-        BillingAmounts amounts = BillingAmounts.compute(grandTotal, booking.getAmountPaid(),
-                booking.getSelectedPaymentPercentage(), booking.getRequiredPaymentAmount());
-        if (tvBillingAlreadyPaid != null) tvBillingAlreadyPaid.setText(MoneyFormat.format(amounts.alreadyPaid));
-        if (tvBillingRemaining != null) tvBillingRemaining.setText(MoneyFormat.format(amounts.remaining));
-        if (tvBillingPayNowAmount != null) tvBillingPayNowAmount.setText(MoneyFormat.format(amounts.amountToPay));
-        if (tvBillingPayNowOption != null) {
-            tvBillingPayNowOption.setText(amounts.option == BillingAmounts.Option.PARTIAL
-                    ? getString(R.string.billing_option_partial_format, amounts.percentage)
-                    : getString(amounts.option == BillingAmounts.Option.FULL
-                            ? R.string.billing_option_full : R.string.billing_option_balance));
-        }
+        amounts = BillingAmounts.compute(grandTotal, booking.getEffectiveTotalAmountPaid(), submittedAmountAwaitingVerification());
+        tvBillingAlreadyPaid.setText(MoneyFormat.format(amounts.alreadyPaid));
+        tvBillingRemaining.setText(MoneyFormat.format(amounts.remaining));
+        tvBillingPayNowAmount.setText(MoneyFormat.format(amounts.amountToPay));
+        tvBillingPayNowOption.setText(amounts.paymentMade ? R.string.billing_remaining_balance_label : R.string.grand_total_label);
+        tvBillingPayNowNote.setVisibility(amounts.paymentMade ? View.GONE : View.VISIBLE);
     }
 
-    private static String orDefault(String value, String fallback) {
-        return value == null || value.trim().isEmpty() || "null".equalsIgnoreCase(value.trim()) ? fallback : value;
+    /** A GCash payment already sent but not yet verified is not in the verified total; it still counts as paid here. */
+    @androidx.annotation.Nullable
+    private Double submittedAmountAwaitingVerification() {
+        return booking.isPaymentPendingVerification() ? booking.getRequiredPaymentAmount() : null;
     }
+
+    /** Shows the value in its row, or hides the whole row when the API sent nothing - never a placeholder. */
+    private static void setRow(TextView value, @androidx.annotation.Nullable String text) {
+        boolean has = hasText(text);
+        if (has) value.setText(text);
+        ((View) value.getParent()).setVisibility(has ? View.VISIBLE : View.GONE);
+    }
+
+    private static boolean hasText(@androidx.annotation.Nullable String text) {
+        return text != null && !text.trim().isEmpty() && !"null".equalsIgnoreCase(text.trim());
+    }
+
+    /** Debug builds only: what the API gave us for the room name and the money, to see which field is missing. */
+    private void logRawReservationForDebug() {
+        if (!BuildConfig.DEBUG) return;
+        android.util.Log.d("BillingSummary", "id=" + booking.getId() + " displayId=" + booking.getDisplayId()
+                + " roomName=" + booking.getRoomName() + " roomType=" + booking.getRoomType()
+                + " roomTypeId=" + booking.getRoomTypeId() + " roomLines=" + booking.getRooms().size()
+                + " roomLineTypes=" + booking.getAllRoomTypeNames() + " resolvedRoomName=" + roomNameOf(booking)
+                + " total=" + booking.getTotalAmount() + " totalIncludesAmenities=" + booking.isTotalIncludesAmenities()
+                + " paid=" + booking.getAmountPaid() + " effectivePaid=" + booking.getEffectiveTotalAmountPaid()
+                + " method=" + booking.getPaymentMethod() + " pendingVerification=" + booking.isPaymentPendingVerification()
+                + " pct=" + booking.getSelectedPaymentPercentage() + " required=" + booking.getRequiredPaymentAmount());
+    }
+
 
     /** One itemized room-type row: name header + price/night, quantity, nights, subtotal -
      *  mirrors buildAmenityRow()'s label/value line style. */
@@ -485,12 +501,14 @@ public class BillingSummaryActivity extends AppCompatActivity {
         int vPad = (int) (getResources().getDisplayMetrics().density * 6);
         container.setPadding(0, vPad, 0, vPad);
 
-        TextView tvName = new TextView(this);
-        tvName.setText(orDefault(room.getRoomTypeName(), getString(R.string.no_room_selected)));
-        tvName.setTextSize(14f);
-        tvName.setTypeface(tvName.getTypeface(), android.graphics.Typeface.BOLD);
-        tvName.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
-        container.addView(tvName);
+        if (hasText(room.getRoomTypeName())) {
+            TextView tvName = new TextView(this);
+            tvName.setText(room.getRoomTypeName());
+            tvName.setTextSize(14f);
+            tvName.setTypeface(tvName.getTypeface(), android.graphics.Typeface.BOLD);
+            tvName.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
+            container.addView(tvName);
+        }
 
         // Nights is deliberately NOT repeated per room - every room in this reservation
         // shares the same single stay period, already shown once at reservation level
@@ -568,6 +586,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
     }
 
     /** Reservations don't carry the primary guest's name back from the API - fall back to the signed-in account's name, same as the booking form itself does. */
+    @androidx.annotation.Nullable
     private String guestAccountName() {
         SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
         String first = prefs.getString("userFirstName", "").trim();
@@ -577,7 +596,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
         if (!first.isEmpty()) name.append(first);
         if (!middle.isEmpty()) name.append(" ").append(middle);
         if (!last.isEmpty()) name.append(" ").append(last);
-        return name.length() > 0 ? name.toString().trim() : getString(R.string.not_specified);
+        return name.length() > 0 ? name.toString().trim() : null;
     }
 
     private long nightsBetween(String checkIn, String checkOut) {

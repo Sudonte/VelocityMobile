@@ -313,6 +313,57 @@ public class UpcomingTransactionsScreenTest {
                 cardOf(activity, "Booking #10").getStrokeWidth());
     }
 
+    /** The details sheet on screen, or null. */
+    private static android.app.Dialog sheet() {
+        android.app.Dialog d = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        return d instanceof com.google.android.material.bottomsheet.BottomSheetDialog && d.isShowing() ? d : null;
+    }
+
+    private static String sheetText(android.app.Dialog sheet) {
+        StringBuilder sb = new StringBuilder();
+        collectText(sheet.findViewById(R.id.sheetRows).getRootView(), sb);
+        return sb.toString();
+    }
+
+    private static void collectText(View v, StringBuilder sb) {
+        if (v instanceof TextView) sb.append(((TextView) v).getText()).append('|');
+        if (v instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) collectText(((ViewGroup) v).getChildAt(i), sb);
+        }
+    }
+
+    @Test
+    public void tappingACard_opensTheDetailsSheet_withTheKeyFacts() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        assertEquals(null, sheet());
+
+        cardOf(activity, "Booking #10").performClick();
+        idle();
+        android.app.Dialog sheet = sheet();
+        assertNotNull("the details sheet opened", sheet);
+        String text = sheetText(sheet);
+        for (String expected : new String[]{"Booking #10", "Suite", "Check-in", "Check-out", "Total Guests", "Grand Total",
+                "Amount Already Paid", "Remaining Balance"}) {
+            assertTrue(expected + " in: " + text, text.contains(expected));
+        }
+        assertTrue(text, !text.contains("null"));
+    }
+
+    @Test
+    public void dashboardLinkWithOpenDetails_opensTheSheetOnThatTransaction() {
+        Intent intent = new Intent(app, UpcomingTransactionsActivity.class)
+                .putExtra(UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID, "10")
+                .putExtra(UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, true)
+                .putExtra(UpcomingTransactionsActivity.EXTRA_TYPE_FILTER, "BOOKINGS")
+                .putExtra(UpcomingTransactionsActivity.EXTRA_STATUS_FILTER, "CONFIRMED")
+                .putExtra(UpcomingTransactionsActivity.EXTRA_OPEN_DETAILS, true);
+        launchWithEverything(intent);
+
+        android.app.Dialog sheet = sheet();
+        assertNotNull(sheet);
+        assertTrue(sheetText(sheet).contains("Booking #10"));
+    }
+
     @Test
     public void statusAllListsEveryStay_includingCancelledAndRejected() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
@@ -421,6 +472,10 @@ public class UpcomingTransactionsScreenTest {
     public void eachCardOpensItsRecordInTransactionHistory() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
         cardOf(activity, "Booking #12").findViewById(R.id.btnViewFullDetails).performClick();
+        idle();
+        android.app.Dialog sheet = sheet();
+        assertNotNull("the details sheet opens first", sheet);
+        sheet.findViewById(R.id.btnSheetViewFull).performClick(); // ...and leads on to the full record
 
         Intent opened = shadowOf(activity).getNextStartedActivity();
         assertNotNull(opened);

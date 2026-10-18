@@ -162,6 +162,7 @@ public class DashboardScreenTest {
         assertEquals("RESERVATIONS", next.getStringExtra("EXTRA_TYPE_FILTER"));
         assertEquals("PENDING", next.getStringExtra("EXTRA_STATUS_FILTER"));
         assertEquals("100", next.getStringExtra("EXTRA_SELECTED_BOOKING_ID"));
+        assertTrue("it asks Upcoming to open the details", next.getBooleanExtra("EXTRA_OPEN_DETAILS", false));
     }
 
     @Test

@@ -934,9 +934,9 @@
     <string name="billing_amount_paid_label">Amount Already Paid</string>
     <string name="billing_remaining_balance_label">Remaining Balance</string>
     <string name="billing_total_to_pay_label">Total Amount to Pay</string>
-    <string name="billing_option_partial_format">Partial Payment (%1$d%%)</string>
-    <string name="billing_option_full">Full Payment</string>
-    <string name="billing_option_balance">Remaining balance</string>
+    <string name="billing_pay_now_note">Choose partial (20%–50%) or full payment on the next step.</string>
+    <string name="billing_confirm_hint_read">Open and read the Terms and Policy first, then tick the box to continue.</string>
+    <string name="billing_confirm_hint_tick">Tick the box above to continue to payment.</string>
     <string name="billing_terms_notice">Please read the Terms and Policy first. You must open and read them before you can check the box below and continue to payment.</string>
     <string name="room_type_summary_label">Room Type</string>
     <string name="stay_dates_summary_label">Stay Dates</string>
@@ -1808,6 +1808,8 @@
     <string name="landing_section_promos">Ongoing Promotions &amp; Special Offers</string>
 
     <!-- Hotel information -->
+    <string name="landing_section_promos_sub">Discounts and seasonal offers you can use on your stay</string>
+    <string name="landing_section_news_sub">The latest news and notices from the hotel</string>
     <string name="landing_section_news">Announcements &amp; Updates</string>
     <string name="landing_hotel_name">Velocity Suites Hotel</string>
     <string name="landing_hotel_desc">Velocity Suites Hotel offers comfortable accommodations, premium amenities, and heartfelt service for business and leisure travelers alike.</string>
@@ -2112,6 +2114,10 @@
     <string name="upcoming_filter_type_label">Type</string>
     <string name="upcoming_filter_status_label">Status</string>
     <string name="upcoming_view_in_history">View in Transaction History</string>
+    <string name="upcoming_view_details">View Details</string>
+    <string name="sheet_label_room">Room</string>
+    <string name="sheet_label_check_in">Check-in</string>
+    <string name="sheet_label_check_out">Check-out</string>
     <string name="upcoming_results_format">Showing %1$d of %2$d</string>
     <string name="upcoming_group_active">Upcoming and in house</string>
     <string name="upcoming_group_closed">Completed and closed</string>

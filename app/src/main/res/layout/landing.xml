@@ -163,6 +163,7 @@
                     android:id="@+id/landingHeroFrame"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
                     android:minHeight="0dp"
                     android:orientation="vertical"
                     android:padding="8dp">
@@ -195,12 +196,12 @@
                             android:text="@string/landing_banner_luxury_title"
                             android:textAllCaps="true"
                             android:textColor="@color/white"
-                            android:autoSizeMaxTextSize="20sp"
+                            android:autoSizeMaxTextSize="26sp"
                             android:autoSizeMinTextSize="14sp"
                             android:autoSizeStepGranularity="1sp"
                             android:autoSizeTextType="uniform"
                             android:maxLines="1"
-                            android:textSize="20sp" />
+                            android:textSize="26sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -213,7 +214,7 @@
                             android:shadowRadius="6"
                             android:text="@string/landing_banner_luxury_sub"
                             android:textColor="@color/white"
-                            android:textSize="12sp" />
+                            android:textSize="14sp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnExploreNow"
@@ -224,11 +225,11 @@
                             android:minWidth="0dp"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
-                            android:minHeight="48dp"
+                            android:minHeight="52dp"
                             android:paddingHorizontal="16dp"
                             android:stateListAnimator="@null"
                             android:text="@string/landing_banner_cta"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
                             app:backgroundTint="@color/velocity_red_primary"
                             app:cornerRadius="12dp"
                             app:elevation="0dp"
@@ -262,27 +263,31 @@
                 android:id="@+id/landingFeatures"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:columnCount="2">
+                android:layout_marginTop="10dp"
+                android:columnCount="3">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginEnd="4dp"
-                    android:layout_marginTop="0dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
+                    android:contentDescription="@string/landing_feature_booking_desc"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="9dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="10dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:background="@drawable/bg_icon_circle_badge"
                         android:importantForAccessibility="no"
-                        android:padding="6dp"
+                        android:padding="7dp"
                         android:src="@drawable/ic_room_search"
                         app:tint="@color/velocity_action_text" />
 
@@ -290,19 +295,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:maxLines="2"
                         android:text="@string/landing_feature_booking_title"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:alpha="0.9"
-                        android:text="@string/landing_feature_booking_desc"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -310,19 +309,23 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="0dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
+                    android:contentDescription="@string/landing_feature_status_desc"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="9dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="10dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:background="@drawable/bg_icon_circle_badge"
                         android:importantForAccessibility="no"
-                        android:padding="6dp"
+                        android:padding="7dp"
                         android:src="@drawable/ic_reservation"
                         app:tint="@color/velocity_action_text" />
 
@@ -330,19 +333,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:maxLines="2"
                         android:text="@string/landing_feature_status_title"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:alpha="0.9"
-                        android:text="@string/landing_feature_status_desc"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -350,19 +347,23 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginEnd="4dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="0dp"
+                    android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
+                    android:contentDescription="@string/landing_feature_payment_desc"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="9dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="10dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:background="@drawable/bg_icon_circle_badge"
                         android:importantForAccessibility="no"
-                        android:padding="6dp"
+                        android:padding="7dp"
                         android:src="@drawable/ic_shield_check"
                         app:tint="@color/velocity_action_text" />
 
@@ -370,19 +371,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:maxLines="2"
                         android:text="@string/landing_feature_payment_title"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:alpha="0.9"
-                        android:text="@string/landing_feature_payment_desc"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -390,19 +385,23 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
+                    android:contentDescription="@string/landing_feature_receipt_desc"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="9dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="10dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:background="@drawable/bg_icon_circle_badge"
                         android:importantForAccessibility="no"
-                        android:padding="6dp"
+                        android:padding="7dp"
                         android:src="@drawable/ic_payment_card"
                         app:tint="@color/velocity_action_text" />
 
@@ -410,19 +409,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:maxLines="2"
                         android:text="@string/landing_feature_receipt_title"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:alpha="0.9"
-                        android:text="@string/landing_feature_receipt_desc"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -430,19 +423,23 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginEnd="4dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
+                    android:contentDescription="@string/landing_feature_notify_desc"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="9dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="10dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:background="@drawable/bg_icon_circle_badge"
                         android:importantForAccessibility="no"
-                        android:padding="6dp"
+                        android:padding="7dp"
                         android:src="@drawable/ic_notifications"
                         app:tint="@color/velocity_action_text" />
 
@@ -450,19 +447,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:maxLines="2"
                         android:text="@string/landing_feature_notify_title"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:alpha="0.9"
-                        android:text="@string/landing_feature_notify_desc"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -470,19 +461,23 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="0dp"
+                    android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
+                    android:contentDescription="@string/landing_feature_support_desc"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="9dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="10dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:background="@drawable/bg_icon_circle_badge"
                         android:importantForAccessibility="no"
-                        android:padding="6dp"
+                        android:padding="7dp"
                         android:src="@drawable/ic_headset"
                         app:tint="@color/velocity_action_text" />
 
@@ -490,19 +485,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:ellipsize="end"
                         android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:maxLines="2"
                         android:text="@string/landing_feature_support_title"
                         android:textColor="@color/white"
                         android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:alpha="0.9"
-                        android:text="@string/landing_feature_support_desc"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
                 </LinearLayout>
             </GridLayout>
 
@@ -799,6 +788,16 @@
                                 android:text="@string/landing_section_promos" />
                         </LinearLayout>
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:lineSpacingExtra="2dp"
+                            android:text="@string/landing_section_promos_sub"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp" />
+
                         <ProgressBar
                             android:id="@+id/promotionsLoading"
                             style="?android:attr/progressBarStyleSmall"
@@ -871,6 +870,16 @@
                                 android:accessibilityHeading="true"
                                 android:text="@string/landing_section_news" />
                         </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:lineSpacingExtra="2dp"
+                            android:text="@string/landing_section_news_sub"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp" />
 
                         <ProgressBar
                             android:id="@+id/announcementsLoading"

@@ -3,58 +3,44 @@ package com.example.velocitysuites;
 import androidx.annotation.Nullable;
 
 /**
- * The money lines at the foot of the Billing Summary: what the stay costs, what is already paid, what is left, and the
- * one figure the guest is about to pay now - for the chosen option (Partial = its percentage of the total, Full = all of
- * it). Every value is a real, finite, non-negative number; a field the server did not send (a null percentage or required
- * amount) falls back to the remaining balance instead of leaking "null" onto the screen. Pure Java.
+ * The money lines of the Billing Summary: what the stay costs, what is already paid, what is left, and the one figure
+ * shown in the highlighted "Total Amount to Pay" block. Before any payment that is the Grand Total (the guest picks
+ * Partial 20-50% or Full on the payment screen, not here); once something was paid it is the Remaining Balance. Every
+ * value is a real, finite, non-negative number, so nothing can print as "null". Pure Java.
  */
 final class BillingAmounts {
-
-    enum Option { FULL, PARTIAL, BALANCE }
 
     final double grandTotal;
     final double alreadyPaid;
     final double remaining;
+    /** The figure for the highlighted block: the grand total before a payment, the remaining balance after one. */
     final double amountToPay;
-    final Option option;
-    /** The percentage of the total that {@link #amountToPay} is (0-100), rounded. */
-    final int percentage;
+    /** True once something was paid (the block then reads "Remaining Balance", else "Grand Total"). */
+    final boolean paymentMade;
 
-    private BillingAmounts(double grandTotal, double alreadyPaid, double remaining, double amountToPay, Option option, int percentage) {
+    private BillingAmounts(double grandTotal, double alreadyPaid, double remaining, double amountToPay, boolean paymentMade) {
         this.grandTotal = grandTotal;
         this.alreadyPaid = alreadyPaid;
         this.remaining = remaining;
         this.amountToPay = amountToPay;
-        this.option = option;
-        this.percentage = percentage;
+        this.paymentMade = paymentMade;
     }
 
     /**
-     * @param selectedPercentage the 20/30/40/50/100 the reservation was created with, or null if none was recorded
-     * @param requiredAmount     the peso amount that goes with it, or null if the server has not set it
+     * @param verifiedPaid        the verified amount paid so far
+     * @param submittedUnverified a GCash payment sent but not yet verified by the front desk, or null; counted as paid
+     *                            when nothing verified is on record yet
      */
-    static BillingAmounts compute(double grandTotal, double alreadyPaid, @Nullable Double selectedPercentage, @Nullable Double requiredAmount) {
+    static BillingAmounts compute(double grandTotal, double verifiedPaid, @Nullable Double submittedUnverified) {
         double total = clean(grandTotal);
-        double paid = clean(alreadyPaid);
-        double remaining = round2(Math.max(0, total - paid));
-        boolean hasRequired = requiredAmount != null && isFinite(requiredAmount) && requiredAmount > 0.009;
-        boolean hasPercentage = selectedPercentage != null && isFinite(selectedPercentage) && selectedPercentage > 0;
-
-        double amount;
-        Option option;
-        if (paid > 0.009 || (!hasRequired && !hasPercentage)) {
-            // Something was already paid (the stored option belongs to that payment) or no option was ever recorded:
-            // what is left to pay is simply the balance.
-            amount = remaining;
-            option = Option.BALANCE;
-        } else {
-            double chosen = hasRequired ? requiredAmount : round2(total * selectedPercentage / 100.0);
-            amount = round2(Math.min(chosen, remaining));
-            boolean full = (hasPercentage && selectedPercentage >= 100) || Math.abs(amount - remaining) < 0.01;
-            option = full ? Option.FULL : Option.PARTIAL;
+        double paid = clean(verifiedPaid);
+        if (paid <= 0.009 && submittedUnverified != null && isFinite(submittedUnverified) && submittedUnverified > 0.009) {
+            paid = clean(submittedUnverified);
         }
-        int pct = total > 0.009 ? (int) Math.round(amount / total * 100.0) : 0;
-        return new BillingAmounts(total, paid, remaining, amount, option, Math.min(100, pct));
+        paid = Math.min(paid, total > 0.009 ? total : paid);
+        double remaining = round2(Math.max(0, total - paid));
+        boolean made = paid > 0.009;
+        return new BillingAmounts(total, paid, remaining, made ? remaining : total, made);
     }
 
     private static boolean isFinite(double v) {
