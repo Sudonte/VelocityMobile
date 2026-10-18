@@ -542,16 +542,82 @@ public class DashboardScreenTest {
         assertEquals("Yesterday", ((TextView) strip.getChildAt(13).findViewById(R.id.tvDayName)).getText().toString());
         assertEquals("Today", ((TextView) strip.getChildAt(14).findViewById(R.id.tvDayName)).getText().toString());
         assertEquals("Tomorrow", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayName)).getText().toString());
+        assertTrue("nothing today, so the nearest day with a stay is selected", strip.getChildAt(15).isSelected());
+        assertEquals("Your next stay is tomorrow", text(activity, R.id.nextStayDayInfo));
+        selectDay(activity, 0);
         assertTrue("Today is selected", strip.getChildAt(14).isSelected());
         assertEquals("tomorrow has two transactions", "2", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayCount)).getText().toString());
-        assertEquals("a quiet day has no badge", View.INVISIBLE, strip.getChildAt(16 + 5).findViewById(R.id.tvDayCount).getVisibility());
         assertEquals("nothing today: friendly empty state", View.VISIBLE, activity.findViewById(R.id.nextStayDayEmpty).getVisibility());
+        assertEquals("a quiet day has no badge", View.INVISIBLE, strip.getChildAt(16 + 5).findViewById(R.id.tvDayCount).getVisibility());
 
         selectDay(activity, -1);
         assertEquals("a stay that ended yesterday still shows on its check-out day", 1, activity.<ViewGroup>findViewById(R.id.nextStayDayCards).getChildCount());
         selectDay(activity, 2);
         assertTrue("a stay also covers its check-out day: " + text(activity, R.id.nextStayDayHeading),
                 text(activity, R.id.nextStayDayHeading).contains("2 transactions"));
+    }
+
+    @Test
+    public void nextStay_opensOnTheNearestDayWithAStay_andTheTodayButtonJumpsBack() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 3, 1)), ScreenTestSupport.directBookings());
+
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        assertTrue(strip.getChildAt(14 + 3).isSelected());
+        assertEquals("Your next stay is in 3 days", text(activity, R.id.nextStayDayInfo));
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.nextStayDayInfoRow).getVisibility());
+
+        tap(activity.findViewById(R.id.btnNextStayToday));
+        idle();
+        assertTrue(strip.getChildAt(14).isSelected());
+        assertEquals(View.GONE, activity.findViewById(R.id.nextStayDayInfoRow).getVisibility());
+        assertEquals("empty state on a quiet Today", View.VISIBLE, activity.findViewById(R.id.nextStayDayEmpty).getVisibility());
+    }
+
+    @Test
+    public void nextStay_withNoUpcomingStay_opensOnTodayWithTheEmptyState() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(590, -5, 1)), ScreenTestSupport.directBookings());
+
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        assertTrue(strip.getChildAt(14).isSelected());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.nextStayDayEmpty).getVisibility());
+    }
+
+    @Test
+    public void otherStays_followTheSelectedDay_soNothingIsHiddenFromBothSections() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
+        ViewGroup more = activity.findViewById(R.id.moreStaysList);
+
+        assertEquals("on 588's day, Other Stays lists only 338", 1, more.getChildCount());
+        assertEquals("Booking #338", ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
+
+        selectDay(activity, 5);
+        assertEquals("on 338's day, Other Stays lists only 588", 1, more.getChildCount());
+        assertEquals("Reservation #588", ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
+
+        selectDay(activity, 0);
+        assertEquals("on a quiet day both are listed", 2, more.getChildCount());
+    }
+
+    @Test
+    public void stayCalendar_showCancelledToggle_listsThem_andTheyOpenUpcomingWithTheCancelledFilter() {
+        DashboardActivity activity = launch();
+        ReservationDto cancelled = stay(591, 0, 1);
+        cancelled.status = "CANCELLED";
+        answerWith(ScreenTestSupport.reservations(cancelled), ScreenTestSupport.directBookings());
+        ViewGroup entries = activity.findViewById(R.id.stayCalSummary);
+        assertEquals("hidden by default", 0, entries.getChildCount());
+
+        activity.<android.widget.CompoundButton>findViewById(R.id.stayCalShowCancelled).setChecked(true);
+        idle();
+        assertEquals(1, entries.getChildCount());
+
+        tap(entries.getChildAt(0));
+        Intent next = nextScreen(activity);
+        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), next.getComponent());
+        assertEquals("CANCELLED", next.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_STATUS_FILTER));
     }
 
     /** Taps the day {@code daysAway} from today in the Your Next Stay selector. */

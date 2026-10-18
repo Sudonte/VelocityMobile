@@ -193,6 +193,15 @@
                 tools:text="3 transactions" />
         </LinearLayout>
 
+        <!-- Cancelled and rejected transactions stay out of the list unless the guest asks for them. -->
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/stayCalShowCancelled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/stay_calendar_show_cancelled"
+            android:textSize="13sp" />
+
         <LinearLayout
             android:id="@+id/stayCalSummary"
             android:layout_width="match_parent"

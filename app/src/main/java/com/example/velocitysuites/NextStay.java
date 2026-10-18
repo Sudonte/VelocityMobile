@@ -157,6 +157,29 @@ public final class NextStay {
         return out;
     }
 
+    /**
+     * The day Your Next Stay opens on: Today when the guest has any transaction on it; otherwise the nearest later day
+     * that has one (looking up to {@link #LOOKAHEAD_DAYS} ahead); otherwise Today (the empty state).
+     */
+    @NonNull
+    public static LocalDate defaultDay(@Nullable List<Booking> bookings, @NonNull LocalDate today) {
+        if (!forDay(bookings, today, today).isEmpty()) return today;
+        LocalDate next = nextDayWithStay(bookings, today);
+        return next != null ? next : today;
+    }
+
+    public static final int LOOKAHEAD_DAYS = 120;
+
+    /** The nearest day after {@code today} that has a transaction, or null when there is none. */
+    @Nullable
+    public static LocalDate nextDayWithStay(@Nullable List<Booking> bookings, @NonNull LocalDate today) {
+        for (int i = 1; i <= LOOKAHEAD_DAYS; i++) {
+            LocalDate d = today.plusDays(i);
+            if (!forDay(bookings, d, today).isEmpty()) return d;
+        }
+        return null;
+    }
+
     /** Where this day falls in the stay: "Check-in day", "Check-out day" or "Stay in progress". */
     public String dayRole(@NonNull Context c, @NonNull LocalDate day) {
         if (day.equals(checkIn)) return c.getString(R.string.next_stay_day_role_checkin);

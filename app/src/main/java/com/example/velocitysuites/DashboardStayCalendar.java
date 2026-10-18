@@ -46,6 +46,7 @@ final class DashboardStayCalendar {
     private final TextView emptyText;
     private final MaterialButtonToggleGroup modeGroup;
     private final TextView countLabel;
+    private final android.widget.CompoundButton showCancelled;
     private final CollapsibleSection section;
 
     /** Told when the guest picks a different day or window (not when code sets it through {@link #setWindow}). */
@@ -74,6 +75,7 @@ final class DashboardStayCalendar {
         this.emptyText = root.findViewById(R.id.stayCalEmpty);
         this.modeGroup = root.findViewById(R.id.stayCalMode);
         this.countLabel = root.findViewById(R.id.stayCalCount);
+        this.showCancelled = root.findViewById(R.id.stayCalShowCancelled);
         this.section = new CollapsibleSection(context, "stay_calendar", root.findViewById(R.id.stayCalToggle),
                 root.findViewById(R.id.stayCalCollapsedSummary), root.findViewById(R.id.stayCalBody));
         this.selected = today;
@@ -81,6 +83,7 @@ final class DashboardStayCalendar {
 
         root.findViewById(R.id.stayCalPrev).setOnClickListener(v -> shiftMonth(-1));
         root.findViewById(R.id.stayCalNext).setOnClickListener(v -> shiftMonth(1));
+        showCancelled.setOnCheckedChangeListener((b, checked) -> render());
         modeGroup.check(R.id.stayCalModeDaily);
         modeGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
@@ -231,7 +234,7 @@ final class DashboardStayCalendar {
         }
 
         summary.removeAllViews();
-        List<Booking> entries = model.transactionsFor(mode, selected);
+        List<Booking> entries = model.transactionsFor(mode, selected, showCancelled.isChecked());
         emptyText.setVisibility(entries.isEmpty() ? View.VISIBLE : View.GONE);
         countLabel.setText(context.getResources().getQuantityString(R.plurals.summary_transactions_count, entries.size(), entries.size()));
         for (Booking b : entries) StayCardBinder.add(context, summary, b, StayCardBinder.Tag.NONE);

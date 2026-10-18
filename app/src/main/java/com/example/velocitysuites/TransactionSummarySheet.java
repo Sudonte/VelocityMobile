@@ -38,33 +38,58 @@ final class TransactionSummarySheet {
         }
     }
 
-    /** The rows to show, in order, only for what the transaction actually carries. */
+    /** A titled group of rows: Stay Details, Room Details, Payment Details. */
+    static final class Section {
+        final String title;
+        final List<Row> rows;
+
+        Section(String title, List<Row> rows) {
+            this.title = title;
+            this.rows = rows;
+        }
+    }
+
+    /** The sections to show, in order; a section with nothing to say is left out entirely. */
     @NonNull
-    static List<Row> rows(@NonNull Context context, @NonNull Booking b) {
-        List<Row> rows = new ArrayList<>();
-        add(rows, context.getString(R.string.sheet_label_room), BillingSummaryActivity.roomNameOf(b));
-        add(rows, context.getString(R.string.sheet_label_check_in), whenOf(context, b.getCheckInDate(), StayCalendarModel.CHECK_IN_TIME));
-        add(rows, context.getString(R.string.sheet_label_check_out), whenOf(context, b.getCheckOutDate(), StayCalendarModel.CHECK_OUT_TIME));
+    static List<Section> sections(@NonNull Context context, @NonNull Booking b) {
+        List<Row> stay = new ArrayList<>();
+        add(stay, context.getString(R.string.sheet_label_check_in), whenOf(context, b.getCheckInDate(), StayCalendarModel.CHECK_IN_TIME));
+        add(stay, context.getString(R.string.sheet_label_check_out), whenOf(context, b.getCheckOutDate(), StayCalendarModel.CHECK_OUT_TIME));
         long nights = StayDateCalculator.nightsBetween(b.getCheckInDate(), b.getCheckOutDate());
         if (nights > 0) {
-            add(rows, context.getString(R.string.nights_label),
+            add(stay, context.getString(R.string.nights_label),
                     context.getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights));
         }
         if (b.getGuests() > 0) {
-            add(rows, context.getString(R.string.total_guests_label),
+            add(stay, context.getString(R.string.total_guests_label),
                     context.getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
         }
+        List<Row> room = new ArrayList<>();
+        add(room, context.getString(R.string.sheet_label_room), BillingSummaryActivity.roomNameOf(b));
+        List<Row> payment = new ArrayList<>();
         TransactionStatusHelper.Summary money = TransactionStatusHelper.summarize(b);
-        add(rows, context.getString(R.string.grand_total_label), MoneyFormat.format(b.getTotalAmount()));
-        add(rows, context.getString(R.string.billing_amount_paid_label), MoneyFormat.format(b.getEffectiveTotalAmountPaid()));
-        add(rows, context.getString(R.string.billing_remaining_balance_label), MoneyFormat.format(money.balance));
+        add(payment, context.getString(R.string.grand_total_label), MoneyFormat.format(b.getTotalAmount()));
+        add(payment, context.getString(R.string.billing_amount_paid_label), MoneyFormat.format(b.getEffectiveTotalAmountPaid()));
+        add(payment, context.getString(R.string.billing_remaining_balance_label), MoneyFormat.format(money.balance));
         String method = b.getPaymentMethod();
         if (method != null && !method.trim().isEmpty()) {
-            add(rows, context.getString(R.string.review_payment_method_label),
+            add(payment, context.getString(R.string.review_payment_method_label),
                     "cash".equalsIgnoreCase(method.trim()) ? context.getString(R.string.payment_method_cash)
                             : context.getString(R.string.payment_method_gcash));
         }
-        return rows;
+        List<Section> sections = new ArrayList<>();
+        if (!stay.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_stay), stay));
+        if (!room.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_room), room));
+        if (!payment.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_payment), payment));
+        return sections;
+    }
+
+    /** Every row in section order (for callers that only need the facts). */
+    @NonNull
+    static List<Row> rows(@NonNull Context context, @NonNull Booking b) {
+        List<Row> all = new ArrayList<>();
+        for (Section section : sections(context, b)) all.addAll(section.rows);
+        return all;
     }
 
     private static void add(List<Row> rows, String label, @Nullable String value) {
@@ -91,7 +116,10 @@ final class TransactionSummarySheet {
         TransactionStatusChip.apply(activity, content.findViewById(R.id.tvSheetStatus), b.getStatus());
 
         LinearLayout container = content.findViewById(R.id.sheetRows);
-        for (Row row : rows(activity, b)) container.addView(buildRow(activity, row));
+        for (Section section : sections(activity, b)) {
+            container.addView(buildHeader(activity, section.title, container.getChildCount() == 0));
+            for (Row row : section.rows) container.addView(buildRow(activity, row));
+        }
         content.findViewById(R.id.btnSheetViewFull).setOnClickListener(v -> {
             dialog.dismiss();
             onViewFull.run();
@@ -99,6 +127,20 @@ final class TransactionSummarySheet {
         dialog.setContentView(content);
         dialog.show();
         return dialog;
+    }
+
+    private static View buildHeader(Context context, String title, boolean first) {
+        float density = context.getResources().getDisplayMetrics().density;
+        TextView header = new TextView(context);
+        header.setText(title);
+        header.setTextSize(12f);
+        header.setAllCaps(true);
+        header.setLetterSpacing(0.04f);
+        header.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        header.setTextColor(context.getColor(R.color.velocity_red_primary));
+        header.setPadding(0, (int) ((first ? 0 : 14) * density), 0, (int) (2 * density));
+        header.setAccessibilityHeading(true);
+        return header;
     }
 
     private static View buildRow(Context context, Row row) {

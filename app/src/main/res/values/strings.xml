@@ -792,10 +792,8 @@
     <string name="details_label_checked_in_at">Checked-In At</string>
     <string name="details_label_checked_out_at">Checked-Out At</string>
     <string name="details_expected_time_format">Expected %1$s</string>
-    <string name="stay_calendar_kind_checked_in">Checked in</string>
     <string name="stay_calendar_kind_checked_out">Checked out</string>
     <string name="upcoming_balance_label">Balance</string>
-    <string name="upcoming_stay_format">Stay: %1$s to %2$s - %3$s</string>
     <string name="stay_calendar_title">Stay Calendar</string>
     <string name="stay_calendar_desc">Dots mark days with a check-in or check-out. Tap a day to see what is on it.</string>
     <string name="stay_calendar_daily">Daily</string>
@@ -2092,11 +2090,9 @@
     <string name="summary_with_next">%1$s · Next: %2$s</string>
     <string name="summary_with_first">%1$s · %2$s</string>
     <string name="summary_ref_status">%1$s (%2$s)</string>
-    <string name="summary_ref_hint">%1$s - %2$s</string>
     <string name="summary_nothing_scheduled">Nothing scheduled in this period</string>
     <string name="summary_unread_count">%d unread</string>
     <string name="summary_calendar_format">%1$s · %2$s</string>
-    <string name="stay_calendar_entry_when">%1$s · %2$s</string>
 
     <string name="upcoming_status_pending">Pending</string>
     <string name="upcoming_status_confirmed">Confirmed</string>
@@ -2131,13 +2127,36 @@
     <string name="next_stay_day_yesterday">Yesterday</string>
     <string name="next_stay_day_today">Today</string>
     <string name="next_stay_day_tomorrow">Tomorrow</string>
-    <string name="next_stay_day_cd_format">%1$s, %2$d transaction(s)</string>
     <string name="next_stay_day_heading_format">%1$s · %2$s</string>
     <string name="next_stay_day_role_checkin">Check-in day</string>
     <string name="next_stay_day_role_checkout">Check-out day</string>
     <string name="next_stay_day_role_staying">Stay in progress</string>
     <string name="next_stay_day_empty">Nothing booked for this day. Pick another day above.</string>
     <string name="upcoming_filter_fallback">That transaction was hidden by the filters, so all transactions are shown.</string>
+
+    <string name="next_stay_jump_today">Today</string>
+    <string name="next_stay_line_tomorrow">Your next stay is tomorrow</string>
+    <plurals name="next_stay_line_in_days">
+        <item quantity="one">Your next stay is in %d day</item>
+        <item quantity="other">Your next stay is in %d days</item>
+    </plurals>
+    <plurals name="next_stay_line_other_future">
+        <item quantity="one">That day is in %d day</item>
+        <item quantity="other">That day is in %d days</item>
+    </plurals>
+    <plurals name="next_stay_line_past">
+        <item quantity="one">That day was %d day ago</item>
+        <item quantity="other">That day was %d days ago</item>
+    </plurals>
+    <string name="stay_calendar_show_cancelled">Show cancelled</string>
+    <string name="upcoming_section_stay">Stay Details</string>
+    <string name="upcoming_section_room">Room Details</string>
+    <string name="upcoming_section_payment">Payment Details</string>
+    <string name="upcoming_stay_line_with_guests">%1$s · %2$s</string>
+    <plurals name="next_stay_day_cd">
+        <item quantity="one">%1$s, %2$d transaction</item>
+        <item quantity="other">%1$s, %2$d transactions</item>
+    </plurals>
 </resources>
 
 

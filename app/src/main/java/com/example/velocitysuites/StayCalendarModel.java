@@ -198,11 +198,17 @@ public final class StayCalendarModel {
      */
     @NonNull
     public List<Booking> transactionsFor(@NonNull Mode mode, @NonNull LocalDate anchor) {
+        return transactionsFor(mode, anchor, false);
+    }
+
+    /** As {@link #transactionsFor(Mode, LocalDate)}; with {@code includeClosed} the cancelled and rejected ones are listed too. */
+    @NonNull
+    public List<Booking> transactionsFor(@NonNull Mode mode, @NonNull LocalDate anchor, boolean includeClosed) {
         LocalDate start = windowStart(mode, anchor);
         LocalDate end = windowEnd(mode, anchor);
         java.util.Map<String, Booking> unique = new java.util.LinkedHashMap<>();
         for (Booking b : all) {
-            if (isClosed(b)) continue;
+            if (!includeClosed && isClosed(b)) continue;
             LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
             if (in == null) continue;
             LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());

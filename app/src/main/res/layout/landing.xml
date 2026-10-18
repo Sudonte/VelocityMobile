@@ -644,7 +644,7 @@
                             style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="13dp"
+                            android:layout_marginTop="12dp"
                             android:hint="@string/landing_filter_by_type_label">
 
                             <AutoCompleteTextView
@@ -818,7 +818,7 @@
                             android:id="@+id/rvLandingPromotions"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="13dp"
+                            android:layout_marginTop="12dp"
                             android:nestedScrollingEnabled="false"
                             android:overScrollMode="never"
                             android:visibility="gone"
@@ -901,7 +901,7 @@
                             android:id="@+id/rvLandingAnnouncements"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="13dp"
+                            android:layout_marginTop="12dp"
                             android:nestedScrollingEnabled="false"
                             android:overScrollMode="never"
                             android:visibility="gone"
@@ -988,7 +988,7 @@
                             android:id="@+id/gridLandingAmenities"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="13dp"
+                            android:layout_marginTop="12dp"
                             android:alignmentMode="alignMargins"
                             android:columnCount="2"
                             android:useDefaultMargins="false"
@@ -1050,7 +1050,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="13dp"
+                            android:layout_marginTop="10dp"
                             android:fontFamily="sans-serif-black"
                             android:text="@string/landing_hotel_name"
                             android:textColor="@color/velocity_text_primary"
@@ -1064,7 +1064,7 @@
                             android:lineSpacingExtra="3dp"
                             android:text="@string/landing_hotel_desc"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="13sp" />
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/mapPreviewCard"
@@ -1124,7 +1124,7 @@
                             android:stateListAnimator="@null"
                             android:text="@string/landing_hotel_view_location"
                             android:textAllCaps="false"
-                            android:textSize="12sp"
+                            android:textSize="14sp"
                             app:backgroundTint="@color/velocity_red_primary"
                             app:cornerRadius="0dp"
                             app:elevation="0dp"

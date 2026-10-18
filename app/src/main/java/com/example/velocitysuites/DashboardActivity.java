@@ -33,8 +33,6 @@ public class DashboardActivity extends BaseNavigationActivity {
     private TextView timeText;
     /** The four mutually exclusive states of the Next Stay card. */
     private View nextStayLoading, nextStayError, nextStayEmpty, nextStayContent;
-    /** The stay the Next Stay card shows (what a tap opens). */
-    private NextStay currentNextStay;
     /** True once the bookings request has answered (success or failure) - until then the card says it is loading. */
     private boolean bookingsResolved = false;
     /** True when the last bookings refresh failed (the sections then offer Retry / a pull-to-refresh hint if they have nothing to show). */
@@ -59,12 +57,15 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** "Recent Upcoming Stay": every Pending / Confirmed transaction, and whether the full list is showing. */
     private List<Booking> recentUpcoming = new ArrayList<>();
     private boolean recentUpcomingExpanded;
-    /** The transactions on the nearest event day - the "next" stay, which Other Stays leaves out. */
-    private List<NextStay> currentNextStays = new ArrayList<>();
     /** The day chosen in Your Next Stay's day selector (null until first drawn: then Today), and the data it draws from. */
     private java.time.LocalDate selectedStayDay;
     private List<Booking> nextStayBookings = new ArrayList<>();
     private boolean nextStayStripBuilt;
+    /** Every transaction Other Stays is drawn from, and the ones Your Next Stay shows right now (for the selected day) - those are left out of Other Stays. */
+    private List<Booking> otherStaysSource = new ArrayList<>();
+    private List<Booking> nextStayShown = new ArrayList<>();
+    /** Set when the day strip should scroll the selected day into view on its next draw (first draw, Today shortcut). */
+    private boolean scrollStripToSelected;
 
     /**
      * Dashboard preview cards (Notifications) use a
@@ -1155,14 +1156,6 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** The calendar under Next Stay, created on first use (the card is always in the layout). */
     private DashboardStayCalendar stayCalendar;
 
-    /** True when this transaction is already shown in "Your Next Stay" (so the lists below do not repeat it). */
-    private boolean isShownAsNextStay(Booking b) {
-        for (NextStay stay : currentNextStays) {
-            if (stay.booking == b) return true;
-        }
-        return false;
-    }
-
     /**
      * Next Stay shows every transaction on the nearest day (a guest can hold several, even on the same day), so every
      * other upcoming stay (soonest first) and the latest finished ones are listed under it as compact rows, and the
@@ -1175,29 +1168,15 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
         stayCalendar.setBookings(bookings);
 
-        List<Booking> upcoming = new ArrayList<>();
-        List<Booking> recent = new ArrayList<>();
-        for (Booking b : bookings) {
-            if (b == null || isShownAsNextStay(b)) continue;
-            TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
-            if (category == TransactionCategorizer.Category.UPCOMING || category == TransactionCategorizer.Category.ACTIVE) upcoming.add(b);
-            else if (category == TransactionCategorizer.Category.COMPLETED) recent.add(b);
-        }
-        java.util.Comparator<Booking> byCheckIn = (x, y) -> {
-            java.time.LocalDate a = PaymentDates.parseDate(x.getCheckInDate());
-            java.time.LocalDate c = PaymentDates.parseDate(y.getCheckInDate());
-            if (a == null || c == null) return a == null ? (c == null ? 0 : 1) : -1;
-            return a.compareTo(c);
-        };
-        java.util.Collections.sort(upcoming, byCheckIn);
-        java.util.Collections.sort(recent, byCheckIn.reversed());
-        moreStaysUpcoming = upcoming;
-        moreStaysRecent = recent;
+        otherStaysSource = bookings;
         renderMoreStays();
     }
 
     /** Every stay (upcoming first, then the finished ones); collapsing the section hides the list and leaves the summary. */
     private void renderMoreStays() {
+        OtherStays others = OtherStays.build(otherStaysSource, nextStayShown);
+        moreStaysUpcoming = others.upcoming;
+        moreStaysRecent = others.recent;
         LinearLayout list = findViewById(R.id.moreStaysList);
         View section = findViewById(R.id.moreStaysSection);
         list.removeAllViews();
@@ -1258,8 +1237,7 @@ public class DashboardActivity extends BaseNavigationActivity {
      * whether they are bookings or reservations.
      */
     private void updateNextStay(List<Booking> bookings) {
-        currentNextStay = null;
-        currentNextStays = new ArrayList<>();
+        nextStayShown = new ArrayList<>();
         if (!bookingsResolved && bookings.isEmpty()) {
             showNextStayState(nextStayLoading);
             nextStaySection.setSummary(getString(R.string.dashboard_section_loading));
@@ -1270,21 +1248,43 @@ public class DashboardActivity extends BaseNavigationActivity {
             nextStaySection.setSummary(getString(R.string.dashboard_section_error));
             return;
         }
-        List<NextStay> stays = NextStay.selectAll(bookings, hotelToday());
         if (!hasAnyStay(bookings)) {
             showNextStayState(nextStayEmpty);
             nextStaySection.setSummary(getString(R.string.next_stay_empty_title));
             updateMoreStaysAndCalendar(bookings);
             return;
         }
-        // The nearest event day's stays are what the lists below leave out (they are the "next" stay); the day
-        // selector itself can show any day.
-        currentNextStays = stays;
-        currentNextStay = stays.isEmpty() ? null : stays.get(0);
+        // Other Stays leaves out exactly what the selected day shows (renderNextStayDays refreshes it on every change).
         updateMoreStaysAndCalendar(bookings);
         nextStayBookings = bookings;
         renderNextStayDays();
         showNextStayState(nextStayContent);
+    }
+
+    /** "Your next stay is in 3 days" above the cards when the chosen day is not Today, plus the shortcut back to Today. */
+    private void bindNextStayInfo(LinearLayout content, java.time.LocalDate today) {
+        View row = content.findViewById(R.id.nextStayDayInfoRow);
+        long diff = java.time.temporal.ChronoUnit.DAYS.between(today, selectedStayDay);
+        if (diff == 0) {
+            row.setVisibility(View.GONE);
+            return;
+        }
+        String line;
+        if (diff < 0) {
+            line = getResources().getQuantityString(R.plurals.next_stay_line_past, (int) -diff, (int) -diff);
+        } else if (selectedStayDay.equals(NextStay.nextDayWithStay(nextStayBookings, today))) {
+            line = diff == 1 ? getString(R.string.next_stay_line_tomorrow)
+                    : getResources().getQuantityString(R.plurals.next_stay_line_in_days, (int) diff, (int) diff);
+        } else {
+            line = getResources().getQuantityString(R.plurals.next_stay_line_other_future, (int) diff, (int) diff);
+        }
+        ((TextView) content.findViewById(R.id.nextStayDayInfo)).setText(line);
+        content.findViewById(R.id.btnNextStayToday).setOnClickListener(v -> {
+            selectedStayDay = hotelToday();
+            scrollStripToSelected = true;
+            renderNextStayDays();
+        });
+        row.setVisibility(View.VISIBLE);
     }
 
     /** True when at least one non-cancelled transaction has a readable check-in date (so the day selector has something to show). */
@@ -1321,7 +1321,11 @@ public class DashboardActivity extends BaseNavigationActivity {
             nextStayStripBuilt = false;
         }
         java.time.LocalDate today = hotelToday();
-        if (selectedStayDay == null) selectedStayDay = today;
+        if (selectedStayDay == null) {
+            // On open: Today if it has a transaction, else the nearest later day that has one, else Today.
+            selectedStayDay = NextStay.defaultDay(nextStayBookings, today);
+            scrollStripToSelected = true;
+        }
 
         java.time.LocalDate first = today.minusDays(14);
         java.time.LocalDate last = today.plusDays(30);
@@ -1338,7 +1342,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         android.widget.HorizontalScrollView scroll = content.findViewById(R.id.nextStayDayScroll);
         LinearLayout strip = content.findViewById(R.id.nextStayDayStrip);
         int keepScroll = scroll.getScrollX();
-        boolean firstBuild = !nextStayStripBuilt;
+        boolean firstBuild = !nextStayStripBuilt || scrollStripToSelected;
+        scrollStripToSelected = false;
         strip.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
         View selectedChip = null;
@@ -1360,7 +1365,7 @@ public class DashboardActivity extends BaseNavigationActivity {
             int textColor = getColor(selected ? R.color.white : R.color.velocity_text_primary);
             name.setTextColor(textColor);
             date.setTextColor(textColor);
-            chip.setContentDescription(getString(R.string.next_stay_day_cd_format, dayName(day, today), count));
+            chip.setContentDescription(getResources().getQuantityString(R.plurals.next_stay_day_cd, count, dayName(day, today), count));
             chip.setOnClickListener(v -> {
                 selectedStayDay = day;
                 renderNextStayDays();
@@ -1377,6 +1382,10 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
 
         List<NextStay> dayStays = NextStay.forDay(nextStayBookings, selectedStayDay, today);
+        nextStayShown = new ArrayList<>();
+        for (NextStay stay : dayStays) nextStayShown.add(stay.booking);
+        renderMoreStays();
+        bindNextStayInfo(content, today);
         LinearLayout cards = content.findViewById(R.id.nextStayDayCards);
         TextView heading = content.findViewById(R.id.nextStayDayHeading);
         View empty = content.findViewById(R.id.nextStayDayEmpty);

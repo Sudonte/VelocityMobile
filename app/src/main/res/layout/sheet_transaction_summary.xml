@@ -47,7 +47,7 @@
                     android:paddingVertical="2dp"
                     android:textAllCaps="true"
                     android:textColor="@color/velocity_red_primary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     tools:text="Booking" />
 
                 <TextView
