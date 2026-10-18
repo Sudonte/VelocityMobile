@@ -179,17 +179,27 @@ public class StayCardAndDetailsTest {
         Context context = themed();
         LocalDate today = LocalDate.of(2026, 10, 18);
         // the nearest stay day
-        assertEquals("Your next stay · in 2 days", NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true));
-        assertEquals("Your next stay · tomorrow", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, true));
-        assertEquals("Your next stay · today", NextStayDayText.line(context, today, today, true));
+        assertEquals("Your next stay · in 2 days", NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true, false));
+        assertEquals("Your next stay · tomorrow", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, true, false));
+        assertEquals("Your next stay · today", NextStayDayText.line(context, today, today, true, false));
         // any other day
-        assertEquals("In 5 days", NextStayDayText.line(context, LocalDate.of(2026, 10, 23), today, false));
-        assertEquals("2 days ago", NextStayDayText.line(context, LocalDate.of(2026, 10, 16), today, false));
-        assertEquals("Tomorrow", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, false));
-        assertEquals("Yesterday", NextStayDayText.line(context, LocalDate.of(2026, 10, 17), today, false));
-        assertEquals("Today", NextStayDayText.line(context, today, today, false));
+        assertEquals("In 5 days", NextStayDayText.line(context, LocalDate.of(2026, 10, 23), today, false, false));
+        assertEquals("2 days ago", NextStayDayText.line(context, LocalDate.of(2026, 10, 16), today, false, false));
+        assertEquals("Tomorrow", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, false, false));
+        assertEquals("Yesterday", NextStayDayText.line(context, LocalDate.of(2026, 10, 17), today, false, false));
+        assertEquals("Today", NextStayDayText.line(context, today, today, false, false));
         // a past day is never "your next stay"
-        assertEquals("Yesterday", NextStayDayText.line(context, LocalDate.of(2026, 10, 17), today, true));
+        assertEquals("Yesterday", NextStayDayText.line(context, LocalDate.of(2026, 10, 17), today, true, false));
+    }
+
+    @Test
+    public void contextLine_forACheckedInGuest_saysYoureStayingWithUs_evenBeforeTheBookedCheckInDate() {
+        Context context = themed();
+        LocalDate today = LocalDate.of(2026, 10, 18);
+        assertEquals("You're staying with us", NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true, true));
+        assertEquals("You're staying with us", NextStayDayText.line(context, today, today, false, true));
+        assertEquals("other cases keep the wording", "Your next stay · in 2 days",
+                NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true, false));
     }
 
     @Test
@@ -210,7 +220,7 @@ public class StayCardAndDetailsTest {
         TextView info = body.findViewById(R.id.nextStayDayInfo);
         View todayButton = body.findViewById(R.id.btnNextStayToday);
         todayButton.setVisibility(View.VISIBLE);
-        info.setText(NextStayDayText.line(context, LocalDate.of(2027, 2, 14), LocalDate.of(2026, 10, 18), true)); // "Your next stay · in 119 days"
+        info.setText(NextStayDayText.line(context, LocalDate.of(2027, 2, 14), LocalDate.of(2026, 10, 18), true, false)); // "Your next stay · in 119 days"
 
         int width = Math.round(360 * context.getResources().getDisplayMetrics().density);
         body.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

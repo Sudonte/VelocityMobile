@@ -879,6 +879,154 @@ public class DashboardScreenTest {
         assertEquals("567", next.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
     }
 
+    // ---- Your Next Stay card layout: every state, no overlap, nothing clipped
+
+    private com.example.velocitysuites.network.dto.DirectBookingResponseDto checkedIn(long id, boolean paid) {
+        com.example.velocitysuites.network.dto.DirectBookingResponseDto d = booking(id, 2); // booked 2 days ahead: an EARLY check-in
+        d.booking_status = "CHECKED_IN";
+        if (paid) d.payments = new java.util.ArrayList<>(java.util.Arrays.asList(ScreenTestSupport.payment(9, "1800.00", "completed", "cash")));
+        return d;
+    }
+
+    private ReservationDto reservationPaid(long id) {
+        ReservationDto r = ScreenTestSupport.reservation(id, 1800, ScreenTestSupport.payment(9, "1800.00", "completed", "gcash"));
+        r.check_in = manilaToday().plusDays(2).toString();
+        r.check_out = manilaToday().plusDays(3).toString();
+        return r;
+    }
+
+    /** Shows the state, lays the screen out like a phone, and checks the first Next Stay card. Returns the activity. */
+    private DashboardActivity showCard(java.util.List<ReservationDto> reservations,
+                                       java.util.List<com.example.velocitysuites.network.dto.DirectBookingResponseDto> direct) {
+        DashboardActivity activity = launch();
+        answerWith(reservations, direct);
+        layOut(activity, app);
+        idle();
+        layOut(activity, app);
+        View card = activity.findViewById(R.id.nextStayItem);
+        assertNotNull("a card is shown", card);
+        assertTrue("laid out", card.getHeight() > 0);
+
+        View root = activity.getWindow().getDecorView();
+        int[] ids = {R.id.tvNextStayRef, R.id.tvNextStayStatus, R.id.tvNextStayType, R.id.tvNextStayHint, R.id.tvNextStayRooms,
+                R.id.tvNextStayDates, R.id.tvNextStayNights, R.id.nextStayPaymentRow, R.id.btnNextStayRequestAmenities,
+                R.id.tvNextStayViewDetails};
+        android.graphics.Rect bounds = LayoutHarness.boundsIn(root, card);
+        java.util.List<View> shown = new java.util.ArrayList<>();
+        for (int id : ids) {
+            View v = card.findViewById(id);
+            if (v == null || !v.isShown()) continue;
+            shown.add(v);
+            android.graphics.Rect r = LayoutHarness.boundsIn(root, v);
+            String name = activity.getResources().getResourceEntryName(id);
+            assertTrue(name + " inside the card (top)", r.top >= bounds.top);
+            assertTrue(name + " inside the card (bottom): " + r + " vs " + bounds, r.bottom <= bounds.bottom);
+            assertTrue(name + " inside the card (right)", r.right <= bounds.right);
+        }
+        // the payment row's own two texts, and every pair of stacked blocks, must not overlap
+        shown.add(card.findViewById(R.id.tvNextStayBalanceLabel));
+        shown.add(card.findViewById(R.id.tvNextStayBalance));
+        for (int a = 0; a < shown.size(); a++) {
+            for (int b = a + 1; b < shown.size(); b++) {
+                View x = shown.get(a);
+                View y = shown.get(b);
+                if (isAncestor(x, y) || isAncestor(y, x)) continue; // the payment row holds its two texts
+                if (x == y) continue;
+                assertFalse(activity.getResources().getResourceEntryName(x.getId()) + " overlaps "
+                        + activity.getResources().getResourceEntryName(y.getId()), LayoutHarness.overlaps(root, x, y));
+            }
+        }
+        // the bottom padding matches the top (about 12dp), so nothing hugs or is cut by the card's edge
+        View last = card.findViewById(R.id.nextStayActions);
+        int lastBottom = LayoutHarness.boundsIn(root, last).bottom;
+        assertTrue("bottom padding is positive", bounds.bottom - lastBottom >= LayoutHarness.dp(app, 8));
+        return activity;
+    }
+
+    private static boolean isAncestor(View maybeParent, View child) {
+        for (android.view.ViewParent p = child.getParent(); p != null; p = p.getParent()) if (p == maybeParent) return true;
+        return false;
+    }
+
+    private static final java.util.List<ReservationDto> NO_RESERVATIONS = new java.util.ArrayList<>();
+    private static final java.util.List<com.example.velocitysuites.network.dto.DirectBookingResponseDto> NO_DIRECT = new java.util.ArrayList<>();
+
+    @Test
+    public void card_notCheckedIn_balanceDue_hasOnlyViewDetails_andNothingOverlaps() {
+        DashboardActivity a = showCard(ScreenTestSupport.reservations(stay(567, 2, 1)), NO_DIRECT);
+        assertFalse("no amenities button before check-in", a.findViewById(R.id.btnNextStayRequestAmenities).isShown());
+        assertEquals("Balance due", text(a, R.id.tvNextStayBalanceLabel));
+        assertEquals("Your next stay · in 2 days", text(a, R.id.nextStayDayInfo));
+    }
+
+    @Test
+    public void card_notCheckedIn_paid_hasOnlyViewDetails_andNothingOverlaps() {
+        DashboardActivity a = showCard(java.util.Arrays.asList(reservationPaid(567)), NO_DIRECT);
+        assertFalse(a.findViewById(R.id.btnNextStayRequestAmenities).isShown());
+        assertEquals("Paid", text(a, R.id.tvNextStayBalance));
+    }
+
+    @Test
+    public void card_checkedIn_paid_theScreenshotCase_buttonSitsBesideViewDetails_withoutCoveringThePaymentRow() {
+        DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(checkedIn(567, true)));
+        TextView button = a.findViewById(R.id.btnNextStayRequestAmenities);
+        assertTrue("the amenities button is shown while checked in", button.isShown());
+        assertEquals("Request Amenities", button.getText().toString());
+        assertEquals("one line", 1, button.getLineCount());
+        assertEquals("no letter-spacing", 0f, button.getLetterSpacing(), 0.0001f);
+        assertEquals("48dp tall", LayoutHarness.dp(app, 48), a.findViewById(R.id.btnNextStayRequestAmenities).getHeight());
+
+        com.example.velocitysuites.NextStayActionRow row = a.findViewById(R.id.nextStayActions);
+        assertFalse("both fit side by side at 360dp", row.isStacked());
+        View details = a.findViewById(R.id.tvNextStayViewDetails);
+        View root = a.getWindow().getDecorView();
+        assertTrue("View details is to the right of the button",
+                LayoutHarness.boundsIn(root, details).right > LayoutHarness.boundsIn(root, button).right);
+        assertEquals("vertically centred together", LayoutHarness.boundsIn(root, button).centerY(),
+                LayoutHarness.boundsIn(root, details).centerY(), LayoutHarness.dp(app, 2));
+
+        // the check is beside "Paid" - not beside the "Payment" label
+        TextView paid = a.findViewById(R.id.tvNextStayBalance);
+        TextView label = a.findViewById(R.id.tvNextStayBalanceLabel);
+        assertEquals("Paid", paid.getText().toString());
+        assertEquals("Payment", label.getText().toString());
+        assertNotNull("check icon directly before Paid", paid.getCompoundDrawables()[0]);
+        assertNull("no icon on the label", label.getCompoundDrawables()[0]);
+        assertEquals(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, paid.getLayoutParams().width);
+        assertTrue("Paid is right-aligned", LayoutHarness.boundsIn(root, paid).right >= LayoutHarness.boundsIn(root, a.findViewById(R.id.nextStayPaymentRow)).right - LayoutHarness.dp(app, 2));
+        assertTrue("the label ends before the icon begins", LayoutHarness.boundsIn(root, label).right <= LayoutHarness.boundsIn(root, paid).left);
+
+        assertEquals("You're staying with us", text(a, R.id.nextStayDayInfo));
+    }
+
+    @Test
+    public void card_checkedIn_balanceDue_hasBothActions_andNothingOverlaps() {
+        DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(checkedIn(567, false)));
+        assertTrue(a.findViewById(R.id.btnNextStayRequestAmenities).isShown());
+        assertEquals("Balance due", text(a, R.id.tvNextStayBalanceLabel));
+        assertEquals("You're staying with us", text(a, R.id.nextStayDayInfo));
+    }
+
+    @Test
+    public void card_checkedIn_atALargeFontScale_stacksTheActions_withoutOverlapOrWrappedButtonText() {
+        android.content.res.Configuration config = new android.content.res.Configuration(app.getResources().getConfiguration());
+        config.fontScale = 1.6f;
+        app.getResources().updateConfiguration(config, app.getResources().getDisplayMetrics());
+        try {
+            DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(checkedIn(567, true)));
+            TextView button = a.findViewById(R.id.btnNextStayRequestAmenities);
+            assertEquals("the button label never wraps", 1, button.getLineCount());
+            com.example.velocitysuites.NextStayActionRow row = a.findViewById(R.id.nextStayActions);
+            assertTrue("stacked when both do not fit", row.isStacked());
+            View root = a.getWindow().getDecorView();
+            assertTrue("the full-width button comes first, View details below it",
+                    LayoutHarness.boundsIn(root, button).bottom <= LayoutHarness.boundsIn(root, a.findViewById(R.id.tvNextStayViewDetails)).top);
+        } finally {
+            config.fontScale = 1f;
+            app.getResources().updateConfiguration(config, app.getResources().getDisplayMetrics());
+        }
+    }
+
     @Test
     public void nextStayCard_paymentRow_showsBalanceDueInRed_orPaidWithACheck() {
         DashboardActivity activity = launch();

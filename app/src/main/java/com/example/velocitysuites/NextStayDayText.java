@@ -21,8 +21,14 @@ final class NextStayDayText {
     private NextStayDayText() {
     }
 
+    /**
+     * @param staying true when the stay on this day is checked in: the line then says so ("You're staying with us"), whatever
+     *                the dates (an early check-in is checked in before the booked check-in date).
+     */
     @NonNull
-    static String line(@NonNull Context c, @NonNull LocalDate selected, @NonNull LocalDate today, boolean nearestStayDay) {
+    static String line(@NonNull Context c, @NonNull LocalDate selected, @NonNull LocalDate today, boolean nearestStayDay,
+                       boolean staying) {
+        if (staying) return c.getString(R.string.next_stay_ctx_staying);
         long diff = ChronoUnit.DAYS.between(today, selected);
         if (nearestStayDay && diff >= 0) {
             if (diff == 0) return c.getString(R.string.next_stay_ctx_next_today);

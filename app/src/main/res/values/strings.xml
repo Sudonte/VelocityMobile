@@ -2159,6 +2159,8 @@
     <string name="section_expand_named">Expand %1$s</string>
     <string name="section_state_expanded_named">%1$s expanded</string>
     <string name="section_state_collapsed_named">%1$s collapsed</string>
+    <string name="next_stay_request_amenities">Request Amenities</string>
+    <string name="next_stay_ctx_staying">You\'re staying with us</string>
 </resources>
 
 

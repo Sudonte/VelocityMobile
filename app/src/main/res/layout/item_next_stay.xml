@@ -36,7 +36,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="12dp"
             android:paddingTop="12dp"
-            android:paddingBottom="0dp">
+            android:paddingBottom="12dp">
 
             <!-- Row 1 -->
             <LinearLayout
@@ -164,28 +164,31 @@
                 android:orientation="vertical"
                 android:visibility="gone" />
 
-            <!-- The payment row: "Balance due" and the amount in bold red, or "Paid" with a green check. -->
+            <!-- The payment row stands alone: "Balance due" and the amount in bold red, or "Payment" and a green check
+                 directly before "Paid". -->
             <LinearLayout
+                android:id="@+id/nextStayPaymentRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
+                android:minHeight="32dp"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tvNextStayBalanceLabel"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
                     android:text="@string/next_stay_balance_due"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/tvNextStayBalance"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:drawablePadding="4dp"
                     android:fontFamily="sans-serif-black"
                     android:gravity="end|center_vertical"
@@ -194,30 +197,34 @@
                     tools:text="₱1,750.00" />
             </LinearLayout>
 
-            <!-- Actions: the amenities button (only while the guest is staying) and View details, in one row. -->
-            <LinearLayout
+            <!-- Actions, about 8dp under the payment row: "Request Amenities" (only while the guest is checked in) and
+                 View details. Side by side when they fit, stacked when they do not; never overlapping. -->
+            <com.example.velocitysuites.NextStayActionRow
+                android:id="@+id/nextStayActions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-8dp"
-                android:layout_marginBottom="-4dp"
-                android:gravity="center_vertical|end"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnNextStayRequestAmenities"
                     style="@style/Widget.Velocity.Flat.Button.Outlined"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="48dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="@string/request_additional_amenities_button"
-                    android:textSize="12sp"
+                    android:ellipsize="none"
+                    android:letterSpacing="0"
+                    android:maxLines="1"
+                    android:minHeight="48dp"
+                    android:text="@string/next_stay_request_amenities"
+                    android:textSize="13sp"
                     android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/tvNextStayViewDetails"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
@@ -226,7 +233,7 @@
                     android:text="@string/next_stay_view_details"
                     android:textColor="@color/velocity_action_text"
                     android:textSize="13sp" />
-            </LinearLayout>
+            </com.example.velocitysuites.NextStayActionRow>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

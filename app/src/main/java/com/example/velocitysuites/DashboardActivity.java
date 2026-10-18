@@ -1269,10 +1269,12 @@ public class DashboardActivity extends BaseNavigationActivity {
     }
 
     /** The one context row: "Your next stay · in 2 days" (or "In 5 days"...), and the small Today button when Today is not selected. */
-    private void bindNextStayInfo(LinearLayout content, java.time.LocalDate today) {
+    private void bindNextStayInfo(LinearLayout content, java.time.LocalDate today, List<NextStay> dayStays) {
         boolean nearest = selectedStayDay.equals(NextStay.nearestStayDay(nextStayBookings, today));
+        boolean staying = false;
+        for (NextStay stay : dayStays) staying |= stay.phase == NextStay.Phase.IN_HOUSE;
         ((TextView) content.findViewById(R.id.nextStayDayInfo)).setText(
-                NextStayDayText.line(this, selectedStayDay, today, nearest));
+                NextStayDayText.line(this, selectedStayDay, today, nearest, staying));
         View todayButton = content.findViewById(R.id.btnNextStayToday);
         todayButton.setVisibility(selectedStayDay.equals(today) ? View.GONE : View.VISIBLE);
         todayButton.setOnClickListener(v -> {
@@ -1425,7 +1427,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         LinearLayout cards = content.findViewById(R.id.nextStayDayCards);
         View empty = content.findViewById(R.id.nextStayDayEmpty);
         cards.removeAllViews();
-        bindNextStayInfo(content, today);
+        bindNextStayInfo(content, today, dayStays);
         empty.setVisibility(dayStays.isEmpty() ? View.VISIBLE : View.GONE);
         List<NextStay> shownStays = dayStays; // every stay of the day: this section has no 3-item preview
         for (int i = 0; i < shownStays.size(); i++) {
@@ -1436,7 +1438,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         TextView stayCount = findViewById(R.id.nextStayCount);
         stayCount.setText(String.valueOf(dayStays.size()));
         stayCount.setVisibility(dayStays.isEmpty() ? View.GONE : View.VISIBLE);
-        nextStaySection.setSummary(NextStayDayText.line(this, selectedStayDay, today, false));
+        nextStaySection.setSummary(NextStayDayText.line(this, selectedStayDay, today, false, false));
     }
 
     /** Fills one stay's block and wires its taps: the block opens its Booking Details, the button asks for amenities. */
