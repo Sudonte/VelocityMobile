@@ -19,6 +19,7 @@ public class AddOnAmenity implements Serializable {
     private final String description;
     private final double price;
     private final int stock;
+    private boolean active = true;
 
     /** How many the guest wants, set via the quantity stepper once selected - defaults to 1, reset to 1 on deselect. */
     private int quantity = 1;
@@ -33,9 +34,12 @@ public class AddOnAmenity implements Serializable {
     }
 
     public static AddOnAmenity fromDto(AmenityDto dto) {
-        return new AddOnAmenity(String.valueOf(dto.id), dto.amenity_name, dto.category, dto.description, dto.chargeAsDouble(), dto.quantity);
+        AddOnAmenity amenity = new AddOnAmenity(String.valueOf(dto.id), dto.amenity_name, dto.category, dto.description, dto.chargeAsDouble(), dto.quantity);
+        amenity.active = dto.isActive();
+        return amenity;
     }
 
+    public boolean isActive() { return active; }
     public String getId() { return id; }
     public String getName() { return name; }
     public String getCategory() { return category; }

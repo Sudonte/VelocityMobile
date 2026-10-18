@@ -39,9 +39,7 @@
         android:paddingHorizontal="13dp"
         android:paddingVertical="11dp">
 
-        <!-- Row 1: status badge, then the reference right next to it, chevron far right. The
-             reference takes the remaining width and wraps onto a second line (never clips the id)
-             when a large font leaves it too little. -->
+        <!-- Row 1: the ID (bold, Title Case, wraps rather than being cut) | the amount (bold, never wraps) | chevron. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -49,36 +47,25 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvTxnStatusBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/shape_intro_pill"
-                android:drawablePadding="4dp"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-black"
-                android:gravity="center_vertical"
-                android:letterSpacing="0.04"
-                android:maxLines="1"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="3dp"
-                android:textAllCaps="true"
-                android:textSize="12sp"
-                tools:text="Pending" />
-
-            <TextView
                 android:id="@+id/tvTxnRef"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:ellipsize="end"
                 android:fontFamily="sans-serif-black"
-                android:letterSpacing="0.03"
-                android:maxLines="2"
-                android:textAllCaps="true"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="12sp"
-                tools:text="Reservation #588" />
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="15sp"
+                tools:text="Reservation #630" />
+
+            <TextView
+                android:id="@+id/tvTxnTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-black"
+                android:gravity="end"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="15sp"
+                tools:text="₱3,600.00" />
 
             <ImageView
                 android:id="@+id/ivTxnChevron"
@@ -90,54 +77,57 @@
                 app:tint="@color/velocity_text_secondary" />
         </LinearLayout>
 
-        <!-- Row 2: room type (wraps, up to 2 lines) | grand total (never wraps or shrinks). -->
+        <!-- Row 2: two different chips - how much is paid (Unpaid / Partially paid / Paid) and where the stay is (Pending
+             approval / Confirmed / Checked in ...). Never the same word twice. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvTxnRoom"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-black"
-                android:maxLines="2"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="14sp"
-                tools:text="Deluxe" />
-
-            <TextView
-                android:id="@+id/tvTxnTotal"
+                android:id="@+id/tvTxnStatusBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:background="@drawable/shape_intro_pill"
                 android:fontFamily="sans-serif-black"
-                android:gravity="end"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="14sp"
-                tools:text="₱1,800.00" />
-        </LinearLayout>
+                android:maxLines="1"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:textSize="12sp"
+                tools:text="Unpaid" />
 
-            <!-- The booking / reservation status (Checked out, Cancelled, ...), under the payment status so both filters make sense on the card. -->
-        <TextView
+            <TextView
                 android:id="@+id/tvTxnBookingStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/shape_intro_pill"
                 android:backgroundTint="@color/status_cancelled_bg"
                 android:fontFamily="sans-serif-black"
                 android:maxLines="1"
                 android:paddingHorizontal="8dp"
-                android:paddingVertical="1dp"
+                android:paddingVertical="2dp"
                 android:textColor="@color/status_cancelled_fg"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:visibility="gone"
-                tools:text="Checked Out"
+                tools:text="Pending approval"
                 tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Row 3: the room type (wraps, up to 2 lines). -->
+        <TextView
+            android:id="@+id/tvTxnRoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Deluxe" />
 
         <View
             android:id="@+id/dividerTxn"

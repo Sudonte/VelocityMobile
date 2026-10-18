@@ -186,13 +186,13 @@ public class AdditionalAmenitiesScreenTest {
         bed.findViewById(R.id.btnAmenityOptionPlus).performClick();
         bed.findViewById(R.id.btnAmenityOptionPlus).performClick();
         assertEquals("2", ((TextView) bed.findViewById(R.id.tvAmenityOptionQty)).getText().toString());
-        assertEquals("\u20b1400.00", ((TextView) bed.findViewById(R.id.tvAmenityOptionSubtotal)).getText().toString());
+        assertEquals("2 \u00d7 \u20b1200.00 = \u20b1400.00", ((TextView) bed.findViewById(R.id.tvAmenityOptionSubtotal)).getText().toString());
         list.getChildAt(1).findViewById(R.id.btnAmenityOptionPlus).performClick();
         closePicker();
 
-        assertEquals(a.getString(R.string.additional_amenities_total_format, "\u20b1475.50"), text(a, R.id.additionalAmenitiesTotal));
+        assertEquals("\u20b1475.50", text(a, R.id.additionalAmenitiesTotal));
         assertTrue(a.findViewById(R.id.additionalAmenitiesSubmit).isEnabled());
-        assertEquals(a.getString(R.string.additional_amenities_selected_count_format, 2),
+        assertEquals("3 items \u00b7 \u20b1475.50",
                 ((TextView) ((android.widget.LinearLayout) a.findViewById(R.id.additionalAmenitiesRooms)).getChildAt(0)
                         .findViewById(R.id.tvAmenityRoomSelection)).getText().toString());
 
@@ -301,7 +301,7 @@ public class AdditionalAmenitiesScreenTest {
 
         assertFalse(a.isFinishing());
         assertTrue(visible(a, R.id.additionalAmenitiesForm));
-        assertEquals(a.getString(R.string.additional_amenities_selected_count_format, 1),
+        assertEquals("1 item · ₱200.00",
                 ((TextView) ((android.widget.LinearLayout) a.findViewById(R.id.additionalAmenitiesRooms)).getChildAt(0)
                         .findViewById(R.id.tvAmenityRoomSelection)).getText().toString());
         assertTrue("can try again", a.findViewById(R.id.additionalAmenitiesSubmit).isEnabled());

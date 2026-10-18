@@ -8,9 +8,7 @@
     android:layout_marginBottom="10dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardBackgroundColor="@color/velocity_card_surface"
-    app:cardCornerRadius="@dimen/card_corner_radius"
-    app:cardElevation="@dimen/card_elevation">
+    style="@style/Widget.Velocity.Card.Flat">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -47,11 +45,21 @@
                 android:id="@+id/tvAmenityRoomSelection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="@color/velocity_red_primary"
+                android:textColor="@color/velocity_text_secondary"
                 android:textSize="12sp"
-                tools:text="2 amenities selected" />
+                tools:text="3 items · ₱200.00" />
+
+            <TextView
+                android:id="@+id/tvAmenityRoomPicked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="2× Additional Towel, 1× Additional Pillow"
+                tools:visibility="visible" />
         </LinearLayout>
 
         <ImageView

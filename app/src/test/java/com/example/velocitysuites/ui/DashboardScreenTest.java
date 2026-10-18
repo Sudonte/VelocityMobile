@@ -1045,6 +1045,16 @@ public class DashboardScreenTest {
         throw new AssertionError("no payment card for " + reference);
     }
 
+    /** Any view of the payment card for this reference (paymentValue is for its text views). */
+    private View paymentView(DashboardActivity a, String reference, int viewId) {
+        ViewGroup list = a.findViewById(R.id.paymentListContainer);
+        for (int k = 0; k < list.getChildCount(); k++) {
+            TextView id = list.getChildAt(k).findViewById(R.id.tvPaymentBookingId);
+            if (id != null && id.getText().toString().equals(reference)) return list.getChildAt(k).findViewById(viewId);
+        }
+        throw new AssertionError("no payment card for " + reference);
+    }
+
     @Test
     public void paymentCards_balanceIsGreenWhenNothingIsOwed_amberWhenPartlyPaid_redOnlyWhenOwed_andAmountsUseTheCurrencyFormat() {
         DashboardActivity activity = launch();
@@ -1196,6 +1206,176 @@ public class DashboardScreenTest {
                 androidx.core.graphics.ColorUtils.calculateContrast(track, surface) >= 1.2);
         assertTrue("the percentage text reads on the card", androidx.core.graphics.ColorUtils.calculateContrast(
                 app.getColor(R.color.velocity_text_primary), surface) >= 4.5);
+    }
+
+    // ---- Payment Status: which items, their order, one colour scheme, Pay Now on every card with a balance ----
+
+    private ReservationDto unpaidReservation(long id, String method, int daysAway) {
+        ReservationDto r = stay(id, daysAway, 1);
+        r.payment_method = method;
+        return r;
+    }
+
+    private static java.util.List<String> paymentRefs(DashboardActivity a) {
+        ViewGroup list = a.findViewById(R.id.paymentListContainer);
+        java.util.List<String> refs = new java.util.ArrayList<>();
+        for (int i = 0; i < list.getChildCount(); i++) {
+            TextView id = list.getChildAt(i).findViewById(R.id.tvPaymentBookingId);
+            if (id != null) refs.add(id.getText().toString());
+        }
+        return refs;
+    }
+
+    @Test
+    public void paymentStatus_listsEveryActiveTransaction_andDropsCheckedOutCancelledAndRejected() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick(); // expanded: every item, not the 3-item preview
+        ReservationDto cancelled = stay(701, 3, 1);
+        cancelled.status = "CANCELLED_RESERVATION";
+        ReservationDto rejected = stay(702, 3, 1);
+        rejected.status = "REJECTED_RESERVATION";
+        com.example.velocitysuites.network.dto.DirectBookingResponseDto checkedOut = booking(703, -3);
+        checkedOut.booking_status = "COMPLETED_BOOKING";
+        ReservationDto paidToday = reservationPaid(704);
+        paidToday.check_in = manilaToday().plusDays(5).toString(); // fully paid and not today: still listed
+        paidToday.check_out = manilaToday().plusDays(6).toString();
+        answerWith(java.util.Arrays.asList(cancelled, rejected, paidToday, reservationPartlyPaid(705), unpaidReservation(706, "gcash", 4)),
+                java.util.Arrays.asList(checkedOut));
+
+        assertEquals("unpaid first, then partly paid, then fully paid",
+                java.util.Arrays.asList("Reservation #706", "Reservation #705", "Reservation #704"), paymentRefs(activity));
+        assertEquals("the badge counts what is listed", "3", text(activity, R.id.paymentCountBadge));
+    }
+
+    @Test
+    public void paymentStatus_withinEachGroup_theNearestCheckInComesFirst() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick();
+        answerWith(java.util.Arrays.asList(unpaidReservation(711, "gcash", 9), unpaidReservation(712, "gcash", 2), unpaidReservation(713, "gcash", 5)), NO_DIRECT);
+        assertEquals(java.util.Arrays.asList("Reservation #712", "Reservation #713", "Reservation #711"), paymentRefs(activity));
+    }
+
+    @Test
+    public void paymentStatus_chipBalanceAndProgressShareOneColour_andTheCardNamesItsStay() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick();
+        ReservationDto paidToday = reservationPaid(721);
+        paidToday.check_in = manilaToday().toString();
+        paidToday.check_out = manilaToday().plusDays(1).toString();
+        answerWith(java.util.Arrays.asList(paidToday, reservationPartlyPaid(722), unpaidReservation(723, "gcash", 2)), NO_DIRECT);
+
+        int[][] expected = {
+                {R.string.payment_chip_paid, R.color.status_paid_fg}, {R.string.payment_chip_partial, R.color.status_pending_fg},
+                {R.string.payment_chip_unpaid, R.color.velocity_red_primary}};
+        String[] refs = {"Reservation #721", "Reservation #722", "Reservation #723"};
+        for (int i = 0; i < refs.length; i++) {
+            TextView chip = paymentValue(activity, refs[i], R.id.tvPaymentStatus);
+            int colour = app.getColor(expected[i][1]);
+            assertEquals(refs[i] + " chip words", app.getString(expected[i][0]), chip.getText().toString());
+            assertEquals(refs[i] + " chip colour", colour, chip.getCurrentTextColor());
+            assertEquals(refs[i] + " balance colour", colour, paymentValue(activity, refs[i], R.id.tvPaymentRemainingBalance).getCurrentTextColor());
+            com.google.android.material.progressindicator.LinearProgressIndicator bar =
+                    (com.google.android.material.progressindicator.LinearProgressIndicator) paymentView(activity, refs[i], R.id.progressPayment);
+            assertEquals(refs[i] + " progress colour", colour, bar.getIndicatorColor()[0]);
+        }
+        TextView meta = paymentValue(activity, "Reservation #723", R.id.tvPaymentStayMeta);
+        assertTrue("dates and the booking status: " + meta.getText(), meta.getText().toString().contains("\u2192") && meta.getText().toString().endsWith("Pending approval"));
+        assertEquals("the chip never just says Pending", false, ((TextView) paymentValue(activity, "Reservation #723", R.id.tvPaymentStatus)).getText().toString().equals("Pending"));
+    }
+
+    @Test
+    public void payNow_isOnEveryCardWithABalance_whateverTheMethod_orPaymentUnderReview_orNothingWhenPaid() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick();
+        ReservationDto review = ScreenTestSupport.reservation(733, 1800, ScreenTestSupport.payment(3, "1800.00", "pending", "gcash"));
+        review.check_in = manilaToday().plusDays(3).toString();
+        review.check_out = manilaToday().plusDays(4).toString();
+        ReservationDto paidToday = reservationPaid(734);
+        paidToday.check_in = manilaToday().toString();
+        paidToday.check_out = manilaToday().plusDays(1).toString();
+        answerWith(java.util.Arrays.asList(unpaidReservation(731, "gcash", 2), unpaidReservation(732, "cash", 2), review, paidToday), NO_DIRECT);
+
+        // #630 vs #629: the same unpaid balance, one chose GCash and one cash - both offer Pay Now now
+        assertEquals(View.VISIBLE, paymentValue(activity, "Reservation #731", R.id.btnQuickPay).getVisibility());
+        assertEquals("a cash reservation offers it too", View.VISIBLE, paymentValue(activity, "Reservation #732", R.id.btnQuickPay).getVisibility());
+        assertEquals(View.GONE, paymentValue(activity, "Reservation #733", R.id.btnQuickPay).getVisibility());
+        TextView note = paymentValue(activity, "Reservation #733", R.id.tvPaymentNote);
+        assertEquals(View.VISIBLE, note.getVisibility());
+        assertEquals("Payment under review", note.getText().toString());
+        assertEquals("fully paid: only View details", View.GONE, paymentView(activity, "Reservation #734", R.id.paymentLeftAction).getVisibility());
+    }
+
+    @Test
+    public void paymentCards_theActionRowHasNoEmptyGap_andViewDetailsIsRightAligned() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick();
+        ReservationDto paidToday = reservationPaid(741);
+        paidToday.check_in = manilaToday().toString();
+        paidToday.check_out = manilaToday().plusDays(1).toString();
+        answerWith(java.util.Arrays.asList(paidToday, unpaidReservation(742, "gcash", 2)), NO_DIRECT);
+        View root = activity.getWindow().getDecorView();
+        int w = app.getResources().getDisplayMetrics().widthPixels;
+        int h = app.getResources().getDisplayMetrics().heightPixels;
+        root.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, w, h);
+
+        for (String ref : new String[]{"Reservation #741", "Reservation #742"}) {
+            View actions = paymentView(activity, ref, R.id.paymentActions);
+            View details = paymentValue(activity, ref, R.id.tvPaymentViewDetails);
+            View paidOf = paymentValue(activity, ref, R.id.tvPaymentPaidOf);
+            int gap = LayoutHarness.boundsIn(root, actions).top - LayoutHarness.boundsIn(root, paidOf).bottom;
+            assertTrue(ref + ": the action row starts right under the progress text (" + gap + "px)", gap <= LayoutHarness.dp(app, 8));
+            assertTrue(ref + ": View details is on the right",
+                    LayoutHarness.boundsIn(root, details).right >= LayoutHarness.boundsIn(root, actions).right - LayoutHarness.dp(app, 2));
+        }
+        View detailsOnly = paymentView(activity, "Reservation #741", R.id.paymentActions);
+        assertTrue("a card with no button has a compact action row (" + detailsOnly.getHeight() + "px)", detailsOnly.getHeight() <= LayoutHarness.dp(app, 44));
+    }
+
+    private void assertPaymentCardsFit(DashboardActivity activity) {
+        View root = activity.getWindow().getDecorView();
+        int w = app.getResources().getDisplayMetrics().widthPixels;
+        int h = app.getResources().getDisplayMetrics().heightPixels;
+        root.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, w, h);
+        for (String ref : new String[]{"Reservation #751", "Reservation #752"}) {
+            View id = paymentValue(activity, ref, R.id.tvPaymentBookingId);
+            View chip = paymentValue(activity, ref, R.id.tvPaymentStatus);
+            View meta = paymentValue(activity, ref, R.id.tvPaymentStayMeta);
+            View pay = paymentView(activity, ref, R.id.paymentLeftAction);
+            View details = paymentValue(activity, ref, R.id.tvPaymentViewDetails);
+            assertFalse(ref + " id/chip overlap", LayoutHarness.overlaps(root, id, chip));
+            assertFalse(ref + " chip/meta overlap", LayoutHarness.overlaps(root, chip, meta));
+            if (pay.getVisibility() == View.VISIBLE) assertFalse(ref + " pay/details overlap", LayoutHarness.overlaps(root, pay, details));
+            for (View v : new View[]{id, chip, meta, details}) {
+                assertTrue(ref + " inside the screen", LayoutHarness.boundsIn(root, v).right <= w);
+            }
+            assertEquals("the ID wraps instead of being cut", 0, ((TextView) id).getLayout().getEllipsisCount(0));
+            assertEquals(ref + " no letter-spacing on Pay Now", 0f, ((TextView) paymentValue(activity, ref, R.id.btnQuickPay)).getLetterSpacing(), 0.0001f);
+        }
+    }
+
+    @Test
+    public void paymentCards_fitAt360dp_inLightMode() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick();
+        answerWith(java.util.Arrays.asList(unpaidReservation(751, "gcash", 2), reservationPartlyPaid(752)), NO_DIRECT);
+        assertPaymentCardsFit(activity);
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(sdk = 35, qualifiers = "w360dp-h800dp-night-xxhdpi", application = TestApplication.class)
+    public void paymentCards_fitAt360dp_inDarkMode_withReadableChipAndBalance() {
+        DashboardActivity activity = launch();
+        activity.findViewById(R.id.paymentsToggle).performClick();
+        answerWith(java.util.Arrays.asList(unpaidReservation(751, "gcash", 2), reservationPartlyPaid(752)), NO_DIRECT);
+        assertPaymentCardsFit(activity);
+        int surface = app.getColor(R.color.velocity_card_surface);
+        for (String ref : new String[]{"Reservation #751", "Reservation #752"}) {
+            TextView balance = paymentValue(activity, ref, R.id.tvPaymentRemainingBalance);
+            assertTrue(ref + " balance readable on the dark card",
+                    androidx.core.graphics.ColorUtils.calculateContrast(balance.getCurrentTextColor(), surface) >= 3.0);
+        }
     }
 
     @Test

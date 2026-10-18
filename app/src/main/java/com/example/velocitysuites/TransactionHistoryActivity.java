@@ -9,6 +9,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,9 +23,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.DateValidatorPointBackward;
+import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -79,10 +80,28 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private View scrollEmptyState, layoutEmptyState, layoutInitialLoading;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText etSearch;
-    private ChipGroup chipGroupType, chipGroupActive;
-    private MaterialButton btnFilters;
-    private View rowActiveFilters;
-    private boolean syncingTypeChips;
+    private AutoCompleteTextView dropdownTransaction, dropdownBookingStatus, dropdownRoomType;
+    private com.google.android.material.textfield.TextInputLayout layoutCheckIn, layoutCheckOut;
+    private TextInputEditText etCheckIn, etCheckOut;
+    private TextView btnToggleFilters, btnClearFilters;
+    private View layoutFilterPanel;
+    /** The Transaction dropdown: what each entry filters on (position-matched with {@link #TRANSACTION_LABELS}). */
+    private static final TransactionFilter.Type[] TRANSACTION_TYPES = {
+            TransactionFilter.Type.ALL, TransactionFilter.Type.BOOKINGS, TransactionFilter.Type.RESERVATIONS,
+            TransactionFilter.Type.PAYMENTS, TransactionFilter.Type.PENDING, TransactionFilter.Type.PAID,
+            TransactionFilter.Type.PARTIALLY_PAID, TransactionFilter.Type.CANCELLED, TransactionFilter.Type.REJECTED,
+            TransactionFilter.Type.CHECKED_IN, TransactionFilter.Type.CHECKED_OUT
+    };
+    private static final int[] TRANSACTION_LABELS = {
+            R.string.filter_option_all_transactions, R.string.filter_bookings, R.string.filter_reservations,
+            R.string.filter_payments, R.string.txn_status_pending, R.string.txn_status_paid,
+            R.string.filter_option_partially_paid, R.string.upcoming_status_cancelled, R.string.upcoming_status_rejected,
+            R.string.filter_option_checked_in, R.string.filter_option_checked_out
+    };
+    private static final DateTimeFormatter DATE_SHOWN = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US);
+    private List<TransactionFilterOptions.Option> bookingStatusOptions = new ArrayList<>();
+    private List<String> roomTypeNames = new ArrayList<>();
+    private boolean filtersPanelVisible = true;
     /** Pages auto-loaded for the current filters (capped, so a server that keeps reporting "more" cannot loop forever). */
     private int autoPagesLoaded;
     private TextView tvEmptyTitle, tvEmptyDesc, tvTransactionHeader, tvResultCount;
@@ -165,6 +184,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         repository = RoomRepository.getInstance(this);
         bindViews();
         setupRecyclerView();
+        restoreFilterState(savedInstanceState);
         setupFilters();
         setupSearch();
         setupSwipeRefresh();
@@ -234,10 +254,16 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearch = findViewById(R.id.etSearch);
-        chipGroupType = findViewById(R.id.chipGroupType);
-        chipGroupActive = findViewById(R.id.chipGroupActive);
-        btnFilters = findViewById(R.id.btnFilters);
-        rowActiveFilters = findViewById(R.id.rowActiveFilters);
+        dropdownTransaction = findViewById(R.id.dropdownTransaction);
+        dropdownBookingStatus = findViewById(R.id.dropdownBookingStatus);
+        dropdownRoomType = findViewById(R.id.dropdownRoomType);
+        layoutCheckIn = findViewById(R.id.layoutCheckIn);
+        layoutCheckOut = findViewById(R.id.layoutCheckOut);
+        etCheckIn = findViewById(R.id.etCheckIn);
+        etCheckOut = findViewById(R.id.etCheckOut);
+        btnToggleFilters = findViewById(R.id.btnToggleFilters);
+        btnClearFilters = findViewById(R.id.btnClearFilters);
+        layoutFilterPanel = findViewById(R.id.layoutFilterPanel);
         tvTransactionHeader = findViewById(R.id.tvTransactionHeader);
         tvResultCount = findViewById(R.id.tvResultCount);
 
@@ -284,108 +310,167 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         startActivity(TransactionNavigator.detailsIntent(this, row.booking));
     }
 
+    // ---- Filters: three dropdowns and two dates ----
+
     private void setupFilters() {
-        // The Type chips (All / Bookings / Reservations / Payments): the most-used filter, one tap.
-        chipGroupType.setOnCheckedStateChangeListener((group, ids) -> {
-            if (syncingTypeChips || ids.isEmpty()) return;
-            int id = ids.get(0);
-            criteria.type = id == R.id.chipTypeBookings ? TransactionFilter.Type.BOOKINGS
-                    : id == R.id.chipTypeReservations ? TransactionFilter.Type.RESERVATIONS
-                    : id == R.id.chipTypePayments ? TransactionFilter.Type.PAYMENTS : TransactionFilter.Type.ALL;
-            applyFilters();
+        // Every dropdown uses a NON-filtering adapter and sets its text with setText(text, false): the list is always the
+        // full list - when it first opens, after a pick, and after coming back from a transaction's details.
+        String[] transactionLabels = new String[TRANSACTION_LABELS.length];
+        for (int i = 0; i < transactionLabels.length; i++) transactionLabels[i] = getString(TRANSACTION_LABELS[i]);
+        dropdownTransaction.setAdapter(new NonFilteringArrayAdapter(this, transactionLabels));
+        dropdownTransaction.setOnItemClickListener((parent, view, position, id) -> {
+            criteria.type = TRANSACTION_TYPES[position];
+            onFiltersChanged();
         });
-        btnFilters.setOnClickListener(v -> showFiltersSheet());
-        findViewById(R.id.btnClearAllFilters).setOnClickListener(v -> clearAllFiltersAndSearch());
-        updateFilterUi();
+
+        bookingStatusOptions = TransactionFilterOptions.bookingStatuses();
+        List<String> statusLabels = new ArrayList<>();
+        for (TransactionFilterOptions.Option option : bookingStatusOptions) statusLabels.add(getString(option.labelRes));
+        dropdownBookingStatus.setAdapter(new NonFilteringArrayAdapter(this, statusLabels));
+        dropdownBookingStatus.setOnItemClickListener((parent, view, position, id) -> {
+            String value = bookingStatusOptions.get(position).value;
+            criteria.bookingStatus = value.isEmpty() ? null : value;
+            onFiltersChanged();
+        });
+
+        refreshRoomTypeDropdown();
+        dropdownRoomType.setOnItemClickListener((parent, view, position, id) -> {
+            criteria.roomType = position == 0 ? null : roomTypeNames.get(position - 1);
+            onFiltersChanged();
+        });
+
+        etCheckIn.setOnClickListener(v -> pickDate(true));
+        etCheckOut.setOnClickListener(v -> pickDate(false));
+        layoutCheckIn.setEndIconOnClickListener(v -> {
+            criteria.setCheckIn(null);
+            onFiltersChanged();
+        });
+        layoutCheckOut.setEndIconOnClickListener(v -> {
+            criteria.setCheckOut(null);
+            onFiltersChanged();
+        });
+        layoutCheckIn.setEndIconContentDescription(getString(R.string.filters_clear_date_cd, getString(R.string.filter_label_check_in)));
+        layoutCheckOut.setEndIconContentDescription(getString(R.string.filters_clear_date_cd, getString(R.string.filter_label_check_out)));
+
+        btnToggleFilters.setOnClickListener(v -> {
+            filtersPanelVisible = !filtersPanelVisible;
+            syncFilterWidgets();
+        });
+        btnClearFilters.setOnClickListener(v -> clearAllFiltersAndSearch());
+        syncFilterWidgets();
     }
 
-    /** Shows the Type chip that matches the criteria (any other type value, e.g. an old deep link, shows "All"). */
-    private void syncTypeChips() {
-        syncingTypeChips = true;
-        int id = criteria.type == TransactionFilter.Type.BOOKINGS ? R.id.chipTypeBookings
-                : criteria.type == TransactionFilter.Type.RESERVATIONS ? R.id.chipTypeReservations
-                : criteria.type == TransactionFilter.Type.PAYMENTS ? R.id.chipTypePayments : R.id.chipTypeAll;
-        chipGroupType.check(id);
-        syncingTypeChips = false;
+    /** A filter changed: show it, start the page budget over and re-filter. */
+    private void onFiltersChanged() {
+        autoPagesLoaded = 0;
+        syncFilterWidgets();
+        applyFilters();
     }
 
-    /** "Filters · 2" on the button, and one removable chip per active filter (Paid x, Deluxe x, Oct 20 - Oct 25 x) with Clear all. */
-    private void updateFilterUi() {
-        int count = criteria.activeFilterCount();
-        btnFilters.setText(count > 0 ? getString(R.string.filters_button_count_format, count) : getString(R.string.filters_button));
-        chipGroupActive.removeAllViews();
-        if (criteria.paymentStatus != TransactionFilter.Type.ALL) {
-            addActiveChip(paymentStatusLabel(criteria.paymentStatus), () -> criteria.paymentStatus = TransactionFilter.Type.ALL);
+    /**
+     * Shows the criteria in the widgets WITHOUT triggering any filtering: dropdown texts through setText(text, false), the
+     * date fields with their clear icons, the Show / Hide toggle with its active count, and Clear filters only while
+     * something is filtering.
+     */
+    private void syncFilterWidgets() {
+        int typeIndex = 0;
+        for (int i = 0; i < TRANSACTION_TYPES.length; i++) if (TRANSACTION_TYPES[i] == criteria.type) typeIndex = i;
+        dropdownTransaction.setText(getString(TRANSACTION_LABELS[typeIndex]), false);
+
+        int statusIndex = 0;
+        for (int i = 0; i < bookingStatusOptions.size(); i++) {
+            String value = bookingStatusOptions.get(i).value;
+            if (criteria.bookingStatus == null ? value.isEmpty() : value.equalsIgnoreCase(criteria.bookingStatus)) statusIndex = i;
         }
-        if (criteria.bookingStatus != null) {
-            addActiveChip(TransactionStatusChip.label(criteria.bookingStatus), () -> criteria.bookingStatus = null);
-        }
-        if (criteria.roomType != null) addActiveChip(criteria.roomType, () -> criteria.roomType = null);
-        if (criteria.hasDateRange()) {
-            addActiveChip(dateRangeText(criteria.from, criteria.to), () -> {
-                criteria.from = null;
-                criteria.to = null;
-            });
-        }
-        rowActiveFilters.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
+        if (!bookingStatusOptions.isEmpty()) dropdownBookingStatus.setText(getString(bookingStatusOptions.get(statusIndex).labelRes), false);
+
+        dropdownRoomType.setText(criteria.roomType != null ? criteria.roomType : getString(R.string.filters_all_room_types), false);
+
+        etCheckIn.setText(criteria.checkInFrom != null ? DATE_SHOWN.format(criteria.checkInFrom) : "");
+        etCheckOut.setText(criteria.checkOutTo != null ? DATE_SHOWN.format(criteria.checkOutTo) : "");
+        layoutCheckIn.setEndIconVisible(criteria.checkInFrom != null);
+        layoutCheckOut.setEndIconVisible(criteria.checkOutTo != null);
+
+        int active = criteria.activeFilterCount();
+        layoutFilterPanel.setVisibility(filtersPanelVisible ? View.VISIBLE : View.GONE);
+        btnToggleFilters.setText(filtersPanelVisible ? getString(R.string.filters_hide)
+                : active > 0 ? getResources().getQuantityString(R.plurals.filters_show_count, active, active) : getString(R.string.filters_show));
+        btnClearFilters.setVisibility(active > 0 || !criteria.query.trim().isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    private void addActiveChip(String label, Runnable clear) {
-        Chip chip = new Chip(this);
-        chip.setText(label);
-        chip.setCloseIconVisible(true);
-        chip.setCheckable(false);
-        chip.setCloseIconContentDescription(getString(R.string.filters_remove_cd, label));
-        View.OnClickListener remove = v -> {
-            clear.run();
-            updateFilterUi();
-            applyFilters();
-        };
-        chip.setOnCloseIconClickListener(remove);
-        chip.setOnClickListener(remove);
-        chipGroupActive.addView(chip);
+    /** The Room type dropdown: All room types, then the Browse Rooms catalog (or, without it, the guest's own transactions' room types). Rebuilt only when the list changes, so a poll never closes an open dropdown. */
+    private void refreshRoomTypeDropdown() {
+        List<String> types = TransactionFilterOptions.roomTypes(repository.getAllRooms(), allRows);
+        if (types.equals(roomTypeNames) && dropdownRoomType.getAdapter() != null) return;
+        roomTypeNames = types;
+        List<String> labels = new ArrayList<>();
+        labels.add(getString(R.string.filters_all_room_types));
+        labels.addAll(types);
+        dropdownRoomType.setAdapter(new NonFilteringArrayAdapter(this, labels));
+        if (criteria.roomType != null) dropdownRoomType.setText(criteria.roomType, false);
     }
 
-    private String paymentStatusLabel(TransactionFilter.Type type) {
-        return getString(type == TransactionFilter.Type.PAID ? R.string.txn_status_paid
-                : type == TransactionFilter.Type.PARTIALLY_PAID ? R.string.txn_status_partially_paid : R.string.txn_status_pending);
-    }
-
-    private String dateRangeText(@Nullable java.time.LocalDate from, @Nullable java.time.LocalDate to) {
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM d", Locale.US);
-        return getString(R.string.date_range_format, from != null ? fmt.format(from) : "…", to != null ? fmt.format(to) : "…");
-    }
-
-    /** Sets the filter an old-style type key stands for - for deep links (a guest's own picks go through the chips and the sheet). */
+    /** Sets the filter an old-style type key stands for - for deep links (a guest's own picks go through the dropdowns). */
     private void setStatusFilter(TransactionFilter.Type type) {
-        TransactionFilter.Type payment = TransactionFilter.paymentStatusOf(type);
-        String booking = TransactionFilter.bookingStatusOf(type);
-        criteria.type = TransactionFilter.Type.ALL;
-        if (payment != TransactionFilter.Type.ALL) criteria.paymentStatus = payment;
-        else if (booking != null) criteria.bookingStatus = booking;
-        else criteria.type = type;
-        syncTypeChips();
-        updateFilterUi();
+        criteria.type = type;
+        syncFilterWidgets();
     }
 
-    /** The room-type catalog Browse Rooms uses is filled by a request; ask for it once so the sheet can offer every room type. */
+    /** The room-type catalog Browse Rooms uses is filled by a request; ask for it once so the Room type dropdown can list every room type. */
     private void warmRoomTypeCatalog() {
         if (!repository.getAllRooms().isEmpty()) return;
         repository.refreshRooms(new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
-                if (isUiAlive() && fillRoomOptions != null) fillRoomOptions.run();
+                if (isUiAlive()) refreshRoomTypeDropdown();
             }
 
             @Override
             public void onError(String message) {
-                // Not fatal: the sheet falls back to the room types found in the guest's own transactions.
+                // Not fatal: the dropdown keeps the room types found in the guest's own transactions.
             }
         });
     }
 
-    /** Refills the open Filters sheet's room-type chips (a late catalog answer); null while no sheet is open. */
-    @Nullable private Runnable fillRoomOptions;
+    // ---- Keeping the filters across a screen rotation ----
+
+    private static final String STATE_TYPE = "txn_filter_type";
+    private static final String STATE_BOOKING = "txn_filter_booking";
+    private static final String STATE_ROOM = "txn_filter_room";
+    private static final String STATE_CHECK_IN = "txn_filter_check_in";
+    private static final String STATE_CHECK_OUT = "txn_filter_check_out";
+    private static final String STATE_PANEL = "txn_filter_panel";
+    private static final String STATE_QUERY = "txn_filter_query";
+    private static final long NO_DATE = Long.MIN_VALUE;
+
+    @Override
+    protected void onSaveInstanceState(android.os.Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_TYPE, criteria.type.name());
+        outState.putString(STATE_BOOKING, criteria.bookingStatus);
+        outState.putString(STATE_ROOM, criteria.roomType);
+        outState.putLong(STATE_CHECK_IN, criteria.checkInFrom != null ? criteria.checkInFrom.toEpochDay() : NO_DATE);
+        outState.putLong(STATE_CHECK_OUT, criteria.checkOutTo != null ? criteria.checkOutTo.toEpochDay() : NO_DATE);
+        outState.putBoolean(STATE_PANEL, filtersPanelVisible);
+        outState.putString(STATE_QUERY, criteria.query);
+    }
+
+    private void restoreFilterState(@Nullable Bundle saved) {
+        if (saved == null || !saved.containsKey(STATE_TYPE)) return;
+        try {
+            criteria.type = TransactionFilter.Type.valueOf(saved.getString(STATE_TYPE, "ALL"));
+        } catch (IllegalArgumentException unknown) {
+            criteria.type = TransactionFilter.Type.ALL;
+        }
+        criteria.bookingStatus = saved.getString(STATE_BOOKING);
+        criteria.roomType = saved.getString(STATE_ROOM);
+        long in = saved.getLong(STATE_CHECK_IN, NO_DATE);
+        long out = saved.getLong(STATE_CHECK_OUT, NO_DATE);
+        criteria.checkInFrom = in == NO_DATE ? null : java.time.LocalDate.ofEpochDay(in);
+        criteria.checkOutTo = out == NO_DATE ? null : java.time.LocalDate.ofEpochDay(out);
+        filtersPanelVisible = saved.getBoolean(STATE_PANEL, true);
+        criteria.query = saved.getString(STATE_QUERY, "");
+    }
 
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -527,6 +612,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
 
     private void applyFilters() {
         handler.removeCallbacks(applyFiltersRunnable);
+        if (dropdownRoomType != null) refreshRoomTypeDropdown();
         displayedRows = TransactionFilter.apply(allRows, criteria);
         render();
         loadRemainingPagesWhileFiltering();
@@ -618,131 +704,62 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
             etSearch.setText(""); // the watcher sets criteria.query again (to "") and queues a harmless re-apply
         }
         autoPagesLoaded = 0;
-        syncTypeChips();
-        updateFilterUi();
+        syncFilterWidgets();
         applyFilters();
     }
 
-    // ---- The Filters sheet ----
-
-    /** Payment status, Booking status, Room type and Dates, staged on a copy and committed by Apply (Reset clears the copy). */
-    private void showFiltersSheet() {
-        final BottomSheetDialog dialog = new BottomSheetDialog(this);
-        @android.annotation.SuppressLint("InflateParams")
-        View content = getLayoutInflater().inflate(R.layout.sheet_transaction_filters, null, false);
-        final TransactionFilter.Criteria draft = criteria.copy();
-        final ChipGroup payment = content.findViewById(R.id.sheetGroupPayment);
-        final ChipGroup booking = content.findViewById(R.id.sheetGroupBooking);
-        final ChipGroup room = content.findViewById(R.id.sheetGroupRoom);
-        final MaterialButton dates = content.findViewById(R.id.btnSheetDates);
-
-        final Runnable fillPayment = () -> {
-            payment.removeAllViews();
-            for (TransactionFilterOptions.Option o : TransactionFilterOptions.paymentStatuses()) {
-                boolean selected = o.value.isEmpty() ? draft.paymentStatus == TransactionFilter.Type.ALL
-                        : draft.paymentStatus.name().equals(o.value);
-                addChoice(payment, getString(o.labelRes), o.value, selected, value ->
-                        draft.paymentStatus = value.isEmpty() ? TransactionFilter.Type.ALL : TransactionFilter.Type.valueOf(value));
-            }
-        };
-        final Runnable fillBooking = () -> {
-            booking.removeAllViews();
-            for (TransactionFilterOptions.Option o : TransactionFilterOptions.bookingStatuses()) {
-                boolean selected = o.value.isEmpty() ? draft.bookingStatus == null : o.value.equalsIgnoreCase(draft.bookingStatus);
-                addChoice(booking, getString(o.labelRes), o.value, selected, value -> draft.bookingStatus = value.isEmpty() ? null : value);
-            }
-        };
-        fillRoomOptions = () -> {
-            room.removeAllViews();
-            addChoice(room, getString(R.string.filters_all_room_types), "", draft.roomType == null,
-                    value -> draft.roomType = null);
-            for (String type : TransactionFilterOptions.roomTypes(repository.getAllRooms(), allRows)) {
-                addChoice(room, type, type, type.equalsIgnoreCase(draft.roomType), value -> draft.roomType = value);
-            }
-        };
-        final Runnable showDates = () -> dates.setText(draft.hasDateRange()
-                ? dateRangeText(draft.from, draft.to) : getString(R.string.filters_any_dates));
-        fillPayment.run();
-        fillBooking.run();
-        fillRoomOptions.run();
-        showDates.run();
-
-        dates.setOnClickListener(v -> showDateRangePicker(draft, showDates));
-        content.findViewById(R.id.btnSheetReset).setOnClickListener(v -> {
-            draft.paymentStatus = TransactionFilter.Type.ALL;
-            draft.bookingStatus = null;
-            draft.roomType = null;
-            draft.from = null;
-            draft.to = null;
-            fillPayment.run();
-            fillBooking.run();
-            fillRoomOptions.run();
-            showDates.run();
-        });
-        content.findViewById(R.id.btnSheetApply).setOnClickListener(v -> {
-            criteria.paymentStatus = draft.paymentStatus;
-            criteria.bookingStatus = draft.bookingStatus;
-            criteria.roomType = draft.roomType;
-            criteria.from = draft.from;
-            criteria.to = draft.to;
-            autoPagesLoaded = 0;
-            updateFilterUi();
-            applyFilters();
-            dialog.dismiss();
-        });
-        dialog.setOnDismissListener(d -> fillRoomOptions = null);
-        dialog.setContentView(content);
-        dialog.show();
-    }
-
-    private void addChoice(ChipGroup group, String label, String value, boolean selected, java.util.function.Consumer<String> onPicked) {
-        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.item_filter_chip, group, false);
-        chip.setId(View.generateViewId());
-        chip.setText(label);
-        chip.setTag(value);
-        group.addView(chip);
-        chip.setChecked(selected);
-        chip.setOnCheckedChangeListener((button, checked) -> {
-            if (checked) onPicked.accept(value);
-        });
-    }
-
-    /** Date range over the stay (check-in to check-out). The picker speaks UTC-midnight millis; they become calendar dates right away so no time zone can shift a day. */
-    private void showDateRangePicker(TransactionFilter.Criteria target, Runnable onPicked) {
-        MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker()
-                .setTitleText(R.string.date_filter_label);
-        if (target.from != null && target.to != null) {
-            builder.setSelection(new androidx.core.util.Pair<>(
-                    target.from.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
-                    target.to.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()));
-        }
-        MaterialDatePicker<androidx.core.util.Pair<Long, Long>> picker = builder.build();
-        picker.addOnPositiveButtonClickListener(selection -> {
-            if (selection == null || selection.first == null || selection.second == null) return;
-            target.from = Instant.ofEpochMilli(selection.first).atZone(ZoneOffset.UTC).toLocalDate();
-            target.to = Instant.ofEpochMilli(selection.second).atZone(ZoneOffset.UTC).toLocalDate();
-            onPicked.run();
-        });
-        picker.show(getSupportFragmentManager(), TAG_DATE_PICKER);
-    }
-
-    private static final String TAG_DATE_PICKER = "DATE_PICKER";
+    // ---- Date fields ----
 
     /**
-     * A range picker open during recreation comes back without its listeners (and without the Filters sheet that opened
-     * it): its answer is applied straight to the active filters.
+     * One date (check-in or check-out). The picker only offers dates that keep the window valid - a check-in not after the
+     * check-out already chosen, a check-out not before the check-in - and the filter refuses the rest again, so a
+     * check-out before the check-in can never be set. The picker speaks UTC-midnight millis; they become calendar dates
+     * right away so no time zone can shift a day.
+     */
+    private void pickDate(boolean checkIn) {
+        java.time.LocalDate current = checkIn ? criteria.checkInFrom : criteria.checkOutTo;
+        CalendarConstraints.Builder constraints = new CalendarConstraints.Builder();
+        if (checkIn && criteria.checkOutTo != null) {
+            constraints.setValidator(DateValidatorPointBackward.before(criteria.checkOutTo.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()));
+        } else if (!checkIn && criteria.checkInFrom != null) {
+            constraints.setValidator(DateValidatorPointForward.from(criteria.checkInFrom.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()));
+        }
+        MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker()
+                .setTitleText(checkIn ? R.string.filter_label_check_in : R.string.filter_label_check_out)
+                .setCalendarConstraints(constraints.build());
+        if (current != null) builder.setSelection(current.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli());
+        MaterialDatePicker<Long> picker = builder.build();
+        picker.addOnPositiveButtonClickListener(millis -> {
+            if (millis == null) return;
+            java.time.LocalDate date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate();
+            if (!(checkIn ? criteria.setCheckIn(date) : criteria.setCheckOut(date))) {
+                Toast.makeText(this, R.string.filters_dates_order_error, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            onFiltersChanged();
+        });
+        picker.show(getSupportFragmentManager(), checkIn ? TAG_PICK_CHECK_IN : TAG_PICK_CHECK_OUT);
+    }
+
+    private static final String TAG_PICK_CHECK_IN = "PICK_CHECK_IN";
+    private static final String TAG_PICK_CHECK_OUT = "PICK_CHECK_OUT";
+
+    /**
+     * A date picker open during recreation comes back without its listener: it is re-attached, so choosing the date still
+     * applies it.
      */
     @SuppressWarnings("unchecked")
     private void reattachRestoredPickerListeners() {
-        androidx.fragment.app.Fragment restored = getSupportFragmentManager().findFragmentByTag(TAG_DATE_PICKER);
-        if (!(restored instanceof MaterialDatePicker)) return;
-        ((MaterialDatePicker<androidx.core.util.Pair<Long, Long>>) restored).addOnPositiveButtonClickListener(selection -> {
-            if (selection == null || selection.first == null || selection.second == null) return;
-            criteria.from = Instant.ofEpochMilli(selection.first).atZone(ZoneOffset.UTC).toLocalDate();
-            criteria.to = Instant.ofEpochMilli(selection.second).atZone(ZoneOffset.UTC).toLocalDate();
-            updateFilterUi();
-            applyFilters();
-        });
+        for (String tag : new String[]{TAG_PICK_CHECK_IN, TAG_PICK_CHECK_OUT}) {
+            androidx.fragment.app.Fragment restored = getSupportFragmentManager().findFragmentByTag(tag);
+            if (!(restored instanceof MaterialDatePicker)) continue;
+            final boolean checkIn = TAG_PICK_CHECK_IN.equals(tag);
+            ((MaterialDatePicker<Long>) restored).addOnPositiveButtonClickListener(millis -> {
+                if (millis == null) return;
+                java.time.LocalDate date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate();
+                if (checkIn ? criteria.setCheckIn(date) : criteria.setCheckOut(date)) onFiltersChanged();
+            });
+        }
     }
 
     // ---- Deep link: highlight + open the EXACT transaction ----

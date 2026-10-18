@@ -1,98 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One requestable amenity: name, unit price, and a 48dp quantity stepper with the line subtotal. -->
+<!-- One requestable amenity, one compact row: name (bold), description (2 lines, More), price and - once chosen - the
+     line subtotal on the left; a compact - qty + stepper on the right (visually small, 48dp to touch). -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardAmenityOption"
+    style="@style/Widget.Velocity.Card.Flat"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="@color/velocity_card_surface"
-    app:cardCornerRadius="@dimen/card_corner_radius"
-    app:cardElevation="@dimen/card_elevation">
+    android:layout_marginBottom="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="11dp">
-
-        <TextView
-            android:id="@+id/tvAmenityOptionName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-bold"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp"
-            tools:text="Extra Bed" />
-
-        <TextView
-            android:id="@+id/tvAmenityOptionPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="12sp"
-            tools:text="₱200.00 each" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="4dp"
+        android:paddingVertical="6dp">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAmenityOptionMinus"
-                style="@style/Widget.Velocity.Flat.Button.Outlined"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:contentDescription="@string/cd_decrease_quantity"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="48dp"
-                android:padding="0dp"
-                app:icon="@drawable/ic_remove"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp" />
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvAmenityOptionQty"
-                android:layout_width="48dp"
+                android:id="@+id/tvAmenityOptionName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
-                android:gravity="center"
-                android:text="@string/amenity_quantity_zero"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                tools:text="Additional Towel" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAmenityOptionPlus"
-                style="@style/Widget.Velocity.Flat.Button.Outlined"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:contentDescription="@string/cd_increase_quantity"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="48dp"
-                android:padding="0dp"
-                app:icon="@drawable/ic_add"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp" />
+            <TextView
+                android:id="@+id/tvAmenityOptionDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="A fresh bath towel delivered to your room."
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tvAmenityOptionMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/additional_amenities_description_more"
+                android:textColor="@color/velocity_action_text"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvAmenityOptionPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="₱50.00 each" />
 
             <TextView
                 android:id="@+id/tvAmenityOptionSubtotal"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:fontFamily="sans-serif-bold"
-                android:gravity="end"
                 android:textColor="@color/velocity_red_primary"
-                android:textSize="13sp"
-                tools:text="₱400.00" />
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="2 × ₱50.00 = ₱100.00" />
         </LinearLayout>
+
+        <!-- The stepper: 48dp touch targets, drawn smaller by the insets. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAmenityOptionMinus"
+            style="@style/Widget.Velocity.Flat.Button.Outlined"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/cd_decrease_quantity"
+            android:insetLeft="8dp"
+            android:insetTop="8dp"
+            android:insetRight="8dp"
+            android:insetBottom="8dp"
+            android:minWidth="48dp"
+            android:padding="0dp"
+            app:icon="@drawable/ic_remove"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="16dp" />
+
+        <TextView
+            android:id="@+id/tvAmenityOptionQty"
+            android:layout_width="24dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="@string/amenity_quantity_zero"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAmenityOptionPlus"
+            style="@style/Widget.Velocity.Flat.Button.Outlined"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/cd_increase_quantity"
+            android:insetLeft="8dp"
+            android:insetTop="8dp"
+            android:insetRight="8dp"
+            android:insetBottom="8dp"
+            android:minWidth="48dp"
+            android:padding="0dp"
+            app:icon="@drawable/ic_add"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="16dp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

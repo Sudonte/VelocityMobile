@@ -23,7 +23,7 @@ final class TransactionFilter {
 
     /** What the "Filter by Status" dropdown can select. */
     enum Type {
-        ALL, BOOKINGS, RESERVATIONS, PAYMENTS, PENDING, PAID, PARTIALLY_PAID, CANCELLED, REJECTED, STAYS;
+        ALL, BOOKINGS, RESERVATIONS, PAYMENTS, PENDING, PAID, PARTIALLY_PAID, CANCELLED, REJECTED, STAYS, CHECKED_IN, CHECKED_OUT;
 
         /** Maps the string keys used by deep-link extras (and by older saved state) to a Type; anything unknown is ALL. */
         static Type fromKey(@Nullable String key) {
@@ -45,21 +45,9 @@ final class TransactionFilter {
         }
     }
 
-    /** The payment-status filter a legacy type key stands for (Paid, Pending, Partially paid), or ALL. */
-    static Type paymentStatusOf(Type type) {
-        return type == Type.PENDING || type == Type.PAID || type == Type.PARTIALLY_PAID ? type : Type.ALL;
-    }
-
-    /** The booking-status filter a legacy type key stands for ("Cancelled", "Rejected"), or null. */
-    @Nullable
-    static String bookingStatusOf(Type type) {
-        if (type == Type.CANCELLED) return "Cancelled";
-        if (type == Type.REJECTED) return "Rejected";
-        return null;
-    }
-
     /** The active filters. A fresh Criteria matches everything. */
     static final class Criteria {
+        /** The Transaction dropdown: a kind (bookings, reservations, payments) or a payment / lifecycle state. */
         Type type = Type.ALL;
         /** Raw search text; split into words, every word must match. */
         String query = "";
@@ -67,24 +55,41 @@ final class TransactionFilter {
         @Nullable String roomType;
         /** A booking / reservation lifecycle status ("Checked-In", "Cancelled", ...), matched case-insensitively, or null for any. */
         @Nullable String bookingStatus;
-        /** Payment status on its own (PENDING, PAID or PARTIALLY_PAID; anything else means "any"), combined with {@link #type} by AND. */
-        Type paymentStatus = Type.ALL;
-        /** Inclusive calendar-date range; a stay matches when it OVERLAPS it (null bounds are open-ended). */
-        @Nullable LocalDate from;
-        @Nullable LocalDate to;
+        /** Stays checking in ON OR AFTER this date (null: any). */
+        @Nullable LocalDate checkInFrom;
+        /** Stays checking out ON OR BEFORE this date (null: any). */
+        @Nullable LocalDate checkOutTo;
+
+        /**
+         * Sets the check-in date filter; refuses (false, nothing changed) a date AFTER the check-out date already chosen,
+         * so the window can never be empty by construction. Null clears it.
+         */
+        boolean setCheckIn(@Nullable LocalDate date) {
+            if (date != null && checkOutTo != null && date.isAfter(checkOutTo)) return false;
+            checkInFrom = date;
+            return true;
+        }
+
+        /** Sets the check-out date filter; refuses a date BEFORE the check-in date already chosen. Null clears it. */
+        boolean setCheckOut(@Nullable LocalDate date) {
+            if (date != null && checkInFrom != null && date.isBefore(checkInFrom)) return false;
+            checkOutTo = date;
+            return true;
+        }
 
         boolean hasDateRange() {
-            return from != null || to != null;
+            return checkInFrom != null || checkOutTo != null;
         }
 
         /** True when anything narrows the list - drives whether the empty state offers "Clear filters". */
         boolean isActive() {
-            return type != Type.ALL || !query.trim().isEmpty() || activeFilterCount() > 0;
+            return !query.trim().isEmpty() || activeFilterCount() > 0;
         }
 
-        /** How many of the Filters-sheet filters are set (payment status, booking status, room type, dates) - the "Filters · 2" badge. */
+        /** How many dropdown / date filters are set (not the search) - the "Show filters (N active)" count. */
         int activeFilterCount() {
-            return (paymentStatus != Type.ALL ? 1 : 0) + (bookingStatus != null ? 1 : 0) + (roomType != null ? 1 : 0) + (hasDateRange() ? 1 : 0);
+            return (type != Type.ALL ? 1 : 0) + (bookingStatus != null ? 1 : 0) + (roomType != null ? 1 : 0)
+                    + (checkInFrom != null ? 1 : 0) + (checkOutTo != null ? 1 : 0);
         }
 
         /** Back to "everything": no search, no filter. */
@@ -93,21 +98,8 @@ final class TransactionFilter {
             query = "";
             roomType = null;
             bookingStatus = null;
-            paymentStatus = Type.ALL;
-            from = null;
-            to = null;
-        }
-
-        Criteria copy() {
-            Criteria c = new Criteria();
-            c.type = type;
-            c.query = query;
-            c.roomType = roomType;
-            c.bookingStatus = bookingStatus;
-            c.paymentStatus = paymentStatus;
-            c.from = from;
-            c.to = to;
-            return c;
+            checkInFrom = null;
+            checkOutTo = null;
         }
     }
 
@@ -126,7 +118,6 @@ final class TransactionFilter {
 
     private static boolean matches(TransactionRow row, Criteria c, String[] tokens) {
         return matchesType(row, c.type)
-                && matchesPaymentStatus(row, c.paymentStatus)
                 && matchesSearch(row, tokens)
                 && matchesRoomType(row, c.roomType)
                 && matchesBookingStatus(row, c.bookingStatus)
@@ -158,17 +149,10 @@ final class TransactionFilter {
                 return row.summary.status == TransactionStatusHelper.Status.REJECTED;
             case STAYS:
                 return "Checked-Out".equalsIgnoreCase(row.lifecycleStatus) || "Checked-In".equalsIgnoreCase(row.lifecycleStatus);
-            default:
-                return true;
-        }
-    }
-
-    private static boolean matchesPaymentStatus(TransactionRow row, Type status) {
-        switch (status) {
-            case PENDING:
-            case PAID:
-            case PARTIALLY_PAID:
-                return matchesType(row, status);
+            case CHECKED_IN:
+                return "Checked-In".equalsIgnoreCase(row.lifecycleStatus);
+            case CHECKED_OUT:
+                return isCheckedOut(row.lifecycleStatus);
             default:
                 return true;
         }
@@ -186,22 +170,28 @@ final class TransactionFilter {
     }
 
     private static boolean matchesBookingStatus(TransactionRow row, @Nullable String bookingStatus) {
-        return bookingStatus == null || bookingStatus.equalsIgnoreCase(row.lifecycleStatus);
+        if (bookingStatus == null) return true;
+        if ("Checked-Out".equalsIgnoreCase(bookingStatus)) return isCheckedOut(row.lifecycleStatus);
+        return bookingStatus.equalsIgnoreCase(row.lifecycleStatus);
+    }
+
+    private static boolean isCheckedOut(@Nullable String lifecycle) {
+        return "Checked-Out".equalsIgnoreCase(lifecycle) || "Completed".equalsIgnoreCase(lifecycle);
     }
 
     /**
-     * Calendar-date overlap, inclusive at both ends: the stay (check-in to check-out) matches when it shares at least one
-     * day with the chosen range. A stay whose check-out can't be read counts as the check-in day only; one whose check-in
-     * can't be read never matches a range. (Dates are plain calendar dates, never instants, so no time zone can shift a
-     * day - the date picker's UTC-midnight values are turned into dates before they get here.)
+     * The two date fields, as plain calendar dates (never instants, so no time zone can shift a day): a check-in date
+     * keeps stays that check in ON OR AFTER it, a check-out date keeps stays that check out ON OR BEFORE it, both keep
+     * the stays inside that window. A stay whose check-in can't be read never matches a date filter; one whose check-out
+     * can't be read counts as the check-in day only.
      */
     private static boolean matchesDate(TransactionRow row, Criteria c) {
         if (!c.hasDateRange()) return true;
         LocalDate in = row.checkInDate;
         if (in == null) return false;
         LocalDate out = row.checkOutDate != null && !row.checkOutDate.isBefore(in) ? row.checkOutDate : in;
-        if (c.from != null && out.isBefore(c.from)) return false;
-        return c.to == null || !in.isAfter(c.to);
+        if (c.checkInFrom != null && in.isBefore(c.checkInFrom)) return false;
+        return c.checkOutTo == null || !out.isAfter(c.checkOutTo);
     }
 
     /** Lower-cased, whitespace-split search words. Empty for a blank query. */

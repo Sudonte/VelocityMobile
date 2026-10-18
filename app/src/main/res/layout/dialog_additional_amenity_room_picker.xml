@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bottom sheet: choose amenities (and how many of each) for ONE room. -->
+<!-- Bottom sheet: choose amenities (and how many of each) for ONE room. The footer (item count and total, Done) is always on screen. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/velocity_surface_elevated"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingTop="16dp">
 
     <TextView
         android:id="@+id/tvPickerTitle"
@@ -13,23 +14,37 @@
         android:layout_height="wrap_content"
         android:accessibilityHeading="true"
         android:fontFamily="sans-serif-black"
+        android:paddingHorizontal="16dp"
         android:textColor="@color/velocity_text_primary"
         android:textSize="16sp"
-        tools:text="Amenities for Room 101" />
+        tools:text="Amenities for Room 303" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
         android:layout_marginBottom="10dp"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="2dp"
         android:text="@string/additional_amenities_picker_hint"
         android:textColor="@color/velocity_text_secondary"
         android:textSize="12sp" />
 
+    <TextView
+        android:id="@+id/tvPickerEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="24dp"
+        android:text="@string/additional_amenities_picker_empty"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
     <com.example.velocitysuites.MaxHeightNestedScrollView
         android:id="@+id/pickerScroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp">
 
         <LinearLayout
             android:id="@+id/pickerList"
@@ -38,11 +53,35 @@
             android:orientation="vertical" />
     </com.example.velocitysuites.MaxHeightNestedScrollView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnPickerDone"
-        style="@style/Widget.Velocity.Flat.Button"
+    <!-- Sticky footer. -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/done_label" />
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_surface_elevated"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvPickerTotal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp"
+            tools:text="3 items · ₱200.00" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPickerDone"
+            style="@style/Widget.Velocity.Flat.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:letterSpacing="0"
+            android:minWidth="120dp"
+            android:text="@string/done_label"
+            android:textSize="14sp" />
+    </LinearLayout>
 </LinearLayout>

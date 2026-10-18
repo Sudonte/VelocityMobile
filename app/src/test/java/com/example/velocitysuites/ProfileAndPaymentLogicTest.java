@@ -170,18 +170,6 @@ public class ProfileAndPaymentLogicTest {
         List<TransactionRow> rows = TransactionRow.fromAll(Arrays.asList(booking("1", "Confirmed", 2800, 0), booking("2", "Confirmed", 1000, 0)));
         assertEquals(Collections.singletonList("Deluxe"), TransactionFilterOptions.roomTypes(Collections.emptyList(), rows));
         assertEquals(Collections.singletonList("Deluxe"), TransactionFilterOptions.roomTypes(null, rows));
-        assertNotNull(TransactionFilterOptions.paymentStatuses());
         assertEquals(7, TransactionFilterOptions.bookingStatuses().size());
-    }
-
-    @Test
-    public void dateRangeOverlap_isInclusiveAtBothEnds() {
-        TransactionRow row = TransactionRow.from(booking("1", "Confirmed", 2800, 0)); // Oct 20 - Oct 21
-        TransactionFilter.Criteria c = new TransactionFilter.Criteria();
-        c.from = LocalDate.of(2026, 10, 21);
-        c.to = LocalDate.of(2026, 10, 25);
-        assertTrue(TransactionFilter.matches(row, c));
-        c.from = LocalDate.of(2026, 10, 22);
-        assertTrue(!TransactionFilter.matches(row, c));
     }
 }

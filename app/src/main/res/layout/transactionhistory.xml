@@ -80,7 +80,7 @@
                         android:text="@string/transaction_history_desc"
                         android:textSize="12sp" />
 
-                    <!-- Search, the Type chips, the Filters button (with a count) and the active-filter chips. -->
+                    <!-- Search, then the filter panel: dropdowns (Transaction, Booking status, Room type) and two date fields. -->
                     <com.google.android.material.card.MaterialCardView
                         style="@style/Widget.Velocity.Card.Glass.Compact"
                         android:layout_width="match_parent"
@@ -116,115 +116,185 @@
                                     android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
 
-                            <!-- Type chips (the most-used filter) and the Filters button. -->
-                            <LinearLayout
+                            <TextView
+                                android:id="@+id/btnToggleFilters"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:drawablePadding="6dp"
+                                android:focusable="true"
+                                android:fontFamily="sans-serif-bold"
                                 android:gravity="center_vertical"
-                                android:orientation="horizontal">
+                                android:minHeight="48dp"
+                                android:text="@string/filters_hide"
+                                android:textColor="@color/velocity_action_text"
+                                android:textSize="13sp"
+                                app:drawableStartCompat="@drawable/ic_filter"
+                                app:drawableTint="@color/velocity_action_text" />
 
-                                <HorizontalScrollView
+                            <LinearLayout
+                                android:id="@+id/layoutFilterPanel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:baselineAligned="false"
+                                    android:orientation="horizontal">
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/layoutTransactionFilter"
+                                    style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="4dp"
+                                    android:layout_weight="1"
+                                    android:hint="@string/filter_label_transaction">
+
+                                    <AutoCompleteTextView
+                                        android:id="@+id/dropdownTransaction"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:includeFontPadding="false"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:paddingVertical="8dp"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="13sp"
+                                        tools:ignore="LabelFor" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/layoutBookingStatusFilter"
+                                    style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:layout_weight="1"
+                                    android:hint="@string/filter_label_booking_status">
+
+                                    <AutoCompleteTextView
+                                        android:id="@+id/dropdownBookingStatus"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:includeFontPadding="false"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:paddingVertical="8dp"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="13sp"
+                                        tools:ignore="LabelFor" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:baselineAligned="false"
+                                    android:orientation="horizontal">
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/layoutRoomTypeFilter"
+                                    style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:clipToPadding="false"
-                                    android:overScrollMode="never"
-                                    android:scrollbars="none">
+                                    android:hint="@string/filter_label_room_type">
 
-                                    <com.google.android.material.chip.ChipGroup
-                                        android:id="@+id/chipGroupType"
-                                        android:layout_width="wrap_content"
+                                    <AutoCompleteTextView
+                                        android:id="@+id/dropdownRoomType"
+                                        android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        app:chipSpacingHorizontal="6dp"
-                                        app:selectionRequired="true"
-                                        app:singleLine="true"
-                                        app:singleSelection="true">
+                                        android:fontFamily="sans-serif-medium"
+                                        android:includeFontPadding="false"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:paddingVertical="8dp"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="13sp"
+                                        tools:ignore="LabelFor" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                </LinearLayout>
 
-                                        <com.google.android.material.chip.Chip
-                                            android:id="@+id/chipTypeAll"
-                                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:checked="true"
-                                            android:text="@string/filter_type_all" />
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:baselineAligned="false"
+                                    android:orientation="horizontal">
 
-                                        <com.google.android.material.chip.Chip
-                                            android:id="@+id/chipTypeBookings"
-                                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/filter_bookings" />
-
-                                        <com.google.android.material.chip.Chip
-                                            android:id="@+id/chipTypeReservations"
-                                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/filter_reservations" />
-
-                                        <com.google.android.material.chip.Chip
-                                            android:id="@+id/chipTypePayments"
-                                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/filter_payments" />
-                                    </com.google.android.material.chip.ChipGroup>
-                                </HorizontalScrollView>
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/btnFilters"
-                                    style="@style/Widget.Velocity.Flat.Button.Outlined"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="48dp"
-                                    android:layout_marginStart="8dp"
-                                    android:letterSpacing="0"
-                                    android:maxLines="1"
-                                    android:text="@string/filters_button"
-                                    android:textSize="13sp"
-                                    app:icon="@drawable/ic_filter"
-                                    app:iconGravity="textStart"
-                                    app:iconSize="16dp" />
-                            </LinearLayout>
-
-                            <!-- The active filters as removable chips, and Clear all. -->
-                            <LinearLayout
-                                android:id="@+id/rowActiveFilters"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:visibility="gone">
-
-                                <HorizontalScrollView
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/layoutCheckIn"
+                                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_marginEnd="4dp"
                                     android:layout_weight="1"
-                                    android:clipToPadding="false"
-                                    android:overScrollMode="never"
-                                    android:scrollbars="none">
+                                    android:hint="@string/filter_label_check_in"
+                                    app:endIconDrawable="@drawable/ic_close"
+                                    app:endIconMode="custom"
+                                    app:startIconDrawable="@drawable/ic_calendar">
 
-                                    <com.google.android.material.chip.ChipGroup
-                                        android:id="@+id/chipGroupActive"
-                                        android:layout_width="wrap_content"
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etCheckIn"
+                                        android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        app:chipSpacingHorizontal="6dp"
-                                        app:singleLine="true" />
-                                </HorizontalScrollView>
+                                        android:clickable="true"
+                                        android:cursorVisible="false"
+                                        android:focusable="false"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:paddingVertical="8dp"
+                                        android:textSize="13sp" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/layoutCheckOut"
+                                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:layout_weight="1"
+                                    android:hint="@string/filter_label_check_out"
+                                    app:endIconDrawable="@drawable/ic_close"
+                                    app:endIconMode="custom"
+                                    app:startIconDrawable="@drawable/ic_calendar">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etCheckOut"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:cursorVisible="false"
+                                        android:focusable="false"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:paddingVertical="8dp"
+                                        android:textSize="13sp" />
+                                </com.google.android.material.textfield.TextInputLayout>
+                                </LinearLayout>
 
                                 <TextView
-                                    android:id="@+id/btnClearAllFilters"
+                                    android:id="@+id/btnClearFilters"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:layout_gravity="end"
                                     android:background="?attr/selectableItemBackground"
                                     android:clickable="true"
                                     android:focusable="true"
                                     android:gravity="center"
                                     android:minHeight="48dp"
                                     android:paddingHorizontal="8dp"
-                                    android:text="@string/filters_clear_all"
+                                    android:text="@string/txn_clear_filters_button"
                                     android:textColor="@color/velocity_action_text"
-                                    android:textSize="13sp" />
+                                    android:textSize="13sp"
+                                    android:visibility="gone" />
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>

@@ -54,6 +54,16 @@
                 tools:text="Paid" />
         </LinearLayout>
 
+        <!-- Row 2: which stay (dates) and its booking status. -->
+        <TextView
+            android:id="@+id/tvPaymentStayMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="Oct 21 → Oct 22, 2026 · Pending approval" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -138,6 +148,7 @@
             android:textSize="12sp"
             tools:text="₱2,800.00 of ₱2,800.00 paid" />
 
+        <!-- Row 5: Pay Now (or "Payment under review" / "Pay at the front desk") on the left, View details on the right. -->
         <com.example.velocitysuites.NextStayActionRow
             android:id="@+id/paymentActions"
             android:layout_width="match_parent"
@@ -146,17 +157,34 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnQuickPay"
-                style="@style/Widget.Velocity.Flat.Button.Outlined"
+            <FrameLayout
+                android:id="@+id/paymentLeftAction"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:ellipsize="none"
-                android:letterSpacing="0"
-                android:maxLines="1"
-                android:text="@string/pay_now"
-                android:textSize="13sp"
-                android:visibility="gone" />
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnQuickPay"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:ellipsize="none"
+                    android:letterSpacing="0"
+                    android:maxLines="1"
+                    android:text="@string/pay_now"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvPaymentNote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tvPaymentViewDetails"
@@ -167,7 +195,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center_vertical|end"
-                android:minHeight="48dp"
+                android:minHeight="40dp"
                 android:text="@string/next_stay_view_details"
                 android:textColor="@color/velocity_action_text"
                 android:textSize="13sp" />

@@ -769,7 +769,6 @@
     <string name="amenities_more_format">+%1$d more</string>
     <string name="sorting_by_label">Sorting by: %1$s</string>
     <string name="capacity_persons_format">%1$d Persons</string>
-    <string name="transaction_history_desc">Track your stays and billing records. Review your past reservations and payment history with Velocity Suites.</string>
     <string name="search_label">Search</string>
     <string name="search_transactions_hint">Search reference or room…</string>
     <string name="more_stays_title">Other Recent &amp; Upcoming Stays</string>
@@ -798,7 +797,6 @@
     <string name="filter_bookings">Bookings</string>
     <string name="filter_payments">Payments</string>
     <string name="filter_reservations">Reservations</string>
-    <string name="date_filter_label">Date Filter</string>
     <string name="export_label">Export</string>
     <string name="total_paid_label">Total Paid</string>
     <string name="booking_id_format">Booking ID: %1$s</string>
@@ -1409,19 +1407,13 @@
     <string name="additional_amenities_load_error">We couldn\'t load your amenity requests. Please try again.</string>
     <string name="additional_amenities_none">You haven\'t requested any additional amenities yet.</string>
     <string name="additional_amenities_not_available">Extra amenities can\'t be requested for this booking right now.</string>
-    <string name="additional_amenities_catalog_empty">There are no extra amenities to request right now.</string>
-    <string name="additional_amenities_intro">Choose what you\'d like, then send your request. The front desk reviews it, and you\'ll be notified. Nothing is charged until it is approved.</string>
     <string name="additional_amenities_each_format">%1$s each</string>
-    <string name="additional_amenities_total_format">Total: %1$s</string>
     <string name="additional_amenities_billing_note">Approved items are added to your bill at the price shown now.</string>
     <string name="additional_amenities_rooms_title">Your rooms</string>
-    <string name="additional_amenities_rooms_hint">Tap a room to choose its amenities. Each room can have different ones.</string>
     <string name="additional_amenities_room_title_format">Room %1$s</string>
     <string name="additional_amenities_your_room">Your room</string>
     <string name="additional_amenities_picker_title_format">Amenities for %1$s</string>
     <string name="additional_amenities_picker_hint">Pick as many as you like and set how many of each.</string>
-    <string name="additional_amenities_none_selected">Nothing selected</string>
-    <string name="additional_amenities_selected_count_format">%1$d selected - tap to change</string>
     <string name="additional_amenities_summary_title">Your request</string>
     <string name="additional_amenities_summary_room_format">%1$s - %2$s</string>
     <string name="additional_amenities_line_format">%1$s x %2$d</string>
@@ -2157,21 +2149,7 @@
     <string name="payment_card_fully_paid">Fully paid</string>
     <string name="payment_card_paid_of_format">%1$s of %2$s paid</string>
     <string name="transactions_title">Transactions</string>
-    <string name="filter_type_all">All</string>
-    <string name="filters_button">Filters</string>
-    <string name="filters_button_count_format">Filters · %1$d</string>
-    <string name="filters_clear_all">Clear all</string>
-    <string name="filters_sheet_title">Filters</string>
-    <string name="filters_payment_status">Payment status</string>
-    <string name="filters_booking_status">Booking status</string>
-    <string name="filters_room_type">Room type</string>
-    <string name="filters_dates">Dates</string>
-    <string name="filters_any_dates">Any dates</string>
-    <string name="filters_reset">Reset</string>
-    <string name="filters_apply">Apply</string>
-    <string name="filters_all_option">All</string>
     <string name="filters_all_room_types">All room types</string>
-    <string name="filters_remove_cd">Remove filter %1$s</string>
     <plurals name="transactions_results">
         <item quantity="one">%d result</item>
         <item quantity="other">%d results</item>
@@ -2182,6 +2160,48 @@
     <plurals name="profile_missing_more">
         <item quantity="one">%1$s, %2$s +%3$d more</item>
         <item quantity="other">%1$s, %2$s +%3$d more</item>
+    </plurals>
+    <string name="additional_amenities_intro">Pick amenities for your room. Nothing is charged until the front desk approves.</string>
+    <string name="additional_amenities_none_selected">No amenities added</string>
+    <string name="additional_amenities_catalog_empty">No amenities are available right now.</string>
+    <plurals name="additional_amenities_items_total">
+        <item quantity="one">%1$d item · %2$s</item>
+        <item quantity="other">%1$d items · %2$s</item>
+    </plurals>
+    <string name="additional_amenities_picked_format">%1$d× %2$s</string>
+    <string name="additional_amenities_total_label">Total</string>
+    <string name="additional_amenities_hint_add_one">Add at least one amenity to send a request.</string>
+    <string name="additional_amenities_line_subtotal_format">%1$d × %2$s = %3$s</string>
+    <string name="additional_amenities_description_more">More</string>
+    <string name="additional_amenities_description_less">Less</string>
+    <string name="additional_amenities_picker_empty">No amenities are available right now.</string>
+    <string name="payment_chip_unpaid">Unpaid</string>
+    <string name="payment_chip_partial">Partially paid</string>
+    <string name="payment_chip_paid">Fully paid</string>
+    <string name="booking_status_pending_approval">Pending approval</string>
+    <string name="booking_status_checked_in">Checked in</string>
+    <string name="booking_status_checked_out">Checked out</string>
+    <string name="payment_under_review">Payment under review</string>
+    <string name="payment_pay_at_front_desk">Pay at the front desk</string>
+    <string name="payment_card_meta_format">%1$s · %2$s</string>
+    <string name="transaction_history_desc">Your stays and payments with Velocity Suites.</string>
+    <string name="filter_label_transaction">Transaction</string>
+    <string name="filter_label_booking_status">Booking status</string>
+    <string name="filter_label_room_type">Room type</string>
+    <string name="filter_label_check_in">Check-in date</string>
+    <string name="filter_label_check_out">Check-out date</string>
+    <string name="filter_option_all_transactions">All transactions</string>
+    <string name="filter_option_checked_in">Checked in</string>
+    <string name="filter_option_checked_out">Checked out</string>
+    <string name="filter_option_all_statuses">All</string>
+    <string name="filter_option_partially_paid">Partially paid</string>
+    <string name="filters_hide">Hide filters</string>
+    <string name="filters_show">Show filters</string>
+    <string name="filters_clear_date_cd">Clear %1$s</string>
+    <string name="filters_dates_order_error">The check-out date cannot be before the check-in date.</string>
+    <plurals name="filters_show_count">
+        <item quantity="one">Show filters (%1$d active)</item>
+        <item quantity="other">Show filters (%1$d active)</item>
     </plurals>
 </resources>
 

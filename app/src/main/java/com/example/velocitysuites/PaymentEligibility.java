@@ -40,6 +40,33 @@ public final class PaymentEligibility {
                 && !"Rejected".equalsIgnoreCase(b.getStatus());
     }
 
+    /** What the Dashboard's Payment Status card offers for a balance. */
+    public enum PayAction {
+        /** Nothing is owed. */
+        NONE,
+        /** Pay Now. */
+        PAY_NOW,
+        /** A payment is already awaiting the front desk's verification: no second one. */
+        UNDER_REVIEW,
+        /** A booking (not a reservation): the server takes payment at the front desk only. */
+        FRONT_DESK
+    }
+
+    /**
+     * The one rule for every Payment Status card: a balance owed gets Pay Now - whatever the reservation's payment method
+     * - unless a payment is already under review ("Payment under review") or it is a booking, which the server only
+     * lets the front desk settle (a button that always fails would be worse than a note). Nothing owed, or a closed
+     * transaction, gets none. (The old rule also demanded GCASH as the method, which is why two identical unpaid
+     * reservations differed: one chose GCash, the other cash.)
+     */
+    public static PayAction payActionFor(Booking b) {
+        if (b == null || !PaymentStatusList.isActive(b) || b.isHistoricalReservation()) return PayAction.NONE;
+        TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
+        if (!MoneyFormat.isPositive(summary.balance)) return PayAction.NONE;
+        if (b.isPaymentPendingVerification() || summary.hasPendingPayment) return PayAction.UNDER_REVIEW;
+        return b.isHasBooking() ? PayAction.FRONT_DESK : PayAction.PAY_NOW;
+    }
+
     /**
      * True for a CONFIRMED booking that still has a balance: the guest pays the rest at the front desk, not in the app
      * (the server refuses in-app payments for a booking). Status and balance come from TransactionStatusHelper - the

@@ -138,15 +138,19 @@ public class TransactionCardLayoutTest {
                     View payment = root.findViewById(R.id.tvTxnPayment);
                     View paymentLabel = root.findViewById(R.id.tvTxnPaymentLabel);
 
-                    // Row 1: badge | reference | chevron - side by side, never on top of each other
-                    assertFalse("badge/ref\n" + ctx, LayoutHarness.overlaps(root, badge, ref));
+                    // Row 1: reference | total | chevron - side by side, never on top of each other
+                    assertFalse("ref/total\n" + ctx, LayoutHarness.overlaps(root, ref, total));
                     assertFalse("ref/chevron\n" + ctx, LayoutHarness.overlaps(root, ref, chevron));
-                    assertFalse("badge/chevron\n" + ctx, LayoutHarness.overlaps(root, badge, chevron));
-                    // Row 2: room | total
-                    assertFalse("room/total\n" + ctx, LayoutHarness.overlaps(root, room, total));
+                    assertFalse("total/chevron\n" + ctx, LayoutHarness.overlaps(root, total, chevron));
+                    // Row 2: the two chips; Row 3: the room - none on top of another
+                    View bookingChip = root.findViewById(R.id.tvTxnBookingStatus);
+                    if (badge.getVisibility() == View.VISIBLE && bookingChip.getVisibility() == View.VISIBLE) {
+                        assertFalse("chips\n" + ctx, LayoutHarness.overlaps(root, badge, bookingChip));
+                    }
+                    assertFalse("room/ref\n" + ctx, LayoutHarness.overlaps(root, room, ref));
                     // THE reported bug: nothing in the rows above may touch the divider or the rows below
                     Rect dividerRect = LayoutHarness.boundsIn(root, divider);
-                    for (View above : new View[]{badge, ref, chevron, room, total}) {
+                    for (View above : new View[]{ref, chevron, room, total}) {
                         assertTrue("row above the divider pokes into it\n" + ctx,
                                 LayoutHarness.boundsIn(root, above).bottom <= dividerRect.top);
                     }
@@ -181,28 +185,35 @@ public class TransactionCardLayoutTest {
     }
 
     @Test
-    public void row1_badgeLeft_referenceNextToIt_chevronFarRight() {
+    public void row1_referenceLeft_totalRight_chevronFarRight() {
         Context context = LayoutHarness.themedContext(1.0f);
         View root = card(context, pendingSubmitted(), 360);
-        Rect badge = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnStatusBadge));
         Rect ref = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnRef));
+        Rect total = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnTotal));
         Rect chevron = LayoutHarness.boundsIn(root, root.findViewById(R.id.ivTxnChevron));
         Rect card = LayoutHarness.boundsIn(root, root.findViewById(R.id.cardTransaction));
-        assertTrue(badge.left < ref.left);
-        assertTrue("reference sits right next to the badge", ref.left - badge.right <= LayoutHarness.dp(context, 12));
+        assertTrue(ref.left < total.left);
+        assertTrue("the total sits just before the chevron", chevron.left - total.right <= LayoutHarness.dp(context, 12));
         assertTrue("chevron hugs the right edge", chevron.right >= card.right - LayoutHarness.dp(context, 18));
-        assertTrue("one row", Math.min(badge.bottom, chevron.bottom) > Math.max(badge.top, chevron.top));
+        assertTrue("one row", Math.min(ref.bottom, chevron.bottom) > Math.max(ref.top, chevron.top));
+        TextView refText = text(root, R.id.tvTxnRef);
+        assertFalse("Title Case, not ALL CAPS", refText.isAllCaps());
+        assertEquals("no letter-spacing", 0f, refText.getLetterSpacing(), 0.0001f);
+        assertEquals("primary text colour", context.getColor(R.color.velocity_text_primary), refText.getCurrentTextColor());
     }
 
     @Test
-    public void row2_roomLeft_grandTotalRight() {
+    public void row2_paymentChipThenBookingStatusChip_onTheirOwnRow_belowTheReference() {
         Context context = LayoutHarness.themedContext(1.0f);
         View root = card(context, pendingSubmitted(), 360);
+        Rect ref = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnRef));
+        Rect payment = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnStatusBadge));
+        Rect booking = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnBookingStatus));
         Rect room = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnRoom));
-        Rect total = LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnTotal));
-        Rect card = LayoutHarness.boundsIn(root, root.findViewById(R.id.cardTransaction));
-        assertTrue(room.left < total.left);
-        assertTrue(total.right >= card.right - LayoutHarness.dp(context, 18));
+        assertTrue("chips below the reference", payment.top >= ref.bottom);
+        assertTrue("payment chip first", payment.right <= booking.left);
+        assertEquals("same row", payment.centerY(), booking.centerY(), LayoutHarness.dp(context, 2));
+        assertTrue("room below the chips", room.top >= payment.bottom);
     }
 
     @Test
@@ -231,7 +242,8 @@ public class TransactionCardLayoutTest {
         Context context = LayoutHarness.themedContext(1.0f);
         View root = card(context, pendingSubmitted(), 360);
         assertEquals("₱1,800.00 submitted • awaiting verification", text(root, R.id.tvTxnPayment).getText().toString());
-        assertEquals("Pending", text(root, R.id.tvTxnStatusBadge).getText().toString());
+        assertEquals("Unpaid", text(root, R.id.tvTxnStatusBadge).getText().toString());
+        assertEquals("the booking status is its own chip", "Pending approval", text(root, R.id.tvTxnBookingStatus).getText().toString());
     }
 
     @Test
@@ -239,7 +251,7 @@ public class TransactionCardLayoutTest {
         Context context = LayoutHarness.themedContext(1.0f);
         View root = card(context, partiallyPaid(), 360);
         assertEquals("₱900.00 paid • ₱900.00 balance", text(root, R.id.tvTxnPayment).getText().toString());
-        assertEquals("Partially Paid", text(root, R.id.tvTxnStatusBadge).getText().toString());
+        assertEquals("Partially paid", text(root, R.id.tvTxnStatusBadge).getText().toString());
     }
 
     @Test
@@ -302,27 +314,32 @@ public class TransactionCardLayoutTest {
     // ---- badges ----
 
     @Test
-    public void everyStatusHasItsOwnBadgeColor() {
+    public void thePaymentChipFollowsTheMoney_redUnpaid_amberPartial_greenPaid_andClosedUnpaidShowsNone() {
         Context context = LayoutHarness.themedContext(1.0f);
-        java.util.Set<Integer> fills = new java.util.HashSet<>();
-        for (Booking b : Arrays.asList(pendingSubmitted(), paid(), partiallyPaid(), cancelled(), rejected())) {
-            TextView badge = text(card(context, b, 360), R.id.tvTxnStatusBadge);
-            assertNotNull(badge.getBackgroundTintList());
-            fills.add(badge.getBackgroundTintList().getDefaultColor());
-        }
-        assertEquals("pending / paid / partially paid / cancelled / rejected each get a different fill", 5, fills.size());
+        TextView unpaid = text(card(context, pendingSubmitted(), 360), R.id.tvTxnStatusBadge);
+        assertEquals(context.getColor(R.color.velocity_red_status_soft), unpaid.getBackgroundTintList().getDefaultColor());
+        assertEquals(context.getColor(R.color.velocity_red_primary), unpaid.getCurrentTextColor());
+        TextView paid = text(card(context, paid(), 360), R.id.tvTxnStatusBadge);
+        assertEquals(context.getColor(R.color.status_paid_bg), paid.getBackgroundTintList().getDefaultColor());
+        assertEquals(context.getColor(R.color.status_paid_fg), paid.getCurrentTextColor());
+        TextView partial = text(card(context, partiallyPaid(), 360), R.id.tvTxnStatusBadge);
+        assertEquals(context.getColor(R.color.status_pending_bg), partial.getBackgroundTintList().getDefaultColor());
+        assertEquals(context.getColor(R.color.status_pending_fg), partial.getCurrentTextColor());
+        assertEquals("a cancelled transaction nothing was paid on has no payment chip",
+                View.GONE, text(card(context, cancelled(), 360), R.id.tvTxnStatusBadge).getVisibility());
     }
 
     @Test
-    public void theBadgeUsesTheSharedStatusColors() {
+    public void aCard_neverShowsTheSameWordTwice_forEveryStatus() {
         Context context = LayoutHarness.themedContext(1.0f);
-        TextView pending = text(card(context, pendingSubmitted(), 360), R.id.tvTxnStatusBadge);
-        assertEquals(context.getColor(R.color.status_pending_bg), pending.getBackgroundTintList().getDefaultColor());
-        assertEquals(context.getColor(R.color.status_pending_fg), pending.getCurrentTextColor());
-        TextView paid = text(card(context, paid(), 360), R.id.tvTxnStatusBadge);
-        assertEquals(context.getColor(R.color.status_paid_bg), paid.getBackgroundTintList().getDefaultColor());
-        TextView partial = text(card(context, partiallyPaid(), 360), R.id.tvTxnStatusBadge);
-        assertEquals(context.getColor(R.color.status_partial_bg), partial.getBackgroundTintList().getDefaultColor());
+        for (Booking b : oneOfEachStatus()) {
+            View root = card(context, b, 360);
+            TextView payment = text(root, R.id.tvTxnStatusBadge);
+            TextView booking = text(root, R.id.tvTxnBookingStatus);
+            if (payment.getVisibility() == View.VISIBLE && booking.getVisibility() == View.VISIBLE) {
+                assertFalse(payment.getText() + " / " + booking.getText(), payment.getText().toString().equalsIgnoreCase(booking.getText().toString()));
+            }
+        }
     }
 
     // ---- stress ----
@@ -344,8 +361,8 @@ public class TransactionCardLayoutTest {
                 TextView total = text(root, R.id.tvTxnTotal);
                 assertEquals("total on one line\n" + ctx, 1, total.getLineCount());
                 assertEquals("total not ellipsized\n" + ctx, 0, total.getLayout().getEllipsisCount(0));
-                assertFalse(ctx, LayoutHarness.overlaps(root, root.findViewById(R.id.tvTxnRoom), total));
-                assertFalse(ctx, LayoutHarness.overlaps(root, root.findViewById(R.id.tvTxnStatusBadge), root.findViewById(R.id.tvTxnRef)));
+                assertFalse(ctx, LayoutHarness.overlaps(root, root.findViewById(R.id.tvTxnRef), total));
+                assertFalse(ctx, LayoutHarness.overlaps(root, root.findViewById(R.id.tvTxnRoom), root.findViewById(R.id.tvTxnRef)));
                 Rect divider = LayoutHarness.boundsIn(root, root.findViewById(R.id.dividerTxn));
                 assertTrue(ctx, LayoutHarness.boundsIn(root, root.findViewById(R.id.tvTxnRoom)).bottom <= divider.top);
             }

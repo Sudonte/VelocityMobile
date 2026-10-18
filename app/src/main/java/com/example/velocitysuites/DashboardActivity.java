@@ -497,40 +497,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     }
 
-    private int getBookingPriority(Booking booking) {
-        String status = booking.getStatus();
-        if ("Checked-In".equalsIgnoreCase(status)) return 0;
-        if ("Pending".equalsIgnoreCase(status) || "Confirmed".equalsIgnoreCase(status)) return 1;
-        if ("Checked-Out".equalsIgnoreCase(status)) return 2;
-        if ("Cancelled".equalsIgnoreCase(status)) return 3;
-        return 4;
-    }
-
-    /**
-     * True when {@code booking} is relevant to the Payment Status preview "today":
-     * a currently-due balance (remaining > 0, not cancelled/checked-out), a payment
-     * or the booking itself created today, or a check-in/check-out happening today -
-     * matches the dashboard spec's "most recent, newly created, currently due, or
-     * upcoming... within today" - not simply every booking regardless of relevance.
-     */
-    private boolean isRelevantToPaymentStatusToday(Booking b) {
-        String status = b.getStatus();
-        // Same relational check as everywhere else: this Booking record IS the parent
-        // transaction (this app has no separate Payment entity/status to cross-check),
-        // and Cancelled/Rejected must never show an "active" payment card regardless
-        // of any outstanding balance.
-        if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) return false;
-
-        boolean currentlyDue = !"Checked-Out".equalsIgnoreCase(status) && b.getEffectiveRemainingBalance() > 0.009;
-        if (currentlyDue) return true;
-
-        boolean createdToday = isSameCalendarDay(b.getBookingDate(), 0);
-        boolean checkInToday = isSameCalendarDay(b.getCheckInDate(), 0);
-        boolean checkOutToday = isSameCalendarDay(b.getCheckOutDate(), 0);
-
-        return createdToday || checkInToday || checkOutToday;
-    }
-
     /** True when dateStr falls exactly on today's calendar date, offset by {@code dayOffset} days. */
     private boolean isSameCalendarDay(String dateStr, int dayOffset) {
         if (dateStr == null) return false;
@@ -547,18 +513,9 @@ public class DashboardActivity extends BaseNavigationActivity {
 
     private void populatePayments(List<Booking> bookings) {
         paymentListContainer.removeAllViews();
-        List<Booking> paymentBookings = new java.util.ArrayList<>();
-        for (Booking b : bookings) {
-            if (isRelevantToPaymentStatusToday(b)) paymentBookings.add(b);
-        }
-        // Most urgent first: a currently-due balance outranks a same-day event with
-        // nothing owed, then fall back to the existing status ordering.
-        paymentBookings.sort((firstBooking, secondBooking) -> {
-            boolean firstDue = !"Checked-Out".equalsIgnoreCase(firstBooking.getStatus()) && firstBooking.getEffectiveRemainingBalance() > 0.009;
-            boolean secondDue = !"Checked-Out".equalsIgnoreCase(secondBooking.getStatus()) && secondBooking.getEffectiveRemainingBalance() > 0.009;
-            if (firstDue != secondDue) return firstDue ? -1 : 1;
-            return getBookingPriority(firstBooking) - getBookingPriority(secondBooking);
-        });
+        // Every active transaction - unpaid, partly paid or fully paid; amounts owed first, then nearest check-in.
+        // A checked-out, cancelled or rejected one leaves the section at once.
+        List<Booking> paymentBookings = PaymentStatusList.select(bookings);
         final int totalPayments = paymentBookings.size();
         List<Booking> allPayments = paymentBookings;
         paymentBookings = SectionPreview.visible(allPayments, paymentsSection.isExpanded());
@@ -597,16 +554,24 @@ public class DashboardActivity extends BaseNavigationActivity {
     private void bindPaymentCard(View card, Booking b) {
         ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
 
-        PaymentStatusResolver.Result statusResult = PaymentStatusResolver.resolve(this, b);
-        TextView tvStatus = card.findViewById(R.id.tvPaymentStatus);
-        tvStatus.setText(statusResult.label);
-        tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, statusResult.bgColorRes));
-        tvStatus.setTextColor(ContextCompat.getColor(this, statusResult.fgColorRes));
-
         double total = TransactionStatusHelper.grandTotalOf(b);
         double paid = TransactionStatusHelper.verifiedPaidOf(b);
         double remaining = Math.max(0, total - paid);
         PaymentBalanceTone tone = PaymentBalanceTone.of(total, paid);
+
+        // One colour scheme for the whole card: the chip, the balance and the progress bar all follow the tone.
+        TextView tvStatus = card.findViewById(R.id.tvPaymentStatus);
+        tvStatus.setText(tone.labelRes);
+        tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, tone.chipBgRes));
+        tvStatus.setTextColor(getColor(tone.colorRes));
+
+        // Which stay: its dates and booking status ("Oct 21 → Oct 22, 2026 · Pending approval").
+        String stayDates = StayCardText.dates(b);
+        String lifecycle = BookingStatusWords.label(this, b.getStatus());
+        TextView meta = card.findViewById(R.id.tvPaymentStayMeta);
+        String metaText = stayDates.isEmpty() ? lifecycle : lifecycle.isEmpty() ? stayDates : getString(R.string.payment_card_meta_format, stayDates, lifecycle);
+        meta.setText(metaText);
+        meta.setVisibility(metaText.isEmpty() ? View.GONE : View.VISIBLE);
 
         ((TextView) card.findViewById(R.id.tvTotalAmount)).setText(MoneyFormat.format(total));
         TextView balance = card.findViewById(R.id.tvPaymentRemainingBalance);
@@ -622,6 +587,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         if (hasTotal) {
             progress.setProgress((int) Math.min(100, Math.round(paid * 100 / total)));
             progress.setIndicatorColor(getColor(tone.colorRes));
+            progress.setTrackColor(androidx.core.graphics.ColorUtils.setAlphaComponent(getColor(tone.colorRes), 48));
             paidOf.setText(getString(R.string.payment_card_paid_of_format, MoneyFormat.format(Math.min(paid, total)), MoneyFormat.format(total)));
         }
 
@@ -630,11 +596,16 @@ public class DashboardActivity extends BaseNavigationActivity {
         card.setOnClickListener(open);
         card.findViewById(R.id.tvPaymentViewDetails).setOnClickListener(open);
 
+        // The left action, by one rule for every card (PaymentEligibility.payActionFor).
         View btnQuickPay = card.findViewById(R.id.btnQuickPay);
-        // Same single-source-of-truth rule as the Reservation list's Pay Now (PaymentEligibility).
-        boolean payable = remaining > 0.009 && PaymentEligibility.canPayNow(b);
-        btnQuickPay.setVisibility(payable ? View.VISIBLE : View.GONE);
-        if (payable) {
+        TextView note = card.findViewById(R.id.tvPaymentNote);
+        PaymentEligibility.PayAction action = PaymentEligibility.payActionFor(b);
+        btnQuickPay.setVisibility(action == PaymentEligibility.PayAction.PAY_NOW ? View.VISIBLE : View.GONE);
+        boolean hasNote = action == PaymentEligibility.PayAction.UNDER_REVIEW || action == PaymentEligibility.PayAction.FRONT_DESK;
+        note.setVisibility(hasNote ? View.VISIBLE : View.GONE);
+        if (hasNote) note.setText(action == PaymentEligibility.PayAction.UNDER_REVIEW ? R.string.payment_under_review : R.string.payment_pay_at_front_desk);
+        card.findViewById(R.id.paymentLeftAction).setVisibility(action == PaymentEligibility.PayAction.NONE ? View.GONE : View.VISIBLE);
+        if (action == PaymentEligibility.PayAction.PAY_NOW) {
             btnQuickPay.setOnClickListener(v -> new SafeDialogs.Material(this)
                     .setTitle(R.string.pay_now_confirm_title)
                     .setMessage(getString(R.string.pay_now_confirm_msg, b.getDisplayId()))

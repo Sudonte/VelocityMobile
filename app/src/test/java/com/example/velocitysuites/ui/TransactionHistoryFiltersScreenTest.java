@@ -6,13 +6,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Looper;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,8 +25,6 @@ import com.example.velocitysuites.network.dto.DirectBookingResponseDto;
 import com.example.velocitysuites.network.dto.ReservationDto;
 import com.example.velocitysuites.network.dto.RoomTypeDto;
 import com.example.velocitysuites.ui.ScreenTestSupport.FakeApi;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +33,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
-import org.robolectric.shadows.ShadowDialog;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -46,9 +42,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Transaction History's search and filters, end to end on the real screen: the Type chips, the Filters sheet (payment
- * status, booking status, room type, dates, Reset / Apply), the active-filter chips, the result count, the empty state,
- * Export using the filtered rows, filters surviving a trip to a transaction's details, and filtering across every page.
+ * Transaction History's search and filters, end to end on the real screen: the three dropdowns (Transaction, Booking
+ * status, Room type) that always open with their full list, the two date fields, the Show / Hide toggle, Clear filters,
+ * the result count, the empty state, Export using the filtered rows, filters surviving a trip to a transaction's details
+ * and a screen rotation, and filtering across every page.
  */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
@@ -137,163 +134,215 @@ public class TransactionHistoryFiltersScreenTest {
         return ((TextView) a.findViewById(id)).getText().toString();
     }
 
-    private void chooseType(TransactionHistoryActivity a, int chipId) {
-        ((Chip) a.findViewById(chipId)).performClick();
+    // ---- dropdown helpers ----
+
+    private static AutoCompleteTextView dropdown(TransactionHistoryActivity a, int id) {
+        return a.findViewById(id);
+    }
+
+    /** Picks entry {@code position} the way a tap on the open list does. */
+    private static void pick(TransactionHistoryActivity a, int dropdownId, int position) {
+        dropdown(a, dropdownId).getOnItemClickListener().onItemClick(null, null, position, position);
         idle();
     }
 
-    /** Opens the Filters sheet, picks the chip tagged {@code value} in the group, and applies. */
-    private void pickInSheet(TransactionHistoryActivity a, int groupId, String value) {
-        a.findViewById(R.id.btnFilters).performClick();
-        idle();
-        Dialog sheet = ShadowDialog.getLatestDialog();
-        assertNotNull("the Filters sheet opened", sheet);
-        ChipGroup group = sheet.findViewById(groupId);
-        for (int i = 0; i < group.getChildCount(); i++) {
-            Chip chip = (Chip) group.getChildAt(i);
-            if (value.equals(chip.getTag())) chip.performClick();
-        }
-        sheet.findViewById(R.id.btnSheetApply).performClick();
-        idle();
+    private static List<String> optionsOf(TransactionHistoryActivity a, int dropdownId) {
+        android.widget.ListAdapter adapter = dropdown(a, dropdownId).getAdapter();
+        List<String> out = new ArrayList<>();
+        for (int i = 0; i < adapter.getCount(); i++) out.add(adapter.getItem(i).toString());
+        return out;
     }
 
-    // ---- the Type chips -------------------------------------------------------------------------------------
+    private static void choose(TransactionHistoryActivity a, int dropdownId, String label) {
+        List<String> options = optionsOf(a, dropdownId);
+        int index = options.indexOf(label);
+        if (index < 0) throw new AssertionError("no option '" + label + "' in " + options);
+        pick(a, dropdownId, index);
+    }
+
+    private static void pickTransaction(TransactionHistoryActivity a, String label) {
+        choose(a, R.id.dropdownTransaction, label);
+    }
+
+    private static void pickBookingStatus(TransactionHistoryActivity a, String label) {
+        choose(a, R.id.dropdownBookingStatus, label);
+    }
+
+    private static void pickRoomType(TransactionHistoryActivity a, String label) {
+        choose(a, R.id.dropdownRoomType, label);
+    }
+
+    /** What the adapter's own filter would keep for this text - synchronously, as a typed or pre-filled text would filter. */
+    private static int countAfterFiltering(AutoCompleteTextView dd, String text) throws Exception {
+        android.widget.Filter filter = ((android.widget.Filterable) dd.getAdapter()).getFilter();
+        java.lang.reflect.Method m = android.widget.Filter.class.getDeclaredMethod("performFiltering", CharSequence.class);
+        m.setAccessible(true);
+        Object results = m.invoke(filter, text);
+        return results.getClass().getField("count").getInt(results);
+    }
+
+    // ---- every dropdown opens with its FULL list ----------------------------------------------------------
 
     @Test
-    public void typeChips_filterBookingsReservationsAndPayments_andAllRestoresEverything() {
-        TransactionHistoryActivity a = launchWithEverything().get();
-        assertEquals("all five at first", 5, shownRefs(a).size());
-        assertEquals("5 results", text(a, R.id.tvResultCount));
+    public void everyDropdown_opensWithItsFullList_alsoAfterASelectionAndAfterComingBack() throws Exception {
+        ActivityController<TransactionHistoryActivity> controller = launchWithEverything();
+        TransactionHistoryActivity a = controller.get();
+        assertEquals("Transaction: 11 options", 11, optionsOf(a, R.id.dropdownTransaction).size());
+        assertEquals("Booking status: All + 6", 7, optionsOf(a, R.id.dropdownBookingStatus).size());
+        int rooms = optionsOf(a, R.id.dropdownRoomType).size();
+        assertTrue("Room type: All room types + the room types: " + optionsOf(a, R.id.dropdownRoomType), rooms >= 4);
 
-        chooseType(a, R.id.chipTypeBookings);
+        pickTransaction(a, "Bookings");
+        pickBookingStatus(a, "Confirmed");
+        pickRoomType(a, "Suite");
+        // the text now says what was picked ...
+        assertEquals("Bookings", dropdown(a, R.id.dropdownTransaction).getText().toString());
+        // ... and that text does not narrow the list: every dropdown still has everything
+        assertEquals(11, countAfterFiltering(dropdown(a, R.id.dropdownTransaction), "Bookings"));
+        assertEquals(7, countAfterFiltering(dropdown(a, R.id.dropdownBookingStatus), "Confirmed"));
+        assertEquals(rooms, countAfterFiltering(dropdown(a, R.id.dropdownRoomType), "Suite"));
+        assertEquals(11, dropdown(a, R.id.dropdownTransaction).getAdapter().getCount());
+
+        controller.pause().stop();
+        controller.restart().start().resume(); // back from a transaction's details
+        idle();
+        assertEquals(11, dropdown(a, R.id.dropdownTransaction).getAdapter().getCount());
+        assertEquals(7, dropdown(a, R.id.dropdownBookingStatus).getAdapter().getCount());
+        assertEquals(rooms, dropdown(a, R.id.dropdownRoomType).getAdapter().getCount());
+    }
+
+    // ---- the Transaction dropdown, option by option -----------------------------------------------------------
+
+    @Test
+    public void transactionDropdown_eachOption() {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        pickTransaction(a, "Bookings");
         assertEquals(refs("Booking #2", "Booking #3", "Booking #4"), shownRefs(a));
-        chooseType(a, R.id.chipTypeReservations);
+        pickTransaction(a, "Reservations");
         assertEquals("a cancelled reservation is closed, so it is not under Reservations", refs("Reservation #1"), shownRefs(a));
-        chooseType(a, R.id.chipTypePayments);
-        assertEquals("transactions with at least one payment", refs("Booking #2", "Booking #3", "Booking #4"), shownRefs(a));
-        chooseType(a, R.id.chipTypeAll);
-        assertEquals(5, shownRefs(a).size());
-    }
-
-    // ---- the Filters sheet, one filter at a time ------------------------------------------------------------
-
-    @Test
-    public void paymentStatus_eachOption() {
-        TransactionHistoryActivity a = launchWithEverything().get();
-        pickInSheet(a, R.id.sheetGroupPayment, "PAID");
+        pickTransaction(a, "Payments");
+        assertEquals(refs("Booking #2", "Booking #3", "Booking #4"), shownRefs(a));
+        pickTransaction(a, "Pending");
+        assertEquals(refs("Reservation #1"), shownRefs(a));
+        pickTransaction(a, "Paid");
         assertEquals(refs("Booking #2", "Booking #3"), shownRefs(a));
-        pickInSheet(a, R.id.sheetGroupPayment, "PARTIALLY_PAID");
+        pickTransaction(a, "Partially paid");
         assertEquals(refs("Booking #4"), shownRefs(a));
-        pickInSheet(a, R.id.sheetGroupPayment, "PENDING");
-        assertEquals(refs("Reservation #1"), shownRefs(a));
-        pickInSheet(a, R.id.sheetGroupPayment, "");
-        assertEquals("All", 5, shownRefs(a).size());
-    }
-
-    @Test
-    public void bookingStatus_eachOption() {
-        TransactionHistoryActivity a = launchWithEverything().get();
-        pickInSheet(a, R.id.sheetGroupBooking, "Checked-Out");
+        pickTransaction(a, "Cancelled");
+        assertEquals(refs("Reservation #5"), shownRefs(a));
+        pickTransaction(a, "Rejected");
+        assertEquals(Collections.emptyList(), shownRefs(a));
+        pickTransaction(a, "Checked in");
+        assertEquals(Collections.emptyList(), shownRefs(a));
+        pickTransaction(a, "Checked out");
         assertEquals(refs("Booking #3"), shownRefs(a));
-        pickInSheet(a, R.id.sheetGroupBooking, "Cancelled");
-        assertEquals("Cancelled finds reservations too", refs("Reservation #5"), shownRefs(a));
-        pickInSheet(a, R.id.sheetGroupBooking, "Pending");
-        assertEquals(refs("Reservation #1"), shownRefs(a));
-        pickInSheet(a, R.id.sheetGroupBooking, "");
+        pickTransaction(a, "All transactions");
         assertEquals(5, shownRefs(a).size());
     }
 
     @Test
-    public void roomType_isOfferedFromTheBrowseRoomsCatalog_andFilters() {
+    public void bookingStatusDropdown_eachOption() {
         TransactionHistoryActivity a = launchWithEverything().get();
-        a.findViewById(R.id.btnFilters).performClick();
-        idle();
-        ChipGroup rooms = ShadowDialog.getLatestDialog().findViewById(R.id.sheetGroupRoom);
-        List<String> offered = new ArrayList<>();
-        for (int i = 0; i < rooms.getChildCount(); i++) offered.add(((Chip) rooms.getChildAt(i)).getText().toString());
-        assertEquals("All room types", offered.get(0));
-        assertTrue("fallback to the room types in the guest's own transactions: " + offered,
-                offered.containsAll(Arrays.asList("Deluxe", "Standard", "Suite")));
-        ShadowDialog.getLatestDialog().dismiss();
-
-        pickInSheet(a, R.id.sheetGroupRoom, "Standard");
-        assertEquals(refs("Booking #4", "Reservation #5"), shownRefs(a));
+        pickBookingStatus(a, "Pending");
+        assertEquals(refs("Reservation #1"), shownRefs(a));
+        pickBookingStatus(a, "Confirmed");
+        assertEquals(refs("Booking #2", "Booking #4"), shownRefs(a));
+        pickBookingStatus(a, "Checked out");
+        assertEquals(refs("Booking #3"), shownRefs(a));
+        pickBookingStatus(a, "Cancelled");
+        assertEquals(refs("Reservation #5"), shownRefs(a));
+        pickBookingStatus(a, "Checked in");
+        assertEquals(Collections.emptyList(), shownRefs(a));
+        pickBookingStatus(a, "All");
+        assertEquals(5, shownRefs(a).size());
     }
 
     @Test
-    public void dates_aStayThatOverlapsTheRangeMatches() throws Exception {
+    public void roomTypeDropdown_listsTheCatalogOrTheGuestsOwnRoomTypes_andFilters() {
         TransactionHistoryActivity a = launchWithEverything().get();
+        List<String> offered = optionsOf(a, R.id.dropdownRoomType);
+        assertEquals("All room types", offered.get(0));
+        assertTrue("fallback to the guest's own room types: " + offered, offered.containsAll(Arrays.asList("Deluxe", "Standard", "Suite")));
+        pickRoomType(a, "Standard");
+        assertEquals(refs("Booking #4", "Reservation #5"), shownRefs(a));
+        pickRoomType(a, "All room types");
+        assertEquals(5, shownRefs(a).size());
+    }
+
+    // ---- the date fields ----------------------------------------------------------------------------------------
+
+    private void setDates(TransactionHistoryActivity a, LocalDate checkIn, LocalDate checkOut) throws Exception {
         Object criteria = field(a, "criteria");
-        field(criteria, "from", LocalDate.of(2026, 10, 11)); // starts on booking #2's check-OUT day
-        field(criteria, "to", LocalDate.of(2026, 10, 20));   // ends on booking #4's check-IN day
-        invoke(a, "updateFilterUi");
-        invoke(a, "applyFilters");
-        assertEquals(refs("Booking #2", "Booking #4"), shownRefs(a));
-        assertEquals("the date shows as a removable chip", 1, ((ChipGroup) a.findViewById(R.id.chipGroupActive)).getChildCount());
-        assertEquals("Oct 11 - Oct 20", ((Chip) ((ChipGroup) a.findViewById(R.id.chipGroupActive)).getChildAt(0)).getText().toString());
+        field(criteria, "checkInFrom", checkIn);
+        field(criteria, "checkOutTo", checkOut);
+        invoke(a, "onFiltersChanged");
+        idle();
+    }
+
+    @Test
+    public void checkInDateOnly_checkOutDateOnly_andBoth() throws Exception {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        setDates(a, LocalDate.of(2026, 10, 10), null);
+        assertEquals("checking in on or after Oct 10", refs("Booking #2", "Booking #4", "Reservation #5"), shownRefs(a));
+        assertEquals("Oct 10, 2026", text(a, R.id.etCheckIn));
+
+        setDates(a, null, LocalDate.of(2026, 10, 11));
+        assertEquals("checking out on or before Oct 11", refs("Reservation #1", "Booking #2", "Booking #3"), shownRefs(a));
+        assertEquals("Oct 11, 2026", text(a, R.id.etCheckOut));
+
+        setDates(a, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 21));
+        assertEquals("inside the window", refs("Reservation #1", "Booking #2", "Booking #4"), shownRefs(a));
     }
 
     // ---- combining, counting, clearing ----------------------------------------------------------------------
 
     @Test
-    public void filtersCombineWithEachOtherAndWithSearch_countOnTheButton_removableChips_resetAndClearAll() {
+    public void dropdownsDatesAndSearchCombine_theToggleCounts_andClearFiltersResetsEverything() throws Exception {
         TransactionHistoryActivity a = launchWithEverything().get();
-        pickInSheet(a, R.id.sheetGroupPayment, "PAID");
-        pickInSheet(a, R.id.sheetGroupRoom, "Suite");
-        assertEquals("the room pick replaced nothing: payment status was reset by the staged copy? no - it is kept", refs("Booking #2"), shownRefs(a));
-        assertEquals("Filters · 2", text(a, R.id.btnFilters));
-        assertEquals(View.VISIBLE, a.findViewById(R.id.rowActiveFilters).getVisibility());
-        ChipGroup active = a.findViewById(R.id.chipGroupActive);
-        assertEquals(2, active.getChildCount());
+        assertEquals("Clear filters is hidden while nothing filters", View.GONE, a.findViewById(R.id.btnClearFilters).getVisibility());
+        assertEquals("5 results", text(a, R.id.tvResultCount));
 
-        // search narrows it further (AND)
-        ((TextView) a.findViewById(R.id.etSearch)).setText("deluxe");
+        pickTransaction(a, "Paid");
+        pickRoomType(a, "Suite");
+        assertEquals(refs("Booking #2"), shownRefs(a));
+        assertEquals("1 result", text(a, R.id.tvResultCount));
+        assertEquals(View.VISIBLE, a.findViewById(R.id.btnClearFilters).getVisibility());
+
+        a.findViewById(R.id.btnToggleFilters).performClick(); // fold the panel
+        assertEquals(View.GONE, a.findViewById(R.id.layoutFilterPanel).getVisibility());
+        assertEquals("Show filters (2 active)", text(a, R.id.btnToggleFilters));
+        a.findViewById(R.id.btnToggleFilters).performClick();
+        assertEquals(View.VISIBLE, a.findViewById(R.id.layoutFilterPanel).getVisibility());
+        assertEquals("Hide filters", text(a, R.id.btnToggleFilters));
+
+        ((TextView) a.findViewById(R.id.etSearch)).setText("deluxe"); // search narrows further (AND)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));
         assertEquals(Collections.emptyList(), shownRefs(a));
         assertEquals("No transactions match your filters", text(a, R.id.emptyTitle));
         assertEquals("Clear filters", text(a, R.id.btnEmptyAction));
 
-        a.findViewById(R.id.btnEmptyAction).performClick(); // Clear filters
+        a.findViewById(R.id.btnEmptyAction).performClick();
         idle();
         assertEquals(5, shownRefs(a).size());
-        assertEquals("Filters", text(a, R.id.btnFilters));
-        assertEquals(View.GONE, a.findViewById(R.id.rowActiveFilters).getVisibility());
-        assertEquals("", ((TextView) a.findViewById(R.id.etSearch)).getText().toString());
+        assertEquals("All transactions", dropdown(a, R.id.dropdownTransaction).getText().toString());
+        assertEquals("All room types", dropdown(a, R.id.dropdownRoomType).getText().toString());
+        assertEquals("", text(a, R.id.etSearch));
+        assertEquals(View.GONE, a.findViewById(R.id.btnClearFilters).getVisibility());
+
+        setDates(a, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 21));
+        pickBookingStatus(a, "Confirmed");
+        a.findViewById(R.id.btnClearFilters).performClick();
+        idle();
+        assertEquals("the Clear filters button clears the dates too", 5, shownRefs(a).size());
+        assertEquals("", text(a, R.id.etCheckIn));
     }
 
-    @Test
-    public void removingAnActiveChip_dropsOnlyThatFilter_andResetInTheSheetClearsTheStagedChoices() {
-        TransactionHistoryActivity a = launchWithEverything().get();
-        pickInSheet(a, R.id.sheetGroupPayment, "PAID");
-        pickInSheet(a, R.id.sheetGroupRoom, "Deluxe");
-        assertEquals(refs("Booking #3"), shownRefs(a));
-
-        ((Chip) ((ChipGroup) a.findViewById(R.id.chipGroupActive)).getChildAt(0)).performClick(); // remove "Paid"
-        idle();
-        assertEquals("only the room filter is left", refs("Booking #3", "Reservation #1"), shownRefs(a));
-        assertEquals("Filters · 1", text(a, R.id.btnFilters));
-
-        a.findViewById(R.id.btnFilters).performClick(); // Reset, then Apply
-        idle();
-        Dialog sheet = ShadowDialog.getLatestDialog();
-        sheet.findViewById(R.id.btnSheetReset).performClick();
-        sheet.findViewById(R.id.btnSheetApply).performClick();
-        idle();
-        assertEquals(5, shownRefs(a).size());
-        assertEquals("Filters", text(a, R.id.btnFilters));
-
-        pickInSheet(a, R.id.sheetGroupPayment, "PAID");
-        a.findViewById(R.id.btnClearAllFilters).performClick();
-        idle();
-        assertEquals("Clear all", 5, shownRefs(a).size());
-    }
-
-    // ---- Export, details round trip, pagination --------------------------------------------------------------
+    // ---- Export, details round trip, rotation, pagination -----------------------------------------------------
 
     @Test
     public void export_usesExactlyTheFilteredAndSearchedRows() throws Exception {
         TransactionHistoryActivity a = launchWithEverything().get();
-        pickInSheet(a, R.id.sheetGroupPayment, "PAID");
+        pickTransaction(a, "Paid");
         ((TextView) a.findViewById(R.id.etSearch)).setText("suite");
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));
         List<?> exported = (List<?>) invoke(a, "rowsForExport");
@@ -306,9 +355,9 @@ public class TransactionHistoryFiltersScreenTest {
     public void filtersAndSearchSurviveAVisitToATransactionsDetails() {
         ActivityController<TransactionHistoryActivity> controller = launchWithEverything();
         TransactionHistoryActivity a = controller.get();
-        pickInSheet(a, R.id.sheetGroupPayment, "PAID");
-        chooseType(a, R.id.chipTypeBookings);
-        assertEquals(refs("Booking #2", "Booking #3"), shownRefs(a));
+        pickTransaction(a, "Paid");
+        pickRoomType(a, "Suite");
+        assertEquals(refs("Booking #2"), shownRefs(a));
 
         RecyclerView rv = a.findViewById(R.id.rvTransactions);
         rv.findViewHolderForAdapterPosition(0).itemView.findViewById(R.id.cardTransaction).performClick();
@@ -317,9 +366,54 @@ public class TransactionHistoryFiltersScreenTest {
         controller.restart().start().resume(); // coming back
         idle();
 
-        assertEquals("the same filters, the same rows", refs("Booking #2", "Booking #3"), shownRefs(a));
-        assertEquals("Filters · 1", text(a, R.id.btnFilters));
-        assertEquals(R.id.chipTypeBookings, ((ChipGroup) a.findViewById(R.id.chipGroupType)).getCheckedChipId());
+        assertEquals("the same filters, the same rows", refs("Booking #2"), shownRefs(a));
+        assertEquals("Paid", dropdown(a, R.id.dropdownTransaction).getText().toString());
+        assertEquals("Suite", dropdown(a, R.id.dropdownRoomType).getText().toString());
+    }
+
+    @Test
+    public void filtersSurviveAScreenRotation() throws Exception {
+        ActivityController<TransactionHistoryActivity> controller = launchWithEverything();
+        TransactionHistoryActivity a = controller.get();
+        pickTransaction(a, "Bookings");
+        pickBookingStatus(a, "Confirmed");
+        setDates(a, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31));
+        a.findViewById(R.id.btnToggleFilters).performClick(); // folded
+        assertEquals(refs("Booking #2", "Booking #4"), shownRefs(a));
+
+        controller.recreate(); // rotation
+        idle();
+        TransactionHistoryActivity again = controller.get();
+        ScreenTestSupport.answerBookingLoad(api, api.count("getReservations") - 1,
+                ScreenTestSupport.reservations(ScreenTestSupport.reservation(1, 1800)), ScreenTestSupport.directBookings(
+                        direct(2, 3000, "ACTIVE_BOOKING", "Suite", "2026-10-10", "2026-10-11", "3000.00"),
+                        direct(4, 2000, "ACTIVE_BOOKING", "Standard", "2026-10-20", "2026-10-21", "1000.00")));
+        idle();
+        assertEquals("Bookings", dropdown(again, R.id.dropdownTransaction).getText().toString());
+        assertEquals("Confirmed", dropdown(again, R.id.dropdownBookingStatus).getText().toString());
+        assertEquals("Oct 1, 2026", text(again, R.id.etCheckIn));
+        assertEquals("Oct 31, 2026", text(again, R.id.etCheckOut));
+        assertEquals("the panel stays folded", View.GONE, again.findViewById(R.id.layoutFilterPanel).getVisibility());
+        assertEquals(refs("Booking #2", "Booking #4"), shownRefs(again));
+        assertEquals("every dropdown still has its full list", 11, dropdown(again, R.id.dropdownTransaction).getAdapter().getCount());
+    }
+
+    @Test
+    public void aCard_neverShowsTheSameStatusWordTwice_andTheIdIsPlainBold() {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        RecyclerView rv = a.findViewById(R.id.rvTransactions);
+        shownRefs(a);
+        for (int i = 0; i < rv.getAdapter().getItemCount(); i++) {
+            View card = rv.findViewHolderForAdapterPosition(i).itemView;
+            TextView payment = card.findViewById(R.id.tvTxnStatusBadge);
+            TextView booking = card.findViewById(R.id.tvTxnBookingStatus);
+            if (payment.getVisibility() == View.VISIBLE && booking.getVisibility() == View.VISIBLE) {
+                assertFalse("\"" + payment.getText() + "\" twice", payment.getText().toString().equalsIgnoreCase(booking.getText().toString()));
+            }
+            TextView ref = card.findViewById(R.id.tvTxnRef);
+            assertFalse("Title Case, not ALL CAPS", ref.isAllCaps());
+            assertEquals("no letter-spacing", 0f, ref.getLetterSpacing(), 0.0001f);
+        }
     }
 
     @Test
@@ -329,7 +423,6 @@ public class TransactionHistoryFiltersScreenTest {
         controller.setup();
         idle();
         TransactionHistoryActivity a = controller.get();
-        // the server says there are 450 reservations: more than the 200 per page asked for
         com.example.velocitysuites.network.dto.PaginatedResponse<ReservationDto> first = ScreenTestSupport.page(ScreenTestSupport.reservations(ScreenTestSupport.reservation(1, 1800)));
         first.total = 450;
         api.call("getReservations", 0).succeed(first);
@@ -337,9 +430,8 @@ public class TransactionHistoryFiltersScreenTest {
         idle();
         assertEquals("no filter: nothing extra is loaded", 1, api.count("getReservations"));
 
-        ((TextView) a.findViewById(R.id.etSearch)).setText("reservation");
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));
-        assertEquals("searching asks for the next page", 2, api.count("getReservations"));
+        pickTransaction(a, "Reservations");
+        assertEquals("a filter asks for the next page", 2, api.count("getReservations"));
 
         com.example.velocitysuites.network.dto.PaginatedResponse<ReservationDto> second = ScreenTestSupport.page(ScreenTestSupport.reservations(
                 ScreenTestSupport.reservation(1, 1800), ScreenTestSupport.reservation(2, 1800)));
@@ -351,50 +443,59 @@ public class TransactionHistoryFiltersScreenTest {
 
         com.example.velocitysuites.network.dto.PaginatedResponse<ReservationDto> third = ScreenTestSupport.page(ScreenTestSupport.reservations(
                 ScreenTestSupport.reservation(1, 1800), ScreenTestSupport.reservation(2, 1800), ScreenTestSupport.reservation(3, 1800)));
-        third.total = 450; // 450 <= 600 now: nothing more to load
+        third.total = 450;
         api.call("getReservations", 2).succeed(third);
         api.call("getDirectBookings", 2).succeed(ScreenTestSupport.page(new ArrayList<DirectBookingResponseDto>()));
         idle();
         assertEquals("then it stops", 3, api.count("getReservations"));
-        assertEquals("every loaded page is searched", 3, shownRefs(a).size());
+        assertEquals("every loaded page is filtered", 3, shownRefs(a).size());
         assertEquals("3 results", text(a, R.id.tvResultCount));
     }
 
     // ---- layout at 360dp, light and dark ---------------------------------------------------------------------
 
-    private void assertFilterRowFits(TransactionHistoryActivity a) {
+    private void assertFilterPanelFits(TransactionHistoryActivity a) {
         View root = a.getWindow().getDecorView();
         int w = app.getResources().getDisplayMetrics().widthPixels;
         int h = app.getResources().getDisplayMetrics().heightPixels;
         root.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
         root.layout(0, 0, w, h);
-        View chips = (View) a.findViewById(R.id.chipGroupType).getParent();
-        View filters = a.findViewById(R.id.btnFilters);
-        View search = a.findViewById(R.id.searchLayout);
-        Rect chipsBounds = LayoutHarness.boundsIn(root, chips);
-        Rect filtersBounds = LayoutHarness.boundsIn(root, filters);
-        assertFalse("the Filters button does not overlap the chips", Rect.intersects(chipsBounds, filtersBounds));
-        assertTrue("the Filters button is fully on screen", filtersBounds.right <= w && filtersBounds.left >= 0);
-        assertTrue("48dp tall", filters.getHeight() >= LayoutHarness.dp(app, 48));
-        assertFalse("the search box does not overlap the chip row", Rect.intersects(LayoutHarness.boundsIn(root, search), chipsBounds));
+        int[] ids = {R.id.layoutTransactionFilter, R.id.layoutBookingStatusFilter, R.id.layoutRoomTypeFilter, R.id.layoutCheckIn, R.id.layoutCheckOut};
+        for (int i = 0; i < ids.length; i++) {
+            View view = a.findViewById(ids[i]);
+            Rect r = LayoutHarness.boundsIn(root, view);
+            assertTrue("on screen: " + a.getResources().getResourceEntryName(ids[i]), r.left >= 0 && r.right <= w);
+            assertTrue("a usable width", r.width() >= LayoutHarness.dp(app, 120));
+            assertTrue("48dp tall at least", r.height() >= LayoutHarness.dp(app, 48));
+            for (int j = i + 1; j < ids.length; j++) {
+                assertFalse(a.getResources().getResourceEntryName(ids[i]) + " overlaps " + a.getResources().getResourceEntryName(ids[j]),
+                        LayoutHarness.overlaps(root, view, a.findViewById(ids[j])));
+            }
+        }
+        Rect transaction = LayoutHarness.boundsIn(root, a.findViewById(R.id.layoutTransactionFilter));
+        Rect booking = LayoutHarness.boundsIn(root, a.findViewById(R.id.layoutBookingStatusFilter));
+        assertEquals("two columns on the first row", transaction.top, booking.top);
+        Rect checkIn = LayoutHarness.boundsIn(root, a.findViewById(R.id.layoutCheckIn));
+        Rect checkOut = LayoutHarness.boundsIn(root, a.findViewById(R.id.layoutCheckOut));
+        assertEquals("two date fields side by side", checkIn.top, checkOut.top);
+        assertTrue(LayoutHarness.boundsIn(root, a.findViewById(R.id.btnToggleFilters)).height() >= LayoutHarness.dp(app, 48));
 
         View count = a.findViewById(R.id.tvResultCount);
         View export = a.findViewById(R.id.btnExport);
         assertFalse("the count does not overlap Export", Rect.intersects(LayoutHarness.boundsIn(root, count), LayoutHarness.boundsIn(root, export)));
         assertTrue("Export is fully on screen", LayoutHarness.boundsIn(root, export).right <= w);
+        assertEquals("the description is one line", 1, ((TextView) a.findViewById(R.id.screenDescription)).getLineCount());
     }
 
     @Test
-    public void filterRow_fitsAt360dp_inLightMode() {
-        TransactionHistoryActivity a = launchWithEverything().get();
-        assertFilterRowFits(a);
+    public void filterPanel_fitsAt360dp_inLightMode() {
+        assertFilterPanelFits(launchWithEverything().get());
     }
 
     @Test
     @Config(sdk = 35, qualifiers = "w360dp-h800dp-night-xxhdpi", application = TestApplication.class)
-    public void filterRow_fitsAt360dp_inDarkMode() {
-        TransactionHistoryActivity a = launchWithEverything().get();
-        assertFilterRowFits(a);
+    public void filterPanel_fitsAt360dp_inDarkMode() {
+        assertFilterPanelFits(launchWithEverything().get());
     }
 
     // ---- reflection helpers ----------------------------------------------------------------------------------

@@ -103,7 +103,7 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
 
         // Status badge - the same label/colors/icon every screen uses for this status.
         TransactionStatusHelper.Style style = TransactionStatusHelper.styleFor(summary.status);
-        StatusBadges.bind(holder.tvStatusBadge, summary.status);
+        bindPaymentChip(ctx, holder.tvStatusBadge, row, summary);
 
         String reference = TransactionText.reference(ctx, row);
         holder.tvRef.setText(reference);
@@ -118,7 +118,7 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
         // The booking / reservation status beside the payment status, so both filters make sense on the card.
         boolean hasLifecycle = row.lifecycleStatus != null && !row.lifecycleStatus.trim().isEmpty();
         holder.tvBookingStatus.setVisibility(hasLifecycle ? View.VISIBLE : View.GONE);
-        if (hasLifecycle) holder.tvBookingStatus.setText(TransactionStatusChip.label(row.lifecycleStatus));
+        if (hasLifecycle) holder.tvBookingStatus.setText(BookingStatusWords.label(ctx, row.lifecycleStatus));
 
         holder.tvRemoved.setVisibility(row.removedByGuest ? View.VISIBLE : View.GONE);
 
@@ -139,6 +139,22 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
         });
 
         bindHighlight(holder, row.stableId() == highlightedStableId);
+    }
+
+    /**
+     * The PAYMENT chip: Unpaid (red), Partially paid (amber) or Paid (green) - the same tone as the balance below it. A
+     * cancelled or rejected transaction nothing was paid on has no payment to describe, so it shows no payment chip (and
+     * can never read "Unpaid" beside "Cancelled").
+     */
+    static void bindPaymentChip(Context ctx, TextView chip, TransactionRow row, TransactionStatusHelper.Summary summary) {
+        boolean hidden = summary.grandTotal <= MoneyFormat.EPSILON || (row.closed && !MoneyFormat.isPositive(summary.verifiedPaid));
+        chip.setVisibility(hidden ? View.GONE : View.VISIBLE);
+        if (hidden) return;
+        PaymentBalanceTone tone = PaymentBalanceTone.of(summary.grandTotal, summary.verifiedPaid);
+        chip.setText(tone == PaymentBalanceTone.PAID ? R.string.txn_status_paid
+                : tone == PaymentBalanceTone.PARTIAL ? R.string.payment_chip_partial : R.string.payment_chip_unpaid);
+        chip.setBackgroundTintList(ctx.getColorStateList(tone.chipBgRes));
+        chip.setTextColor(ctx.getColor(tone.colorRes));
     }
 
     /**

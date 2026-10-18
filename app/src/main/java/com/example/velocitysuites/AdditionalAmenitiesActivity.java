@@ -62,6 +62,9 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
     private LinearLayout summaryList;
     private TextView totalLabel;
     private MaterialButton submitButton;
+    private View bottomBar;
+    private View hintAddOne;
+    private final Map<Long, TextView> roomPickedLabels = new LinkedHashMap<>();
 
     private final List<AddOnAmenity> catalog = new ArrayList<>();
     private final List<RoomEntry> rooms = new ArrayList<>();
@@ -88,6 +91,8 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         summaryList = findViewById(R.id.additionalAmenitiesSummary);
         totalLabel = findViewById(R.id.additionalAmenitiesTotal);
         submitButton = findViewById(R.id.additionalAmenitiesSubmit);
+        bottomBar = findViewById(R.id.additionalAmenitiesBottomBar);
+        hintAddOne = findViewById(R.id.additionalAmenitiesHint);
 
         retryButton.setOnClickListener(v -> load());
         submitButton.setOnClickListener(v -> submit());
@@ -102,6 +107,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
 
     private void showState(String message, boolean error) {
         form.setVisibility(View.GONE);
+        bottomBar.setVisibility(View.GONE);
         stateBlock.setVisibility(View.VISIBLE);
         stateText.setText(message);
         retryButton.setVisibility(error ? View.VISIBLE : View.GONE);
@@ -118,6 +124,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
                     return;
                 }
                 readRooms(info);
+                bindStaySummary();
                 loadCatalog();
             }
 
@@ -143,12 +150,45 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         if (rooms.isEmpty()) rooms.add(new RoomEntry(0, getString(R.string.additional_amenities_your_room), ""));
     }
 
+    /** "Booking #567 · Room 303 · Oct 20 → Oct 21, 2026": which stay this request is for (from the cached transaction). */
+    private void bindStaySummary() {
+        Booking stay = null;
+        for (Booking b : repository.getAllBookings()) {
+            if (b != null && id.equals(b.getId()) && b.isDirectBooking() == hasBooking) {
+                stay = b;
+                break;
+            }
+        }
+        View card = findViewById(R.id.additionalAmenitiesStay);
+        if (stay == null) {
+            card.setVisibility(View.GONE);
+            return;
+        }
+        List<String> titles = new ArrayList<>();
+        for (RoomEntry room : rooms) if (room.id != 0) titles.add(room.title);
+        String where = titles.isEmpty() ? TransactionRow.roomTextOf(stay) : android.text.TextUtils.join(", ", titles);
+        List<String> parts = new ArrayList<>();
+        parts.add(TransactionText.reference(this, stay.isHasBooking(), stay.getDisplayId()));
+        if (!where.isEmpty()) parts.add(where);
+        String dates = StayCardText.dates(stay);
+        if (!dates.isEmpty()) parts.add(dates);
+        ((TextView) findViewById(R.id.tvAmenitiesStaySummary)).setText(android.text.TextUtils.join(" · ", parts));
+        card.setVisibility(View.VISIBLE);
+    }
+
     private void loadCatalog() {
         repository.refreshAmenities("paid", new RoomRepository.RepositoryCallback<List<AddOnAmenity>>() {
             @Override
-            public void onSuccess(List<AddOnAmenity> items) {
+            public void onSuccess(List<AddOnAmenity> rawItems) {
                 if (isFinishing()) return;
-                if (items == null || items.isEmpty()) {
+                // Active amenities only, each once (by id); same name under two ids is reported, not hidden.
+                List<AddOnAmenity> items = AmenityCatalog.cleaned(rawItems);
+                List<String> sameName = AmenityCatalog.sameNameDifferentId(items);
+                if (!sameName.isEmpty()) {
+                    com.example.velocitysuites.network.DiagnosticLog.w("AdditionalAmenities",
+                            "same name under different ids (possible duplicate data): " + sameName);
+                }
+                if (items.isEmpty()) {
                     showState(getString(R.string.additional_amenities_catalog_empty), false);
                     return;
                 }
@@ -168,6 +208,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         catalog.addAll(items);
         selections.clear();
         roomSummaryLabels.clear();
+        roomPickedLabels.clear();
         roomsList.removeAllViews();
 
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -179,24 +220,28 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             sub.setText(room.subtitle);
             sub.setVisibility(room.subtitle.isEmpty() ? View.GONE : View.VISIBLE);
             roomSummaryLabels.put(room.id, card.findViewById(R.id.tvAmenityRoomSelection));
+            roomPickedLabels.put(room.id, card.findViewById(R.id.tvAmenityRoomPicked));
             card.setOnClickListener(v -> openRoomPicker(room));
             roomsList.addView(card);
         }
 
         stateBlock.setVisibility(View.GONE);
         form.setVisibility(View.VISIBLE);
+        bottomBar.setVisibility(View.VISIBLE);
         refreshAll();
     }
 
-    /** The picker for one room: every requestable amenity with a stepper; several can be chosen. Changes apply immediately. */
+    /** The picker for one room: every requestable amenity once, a compact stepper each, several can be chosen. Changes apply immediately. */
     private void openRoomPicker(RoomEntry room) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View content = LayoutInflater.from(this).inflate(R.layout.dialog_additional_amenity_room_picker, null, false);
         ((TextView) content.findViewById(R.id.tvPickerTitle)).setText(getString(R.string.additional_amenities_picker_title_format, room.title));
         LinearLayout list = content.findViewById(R.id.pickerList);
-        // Tall catalogs scroll inside the sheet so the Done button always stays on screen.
+        TextView pickerTotal = content.findViewById(R.id.tvPickerTotal);
+        content.findViewById(R.id.tvPickerEmpty).setVisibility(catalog.isEmpty() ? View.VISIBLE : View.GONE);
+        // Tall catalogs scroll inside the sheet so the footer (total, Done) always stays on screen.
         ((MaxHeightNestedScrollView) content.findViewById(R.id.pickerScroll))
-                .setMaxHeightPx((int) (getResources().getDisplayMetrics().heightPixels * 0.55f));
+                .setMaxHeightPx((int) (getResources().getDisplayMetrics().heightPixels * 0.5f));
         int[] quantities = selections.get(room.id);
 
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -206,35 +251,83 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             View row = inflater.inflate(R.layout.item_additional_amenity_option, list, false);
             ((TextView) row.findViewById(R.id.tvAmenityOptionName)).setText(amenity.getName());
             ((TextView) row.findViewById(R.id.tvAmenityOptionPrice)).setText(getString(R.string.additional_amenities_each_format, MoneyFormat.format(amenity.getPrice())));
-            TextView qtyLabel = row.findViewById(R.id.tvAmenityOptionQty);
-            TextView subtotalLabel = row.findViewById(R.id.tvAmenityOptionSubtotal);
+            bindDescription(row, amenity);
             int cap = Math.min(MAX_QTY, amenity.getMaxQuantity());
-            bindRow(qtyLabel, subtotalLabel, quantities[index], amenity);
+            bindRow(row, quantities[index], amenity, cap);
 
             row.findViewById(R.id.btnAmenityOptionMinus).setOnClickListener(v -> {
                 if (quantities[index] > 0) {
                     quantities[index]--;
-                    bindRow(qtyLabel, subtotalLabel, quantities[index], amenity);
+                    bindRow(row, quantities[index], amenity, cap);
+                    pickerTotal.setText(pickerTotalText(quantities));
                     refreshAll();
                 }
             });
             row.findViewById(R.id.btnAmenityOptionPlus).setOnClickListener(v -> {
                 if (quantities[index] < cap) {
                     quantities[index]++;
-                    bindRow(qtyLabel, subtotalLabel, quantities[index], amenity);
+                    bindRow(row, quantities[index], amenity, cap);
+                    pickerTotal.setText(pickerTotalText(quantities));
                     refreshAll();
                 }
             });
             list.addView(row);
         }
+        pickerTotal.setText(pickerTotalText(quantities));
         content.findViewById(R.id.btnPickerDone).setOnClickListener(v -> dialog.dismiss());
         dialog.setContentView(content);
         SafeDialogs.show(dialog);
     }
 
-    private static void bindRow(TextView qtyLabel, TextView subtotalLabel, int qty, AddOnAmenity amenity) {
-        qtyLabel.setText(String.valueOf(qty));
-        subtotalLabel.setText(qty > 0 ? MoneyFormat.format(amenity.getPrice() * qty) : "");
+    /** "3 items · ₱200.00" for what is chosen in one room. */
+    private String pickerTotalText(int[] quantities) {
+        int items = 0;
+        double total = 0;
+        for (int i = 0; i < catalog.size(); i++) {
+            items += quantities[i];
+            total += catalog.get(i).getPrice() * quantities[i];
+        }
+        return getResources().getQuantityString(R.plurals.additional_amenities_items_total, items, items, MoneyFormat.format(total));
+    }
+
+    /** The description under the name (2 lines, "More" to read the rest); no description at all means no line - never a placeholder. */
+    private void bindDescription(View row, AddOnAmenity amenity) {
+        TextView description = row.findViewById(R.id.tvAmenityOptionDescription);
+        TextView more = row.findViewById(R.id.tvAmenityOptionMore);
+        String text = AmenityCatalog.descriptionOf(amenity);
+        if (text == null) {
+            description.setVisibility(View.GONE);
+            more.setVisibility(View.GONE);
+            return;
+        }
+        description.setText(text);
+        description.setVisibility(View.VISIBLE);
+        boolean long_ = text.length() > DESCRIPTION_MORE_CHARS;
+        more.setVisibility(long_ ? View.VISIBLE : View.GONE);
+        more.setOnClickListener(v -> {
+            boolean expanding = description.getMaxLines() <= 2;
+            description.setMaxLines(expanding ? Integer.MAX_VALUE : 2);
+            more.setText(expanding ? R.string.additional_amenities_description_less : R.string.additional_amenities_description_more);
+        });
+    }
+
+    /** More than this many characters will not fit two lines on a phone: offer "More". */
+    private static final int DESCRIPTION_MORE_CHARS = 70;
+
+    /** A row for its quantity: the count, the line subtotal and accent border when chosen, "-" off at 0 and "+" off at the stock limit. */
+    private void bindRow(View row, int qty, AddOnAmenity amenity, int cap) {
+        ((TextView) row.findViewById(R.id.tvAmenityOptionQty)).setText(String.valueOf(qty));
+        TextView subtotal = row.findViewById(R.id.tvAmenityOptionSubtotal);
+        subtotal.setVisibility(qty > 0 ? View.VISIBLE : View.GONE);
+        if (qty > 0) {
+            subtotal.setText(getString(R.string.additional_amenities_line_subtotal_format, qty,
+                    MoneyFormat.format(amenity.getPrice()), MoneyFormat.format(amenity.getPrice() * qty)));
+        }
+        row.findViewById(R.id.btnAmenityOptionMinus).setEnabled(qty > 0);
+        row.findViewById(R.id.btnAmenityOptionPlus).setEnabled(qty < cap);
+        com.google.android.material.card.MaterialCardView card = row.findViewById(R.id.cardAmenityOption);
+        card.setStrokeColor(getColor(qty > 0 ? R.color.velocity_red_primary : R.color.velocity_divider_hairline));
+        card.setStrokeWidth(Math.round((qty > 0 ? 2 : 1) * getResources().getDisplayMetrics().density));
     }
 
     /** Redraws each room card's "what you picked" line, the per-room summary and the total. */
@@ -244,11 +337,15 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         for (RoomEntry room : rooms) {
             int[] quantities = selections.get(room.id);
             List<String> picked = new ArrayList<>();
+            List<String> short_ = new ArrayList<>();
             double roomTotal = 0;
+            int roomItems = 0;
             for (int i = 0; i < catalog.size(); i++) {
                 if (quantities[i] > 0) {
                     picked.add(getString(R.string.additional_amenities_line_format, catalog.get(i).getName(), quantities[i]));
+                    short_.add(getString(R.string.additional_amenities_picked_format, quantities[i], catalog.get(i).getName()));
                     roomTotal += catalog.get(i).getPrice() * quantities[i];
+                    roomItems += quantities[i];
                 }
             }
             total += roomTotal;
@@ -256,12 +353,18 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             TextView label = roomSummaryLabels.get(room.id);
             if (label != null) {
                 label.setText(picked.isEmpty() ? getString(R.string.additional_amenities_none_selected)
-                        : getString(R.string.additional_amenities_selected_count_format, picked.size()));
+                        : getResources().getQuantityString(R.plurals.additional_amenities_items_total, roomItems, roomItems, MoneyFormat.format(roomTotal)));
+            }
+            TextView pickedLine = roomPickedLabels.get(room.id);
+            if (pickedLine != null) {
+                pickedLine.setText(android.text.TextUtils.join(", ", short_));
+                pickedLine.setVisibility(short_.isEmpty() ? View.GONE : View.VISIBLE);
             }
             if (!picked.isEmpty()) addSummaryBlock(room, picked, roomTotal);
         }
         findViewById(R.id.additionalAmenitiesSummaryHeader).setVisibility(total > 0 ? View.VISIBLE : View.GONE);
-        totalLabel.setText(getString(R.string.additional_amenities_total_format, MoneyFormat.format(total)));
+        totalLabel.setText(MoneyFormat.format(total));
+        hintAddOne.setVisibility(total > 0 ? View.GONE : View.VISIBLE);
         submitButton.setEnabled(total > 0 && !submitting);
     }
 

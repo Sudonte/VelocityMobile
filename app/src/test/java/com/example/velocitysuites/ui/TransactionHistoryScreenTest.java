@@ -127,7 +127,7 @@ public class TransactionHistoryScreenTest {
         // The bug report: a P1,800 payment was submitted, the card said "P0.00 / Not yet paid".
         assertEquals("Reservation #588", textAt(rv, 0, R.id.tvTxnRef));
         assertEquals("₱1,800.00", textAt(rv, 0, R.id.tvTxnTotal));
-        assertEquals("Pending", textAt(rv, 0, R.id.tvTxnStatusBadge));
+        assertEquals("Unpaid", textAt(rv, 0, R.id.tvTxnStatusBadge));
         assertEquals("₱1,800.00 submitted • awaiting verification", textAt(rv, 0, R.id.tvTxnPayment));
         assertEquals("Deluxe", textAt(rv, 0, R.id.tvTxnRoom));
         assertEquals("Oct 01, 2026 – Oct 02, 2026", textAt(rv, 0, R.id.tvTxnStay));
@@ -183,7 +183,7 @@ public class TransactionHistoryScreenTest {
         answerInitialLoad(ScreenTestSupport.reservations(
                         ScreenTestSupport.reservation(588, 1800, ScreenTestSupport.payment(1, "1800.00", "pending", "gcash"))),
                 ScreenTestSupport.directBookings());
-        assertEquals("Pending", textAt(list(activity), 0, R.id.tvTxnStatusBadge));
+        assertEquals("Unpaid", textAt(list(activity), 0, R.id.tvTxnStatusBadge));
 
         // The receptionist verifies it on the web system; the guest returns to the screen.
         controller.pause();
@@ -209,7 +209,7 @@ public class TransactionHistoryScreenTest {
                 ScreenTestSupport.directBookings());
 
         RecyclerView rv = list(activity);
-        assertEquals("Partially Paid", textAt(rv, 0, R.id.tvTxnStatusBadge));
+        assertEquals("Partially paid", textAt(rv, 0, R.id.tvTxnStatusBadge));
         assertEquals("₱900.00 paid • ₱900.00 balance", textAt(rv, 0, R.id.tvTxnPayment));
     }
 
@@ -325,11 +325,12 @@ public class TransactionHistoryScreenTest {
     public void theFilterRow_hasTheTypeChips_andAFiltersButton() {
         ActivityController<TransactionHistoryActivity> controller = launch();
         TransactionHistoryActivity activity = controller.get();
-        com.google.android.material.chip.ChipGroup types = activity.findViewById(R.id.chipGroupType);
-        assertEquals("All, Bookings, Reservations, Payments", 4, types.getChildCount());
-        assertEquals(R.id.chipTypeAll, types.getCheckedChipId());
-        assertNotNull(activity.findViewById(R.id.btnFilters));
-        assertEquals("Filters", ((TextView) activity.findViewById(R.id.btnFilters)).getText().toString());
+        assertNotNull(activity.findViewById(R.id.dropdownTransaction));
+        assertNotNull(activity.findViewById(R.id.dropdownBookingStatus));
+        assertNotNull(activity.findViewById(R.id.dropdownRoomType));
+        assertNotNull(activity.findViewById(R.id.etCheckIn));
+        assertNotNull(activity.findViewById(R.id.etCheckOut));
+        assertEquals("Hide filters", ((TextView) activity.findViewById(R.id.btnToggleFilters)).getText().toString());
     }
 
     // ---- pull to refresh ----
@@ -457,25 +458,26 @@ public class TransactionHistoryScreenTest {
         shadowOf(Looper.getMainLooper()).idle();
         // A range already chosen, so the picker opens with a selection (its confirm button is then enabled and is saved with it).
         Object criteria = field(controller.get(), "criteria");
-        field(criteria, "from", java.time.LocalDate.of(2026, 10, 12));
-        field(criteria, "to", java.time.LocalDate.of(2026, 10, 14));
-        java.lang.reflect.Method open = controller.get().getClass().getDeclaredMethod("showDateRangePicker", criteria.getClass(), Runnable.class);
+        field(criteria, "checkInFrom", java.time.LocalDate.of(2026, 10, 12));
+        field(criteria, "checkOutTo", java.time.LocalDate.of(2026, 10, 14));
+        java.lang.reflect.Method open = controller.get().getClass().getDeclaredMethod("pickDate", boolean.class);
         open.setAccessible(true);
-        open.invoke(controller.get(), criteria, (Runnable) () -> { });
+        open.invoke(controller.get(), false); // the check-out picker, opened with Oct 14 selected
         shadowOf(Looper.getMainLooper()).idle();
 
         controller.recreate();
         shadowOf(Looper.getMainLooper()).idle();
         TransactionHistoryActivity recreated = controller.get();
-        assertEquals("a fresh screen has no range yet", null, field(field(recreated, "criteria"), "from"));
+        assertEquals("the filters survive the rotation", java.time.LocalDate.of(2026, 10, 12), field(field(recreated, "criteria"), "checkInFrom"));
 
-        androidx.fragment.app.Fragment picker = recreated.getSupportFragmentManager().findFragmentByTag("DATE_PICKER");
+        androidx.fragment.app.Fragment picker = recreated.getSupportFragmentManager().findFragmentByTag("PICK_CHECK_OUT");
         assertTrue("the picker came back", picker instanceof com.google.android.material.datepicker.MaterialDatePicker);
         ((androidx.fragment.app.DialogFragment) picker).getDialog().findViewById(com.google.android.material.R.id.confirm_button).performClick();
         shadowOf(Looper.getMainLooper()).idle();
 
-        assertEquals(java.time.LocalDate.of(2026, 10, 12), field(field(recreated, "criteria"), "from"));
-        assertEquals(java.time.LocalDate.of(2026, 10, 14), field(field(recreated, "criteria"), "to"));
+        assertEquals(java.time.LocalDate.of(2026, 10, 12), field(field(recreated, "criteria"), "checkInFrom"));
+        assertEquals(java.time.LocalDate.of(2026, 10, 14), field(field(recreated, "criteria"), "checkOutTo"));
+        assertEquals("Oct 14, 2026", ((TextView) recreated.findViewById(R.id.etCheckOut)).getText().toString());
         controller.pause().stop().destroy();
     }
 
