@@ -264,15 +264,23 @@ public class UpcomingTransactionsScreenTest {
     }
 
     @Test
-    public void everyDayOfAnActiveStay_isShadedOnTheCalendar_andClosedStaysAreNot() {
+    public void statusAll_shadesActiveStaysRed_andClosedStaysMuted_redWinningASharedDay() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
-        // Booking #10 checks in at +2 and out at +3.
-        assertTrue(dayCellShaded(activity, today().plusDays(2)));
-        assertTrue(dayCellShaded(activity, today().plusDays(3)));
-        assertFalse(dayCellShaded(activity, today().plusDays(4)));
-        // Reservation #2 (rejected, +6..+7; the pending Reservation #1 covers +5..+6, so +7 is the rejected one alone) and Booking #13 (cancelled, +8..+9): not shaded while Status is All.
-        assertFalse(dayCellShaded(activity, today().plusDays(7)));
-        assertFalse(dayCellShaded(activity, today().plusDays(8)));
+        android.graphics.drawable.Drawable.ConstantState red = style(activity, R.drawable.bg_calendar_stay_day);
+        android.graphics.drawable.Drawable.ConstantState muted = style(activity, R.drawable.bg_calendar_stay_day_muted);
+
+        // Booking #10 (active) checks in at +2 and out at +3.
+        assertEquals(red, dayCell(activity, today().plusDays(2)).getBackground().getConstantState());
+        assertEquals(red, dayCell(activity, today().plusDays(3)).getBackground().getConstantState());
+        assertEquals("no stay", null, dayCell(activity, today().plusDays(4)).getBackground());
+        // Reservation #1 (pending, +5..+6) shares +6 with Reservation #2 (rejected, +6..+7): the active red wins.
+        assertEquals(red, dayCell(activity, today().plusDays(6)).getBackground().getConstantState());
+        assertEquals("rejected alone", muted, dayCell(activity, today().plusDays(7)).getBackground().getConstantState());
+        assertEquals("cancelled alone", muted, dayCell(activity, today().plusDays(8)).getBackground().getConstantState());
+    }
+
+    private static android.graphics.drawable.Drawable.ConstantState style(UpcomingTransactionsActivity activity, int drawable) {
+        return androidx.core.content.ContextCompat.getDrawable(activity, drawable).getConstantState();
     }
 
     @Test
@@ -295,17 +303,38 @@ public class UpcomingTransactionsScreenTest {
 
         pick(activity, R.id.dropdownUpcomingStatus, "All");
         assertNotNull("back to the active style", dayCell(activity, today().plusDays(2)).getBackground());
-        assertEquals(null, dayCell(activity, today().plusDays(8)).getBackground());
+        assertEquals("and the cancelled stay is shaded again, muted", muted.getConstantState(),
+                dayCell(activity, today().plusDays(8)).getBackground().getConstantState());
     }
 
     @Test
-    public void withADateChosen_theListFollowsTheShading() {
+    public void withADateChosen_statusAllListsEveryStay_includingCancelledAndRejected() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
         tapCalendarDay(activity, today().plusDays(8));
-        assertEquals("All + a shaded-less day: the cancelled booking is not listed", java.util.Collections.emptyList(), refs(activity));
+        assertEquals("All means all: the cancelled booking is listed", java.util.Collections.singletonList("Booking #13"), refs(activity));
+
+        tapCalendarDay(activity, today().plusDays(7));
+        assertEquals(java.util.Collections.singletonList("Reservation #2"), refs(activity)); // rejected
+
+        tapCalendarDay(activity, today().plusDays(6)); // pending #1 and rejected #2 both cover it
+        assertEquals(java.util.Arrays.asList("Reservation #1", "Reservation #2"), refs(activity));
 
         pick(activity, R.id.dropdownUpcomingStatus, "Cancelled");
+        assertEquals(java.util.Collections.emptyList(), refs(activity));
+        tapCalendarDay(activity, today().plusDays(8));
         assertEquals(java.util.Collections.singletonList("Booking #13"), refs(activity));
+    }
+
+    @Test
+    public void cancelledAndRejectedCards_areMuted_activeOnesAreNot() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        for (String closed : new String[]{"Booking #13", "Reservation #2"}) {
+            View card = cardOf(activity, closed);
+            assertEquals(closed, UpcomingTransactionsActivity.MUTED_ALPHA, card.findViewById(R.id.tvTransactionTitle).getAlpha(), 0.001f);
+            assertEquals("the status badge stays clear", 1f, card.findViewById(R.id.tvTransactionStatus).getAlpha(), 0.001f);
+            assertEquals(1f, card.findViewById(R.id.tvTransactionBookingId).getAlpha(), 0.001f);
+        }
+        assertEquals(1f, cardOf(activity, "Booking #10").findViewById(R.id.tvTransactionTitle).getAlpha(), 0.001f);
     }
 
     private static View dayCell(UpcomingTransactionsActivity activity, LocalDate day) {
@@ -318,19 +347,6 @@ public class UpcomingTransactionsScreenTest {
                 if (cd != null && cd.toString().contains(key)) return grid.getChildAt(i);
             }
             activity.findViewById(pages[attempt]).performClick();
-        }
-        throw new AssertionError("day " + key + " not on the calendar");
-    }
-
-    private static boolean dayCellShaded(UpcomingTransactionsActivity activity, LocalDate day) {
-        String key = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH).format(day);
-        for (int attempt = 0; attempt < 2; attempt++) {
-            ViewGroup grid = activity.findViewById(R.id.stayCalGrid);
-            for (int i = 0; i < grid.getChildCount(); i++) {
-                CharSequence cd = grid.getChildAt(i).getContentDescription();
-                if (cd != null && cd.toString().contains(key)) return grid.getChildAt(i).getBackground() != null;
-            }
-            activity.findViewById(R.id.stayCalNext).performClick();
         }
         throw new AssertionError("day " + key + " not on the calendar");
     }

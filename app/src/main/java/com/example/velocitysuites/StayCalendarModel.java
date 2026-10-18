@@ -78,20 +78,26 @@ public final class StayCalendarModel {
     private final TreeMap<LocalDate, List<Entry>> byDate = new TreeMap<>();
     /** Every day a stay covers, check-in through check-out. */
     private final Set<LocalDate> stayDays = new HashSet<>();
+    /** Days covered only by stays shaded in the muted style (no red stay shares the day). */
+    private final Set<LocalDate> mutedStayDays = new HashSet<>();
 
     public StayCalendarModel(@Nullable List<Booking> bookings) {
-        this(bookings, null);
+        this(bookings, null, null);
     }
 
     /**
-     * @param shade which stays have their days shaded (null: every stay that is not cancelled or rejected). The
-     *              check-in / check-out entries are unaffected - cancelled ones are never listed.
+     * @param shade  which stays have their days shaded in the main style (null: every stay that is not cancelled or
+     *               rejected)
+     * @param muted  which stays are shaded in the muted style instead (null: none); a day that a {@code shade} stay
+     *               also covers stays in the main style. The check-in / check-out entries are unaffected - cancelled
+     *               ones are never listed.
      */
-    public StayCalendarModel(@Nullable List<Booking> bookings, @Nullable java.util.function.Predicate<Booking> shade) {
+    public StayCalendarModel(@Nullable List<Booking> bookings, @Nullable java.util.function.Predicate<Booking> shade,
+                             @Nullable java.util.function.Predicate<Booking> muted) {
         if (bookings == null) return;
         for (Booking b : bookings) {
             if (b == null) continue;
-            addStayDays(b, shade);
+            addStayDays(b, shade, muted);
             if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
             String status = b.getStatus() == null ? "" : b.getStatus();
             boolean finished = "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
@@ -112,14 +118,17 @@ public final class StayCalendarModel {
         for (List<Entry> day : byDate.values()) Collections.sort(day, byTime);
     }
 
-    private void addStayDays(Booking b, @Nullable java.util.function.Predicate<Booking> shade) {
-        if (shade == null ? isClosed(b) : !shade.test(b)) return;
+    private void addStayDays(Booking b, @Nullable java.util.function.Predicate<Booking> shade,
+                             @Nullable java.util.function.Predicate<Booking> muted) {
+        boolean main = shade == null ? !isClosed(b) : shade.test(b);
+        boolean quiet = !main && muted != null && muted.test(b);
+        if (!main && !quiet) return;
         LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
         if (in == null) return;
         LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
         if (out == null || out.isBefore(in)) out = in;
         if (java.time.temporal.ChronoUnit.DAYS.between(in, out) > 400) return; // unreadable data, not a real stay
-        for (LocalDate d = in; !d.isAfter(out); d = d.plusDays(1)) stayDays.add(d);
+        for (LocalDate d = in; !d.isAfter(out); d = d.plusDays(1)) (main ? stayDays : mutedStayDays).add(d);
     }
 
     private void add(Entry e) {
@@ -139,6 +148,11 @@ public final class StayCalendarModel {
     /** True when a stay covers this day (check-in, check-out or any night between) - the day is shaded on the calendar. */
     public boolean isStayDay(@NonNull LocalDate day) {
         return stayDays.contains(day);
+    }
+
+    /** True when only muted-style stays cover this day (a main-style stay on the same day wins, see {@link #isStayDay}). */
+    public boolean isMutedStayDay(@NonNull LocalDate day) {
+        return !stayDays.contains(day) && mutedStayDays.contains(day);
     }
 
     /** Every entry from start to end, both included, in date then time order. */
