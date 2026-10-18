@@ -738,6 +738,24 @@ public class DashboardScreenTest {
     }
 
     @Test
+    public void everySectionHeaderCountBadge_isTheSameRoundSolidRedBadgeWithAWhiteNumber() {
+        DashboardActivity activity = launch();
+        int red = app.getColor(R.color.velocity_red_primary);
+        int[] badges = {R.id.nextStayCount, R.id.moreStaysCount, R.id.recentUpcomingCount,
+                R.id.bookingCountBadge, R.id.notificationCountBadge, R.id.paymentCountBadge};
+        for (int id : badges) {
+            TextView badge = activity.findViewById(id);
+            String name = activity.getResources().getResourceEntryName(id);
+            assertEquals(name + " white number", app.getColor(R.color.white), badge.getCurrentTextColor());
+            assertEquals(name + " is 24dp minimum", Math.round(24 * app.getResources().getDisplayMetrics().density), badge.getMinHeight());
+            android.graphics.drawable.GradientDrawable bg = (android.graphics.drawable.GradientDrawable) badge.getBackground();
+            assertEquals(name + " solid red", red, bg.getColor().getDefaultColor());
+            assertEquals(name + " rounded", Math.round(12 * app.getResources().getDisplayMetrics().density), Math.round(bg.getCornerRadius()));
+            assertNull(name + " no tint left over", badge.getBackgroundTintList());
+        }
+    }
+
+    @Test
     public void nextStayCard_paymentRow_showsBalanceDueInRed_orPaidWithACheck() {
         DashboardActivity activity = launch();
         com.example.velocitysuites.network.dto.ReservationDto paid = ScreenTestSupport.reservation(570, 1800,
