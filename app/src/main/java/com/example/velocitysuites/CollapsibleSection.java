@@ -47,12 +47,18 @@ final class CollapsibleSection {
      */
     CollapsibleSection(@NonNull android.content.Context context, @NonNull String key, @NonNull ImageView toggle,
                        @Nullable TextView summary, @NonNull View... bodies) {
+        this(context, key, toggle, summary, false, bodies);
+    }
+
+    /** As above, but {@code startsExpanded} is what the section shows until the guest first changes it. */
+    CollapsibleSection(@NonNull android.content.Context context, @NonNull String key, @NonNull ImageView toggle,
+                       @Nullable TextView summary, boolean startsExpanded, @NonNull View... bodies) {
         this.prefs = context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
         this.key = key;
         this.toggle = toggle;
         this.summary = summary;
         this.bodies = bodies;
-        this.expanded = prefs.getBoolean(KEY_PREFIX + key, false);
+        this.expanded = prefs.getBoolean(KEY_PREFIX + key, startsExpanded);
         View.OnClickListener flip = v -> setExpanded(!expanded);
         toggle.setOnClickListener(flip);
         if (toggle.getParent() instanceof View) {

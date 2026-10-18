@@ -55,7 +55,7 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** The data the list sections were last drawn from, so a collapse / expand can redraw without asking the network. */
     private List<Booking> lastBookings = new ArrayList<>();
     private List<Notification> lastNotifications = new ArrayList<>();
-    private CollapsibleSection quickActionsSection, summarySection, supportSection;
+    private CollapsibleSection summarySection, supportSection;
     /** Every stay Other Stays lists: upcoming soonest first, finished latest first. */
     private List<Booking> moreStaysUpcoming = new ArrayList<>(), moreStaysRecent = new ArrayList<>();
     /** "Recent Upcoming Stay": every Pending / Confirmed transaction, and whether the full list is showing. */
@@ -203,12 +203,10 @@ public class DashboardActivity extends BaseNavigationActivity {
                 findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard)).previewList(this::renderNextStayDaysIfShown);
         moreStaysSection = new CollapsibleSection(this, "more_stays", findViewById(R.id.moreStaysToggle),
                 findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody)).previewList(this::renderMoreStays);
-        // Quick Actions collapsed: the first row of two. Summary collapsed: Active Bookings and Active Reservations only.
-        quickActionsSection = new CollapsibleSection(this, "quick_actions", findViewById(R.id.quickActionsToggle),
-                findViewById(R.id.quickActionsSummary), findViewById(R.id.quickActionsBody))
-                .collapsedHides((View) findViewById(R.id.actionReservation).getParent());
+        // Quick Actions has no collapse control: all four actions are always shown.
+        // Booking & Reservation Summary opens expanded (Active, Past and Cancelled rows); the guest can still collapse it to Active only.
         summarySection = new CollapsibleSection(this, "booking_summary", findViewById(R.id.summaryToggle),
-                findViewById(R.id.summarySummary), findViewById(R.id.summaryBody))
+                findViewById(R.id.summarySummary), true, findViewById(R.id.summaryBody))
                 .collapsedHides(findViewById(R.id.tilePastBooking), findViewById(R.id.tilePastReservation),
                         findViewById(R.id.tileCancelBooking), findViewById(R.id.tileCancelReservation));
         recentUpcomingSection = new CollapsibleSection(this, "recent_upcoming", findViewById(R.id.recentUpcomingToggle),

@@ -211,19 +211,26 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void summaryAndQuickActions_collapsedShowACompactRow_expandedShowEverything() {
+    public void quickActions_haveNoCollapseControl_andShowAllFour_whileTheSummaryOpensExpanded() {
         DashboardActivity activity = launch();
         answer(stay(500, 2, 1));
+        for (int id : new int[]{R.id.actionBrowseRooms, R.id.actionBooking, R.id.actionReservation, R.id.actionHistory}) {
+            assertEquals(View.VISIBLE, activity.findViewById(id).getVisibility());
+            assertEquals(View.VISIBLE, ((View) activity.findViewById(id).getParent()).getVisibility());
+        }
+        assertNull("Quick Actions can no longer be collapsed", activity.findViewById(
+                activity.getResources().getIdentifier("quickActionsToggle", "id", activity.getPackageName())));
+
+        for (int id : new int[]{R.id.tileActiveBooking, R.id.tileActiveReservation, R.id.tilePastBooking, R.id.tilePastReservation,
+                R.id.tileCancelBooking, R.id.tileCancelReservation}) {
+            assertEquals("Summary starts expanded: " + activity.getResources().getResourceEntryName(id), View.VISIBLE,
+                    activity.findViewById(id).getVisibility());
+        }
+        tap(activity.findViewById(R.id.summaryToggle)); // still collapsible: Active Bookings and Active Reservations only
         assertEquals(View.VISIBLE, activity.findViewById(R.id.tileActiveBooking).getVisibility());
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.tileActiveReservation).getVisibility());
         assertEquals(View.GONE, activity.findViewById(R.id.tilePastBooking).getVisibility());
         assertEquals(View.GONE, activity.findViewById(R.id.tileCancelReservation).getVisibility());
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.actionBrowseRooms).getVisibility());
-        assertEquals("Quick Actions collapsed: only the first row", View.GONE,
-                ((View) activity.findViewById(R.id.actionReservation).getParent()).getVisibility());
-
         tap(activity.findViewById(R.id.summaryToggle));
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.tilePastBooking).getVisibility());
         assertEquals(View.VISIBLE, activity.findViewById(R.id.tileCancelReservation).getVisibility());
     }
 
@@ -283,8 +290,6 @@ public class DashboardScreenTest {
     @Test
     public void quickActionsEachHaveAnIconAndAWordLabel_andAreAtLeast48dpTall() {
         DashboardActivity activity = launch();
-        activity.findViewById(R.id.quickActionsToggle).performClick(); // collapsed shows one row; expanded shows all four
-        idle();
         View decor = activity.getWindow().getDecorView();
         int w = app.getResources().getDisplayMetrics().widthPixels;
         decor.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(app.getResources().getDisplayMetrics().heightPixels, View.MeasureSpec.EXACTLY));
@@ -712,7 +717,7 @@ public class DashboardScreenTest {
         }
 
         int[] toggles = {R.id.nextStayToggle, R.id.moreStaysToggle, R.id.stayCalToggle, R.id.recentUpcomingToggle, R.id.bookingsToggle,
-                R.id.notificationsToggle, R.id.paymentsToggle, R.id.quickActionsToggle, R.id.summaryToggle, R.id.supportToggle};
+                R.id.notificationsToggle, R.id.paymentsToggle, R.id.supportToggle}; // the Summary opens expanded and is tested on its own
         for (int id : toggles) {
             View toggle = activity.findViewById(id);
             String name = activity.getResources().getResourceEntryName(id);

@@ -502,26 +502,7 @@
                         android:layout_weight="1"
                         android:accessibilityHeading="true"
                         android:text="@string/quick_actions" />
-                    <ImageButton
-                    android:id="@+id/quickActionsToggle"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="-6dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/section_collapse"
-                    android:src="@drawable/ic_expand_less"
-                    app:tint="@color/velocity_text_secondary" />
                 </LinearLayout>
-                <TextView
-                    android:id="@+id/quickActionsSummary"
-                    style="@style/TextAppearance.Velocity.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
                 <LinearLayout
                     android:id="@+id/quickActionsBody"
                     android:layout_width="match_parent"
