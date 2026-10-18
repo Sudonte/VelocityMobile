@@ -65,51 +65,45 @@
             android:layout_marginTop="2dp"
             android:text="@string/stay_calendar_desc" />
 
-        <HorizontalScrollView
+        <!-- Segmented Daily / Weekly / Monthly control: always one selected. -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/stayCalMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:scrollbars="none">
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/stayCalMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:chipSpacingHorizontal="8dp"
             app:selectionRequired="true"
-            app:singleLine="true"
             app:singleSelection="true">
 
-            <com.google.android.material.chip.Chip
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/stayCalModeDaily"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/stay_calendar_daily" />
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/stay_calendar_daily"
+                android:textSize="13sp" />
 
-            <com.google.android.material.chip.Chip
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/stayCalModeWeekly"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/stay_calendar_weekly" />
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/stay_calendar_weekly"
+                android:textSize="13sp" />
 
-            <com.google.android.material.chip.Chip
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/stayCalModeMonthly"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/stay_calendar_monthly" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/stayCalModeDate"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/stay_calendar_pick_date" />
-        </com.google.android.material.chip.ChipGroup>
-        </HorizontalScrollView>
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/stay_calendar_monthly"
+                android:textSize="13sp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -169,13 +163,35 @@
             android:alpha="0.12"
             android:background="@color/velocity_text_primary" />
 
-        <TextView
-            android:id="@+id/stayCalRange"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="13sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/stayCalRange"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/stayCalCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_soft"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:textColor="@color/velocity_red_primary"
+                android:textSize="12sp"
+                tools:text="3 transactions" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/stayCalSummary"
@@ -189,6 +205,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:paddingVertical="14dp"
             android:text="@string/stay_calendar_empty"
             android:visibility="gone" />
         </LinearLayout>

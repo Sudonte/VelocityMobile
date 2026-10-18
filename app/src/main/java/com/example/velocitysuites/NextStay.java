@@ -122,6 +122,48 @@ public final class NextStay {
         return out;
     }
 
+    /** True when the stay is over (checked out / completed): its own status, not a "waiting" one, describes it. */
+    public boolean isFinished() {
+        String status = booking.getStatus();
+        return "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
+    }
+
+    /**
+     * Every transaction whose stay covers this calendar day (check-in day through check-out day, both included),
+     * cancelled and rejected ones left out. Finished stays are kept so past days still show what happened. In-house
+     * first, then by reference, so the order is stable between refreshes. Days are compared as calendar dates.
+     */
+    @NonNull
+    public static List<NextStay> forDay(@Nullable List<Booking> bookings, @NonNull LocalDate day, @NonNull LocalDate today) {
+        List<NextStay> out = new ArrayList<>();
+        if (bookings == null) return out;
+        for (Booking b : bookings) {
+            if (b == null || StayCalendarModel.isClosed(b)) continue;
+            LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+            LocalDate end = PaymentDates.parseDate(b.getCheckOutDate());
+            if (in == null) continue;
+            if (end == null || end.isBefore(in)) end = in;
+            if (day.isBefore(in) || day.isAfter(end)) continue;
+            boolean inHouse = "Checked-In".equalsIgnoreCase(b.getStatus());
+            out.add(new NextStay(b, inHouse ? Phase.IN_HOUSE : Phase.UPCOMING, in, end,
+                    ChronoUnit.DAYS.between(today, inHouse ? end : in), today));
+        }
+        Collections.sort(out, (x, y) -> {
+            if (x.phase != y.phase) return x.phase == Phase.IN_HOUSE ? -1 : 1;
+            String a = x.booking.getDisplayId() == null ? "" : x.booking.getDisplayId();
+            String c = y.booking.getDisplayId() == null ? "" : y.booking.getDisplayId();
+            return a.compareTo(c);
+        });
+        return out;
+    }
+
+    /** Where this day falls in the stay: "Check-in day", "Check-out day" or "Stay in progress". */
+    public String dayRole(@NonNull Context c, @NonNull LocalDate day) {
+        if (day.equals(checkIn)) return c.getString(R.string.next_stay_day_role_checkin);
+        if (day.equals(checkOut)) return c.getString(R.string.next_stay_day_role_checkout);
+        return c.getString(R.string.next_stay_day_role_staying);
+    }
+
     public static PlainStatus plainStatus(@NonNull Booking b) {
         if ("Checked-In".equalsIgnoreCase(b.getStatus())) return PlainStatus.STAYING;
         boolean review = b.isPaymentPendingVerification() && !b.isStaffVerified();

@@ -130,9 +130,10 @@ public class DashboardScreenTest {
     public void recentUpcomingStay_sitsBelowTheSummary_showsFive_expandsToAll_andOpensFilteredUpcoming() {
         DashboardActivity activity = launch();
         View content = (View) activity.findViewById(R.id.welcomeCard).getParent();
-        assertTrue(topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
-                > topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard)));
-        assertTrue(topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
+        assertTrue("Recent Upcoming Stay now comes before the summary",
+                topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
+                < topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard)));
+        assertTrue(topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard))
                 < topLevelIndex(content, activity.findViewById(R.id.bookingDetailsCard)));
 
         ReservationDto[] seven = new ReservationDto[7];
@@ -291,7 +292,8 @@ public class DashboardScreenTest {
         answer(stay(588, 1, 2));
 
         assertOnly(activity, R.id.nextStayContent);
-        assertEquals("Check-in tomorrow", text(activity, R.id.tvNextStayHint));
+        selectDay(activity, 1);
+        assertEquals("Check-in day", text(activity, R.id.tvNextStayHint));
         assertEquals("Deluxe", text(activity, R.id.tvNextStayRooms));
         assertEquals("2 nights", text(activity, R.id.tvNextStayNights));
         assertTrue(text(activity, R.id.tvNextStayDates).contains(" → "));
@@ -352,6 +354,7 @@ public class DashboardScreenTest {
     public void nextStay_beforeCheckIn_hasNoMoneySummary() {
         DashboardActivity activity = launch();
         answer(stay(588, 1, 2));
+        selectDay(activity, 1);
         assertEquals(View.GONE, activity.findViewById(R.id.nextStayMoney).getVisibility());
     }
 
@@ -364,8 +367,9 @@ public class DashboardScreenTest {
     public void tappingTheStayOpensItsDetails() {
         DashboardActivity activity = launch();
         answer(stay(588, 3, 1));
+        selectDay(activity, 3);
 
-        tap(activity.findViewById(R.id.nextStayItem));
+        tap(activity.findViewById(R.id.tvNextStayViewDetails));
         Intent opened = nextScreen(activity);
         assertEquals(new ComponentName(activity, BookingDetailsActivity.class), opened.getComponent());
         assertNotNull(opened.getSerializableExtra(BookingDetailsActivity.EXTRA_BOOKING));
@@ -421,6 +425,7 @@ public class DashboardScreenTest {
     public void everyStatusChipHasWordsAndAnIcon_notJustColour() {
         DashboardActivity activity = launch();
         answer(stay(588, 1, 1));
+        selectDay(activity, 1);
         TextView chip = activity.findViewById(R.id.tvNextStayStatus);
         assertTrue(chip.getText().length() > 0);
         assertNotNull("an icon beside the words", chip.getCompoundDrawables()[0]);
@@ -467,16 +472,17 @@ public class DashboardScreenTest {
     public void upcomingAndPaymentStatus_labelAReservationAsAReservation() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 3)));
+        selectDay(activity, 2);
 
         java.util.List<String> labels = new java.util.ArrayList<>();
-        ViewGroup nextStays = activity.findViewById(R.id.nextStayContent);
+        ViewGroup nextStays = activity.findViewById(R.id.nextStayDayCards);
         for (int i = 0; i < nextStays.getChildCount(); i++) {
             TextView ref = nextStays.getChildAt(i).findViewById(R.id.tvNextStayRef);
             if (ref != null) labels.add(ref.getText().toString());
         }
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
         for (int i = 0; i < more.getChildCount(); i++) {
-            labels.add(((TextView) more.getChildAt(i).findViewById(R.id.tvStayCompactRef)).getText().toString());
+            labels.add(((TextView) more.getChildAt(i).findViewById(R.id.tvRecentStayRef)).getText().toString());
         }
         assertTrue(labels.toString(), labels.contains("Reservation #588") && labels.contains("Booking #338"));
 
@@ -513,8 +519,9 @@ public class DashboardScreenTest {
     public void twoTransactionsOnTheSameDay_areBothShownInNextStay() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 2)));
+        selectDay(activity, 2);
 
-        ViewGroup content = activity.findViewById(R.id.nextStayContent);
+        ViewGroup content = activity.findViewById(R.id.nextStayDayCards);
         java.util.List<String> refs = new java.util.ArrayList<>();
         for (int i = 0; i < content.getChildCount(); i++) {
             TextView ref = content.getChildAt(i).findViewById(R.id.tvNextStayRef);
@@ -522,9 +529,36 @@ public class DashboardScreenTest {
         }
         assertEquals(refs.toString(), 2, refs.size());
         assertTrue(refs.toString(), refs.contains("Reservation #588") && refs.contains("Booking #338"));
-        java.util.List<String> all = new java.util.ArrayList<>();
-        collectText(content, all);
-        assertTrue("a note says there are several: " + all, all.contains(app.getString(R.string.next_stay_same_day_note, 2)));
+        assertTrue(text(activity, R.id.nextStayDayHeading), text(activity, R.id.nextStayDayHeading).contains("2 transactions"));
+    }
+
+    @Test
+    public void nextStay_opensOnToday_showsPastAndFutureDays_withCountBadgesAndFriendlyNames() {
+        DashboardActivity activity = launch();
+        answerWith(ScreenTestSupport.reservations(stay(588, 1, 1), stay(589, 1, 2), stay(590, -2, 1)), ScreenTestSupport.directBookings());
+
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        assertEquals("two weeks back through a month ahead", 14 + 1 + 30, strip.getChildCount());
+        assertEquals("Yesterday", ((TextView) strip.getChildAt(13).findViewById(R.id.tvDayName)).getText().toString());
+        assertEquals("Today", ((TextView) strip.getChildAt(14).findViewById(R.id.tvDayName)).getText().toString());
+        assertEquals("Tomorrow", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayName)).getText().toString());
+        assertTrue("Today is selected", strip.getChildAt(14).isSelected());
+        assertEquals("tomorrow has two transactions", "2", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayCount)).getText().toString());
+        assertEquals("a quiet day has no badge", View.INVISIBLE, strip.getChildAt(16 + 5).findViewById(R.id.tvDayCount).getVisibility());
+        assertEquals("nothing today: friendly empty state", View.VISIBLE, activity.findViewById(R.id.nextStayDayEmpty).getVisibility());
+
+        selectDay(activity, -1);
+        assertEquals("a stay that ended yesterday still shows on its check-out day", 1, activity.<ViewGroup>findViewById(R.id.nextStayDayCards).getChildCount());
+        selectDay(activity, 2);
+        assertTrue("a stay also covers its check-out day: " + text(activity, R.id.nextStayDayHeading),
+                text(activity, R.id.nextStayDayHeading).contains("2 transactions"));
+    }
+
+    /** Taps the day {@code daysAway} from today in the Your Next Stay selector. */
+    private static void selectDay(DashboardActivity activity, int daysAway) {
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        strip.getChildAt(14 + daysAway).performClick();
+        idle();
     }
 
     @Test
@@ -534,7 +568,7 @@ public class DashboardScreenTest {
 
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
         assertEquals(1, more.getChildCount());
-        assertEquals("Booking #338", ((TextView) more.getChildAt(0).findViewById(R.id.tvStayCompactRef)).getText().toString());
+        assertEquals("Booking #338", ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
     }
 
     @Test
@@ -587,10 +621,9 @@ public class DashboardScreenTest {
         ViewGroup entries = activity.findViewById(R.id.stayCalSummary);
         assertTrue("today's check-in is listed", entries.getChildCount() >= 1);
         View entry = entries.getChildAt(0);
-        assertEquals("Reservation #588", ((TextView) entry.findViewById(R.id.tvEntryRef)).getText().toString());
-        assertTrue(((TextView) entry.findViewById(R.id.tvEntryWhen)).getText().toString().startsWith("Check-in"));
-        assertTrue(((TextView) entry.findViewById(R.id.tvEntryStatus)).getText().length() > 0);
-        assertEquals("no balance, rooms or stay lines any more", null, entry.findViewById(R.id.btnNextStayBook));
+        assertEquals("Reservation #588", ((TextView) entry.findViewById(R.id.tvRecentStayRef)).getText().toString());
+        assertTrue(((TextView) entry.findViewById(R.id.tvRecentStayDates)).getText().toString().contains("1 night"));
+        assertTrue(((TextView) entry.findViewById(R.id.tvRecentStayStatus)).getText().length() > 0);
 
         tap(entry);
         Intent focused = nextScreen(activity);
@@ -604,6 +637,7 @@ public class DashboardScreenTest {
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
 
         // Your Next Stay: the reference of the reservation.
+        selectDay(activity, 2);
         tap(activity.findViewById(R.id.tvNextStayRef));
         Intent next = nextScreen(activity);
         assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), next.getComponent());
@@ -656,39 +690,24 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void stayCalendar_pickADate_opensThePicker_andFiltersTheListToThatDate() throws Exception {
+    public void stayCalendar_listsEachTransactionOnce_acrossAPeriod_sortedByCheckIn_withACount() {
         DashboardActivity activity = launch();
-        // Reservation 588 arrives tomorrow (leaves in 2 days); reservation 589 arrives in 3 days.
-        answerWith(ScreenTestSupport.reservations(stay(588, 1, 1), stay(589, 3, 1)), ScreenTestSupport.directBookings());
+        // 590 arrives in 2 days for 3 nights, 588 arrives today for 2 nights: both overlap this week; each must appear once.
+        answerWith(ScreenTestSupport.reservations(stay(590, 2, 3), stay(588, 0, 2)), ScreenTestSupport.directBookings());
         ViewGroup entries = activity.findViewById(R.id.stayCalSummary);
-        assertEquals("nothing today", 0, entries.getChildCount());
 
-        activity.findViewById(R.id.stayCalModeDate).performClick();
+        activity.findViewById(R.id.stayCalModeMonthly).performClick();
         idle();
-        androidx.fragment.app.Fragment fragment = activity.getSupportFragmentManager().findFragmentByTag("stayCalendarDate");
-        assertNotNull("the date picker is open", fragment);
-        @SuppressWarnings("unchecked")
-        com.google.android.material.datepicker.MaterialDatePicker<Long> picker =
-                (com.google.android.material.datepicker.MaterialDatePicker<Long>) fragment;
-        assertTrue(picker.getDialog().isShowing());
+        java.util.List<String> refs = new java.util.ArrayList<>();
+        for (int i = 0; i < entries.getChildCount(); i++) {
+            refs.add(((TextView) entries.getChildAt(i).findViewById(R.id.tvRecentStayRef)).getText().toString());
+        }
+        assertEquals("a multi-day stay is listed once, nearest check-in first", java.util.Arrays.asList("Reservation #588", "Reservation #590"), refs);
+        assertEquals("2 transactions", text(activity, R.id.stayCalCount));
 
-        // choose today + 3 days in the picker, then confirm
-        LocalDate wanted = manilaToday().plusDays(3);
-        java.lang.reflect.Field selectorField = picker.getClass().getDeclaredField("dateSelector");
-        selectorField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        com.google.android.material.datepicker.DateSelector<Long> selector =
-                (com.google.android.material.datepicker.DateSelector<Long>) selectorField.get(picker);
-        selector.select(wanted.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli());
-        picker.getDialog().findViewById(com.google.android.material.R.id.confirm_button).performClick();
+        activity.findViewById(R.id.stayCalModeDaily).performClick();
         idle();
-
-        assertEquals("only the transaction on that date", 1, entries.getChildCount());
-        assertEquals("Reservation #589", ((TextView) entries.getChildAt(0).findViewById(R.id.tvEntryRef)).getText().toString());
-        assertTrue(((TextView) entries.getChildAt(0).findViewById(R.id.tvEntryWhen)).getText().toString().startsWith("Check-in"));
-        assertEquals("the chip shows the chosen date", DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH).format(wanted),
-                ((TextView) activity.findViewById(R.id.stayCalModeDate)).getText().toString());
-        assertEquals(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH).format(wanted), text(activity, R.id.stayCalRange));
+        assertEquals("today overlaps only 588", 1, entries.getChildCount());
     }
 
     private static final int[] STATE_VIEWS = {R.id.stateSummary, R.id.stateRecent, R.id.statePayments, R.id.stateNotifications};

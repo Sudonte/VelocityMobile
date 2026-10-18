@@ -59,8 +59,12 @@ public class DashboardActivity extends BaseNavigationActivity {
     /** "Recent Upcoming Stay": every Pending / Confirmed transaction, and whether the full list is showing. */
     private List<Booking> recentUpcoming = new ArrayList<>();
     private boolean recentUpcomingExpanded;
-    /** Every stay "Your Next Stay" currently shows (all the transactions on the nearest day). */
+    /** The transactions on the nearest event day - the "next" stay, which Other Stays leaves out. */
     private List<NextStay> currentNextStays = new ArrayList<>();
+    /** The day chosen in Your Next Stay's day selector (null until first drawn: then Today), and the data it draws from. */
+    private java.time.LocalDate selectedStayDay;
+    private List<Booking> nextStayBookings = new ArrayList<>();
+    private boolean nextStayStripBuilt;
 
     /**
      * Dashboard preview cards (Notifications) use a
@@ -1197,8 +1201,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         LinearLayout list = findViewById(R.id.moreStaysList);
         View section = findViewById(R.id.moreStaysSection);
         list.removeAllViews();
-        for (Booking b : moreStaysUpcoming) addCompactStayRow(b, true, list);
-        for (Booking b : moreStaysRecent) addCompactStayRow(b, false, list);
+        for (Booking b : moreStaysUpcoming) StayCardBinder.add(this, list, b, StayCardBinder.Tag.UPCOMING);
+        for (Booking b : moreStaysRecent) StayCardBinder.add(this, list, b, StayCardBinder.Tag.RECENT);
         int total = moreStaysUpcoming.size() + moreStaysRecent.size();
         section.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
         Booking first = !moreStaysUpcoming.isEmpty() ? moreStaysUpcoming.get(0) : (!moreStaysRecent.isEmpty() ? moreStaysRecent.get(0) : null);
@@ -1208,19 +1212,6 @@ public class DashboardActivity extends BaseNavigationActivity {
                     getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
                             TransactionStatusChip.label(first.getStatus()))));
         }
-    }
-
-    /** One compact row: reference, what and when, status. Everything else is in Upcoming Hotel Transactions / Transaction History. */
-    private void addCompactStayRow(Booking b, boolean isCheckInEvent, LinearLayout container) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_stay_compact, container, false);
-        ((TextView) row.findViewById(R.id.tvStayCompactRef)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        String type = getString(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-        String when = getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format,
-                isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate());
-        ((TextView) row.findViewById(R.id.tvStayCompactWhen)).setText(getString(R.string.stay_calendar_entry_when, type, when));
-        TransactionStatusChip.apply(this, row.findViewById(R.id.tvStayCompactStatus), b.getStatus());
-        row.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
-        container.addView(row);
     }
 
     /** Redraws "Recent Upcoming Stay" from these bookings (Pending / Confirmed only). */
@@ -1252,16 +1243,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
     /** Type, reference, room, dates and status; a tap opens Upcoming Hotel Transactions filtered to this type and status, on this transaction. */
     private void addRecentUpcomingRow(Booking b, LinearLayout container) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_recent_upcoming_stay, container, false);
-        ((TextView) row.findViewById(R.id.tvRecentStayType)).setText(
-                b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
-        ((TextView) row.findViewById(R.id.tvRecentStayRef)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        ((TextView) row.findViewById(R.id.tvRecentStayRoom)).setText(TransactionRow.roomTextOf(b));
-        ((TextView) row.findViewById(R.id.tvRecentStayDates)).setText(getString(R.string.recent_upcoming_dates_format,
-                b.getCheckInDate(), b.getCheckOutDate()));
-        TransactionStatusChip.apply(this, row.findViewById(R.id.tvRecentStayStatus), b.getStatus());
-        row.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentWithFilters(this, b))));
-        container.addView(row);
+        StayCardBinder.add(this, container, b, StayCardBinder.Tag.UPCOMING);
     }
 
     private void showNextStayState(View visible) {
@@ -1289,57 +1271,152 @@ public class DashboardActivity extends BaseNavigationActivity {
             return;
         }
         List<NextStay> stays = NextStay.selectAll(bookings, hotelToday());
-        if (stays.isEmpty()) {
+        if (!hasAnyStay(bookings)) {
             showNextStayState(nextStayEmpty);
             nextStaySection.setSummary(getString(R.string.next_stay_empty_title));
             updateMoreStaysAndCalendar(bookings);
             return;
         }
+        // The nearest event day's stays are what the lists below leave out (they are the "next" stay); the day
+        // selector itself can show any day.
         currentNextStays = stays;
-        currentNextStay = stays.get(0);
+        currentNextStay = stays.isEmpty() ? null : stays.get(0);
         updateMoreStaysAndCalendar(bookings);
-
-        LinearLayout content = (LinearLayout) nextStayContent;
-        content.removeAllViews();
-        LayoutInflater inflater = LayoutInflater.from(this);
-        if (stays.size() > 1) {
-            TextView note = new TextView(this);
-            note.setText(getString(R.string.next_stay_same_day_note, stays.size()));
-            note.setTextColor(getColor(R.color.velocity_red_primary));
-            note.setTextSize(13);
-            note.setTypeface(note.getTypeface(), android.graphics.Typeface.BOLD);
-            note.setPadding(dp(14), dp(12), dp(14), 0);
-            content.addView(note);
-        }
-        for (int i = 0; i < stays.size(); i++) {
-            if (i > 0) {
-                View divider = new View(this);
-                divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
-                content.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
-            }
-            View item = inflater.inflate(R.layout.item_next_stay, content, false);
-            bindNextStayItem(item, stays.get(i));
-            content.addView(item);
-        }
-        NextStay head = stays.get(0);
-        String headText = getString(R.string.summary_ref_hint,
-                TransactionText.reference(this, head.booking.isHasBooking(), head.booking.getDisplayId()), head.hint(this));
-        nextStaySection.setSummary(stays.size() == 1 ? headText
-                : getString(R.string.summary_with_first,
-                        getResources().getQuantityString(R.plurals.summary_stays_count, stays.size(), stays.size()), headText));
+        nextStayBookings = bookings;
+        renderNextStayDays();
         showNextStayState(nextStayContent);
     }
 
+    /** True when at least one non-cancelled transaction has a readable check-in date (so the day selector has something to show). */
+    private static boolean hasAnyStay(List<Booking> bookings) {
+        for (Booking b : bookings) {
+            if (b != null && !StayCalendarModel.isClosed(b) && PaymentDates.parseDate(b.getCheckInDate()) != null) return true;
+        }
+        return false;
+    }
+
+    private static final java.time.format.DateTimeFormatter DAY_DATE = java.time.format.DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH);
+    private static final java.time.format.DateTimeFormatter DAY_WEEKDAY = java.time.format.DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
+    private static final java.time.format.DateTimeFormatter DAY_FULL = java.time.format.DateTimeFormatter.ofPattern("EEE, MMM d", Locale.ENGLISH);
+
+    /** "Yesterday" / "Today" / "Tomorrow" for the nearby days, otherwise "Wed, Oct 21". */
+    private String dayName(java.time.LocalDate day, java.time.LocalDate today) {
+        long diff = java.time.temporal.ChronoUnit.DAYS.between(today, day);
+        if (diff == -1) return getString(R.string.next_stay_day_yesterday);
+        if (diff == 0) return getString(R.string.next_stay_day_today);
+        if (diff == 1) return getString(R.string.next_stay_day_tomorrow);
+        return DAY_FULL.format(day);
+    }
+
+    /**
+     * The day selector (two weeks back through a month ahead, widened to cover every stay) and the cards of the chosen
+     * day. Days are plain calendar dates in hotel time, so a stay lands on the right day whatever the phone's zone.
+     * The strip keeps its scroll position across refreshes; the first time, the selected day is scrolled into view.
+     */
+    private void renderNextStayDays() {
+        LinearLayout content = (LinearLayout) nextStayContent;
+        if (content.findViewById(R.id.nextStayDayStrip) == null) {
+            content.removeAllViews();
+            LayoutInflater.from(this).inflate(R.layout.view_next_stay_days, content, true);
+            nextStayStripBuilt = false;
+        }
+        java.time.LocalDate today = hotelToday();
+        if (selectedStayDay == null) selectedStayDay = today;
+
+        java.time.LocalDate first = today.minusDays(14);
+        java.time.LocalDate last = today.plusDays(30);
+        for (Booking b : nextStayBookings) {
+            if (b == null || StayCalendarModel.isClosed(b)) continue;
+            java.time.LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+            java.time.LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+            if (in != null && in.isBefore(first) && in.isAfter(today.minusDays(60))) first = in;
+            if (out != null && out.isAfter(last) && out.isBefore(today.plusDays(120))) last = out;
+        }
+        if (selectedStayDay.isBefore(first)) selectedStayDay = first;
+        if (selectedStayDay.isAfter(last)) selectedStayDay = last;
+
+        android.widget.HorizontalScrollView scroll = content.findViewById(R.id.nextStayDayScroll);
+        LinearLayout strip = content.findViewById(R.id.nextStayDayStrip);
+        int keepScroll = scroll.getScrollX();
+        boolean firstBuild = !nextStayStripBuilt;
+        strip.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View selectedChip = null;
+        for (java.time.LocalDate d = first; !d.isAfter(last); d = d.plusDays(1)) {
+            final java.time.LocalDate day = d;
+            int count = NextStay.forDay(nextStayBookings, day, today).size();
+            View chip = inflater.inflate(R.layout.item_next_stay_day, strip, false);
+            long diff = java.time.temporal.ChronoUnit.DAYS.between(today, day);
+            boolean friendly = diff >= -1 && diff <= 1;
+            TextView name = chip.findViewById(R.id.tvDayName);
+            TextView date = chip.findViewById(R.id.tvDayDate);
+            TextView badge = chip.findViewById(R.id.tvDayCount);
+            name.setText(friendly ? dayName(day, today) : DAY_WEEKDAY.format(day));
+            date.setText(DAY_DATE.format(day));
+            badge.setText(String.valueOf(count));
+            badge.setVisibility(count > 0 ? View.VISIBLE : View.INVISIBLE);
+            boolean selected = day.equals(selectedStayDay);
+            chip.setSelected(selected);
+            int textColor = getColor(selected ? R.color.white : R.color.velocity_text_primary);
+            name.setTextColor(textColor);
+            date.setTextColor(textColor);
+            chip.setContentDescription(getString(R.string.next_stay_day_cd_format, dayName(day, today), count));
+            chip.setOnClickListener(v -> {
+                selectedStayDay = day;
+                renderNextStayDays();
+            });
+            if (selected) selectedChip = chip;
+            strip.addView(chip);
+        }
+        if (firstBuild && selectedChip != null) {
+            nextStayStripBuilt = true;
+            final View target = selectedChip;
+            scroll.post(() -> scroll.scrollTo(Math.max(0, target.getLeft() - dp(16)), 0));
+        } else {
+            scroll.post(() -> scroll.scrollTo(keepScroll, 0));
+        }
+
+        List<NextStay> dayStays = NextStay.forDay(nextStayBookings, selectedStayDay, today);
+        LinearLayout cards = content.findViewById(R.id.nextStayDayCards);
+        TextView heading = content.findViewById(R.id.nextStayDayHeading);
+        View empty = content.findViewById(R.id.nextStayDayEmpty);
+        cards.removeAllViews();
+        String dayLabel = dayName(selectedStayDay, today);
+        String countText = getResources().getQuantityString(R.plurals.summary_transactions_count, dayStays.size(), dayStays.size());
+        heading.setText(getString(R.string.next_stay_day_heading_format, dayLabel, countText));
+        empty.setVisibility(dayStays.isEmpty() ? View.VISIBLE : View.GONE);
+        for (int i = 0; i < dayStays.size(); i++) {
+            if (i > 0) {
+                View divider = new View(this);
+                divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
+                cards.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
+            }
+            View item = inflater.inflate(R.layout.item_next_stay, cards, false);
+            bindNextStayItem(item, dayStays.get(i), selectedStayDay);
+            cards.addView(item);
+        }
+        nextStaySection.setSummary(getString(R.string.next_stay_day_heading_format, dayLabel,
+                dayStays.isEmpty() ? getString(R.string.summary_nothing_scheduled) : countText));
+    }
+
     /** Fills one stay's block and wires its taps: the block opens its Booking Details, the button asks for amenities. */
-    private void bindNextStayItem(View item, NextStay stay) {
-        ((TextView) item.findViewById(R.id.tvNextStayHint)).setText(stay.hint(this));
+    private void bindNextStayItem(View item, NextStay stay, java.time.LocalDate day) {
+        ((TextView) item.findViewById(R.id.tvNextStayHint)).setText(stay.dayRole(this, day));
         TextView ref = item.findViewById(R.id.tvNextStayRef);
         ref.setText(TransactionText.reference(this, stay.booking.isHasBooking(), stay.booking.getDisplayId()));
-        ref.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, stay.booking))));
+        View.OnClickListener openInUpcoming = NavUtils.debounce(v ->
+                startActivity(UpcomingTransactionsActivity.intentWithFilters(this, stay.booking)));
+        ref.setOnClickListener(openInUpcoming);
         ((TextView) item.findViewById(R.id.tvNextStayRooms)).setText(TransactionRow.roomTextOf(stay.booking));
         ((TextView) item.findViewById(R.id.tvNextStayDates)).setText(stay.datesText(this));
         ((TextView) item.findViewById(R.id.tvNextStayNights)).setText(stay.nightsText(this));
-        styleNextStayStatus((TextView) item.findViewById(R.id.tvNextStayStatus), stay.status);
+        TextView statusChip = item.findViewById(R.id.tvNextStayStatus);
+        if (stay.isFinished()) {
+            TransactionStatusChip.apply(this, statusChip, stay.booking.getStatus());
+            statusChip.setCompoundDrawables(null, null, null, null);
+        } else {
+            styleNextStayStatus(statusChip, stay.status);
+        }
 
         TextView balanceLabel = item.findViewById(R.id.tvNextStayBalanceLabel);
         TextView balance = item.findViewById(R.id.tvNextStayBalance);
@@ -1358,8 +1435,10 @@ public class DashboardActivity extends BaseNavigationActivity {
         View amenities = item.findViewById(R.id.btnNextStayRequestAmenities);
         amenities.setVisibility(stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
         amenities.setOnClickListener(NavUtils.debounce(v -> startActivity(AdditionalAmenitiesEntry.intent(this, stay.booking))));
-        item.setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, BookingDetailsActivity.class)
-                .putExtra(BookingDetailsActivity.EXTRA_BOOKING, stay.booking))));
+        item.setOnClickListener(openInUpcoming);
+        item.findViewById(R.id.tvNextStayViewDetails).setOnClickListener(NavUtils.debounce(v ->
+                startActivity(new android.content.Intent(this, BookingDetailsActivity.class)
+                        .putExtra(BookingDetailsActivity.EXTRA_BOOKING, stay.booking))));
     }
 
     /**

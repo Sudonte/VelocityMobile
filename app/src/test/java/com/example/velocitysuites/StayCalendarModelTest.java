@@ -115,4 +115,31 @@ public class StayCalendarModelTest {
         assertEquals("02:00:00 PM", in.get(0).timeText());
         assertEquals("12:00:00 PM", out.get(0).timeText());
     }
+
+    @Test
+    public void transactionsFor_overlapListsAMultiDayStayOnce_nearestCheckInFirst_andSkipsCancelled() {
+        StayCalendarModel m = new StayCalendarModel(Arrays.asList(
+                stay("3", LocalDate.of(2026, 10, 25), LocalDate.of(2026, 10, 27), "Confirmed"),
+                stay("1", LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 20), "Confirmed"),
+                stay("2", LocalDate.of(2026, 10, 19), LocalDate.of(2026, 10, 21), "Cancelled"),
+                stay("4", LocalDate.of(2026, 10, 28), LocalDate.of(2026, 10, 30), "Pending"),
+                stay("5", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 3), "Confirmed")));
+        LocalDate anchor = LocalDate.of(2026, 10, 20);
+        // a stay that only touches the day (checks out on it) overlaps it
+        assertEquals(1, m.transactionsFor(StayCalendarModel.Mode.DAILY, anchor).size());
+        // the whole month: three stays, each once, 1 (Oct 3) before 3 (Oct 25) before 4 (Oct 28)
+        List<Booking> month = m.transactionsFor(StayCalendarModel.Mode.MONTHLY, anchor);
+        assertEquals(3, month.size());
+        assertEquals("1", month.get(0).getId());
+        assertEquals("3", month.get(1).getId());
+        assertEquals("4", month.get(2).getId());
+    }
+
+    @Test
+    public void transactionsFor_deduplicatesByUniqueId() {
+        Booking a = stay("7", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 22), "Confirmed");
+        Booking again = stay("7", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 22), "Confirmed");
+        StayCalendarModel m = new StayCalendarModel(Arrays.asList(a, again));
+        assertEquals(1, m.transactionsFor(StayCalendarModel.Mode.WEEKLY, LocalDate.of(2026, 10, 21)).size());
+    }
 }

@@ -76,6 +76,8 @@ public final class StayCalendarModel {
     }
 
     private final TreeMap<LocalDate, List<Entry>> byDate = new TreeMap<>();
+    /** Every transaction handed in, for {@link #transactionsFor}. */
+    private final List<Booking> all = new ArrayList<>();
     /** Every day a stay covers, check-in through check-out. */
     private final Set<LocalDate> stayDays = new HashSet<>();
     /** Days covered only by stays shaded in the muted style (no red stay shares the day). */
@@ -97,6 +99,7 @@ public final class StayCalendarModel {
         if (bookings == null) return;
         for (Booking b : bookings) {
             if (b == null) continue;
+            all.add(b);
             addStayDays(b, shade, muted);
             if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
             String status = b.getStatus() == null ? "" : b.getStatus();
@@ -181,6 +184,37 @@ public final class StayCalendarModel {
             case MONTHLY: return anchor.withDayOfMonth(anchor.lengthOfMonth());
             default: return anchor;
         }
+    }
+
+    /** The unique key of a transaction: bookings and reservations are separate id sequences, so the kind is part of it. */
+    static String keyOf(@NonNull Booking b) {
+        return (b.isDirectBooking() ? "B" : "R") + ":" + b.getId();
+    }
+
+    /**
+     * The transactions the Stay Calendar lists for a period: every one whose check-in to check-out range overlaps the
+     * window at all, each exactly once however many days it spans (deduplicated by its unique id), nearest check-in
+     * first. Cancelled and rejected ones are left out; unreadable dates are skipped.
+     */
+    @NonNull
+    public List<Booking> transactionsFor(@NonNull Mode mode, @NonNull LocalDate anchor) {
+        LocalDate start = windowStart(mode, anchor);
+        LocalDate end = windowEnd(mode, anchor);
+        java.util.Map<String, Booking> unique = new java.util.LinkedHashMap<>();
+        for (Booking b : all) {
+            if (isClosed(b)) continue;
+            LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+            if (in == null) continue;
+            LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+            if (out == null || out.isBefore(in)) out = in;
+            if (out.isBefore(start) || in.isAfter(end)) continue;
+            unique.putIfAbsent(keyOf(b), b);
+        }
+        List<Booking> result = new ArrayList<>(unique.values());
+        Collections.sort(result, Comparator
+                .comparing((Booking b) -> PaymentDates.parseDate(b.getCheckInDate()))
+                .thenComparing(b -> b.getDisplayId() == null ? "" : b.getDisplayId()));
+        return result;
     }
 
     @NonNull

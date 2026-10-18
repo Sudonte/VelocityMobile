@@ -137,10 +137,15 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/tvNextStayViewDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:gravity="end"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical|end"
+        android:minHeight="48dp"
         android:text="@string/next_stay_view_details"
         android:textColor="@color/velocity_action_text"
         android:textSize="12sp" />

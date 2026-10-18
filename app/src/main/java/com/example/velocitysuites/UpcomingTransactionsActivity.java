@@ -415,6 +415,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         Booking focus = selectedId == null ? null
                 : TransactionNavigator.pick(allTransactions, selectedId, selectedDirect, null, null);
         if (focus != null && !open.contains(focus) && !closed.contains(focus) && anyFilterActive()) {
+            Toast.makeText(this, R.string.upcoming_filter_fallback, Toast.LENGTH_SHORT).show();
             resetFilters(); // re-enters renderEvents() with nothing filtered
             return;
         }
@@ -479,6 +480,9 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         if (!pendingScrollToSelected || screenContent == null) return;
         pendingScrollToSelected = false;
         final View target = focusCard;
+        // A brief pulse so the eye finds the card after the scroll (the red outline stays).
+        target.setAlpha(0.35f);
+        target.animate().alpha(1f).setDuration(900).start();
         screenContent.post(() -> {
             int offset = 0;
             View v = target;

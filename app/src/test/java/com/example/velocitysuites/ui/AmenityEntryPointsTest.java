@@ -113,6 +113,8 @@ public class AmenityEntryPointsTest {
     @Test
     public void nextStay_beforeCheckIn_doesNotOfferIt() {
         DashboardActivity a = dashboardWith(booking(339, "ACTIVE_BOOKING", 3, 4));
+        ((android.view.ViewGroup) a.findViewById(R.id.nextStayDayStrip)).getChildAt(14 + 3).performClick(); // its check-in day
+        idle();
         assertEquals(View.GONE, a.findViewById(R.id.btnNextStayRequestAmenities).getVisibility());
     }
 

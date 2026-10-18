@@ -169,18 +169,7 @@
                     android:padding="8dp">
 
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_badge_hero"
-                            android:fontFamily="sans-serif-black"
-                            android:letterSpacing="0.06"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp"
-                            android:text="@string/landing_welcome_guest"
-                            android:textAllCaps="true"
-                            android:textColor="@color/white"
-                            android:textSize="11sp" />
+                        
 
                         <TextView
                             android:id="@+id/landingHeroTitle"
@@ -216,20 +205,48 @@
                             android:textColor="@color/white"
                             android:textSize="14sp" />
 
+                        
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:layout_gravity="start"
+                            android:background="@drawable/bg_badge_hero"
+                            android:fontFamily="sans-serif-black"
+                            android:letterSpacing="0.06"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/landing_welcome_guest"
+                            android:textAllCaps="true"
+                            android:textColor="@color/white"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/landingGreeting"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:lineSpacingExtra="2dp"
+                            android:text="@string/landing_description"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnExploreNow"
                             style="@style/Widget.Velocity.Button"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="14dp"
                             android:minWidth="0dp"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
-                            android:minHeight="52dp"
-                            android:paddingHorizontal="16dp"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="22dp"
                             android:stateListAnimator="@null"
                             android:text="@string/landing_banner_cta"
-                            android:textSize="15sp"
+                            android:textSize="14sp"
                             app:backgroundTint="@color/velocity_red_primary"
                             app:cornerRadius="12dp"
                             app:elevation="0dp"
@@ -237,17 +254,6 @@
                             app:iconGravity="textEnd"
                             app:iconTint="@color/white"
                             app:rippleColor="@color/white" />
-
-                        <TextView
-                            android:id="@+id/landingGreeting"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:lineSpacingExtra="2dp"
-                            android:text="@string/landing_description"
-                            android:textColor="@color/white"
-                            android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -264,7 +270,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:columnCount="3">
+                android:columnCount="2"
+                android:rowCount="3">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -272,7 +279,7 @@
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
                     android:layout_marginStart="0dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:contentDescription="@string/landing_feature_booking_desc"
@@ -309,8 +316,8 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="0dp"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:contentDescription="@string/landing_feature_status_desc"
@@ -347,8 +354,8 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="0dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:contentDescription="@string/landing_feature_payment_desc"
@@ -385,8 +392,8 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="0dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="0dp"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:contentDescription="@string/landing_feature_receipt_desc"
@@ -423,8 +430,8 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:contentDescription="@string/landing_feature_notify_desc"
@@ -461,7 +468,7 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="3dp"
+                    android:layout_marginStart="4dp"
                     android:layout_marginEnd="0dp"
                     android:layout_marginBottom="6dp"
                     android:background="@drawable/bg_landing_feature_tile"
