@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One day in the Your Next Stay day selector: friendly name or weekday, date, and a count badge when it has transactions. -->
+<!-- One day in the Your Next Stay day selector: a short label, the date, and a round count badge in the same place on
+     every chip (invisible, not gone, on a day with nothing, so the chips stay equal). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nextStayDay"
-    android:layout_width="68dp"
+    android:layout_width="72dp"
     android:layout_height="wrap_content"
     android:layout_marginEnd="8dp"
     android:background="@drawable/bg_next_day_chip"
@@ -11,42 +12,46 @@
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     android:gravity="center_horizontal"
-    android:minHeight="72dp"
+    android:minHeight="76dp"
     android:orientation="vertical"
+    android:paddingHorizontal="4dp"
     android:paddingVertical="8dp">
 
     <TextView
         android:id="@+id/tvDayName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:autoSizeMaxTextSize="12sp"
+        android:autoSizeMinTextSize="10sp"
+        android:autoSizeStepGranularity="1sp"
+        android:autoSizeTextType="uniform"
         android:fontFamily="sans-serif-black"
+        android:gravity="center"
         android:importantForAccessibility="no"
         android:maxLines="1"
         android:textSize="12sp"
-        tools:text="Today" />
+        tools:text="Tomorrow" />
 
     <TextView
         android:id="@+id/tvDayDate"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:importantForAccessibility="no"
         android:maxLines="1"
         android:textSize="12sp"
-        tools:text="Oct 18" />
+        tools:text="Oct 20" />
 
     <TextView
         android:id="@+id/tvDayCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/shape_intro_pill"
-        android:backgroundTint="@color/velocity_red_primary"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_next_day_badge"
         android:fontFamily="sans-serif-black"
-        android:importantForAccessibility="no"
-        android:minWidth="18dp"
         android:gravity="center"
-        android:paddingHorizontal="6dp"
-        android:textColor="@color/white"
+        android:importantForAccessibility="no"
+        android:includeFontPadding="false"
         android:textSize="11sp"
-        tools:text="2" />
+        tools:text="1" />
 </LinearLayout>

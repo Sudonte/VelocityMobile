@@ -264,7 +264,6 @@ public class DashboardScreenTest {
     public void everySectionHasATitle_andTheNewOnesALineSayingWhatTheyAreFor() {
         DashboardActivity activity = launch();
         assertEquals(app.getString(R.string.next_stay_section_title), findText(activity, R.string.next_stay_section_title));
-        assertNotNull(findText(activity, R.string.next_stay_section_desc));
         assertNotNull(findText(activity, R.string.quick_actions));
         assertNotNull(findText(activity, R.string.quick_actions_desc));
         assertNotNull(findText(activity, R.string.recent_bookings_title));
@@ -354,8 +353,10 @@ public class DashboardScreenTest {
         assertEquals("2 nights · 2 Guests", text(activity, R.id.tvNextStayNights));
         assertTrue(text(activity, R.id.tvNextStayDates).contains(" → "));
         assertEquals("Waiting for payment", text(activity, R.id.tvNextStayStatus));
-        assertEquals(app.getString(R.string.next_stay_payment_label), text(activity, R.id.tvNextStayBalanceLabel));
-        assertEquals("You still need to pay ₱1,800.00", text(activity, R.id.tvNextStayBalance));
+        assertEquals("Balance due", text(activity, R.id.tvNextStayBalanceLabel));
+        assertEquals("₱1,800.00", text(activity, R.id.tvNextStayBalance));
+        assertEquals("the amount is bold red", app.getColor(R.color.velocity_red_primary),
+                ((TextView) activity.findViewById(R.id.tvNextStayBalance)).getCurrentTextColor());
     }
 
     @Test
@@ -585,7 +586,7 @@ public class DashboardScreenTest {
         }
         assertEquals(refs.toString(), 2, refs.size());
         assertTrue(refs.toString(), refs.contains("Reservation #588") && refs.contains("Booking #338"));
-        assertTrue(text(activity, R.id.nextStayDayHeading), text(activity, R.id.nextStayDayHeading).contains("2 transactions"));
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).endsWith("2 stays"));
     }
 
     @Test
@@ -599,7 +600,7 @@ public class DashboardScreenTest {
         assertEquals("Today", ((TextView) strip.getChildAt(14).findViewById(R.id.tvDayName)).getText().toString());
         assertEquals("Tomorrow", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayName)).getText().toString());
         assertTrue("nothing today, so the nearest day with a stay is selected", strip.getChildAt(15).isSelected());
-        assertEquals("Your next stay is tomorrow", text(activity, R.id.nextStayDayInfo));
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Your next stay · Tomorrow"));
         selectDay(activity, 0);
         assertTrue("Today is selected", strip.getChildAt(14).isSelected());
         assertEquals("tomorrow has two transactions", "2", ((TextView) strip.getChildAt(15).findViewById(R.id.tvDayCount)).getText().toString());
@@ -609,8 +610,8 @@ public class DashboardScreenTest {
         selectDay(activity, -1);
         assertEquals("a stay that ended yesterday still shows on its check-out day", 1, activity.<ViewGroup>findViewById(R.id.nextStayDayCards).getChildCount());
         selectDay(activity, 2);
-        assertTrue("a stay also covers its check-out day: " + text(activity, R.id.nextStayDayHeading),
-                text(activity, R.id.nextStayDayHeading).contains("2 transactions"));
+        assertTrue("a stay also covers its check-out day: " + text(activity, R.id.nextStayDayInfo),
+                text(activity, R.id.nextStayDayInfo).endsWith("2 stays"));
     }
 
     @Test
@@ -620,14 +621,131 @@ public class DashboardScreenTest {
 
         ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
         assertTrue(strip.getChildAt(14 + 3).isSelected());
-        assertEquals("Your next stay is in 3 days", text(activity, R.id.nextStayDayInfo));
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.nextStayDayInfoRow).getVisibility());
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Your next stay · In 3 days"));
+        assertEquals("the Today button shows while another day is selected", View.VISIBLE, activity.findViewById(R.id.btnNextStayToday).getVisibility());
 
         tap(activity.findViewById(R.id.btnNextStayToday));
         idle();
         assertTrue(strip.getChildAt(14).isSelected());
-        assertEquals(View.GONE, activity.findViewById(R.id.nextStayDayInfoRow).getVisibility());
+        assertEquals("no Today button once Today is selected", View.GONE, activity.findViewById(R.id.btnNextStayToday).getVisibility());
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Today"));
         assertEquals("empty state on a quiet Today", View.VISIBLE, activity.findViewById(R.id.nextStayDayEmpty).getVisibility());
+    }
+
+    @Test
+    public void nextStay_theGuestsCase_opensOnTheCheckInDay_withTheSelectedChipFullyVisible() {
+        DashboardActivity activity = launch();
+        // Viewed 2 days before a 1-night stay: the check-in day is selected, not the check-out day.
+        answer(stay(567, 2, 1));
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        assertTrue("check-in day", strip.getChildAt(14 + 2).isSelected());
+        assertFalse("not the check-out day", strip.getChildAt(14 + 3).isSelected());
+        assertTrue(text(activity, R.id.nextStayDayInfo), text(activity, R.id.nextStayDayInfo).contains("Your next stay · In 2 days · 1 stay"));
+
+        // lay the screen out as on a phone, then the selected chip must sit inside the strip's visible window
+        View decor = activity.getWindow().getDecorView();
+        int w = app.getResources().getDisplayMetrics().widthPixels;
+        int h = app.getResources().getDisplayMetrics().heightPixels;
+        decor.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+        decor.layout(0, 0, w, h);
+        idle();
+        android.widget.HorizontalScrollView scroll = activity.findViewById(R.id.nextStayDayScroll);
+        View chip = strip.getChildAt(14 + 2);
+        assertTrue("selected chip starts inside the window", chip.getLeft() >= scroll.getScrollX());
+        assertTrue("selected chip ends inside the window", chip.getRight() <= scroll.getScrollX() + scroll.getWidth());
+    }
+
+    @Test
+    public void nextStay_dayChips_areEqualWidth_withTheSameRoundBadge_andTodayOutlinedWhenNotSelected() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        View selected = strip.getChildAt(14 + 2);
+        View today = strip.getChildAt(14);
+        View quiet = strip.getChildAt(14 + 6);
+
+        assertEquals("equal-width chips", selected.getLayoutParams().width, today.getLayoutParams().width);
+        assertEquals(selected.getLayoutParams().width, quiet.getLayoutParams().width);
+        assertTrue("Today is outlined while another day is selected", today.isActivated() && !today.isSelected());
+        assertFalse(selected.isActivated());
+
+        TextView selectedBadge = selected.findViewById(R.id.tvDayCount);
+        assertEquals("1", selectedBadge.getText().toString());
+        assertEquals("red on white on the selected chip", app.getColor(R.color.velocity_red_primary), selectedBadge.getCurrentTextColor());
+        assertEquals(app.getColor(R.color.white), ((TextView) selected.findViewById(R.id.tvDayName)).getCurrentTextColor());
+        assertEquals(View.INVISIBLE, quiet.findViewById(R.id.tvDayCount).getVisibility());
+        assertTrue("a quiet day is lighter", quiet.findViewById(R.id.tvDayName).getAlpha() < 1f);
+
+        selected.findViewById(R.id.tvDayCount); // another stay on an unselected day: white on red
+        answerWith(ScreenTestSupport.reservations(stay(567, 2, 1), stay(568, 4, 1)), ScreenTestSupport.directBookings());
+        TextView other = ((ViewGroup) activity.findViewById(R.id.nextStayDayStrip)).getChildAt(14 + 4).findViewById(R.id.tvDayCount);
+        assertEquals("1", other.getText().toString());
+        assertEquals("white on red on an unselected chip", app.getColor(R.color.white), other.getCurrentTextColor());
+    }
+
+    @Test
+    public void nextStayCard_idIsPlainBoldText_neverTruncated_andThereIsNoCardAroundTheCards() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        TextView ref = activity.findViewById(R.id.tvNextStayRef);
+        assertEquals("Reservation #567", ref.getText().toString());
+        assertNull("no pink pill behind the ID", ref.getBackground());
+        assertEquals("primary text colour, not red", app.getColor(R.color.velocity_text_primary), ref.getCurrentTextColor());
+        assertNull("no chevron inside the ID", ref.getCompoundDrawables()[2]);
+        assertNull("never ellipsized", ref.getEllipsize());
+        assertEquals(Integer.MAX_VALUE, ref.getMaxLines());
+        assertFalse("no card around the day strip and the cards",
+                activity.findViewById(R.id.nextStayCard) instanceof com.google.android.material.card.MaterialCardView);
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(sdk = 35, qualifiers = "w360dp-h800dp-night-xxhdpi", application = TestApplication.class)
+    public void nextStay_inDarkMode_idChipsBadgesAndSelectedDayStayReadable() {
+        DashboardActivity activity = launch();
+        answer(stay(567, 2, 1));
+        int surface = app.getColor(R.color.velocity_card_surface);
+        TextView ref = activity.findViewById(R.id.tvNextStayRef);
+        assertTrue("the ID reads on the card surface",
+                androidx.core.graphics.ColorUtils.calculateContrast(ref.getCurrentTextColor(), surface) >= 4.5);
+
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        View selected = strip.getChildAt(14 + 2);
+        int red = app.getColor(R.color.velocity_red_primary);
+        assertTrue("white on the red selected chip",
+                androidx.core.graphics.ColorUtils.calculateContrast(((TextView) selected.findViewById(R.id.tvDayName)).getCurrentTextColor(), red) >= 3.0);
+        View unselected = strip.getChildAt(14 + 1);
+        assertTrue("an unselected day's text reads on the chip surface",
+                androidx.core.graphics.ColorUtils.calculateContrast(((TextView) unselected.findViewById(R.id.tvDayDate)).getCurrentTextColor(), surface) >= 3.0);
+        TextView balance = activity.findViewById(R.id.tvNextStayBalance);
+        assertTrue("the balance reads on the card surface",
+                androidx.core.graphics.ColorUtils.calculateContrast(balance.getCurrentTextColor(), surface) >= 3.0);
+    }
+
+    @Test
+    public void nextStayCard_paymentRow_showsBalanceDueInRed_orPaidWithACheck() {
+        DashboardActivity activity = launch();
+        com.example.velocitysuites.network.dto.ReservationDto paid = ScreenTestSupport.reservation(570, 1800,
+                ScreenTestSupport.payment(1, "1800.00", "completed", "gcash"));
+        paid.check_in = manilaToday().plusDays(2).toString();
+        paid.check_out = manilaToday().plusDays(3).toString();
+        answerWith(ScreenTestSupport.reservations(stay(569, 2, 1), paid), ScreenTestSupport.directBookings());
+        ViewGroup cards = activity.findViewById(R.id.nextStayDayCards);
+        boolean sawBalance = false;
+        boolean sawPaid = false;
+        for (int i = 0; i < cards.getChildCount(); i++) {
+            TextView value = cards.getChildAt(i).findViewById(R.id.tvNextStayBalance);
+            if (value == null) continue;
+            String shown = value.getText().toString();
+            if (shown.equals("₱1,800.00")) {
+                sawBalance = true;
+                assertEquals("Balance due", ((TextView) cards.getChildAt(i).findViewById(R.id.tvNextStayBalanceLabel)).getText().toString());
+            } else if (shown.equals("Paid")) {
+                sawPaid = true;
+                assertNotNull("a green check beside Paid", value.getCompoundDrawables()[0]);
+            }
+        }
+        assertTrue("one card owes the balance", sawBalance);
+        assertTrue("one card is paid", sawPaid);
     }
 
     @Test

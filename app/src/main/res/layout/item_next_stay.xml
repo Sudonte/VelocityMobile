@@ -1,193 +1,230 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One stay in the Dashboard's "Your Next Stay" section. A guest can hold several transactions on the same day, so
-     DashboardActivity inflates one of these for each. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One stay in the Dashboard's "Your Next Stay" section; a guest can hold several on one day, so DashboardActivity
+     inflates one of these for each. The same rows as every stay card:
+       Row 1  plain bold ID (never cut off) ........ status chip  >      (the whole card opens it in Upcoming)
+       Row 2  type chip + where the day falls in the stay (Check-in day / Staying / Check-out day)
+       Row 3  room   Row 4  compact dates   Row 5  nights - guests
+     then a divider, one payment row, and the View details / amenities action row. A thin accent bar on the left edge
+     follows the status. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nextStayItem"
+    style="@style/Widget.Velocity.Card.Flat"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:layout_marginTop="8dp"
     android:clickable="true"
     android:focusable="true"
-    android:orientation="vertical"
-    android:padding="14dp">
+    android:foreground="?attr/selectableItemBackground">
 
-
-    <!-- Row 1: the full ID (wraps, never cut off) and the status chip; tapping the ID opens it in Upcoming. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tvNextStayRef"
+        <View
+            android:id="@+id/nextStayAccent"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/bg_upcoming_link"
-            android:clickable="true"
-            android:drawablePadding="2dp"
-            android:focusable="true"
-            android:fontFamily="sans-serif-black"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:textColor="@color/velocity_red_primary"
-            android:textSize="16sp"
-            app:drawableEndCompat="@drawable/ic_chevron_right"
-            app:drawableTint="@color/velocity_red_primary"
-            tools:text="Booking #338" />
+            android:orientation="vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="4dp">
 
-        <TextView
-            android:id="@+id/tvNextStayStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/shape_flat_badge"
-            android:fontFamily="sans-serif-black"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:textSize="12sp"
-            tools:text="Confirmed" />
+            <!-- Row 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvNextStayRef"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="16sp"
+                    tools:text="Booking #567" />
+
+                <TextView
+                    android:id="@+id/tvNextStayStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/shape_flat_badge"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:textSize="12sp"
+                    tools:text="Confirmed" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="6dp"
+                    android:alpha="0.4"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/velocity_text_secondary" />
+            </LinearLayout>
+
+            <!-- Row 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvNextStayType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_red_soft"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="11sp"
+                    tools:text="Booking" />
+
+                <TextView
+                    android:id="@+id/tvNextStayHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/velocity_blue_soft"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/velocity_blue_primary"
+                    android:textSize="11sp"
+                    tools:text="Check-in day" />
+            </LinearLayout>
+
+            <!-- Rows 3-5 -->
+            <TextView
+                android:id="@+id/tvNextStayRooms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="13sp"
+                tools:text="Deluxe" />
+
+            <TextView
+                android:id="@+id/tvNextStayDates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="Oct 20 → Oct 21, 2026" />
+
+            <TextView
+                android:id="@+id/tvNextStayNights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="1 night · 1 Guest" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/velocity_divider_hairline" />
+
+            <!-- Check-in total, approved amenities, remaining balance, final total - filled from the server's
+                 stay bill once the stay is in house; gone before that. -->
+            <LinearLayout
+                android:id="@+id/nextStayMoney"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical"
+                android:visibility="gone" />
+
+            <!-- The payment row: "Balance due" and the amount in bold red, or "Paid" with a green check. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvNextStayBalanceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:text="@string/next_stay_balance_due"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvNextStayBalance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawablePadding="4dp"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="end|center_vertical"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="14sp"
+                    tools:text="₱1,750.00" />
+            </LinearLayout>
+
+            <!-- Actions: the amenities button (only while the guest is staying) and View details, in one row. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|end"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNextStayRequestAmenities"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/request_additional_amenities_button"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvNextStayViewDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical|end"
+                    android:minHeight="48dp"
+                    android:text="@string/next_stay_view_details"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-
-    <!-- Row 2: type chip and where the chosen day falls in the stay. -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvNextStayType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/shape_intro_pill"
-            android:backgroundTint="@color/velocity_red_soft"
-            android:fontFamily="sans-serif-black"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:textAllCaps="true"
-            android:textColor="@color/velocity_red_primary"
-            android:textSize="11sp"
-            tools:text="Booking" />
-
-        <TextView
-            android:id="@+id/tvNextStayHint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/shape_intro_pill"
-            android:backgroundTint="@color/velocity_blue_soft"
-            android:fontFamily="sans-serif-black"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
-            android:textAllCaps="true"
-            android:textColor="@color/velocity_blue_primary"
-            android:textSize="11sp"
-            tools:text="Check-in day" />
-    </LinearLayout>
-
-    <!-- Rows 3-5: room, compact dates on one line, nights and guests. -->
-    <TextView
-        android:id="@+id/tvNextStayRooms"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:ellipsize="end"
-        android:fontFamily="sans-serif-medium"
-        android:maxLines="1"
-        android:textColor="@color/velocity_text_primary"
-        android:textSize="13sp"
-        tools:text="Deluxe ×2" />
-
-    <TextView
-        android:id="@+id/tvNextStayDates"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="@color/velocity_text_secondary"
-        android:textSize="12sp"
-        tools:text="Oct 12 → Oct 14, 2026" />
-
-    <TextView
-        android:id="@+id/tvNextStayNights"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/velocity_text_secondary"
-        android:textSize="12sp"
-        tools:text="2 nights · 2 guests" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginVertical="11dp"
-        android:background="@color/velocity_divider_hairline" />
-
-    <!-- Check-in total, approved amenities, remaining balance, final total - filled from the server's
-         stay bill once the stay is in house; gone before that. -->
-    <LinearLayout
-        android:id="@+id/nextStayMoney"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:orientation="vertical"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:minHeight="48dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvNextStayBalanceLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:text="@string/next_stay_balance_due"
-            android:textColor="@color/velocity_text_secondary"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/tvNextStayBalance"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="end"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="14sp"
-            tools:text="₱1,800.00" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvNextStayViewDetails"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical|end"
-        android:minHeight="48dp"
-        android:text="@string/next_stay_view_details"
-        android:textColor="@color/velocity_action_text"
-        android:textSize="12sp" />
-
-    <!-- Only while the guest is staying: ask the front desk for extra amenities. -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnNextStayRequestAmenities"
-        style="@style/Widget.Velocity.Flat.Button.Outlined"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/request_additional_amenities_button"
-        android:visibility="gone" />
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

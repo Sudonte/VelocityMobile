@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A day in the "Your Next Stay" day selector: outlined, filled red when it is the selected day. -->
+<!-- A day in the "Your Next Stay" day selector: filled red when selected, outlined in red when it is Today, hairline otherwise. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/velocity_red_primary" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/velocity_card_surface" />
+            <stroke android:width="1.5dp" android:color="@color/velocity_red_primary" />
             <corners android:radius="12dp" />
         </shape>
     </item>

@@ -493,7 +493,6 @@
     <string name="quick_action_history">Transaction history</string>
     <!-- Dashboard: next stay -->
     <string name="next_stay_section_title">Your Next Stay</string>
-    <string name="next_stay_section_desc">Your stays on the selected day</string>
     <string name="dashboard_date_format">EEEE, MMMM d, yyyy</string>
     <string name="dashboard_time_format">hh:mm:ss a</string>
     <string name="next_stay_loading">Looking for your next stay…</string>
@@ -2117,27 +2116,13 @@
     <string name="next_stay_day_yesterday">Yesterday</string>
     <string name="next_stay_day_today">Today</string>
     <string name="next_stay_day_tomorrow">Tomorrow</string>
-    <string name="next_stay_day_heading_format">%1$s · %2$s</string>
     <string name="next_stay_day_role_checkin">Check-in day</string>
     <string name="next_stay_day_role_checkout">Check-out day</string>
-    <string name="next_stay_day_role_staying">Stay in progress</string>
+    <string name="next_stay_day_role_staying">Staying</string>
     <string name="next_stay_day_empty">Nothing booked for this day. Pick another day above.</string>
     <string name="upcoming_filter_fallback">That transaction was hidden by the filters, so all transactions are shown.</string>
 
     <string name="next_stay_jump_today">Today</string>
-    <string name="next_stay_line_tomorrow">Your next stay is tomorrow</string>
-    <plurals name="next_stay_line_in_days">
-        <item quantity="one">Your next stay is in %d day</item>
-        <item quantity="other">Your next stay is in %d days</item>
-    </plurals>
-    <plurals name="next_stay_line_other_future">
-        <item quantity="one">That day is in %d day</item>
-        <item quantity="other">That day is in %d days</item>
-    </plurals>
-    <plurals name="next_stay_line_past">
-        <item quantity="one">That day was %d day ago</item>
-        <item quantity="other">That day was %d days ago</item>
-    </plurals>
     <string name="stay_calendar_show_cancelled">Show cancelled</string>
     <string name="upcoming_section_stay">Stay Details</string>
     <string name="upcoming_section_room">Room Details</string>
@@ -2155,6 +2140,18 @@
     <string name="details_label_quantity">Quantity</string>
     <string name="details_label_rate_per_night">Rate per Night</string>
     <string name="details_label_balance">Balance</string>
+    <plurals name="next_stay_ctx_in_days">
+        <item quantity="one">In %d day</item>
+        <item quantity="other">In %d days</item>
+    </plurals>
+    <plurals name="next_stay_ctx_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <string name="next_stay_ctx_next_prefix">Your next stay · %1$s</string>
+    <string name="next_stay_ctx_none">No stays</string>
+    <string name="next_stay_ctx_format">%1$s · %2$s · %3$s</string>
+    <string name="next_stay_paid">Paid</string>
 </resources>
 
 

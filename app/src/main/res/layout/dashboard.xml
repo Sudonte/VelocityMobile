@@ -337,30 +337,18 @@
                     android:textColor="@color/velocity_text_primary"
                     android:textSize="13sp"
                     android:visibility="gone" />
-                <TextView
-                    style="@style/TextAppearance.Velocity.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="11dp"
-                    android:text="@string/next_stay_section_desc"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="13sp" />
                 <!-- The next stay: room(s), dates, nights, status chip, balance due, and a plain hint. One tap opens its details.
                      Exactly one of the four states below is visible: loading, error (Retry), empty (make a booking) or content. -->
-                <com.google.android.material.card.MaterialCardView
+                <FrameLayout
                     android:id="@+id/nextStayCard"
-                    style="@style/Widget.Velocity.Card.Flat"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:layout_marginBottom="14dp">
-
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
 
                         <LinearLayout
                             android:id="@+id/nextStayLoading"
+                            android:background="@drawable/bg_flat_box"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center"
@@ -386,6 +374,7 @@
 
                         <LinearLayout
                             android:id="@+id/nextStayError"
+                            android:background="@drawable/bg_flat_box"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center"
@@ -423,6 +412,7 @@
 
                         <LinearLayout
                             android:id="@+id/nextStayEmpty"
+                            android:background="@drawable/bg_flat_box"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center"
@@ -474,8 +464,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:visibility="gone" />
-                    </FrameLayout>
-                </com.google.android.material.card.MaterialCardView>
+                </FrameLayout>
 
                 <!-- Section header: a clear title and one line saying what the section is for -->
                 <LinearLayout

@@ -24,6 +24,16 @@ final class TransactionStatusChip {
         return status.replace('-', ' ');
     }
 
+    /** The thin accent bar of a stay card: green for Confirmed / Checked-In, gray for Checked-Out, red for Cancelled / Rejected, amber otherwise. */
+    static int accentColor(@Nullable String status) {
+        if ("Confirmed".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status) || "Verified".equalsIgnoreCase(status)) {
+            return R.color.status_paid_fg;
+        }
+        if ("Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) return R.color.status_cancelled_fg;
+        if ("Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)) return R.color.velocity_red_status_dark;
+        return R.color.status_pending_fg;
+    }
+
     static void apply(@NonNull Context context, @NonNull TextView chip, @Nullable String status) {
         int bg;
         int fg;

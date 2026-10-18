@@ -1265,30 +1265,38 @@ public class DashboardActivity extends BaseNavigationActivity {
         showNextStayState(nextStayContent);
     }
 
-    /** "Your next stay is in 3 days" above the cards when the chosen day is not Today, plus the shortcut back to Today. */
-    private void bindNextStayInfo(LinearLayout content, java.time.LocalDate today) {
-        View row = content.findViewById(R.id.nextStayDayInfoRow);
-        long diff = java.time.temporal.ChronoUnit.DAYS.between(today, selectedStayDay);
-        if (diff == 0) {
-            row.setVisibility(View.GONE);
-            return;
-        }
-        String line;
-        if (diff < 0) {
-            line = getResources().getQuantityString(R.plurals.next_stay_line_past, (int) -diff, (int) -diff);
-        } else if (selectedStayDay.equals(NextStay.nextDayWithStay(nextStayBookings, today))) {
-            line = diff == 1 ? getString(R.string.next_stay_line_tomorrow)
-                    : getResources().getQuantityString(R.plurals.next_stay_line_in_days, (int) diff, (int) diff);
-        } else {
-            line = getResources().getQuantityString(R.plurals.next_stay_line_other_future, (int) diff, (int) diff);
-        }
-        ((TextView) content.findViewById(R.id.nextStayDayInfo)).setText(line);
-        content.findViewById(R.id.btnNextStayToday).setOnClickListener(v -> {
+    /** The one context row: "Tue, Oct 20 · Your next stay · In 2 days · 1 stay", and the small Today button when Today is not selected. */
+    private void bindNextStayInfo(LinearLayout content, java.time.LocalDate today, int stays) {
+        boolean nearest = selectedStayDay.equals(NextStay.nextDayWithStay(nextStayBookings, today));
+        ((TextView) content.findViewById(R.id.nextStayDayInfo)).setText(
+                NextStayDayText.line(this, selectedStayDay, today, nearest, stays));
+        View todayButton = content.findViewById(R.id.btnNextStayToday);
+        todayButton.setVisibility(selectedStayDay.equals(today) ? View.GONE : View.VISIBLE);
+        todayButton.setOnClickListener(v -> {
             selectedStayDay = hotelToday();
             scrollStripToSelected = true;
             renderNextStayDays();
         });
-        row.setVisibility(View.VISIBLE);
+    }
+
+    /** Scrolls the strip so this chip is centred (and so fully visible); waits for the first layout if it has not happened yet. */
+    private static void scrollChipIntoView(android.widget.HorizontalScrollView scroll, View chip) {
+        Runnable scrollNow = () -> {
+            int x = chip.getLeft() + chip.getWidth() / 2 - scroll.getWidth() / 2;
+            scroll.scrollTo(Math.max(0, x), 0);
+        };
+        if (androidx.core.view.ViewCompat.isLaidOut(scroll) && chip.getWidth() > 0) {
+            scrollNow.run();
+            return;
+        }
+        scroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
+                if (chip.getWidth() == 0) return;
+                scroll.removeOnLayoutChangeListener(this);
+                scrollNow.run();
+            }
+        });
     }
 
     private void renderNextStayDaysIfShown() {
@@ -1366,13 +1374,22 @@ public class DashboardActivity extends BaseNavigationActivity {
             TextView badge = chip.findViewById(R.id.tvDayCount);
             name.setText(friendly ? dayName(day, today) : DAY_WEEKDAY.format(day));
             date.setText(DAY_DATE.format(day));
-            badge.setText(String.valueOf(count));
-            badge.setVisibility(count > 0 ? View.VISIBLE : View.INVISIBLE);
             boolean selected = day.equals(selectedStayDay);
             chip.setSelected(selected);
-            int textColor = getColor(selected ? R.color.white : R.color.velocity_text_primary);
+            chip.setActivated(diff == 0 && !selected); // Today, when not selected, is outlined in the primary red
+            // Selected: white on the red fill. Otherwise the normal text colour - lighter on a day with nothing.
+            int textColor = selected ? getColor(R.color.white)
+                    : getColor(count > 0 ? R.color.velocity_text_primary : R.color.velocity_text_secondary);
             name.setTextColor(textColor);
             date.setTextColor(textColor);
+            name.setAlpha(selected || count > 0 ? 1f : 0.7f);
+            date.setAlpha(selected || count > 0 ? 1f : 0.7f);
+            // The same round badge on every chip, in the same place: white on red, or red on white on the selected day.
+            badge.setText(String.valueOf(count));
+            badge.setVisibility(count > 0 ? View.VISIBLE : View.INVISIBLE);
+            badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    getColor(selected ? R.color.white : R.color.velocity_red_primary)));
+            badge.setTextColor(getColor(selected ? R.color.velocity_red_primary : R.color.white));
             chip.setContentDescription(getResources().getQuantityString(R.plurals.next_stay_day_cd, count, dayName(day, today), count));
             chip.setOnClickListener(v -> {
                 selectedStayDay = day;
@@ -1383,8 +1400,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
         if (firstBuild && selectedChip != null) {
             nextStayStripBuilt = true;
-            final View target = selectedChip;
-            scroll.post(() -> scroll.scrollTo(Math.max(0, target.getLeft() - dp(16)), 0));
+            scrollChipIntoView(scroll, selectedChip);
         } else {
             scroll.post(() -> scroll.scrollTo(keepScroll, 0));
         }
@@ -1393,22 +1409,13 @@ public class DashboardActivity extends BaseNavigationActivity {
         nextStayShown = new ArrayList<>();
         for (NextStay stay : dayStays) nextStayShown.add(stay.booking);
         renderMoreStays();
-        bindNextStayInfo(content, today);
         LinearLayout cards = content.findViewById(R.id.nextStayDayCards);
-        TextView heading = content.findViewById(R.id.nextStayDayHeading);
         View empty = content.findViewById(R.id.nextStayDayEmpty);
         cards.removeAllViews();
-        String dayLabel = dayName(selectedStayDay, today);
-        String countText = getResources().getQuantityString(R.plurals.summary_transactions_count, dayStays.size(), dayStays.size());
-        heading.setText(getString(R.string.next_stay_day_heading_format, dayLabel, countText));
+        bindNextStayInfo(content, today, dayStays.size());
         empty.setVisibility(dayStays.isEmpty() ? View.VISIBLE : View.GONE);
         List<NextStay> shownStays = SectionPreview.visible(dayStays, nextStaySection.isExpanded());
         for (int i = 0; i < shownStays.size(); i++) {
-            if (i > 0) {
-                View divider = new View(this);
-                divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
-                cards.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
-            }
             View item = inflater.inflate(R.layout.item_next_stay, cards, false);
             bindNextStayItem(item, shownStays.get(i), selectedStayDay);
             cards.addView(item);
@@ -1417,8 +1424,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         TextView stayCount = findViewById(R.id.nextStayCount);
         stayCount.setText(String.valueOf(dayStays.size()));
         stayCount.setVisibility(dayStays.isEmpty() ? View.GONE : View.VISIBLE);
-        nextStaySection.setSummary(getString(R.string.next_stay_day_heading_format, dayLabel,
-                dayStays.isEmpty() ? getString(R.string.summary_nothing_scheduled) : countText));
+        nextStaySection.setSummary(NextStayDayText.line(this, selectedStayDay, today, false, dayStays.size()));
     }
 
     /** Fills one stay's block and wires its taps: the block opens its Booking Details, the button asks for amenities. */
@@ -1442,18 +1448,28 @@ public class DashboardActivity extends BaseNavigationActivity {
             styleNextStayStatus(statusChip, stay.status);
         }
 
+        // The payment row: "Balance due" and the amount in bold red - or "Paid" with a green check.
         TextView balanceLabel = item.findViewById(R.id.tvNextStayBalanceLabel);
         TextView balance = item.findViewById(R.id.tvNextStayBalance);
         if (stay.hasBalanceDue()) {
-            // Same wording as Booking Details' balance card.
-            balanceLabel.setText(R.string.next_stay_payment_label);
-            balance.setText(getString(R.string.balance_plain_owe, MoneyFormat.format(stay.balance)));
-            balance.setTextColor(getColor(R.color.velocity_text_primary));
+            balanceLabel.setText(R.string.next_stay_balance_due);
+            balance.setText(MoneyFormat.format(stay.balance));
+            balance.setTextColor(getColor(R.color.velocity_red_primary));
+            balance.setCompoundDrawables(null, null, null, null);
         } else {
             balanceLabel.setText(R.string.next_stay_payment_label);
-            balance.setText(R.string.balance_plain_paid);
+            balance.setText(R.string.next_stay_paid);
             balance.setTextColor(getColor(R.color.status_paid_fg));
+            android.graphics.drawable.Drawable check = ContextCompat.getDrawable(this, R.drawable.ic_check_circle);
+            if (check != null) {
+                check = check.mutate();
+                int size = dp(16);
+                check.setBounds(0, 0, size, size);
+                check.setTint(getColor(R.color.status_paid_fg));
+                balance.setCompoundDrawables(check, null, null, null);
+            }
         }
+        item.findViewById(R.id.nextStayAccent).setBackgroundColor(getColor(TransactionStatusChip.accentColor(stay.booking.getStatus())));
         bindNextStayMoney(item, stay);
 
         View amenities = item.findViewById(R.id.btnNextStayRequestAmenities);

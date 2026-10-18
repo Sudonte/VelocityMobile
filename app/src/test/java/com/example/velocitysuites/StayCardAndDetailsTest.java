@@ -153,6 +153,39 @@ public class StayCardAndDetailsTest {
         assertEquals(2, changes[0]);
     }
 
+    // ---- Your Next Stay: default day, day-role chip, context line
+
+    @Test
+    public void nextStay_defaultDay_isTheCheckInDay_notTheCheckOutDay_forAStayTwoDaysAway() {
+        LocalDate today = LocalDate.of(2026, 10, 18); // Sunday
+        Booking stay = stay("567", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 21), "Confirmed", 1750);
+        assertEquals(LocalDate.of(2026, 10, 20), NextStay.defaultDay(Arrays.asList(stay), today));
+    }
+
+    @Test
+    public void dayRole_isCheckInDay_Staying_thenCheckOutDay() {
+        Context context = themed();
+        LocalDate today = LocalDate.of(2026, 10, 18);
+        Booking stay = stay("1", LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 23), "Confirmed", 5400);
+        NextStay entry = NextStay.forDay(Arrays.asList(stay), LocalDate.of(2026, 10, 20), today).get(0);
+        assertEquals("Check-in day", entry.dayRole(context, LocalDate.of(2026, 10, 20)));
+        assertEquals("Staying", entry.dayRole(context, LocalDate.of(2026, 10, 21)));
+        assertEquals("Staying", entry.dayRole(context, LocalDate.of(2026, 10, 22)));
+        assertEquals("Check-out day", entry.dayRole(context, LocalDate.of(2026, 10, 23)));
+    }
+
+    @Test
+    public void contextLine_readsDateRelativeDayAndStayCount() {
+        Context context = themed();
+        LocalDate today = LocalDate.of(2026, 10, 18);
+        assertEquals("Tue, Oct 20 · Your next stay · In 2 days · 1 stay",
+                NextStayDayText.line(context, LocalDate.of(2026, 10, 20), today, true, 1));
+        assertEquals("Sun, Oct 18 · Today · 3 stays", NextStayDayText.line(context, today, today, false, 3));
+        assertEquals("Mon, Oct 19 · Tomorrow · No stays", NextStayDayText.line(context, LocalDate.of(2026, 10, 19), today, false, 0));
+        assertEquals("Fri, Oct 16 · 2 days ago · 1 stay", NextStayDayText.line(context, LocalDate.of(2026, 10, 16), today, false, 1));
+        assertEquals("Wed, Oct 21 · In 3 days · 1 stay", NextStayDayText.line(context, LocalDate.of(2026, 10, 21), today, false, 1));
+    }
+
     // ---- 4. transaction details
 
     private static void assertNoPlaceholders(List<TransactionDetailSections.Row> rows) {

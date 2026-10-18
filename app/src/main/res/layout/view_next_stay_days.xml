@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Body of "Your Next Stay": a horizontally scrolling day selector, then the transactions on the chosen day
-     (built by DashboardActivity#updateNextStay). -->
+<!-- Body of "Your Next Stay": the day selector, ONE context row ("Tue, Oct 20 · Your next stay · In 2 days · 1 stay" and a
+     small Today button), then the stay cards - all straight in the section, no card around them
+     (built by DashboardActivity#renderNextStayDays). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -12,8 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
-        android:paddingHorizontal="14dp"
-        android:paddingTop="12dp"
         android:scrollbars="none">
 
         <LinearLayout
@@ -23,24 +21,21 @@
             android:orientation="horizontal" />
     </HorizontalScrollView>
 
-    <!-- "Your next stay is in 3 days" (only when the chosen day is not Today) and the jump back to Today. -->
     <LinearLayout
         android:id="@+id/nextStayDayInfoRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingEnd="8dp"
-        android:visibility="gone">
+        android:paddingTop="8dp">
 
         <TextView
             android:id="@+id/nextStayDayInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:accessibilityLiveRegion="polite"
             android:fontFamily="sans-serif-medium"
-            android:paddingTop="8dp"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="13sp" />
 
@@ -49,21 +44,13 @@
             style="@style/Widget.Velocity.Flat.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:letterSpacing="0"
             android:minHeight="48dp"
             android:text="@string/next_stay_jump_today"
-            app:icon="@drawable/ic_calendar" />
+            android:textSize="13sp"
+            android:visibility="gone" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/nextStayDayHeading"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:accessibilityLiveRegion="polite"
-        android:fontFamily="sans-serif-black"
-        android:paddingHorizontal="14dp"
-        android:paddingTop="12dp"
-        android:textColor="@color/velocity_red_primary"
-        android:textSize="13sp" />
 
     <LinearLayout
         android:id="@+id/nextStayDayCards"
@@ -75,9 +62,9 @@
         android:id="@+id/nextStayDayEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_flat_box"
         android:gravity="center"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="22dp"
+        android:padding="16dp"
         android:text="@string/next_stay_day_empty"
         android:textColor="@color/velocity_text_secondary"
         android:textSize="13sp"
