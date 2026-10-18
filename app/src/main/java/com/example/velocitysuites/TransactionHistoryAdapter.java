@@ -113,7 +113,12 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
         holder.tvTotal.setText(total);
         holder.tvStay.setText(TransactionText.stay(ctx, row.checkIn, row.checkOut));
         String payment = TransactionText.payment(ctx, summary);
-        holder.tvPayment.setText(payment);
+        holder.tvPayment.setText(paymentWithToneOnBalance(ctx, payment, summary));
+
+        // The booking / reservation status beside the payment status, so both filters make sense on the card.
+        boolean hasLifecycle = row.lifecycleStatus != null && !row.lifecycleStatus.trim().isEmpty();
+        holder.tvBookingStatus.setVisibility(hasLifecycle ? View.VISIBLE : View.GONE);
+        if (hasLifecycle) holder.tvBookingStatus.setText(TransactionStatusChip.label(row.lifecycleStatus));
 
         holder.tvRemoved.setVisibility(row.removedByGuest ? View.VISIBLE : View.GONE);
 
@@ -134,6 +139,28 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
         });
 
         bindHighlight(holder, row.stableId() == highlightedStableId);
+    }
+
+    /**
+     * The payment line with its balance coloured by what is owed: green for "₱0.00 balance", red when nothing has been
+     * paid yet, amber when it is partly paid (the same {@link PaymentBalanceTone} rule as the Dashboard's payment cards).
+     */
+    static CharSequence paymentWithToneOnBalance(Context ctx, String payment, TransactionStatusHelper.Summary summary) {
+        if (summary.status == TransactionStatusHelper.Status.CANCELLED || summary.status == TransactionStatusHelper.Status.REJECTED) {
+            return payment;
+        }
+        String balanceText = MoneyFormat.format(summary.balance) + " ";
+        int at = payment.indexOf(balanceText + ctx.getString(R.string.txn_balance_word));
+        if (at < 0) return payment;
+        int end = payment.indexOf('\n', at);
+        if (end < 0) end = payment.length();
+        android.text.SpannableString spannable = new android.text.SpannableString(payment);
+        PaymentBalanceTone tone = PaymentBalanceTone.of(summary.grandTotal, summary.verifiedPaid);
+        spannable.setSpan(new android.text.style.ForegroundColorSpan(ctx.getColor(tone.colorRes)), at, end,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), at, end,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return spannable;
     }
 
     @Override
@@ -206,13 +233,14 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final MaterialCardView card;
-        final TextView tvStatusBadge, tvRef, tvRoom, tvTotal, tvStay, tvPayment, tvReceipts, tvRemoved;
+        final TextView tvStatusBadge, tvBookingStatus, tvRef, tvRoom, tvTotal, tvStay, tvPayment, tvReceipts, tvRemoved;
         ValueAnimator highlightAnimator;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             card = itemView.findViewById(R.id.cardTransaction);
             tvStatusBadge = itemView.findViewById(R.id.tvTxnStatusBadge);
+            tvBookingStatus = itemView.findViewById(R.id.tvTxnBookingStatus);
             tvRef = itemView.findViewById(R.id.tvTxnRef);
             tvRoom = itemView.findViewById(R.id.tvTxnRoom);
             tvTotal = itemView.findViewById(R.id.tvTxnTotal);

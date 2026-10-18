@@ -45,6 +45,9 @@ public final class TransactionRow {
     /** The check-in as a calendar date (for the date filter), or null when it can't be read. */
     @Nullable
     final LocalDate checkInDate;
+    /** The check-out as a calendar date, or null when it can't be read (the stay is then treated as the check-in day only). */
+    @Nullable
+    final LocalDate checkOutDate;
     final int receiptCount;
     /** Distinct room type names as written (for the Room Type picker) and lower-cased (for matching the filter). */
     final List<String> roomTypes;
@@ -61,7 +64,7 @@ public final class TransactionRow {
     final String searchText;
 
     private TransactionRow(Booking booking, String id, boolean direct, Kind kind, TransactionStatusHelper.Summary summary,
-                           String roomText, String checkIn, String checkOut, long sortMillis, @Nullable LocalDate checkInDate,
+                           String roomText, String checkIn, String checkOut, long sortMillis, @Nullable LocalDate checkInDate, @Nullable LocalDate checkOutDate,
                            int receiptCount, List<String> roomTypes, List<String> roomTypesLower, String lifecycleStatus,
                            boolean closed, boolean hasAnyPayment, boolean removedByGuest, String searchText) {
         this.booking = booking;
@@ -74,6 +77,7 @@ public final class TransactionRow {
         this.checkOut = checkOut;
         this.sortMillis = sortMillis;
         this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
         this.receiptCount = receiptCount;
         this.roomTypes = roomTypes;
         this.roomTypesLower = roomTypesLower;
@@ -114,7 +118,7 @@ public final class TransactionRow {
                 || MoneyFormat.isPositive(b.getAmountPaid());
 
         return new TransactionRow(b, id, b.isDirectBooking(), kind, summary, roomText, checkIn, checkOut,
-                sortMillisOf(b), PaymentDates.parseDate(checkIn),
+                sortMillisOf(b), PaymentDates.parseDate(checkIn), PaymentDates.parseDate(checkOut),
                 b.getReceipts() != null ? b.getReceipts().size() : 0,
                 Collections.unmodifiableList(types), Collections.unmodifiableList(typesLower), lifecycle, closed, anyPayment,
                 b.isHiddenByGuest(),

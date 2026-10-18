@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Filters bottom sheet of Transaction History: Payment status, Booking status, Room type and Dates, with Reset and Apply. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/velocity_surface_elevated"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp">
+
+        <TextView
+            style="@style/TextAppearance.Velocity.Section.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:accessibilityHeading="true"
+            android:text="@string/filters_sheet_title" />
+
+        <TextView
+            style="@style/TextAppearance.Velocity.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/filters_payment_status" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/sheetGroupPayment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleSelection="true" />
+
+        <TextView
+            style="@style/TextAppearance.Velocity.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/filters_booking_status" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/sheetGroupBooking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleSelection="true" />
+
+        <TextView
+            style="@style/TextAppearance.Velocity.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/filters_room_type" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/sheetGroupRoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleSelection="true" />
+
+        <TextView
+            style="@style/TextAppearance.Velocity.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/filters_dates" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSheetDates"
+            style="@style/Widget.Velocity.Flat.Button.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:letterSpacing="0"
+            android:text="@string/filters_any_dates"
+            android:textSize="13sp"
+            app:icon="@drawable/ic_calendar" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSheetReset"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:letterSpacing="0"
+                android:text="@string/filters_reset" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSheetApply"
+                style="@style/Widget.Velocity.Flat.Button"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:letterSpacing="0"
+                android:text="@string/filters_apply" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

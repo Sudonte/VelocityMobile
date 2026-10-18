@@ -45,6 +45,19 @@ final class TransactionFilter {
         }
     }
 
+    /** The payment-status filter a legacy type key stands for (Paid, Pending, Partially paid), or ALL. */
+    static Type paymentStatusOf(Type type) {
+        return type == Type.PENDING || type == Type.PAID || type == Type.PARTIALLY_PAID ? type : Type.ALL;
+    }
+
+    /** The booking-status filter a legacy type key stands for ("Cancelled", "Rejected"), or null. */
+    @Nullable
+    static String bookingStatusOf(Type type) {
+        if (type == Type.CANCELLED) return "Cancelled";
+        if (type == Type.REJECTED) return "Rejected";
+        return null;
+    }
+
     /** The active filters. A fresh Criteria matches everything. */
     static final class Criteria {
         Type type = Type.ALL;
@@ -52,9 +65,11 @@ final class TransactionFilter {
         String query = "";
         /** A room type name (case-insensitive), or null for any. */
         @Nullable String roomType;
-        /** A booking lifecycle status ("Confirmed", ...) - applies to paid Bookings only, as the chip always did - or null for any. */
+        /** A booking / reservation lifecycle status ("Checked-In", "Cancelled", ...), matched case-insensitively, or null for any. */
         @Nullable String bookingStatus;
-        /** Inclusive calendar-date range on the CHECK-IN date, or null bounds for open-ended. */
+        /** Payment status on its own (PENDING, PAID or PARTIALLY_PAID; anything else means "any"), combined with {@link #type} by AND. */
+        Type paymentStatus = Type.ALL;
+        /** Inclusive calendar-date range; a stay matches when it OVERLAPS it (null bounds are open-ended). */
         @Nullable LocalDate from;
         @Nullable LocalDate to;
 
@@ -64,7 +79,35 @@ final class TransactionFilter {
 
         /** True when anything narrows the list - drives whether the empty state offers "Clear filters". */
         boolean isActive() {
-            return type != Type.ALL || !query.trim().isEmpty() || roomType != null || bookingStatus != null || hasDateRange();
+            return type != Type.ALL || !query.trim().isEmpty() || activeFilterCount() > 0;
+        }
+
+        /** How many of the Filters-sheet filters are set (payment status, booking status, room type, dates) - the "Filters · 2" badge. */
+        int activeFilterCount() {
+            return (paymentStatus != Type.ALL ? 1 : 0) + (bookingStatus != null ? 1 : 0) + (roomType != null ? 1 : 0) + (hasDateRange() ? 1 : 0);
+        }
+
+        /** Back to "everything": no search, no filter. */
+        void clear() {
+            type = Type.ALL;
+            query = "";
+            roomType = null;
+            bookingStatus = null;
+            paymentStatus = Type.ALL;
+            from = null;
+            to = null;
+        }
+
+        Criteria copy() {
+            Criteria c = new Criteria();
+            c.type = type;
+            c.query = query;
+            c.roomType = roomType;
+            c.bookingStatus = bookingStatus;
+            c.paymentStatus = paymentStatus;
+            c.from = from;
+            c.to = to;
+            return c;
         }
     }
 
@@ -83,6 +126,7 @@ final class TransactionFilter {
 
     private static boolean matches(TransactionRow row, Criteria c, String[] tokens) {
         return matchesType(row, c.type)
+                && matchesPaymentStatus(row, c.paymentStatus)
                 && matchesSearch(row, tokens)
                 && matchesRoomType(row, c.roomType)
                 && matchesBookingStatus(row, c.bookingStatus)
@@ -119,6 +163,17 @@ final class TransactionFilter {
         }
     }
 
+    private static boolean matchesPaymentStatus(TransactionRow row, Type status) {
+        switch (status) {
+            case PENDING:
+            case PAID:
+            case PARTIALLY_PAID:
+                return matchesType(row, status);
+            default:
+                return true;
+        }
+    }
+
     private static boolean matchesSearch(TransactionRow row, String[] tokens) {
         for (String token : tokens) {
             if (!row.searchText.contains(token)) return false;
@@ -131,21 +186,22 @@ final class TransactionFilter {
     }
 
     private static boolean matchesBookingStatus(TransactionRow row, @Nullable String bookingStatus) {
-        return bookingStatus == null
-                || (row.kind == TransactionRow.Kind.BOOKING && bookingStatus.equalsIgnoreCase(row.lifecycleStatus));
+        return bookingStatus == null || bookingStatus.equalsIgnoreCase(row.lifecycleStatus);
     }
 
     /**
-     * Calendar-date comparison, inclusive at both ends. (The previous version compared the check-in's
-     * local-midnight instant with the date picker's UTC-midnight instants, which in Manila's UTC+8 left the
-     * FIRST day of any chosen range out: Oct 1 at 00:00 +08:00 is earlier than Oct 1 at 00:00 UTC.)
+     * Calendar-date overlap, inclusive at both ends: the stay (check-in to check-out) matches when it shares at least one
+     * day with the chosen range. A stay whose check-out can't be read counts as the check-in day only; one whose check-in
+     * can't be read never matches a range. (Dates are plain calendar dates, never instants, so no time zone can shift a
+     * day - the date picker's UTC-midnight values are turned into dates before they get here.)
      */
     private static boolean matchesDate(TransactionRow row, Criteria c) {
         if (!c.hasDateRange()) return true;
-        LocalDate checkIn = row.checkInDate;
-        if (checkIn == null) return false;
-        if (c.from != null && checkIn.isBefore(c.from)) return false;
-        return c.to == null || !checkIn.isAfter(c.to);
+        LocalDate in = row.checkInDate;
+        if (in == null) return false;
+        LocalDate out = row.checkOutDate != null && !row.checkOutDate.isBefore(in) ? row.checkOutDate : in;
+        if (c.from != null && out.isBefore(c.from)) return false;
+        return c.to == null || !in.isAfter(c.to);
     }
 
     /** Lower-cased, whitespace-split search words. Empty for a blank query. */

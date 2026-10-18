@@ -1202,18 +1202,15 @@
                                 android:id="@+id/btnViewAllBookings"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
                                 android:minHeight="48dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="8dp"
                                 android:text="@string/see_all"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
+                                android:textColor="@color/velocity_action_text"
+                                android:textSize="13sp"
                                 android:fontFamily="sans-serif-bold"/>
                         <ImageButton
                     android:id="@+id/bookingsToggle"
@@ -1370,18 +1367,15 @@
                                 android:id="@+id/btnViewAllNotifications"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
                                 android:minHeight="48dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="8dp"
                                 android:text="@string/see_all"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
+                                android:textColor="@color/velocity_action_text"
+                                android:textSize="13sp"
                                 android:fontFamily="sans-serif-bold"/>
                         <ImageButton
                     android:id="@+id/notificationsToggle"
@@ -1454,14 +1448,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="14dp"
-                    app:cardElevation="@dimen/card_elevation"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
                     app:strokeColor="@color/velocity_red_subtle">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:padding="12dp">
+                        android:orientation="vertical">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1508,18 +1502,15 @@
                                 android:id="@+id/btnViewAllPayments"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
                                 android:minHeight="48dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="8dp"
                                 android:text="@string/see_all"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
+                                android:textColor="@color/velocity_action_text"
+                                android:textSize="13sp"
                                 android:fontFamily="sans-serif-bold"/>
                         <ImageButton
                     android:id="@+id/paymentsToggle"
@@ -1626,18 +1617,15 @@
                                 android:id="@+id/btnEditProfile"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:foreground="?attr/selectableItemBackground"
                                 android:gravity="center"
                                 android:minHeight="48dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="8dp"
                                 android:text="@string/edit_profile"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
+                                android:textColor="@color/velocity_action_text"
+                                android:textSize="13sp"
                                 android:fontFamily="sans-serif-bold"/>
                         </LinearLayout>
                         <TextView
@@ -1712,62 +1700,118 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="@color/velocity_red_subtle"
-                            android:layout_marginVertical="22dp"
+                            android:layout_marginVertical="12dp"
                             android:alpha="0.6"/>
 
+                        <!-- Profile completeness (donut) on the left; account type and status on the right. -->
                         <LinearLayout
+                            android:baselineAligned="false"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
-                            <TextView
-                                android:id="@+id/membershipStatusText"
-                                style="@style/TextAppearance.Velocity.Label.Section"
+
+                            <LinearLayout
+                                android:id="@+id/profileDonutArea"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center_horizontal"
+                                android:minWidth="96dp"
+                                android:orientation="vertical"
+                                android:padding="4dp">
+
+                                <com.example.velocitysuites.ProfileDonutView
+                                    android:id="@+id/profileDonut"
+                                    android:layout_width="88dp"
+                                    android:layout_height="88dp" />
+
+                                <TextView
+                                    android:id="@+id/profileDonutCaption"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/profile_complete_caption"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginEnd="8dp"
+                                android:layout_marginStart="16dp"
                                 android:layout_weight="1"
-                                android:text="@string/guest_role"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/profileCompletionText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_green_soft"
-                                android:paddingHorizontal="11dp"
-                                android:paddingVertical="6dp"
-                                android:text="@string/profile_complete"
-                                android:textColor="@color/velocity_green_primary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif-black"
-                                android:textAllCaps="true" />
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/account_type_label"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:id="@+id/membershipStatusText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="sans-serif-black"
+                                    android:text="@string/account_type_guest"
+                                    android:textColor="@color/velocity_text_primary"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    android:text="@string/account_status_label"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <View
+                                        android:id="@+id/accountStatusDot"
+                                        android:layout_width="10dp"
+                                        android:layout_height="10dp"
+                                        android:background="@drawable/bg_status_dot"
+                                        android:importantForAccessibility="no" />
+
+                                    <TextView
+                                        android:id="@+id/accountStatusText"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:fontFamily="sans-serif-black"
+                                        android:text="@string/account_status_value_active"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="14sp" />
+                                </LinearLayout>
+                            </LinearLayout>
                         </LinearLayout>
 
-                        <LinearLayout
+                        <!-- What is still missing (shown below 100%); tapping it opens Edit Profile. -->
+                        <TextView
+                            android:id="@+id/profileMissingText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="11dp"
+                            android:layout_marginTop="8dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:drawablePadding="6dp"
+                            android:focusable="true"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <View
-                                android:id="@+id/accountStatusDot"
-                                android:layout_width="8dp"
-                                android:layout_height="8dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_green_primary"
-                                android:importantForAccessibility="no" />
-                            <TextView
-                                android:id="@+id/accountStatusText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:fontFamily="sans-serif-bold"
-                                android:text="@string/account_status_active"
-                                android:textColor="@color/velocity_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
+                            android:minHeight="48dp"
+                            android:textColor="@color/velocity_action_text"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            app:drawableEndCompat="@drawable/ic_chevron_right"
+                            app:drawableTint="@color/velocity_action_text" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

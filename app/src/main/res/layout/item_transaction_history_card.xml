@@ -116,10 +116,28 @@
                 android:layout_marginStart="10dp"
                 android:fontFamily="sans-serif-black"
                 android:gravity="end"
-                android:textColor="@color/velocity_action_text"
+                android:textColor="@color/velocity_text_primary"
                 android:textSize="14sp"
                 tools:text="₱1,800.00" />
         </LinearLayout>
+
+            <!-- The booking / reservation status (Checked out, Cancelled, ...), under the payment status so both filters make sense on the card. -->
+        <TextView
+                android:id="@+id/tvTxnBookingStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/status_cancelled_bg"
+                android:fontFamily="sans-serif-black"
+                android:maxLines="1"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="1dp"
+                android:textColor="@color/status_cancelled_fg"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="Checked Out"
+                tools:visibility="visible" />
 
         <View
             android:id="@+id/dividerTxn"

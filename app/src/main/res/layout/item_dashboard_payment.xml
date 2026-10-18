@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One payment on the Dashboard's Payment Status section: a single card, no card around it.
+       Row 1  ID (bold, never cut off) ........ status chip
+       Row 2  Total | Balance (Title Case labels above the values; the balance colour says what is owed)
+       Row 3  a thin progress bar and "₱2,800.00 of ₱2,800.00 paid"
+       Row 4  Pay now (only when it applies) and View details ›, right-aligned
+     Tapping the card opens it in Transaction History. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardDashboardPayment"
+    style="@style/Widget.Velocity.Card.Flat"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPaymentBookingId"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="16sp"
+                tools:text="Booking #567" />
+
+            <TextView
+                android:id="@+id/tvPaymentStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/shape_flat_badge"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textSize="12sp"
+                tools:text="Paid" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvPaymentTotalLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/payment_card_total"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvTotalAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="15sp"
+                    tools:text="₱2,800.00" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutPaymentRemainingBalance"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvPaymentBalanceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/payment_card_balance"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvPaymentRemainingBalance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textSize="15sp"
+                    tools:text="₱0.00" />
+
+                <TextView
+                    android:id="@+id/tvPaymentBalanceNote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/payment_card_fully_paid"
+                    android:textColor="@color/status_paid_fg"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressPayment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:max="100"
+            app:trackThickness="4dp" />
+
+        <TextView
+            android:id="@+id/tvPaymentPaidOf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="₱2,800.00 of ₱2,800.00 paid" />
+
+        <com.example.velocitysuites.NextStayActionRow
+            android:id="@+id/paymentActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnQuickPay"
+                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:ellipsize="none"
+                android:letterSpacing="0"
+                android:maxLines="1"
+                android:text="@string/pay_now"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvPaymentViewDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical|end"
+                android:minHeight="48dp"
+                android:text="@string/next_stay_view_details"
+                android:textColor="@color/velocity_action_text"
+                android:textSize="13sp" />
+        </com.example.velocitysuites.NextStayActionRow>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -16,7 +16,14 @@ import java.util.List;
 public class TransactionFilterTest {
 
     private static Booking make(String id, String status, double total, String roomType, String checkIn, boolean hasBooking) {
-        Booking b = new Booking(id, "1", roomType, roomType, checkIn, "Dec 31, 2026", 2, total, status, "");
+        String checkOut;
+        try {
+            checkOut = java.time.LocalDate.parse(checkIn, java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy", java.util.Locale.US))
+                    .plusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy", java.util.Locale.US));
+        } catch (java.time.format.DateTimeParseException unreadable) {
+            checkOut = "Dec 31, 2026"; // an unreadable check-in stays unreadable
+        }
+        Booking b = new Booking(id, "1", roomType, roomType, checkIn, checkOut, 2, total, status, "");
         b.setHasBooking(hasBooking);
         return b;
     }
@@ -186,10 +193,86 @@ public class TransactionFilterTest {
     }
 
     @Test
-    public void bookingStatusFilter_appliesToBookingsOnly() {
+    public void bookingStatusFilter_matchesTheLifecycleStatus() {
         TransactionFilter.Criteria c = criteria();
         c.bookingStatus = "Confirmed";
         assertEquals(Arrays.asList("2", "3"), run(c));
+    }
+
+    @Test
+    public void bookingStatusFilter_cancelledAndRejectedAlsoFindReservations() {
+        TransactionFilter.Criteria c = criteria();
+        c.bookingStatus = "Cancelled";
+        assertEquals(Collections.singletonList("4"), run(c)); // a cancelled RESERVATION
+        c.bookingStatus = "Rejected";
+        assertEquals(Collections.singletonList("5"), run(c));
+        c.bookingStatus = "Checked-Out";
+        assertEquals(Collections.singletonList("6"), run(c));
+    }
+
+    @Test
+    public void paymentStatusAndTypeCombine_withAnd() {
+        TransactionFilter.Criteria c = criteria();
+        c.paymentStatus = TransactionFilter.Type.PAID;
+        assertEquals(Arrays.asList("2", "6"), run(c));
+        c.type = TransactionFilter.Type.BOOKINGS;
+        assertEquals("paid AND a booking", Arrays.asList("2", "6"), run(c));
+        c.paymentStatus = TransactionFilter.Type.PENDING;
+        assertEquals("pending AND a booking", Collections.emptyList(), run(c));
+        c.type = TransactionFilter.Type.RESERVATIONS;
+        assertEquals("pending AND a reservation", Collections.singletonList("1"), run(c));
+        c.paymentStatus = TransactionFilter.Type.PARTIALLY_PAID;
+        c.type = TransactionFilter.Type.ALL;
+        assertEquals(Collections.singletonList("3"), run(c));
+    }
+
+    @Test
+    public void everyFilterCombinesWithSearch_andCountsAndClears() {
+        TransactionFilter.Criteria c = criteria();
+        c.query = "suite";
+        c.paymentStatus = TransactionFilter.Type.PAID;
+        c.bookingStatus = "Checked-Out";
+        c.roomType = "Suite";
+        c.from = LocalDate.of(2026, 9, 1);
+        c.to = LocalDate.of(2026, 9, 30);
+        assertEquals(Collections.singletonList("6"), run(c));
+        assertEquals(4, c.activeFilterCount());
+        c.query = "standard"; // the search narrows further: nothing is a paid Standard Suite
+        assertEquals(Collections.emptyList(), run(c));
+        c.clear();
+        assertEquals(0, c.activeFilterCount());
+        assertFalse(c.isActive());
+        assertEquals(6, run(c).size());
+    }
+
+    @Test
+    public void searchFindsByIdReferenceRoomAndAmount() {
+        TransactionFilter.Criteria c = criteria();
+        c.query = "REF3";                        // a payment reference
+        assertEquals(Collections.singletonList("3"), run(c));
+        c = criteria();
+        c.query = "2500";                        // an amount
+        assertEquals(Collections.singletonList("6"), run(c));
+        c = criteria();
+        c.query = "standard";                    // a room type
+        assertEquals(Arrays.asList("4", "5"), run(c));
+    }
+
+    @Test
+    public void dateRange_matchesAnyStayThatOverlaps_notOnlyTheCheckIn() {
+        // transaction 3 stays Oct 20-21 and 6 stays Sep 1-2
+        TransactionFilter.Criteria c = criteria();
+        c.from = LocalDate.of(2026, 10, 21);     // starts on the check-OUT day: still overlaps
+        c.to = LocalDate.of(2026, 10, 25);
+        assertTrue(run(c).contains("3"));
+        c.from = LocalDate.of(2026, 10, 22);     // one day after: no overlap
+        assertFalse(run(c).contains("3"));
+        c = criteria();
+        c.from = LocalDate.of(2026, 8, 1);       // a range that swallows the whole stay
+        c.to = LocalDate.of(2026, 9, 1);         // ends on the check-IN day: overlaps
+        assertEquals(Collections.singletonList("6"), run(c));
+        c.to = LocalDate.of(2026, 8, 31);
+        assertEquals(Collections.emptyList(), run(c));
     }
 
     // ---- date range ----

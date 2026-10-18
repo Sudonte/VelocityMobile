@@ -544,7 +544,6 @@
     <string name="nav_open_drawer">Open navigation drawer</string>
     <string name="menu_label">Menu</string>
     <string name="hello_user">Hello, %1$s!</string>
-    <string name="transaction_ref_format">TRX-%1$s</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_room_browsing">Room Browsing</string>
     <string name="unread_badge_overflow">99+</string>
@@ -553,7 +552,6 @@
     <string name="title_transaction_history">Transaction History</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_profile_management">Profile Management</string>
-    <string name="premium_guest">Guest</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="change_password">Change Password</string>
     <string name="notifications">Notifications</string>
@@ -569,10 +567,8 @@
     <string name="check_in_tomorrow_label">Check-in Tomorrow</string>
     <string name="check_out_tomorrow_label">Check-out Tomorrow</string>
     <string name="tomorrow_badge_short">Tomorrow</string>
-    <string name="payment_status_dashboard_desc">What you have paid and what is still due</string>
     <string name="upcoming_transactions_desc">Your next check-ins and check-outs, soonest first.</string>
     <string name="notifications_dashboard_desc">Updates on your stays and payments</string>
-    <string name="account_summary_desc">Your profile and contact details. Tap to review or edit them.</string>
     <string name="booking_reservation_summary_title">Booking &amp; Reservation Summary</string>
     <string name="booking_reservation_summary_desc">Your stays at a glance</string>
     <string name="br_summary_active_bookings">Active Bookings</string>
@@ -583,8 +579,6 @@
     <string name="br_summary_cancel_reservations">Cancelled Reservations</string>
     <string name="recent_bookings_title">Recent Bookings</string>
     <string name="recent_bookings_desc">Your latest bookings and payments</string>
-    <string name="account_status_active">Account Active</string>
-    <string name="account_status_signed_out">Session Expired</string>
     <string name="payment_details_title">Payment Details</string>
     <string name="title_payment_breakdown">Payment Breakdown</string>
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
@@ -615,13 +609,8 @@
     <string name="notif_date_group_today">Today</string>
     <string name="notif_date_group_yesterday">Yesterday</string>
     <string name="notif_date_group_earlier">Earlier</string>
-    <string name="room_type_filter_label">Room Type</string>
-    <string name="room_type_filter_title">Filter by Room Type</string>
-    <string name="booking_status_filter_label">Booking Status</string>
-    <string name="booking_status_filter_title">Filter by Booking Status</string>
 
     <string name="booking_detail_room_type">Room Type: %1$s</string>
-    <string name="profile_completion_format">Profile %1$d%% Complete</string>
     <string name="no_bookings_found">No recent active bookings.</string>
     <string name="no_upcoming_stays_dashboard">No upcoming stays.</string>
     <string name="no_active_payment_status">No active payment status.</string>
@@ -633,9 +622,6 @@
     <string name="upcoming_transactions">Upcoming Stays</string>
 
     <string name="account_summary">Account Summary</string>
-    <string name="profile_complete">Profile 100%% Complete</string>
-    <string name="profile_incomplete">Profile Incomplete</string>
-    <string name="membership_label">Status: %1$s</string>
 
     <string name="no_notifications">No new notifications</string>
     <string name="see_all">View all</string>
@@ -752,7 +738,6 @@
     <string name="queen_bed">Queen Size Bed</string>
     <string name="twin_beds">Twin Beds</string>
     <string name="budget_label">Budget: Under &#8369;%1$s</string>
-    <string name="clear_filters">Clear All Filters</string>
     <string name="apply_filters">Apply Filters</string>
     <string name="filter_rooms_title">Filter Rooms</string>
     <string name="no_matching_rooms">No rooms available</string>
@@ -813,10 +798,8 @@
     <string name="filter_bookings">Bookings</string>
     <string name="filter_payments">Payments</string>
     <string name="filter_reservations">Reservations</string>
-    <string name="filter_stays">Check-in/Out</string>
     <string name="date_filter_label">Date Filter</string>
     <string name="export_label">Export</string>
-    <string name="recent_transactions">Recent Transactions</string>
     <string name="total_paid_label">Total Paid</string>
     <string name="booking_id_format">Booking ID: %1$s</string>
     <string name="reservation_id_format">Reservation ID: %1$s</string>
@@ -900,8 +883,6 @@
     <string name="download_receipt">Download Receipt</string>
     <string name="payment_date_label">Payment Date &amp; Time: %1$s</string>
     <string name="payment_method_label">Payment Method: %1$s</string>
-    <string name="payment_method_colon_format">Payment Method: %1$s</string>
-    <string name="paid_column_label">Paid</string>
     <string name="error_invalid_gcash_number">Please enter a valid 10-digit mobile number</string>
 
     <!-- Payment amount: a single unified selector - 20/30/40/50% or Full Payment -->
@@ -1175,7 +1156,6 @@
     <string name="error_checkin_past">Check-in date can\'t be in the past. Please pick a new date.</string>
     <string name="reservation_created_title">Reservation Created!</string>
     <string name="reservation_created_msg">Your reservation #%1$s is in. No payment has been made - use Pay Now whenever you\'re ready to turn it into a booking.</string>
-    <string name="awaiting_verification_label">Pending Verification</string>
     <string name="pending_verification_label">Pending Verification</string>
     <string name="no_payment_yet_label">Reservation - no payment yet</string>
     <string name="booking_list_title">Booking List</string>
@@ -1199,7 +1179,6 @@
          tab, each self-descriptive since there's no toggle-button row anymore
          to lean on the tab above for Booking/Reservation context. -->
     <string name="filter_by_status_label">Filter by Status</string>
-    <string name="filter_all_transactions_label">All Transactions</string>
     <!-- Sort By / Room Type: two separate exposed-dropdown controls on the
          Booking &amp; Reservation list (not combined into one Filter dialog) -
          reuses sort_row_label/room_type_row_label, the same labels
@@ -1676,8 +1655,6 @@
     <string name="profile_header_last_updated_format">Last updated: %1$s</string>
     <string name="profile_status_complete">Profile complete</string>
     <string name="profile_status_incomplete_format">Incomplete — add your %1$s</string>
-    <string name="profile_missing_mobile">mobile number</string>
-    <string name="profile_missing_gender">gender</string>
     <string name="profile_missing_dob">date of birth</string>
     <string name="profile_missing_address">address</string>
     <string name="profile_no_changes">No changes to save.</string>
@@ -1909,12 +1886,9 @@
     <string name="txn_payment_none">No payment made</string>
     <string name="txn_empty_title">No transactions yet</string>
     <string name="txn_empty_desc">Your bookings, reservations and payments will show up here.</string>
-    <string name="txn_filtered_empty_title">No matching transactions</string>
     <string name="txn_cd_open_format">%1$s, %2$s. Opens the transaction details.</string>
     <string name="txn_partial_load_warning">Some transactions couldn\'t be loaded. Pull down to try again.</string>
-    <string name="txn_filter_no_options">Nothing to choose from yet.</string>
     <string name="txn_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
-    <string name="txn_chip_clear_cd">Clear this filter</string>
 
     <!-- Payment receipt additions -->
     <string name="receipt_room_rate_label">Room Rate</string>
@@ -2161,6 +2135,54 @@
     <string name="section_state_collapsed_named">%1$s collapsed</string>
     <string name="next_stay_request_amenities">Request Amenities</string>
     <string name="next_stay_ctx_staying">You\'re staying with us</string>
+    <string name="account_summary_desc">Your profile and contact details</string>
+    <string name="payment_status_dashboard_desc">Paid and still due</string>
+    <string name="profile_missing_name">your name</string>
+    <string name="profile_missing_email">your email</string>
+    <string name="pc_profile_missing_mobile">your phone number</string>
+    <string name="pc_profile_missing_gender">your gender</string>
+    <string name="profile_missing_birth_date">your birth date</string>
+    <string name="profile_missing_photo">a profile photo</string>
+    <string name="profile_missing_two">%1$s and %2$s</string>
+    <string name="profile_missing_line">Add %1$s to complete your profile</string>
+    <string name="profile_donut_cd">Profile %1$d%% complete</string>
+    <string name="profile_complete_caption">Profile complete</string>
+    <string name="account_type_label">Account type</string>
+    <string name="account_status_label">Account status</string>
+    <string name="account_type_guest">Guest</string>
+    <string name="account_status_value_active">Active</string>
+    <string name="account_status_value_signed_out">Signed out</string>
+    <string name="payment_card_total">Total</string>
+    <string name="payment_card_balance">Balance</string>
+    <string name="payment_card_fully_paid">Fully paid</string>
+    <string name="payment_card_paid_of_format">%1$s of %2$s paid</string>
+    <string name="transactions_title">Transactions</string>
+    <string name="filter_type_all">All</string>
+    <string name="filters_button">Filters</string>
+    <string name="filters_button_count_format">Filters · %1$d</string>
+    <string name="filters_clear_all">Clear all</string>
+    <string name="filters_sheet_title">Filters</string>
+    <string name="filters_payment_status">Payment status</string>
+    <string name="filters_booking_status">Booking status</string>
+    <string name="filters_room_type">Room type</string>
+    <string name="filters_dates">Dates</string>
+    <string name="filters_any_dates">Any dates</string>
+    <string name="filters_reset">Reset</string>
+    <string name="filters_apply">Apply</string>
+    <string name="filters_all_option">All</string>
+    <string name="filters_all_room_types">All room types</string>
+    <string name="filters_remove_cd">Remove filter %1$s</string>
+    <plurals name="transactions_results">
+        <item quantity="one">%d result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
+    <string name="txn_no_match_title">No transactions match your filters</string>
+    <string name="txn_clear_filters_button">Clear filters</string>
+    <string name="txn_balance_word">balance</string>
+    <plurals name="profile_missing_more">
+        <item quantity="one">%1$s, %2$s +%3$d more</item>
+        <item quantity="other">%1$s, %2$s +%3$d more</item>
+    </plurals>
 </resources>
 
 

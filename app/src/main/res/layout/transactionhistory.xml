@@ -80,7 +80,7 @@
                         android:text="@string/transaction_history_desc"
                         android:textSize="12sp" />
 
-                    <!-- Search & Filter Container -->
+                    <!-- Search, the Type chips, the Filters button (with a count) and the active-filter chips. -->
                     <com.google.android.material.card.MaterialCardView
                         style="@style/Widget.Velocity.Card.Glass.Compact"
                         android:layout_width="match_parent"
@@ -101,7 +101,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 app:endIconMode="clear_text"
-                                app:startIconDrawable="@drawable/ic_room_search">
+                                app:startIconDrawable="@drawable/ic_search">
 
                                 <com.google.android.material.textfield.TextInputEditText
                                     android:id="@+id/etSearch"
@@ -113,111 +113,119 @@
                                     android:inputType="text"
                                     android:maxLines="1"
                                     android:paddingVertical="8dp"
-                                    android:textSize="12sp" />
+                                    android:textSize="13sp" />
                             </com.google.android.material.textfield.TextInputLayout>
 
-                            <!-- Filter by Status: single combo box replacing the old 9-way
-                                 category chip row (All/Bookings/Reservations/Payments/
-                                 Cancelled/Stays/FullyPaid/PartiallyPaid/PendingPayment) -
-                                 same ExposedDropdown pattern already used elsewhere in the
-                                 app (see bookingandreservation.xml's own status filter). -->
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:id="@+id/layoutTransactionStatusFilter"
-                                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown"
+                            <!-- Type chips (the most-used filter) and the Filters button. -->
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="13dp"
-                                android:hint="@string/filter_by_status_label">
+                                android:layout_marginTop="8dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
 
-                                <AutoCompleteTextView
-                                    android:id="@+id/dropdownTransactionStatus"
-                                    android:layout_width="match_parent"
+                                <HorizontalScrollView
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-bold"
-                                    android:includeFontPadding="false"
-                                    android:inputType="none"
-                                    android:paddingVertical="8dp"
-                                    android:text="@string/filter_all_transactions_label"
-                                    android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
-                                    tools:ignore="LabelFor" />
-                            </com.google.android.material.textfield.TextInputLayout>
+                                    android:layout_weight="1"
+                                    android:clipToPadding="false"
+                                    android:overScrollMode="never"
+                                    android:scrollbars="none">
 
-                            <!-- Remaining filters: Room Type, Date, and Booking Status - a horizontally
-                                 scrollable row. clipToPadding=false + the row's own end padding means the
-                                 LAST chip can always be scrolled fully clear of the card edge (it used to
-                                 end flush against it and read as cut off: "Bookin..."), whatever the
-                                 screen width or font size. -->
-                            <HorizontalScrollView
-                                android:id="@+id/scrollFilterChips"
+                                    <com.google.android.material.chip.ChipGroup
+                                        android:id="@+id/chipGroupType"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:chipSpacingHorizontal="6dp"
+                                        app:selectionRequired="true"
+                                        app:singleLine="true"
+                                        app:singleSelection="true">
+
+                                        <com.google.android.material.chip.Chip
+                                            android:id="@+id/chipTypeAll"
+                                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:checked="true"
+                                            android:text="@string/filter_type_all" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:id="@+id/chipTypeBookings"
+                                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/filter_bookings" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:id="@+id/chipTypeReservations"
+                                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/filter_reservations" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:id="@+id/chipTypePayments"
+                                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/filter_payments" />
+                                    </com.google.android.material.chip.ChipGroup>
+                                </HorizontalScrollView>
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnFilters"
+                                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="48dp"
+                                    android:layout_marginStart="8dp"
+                                    android:letterSpacing="0"
+                                    android:maxLines="1"
+                                    android:text="@string/filters_button"
+                                    android:textSize="13sp"
+                                    app:icon="@drawable/ic_filter"
+                                    app:iconGravity="textStart"
+                                    app:iconSize="16dp" />
+                            </LinearLayout>
+
+                            <!-- The active filters as removable chips, and Clear all. -->
+                            <LinearLayout
+                                android:id="@+id/rowActiveFilters"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
-                                android:clipToPadding="false"
-                                android:overScrollMode="never"
-                                android:scrollbars="none">
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:visibility="gone">
 
-                                <LinearLayout
+                                <HorizontalScrollView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:clipToPadding="false"
+                                    android:overScrollMode="never"
+                                    android:scrollbars="none">
+
+                                    <com.google.android.material.chip.ChipGroup
+                                        android:id="@+id/chipGroupActive"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        app:chipSpacingHorizontal="6dp"
+                                        app:singleLine="true" />
+                                </HorizontalScrollView>
+
+                                <TextView
+                                    android:id="@+id/btnClearAllFilters"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:paddingStart="0dp"
-                                    android:paddingEnd="22dp">
-
-                                    <com.google.android.material.chip.Chip
-                                        android:id="@+id/chipRoomType"
-                                        style="@style/Widget.MaterialComponents.Chip.Action"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginEnd="10dp"
-                                        android:fontFamily="sans-serif-bold"
-                                        android:text="@string/room_type_filter_label"
-                                        android:textColor="@color/chip_sort_text_color"
-                                        android:textSize="12sp"
-                                        app:chipBackgroundColor="@color/chip_sort_background_color"
-                                        app:chipIcon="@drawable/ic_room_search"
-                                        app:chipIconSize="18dp"
-                                        app:chipIconTint="@color/chip_sort_icon_tint"
-                                        app:chipMinHeight="36dp"
-                                        app:chipStrokeColor="@color/velocity_red_subtle"
-                                        app:chipStrokeWidth="1.2dp" />
-
-                                    <com.google.android.material.chip.Chip
-                                        android:id="@+id/chipDateFilter"
-                                        style="@style/Widget.MaterialComponents.Chip.Action"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginEnd="10dp"
-                                        android:fontFamily="sans-serif-bold"
-                                        android:text="@string/date_filter_label"
-                                        android:textColor="@color/chip_sort_text_color"
-                                        android:textSize="12sp"
-                                        app:chipBackgroundColor="@color/chip_sort_background_color"
-                                        app:chipIcon="@drawable/ic_calendar"
-                                        app:chipIconSize="18dp"
-                                        app:chipIconTint="@color/chip_sort_icon_tint"
-                                        app:chipMinHeight="36dp"
-                                        app:chipStrokeColor="@color/velocity_red_subtle"
-                                        app:chipStrokeWidth="1.2dp" />
-
-                                    <com.google.android.material.chip.Chip
-                                        android:id="@+id/chipBookingStatus"
-                                        style="@style/Widget.MaterialComponents.Chip.Action"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:fontFamily="sans-serif-bold"
-                                        android:text="@string/booking_status_filter_label"
-                                        android:textColor="@color/chip_sort_text_color"
-                                        android:textSize="12sp"
-                                        app:chipBackgroundColor="@color/chip_sort_background_color"
-                                        app:chipIcon="@drawable/ic_booking"
-                                        app:chipIconSize="18dp"
-                                        app:chipIconTint="@color/chip_sort_icon_tint"
-                                        app:chipMinHeight="36dp"
-                                        app:chipStrokeColor="@color/velocity_red_subtle"
-                                        app:chipStrokeWidth="1.2dp" />
-                                </LinearLayout>
-                            </HorizontalScrollView>
+                                    android:background="?attr/selectableItemBackground"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:gravity="center"
+                                    android:minHeight="48dp"
+                                    android:paddingHorizontal="8dp"
+                                    android:text="@string/filters_clear_all"
+                                    android:textColor="@color/velocity_action_text"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -262,29 +270,41 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent" />
 
-                    <TextView
-                        android:id="@+id/tvTransactionHeader"
-                        style="@style/TextAppearance.Velocity.Label.Section"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="11dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textAllCaps="false"
-                        android:textSize="14sp"
-                        android:text="@string/recent_transactions"
+                        android:orientation="vertical"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@id/btnExport"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <TextView
+                            android:id="@+id/tvTransactionHeader"
+                            style="@style/TextAppearance.Velocity.Section.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/transactions_title" />
+
+                        <TextView
+                            android:id="@+id/tvResultCount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:accessibilityLiveRegion="polite"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="12sp"
+                            tools:text="12 results" />
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnExport"
-                        style="@style/Widget.Velocity.Button.Outlined"
+                        style="@style/Widget.Velocity.Flat.Button.Text"
                         android:layout_width="wrap_content"
                         android:layout_height="48dp"
+                        android:letterSpacing="0"
                         android:text="@string/export_label"
-                        android:textSize="12sp"
+                        android:textSize="13sp"
                         app:icon="@drawable/ic_upload"
                         app:iconGravity="textStart"
                         app:iconPadding="6dp"

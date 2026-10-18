@@ -625,8 +625,8 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         if (statusView != null) {
             java.util.List<String> missing = new java.util.ArrayList<>();
-            if (TextUtils.isEmpty(mobile)) missing.add(getString(R.string.profile_missing_mobile));
-            if (TextUtils.isEmpty(gender)) missing.add(getString(R.string.profile_missing_gender));
+            if (TextUtils.isEmpty(mobile)) missing.add(getString(R.string.pc_profile_missing_mobile));
+            if (TextUtils.isEmpty(gender)) missing.add(getString(R.string.pc_profile_missing_gender));
             if (TextUtils.isEmpty(dob)) missing.add(getString(R.string.profile_missing_dob));
             if (TextUtils.isEmpty(prefs.getString("userCity", "")) || TextUtils.isEmpty(prefs.getString("userStreet", ""))) {
                 missing.add(getString(R.string.profile_missing_address));

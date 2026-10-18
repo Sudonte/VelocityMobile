@@ -310,9 +310,9 @@ public class TransactionHistoryScreenTest {
         idleFor(400);
 
         assertEquals(View.VISIBLE, activity.findViewById(R.id.scrollEmptyState).getVisibility());
-        assertEquals("No matching transactions", ((TextView) activity.findViewById(R.id.emptyTitle)).getText().toString());
+        assertEquals("No transactions match your filters", ((TextView) activity.findViewById(R.id.emptyTitle)).getText().toString());
         View clear = activity.findViewById(R.id.btnEmptyAction);
-        assertEquals("Clear All Filters", ((TextView) clear).getText().toString());
+        assertEquals("Clear filters", ((TextView) clear).getText().toString());
         clear.performClick();
         idle();
         assertEquals(View.VISIBLE, activity.findViewById(R.id.rvTransactions).getVisibility());
@@ -322,20 +322,14 @@ public class TransactionHistoryScreenTest {
     // ---- the filter chip row ----
 
     @Test
-    public void theFilterChipRow_scrollsHorizontally_withEndPaddingSoTheLastChipIsNeverCutOff() {
+    public void theFilterRow_hasTheTypeChips_andAFiltersButton() {
         ActivityController<TransactionHistoryActivity> controller = launch();
         TransactionHistoryActivity activity = controller.get();
-        android.widget.HorizontalScrollView scroll = activity.findViewById(R.id.scrollFilterChips);
-        assertNotNull(scroll);
-        assertFalse("content may draw into the end padding", scroll.getClipToPadding());
-        View row = scroll.getChildAt(0);
-        float density = app.getResources().getDisplayMetrics().density;
-        assertTrue("end padding clears the last chip from the card edge (" + row.getPaddingEnd() / density + "dp)",
-                row.getPaddingEnd() >= 16 * density);
-        // all three chips live in the scrolling row
-        assertNotNull(row.findViewById(R.id.chipRoomType));
-        assertNotNull(row.findViewById(R.id.chipDateFilter));
-        assertNotNull(row.findViewById(R.id.chipBookingStatus));
+        com.google.android.material.chip.ChipGroup types = activity.findViewById(R.id.chipGroupType);
+        assertEquals("All, Bookings, Reservations, Payments", 4, types.getChildCount());
+        assertEquals(R.id.chipTypeAll, types.getCheckedChipId());
+        assertNotNull(activity.findViewById(R.id.btnFilters));
+        assertEquals("Filters", ((TextView) activity.findViewById(R.id.btnFilters)).getText().toString());
     }
 
     // ---- pull to refresh ----
@@ -465,7 +459,9 @@ public class TransactionHistoryScreenTest {
         Object criteria = field(controller.get(), "criteria");
         field(criteria, "from", java.time.LocalDate.of(2026, 10, 12));
         field(criteria, "to", java.time.LocalDate.of(2026, 10, 14));
-        controller.get().findViewById(R.id.chipDateFilter).performClick();
+        java.lang.reflect.Method open = controller.get().getClass().getDeclaredMethod("showDateRangePicker", criteria.getClass(), Runnable.class);
+        open.setAccessible(true);
+        open.invoke(controller.get(), criteria, (Runnable) () -> { });
         shadowOf(Looper.getMainLooper()).idle();
 
         controller.recreate();

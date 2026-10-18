@@ -85,7 +85,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     }
     private SelectableCard selectedNotificationCard;
-    private TextView accountFullNameText, accountEmailText, accountMobileText, membershipStatusText, profileCompletionText, accountStatusText;
+    private TextView accountFullNameText, accountEmailText, accountMobileText, membershipStatusText, accountStatusText;
     private final Handler clockHandler = new Handler(Looper.getMainLooper());
     private Runnable clockRunnable;
     /** (TextView, Notification) pairs for every compact card currently shown in the "Recent Notifications" widget - lets notifTimeRefreshRunnable below re-render just their relative time text without rebuilding the section (which would also re-trigger the header/unread-dot/icon binding and the row's expand/collapse animation state). Rebuilt from scratch each time updateNotificationsSection() rebuilds the section itself. */
@@ -228,8 +228,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         accountEmailText = findViewById(R.id.accountEmailText);
         accountMobileText = findViewById(R.id.accountMobileText);
         membershipStatusText = findViewById(R.id.membershipStatusText);
-        profileCompletionText = findViewById(R.id.profileCompletionText);
         accountStatusText = findViewById(R.id.accountStatusText);
+        bindAccountSummary(); // the profile is cached on the phone: show it (and the donut) at once, not after the network answers
     }
 
     private void loadDashboardData() {
@@ -386,7 +386,18 @@ public class DashboardActivity extends BaseNavigationActivity {
         populateNotifications(allNotifications);
         applySectionStates(allBookings, allNotifications);
 
-        // Account Summary
+        bindAccountSummary();
+    }
+
+    private boolean profileDonutShown;
+
+    /**
+     * Account Summary: the guest's name, email and phone, the profile-completeness donut (computed by
+     * {@link ProfileCompleteness} from the same cached profile fields the Dashboard always counted), what is still
+     * missing, and the account status. Runs on every dashboard load AND every time the screen comes back to the front,
+     * so the donut is current as soon as the guest returns from Edit Profile.
+     */
+    private void bindAccountSummary() {
         SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
         String fullName = prefs.getString("userName", getString(R.string.guest_user));
         String email = prefs.getString("userEmail", getString(R.string.guest_email));
@@ -395,37 +406,26 @@ public class DashboardActivity extends BaseNavigationActivity {
         accountEmailText.setText(email);
         accountMobileText.setText(mobile);
 
-        // Widened from the previous 3-field check (name/email/mobile) to every
-        // guest field already cached in the session from login/registration -
-        // gender, date of birth, and a real (non-placeholder) profile photo -
-        // without an extra network call just to compute a percentage.
-        String gender = prefs.getString("userGender", "");
-        String dob = prefs.getString("userDob", "");
-        String pictureUrl = SessionManager.getProfilePictureUrl(this);
-        int totalFields = 6;
-        int completedFields = 0;
-        if (!fullName.trim().isEmpty() && !fullName.equals(getString(R.string.guest_user))) completedFields++;
-        if (!email.trim().isEmpty() && !email.equals(getString(R.string.guest_email))) completedFields++;
-        if (!mobile.trim().isEmpty() && !mobile.equals(getString(R.string.mock_mobile))) completedFields++;
-        if (gender != null && !gender.trim().isEmpty()) completedFields++;
-        if (dob != null && !dob.trim().isEmpty()) completedFields++;
-        if (pictureUrl != null && !pictureUrl.trim().isEmpty()) completedFields++;
-        int profilePercent = (completedFields * 100) / totalFields;
-        membershipStatusText.setText(getString(R.string.membership_label,
-                profilePercent == 100 ? getString(R.string.premium_guest) : getString(R.string.profile_incomplete)));
-        profileCompletionText.setText(getString(R.string.profile_completion_format, profilePercent));
-        profileCompletionText.setTextColor(ContextCompat.getColor(this,
-                profilePercent == 100 ? R.color.velocity_green_primary : R.color.velocity_red_primary));
+        ProfileCompleteness completeness = ProfileCompleteness.of(fullName, email, mobile,
+                prefs.getString("userGender", ""), prefs.getString("userDob", ""), SessionManager.getProfilePictureUrl(this),
+                getString(R.string.guest_user), getString(R.string.guest_email), getString(R.string.mock_mobile));
+        ProfileDonutView donut = findViewById(R.id.profileDonut);
+        donut.setProgress(completeness.percent, true);
+        profileDonutShown = true;
+        TextView missing = findViewById(R.id.profileMissingText);
+        String line = completeness.missingLine(this);
+        missing.setText(line == null ? "" : line);
+        missing.setVisibility(line == null ? View.GONE : View.VISIBLE);
+        View.OnClickListener openEditProfile = NavUtils.debounce(v -> startActivity(new android.content.Intent(this, ProfileManagementActivity.class)));
+        findViewById(R.id.profileDonutArea).setOnClickListener(openEditProfile);
+        missing.setOnClickListener(openEditProfile);
 
+        membershipStatusText.setText(R.string.account_type_guest);
         boolean sessionActive = SessionManager.isLoggedIn(this);
-        if (accountStatusText != null) {
-            accountStatusText.setText(sessionActive ? R.string.account_status_active : R.string.account_status_signed_out);
-        }
+        accountStatusText.setText(sessionActive ? R.string.account_status_value_active : R.string.account_status_value_signed_out);
         View accountStatusDot = findViewById(R.id.accountStatusDot);
-        int statusColor = sessionActive ? R.color.velocity_green_primary : R.color.velocity_red_primary;
-        if (accountStatusDot != null) {
-            accountStatusDot.setBackgroundTintList(ContextCompat.getColorStateList(this, statusColor));
-        }
+        accountStatusDot.setBackgroundTintList(ContextCompat.getColorStateList(this,
+                sessionActive ? R.color.status_paid_fg : R.color.velocity_red_primary));
     }
 
     private void populateBookings(List<Booking> bookings) {
@@ -583,174 +583,70 @@ public class DashboardActivity extends BaseNavigationActivity {
                             PaymentStatusResolver.resolve(this, first).label)));
         }
     }
+    /**
+     * One payment card: ID and status chip, Total and Balance in two aligned columns (the balance is green when nothing is
+     * owed, amber when partly paid, red only when money is owed), a thin progress bar with "₱X of ₱Y paid", and the actions.
+     * Only receptionist-verified money counts as paid (TransactionStatusHelper); every amount uses the app's currency format.
+     */
     private void addPaymentItem(Booking b) {
-        View card = LayoutInflater.from(this).inflate(R.layout.item_payment_status, paymentListContainer, false);
-        
-        TextView tvTypePill = card.findViewById(R.id.tvTransactionTypePill);
-        TextView tvRoomName = card.findViewById(R.id.tvPaymentRoomName);
-        TextView tvRef = card.findViewById(R.id.tvTransactionRef);
-        TextView tvStatus = card.findViewById(R.id.tvPaymentStatus);
-        TextView tvVerification = card.findViewById(R.id.tvVerificationStatus);
-        TextView tvTotal = card.findViewById(R.id.tvTotalAmount);
-        TextView tvPaid = card.findViewById(R.id.tvAmountPaid);
-        View layoutRemaining = card.findViewById(R.id.layoutPaymentRemainingBalance);
-        TextView tvRemaining = card.findViewById(R.id.tvPaymentRemainingBalance);
-        View btnQuickPay = card.findViewById(R.id.btnQuickPay);
-
-        tvRoomName.setText(b.getRoomName());
-        ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        // (the room photo is hidden in this light row - see lightenPaymentCard - so it is not downloaded)
-        String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getDisplayId();
-        tvRef.setText(getString(R.string.transaction_ref_format, ref));
-
-        TextView tvDeadline = card.findViewById(R.id.tvPaymentDeadline);
-        if (tvDeadline != null) {
-            boolean hasDeadline = PaymentDeadlineFormatter.hasActiveDeadline(b);
-            tvDeadline.setVisibility(hasDeadline ? View.VISIBLE : View.GONE);
-            if (hasDeadline) {
-                tvDeadline.setText(PaymentDeadlineFormatter.formatChipText(this, b));
-            }
-        }
-
-        TextView tvMethod = card.findViewById(R.id.tvPaymentMethod);
-        if (tvMethod != null) {
-            boolean hasMethod = b.getPaymentMethod() != null && !b.getPaymentMethod().trim().isEmpty();
-            tvMethod.setVisibility(hasMethod ? View.VISIBLE : View.GONE);
-            if (hasMethod) {
-                tvMethod.setText(getString(R.string.payment_method_colon_format,
-                        "cash".equalsIgnoreCase(b.getPaymentMethod()) ? getString(R.string.payment_method_cash) : getString(R.string.payment_method_gcash)));
-            }
-        }
-
-        // Transaction lifecycle badge - shows the specific Reservation
-        // Pending / Booking Pending / Validated / Completed Reservation
-        // state (PaymentStatusResolver#resolveLifecycleBadge(), same
-        // hasBooking/isStaffVerified signals TransactionCategorizer uses) -
-        // strictly more informative than a bare "Booking"/"Reservation"
-        // label, so it replaces rather than sits alongside that. hasBooking
-        // is still the server-authoritative flag driving the Pay Now
-        // gating below - never derived from status text alone.
-        if (tvTypePill != null) {
-            PaymentStatusResolver.Result lifecycleResult = PaymentStatusResolver.resolveLifecycleBadge(this, b);
-            tvTypePill.setText(lifecycleResult.label);
-            tvTypePill.setBackgroundTintList(ContextCompat.getColorStateList(this, lifecycleResult.bgColorRes));
-            tvTypePill.setTextColor(ContextCompat.getColor(this, lifecycleResult.fgColorRes));
-            applyPillIcon(tvTypePill, lifecycleResult.iconRes, lifecycleResult.fgColorRes);
-        }
-
-        // Receptionist-verified money only, from the same helper that decides the status pill shown right
-        // below (TransactionStatusHelper) - so "Paid" can never read a submitted-but-unverified amount next
-        // to a "Pending" pill.
-        double total = TransactionStatusHelper.grandTotalOf(b);
-        double paid = TransactionStatusHelper.verifiedPaidOf(b);
-        double remaining = Math.max(0, total - paid);
-
-        tvTotal.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), total));
-        tvPaid.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), paid));
-
-        // Remaining Balance column: only meaningful once some payment activity exists -
-        // an unpaid Reservation has nothing "remaining" to speak of yet.
-        boolean showRemaining = b.isHasBooking() || paid > 0.009;
-        if (layoutRemaining != null) layoutRemaining.setVisibility(showRemaining ? View.VISIBLE : View.INVISIBLE);
-        if (tvRemaining != null) {
-            tvRemaining.setText(String.format(Locale.getDefault(), getString(R.string.price_format_night), Math.max(0, remaining)));
-        }
-
-        PaymentStatusResolver.Result statusResult = PaymentStatusResolver.resolve(this, b);
-        tvStatus.setText(statusResult.label);
-        int fgColor = ContextCompat.getColor(this, statusResult.fgColorRes);
-        tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, statusResult.bgColorRes));
-        tvStatus.setTextColor(fgColor);
-
-        // Verification Status - distinct from Payment Status above (see
-        // item_payment_status.xml's comment): a GCash payment can be "Partially Paid"
-        // while still awaiting receptionist review, or already verified/rejected.
-        if (tvVerification != null) {
-            String verification = b.getPaymentVerificationStatus();
-            if ("pending_verification".equalsIgnoreCase(verification)) {
-                tvVerification.setText(R.string.awaiting_verification_label);
-                tvVerification.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.velocity_orange_soft));
-                tvVerification.setTextColor(ContextCompat.getColor(this, R.color.velocity_orange_primary));
-                tvVerification.setVisibility(View.VISIBLE);
-            } else if ("verified".equalsIgnoreCase(verification)) {
-                tvVerification.setText(R.string.status_verified);
-                tvVerification.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.velocity_green_soft));
-                tvVerification.setTextColor(ContextCompat.getColor(this, R.color.velocity_green_dark));
-                tvVerification.setVisibility(View.VISIBLE);
-            } else if ("rejected".equalsIgnoreCase(verification)) {
-                tvVerification.setText(R.string.status_rejected);
-                tvVerification.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.velocity_red_subtle));
-                tvVerification.setTextColor(ContextCompat.getColor(this, R.color.velocity_red_dark));
-                tvVerification.setVisibility(View.VISIBLE);
-            } else {
-                tvVerification.setVisibility(View.GONE);
-            }
-        }
-
-        // Tapping the card is always "View Details" - it opens Transaction History
-        // under the matching type filter (Bookings vs Reservations, never just
-        // "Payments") with this exact transaction selected/highlighted. A Booking
-        // transaction is strictly view-only here: whether it's Full Payment or
-        // Partial Payment, it never gets a Pay Now action on this card. Only a
-        // Reservation that hasn't been converted to a Booking yet (isHasBooking()
-        // == false, the server-authoritative flag - see the type-pill comment
-        // above) can ever show one, and even then only while it still has a real
-        // balance due and isn't rejected/cancelled.
-        card.setOnClickListener(v -> openTransactionHistoryForPaymentItem(b));
-
-        if (btnQuickPay != null) {
-            // Same single-source-of-truth rule BookingAndReservationActivity's
-            // Reservation List Pay Now button uses (see PaymentEligibility) -
-            // previously this had its own, independently-drifted condition
-            // that (unlike the list's) correctly excluded a rejected payment
-            // from re-showing Pay Now/Resubmit, but (like the list's) never
-            // excluded a payment still awaiting verification. Both screens now
-            // agree: a rejected payment still shows this button (doubling as
-            // Resubmit), a pending-verification one never does.
-            boolean payable = remaining > 0.009 && PaymentEligibility.canPayNow(b);
-            btnQuickPay.setVisibility(payable ? View.VISIBLE : View.GONE);
-            if (payable) {
-                // Same Billing-Summary-first flow as the Active Reservation
-                // List's own Pay Now (BookingAndReservationActivity#
-                // showPayNowConfirmation()) - the guest must review the full
-                // bill before reaching PaymentActivity's GCash portal,
-                // regardless of which screen Pay Now was tapped from.
-                btnQuickPay.setOnClickListener(v -> new SafeDialogs.Material(this)
-                        .setTitle(R.string.pay_now_confirm_title)
-                        .setMessage(getString(R.string.pay_now_confirm_msg, b.getDisplayId()))
-                        .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
-                            android.content.Intent intent = new android.content.Intent(this, BillingSummaryActivity.class);
-                            intent.putExtra(BillingSummaryActivity.EXTRA_RESERVATION_ID, b.getId());
-                            startActivity(intent);
-                        })
-                        .setNegativeButton(R.string.no_label, null)
-                        .show());
-            }
-        }
-
-        FrontDeskNote.bind(card.findViewById(R.id.tvFrontDeskNote), b);
-        lightenPaymentCard(card);
-
+        View card = LayoutInflater.from(this).inflate(R.layout.item_dashboard_payment, paymentListContainer, false);
+        bindPaymentCard(card, b);
         paymentListContainer.addView(card);
     }
 
-    /**
-     * The dashboard's Payment Status rows keep only the key facts - reference, status badge, amount and balance. The
-     * photo, room name, transaction reference, payment method, deadline, verification chip, paid column and front-desk
-     * note are all still on the full details screen, which a tap on the row opens.
-     */
-    private static void lightenPaymentCard(View card) {
-        for (int id : new int[]{R.id.tvTransactionTypePill, R.id.tvPaymentRoomName, R.id.tvTransactionRef, R.id.tvPaymentMethod,
-                R.id.tvPaymentDeadline, R.id.tvVerificationStatus, R.id.tvFrontDeskNote}) {
-            View v = card.findViewById(id);
-            if (v != null) v.setVisibility(View.GONE);
-        }
-        View image = card.findViewById(R.id.ivPaymentRoomImage);
-        if (image != null && image.getParent() instanceof View) ((View) image.getParent()).setVisibility(View.GONE);
-        View paid = card.findViewById(R.id.tvAmountPaid);
-        if (paid != null && paid.getParent() instanceof View) ((View) paid.getParent()).setVisibility(View.GONE);
-    }
+    private void bindPaymentCard(View card, Booking b) {
+        ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
 
+        PaymentStatusResolver.Result statusResult = PaymentStatusResolver.resolve(this, b);
+        TextView tvStatus = card.findViewById(R.id.tvPaymentStatus);
+        tvStatus.setText(statusResult.label);
+        tvStatus.setBackgroundTintList(ContextCompat.getColorStateList(this, statusResult.bgColorRes));
+        tvStatus.setTextColor(ContextCompat.getColor(this, statusResult.fgColorRes));
+
+        double total = TransactionStatusHelper.grandTotalOf(b);
+        double paid = TransactionStatusHelper.verifiedPaidOf(b);
+        double remaining = Math.max(0, total - paid);
+        PaymentBalanceTone tone = PaymentBalanceTone.of(total, paid);
+
+        ((TextView) card.findViewById(R.id.tvTotalAmount)).setText(MoneyFormat.format(total));
+        TextView balance = card.findViewById(R.id.tvPaymentRemainingBalance);
+        balance.setText(MoneyFormat.format(remaining));
+        balance.setTextColor(getColor(tone.colorRes));
+        card.findViewById(R.id.tvPaymentBalanceNote).setVisibility(tone == PaymentBalanceTone.PAID && total > 0 ? View.VISIBLE : View.GONE);
+
+        com.google.android.material.progressindicator.LinearProgressIndicator progress = card.findViewById(R.id.progressPayment);
+        TextView paidOf = card.findViewById(R.id.tvPaymentPaidOf);
+        boolean hasTotal = total > MoneyFormat.EPSILON;
+        progress.setVisibility(hasTotal ? View.VISIBLE : View.GONE);
+        paidOf.setVisibility(hasTotal ? View.VISIBLE : View.GONE);
+        if (hasTotal) {
+            progress.setProgress((int) Math.min(100, Math.round(paid * 100 / total)));
+            progress.setIndicatorColor(getColor(tone.colorRes));
+            paidOf.setText(getString(R.string.payment_card_paid_of_format, MoneyFormat.format(Math.min(paid, total)), MoneyFormat.format(total)));
+        }
+
+        // Tapping the card, or View details, opens it in Transaction History under the matching Bookings / Reservations filter.
+        View.OnClickListener open = v -> openTransactionHistoryForPaymentItem(b);
+        card.setOnClickListener(open);
+        card.findViewById(R.id.tvPaymentViewDetails).setOnClickListener(open);
+
+        View btnQuickPay = card.findViewById(R.id.btnQuickPay);
+        // Same single-source-of-truth rule as the Reservation list's Pay Now (PaymentEligibility).
+        boolean payable = remaining > 0.009 && PaymentEligibility.canPayNow(b);
+        btnQuickPay.setVisibility(payable ? View.VISIBLE : View.GONE);
+        if (payable) {
+            btnQuickPay.setOnClickListener(v -> new SafeDialogs.Material(this)
+                    .setTitle(R.string.pay_now_confirm_title)
+                    .setMessage(getString(R.string.pay_now_confirm_msg, b.getDisplayId()))
+                    .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
+                        android.content.Intent intent = new android.content.Intent(this, BillingSummaryActivity.class);
+                        intent.putExtra(BillingSummaryActivity.EXTRA_RESERVATION_ID, b.getId());
+                        startActivity(intent);
+                    })
+                    .setNegativeButton(R.string.no_label, null)
+                    .show());
+        }
+    }
 
     private void populateNotifications(List<Notification> notifications) {
         notificationListContainer.removeAllViews();
@@ -1797,6 +1693,7 @@ public class DashboardActivity extends BaseNavigationActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (profileDonutShown) bindAccountSummary(); // back from Edit Profile: the donut is current at once
         loadUserInfo();
         loadDashboardData();
         notifTimeRefreshHandler.postDelayed(notifTimeRefreshRunnable, NOTIF_TIME_REFRESH_MS);

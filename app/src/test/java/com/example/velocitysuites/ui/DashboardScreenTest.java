@@ -548,8 +548,8 @@ public class DashboardScreenTest {
         TextView paymentId = (TextView) payments.getChildAt(0).findViewById(R.id.tvPaymentBookingId);
         String shown = paymentId.getText().toString();
         assertTrue(shown, shown.startsWith("Booking #") || shown.startsWith("Reservation #"));
-        TextView paymentRoom = (TextView) payments.getChildAt(0).findViewById(R.id.tvPaymentRoomName);
-        assertTrue("the room name is the smaller line", paymentId.getTextSize() > paymentRoom.getTextSize());
+        TextView paymentTotal = (TextView) payments.getChildAt(0).findViewById(R.id.tvTotalAmount);
+        assertTrue("the ID is the leading line", paymentId.getTextSize() > paymentTotal.getTextSize());
     }
 
     // ---- loading / error states: never "you have none" when the load failed
@@ -1025,6 +1025,177 @@ public class DashboardScreenTest {
             config.fontScale = 1f;
             app.getResources().updateConfiguration(config, app.getResources().getDisplayMetrics());
         }
+    }
+
+    // ---- Payment Status: one card per payment, balance colours, currency ----
+
+    private static ReservationDto reservationPartlyPaid(long id) {
+        ReservationDto r = ScreenTestSupport.reservation(id, 1800, ScreenTestSupport.payment(8, "900.00", "completed", "gcash"));
+        r.check_in = manilaToday().plusDays(2).toString();
+        r.check_out = manilaToday().plusDays(3).toString();
+        return r;
+    }
+
+    private TextView paymentValue(DashboardActivity a, String reference, int viewId) {
+        ViewGroup list = a.findViewById(R.id.paymentListContainer);
+        for (int i = 0; i < list.getChildCount(); i++) {
+            TextView id = list.getChildAt(i).findViewById(R.id.tvPaymentBookingId);
+            if (id != null && id.getText().toString().equals(reference)) return list.getChildAt(i).findViewById(viewId);
+        }
+        throw new AssertionError("no payment card for " + reference);
+    }
+
+    @Test
+    public void paymentCards_balanceIsGreenWhenNothingIsOwed_amberWhenPartlyPaid_redOnlyWhenOwed_andAmountsUseTheCurrencyFormat() {
+        DashboardActivity activity = launch();
+        ReservationDto paidToday = reservationPaid(601);
+        paidToday.check_in = manilaToday().toString(); // a fully paid one is listed only on the day it matters
+        paidToday.check_out = manilaToday().plusDays(1).toString();
+        answerWith(java.util.Arrays.asList(paidToday, reservationPartlyPaid(602), stay(603, 2, 1)), NO_DIRECT);
+
+        TextView paid = paymentValue(activity, "Reservation #601", R.id.tvPaymentRemainingBalance);
+        assertEquals("₱0.00", paid.getText().toString());
+        assertEquals("nothing owed is green, never red", app.getColor(R.color.status_paid_fg), paid.getCurrentTextColor());
+        assertEquals(View.VISIBLE, paymentValue(activity, "Reservation #601", R.id.tvPaymentBalanceNote).getVisibility());
+        assertEquals("Fully paid", ((TextView) paymentValue(activity, "Reservation #601", R.id.tvPaymentBalanceNote)).getText().toString());
+
+        TextView partial = paymentValue(activity, "Reservation #602", R.id.tvPaymentRemainingBalance);
+        assertEquals("₱900.00", partial.getText().toString());
+        assertEquals("partly paid is amber", app.getColor(R.color.status_pending_fg), partial.getCurrentTextColor());
+
+        TextView owed = paymentValue(activity, "Reservation #603", R.id.tvPaymentRemainingBalance);
+        assertEquals("₱1,800.00", owed.getText().toString());
+        assertEquals("owing is red", app.getColor(R.color.velocity_red_primary), owed.getCurrentTextColor());
+
+        assertEquals("₱1,800.00", paymentValue(activity, "Reservation #601", R.id.tvTotalAmount).getText().toString());
+        assertEquals("₱1,800.00 of ₱1,800.00 paid", paymentValue(activity, "Reservation #601", R.id.tvPaymentPaidOf).getText().toString());
+        assertEquals("labels sit above the values", "Total", paymentValue(activity, "Reservation #601", R.id.tvPaymentTotalLabel).getText().toString());
+        assertEquals("Balance", paymentValue(activity, "Reservation #601", R.id.tvPaymentBalanceLabel).getText().toString());
+    }
+
+    @Test
+    public void paymentStatusHeader_hasAPlainViewAllTextButton_andTheSectionIsNotACardAroundCards() {
+        DashboardActivity activity = launch();
+        answerWith(java.util.Arrays.asList(reservationPartlyPaid(601)), NO_DIRECT);
+        TextView viewAll = activity.findViewById(R.id.btnViewAllPayments);
+        assertEquals("View all", viewAll.getText().toString());
+        assertEquals("no filled pink block", null, viewAll.getBackgroundTintList());
+        assertTrue("48dp tap target", viewAll.getMinHeight() >= LayoutHarness.dp(app, 48));
+        com.google.android.material.card.MaterialCardView section = activity.findViewById(R.id.paymentStatusCard);
+        assertEquals("the section has no border of its own (no card inside a card)", 0, section.getStrokeWidth());
+        TextView desc = findTextView((ViewGroup) activity.findViewById(R.id.paymentsBody), R.string.payment_status_dashboard_desc);
+        assertNotNull("the one-line description", desc);
+        assertEquals("Paid and still due", desc.getText().toString());
+    }
+
+    private static TextView findTextView(ViewGroup root, int stringRes) {
+        String wanted = root.getContext().getString(stringRes);
+        for (int i = 0; i < root.getChildCount(); i++) {
+            View child = root.getChildAt(i);
+            if (child instanceof TextView && ((TextView) child).getText().toString().equals(wanted)) return (TextView) child;
+        }
+        return null;
+    }
+
+    // ---- Account Summary: the donut ----
+
+    private ActivityController<DashboardActivity> launchController() {
+        ActivityController<DashboardActivity> controller = Robolectric.buildActivity(DashboardActivity.class);
+        controller.setup();
+        idle();
+        return controller;
+    }
+
+    @Test
+    public void accountSummary_donutShowsTheProfilePercentage_whatIsMissing_andOpensEditProfile() {
+        DashboardActivity activity = launchController().get(); // setUp saved a profile with everything except a photo
+        com.example.velocitysuites.ProfileDonutView donut = activity.findViewById(R.id.profileDonut);
+        assertEquals(83, donut.getPercent());
+        assertEquals("Profile 83% complete", donut.getContentDescription().toString());
+        TextView missing = activity.findViewById(R.id.profileMissingText);
+        assertEquals(View.VISIBLE, missing.getVisibility());
+        assertEquals("Add a profile photo to complete your profile", missing.getText().toString());
+        assertEquals("Guest", text(activity, R.id.membershipStatusText));
+        assertEquals("Active", text(activity, R.id.accountStatusText));
+        assertEquals("Edit Profile", text(activity, R.id.btnEditProfile));
+
+        tap(missing);
+        Intent next = nextScreen(activity);
+        assertEquals("com.example.velocitysuites.ProfileManagementActivity", next.getComponent().getClassName());
+        tap(activity.findViewById(R.id.profileDonutArea));
+        assertEquals("com.example.velocitysuites.ProfileManagementActivity", nextScreen(activity).getComponent().getClassName());
+    }
+
+    @Test
+    public void accountSummary_donutUpdatesWhenTheGuestReturnsFromEditProfile_withoutRestarting() {
+        ActivityController<DashboardActivity> controller = launchController();
+        DashboardActivity activity = controller.get();
+        com.example.velocitysuites.ProfileDonutView donut = activity.findViewById(R.id.profileDonut);
+        assertEquals(83, donut.getPercent());
+
+        controller.pause(); // Edit Profile opens ... and saves a profile photo
+        SessionManager.setProfilePictureUrl(app, "https://example.com/me.jpg");
+        controller.resume();
+        idle();
+
+        assertEquals("100% as soon as the screen is back", 100, donut.getPercent());
+        assertEquals("Profile 100% complete", donut.getContentDescription().toString());
+        assertEquals("nothing is missing any more", View.GONE, activity.findViewById(R.id.profileMissingText).getVisibility());
+    }
+
+    private void assertAccountAndPaymentAreaFits(DashboardActivity activity) {
+        View root = activity.getWindow().getDecorView();
+        int w = app.getResources().getDisplayMetrics().widthPixels;
+        int h = app.getResources().getDisplayMetrics().heightPixels;
+        root.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, w, h);
+
+        // Payment Status header: the title, count badge, View all and chevron share one row without overlap.
+        View[] header = {activity.findViewById(R.id.paymentStatusTitle), activity.findViewById(R.id.paymentCountBadge),
+                activity.findViewById(R.id.btnViewAllPayments), activity.findViewById(R.id.paymentsToggle)};
+        for (int a = 0; a < header.length; a++) {
+            if (!header[a].isShown() && header[a].getId() == R.id.paymentCountBadge) continue;
+            assertTrue("fully on screen", LayoutHarness.boundsIn(root, header[a]).right <= w);
+            for (int b = a + 1; b < header.length; b++) {
+                if (!header[b].isShown()) continue;
+                assertFalse("payment header views overlap", LayoutHarness.overlaps(root, header[a], header[b]));
+            }
+        }
+        assertEquals("the title is one line", 1, ((TextView) activity.findViewById(R.id.paymentStatusTitle)).getLineCount());
+
+        // Account Summary: donut area and the account type / status column side by side, nothing clipped.
+        View donutArea = activity.findViewById(R.id.profileDonutArea);
+        View donut = activity.findViewById(R.id.profileDonut);
+        View caption = activity.findViewById(R.id.profileDonutCaption);
+        View status = activity.findViewById(R.id.accountStatusText);
+        assertFalse(LayoutHarness.overlaps(root, donutArea, status));
+        assertFalse("the caption sits under the donut", LayoutHarness.overlaps(root, donut, caption));
+        assertTrue(LayoutHarness.boundsIn(root, status).right <= w);
+        assertTrue("Edit Profile is on screen and 48dp tall", LayoutHarness.boundsIn(root, activity.findViewById(R.id.btnEditProfile)).right <= w
+                && activity.findViewById(R.id.btnEditProfile).getHeight() >= LayoutHarness.dp(app, 48));
+        assertEquals("the caption is one line", 1, ((TextView) caption).getLineCount());
+    }
+
+    @Test
+    public void paymentHeaderAndAccountSummary_fitAt360dp_inLightMode() {
+        DashboardActivity activity = launch();
+        answerWith(java.util.Arrays.asList(reservationPartlyPaid(601)), NO_DIRECT);
+        assertAccountAndPaymentAreaFits(activity);
+    }
+
+    @Test
+    @org.robolectric.annotation.Config(sdk = 35, qualifiers = "w360dp-h800dp-night-xxhdpi", application = TestApplication.class)
+    public void paymentHeaderAndAccountSummary_fitAt360dp_inDarkMode_andTheDonutTrackStaysVisible() {
+        DashboardActivity activity = launch();
+        answerWith(java.util.Arrays.asList(reservationPartlyPaid(601)), NO_DIRECT);
+        assertAccountAndPaymentAreaFits(activity);
+        // the unfilled donut track must contrast with the card in dark mode
+        int track = app.getColor(R.color.status_cancelled_bg);
+        int surface = app.getColor(R.color.velocity_card_surface);
+        assertTrue("track vs card surface contrast " + androidx.core.graphics.ColorUtils.calculateContrast(track, surface),
+                androidx.core.graphics.ColorUtils.calculateContrast(track, surface) >= 1.2);
+        assertTrue("the percentage text reads on the card", androidx.core.graphics.ColorUtils.calculateContrast(
+                app.getColor(R.color.velocity_text_primary), surface) >= 4.5);
     }
 
     @Test
