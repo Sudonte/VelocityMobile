@@ -235,6 +235,26 @@ public class NotificationScreenTest {
         assertEquals("1 unread notification", summary(activity));
     }
 
+    @Test
+    public void tappingAnUnreadRow_marksItRead_andOpensItsDetails() {
+        NotificationActivity activity = launch().get();
+        answerNotifications(2,
+                ScreenTestSupport.notification(1, "Booking Confirmed", "booking", 5L, false),
+                ScreenTestSupport.notification(2, "Payment Received", "payment", 6L, false));
+        assertEquals("2", badgeText(activity));
+
+        row(list(activity), 0).findViewById(R.id.cardNotification).performClick();
+        idle();
+
+        assertEquals("the badge dropped at once", "1", badgeText(activity));
+        assertEquals("Mark as unread",
+                ((TextView) row(list(activity), 0).findViewById(R.id.btnToggleReadState)).getText().toString());
+        assertEquals("the other row is untouched", "Mark as read",
+                ((TextView) row(list(activity), 1).findViewById(R.id.btnToggleReadState)).getText().toString());
+        assertEquals(com.example.velocitysuites.NotificationDetailsActivity.class.getName(),
+                shadowOf(activity).getNextStartedActivity().getComponent().getClassName());
+    }
+
     // ---- View Transaction ----
 
     @Test

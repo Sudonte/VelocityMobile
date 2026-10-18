@@ -1,6 +1,7 @@
 package com.example.velocitysuites.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -241,6 +242,49 @@ public class UpcomingTransactionsScreenTest {
 
         pick(activity, R.id.dropdownUpcomingDate, "All");
         assertEquals(6, refs(activity).size());
+    }
+
+    @Test
+    public void pagingTheCalendar_onlyChangesTheMonth_neverTheDayOrTheDateFilter() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+
+        activity.findViewById(R.id.stayCalNext).performClick();
+        idle();
+        assertEquals("no Date filter turned on", "All", shown(activity, R.id.dropdownUpcomingDate));
+        assertEquals(6, refs(activity).size());
+
+        activity.findViewById(R.id.stayCalPrev).performClick();
+        tapCalendarDay(activity, today().plusDays(2));
+        assertEquals(java.util.Collections.singletonList("Booking #10"), refs(activity));
+        activity.findViewById(R.id.stayCalNext).performClick();
+        activity.findViewById(R.id.stayCalNext).performClick();
+        idle();
+        assertEquals("the chosen day still filters the list", java.util.Collections.singletonList("Booking #10"), refs(activity));
+        assertEquals("Daily", shown(activity, R.id.dropdownUpcomingDate));
+    }
+
+    @Test
+    public void everyDayOfAStay_isShadedOnTheCalendar_matchingTheDateFilter() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        // Booking #10 checks in at +2 and out at +3 (a rejected/cancelled one counts too, as the list shows every status).
+        assertTrue(dayCellShaded(activity, today().plusDays(2)));
+        assertTrue(dayCellShaded(activity, today().plusDays(3)));
+        assertFalse(dayCellShaded(activity, today().plusDays(4)));
+        // Booking #13 (cancelled) is listed by the Date filter for +8..+9, so those days are shaded as well.
+        assertTrue(dayCellShaded(activity, today().plusDays(8)));
+    }
+
+    private static boolean dayCellShaded(UpcomingTransactionsActivity activity, LocalDate day) {
+        String key = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH).format(day);
+        for (int attempt = 0; attempt < 2; attempt++) {
+            ViewGroup grid = activity.findViewById(R.id.stayCalGrid);
+            for (int i = 0; i < grid.getChildCount(); i++) {
+                CharSequence cd = grid.getChildAt(i).getContentDescription();
+                if (cd != null && cd.toString().contains(key)) return grid.getChildAt(i).getBackground() != null;
+            }
+            activity.findViewById(R.id.stayCalNext).performClick();
+        }
+        throw new AssertionError("day " + key + " not on the calendar");
     }
 
     private static void tapCalendarDay(UpcomingTransactionsActivity activity, LocalDate day) {

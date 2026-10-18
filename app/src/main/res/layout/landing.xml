@@ -270,11 +270,11 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_marginTop="0dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
@@ -310,11 +310,11 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="4dp"
                     android:layout_marginTop="0dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
@@ -350,11 +350,11 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
@@ -390,11 +390,11 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="4dp"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
@@ -430,11 +430,11 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
@@ -470,11 +470,11 @@
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_gravity="fill"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="4dp"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_landing_feature_tile"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:screenReaderFocusable="true">
 
                     <ImageView
@@ -539,7 +539,7 @@
                     android:id="@+id/availableRoomsSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     app:cardBackgroundColor="@color/velocity_surface_elevated"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -586,7 +586,7 @@
                             android:lineSpacingExtra="2dp"
                             android:text="@string/landing_section_rooms_sub"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="13sp" />
 
                         <!-- How many rooms, and the "Live Rates" tag. Its own row, below the title: beside the title
                              the tag took so much of a narrow or large-font row that "AVAILABLE ROOMS" broke into a
@@ -760,7 +760,7 @@
                     android:id="@+id/promotionsSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     app:cardBackgroundColor="@color/velocity_surface_elevated"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -833,7 +833,7 @@
                     android:id="@+id/announcementsSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     app:cardBackgroundColor="@color/velocity_surface_elevated"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -906,7 +906,7 @@
                     android:id="@+id/amenitiesSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     app:cardBackgroundColor="@color/velocity_surface_elevated"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -953,7 +953,7 @@
                             android:lineSpacingExtra="2dp"
                             android:text="@string/landing_section_amenities_sub"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="13sp" />
 
                         <ProgressBar
                             android:id="@+id/progressLandingAmenities"
@@ -992,7 +992,7 @@
                     android:id="@+id/hotelInfoSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     app:cardBackgroundColor="@color/velocity_surface_elevated"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A day covered by a stay (check-in through check-out): a soft band behind the day number. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/velocity_red_subtle" />
+    <corners android:radius="8dp" />
+</shape>

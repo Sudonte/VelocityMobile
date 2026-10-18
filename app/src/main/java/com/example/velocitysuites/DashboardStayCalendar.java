@@ -125,16 +125,18 @@ final class DashboardStayCalendar {
 
     /** Replaces the data (called whenever the Dashboard's bookings change) and redraws, keeping the chosen day. */
     void setBookings(@Nullable List<Booking> bookings) {
-        model = new StayCalendarModel(bookings);
+        setBookings(bookings, false);
+    }
+
+    /** {@code everyStatus}: also shade the days of cancelled and rejected stays (for a screen that lists every status). */
+    void setBookings(@Nullable List<Booking> bookings, boolean everyStatus) {
+        model = new StayCalendarModel(bookings, everyStatus);
         render();
     }
 
     private void shiftMonth(int delta) {
-        shown = shown.plusMonths(delta);
-        // Keep the selection inside the month being looked at, so the summary never describes an invisible day.
-        selected = shown.atDay(Math.min(selected.getDayOfMonth(), shown.lengthOfMonth()));
+        shown = shown.plusMonths(delta); // only the month on show changes - the selected day and any filter stay as they are
         render();
-        notifyListener();
     }
 
     private void render() {
@@ -187,6 +189,7 @@ final class DashboardStayCalendar {
         LinearLayout cell = new LinearLayout(context);
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER);
+        if (model.isStayDay(date)) cell.setBackgroundResource(R.drawable.bg_calendar_stay_day);
         cell.setClickable(true);
         cell.setFocusable(true);
         android.util.TypedValue ripple = new android.util.TypedValue();

@@ -346,7 +346,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         for (Booking b : bookings) {
             if (b != null) allTransactions.add(b);
         }
-        calendar.setBookings(allTransactions);
+        calendar.setBookings(allTransactions, true); // every status is listed here, so every stay day is shaded
         renderEvents();
     }
 

@@ -140,8 +140,8 @@ public class DashboardScreenTest {
             assertTrue(activity.getResources().getResourceEntryName(id) + " must come after the section before it", index > previous);
             previous = index;
         }
-        assertTrue("the date and time sit directly above the Next Stay card",
-                topLevelIndex(content, activity.findViewById(R.id.nextStayCard)) - topLevelIndex(content, activity.findViewById(R.id.dateTimeCard)) == 1);
+        assertTrue("the date and time sit directly under the greeting",
+                topLevelIndex(content, activity.findViewById(R.id.dateTimeCard)) - topLevelIndex(content, activity.findViewById(R.id.welcomeCard)) == 1);
     }
 
     private static int topLevelIndex(View content, View view) {

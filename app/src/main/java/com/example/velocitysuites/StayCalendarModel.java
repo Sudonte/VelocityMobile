@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -74,11 +76,22 @@ public final class StayCalendarModel {
     }
 
     private final TreeMap<LocalDate, List<Entry>> byDate = new TreeMap<>();
+    /** Every day a stay covers, check-in through check-out. */
+    private final Set<LocalDate> stayDays = new HashSet<>();
 
     public StayCalendarModel(@Nullable List<Booking> bookings) {
+        this(bookings, false);
+    }
+
+    /**
+     * @param everyStatus true to shade the days of cancelled and rejected stays too (a screen that lists every status);
+     *                    false leaves those out. The check-in / check-out entries never include cancelled ones.
+     */
+    public StayCalendarModel(@Nullable List<Booking> bookings, boolean everyStatus) {
         if (bookings == null) return;
         for (Booking b : bookings) {
             if (b == null) continue;
+            addStayDays(b, everyStatus);
             if (TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) continue;
             String status = b.getStatus() == null ? "" : b.getStatus();
             boolean finished = "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
@@ -99,6 +112,16 @@ public final class StayCalendarModel {
         for (List<Entry> day : byDate.values()) Collections.sort(day, byTime);
     }
 
+    private void addStayDays(Booking b, boolean everyStatus) {
+        if (!everyStatus && TransactionCategorizer.categorize(b) == TransactionCategorizer.Category.CANCELLED) return;
+        LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+        if (in == null) return;
+        LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+        if (out == null || out.isBefore(in)) out = in;
+        if (java.time.temporal.ChronoUnit.DAYS.between(in, out) > 400) return; // unreadable data, not a real stay
+        for (LocalDate d = in; !d.isAfter(out); d = d.plusDays(1)) stayDays.add(d);
+    }
+
     private void add(Entry e) {
         byDate.computeIfAbsent(e.date, d -> new ArrayList<>()).add(e);
     }
@@ -106,6 +129,11 @@ public final class StayCalendarModel {
     /** True when at least one transaction arrives or leaves on that day (the dot on the calendar). */
     public boolean hasEntries(@NonNull LocalDate day) {
         return byDate.containsKey(day);
+    }
+
+    /** True when a stay covers this day (check-in, check-out or any night between) - the day is shaded on the calendar. */
+    public boolean isStayDay(@NonNull LocalDate day) {
+        return stayDays.contains(day);
     }
 
     /** Every entry from start to end, both included, in date then time order. */
