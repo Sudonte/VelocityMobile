@@ -48,23 +48,23 @@ public final class PaymentEligibility {
         PAY_NOW,
         /** A payment is already awaiting the front desk's verification: no second one. */
         UNDER_REVIEW,
-        /** A booking (not a reservation): the server takes payment at the front desk only. */
+        /** A booking, or a cash reservation: payment is taken at the front desk. */
         FRONT_DESK
     }
 
     /**
-     * The one rule for every Payment Status card: a balance owed gets Pay Now - whatever the reservation's payment method
-     * - unless a payment is already under review ("Payment under review") or it is a booking, which the server only
-     * lets the front desk settle (a button that always fails would be worse than a note). Nothing owed, or a closed
-     * transaction, gets none. (The old rule also demanded GCASH as the method, which is why two identical unpaid
-     * reservations differed: one chose GCash, the other cash.)
+     * The one rule for every Payment Status card: a balance owed gets Pay Now only on a GCASH reservation. A payment
+     * already awaiting verification shows "Payment under review" instead; a booking, or a reservation that is not GCash
+     * (cash settles at the desk), gets "Pay at the front desk" - the server takes those payments there only. Nothing owed,
+     * or a closed transaction, gets none.
      */
     public static PayAction payActionFor(Booking b) {
         if (b == null || !PaymentStatusList.isActive(b) || b.isHistoricalReservation()) return PayAction.NONE;
         TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
         if (!MoneyFormat.isPositive(summary.balance)) return PayAction.NONE;
         if (b.isPaymentPendingVerification() || summary.hasPendingPayment) return PayAction.UNDER_REVIEW;
-        return b.isHasBooking() ? PayAction.FRONT_DESK : PayAction.PAY_NOW;
+        boolean gcashReservation = !b.isHasBooking() && "GCASH".equalsIgnoreCase(b.getPaymentMethod());
+        return gcashReservation ? PayAction.PAY_NOW : PayAction.FRONT_DESK;
     }
 
     /**

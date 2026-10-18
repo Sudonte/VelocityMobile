@@ -61,15 +61,18 @@ public class PaymentStatusListTest {
     }
 
     @Test
-    public void payAction_isPayNowForAnyReservationWithABalance_whateverItsPaymentMethod() {
+    public void payAction_isPayNowOnlyForAGcashReservation_cashAndBookingsPayAtTheFrontDesk() {
         Booking gcash = base("1", "Pending", 1800, "Oct 21, 2026", false);
         gcash.setPaymentMethod("GCASH");
         Booking cash = base("2", "Pending", 1800, "Oct 21, 2026", false);
         cash.setPaymentMethod("CASH");
         Booking none = base("3", "Pending", 1800, "Oct 21, 2026", false);
         assertEquals(PaymentEligibility.PayAction.PAY_NOW, PaymentEligibility.payActionFor(gcash));
-        assertEquals("the cause of the missing button: the old rule demanded GCASH", PaymentEligibility.PayAction.PAY_NOW, PaymentEligibility.payActionFor(cash));
-        assertEquals(PaymentEligibility.PayAction.PAY_NOW, PaymentEligibility.payActionFor(none));
+        assertEquals(PaymentEligibility.PayAction.FRONT_DESK, PaymentEligibility.payActionFor(cash));
+        assertEquals("no GCash method: not Pay Now", PaymentEligibility.payActionFor(none), PaymentEligibility.PayAction.FRONT_DESK);
+        Booking booking = base("4", "Confirmed", 1800, "Oct 21, 2026", true);
+        booking.setPaymentMethod("GCASH");
+        assertEquals("a booking is never Pay Now", PaymentEligibility.PayAction.FRONT_DESK, PaymentEligibility.payActionFor(booking));
     }
 
     @Test

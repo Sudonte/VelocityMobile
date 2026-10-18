@@ -1284,7 +1284,7 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void payNow_isOnEveryCardWithABalance_whateverTheMethod_orPaymentUnderReview_orNothingWhenPaid() {
+    public void payNow_isOnGcashReservationsOnly_cashPaysAtTheFrontDesk_orPaymentUnderReview_orNothingWhenPaid() {
         DashboardActivity activity = launch();
         activity.findViewById(R.id.paymentsToggle).performClick();
         ReservationDto review = ScreenTestSupport.reservation(733, 1800, ScreenTestSupport.payment(3, "1800.00", "pending", "gcash"));
@@ -1295,9 +1295,11 @@ public class DashboardScreenTest {
         paidToday.check_out = manilaToday().plusDays(1).toString();
         answerWith(java.util.Arrays.asList(unpaidReservation(731, "gcash", 2), unpaidReservation(732, "cash", 2), review, paidToday), NO_DIRECT);
 
-        // #630 vs #629: the same unpaid balance, one chose GCash and one cash - both offer Pay Now now
-        assertEquals(View.VISIBLE, paymentValue(activity, "Reservation #731", R.id.btnQuickPay).getVisibility());
-        assertEquals("a cash reservation offers it too", View.VISIBLE, paymentValue(activity, "Reservation #732", R.id.btnQuickPay).getVisibility());
+        assertEquals("a GCash reservation gets Pay Now", View.VISIBLE, paymentValue(activity, "Reservation #731", R.id.btnQuickPay).getVisibility());
+        assertEquals("a cash reservation does not", View.GONE, paymentValue(activity, "Reservation #732", R.id.btnQuickPay).getVisibility());
+        TextView cashNote = paymentValue(activity, "Reservation #732", R.id.tvPaymentNote);
+        assertEquals(View.VISIBLE, cashNote.getVisibility());
+        assertEquals("Pay at the front desk", cashNote.getText().toString());
         assertEquals(View.GONE, paymentValue(activity, "Reservation #733", R.id.btnQuickPay).getVisibility());
         TextView note = paymentValue(activity, "Reservation #733", R.id.tvPaymentNote);
         assertEquals(View.VISIBLE, note.getVisibility());
