@@ -129,6 +129,8 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     @Nullable private String selectedTypeHint;
     private boolean pendingOpenSelected = false;
     private boolean attemptedLookupForSelected = false;
+    /** True once the deep-linked transaction has been shown: from then on the guest's filters are never overridden to reveal it. */
+    private boolean deepLinkSettled = false;
 
     private final ClickGuard clickGuard = new ClickGuard();
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -362,6 +364,9 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
 
     /** A filter changed: show it, start the page budget over and re-filter. */
     private void onFiltersChanged() {
+        // A picked field gives up focus: its border goes back to the normal colour (red only while focused / open).
+        View focused = getCurrentFocus();
+        if (focused != null) focused.clearFocus();
         autoPagesLoaded = 0;
         syncFilterWidgets();
         applyFilters();
@@ -375,7 +380,8 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     private void syncFilterWidgets() {
         int typeIndex = 0;
         for (int i = 0; i < TRANSACTION_TYPES.length; i++) if (TRANSACTION_TYPES[i] == criteria.type) typeIndex = i;
-        dropdownTransaction.setText(getString(TRANSACTION_LABELS[typeIndex]), false);
+        // The field carries its own label ("Transaction"), so its default value reads just "All"; the list keeps the full names.
+        dropdownTransaction.setText(typeIndex == 0 ? getString(R.string.filter_value_all) : getString(TRANSACTION_LABELS[typeIndex]), false);
 
         int statusIndex = 0;
         for (int i = 0; i < bookingStatusOptions.size(); i++) {
@@ -384,7 +390,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         }
         if (!bookingStatusOptions.isEmpty()) dropdownBookingStatus.setText(getString(bookingStatusOptions.get(statusIndex).labelRes), false);
 
-        dropdownRoomType.setText(criteria.roomType != null ? criteria.roomType : getString(R.string.filters_all_room_types), false);
+        dropdownRoomType.setText(criteria.roomType != null ? criteria.roomType : getString(R.string.filter_value_all), false);
 
         etCheckIn.setText(criteria.checkInFrom != null ? DATE_SHOWN.format(criteria.checkInFrom) : "");
         etCheckOut.setText(criteria.checkOutTo != null ? DATE_SHOWN.format(criteria.checkOutTo) : "");
@@ -783,10 +789,13 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         if (target != null) {
             // Reachable whatever filter the link opened on (a Cancelled record opened on Bookings, say):
             // if the current filters hide it, show everything.
-            if (!displayedRows.contains(target) && criteria.isActive()) {
+            // Only while the link is being delivered: once the guest has seen it, their own filters stand - otherwise every filter
+            // that hides the linked transaction would be wiped again at once (the Check-in / Check-out dates "not working").
+            if (!deepLinkSettled && !displayedRows.contains(target) && criteria.isActive()) {
                 clearAllFiltersAndSearch();
                 return;
             }
+            deepLinkSettled = true;
             adapter.setHighlightedStableId(target.stableId());
             if (pendingOpenSelected) {
                 pendingOpenSelected = false;

@@ -324,8 +324,8 @@ public class TransactionHistoryFiltersScreenTest {
         a.findViewById(R.id.btnEmptyAction).performClick();
         idle();
         assertEquals(5, shownRefs(a).size());
-        assertEquals("All transactions", dropdown(a, R.id.dropdownTransaction).getText().toString());
-        assertEquals("All room types", dropdown(a, R.id.dropdownRoomType).getText().toString());
+        assertEquals("All", dropdown(a, R.id.dropdownTransaction).getText().toString());
+        assertEquals("All", dropdown(a, R.id.dropdownRoomType).getText().toString());
         assertEquals("", text(a, R.id.etSearch));
         assertEquals(View.GONE, a.findViewById(R.id.btnClearFilters).getVisibility());
 
@@ -477,7 +477,7 @@ public class TransactionHistoryFiltersScreenTest {
         assertEquals("two columns on the first row", transaction.top, booking.top);
         Rect checkIn = LayoutHarness.boundsIn(root, a.findViewById(R.id.layoutCheckIn));
         Rect checkOut = LayoutHarness.boundsIn(root, a.findViewById(R.id.layoutCheckOut));
-        assertEquals("two date fields side by side", checkIn.top, checkOut.top);
+        assertTrue("the date fields are stacked, each full width", checkOut.top >= checkIn.bottom && checkIn.width() == checkOut.width());
         assertTrue(LayoutHarness.boundsIn(root, a.findViewById(R.id.btnToggleFilters)).height() >= LayoutHarness.dp(app, 48));
 
         View count = a.findViewById(R.id.tvResultCount);
@@ -487,15 +487,215 @@ public class TransactionHistoryFiltersScreenTest {
         assertEquals("the description is one line", 1, ((TextView) a.findViewById(R.id.screenDescription)).getLineCount());
     }
 
+    private static final int[] FIELD_LAYOUTS = {R.id.layoutTransactionFilter, R.id.layoutBookingStatusFilter, R.id.layoutRoomTypeFilter,
+            R.id.layoutCheckIn, R.id.layoutCheckOut};
+    private static final int[] FIELD_VALUES = {R.id.dropdownTransaction, R.id.dropdownBookingStatus, R.id.dropdownRoomType,
+            R.id.etCheckIn, R.id.etCheckOut};
+
+    /**
+     * What the real device showed and the old tests missed: each field's VALUE on ONE line, not ellipsized, and its text
+     * actually inside the field - for the defaults and for a real date. (The old tests only compared the fields' outer
+     * boxes with each other, so a box that was wide enough but too short for its wrapped text passed.)
+     */
+    private void assertFieldsShowTheirValuesInFull(TransactionHistoryActivity a) throws Exception {
+        View root = a.getWindow().getDecorView();
+        int w = app.getResources().getDisplayMetrics().widthPixels;
+        int h = app.getResources().getDisplayMetrics().heightPixels;
+        for (int pass = 0; pass < 2; pass++) {
+            if (pass == 1) { // a real date in both date fields
+                Object criteria = field(a, "criteria");
+                field(criteria, "checkInFrom", LocalDate.of(2026, 10, 19));
+                field(criteria, "checkOutTo", LocalDate.of(2026, 10, 20));
+                invoke(a, "onFiltersChanged");
+                idle();
+            }
+            root.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, w, h);
+            int borderColor = Integer.MIN_VALUE;
+            for (int i = 0; i < FIELD_LAYOUTS.length; i++) {
+                com.google.android.material.textfield.TextInputLayout layout = a.findViewById(FIELD_LAYOUTS[i]);
+                TextView value = a.findViewById(FIELD_VALUES[i]);
+                String name = a.getResources().getResourceEntryName(FIELD_LAYOUTS[i]) + (pass == 1 ? " (with a date)" : "");
+
+                assertTrue(name + ": it has a label (hint=" + layout.getHint() + ", enabled=" + layout.isHintEnabled() + ", edit=" + (layout.getEditText() == null ? "null" : layout.getEditText().getHint()) + ")", layout.getHint() != null && layout.getHint().toString().trim().length() > 0);
+                assertEquals(name + ": one line", 1, value.getLineCount());
+                assertEquals(name + ": not ellipsized", 0, value.getLayout().getEllipsisCount(0));
+                assertEquals(name + ": no second line hiding below", 1, value.getLayout().getLineCount());
+
+                // the text is inside the field: its width fits the value view, and the value view sits inside the field's box
+                float textWidth = value.getPaint().measureText(value.getText().toString());
+                int room = value.getWidth() - value.getTotalPaddingLeft() - value.getTotalPaddingRight();
+                assertTrue(name + ": text " + textWidth + "px fits " + room + "px", textWidth <= room);
+                Rect box = LayoutHarness.boundsIn(root, layout);
+                Rect inside = LayoutHarness.boundsIn(root, value);
+                assertTrue(name + ": the text view is inside the field's box", box.contains(inside));
+                assertTrue(name + ": the box itself is on screen", box.left >= 0 && box.right <= w);
+
+                java.lang.reflect.Field strokeField = com.google.android.material.textfield.TextInputLayout.class.getDeclaredField("defaultStrokeColor");
+                strokeField.setAccessible(true);
+                int color = strokeField.getInt(layout); // the unfocused border
+                assertFalse(name + ": not red while unfocused", color == app.getColor(R.color.velocity_red_primary));
+                if (borderColor == Integer.MIN_VALUE) borderColor = color;
+                assertEquals(name + ": every field has the same unfocused border", borderColor, color);
+            }
+            if (pass == 0) {
+                assertEquals("All", text(a, R.id.dropdownTransaction));
+                assertEquals("", text(a, R.id.etCheckIn));
+                assertEquals("", text(a, R.id.etCheckOut));
+            } else {
+                assertEquals("Oct 19, 2026", text(a, R.id.etCheckIn));
+                assertEquals("Oct 20, 2026", text(a, R.id.etCheckOut));
+            }
+        }
+    }
+
     @Test
-    public void filterPanel_fitsAt360dp_inLightMode() {
-        assertFilterPanelFits(launchWithEverything().get());
+    public void everyFilterField_isLabelledSingleLineAndUnclipped_at360dp_inLightMode() throws Exception {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        assertFilterPanelFits(a);
+        assertFieldsShowTheirValuesInFull(a);
     }
 
     @Test
     @Config(sdk = 35, qualifiers = "w360dp-h800dp-night-xxhdpi", application = TestApplication.class)
-    public void filterPanel_fitsAt360dp_inDarkMode() {
-        assertFilterPanelFits(launchWithEverything().get());
+    public void everyFilterField_isLabelledSingleLineAndUnclipped_at360dp_inDarkMode() throws Exception {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        assertFilterPanelFits(a);
+        assertFieldsShowTheirValuesInFull(a);
+    }
+
+    @Test
+    @Config(sdk = 35, qualifiers = "w393dp-h851dp-xxhdpi", application = TestApplication.class)
+    public void everyFilterField_isLabelledSingleLineAndUnclipped_at393dp_inLightMode() throws Exception {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        assertFilterPanelFits(a);
+        assertFieldsShowTheirValuesInFull(a);
+    }
+
+    @Test
+    @Config(sdk = 35, qualifiers = "w393dp-h851dp-night-xxhdpi", application = TestApplication.class)
+    public void everyFilterField_isLabelledSingleLineAndUnclipped_at393dp_inDarkMode() throws Exception {
+        TransactionHistoryActivity a = launchWithEverything().get();
+        assertFilterPanelFits(a);
+        assertFieldsShowTheirValuesInFull(a);
+    }
+
+    // ---- the date filter through the REAL pickers (the bug seen on a device) ----------------------------------
+
+    /** Four one-night stays: Oct 18-19, Oct 19-20, Oct 20-21 and Oct 21-22, 2026. */
+    private ActivityController<TransactionHistoryActivity> launchWithFourStays() {
+        ActivityController<TransactionHistoryActivity> controller = Robolectric.buildActivity(TransactionHistoryActivity.class,
+                new Intent(app, TransactionHistoryActivity.class));
+        controller.setup();
+        idle();
+        ScreenTestSupport.answerBookingLoad(api, 0, ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(
+                direct(18, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-18", "2026-10-19", null),
+                direct(19, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-19", "2026-10-20", null),
+                direct(20, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-20", "2026-10-21", null),
+                direct(21, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-21", "2026-10-22", null)));
+        idle();
+        return controller;
+    }
+
+    /** Opens the check-in (or check-out) picker from its field, chooses {@code date} in it and confirms - exactly what a guest does. */
+    @SuppressWarnings("unchecked")
+    private void pickDateInPicker(TransactionHistoryActivity a, boolean checkIn, LocalDate date) throws Exception {
+        a.findViewById(checkIn ? R.id.etCheckIn : R.id.etCheckOut).performClick();
+        idle();
+        androidx.fragment.app.Fragment fragment = a.getSupportFragmentManager().findFragmentByTag(checkIn ? "PICK_CHECK_IN" : "PICK_CHECK_OUT");
+        assertNotNull("the date picker opened", fragment);
+        com.google.android.material.datepicker.MaterialDatePicker<Long> picker = (com.google.android.material.datepicker.MaterialDatePicker<Long>) fragment;
+        java.lang.reflect.Field selectorField = picker.getClass().getDeclaredField("dateSelector");
+        selectorField.setAccessible(true);
+        com.google.android.material.datepicker.DateSelector<Long> selector = (com.google.android.material.datepicker.DateSelector<Long>) selectorField.get(picker);
+        selector.select(date.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli());
+        picker.getDialog().findViewById(com.google.android.material.R.id.confirm_button).performClick();
+        idle();
+    }
+
+    @Test
+    public void theGuestsExactCase_checkInOct18_checkOutOct20_keepsOnlyTheTwoStaysInsideTheWindow() throws Exception {
+        TransactionHistoryActivity a = launchWithFourStays().get();
+        assertEquals("4 results", text(a, R.id.tvResultCount));
+
+        pickDateInPicker(a, true, LocalDate.of(2026, 10, 18));
+        assertEquals("check-in only: stays checking in on or after Oct 18", "4 results", text(a, R.id.tvResultCount));
+        pickDateInPicker(a, false, LocalDate.of(2026, 10, 20));
+        assertEquals("the count updates the moment the date is picked", "2 results", text(a, R.id.tvResultCount));
+        assertEquals(refs("Booking #18", "Booking #19"), shownRefs(a));
+        assertEquals("Oct 18, 2026", text(a, R.id.etCheckIn));
+        assertEquals("Oct 20, 2026", text(a, R.id.etCheckOut));
+    }
+
+    @Test
+    public void theSameCase_inTheManilaTimeZone_doesNotShiftADay() throws Exception {
+        java.util.TimeZone before = java.util.TimeZone.getDefault();
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Manila"));
+        try {
+            TransactionHistoryActivity a = launchWithFourStays().get();
+            pickDateInPicker(a, true, LocalDate.of(2026, 10, 18));
+            pickDateInPicker(a, false, LocalDate.of(2026, 10, 20));
+            assertEquals(refs("Booking #18", "Booking #19"), shownRefs(a));
+            assertEquals("Oct 18, 2026", text(a, R.id.etCheckIn));
+            assertEquals("Oct 20, 2026", text(a, R.id.etCheckOut));
+        } finally {
+            java.util.TimeZone.setDefault(before);
+        }
+    }
+
+    @Test
+    public void openedFromADeepLink_theFiltersStillFilter_theLinkedTransactionIsNotForcedBackIn() throws Exception {
+        // How the guest got here: a Dashboard Payment Status card for Booking #21 (Oct 21-22) opened this screen on it.
+        Intent link = new Intent(app, TransactionHistoryActivity.class)
+                .putExtra(TransactionHistoryActivity.EXTRA_SELECTED_BOOKING_ID, "21")
+                .putExtra(TransactionHistoryActivity.EXTRA_SELECTED_DIRECT, true);
+        ActivityController<TransactionHistoryActivity> controller = Robolectric.buildActivity(TransactionHistoryActivity.class, link);
+        controller.setup();
+        idle();
+        ScreenTestSupport.answerBookingLoad(api, 0, ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(
+                direct(18, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-18", "2026-10-19", null),
+                direct(19, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-19", "2026-10-20", null),
+                direct(20, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-20", "2026-10-21", null),
+                direct(21, 1000, "ACTIVE_BOOKING", "Deluxe", "2026-10-21", "2026-10-22", null)));
+        idle();
+        TransactionHistoryActivity a = controller.get();
+
+        pickDateInPicker(a, true, LocalDate.of(2026, 10, 18));
+        pickDateInPicker(a, false, LocalDate.of(2026, 10, 20));
+        assertEquals("the stay outside the window stays out, although the screen was opened on it", refs("Booking #18", "Booking #19"), shownRefs(a));
+        assertEquals("2 results", text(a, R.id.tvResultCount));
+        assertEquals("the dates the guest picked are still there", "Oct 20, 2026", text(a, R.id.etCheckOut));
+    }
+
+    @Test
+    public void checkInOnly_andCheckOutOnly_throughThePickers() throws Exception {
+        TransactionHistoryActivity a = launchWithFourStays().get();
+        pickDateInPicker(a, true, LocalDate.of(2026, 10, 20));
+        assertEquals(refs("Booking #20", "Booking #21"), shownRefs(a));
+        assertEquals("2 results", text(a, R.id.tvResultCount));
+        a.findViewById(R.id.btnClearFilters).performClick();
+        idle();
+        pickDateInPicker(a, false, LocalDate.of(2026, 10, 20));
+        assertEquals(refs("Booking #18", "Booking #19"), shownRefs(a));
+        assertEquals("", text(a, R.id.etCheckIn));
+    }
+
+    @Test
+    public void datesAreEmptyByDefault_andAfterClearFilters() throws Exception {
+        TransactionHistoryActivity a = launchWithFourStays().get();
+        assertEquals("", text(a, R.id.etCheckIn));
+        assertEquals("", text(a, R.id.etCheckOut));
+        pickDateInPicker(a, true, LocalDate.of(2026, 10, 19));
+        pickDateInPicker(a, false, LocalDate.of(2026, 10, 21));
+        assertEquals("Oct 19, 2026", text(a, R.id.etCheckIn));
+        a.findViewById(R.id.btnClearFilters).performClick();
+        idle();
+        assertEquals("", text(a, R.id.etCheckIn));
+        assertEquals("", text(a, R.id.etCheckOut));
+        assertEquals("All", dropdown(a, R.id.dropdownTransaction).getText().toString());
+        assertEquals("All", dropdown(a, R.id.dropdownBookingStatus).getText().toString());
+        assertEquals("All", dropdown(a, R.id.dropdownRoomType).getText().toString());
+        assertEquals("4 results", text(a, R.id.tvResultCount));
     }
 
     // ---- reflection helpers ----------------------------------------------------------------------------------

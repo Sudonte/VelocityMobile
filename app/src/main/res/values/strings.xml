@@ -2203,6 +2203,7 @@
         <item quantity="one">Show filters (%1$d active)</item>
         <item quantity="other">Show filters (%1$d active)</item>
     </plurals>
+    <string name="filter_value_all">All</string>
 </resources>
 
 

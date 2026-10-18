@@ -104,4 +104,5 @@
     <color name="velocity_divider_hairline">#1A000000</color>
     <!-- Text in the dark-red family: unchanged in Light, a light red in Dark so it stays readable on dark surfaces. -->
     <color name="velocity_red_text">#7F1212</color>
+    <color name="velocity_filter_stroke">#8C8080</color>
 </resources>

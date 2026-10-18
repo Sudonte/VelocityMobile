@@ -155,4 +155,36 @@
 
     <!-- Kept as a named alias: the flat look now lives in the base Theme.VelocitySuites. -->
     <style name="Theme.VelocitySuites.Flat" parent="Theme.VelocitySuites" />
+
+    <!-- A Transaction History filter field: outlined, flat, a floating label that stays visible, one border colour for all. -->
+    <style name="Widget.Velocity.TextInputLayout.Filter.Dropdown" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxCornerRadiusBottomStart">0dp</item>
+        <item name="boxCornerRadiusTopEnd">0dp</item>
+        <item name="boxCornerRadiusTopStart">0dp</item>
+        <item name="boxStrokeColor">@color/filter_box_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">@color/filter_hint_color</item>
+        <item name="android:textColorHint">@color/velocity_text_secondary</item>
+        <item name="endIconTint">@color/velocity_text_secondary</item>
+        <item name="hintEnabled">true</item>
+        <item name="hintAnimationEnabled">true</item>
+    </style>
+
+    <style name="Widget.Velocity.TextInputLayout.Filter.Date" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxCornerRadiusBottomStart">0dp</item>
+        <item name="boxCornerRadiusTopEnd">0dp</item>
+        <item name="boxCornerRadiusTopStart">0dp</item>
+        <item name="boxStrokeColor">@color/filter_box_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">@color/filter_hint_color</item>
+        <item name="android:textColorHint">@color/velocity_text_secondary</item>
+        <item name="startIconTint">@color/velocity_text_secondary</item>
+        <item name="endIconTint">@color/velocity_text_secondary</item>
+        <item name="hintEnabled">true</item>
+        <item name="hintAnimationEnabled">true</item>
+    </style>
 </resources>
