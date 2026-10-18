@@ -24,7 +24,6 @@ import com.example.velocitysuites.network.dto.DirectBookingResponseDto;
 import com.example.velocitysuites.network.dto.PaginatedResponse;
 import com.example.velocitysuites.network.dto.ReservationDto;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.chip.ChipGroup;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,8 +34,10 @@ import org.robolectric.annotation.GraphicsMode;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Upcoming Hotel Transactions: every transaction of every status is listed (nothing is dropped by the client), the type and
@@ -149,6 +150,24 @@ public class UpcomingTransactionsScreenTest {
         return null;
     }
 
+    /** Picks an option in one of the three combo boxes, the way a tap on its list does. */
+    private static void pick(UpcomingTransactionsActivity activity, int dropdownId, String label) {
+        android.widget.AutoCompleteTextView dropdown = activity.findViewById(dropdownId);
+        android.widget.ListAdapter adapter = dropdown.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (label.equals(adapter.getItem(i).toString())) {
+                dropdown.getOnItemClickListener().onItemClick(null, null, i, i);
+                idle();
+                return;
+            }
+        }
+        throw new AssertionError("no option '" + label + "' in " + dropdownId);
+    }
+
+    private static String shown(UpcomingTransactionsActivity activity, int dropdownId) {
+        return ((android.widget.AutoCompleteTextView) activity.findViewById(dropdownId)).getText().toString();
+    }
+
     @Test
     public void everyStatusIsListed_includingCheckedOutAndCancelled() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
@@ -164,32 +183,102 @@ public class UpcomingTransactionsScreenTest {
     public void theStatusFilterNarrowsToOneStatus_andAllStatusesBringsEverythingBack() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
 
-        activity.findViewById(R.id.chipStatusCheckedOut).performClick();
-        idle();
+        pick(activity, R.id.dropdownUpcomingStatus, "Checked Out");
         assertEquals(java.util.Collections.singletonList("Booking #12"), refs(activity));
 
-        activity.findViewById(R.id.chipStatusAll).performClick();
-        idle();
+        pick(activity, R.id.dropdownUpcomingStatus, "All");
         assertEquals(6, refs(activity).size());
+    }
+
+    @Test
+    public void filtersAreThreeComboBoxes_eachDefaultingToAll() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        for (int id : new int[]{R.id.dropdownUpcomingType, R.id.dropdownUpcomingStatus, R.id.dropdownUpcomingDate}) {
+            android.widget.AutoCompleteTextView dropdown = activity.findViewById(id);
+            assertEquals("All", dropdown.getText().toString());
+            assertEquals("All", dropdown.getAdapter().getItem(0).toString());
+        }
+        assertEquals(4, ((android.widget.AutoCompleteTextView) activity.findViewById(R.id.dropdownUpcomingDate)).getAdapter().getCount());
+    }
+
+    @Test
+    public void theScreenIsOrdered_filters_clock_calendar_list() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        ViewGroup page = (ViewGroup) ((ViewGroup) activity.findViewById(R.id.screenContent)).getChildAt(0);
+        int filters = indexIn(page, activity.findViewById(R.id.dropdownUpcomingType));
+        int clock = indexIn(page, activity.findViewById(R.id.tvUpcomingClock));
+        int calendar = indexIn(page, activity.findViewById(R.id.stayCalendar));
+        int list = indexIn(page, activity.findViewById(R.id.upcomingTransactionsListContainer));
+        assertTrue(filters < clock && clock < calendar && calendar < list);
+    }
+
+    private static int indexIn(ViewGroup parent, View descendant) {
+        View v = descendant;
+        while (v.getParent() != parent) v = (View) v.getParent();
+        return parent.indexOfChild(v);
+    }
+
+    @Test
+    public void theClockShowsDateAndTime_andKeepsTicking() throws Exception {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        TextView clock = activity.findViewById(R.id.tvUpcomingClock);
+        String first = clock.getText().toString();
+        assertTrue(first, first.matches("\\w+, \\w+ \\d{1,2}, \\d{4} • \\d{1,2}:\\d{2}:\\d{2} (AM|PM)"));
+
+        Thread.sleep(1100); // the clock reads the real wall time; the looper only supplies the next tick
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(2));
+        assertTrue("the clock advanced", !first.equals(clock.getText().toString()));
+    }
+
+    @Test
+    public void tappingACalendarDay_filtersTheList_andShowsDailyInTheDateBox() {
+        UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
+        assertEquals(6, refs(activity).size());
+
+        tapCalendarDay(activity, today().plusDays(2)); // Booking #10 stays that night; nothing else does
+        assertEquals(java.util.Collections.singletonList("Booking #10"), refs(activity));
+        assertEquals("Daily", shown(activity, R.id.dropdownUpcomingDate));
+
+        pick(activity, R.id.dropdownUpcomingDate, "All");
+        assertEquals(6, refs(activity).size());
+    }
+
+    private static void tapCalendarDay(UpcomingTransactionsActivity activity, LocalDate day) {
+        String key = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH).format(day);
+        if (!tapDayCell(activity, key)) {
+            activity.findViewById(R.id.stayCalNext).performClick();
+            assertTrue("day " + key + " is on the calendar", tapDayCell(activity, key));
+        }
+        idle();
+    }
+
+    private static boolean tapDayCell(UpcomingTransactionsActivity activity, String key) {
+        ViewGroup grid = activity.findViewById(R.id.stayCalGrid);
+        for (int i = 0; i < grid.getChildCount(); i++) {
+            CharSequence cd = grid.getChildAt(i).getContentDescription();
+            if (cd != null && cd.toString().contains(key)) {
+                grid.getChildAt(i).performClick();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Test
     public void theTypeFilterSplitsBookingsFromReservations() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
 
-        activity.findViewById(R.id.chipFilterReservations).performClick();
-        idle();
+        pick(activity, R.id.dropdownUpcomingType, "Reservations");
         assertEquals(java.util.Arrays.asList("Reservation #1", "Reservation #2"), refs(activity));
 
-        activity.findViewById(R.id.chipFilterBookings).performClick();
-        idle();
+        pick(activity, R.id.dropdownUpcomingType, "Bookings");
         assertEquals(4, refs(activity).size());
     }
 
     @Test
     public void openingFromTheCalendarButton_startsOnAllStatuses() {
         UpcomingTransactionsActivity activity = launchWithEverything(UpcomingTransactionsActivity.intentAllStatuses(app));
-        assertTrue(((com.google.android.material.chip.Chip) activity.findViewById(R.id.chipStatusAll)).isChecked());
+        assertEquals("All", shown(activity, R.id.dropdownUpcomingStatus));
         assertEquals(6, refs(activity).size());
     }
 
@@ -202,8 +291,7 @@ public class UpcomingTransactionsScreenTest {
                 .putExtra(UpcomingTransactionsActivity.EXTRA_STATUS_FILTER, "CONFIRMED");
         UpcomingTransactionsActivity activity = launchWithEverything(intent);
 
-        assertTrue("the filter was reset so it can be seen",
-                ((com.google.android.material.chip.Chip) activity.findViewById(R.id.chipStatusAll)).isChecked());
+        assertEquals("the filter was reset so it can be seen", "All", shown(activity, R.id.dropdownUpcomingStatus));
         MaterialCardView card = cardOf(activity, "Booking #12");
         assertNotNull(card);
         assertTrue("only the focused one is highlighted",
@@ -239,15 +327,13 @@ public class UpcomingTransactionsScreenTest {
         UpcomingTransactionsActivity activity = launch(new Intent(app, UpcomingTransactionsActivity.class));
         answer(new ArrayList<>(java.util.Collections.singletonList(reservation(1, "AWAITING_GCASH_PAYMENT", 3))),
                 new ArrayList<>());
-        activity.findViewById(R.id.chipStatusCheckedOut).performClick();
-        idle();
+        pick(activity, R.id.dropdownUpcomingStatus, "Checked Out");
         assertEquals(View.VISIBLE, activity.findViewById(R.id.layoutUpcomingEmptyState).getVisibility());
 
         activity.findViewById(R.id.btnUpcomingClearFilters).performClick();
         idle();
         assertEquals(View.GONE, activity.findViewById(R.id.layoutUpcomingEmptyState).getVisibility());
         assertEquals(1, refs(activity).size());
-        ChipGroup status = activity.findViewById(R.id.chipGroupUpcomingStatus);
-        assertEquals(R.id.chipStatusAll, status.getCheckedChipId());
+        assertEquals("All", shown(activity, R.id.dropdownUpcomingStatus));
     }
 }

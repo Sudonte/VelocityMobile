@@ -485,7 +485,7 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void otherStays_openThatTransactionInUpcoming_andViewAllOpensTheWholeList() {
+    public void otherStays_openThatTransactionInUpcoming() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
 
@@ -494,11 +494,6 @@ public class DashboardScreenTest {
         assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
         assertEquals("338", opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
         assertTrue(opened.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, false));
-
-        tap(activity.findViewById(R.id.btnViewAllUpcoming));
-        opened = nextScreen(activity);
-        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
-        assertEquals(null, opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
     }
 
     @Test
@@ -548,11 +543,6 @@ public class DashboardScreenTest {
         Intent focused = nextScreen(activity);
         assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), focused.getComponent());
         assertEquals("588", focused.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
-
-        tap(activity.findViewById(R.id.stayCalOpenAll));
-        Intent all = nextScreen(activity);
-        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), all.getComponent());
-        assertEquals("ALL", all.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_STATUS_FILTER));
     }
 
     @Test
@@ -566,37 +556,27 @@ public class DashboardScreenTest {
         assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), next.getComponent());
         assertEquals("588", next.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
         assertEquals(false, next.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, true));
-
-        // Recent Bookings: the booking's reference (the rest of that row still opens Transaction History).
-        ViewGroup recent = activity.findViewById(R.id.bookingListContainer);
-        tap(recent.getChildAt(0).findViewById(R.id.btnNextItemOpenUpcoming));
-        Intent booking = nextScreen(activity);
-        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), booking.getComponent());
-        assertEquals("338", booking.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
-        assertEquals(true, booking.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, false));
     }
 
     @Test
-    public void paymentStatusId_hasItsOwnButton_thatOpensUpcomingFocusedOnThatTransaction() {
+    public void noDashboardControlIsAnUpcomingButton() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 3)));
 
-        ViewGroup payments = activity.findViewById(R.id.paymentListContainer);
-        assertTrue(payments.getChildCount() > 0);
-        View row = payments.getChildAt(0);
-        String shown = ((TextView) row.findViewById(R.id.tvPaymentBookingId)).getText().toString();
-        View button = row.findViewById(R.id.btnPaymentOpenUpcoming);
-        assertEquals(app.getString(R.string.open_in_upcoming_short), ((TextView) button).getText().toString());
-        assertEquals(app.getString(R.string.open_in_upcoming), button.getContentDescription().toString());
-        assertTrue("a comfortable touch target", button.getMinimumHeight() >= (int) (48 * app.getResources().getDisplayMetrics().density) - 1);
-        assertEquals("the ID text itself is plain text", false, row.findViewById(R.id.tvPaymentBookingId).hasOnClickListeners());
+        assertNoUpcomingControl(activity.findViewById(android.R.id.content));
+    }
 
-        tap(button);
-        Intent opened = nextScreen(activity);
-        assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
-        boolean direct = shown.startsWith("Booking");
-        assertEquals(shown.substring(shown.indexOf('#') + 1), opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
-        assertEquals(direct, opened.getBooleanExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, !direct));
+    /** Titles may say "Upcoming"; a tappable control (button, link, pill) must not. */
+    private static void assertNoUpcomingControl(View view) {
+        if (view.getVisibility() == View.GONE) return;
+        if (view instanceof TextView && view.isClickable()) {
+            assertFalse("Upcoming button: " + ((TextView) view).getText(),
+                    ((TextView) view).getText().toString().toLowerCase(Locale.ENGLISH).contains("upcoming"));
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) assertNoUpcomingControl(group.getChildAt(i));
+        }
     }
 
     @Test

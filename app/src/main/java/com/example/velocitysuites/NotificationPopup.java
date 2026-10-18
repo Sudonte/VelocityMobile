@@ -143,6 +143,9 @@ public final class NotificationPopup {
             row.findViewById(R.id.unreadDotPopup).setVisibility(n.isRead() ? View.INVISIBLE : View.VISIBLE);
             TextView title = row.findViewById(R.id.tvPopupNotifTitle);
             title.setTypeface(title.getTypeface(), n.isRead() ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
+            View markRead = row.findViewById(R.id.btnPopupNotifMarkRead);
+            markRead.setVisibility(n.isRead() ? View.GONE : View.VISIBLE);
+            markRead.setOnClickListener(v -> markRead(content, n));
             row.setOnClickListener(v -> onRowTapped(n));
             rows.addView(row);
             shown++;
@@ -161,12 +164,44 @@ public final class NotificationPopup {
             unreadLabel.setVisibility(View.GONE);
         }
 
+        View markAll = content.findViewById(R.id.btnNotifPopupMarkAll);
+        markAll.setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
+        markAll.setOnClickListener(v -> markAllRead(content));
+        content.findViewById(R.id.btnNotifPopupClose).setOnClickListener(v -> dismiss());
+
         content.findViewById(R.id.btnNotifPopupViewAll).setOnClickListener(v -> {
             dismiss();
             if (!activity.isFinishing() && !activity.isDestroyed()) {
                 activity.startActivity(new android.content.Intent(activity, NotificationActivity.class));
             }
         });
+    }
+
+    /** Marks one row read and keeps the popup open. The repository flips its cache at once, so the row and the header badge repaint now; a failed save reverts it and says so. */
+    private void markRead(View content, Notification n) {
+        RoomRepository.getInstance(activity).setNotificationReadState(n.getId(), true, success -> {
+            if (!success) {
+                Toast.makeText(activity.getApplicationContext(), R.string.error_notification_update_failed, Toast.LENGTH_LONG).show();
+            }
+            repaint(content);
+        });
+        repaint(content);
+    }
+
+    private void markAllRead(View content) {
+        RoomRepository.getInstance(activity).markAllNotificationsAsRead(success -> {
+            if (!success) {
+                Toast.makeText(activity.getApplicationContext(), R.string.error_notification_update_failed, Toast.LENGTH_LONG).show();
+            }
+            repaint(content);
+        });
+        repaint(content);
+    }
+
+    /** Redraws the open popup and the owner's bell badge; does nothing once the popup is closed. */
+    private void repaint(View content) {
+        onReadStateChanged.run();
+        if (window != null && window.getContentView() == content) bind(content);
     }
 
     private void onRowTapped(Notification n) {

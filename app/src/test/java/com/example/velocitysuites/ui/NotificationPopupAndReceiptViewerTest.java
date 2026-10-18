@@ -149,6 +149,58 @@ public class NotificationPopupAndReceiptViewerTest {
     }
 
     @Test
+    public void markAsReadOnOneRow_keepsThePopupOpen_andDropsTheBadgeCount() throws Exception {
+        UpcomingTransactionsActivity activity = launch().get();
+        activity.findViewById(R.id.headerNotificationContainer).performClick();
+        idle();
+        answerNotifications(3, seven());
+
+        View content = popupOf(activity).getContentView();
+        LinearLayout rows = content.findViewById(R.id.layoutNotifPopupRows);
+        assertEquals("a read row has no Mark as read", View.GONE, rows.getChildAt(4).findViewById(R.id.btnPopupNotifMarkRead).getVisibility());
+        rows.getChildAt(0).findViewById(R.id.btnPopupNotifMarkRead).performClick();
+        idle();
+
+        assertEquals(2, repository.getUnreadNotificationCount());
+        assertTrue("still open", popupOf(activity).isShowing());
+        rows = popupOf(activity).getContentView().findViewById(R.id.layoutNotifPopupRows);
+        assertEquals("the row repainted as read", View.INVISIBLE, rows.getChildAt(0).findViewById(R.id.unreadDotPopup).getVisibility());
+        assertEquals(View.GONE, rows.getChildAt(0).findViewById(R.id.btnPopupNotifMarkRead).getVisibility());
+    }
+
+    @Test
+    public void markAllAsRead_clearsEveryUnread_andHidesItself() throws Exception {
+        UpcomingTransactionsActivity activity = launch().get();
+        activity.findViewById(R.id.headerNotificationContainer).performClick();
+        idle();
+        answerNotifications(3, seven());
+
+        View content = popupOf(activity).getContentView();
+        assertEquals(View.VISIBLE, content.findViewById(R.id.btnNotifPopupMarkAll).getVisibility());
+        content.findViewById(R.id.btnNotifPopupMarkAll).performClick();
+        idle();
+
+        assertEquals(0, repository.getUnreadNotificationCount());
+        assertTrue("still open", popupOf(activity).isShowing());
+        content = popupOf(activity).getContentView();
+        assertEquals(View.GONE, content.findViewById(R.id.btnNotifPopupMarkAll).getVisibility());
+        assertEquals(View.GONE, content.findViewById(R.id.tvNotifPopupUnread).getVisibility());
+    }
+
+    @Test
+    public void theCloseButtonClosesThePopup() throws Exception {
+        UpcomingTransactionsActivity activity = launch().get();
+        activity.findViewById(R.id.headerNotificationContainer).performClick();
+        idle();
+        answerNotifications(3, seven());
+
+        popupOf(activity).getContentView().findViewById(R.id.btnNotifPopupClose).performClick();
+        idle();
+        PopupWindow after = popupOf(activity);
+        assertFalse(after != null && after.isShowing());
+    }
+
+    @Test
     public void theDropdownClosesWhenTheScreenPauses() throws Exception {
         ActivityController<UpcomingTransactionsActivity> controller = launch();
         UpcomingTransactionsActivity activity = controller.get();

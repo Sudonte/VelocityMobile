@@ -582,7 +582,6 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         tvRoomName.setText(b.getRoomName());
         ((TextView) card.findViewById(R.id.tvPaymentBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        card.findViewById(R.id.btnPaymentOpenUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
         // (the room photo is hidden in this light row - see lightenPaymentCard - so it is not downloaded)
         String ref = b.getTransactionRef() != null ? b.getTransactionRef() : b.getDisplayId();
         tvRef.setText(getString(R.string.transaction_ref_format, ref));
@@ -953,7 +952,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         findViewById(R.id.actionHistory).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, TransactionHistoryActivity.class))));
 
         findViewById(R.id.btnViewAllBookings).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryBookings()));
-        findViewById(R.id.btnViewAllUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentAllStatuses(this))));
         findViewById(R.id.btnViewAllNotifications).setOnClickListener(NavUtils.debounce(v -> startActivity(new android.content.Intent(this, NotificationActivity.class))));
         findViewById(R.id.btnViewAllPayments).setOnClickListener(NavUtils.debounce(v -> openTransactionHistoryPayments()));
 
@@ -1161,7 +1159,7 @@ public class DashboardActivity extends BaseNavigationActivity {
      * Next Stay shows every transaction on the nearest day (a guest can hold several, even on the same day), so every
      * other upcoming stay (soonest first) and the latest finished ones are listed under it as compact rows, and the
      * calendar is refreshed from the same bookings. Tapping a row opens that transaction in Upcoming Hotel
-     * Transactions; "View All Upcoming Transactions" opens the whole list.
+     * Transactions.
      */
     private void updateMoreStaysAndCalendar(List<Booking> bookings) {
         if (stayCalendar == null) {
@@ -1447,8 +1445,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         tvRoomName.setText(b.getRoomName());
         // The ID leads each item: "Booking #338" / "Reservation #588" (the format Transaction History uses).
         tvBookingId.setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
-        // A clearly separate action (a pill button) opens this transaction in Upcoming Hotel Transactions; the row keeps its own target.
-        card.findViewById(R.id.btnNextItemOpenUpcoming).setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
 
         String relevantDate = isCheckInEvent ? b.getCheckInDate() : b.getCheckOutDate();
         tvDate.setText(getString(isCheckInEvent ? R.string.upcoming_check_in_format : R.string.upcoming_check_out_format, relevantDate));

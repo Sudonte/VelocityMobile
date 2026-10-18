@@ -177,28 +177,6 @@
                     tools:text="PENDING VERIFICATION" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/btnPaymentOpenUpcoming"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginVertical="-8dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_upcoming_link"
-                android:clickable="true"
-                android:contentDescription="@string/open_in_upcoming"
-                app:drawableEndCompat="@drawable/ic_chevron_right"
-                android:drawablePadding="0dp"
-                app:drawableTint="@color/velocity_red_primary"
-                android:focusable="true"
-                android:fontFamily="sans-serif-bold"
-                android:gravity="center_vertical"
-                android:minHeight="48dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="6dp"
-                android:text="@string/open_in_upcoming_short"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout android:baselineAligned="false"

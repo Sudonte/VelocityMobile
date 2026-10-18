@@ -587,7 +587,6 @@
     <string name="br_summary_cancel_bookings">Cancelled Bookings</string>
     <string name="br_summary_cancel_reservations">Cancelled Reservations</string>
     <string name="recent_bookings_title">Recent Bookings</string>
-    <string name="filter_all_upcoming">All Upcoming</string>
     <string name="recent_bookings_desc">Your latest bookings and how much you have paid. Tap one for details.</string>
     <string name="account_status_active">Account Active</string>
     <string name="account_status_signed_out">Session Expired</string>
@@ -595,8 +594,6 @@
     <string name="title_payment_breakdown">Payment Breakdown</string>
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
     <string name="upcoming_transactions_screen_desc">All your bookings and reservations in one place, whatever their status. Tap one to see its full record in Transaction History.</string>
-    <string name="filter_upcoming_bookings">Upcoming Bookings</string>
-    <string name="filter_upcoming_reservations">Upcoming Reservations</string>
 
     <!-- Calendar screen -->
     <string name="title_calendar">Calendar</string>
@@ -801,7 +798,6 @@
     <string name="details_expected_time_format">Expected %1$s</string>
     <string name="stay_calendar_kind_checked_in">Checked in</string>
     <string name="stay_calendar_kind_checked_out">Checked out</string>
-    <string name="upcoming_period_any">Any date</string>
     <string name="upcoming_balance_label">Balance</string>
     <string name="upcoming_stay_format">Stay: %1$s to %2$s - %3$s</string>
     <string name="stay_calendar_title">Stay Calendar</string>
@@ -812,7 +808,6 @@
     <string name="stay_calendar_prev_month">Previous month</string>
     <string name="stay_calendar_next_month">Next month</string>
     <string name="stay_calendar_empty">Nothing scheduled in this period.</string>
-    <string name="stay_calendar_open_all">Open Upcoming Transactions</string>
     <string name="stay_calendar_view_full">View Full Details</string>
     <string name="stay_calendar_kind_checkin">Check-in</string>
     <string name="stay_calendar_kind_checkout">Check-out</string>
@@ -1983,6 +1978,7 @@
     <string name="receipt_image_load_failed">The receipt image could not be loaded. Check your connection and try again.</string>
     <string name="receipt_image_content_description">GCash payment receipt</string>
     <string name="notif_popup_empty">No new notifications</string>
+    <string name="notif_popup_close">Close notifications</string>
     <string name="notif_popup_view_all">View all notifications</string>
     <string name="notif_popup_unread_format">%1$d unread</string>
     <string name="login_account_not_found">Account does not exist.</string>
@@ -2058,7 +2054,6 @@
     <!-- ============ Dashboard sections: collapse / expand, summaries, Upcoming Hotel Transactions ============ -->
     <string name="section_collapse">Collapse section</string>
     <string name="section_expand">Expand section</string>
-    <string name="view_all_upcoming_transactions">View All Upcoming Transactions</string>
     <plurals name="summary_stays_count">
         <item quantity="one">%d stay</item>
         <item quantity="other">%d stays</item>
@@ -2092,13 +2087,15 @@
     <string name="stay_calendar_pick_date_title">Choose a date</string>
     <string name="next_stay_same_day_note">%d stays on this day</string>
 
-    <string name="upcoming_status_all">All Statuses</string>
     <string name="upcoming_status_pending">Pending</string>
     <string name="upcoming_status_confirmed">Confirmed</string>
     <string name="upcoming_status_checked_in">Checked In</string>
     <string name="upcoming_status_checked_out">Checked Out</string>
     <string name="upcoming_status_cancelled">Cancelled</string>
     <string name="upcoming_status_rejected">Rejected</string>
+    <string name="upcoming_filter_all">All</string>
+    <string name="upcoming_type_bookings">Bookings</string>
+    <string name="upcoming_type_reservations">Reservations</string>
     <string name="upcoming_filter_type_label">Type</string>
     <string name="upcoming_filter_status_label">Status</string>
     <string name="upcoming_filter_date_label">Date</string>
@@ -2110,8 +2107,6 @@
     <string name="upcoming_stay_short_format">%1$s to %2$s · %3$s</string>
     <string name="upcoming_clear_filters">Clear filters</string>
     <string name="upcoming_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
-    <string name="open_in_upcoming">Open in Upcoming Hotel Transactions</string>
-    <string name="open_in_upcoming_short">Upcoming</string>
     <string name="quick_actions_summary">Browse rooms · Booking · Reservation · History</string>
     <string name="support_collapsed_summary">Contact the front desk anytime</string>
     <string name="summary_overview_format">Active %1$d · Past %2$d · Cancelled %3$d</string>

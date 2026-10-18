@@ -61,189 +61,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="22dp"
                         android:layout_marginTop="11dp"
-                        android:layout_marginBottom="14dp"
                         android:lineSpacingExtra="4dp"
                         android:text="@string/upcoming_transactions_screen_desc"
                         android:textColor="@color/velocity_text_secondary" />
-
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:text="@string/upcoming_filter_type_label"
-                        android:textAllCaps="true"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp" />
-
-                    <HorizontalScrollView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:scrollbars="none">
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupUpcomingFilters"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="22dp"
-                            app:singleSelection="true"
-                            app:selectionRequired="true"
-                            app:chipSpacingHorizontal="8dp">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFilterAll"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checked="true"
-                                android:text="@string/filter_all_upcoming" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFilterBookings"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/filter_upcoming_bookings" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipFilterReservations"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/filter_upcoming_reservations" />
-                        </com.google.android.material.chip.ChipGroup>
-                    </HorizontalScrollView>
-
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:text="@string/upcoming_filter_status_label"
-                        android:textAllCaps="true"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp" />
-
-                    <HorizontalScrollView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:scrollbars="none">
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupUpcomingStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="22dp"
-                            app:chipSpacingHorizontal="8dp"
-                            app:selectionRequired="true"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusAll"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checked="true"
-                                android:text="@string/upcoming_status_all" />
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusPending"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/upcoming_status_pending" />
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusConfirmed"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/upcoming_status_confirmed" />
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusCheckedIn"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/upcoming_status_checked_in" />
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusCheckedOut"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/upcoming_status_checked_out" />
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusCancelled"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/upcoming_status_cancelled" />
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipStatusRejected"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/upcoming_status_rejected" />
-                        </com.google.android.material.chip.ChipGroup>
-                    </HorizontalScrollView>
-
-                    <!-- Period, same as the dashboard calendar: today, this week, this month. -->
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:text="@string/upcoming_filter_date_label"
-                        android:textAllCaps="true"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp" />
-                    <HorizontalScrollView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:scrollbars="none">
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupUpcomingPeriod"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="22dp"
-                            app:chipSpacingHorizontal="8dp"
-                            app:selectionRequired="true"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPeriodAny"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:checked="true"
-                                android:text="@string/upcoming_period_any" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPeriodDaily"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/stay_calendar_daily" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPeriodWeekly"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/stay_calendar_weekly" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPeriodMonthly"
-                                style="@style/Widget.MaterialComponents.Chip.Choice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/stay_calendar_monthly" />
-                        </com.google.android.material.chip.ChipGroup>
-                    </HorizontalScrollView>
-
                 </LinearLayout>
 
                 <androidx.appcompat.widget.Toolbar
@@ -261,6 +81,7 @@
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
+        <!-- One page: filters, live clock, stay calendar, then the transactions. -->
         <androidx.core.widget.NestedScrollView
             android:id="@+id/screenContent"
             android:layout_width="match_parent"
@@ -277,11 +98,136 @@
                 android:paddingTop="14dp"
                 android:paddingBottom="36dp">
 
+                <!-- a) Filters: three combo boxes side by side. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:hint="@string/upcoming_filter_type_label"
+                        app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/dropdownUpcomingType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:includeFontPadding="false"
+                            android:inputType="none"
+                            android:maxLines="1"
+                            android:paddingVertical="10dp"
+                            android:text="@string/upcoming_filter_all"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="4dp"
+                        android:layout_weight="1"
+                        android:hint="@string/upcoming_filter_status_label"
+                        app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/dropdownUpcomingStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:includeFontPadding="false"
+                            android:inputType="none"
+                            android:maxLines="1"
+                            android:paddingVertical="10dp"
+                            android:text="@string/upcoming_filter_all"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:hint="@string/upcoming_filter_date_label"
+                        app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/dropdownUpcomingDate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:includeFontPadding="false"
+                            android:inputType="none"
+                            android:maxLines="1"
+                            android:paddingVertical="10dp"
+                            android:text="@string/upcoming_filter_all"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- b) Live date and time, in the device time zone. -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Velocity.Card.Flat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:orientation="horizontal"
+                        android:padding="10dp">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:background="@drawable/shape_intro_pill"
+                            android:backgroundTint="@color/velocity_red_soft"
+                            android:importantForAccessibility="no"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_clock"
+                            app:tint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:id="@+id/tvUpcomingClock"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-black"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="14sp"
+                            tools:text="Sunday, October 18, 2026 • 2:05:43 PM" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- c) The same Stay Calendar the Dashboard shows. -->
+                <include
+                    android:id="@+id/stayCalendar"
+                    layout="@layout/view_stay_calendar" />
+
+                <!-- d) The filtered transactions. -->
                 <TextView
                     android:id="@+id/tvUpcomingResultCount"
                     style="@style/TextAppearance.Velocity.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:layout_marginBottom="10dp"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/velocity_text_secondary"

@@ -3,8 +3,12 @@ package com.example.velocitysuites;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,18 +17,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.chip.ChipGroup;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * "Upcoming Hotel Transactions": EVERY booking and reservation the guest has, whatever its status (pending, confirmed,
  * checked in, checked out, cancelled, rejected), one card per transaction. Nothing is dropped by the client - the only
- * things that narrow the list are the filters the guest picks (type, status, date), and a transaction that was checked
+ * things that narrow the list are the filters the guest picks (type, status, date - three combo boxes, or a day on the
+ * Stay Calendar), and a transaction that was checked
  * out or cancelled stays here for tracking.
  * <p>
  * Deep link: {@link #EXTRA_SELECTED_BOOKING_ID} (+ {@link #EXTRA_SELECTED_DIRECT} to tell a direct booking from a
@@ -43,19 +52,19 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
 
     /** The Status filter - All Statuses plus each individual status. */
     enum StatusFilter {
-        ALL(R.id.chipStatusAll, null),
-        PENDING(R.id.chipStatusPending, "Pending"),
-        CONFIRMED(R.id.chipStatusConfirmed, "Confirmed"),
-        CHECKED_IN(R.id.chipStatusCheckedIn, "Checked-In"),
-        CHECKED_OUT(R.id.chipStatusCheckedOut, "Checked-Out"),
-        CANCELLED(R.id.chipStatusCancelled, "Cancelled"),
-        REJECTED(R.id.chipStatusRejected, "Rejected");
+        ALL(R.string.upcoming_filter_all, null),
+        PENDING(R.string.upcoming_status_pending, "Pending"),
+        CONFIRMED(R.string.upcoming_status_confirmed, "Confirmed"),
+        CHECKED_IN(R.string.upcoming_status_checked_in, "Checked-In"),
+        CHECKED_OUT(R.string.upcoming_status_checked_out, "Checked-Out"),
+        CANCELLED(R.string.upcoming_status_cancelled, "Cancelled"),
+        REJECTED(R.string.upcoming_status_rejected, "Rejected");
 
-        final int chipId;
+        final int labelRes;
         @Nullable final String status;
 
-        StatusFilter(int chipId, @Nullable String status) {
-            this.chipId = chipId;
+        StatusFilter(int labelRes, @Nullable String status) {
+            this.labelRes = labelRes;
             this.status = status;
         }
 
@@ -77,7 +86,31 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         }
     }
 
-    private enum TypeFilter { ALL, BOOKINGS, RESERVATIONS }
+    private enum TypeFilter {
+        ALL(R.string.upcoming_filter_all),
+        BOOKINGS(R.string.upcoming_type_bookings),
+        RESERVATIONS(R.string.upcoming_type_reservations);
+
+        final int labelRes;
+
+        TypeFilter(int labelRes) {
+            this.labelRes = labelRes;
+        }
+    }
+
+    /** The Date filter's choices: no date filter, or the calendar's Daily / Weekly / Monthly window around the chosen day. */
+    private static final StayCalendarModel.Mode[] PERIOD_CHOICES = {
+            null, StayCalendarModel.Mode.DAILY, StayCalendarModel.Mode.WEEKLY, StayCalendarModel.Mode.MONTHLY};
+
+    private static int periodLabel(@Nullable StayCalendarModel.Mode mode) {
+        if (mode == StayCalendarModel.Mode.DAILY) return R.string.stay_calendar_daily;
+        if (mode == StayCalendarModel.Mode.WEEKLY) return R.string.stay_calendar_weekly;
+        if (mode == StayCalendarModel.Mode.MONTHLY) return R.string.stay_calendar_monthly;
+        return R.string.upcoming_filter_all;
+    }
+
+    private static final DateTimeFormatter CLOCK_FORMAT =
+            DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy • h:mm:ss a", Locale.ENGLISH);
 
     /** Opens Upcoming Hotel Transactions on All Statuses (and All Upcoming), with nothing focused. */
     public static Intent intentAllStatuses(@NonNull Context context) {
@@ -96,9 +129,22 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     private View emptyState, loadingOverlay;
     private TextView resultCount;
     private androidx.core.widget.NestedScrollView screenContent;
-    private ChipGroup chipGroupType, chipGroupStatus, chipGroupPeriod;
+    private AutoCompleteTextView dropdownType, dropdownStatus, dropdownDate;
+    private TextView clock;
+    private DashboardStayCalendar calendar;
     private StayCalendarModel.Mode periodMode = null; // null = any date
+    /** The day the Daily / Weekly / Monthly window is cut around - the calendar's selected day. */
+    private LocalDate periodDate = LocalDate.now(TimeUtils.ZONE_MANILA);
     private RoomRepository repository;
+    private final Handler clockHandler = new Handler(Looper.getMainLooper());
+    private final Runnable clockTick = new Runnable() {
+        @Override
+        public void run() {
+            long now = System.currentTimeMillis();
+            clock.setText(CLOCK_FORMAT.format(ZonedDateTime.ofInstant(java.time.Instant.ofEpochMilli(now), ZoneId.systemDefault())));
+            clockHandler.postDelayed(this, 1000 - now % 1000); // land on the next whole second
+        }
+    };
 
     /** Every transaction the app holds for the guest - the full set, never trimmed by the client. */
     private final List<Booking> allTransactions = new ArrayList<>();
@@ -111,14 +157,12 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     private boolean attemptedLookup;
     /** The first answer (or cached list) has been drawn - before that an unknown id may just not have loaded yet. */
     private boolean loadedOnce;
-    /** True while chips are being set by code (a deep link resetting the filters), so that does not re-render per chip. */
-    private boolean settingChips;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.upcomingtransactions);
-        setupGuestNavigation(View.NO_ID);
+        setupGuestNavigation(R.id.nav_upcoming_transactions);
         animateScreenContent();
 
         repository = RoomRepository.getInstance(this);
@@ -128,11 +172,13 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         loadingOverlay = findViewById(R.id.loadingOverlay);
         resultCount = findViewById(R.id.tvUpcomingResultCount);
         screenContent = findViewById(R.id.screenContent);
-        chipGroupType = findViewById(R.id.chipGroupUpcomingFilters);
-        chipGroupStatus = findViewById(R.id.chipGroupUpcomingStatus);
-        chipGroupPeriod = findViewById(R.id.chipGroupUpcomingPeriod);
+        dropdownType = findViewById(R.id.dropdownUpcomingType);
+        dropdownStatus = findViewById(R.id.dropdownUpcomingStatus);
+        dropdownDate = findViewById(R.id.dropdownUpcomingDate);
+        clock = findViewById(R.id.tvUpcomingClock);
 
         setupFilters();
+        setupCalendar();
         findViewById(R.id.btnUpcomingClearFilters).setOnClickListener(v -> resetFilters());
 
         readIntent(getIntent());
@@ -150,7 +196,14 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        clockHandler.post(clockTick); // runs only while the screen is visible
         loadEvents();
+    }
+
+    @Override
+    protected void onPause() {
+        clockHandler.removeCallbacks(clockTick);
+        super.onPause();
     }
 
     /** Reads the deep link (a focused transaction) and the opening status filter. */
@@ -162,48 +215,56 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         attemptedLookup = false;
         if (intent.hasExtra(EXTRA_STATUS_FILTER)) {
             statusFilter = StatusFilter.fromName(intent.getStringExtra(EXTRA_STATUS_FILTER));
-            checkChips();
+            syncDropdowns();
         }
     }
 
+    /** The three combo boxes: picking a value re-filters the list at once. */
     private void setupFilters() {
-        chipGroupType.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (settingChips) return;
-            if (checkedIds.contains(R.id.chipFilterBookings)) typeFilter = TypeFilter.BOOKINGS;
-            else if (checkedIds.contains(R.id.chipFilterReservations)) typeFilter = TypeFilter.RESERVATIONS;
-            else typeFilter = TypeFilter.ALL;
+        bindDropdown(dropdownType, TypeFilter.values(), f -> f.labelRes, f -> {
+            typeFilter = f;
             renderEvents();
         });
-        chipGroupStatus.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (settingChips) return;
-            statusFilter = StatusFilter.ALL;
-            for (StatusFilter f : StatusFilter.values()) {
-                if (checkedIds.contains(f.chipId)) statusFilter = f;
-            }
+        bindDropdown(dropdownStatus, StatusFilter.values(), f -> f.labelRes, f -> {
+            statusFilter = f;
             renderEvents();
         });
-        chipGroupPeriod.setOnCheckedStateChangeListener((group, ids) -> {
-            if (settingChips) return;
-            if (ids.contains(R.id.chipPeriodDaily)) periodMode = StayCalendarModel.Mode.DAILY;
-            else if (ids.contains(R.id.chipPeriodWeekly)) periodMode = StayCalendarModel.Mode.WEEKLY;
-            else if (ids.contains(R.id.chipPeriodMonthly)) periodMode = StayCalendarModel.Mode.MONTHLY;
-            else periodMode = null;
+        bindDropdown(dropdownDate, PERIOD_CHOICES, UpcomingTransactionsActivity::periodLabel, mode -> {
+            periodMode = mode;
+            if (mode != null) calendar.setWindow(mode, periodDate); // the calendar shows the window the list is cut to
             renderEvents();
         });
-        checkChips();
+        syncDropdowns();
     }
 
-    /** Makes the chips show the current filter values. */
-    private void checkChips() {
-        if (chipGroupType == null) return;
-        settingChips = true;
-        chipGroupType.check(typeFilter == TypeFilter.BOOKINGS ? R.id.chipFilterBookings
-                : typeFilter == TypeFilter.RESERVATIONS ? R.id.chipFilterReservations : R.id.chipFilterAll);
-        chipGroupStatus.check(statusFilter.chipId);
-        chipGroupPeriod.check(periodMode == StayCalendarModel.Mode.DAILY ? R.id.chipPeriodDaily
-                : periodMode == StayCalendarModel.Mode.WEEKLY ? R.id.chipPeriodWeekly
-                : periodMode == StayCalendarModel.Mode.MONTHLY ? R.id.chipPeriodMonthly : R.id.chipPeriodAny);
-        settingChips = false;
+    private <T> void bindDropdown(AutoCompleteTextView view, T[] values, java.util.function.ToIntFunction<T> label, Consumer<T> onPicked) {
+        String[] labels = new String[values.length];
+        for (int i = 0; i < values.length; i++) labels[i] = getString(label.applyAsInt(values[i]));
+        view.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, labels));
+        view.setOnItemClickListener((parent, v, position, id) -> onPicked.accept(values[position]));
+    }
+
+    /** Makes the combo boxes show the current filter values (set without filtering the dropdown's own list). */
+    private void syncDropdowns() {
+        if (dropdownType == null) return;
+        dropdownType.setText(getString(typeFilter.labelRes), false);
+        dropdownStatus.setText(getString(statusFilter.labelRes), false);
+        dropdownDate.setText(getString(periodLabel(periodMode)), false);
+    }
+
+    /**
+     * The same Stay Calendar the Dashboard shows. Picking a day (or Daily / Weekly / Monthly / a specific date) on it
+     * becomes the Date filter, so the list below shows that window; its own list is hidden because the cards below are it.
+     */
+    private void setupCalendar() {
+        calendar = new DashboardStayCalendar(findViewById(R.id.stayCalendar), periodDate);
+        calendar.setSummaryVisible(false);
+        calendar.setListener((mode, date) -> {
+            periodMode = mode;
+            periodDate = date;
+            syncDropdowns();
+            renderEvents();
+        });
     }
 
     /** All Upcoming + All Statuses + Any date: the way out of an over-filtered list, and what a deep link needs to be visible. */
@@ -211,7 +272,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         typeFilter = TypeFilter.ALL;
         statusFilter = StatusFilter.ALL;
         periodMode = null;
-        checkChips();
+        syncDropdowns();
         renderEvents();
     }
 
@@ -226,16 +287,15 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         return inPeriod(b);
     }
 
-    /** True when the stay overlaps the chosen Daily / Weekly / Monthly window around today (hotel time); always true for "Any date". */
+    /** True when the stay overlaps the chosen Daily / Weekly / Monthly window around the calendar's selected day; always true for "All". */
     private boolean inPeriod(@NonNull Booking b) {
         if (periodMode == null) return true;
         LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
         LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
         if (in == null) return false;
         if (out == null || out.isBefore(in)) out = in;
-        LocalDate today = LocalDate.now(TimeUtils.ZONE_MANILA);
-        return !in.isAfter(StayCalendarModel.windowEnd(periodMode, today))
-                && !out.isBefore(StayCalendarModel.windowStart(periodMode, today));
+        return !in.isAfter(StayCalendarModel.windowEnd(periodMode, periodDate))
+                && !out.isBefore(StayCalendarModel.windowStart(periodMode, periodDate));
     }
 
     private void loadEvents() {
@@ -286,6 +346,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         for (Booking b : bookings) {
             if (b != null) allTransactions.add(b);
         }
+        calendar.setBookings(allTransactions);
         renderEvents();
     }
 

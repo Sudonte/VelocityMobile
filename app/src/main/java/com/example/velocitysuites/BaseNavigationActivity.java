@@ -363,6 +363,7 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         if (itemId == R.id.nav_dashboard) destination = DashboardActivity.class;
         else if (itemId == R.id.nav_room_browsing) destination = RoomBrowsingActivity.class;
         else if (itemId == R.id.nav_booking_reservation) destination = BookingAndReservationActivity.class;
+        else if (itemId == R.id.nav_upcoming_transactions) destination = UpcomingTransactionsActivity.class;
         else if (itemId == R.id.nav_transaction_history) destination = TransactionHistoryActivity.class;
         else if (itemId == R.id.nav_profile_management) destination = ProfileManagementActivity.class;
 

@@ -155,6 +155,13 @@
             android:layout_height="wrap_content"
             android:columnCount="7" />
 
+        <!-- The chosen window and its transactions; a host screen that lists them itself hides this group. -->
+        <LinearLayout
+            android:id="@+id/stayCalSummaryGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -184,15 +191,7 @@
             android:layout_marginTop="6dp"
             android:text="@string/stay_calendar_empty"
             android:visibility="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/stayCalOpenAll"
-            style="@style/Widget.Velocity.Flat.Button.Outlined"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:minHeight="48dp"
-            android:text="@string/stay_calendar_open_all" />
+        </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

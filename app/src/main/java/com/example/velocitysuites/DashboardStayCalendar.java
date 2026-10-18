@@ -26,11 +26,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Drives the Dashboard's Stay Calendar card (view_stay_calendar.xml): a month grid with a dot on every day that
- * has a check-in or check-out, a date filter (a specific date, Daily, Weekly, Monthly), and a short list of the
- * transactions in the chosen window - date, reference, type and status only. Tapping one opens it in Upcoming
- * Hotel Transactions; "Open Upcoming Transactions" opens that screen on All Statuses. What is listed and how the
- * window is cut lives in {@link StayCalendarModel}; this class only draws it.
+ * Drives the Stay Calendar card (view_stay_calendar.xml), shared by the Dashboard and Upcoming Hotel Transactions: a
+ * month grid with a dot on every day that has a check-in or check-out, a date filter (a specific date, Daily, Weekly,
+ * Monthly), and a short list of the transactions in the chosen window - date, reference, type and status only.
+ * Tapping one opens it in Upcoming Hotel Transactions. A host screen can follow the guest's choices through
+ * {@link Listener}, move the calendar with {@link #setWindow}, and hide the list with {@link #setSummaryVisible} when
+ * it shows the transactions itself. What is listed and how the window is cut lives in {@link StayCalendarModel};
+ * this class only draws it.
  */
 final class DashboardStayCalendar {
 
@@ -48,10 +50,18 @@ final class DashboardStayCalendar {
     private final Chip dateChip;
     private final CollapsibleSection section;
 
+    /** Told when the guest picks a different day or window (not when code sets it through {@link #setWindow}). */
+    interface Listener {
+        void onWindowChanged(@NonNull StayCalendarModel.Mode mode, @NonNull LocalDate selected);
+    }
+
     private StayCalendarModel model = new StayCalendarModel(Collections.emptyList());
     private StayCalendarModel.Mode mode = StayCalendarModel.Mode.DAILY;
     private LocalDate selected;
     private YearMonth shown;
+    @Nullable private Listener listener;
+    /** True while {@link #setWindow} drives the mode chips, so that is not reported back as a guest choice. */
+    private boolean settingWindow;
 
     DashboardStayCalendar(@NonNull View root, @NonNull LocalDate today) {
         this.context = root.getContext();
@@ -70,7 +80,6 @@ final class DashboardStayCalendar {
 
         root.findViewById(R.id.stayCalPrev).setOnClickListener(v -> shiftMonth(-1));
         root.findViewById(R.id.stayCalNext).setOnClickListener(v -> shiftMonth(1));
-        root.findViewById(R.id.stayCalOpenAll).setOnClickListener(v -> openAllUpcoming());
         modeGroup.setOnCheckedStateChangeListener((group, ids) -> {
             if (ids.contains(R.id.stayCalModeWeekly)) mode = StayCalendarModel.Mode.WEEKLY;
             else if (ids.contains(R.id.stayCalModeMonthly)) mode = StayCalendarModel.Mode.MONTHLY;
@@ -78,6 +87,7 @@ final class DashboardStayCalendar {
             // Leaving the specific-date chip puts its label back.
             if (!ids.contains(R.id.stayCalModeDate)) dateChip.setText(R.string.stay_calendar_pick_date);
             render();
+            notifyListener();
         });
         // A tap on the chip (even when it is already selected) opens the date picker.
         dateChip.setOnClickListener(v -> showDatePicker());
@@ -99,6 +109,7 @@ final class DashboardStayCalendar {
             mode = StayCalendarModel.Mode.DAILY;
             dateChip.setText(SHORT_DAY.format(selected));
             render();
+            notifyListener();
         });
         picker.addOnCancelListener(d -> restoreModeChip());
         picker.addOnNegativeButtonClickListener(v -> restoreModeChip());
@@ -123,6 +134,7 @@ final class DashboardStayCalendar {
         // Keep the selection inside the month being looked at, so the summary never describes an invisible day.
         selected = shown.atDay(Math.min(selected.getDayOfMonth(), shown.lengthOfMonth()));
         render();
+        notifyListener();
     }
 
     private void render() {
@@ -215,6 +227,7 @@ final class DashboardStayCalendar {
         cell.setOnClickListener(v -> {
             selected = date;
             render();
+            notifyListener();
         });
         return cell;
     }
@@ -274,9 +287,32 @@ final class DashboardStayCalendar {
         context.startActivity(UpcomingTransactionsActivity.intentFor(context, booking));
     }
 
-    /** "Open Upcoming Transactions": the whole list, on All Statuses. */
-    private void openAllUpcoming() {
-        context.startActivity(UpcomingTransactionsActivity.intentAllStatuses(context));
+    void setListener(@Nullable Listener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * Shows or hides the card's own list of the chosen window's transactions. A screen that already lists them below the
+     * calendar hides it so nothing is shown twice.
+     */
+    void setSummaryVisible(boolean visible) {
+        root.findViewById(R.id.stayCalSummaryGroup).setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    /** Moves the calendar to this mode and day (a screen's own filter changed). Does not call the listener. */
+    void setWindow(@NonNull StayCalendarModel.Mode newMode, @NonNull LocalDate newSelected) {
+        settingWindow = true;
+        mode = newMode;
+        selected = newSelected;
+        shown = YearMonth.from(newSelected);
+        modeGroup.check(newMode == StayCalendarModel.Mode.WEEKLY ? R.id.stayCalModeWeekly
+                : newMode == StayCalendarModel.Mode.MONTHLY ? R.id.stayCalModeMonthly : R.id.stayCalModeDaily);
+        settingWindow = false;
+        render();
+    }
+
+    private void notifyListener() {
+        if (listener != null && !settingWindow) listener.onWindowChanged(mode, selected);
     }
 
     View root() {

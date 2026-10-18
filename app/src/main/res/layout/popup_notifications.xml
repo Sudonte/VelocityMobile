@@ -21,29 +21,64 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="13dp"
-            android:paddingVertical="10dp">
+            android:paddingStart="14dp"
+            android:paddingEnd="2dp">
 
-            <TextView
-                android:id="@+id/tvNotifPopupTitle"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="sans-serif-black"
-                android:text="@string/title_notifications"
-                android:textColor="@color/black"
-                android:textSize="14sp" />
+                android:orientation="vertical"
+                android:paddingVertical="8dp">
 
+                <TextView
+                    android:id="@+id/tvNotifPopupTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:accessibilityHeading="true"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/title_notifications"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvNotifPopupUnread"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="3 unread"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!-- Hidden when nothing is unread. -->
             <TextView
-                android:id="@+id/tvNotifPopupUnread"
+                android:id="@+id/btnNotifPopupMarkAll"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans-serif-bold"
+                android:gravity="center"
+                android:minWidth="48dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/mark_all_read_label"
                 android:textColor="@color/velocity_red_primary"
                 android:textSize="12sp"
                 android:visibility="gone"
-                tools:text="3 unread"
                 tools:visibility="visible" />
+
+            <ImageButton
+                android:id="@+id/btnNotifPopupClose"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/notif_popup_close"
+                android:src="@drawable/ic_close"
+                app:tint="@color/velocity_text_secondary" />
         </LinearLayout>
 
         <View
@@ -61,13 +96,16 @@
             android:id="@+id/tvNotifPopupEmpty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:drawablePadding="8dp"
             android:gravity="center"
-            android:paddingHorizontal="13dp"
-            android:paddingVertical="22dp"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="24dp"
             android:text="@string/notif_popup_empty"
             android:textColor="@color/velocity_text_secondary"
-            android:textSize="12sp"
-            android:visibility="gone" />
+            android:textSize="13sp"
+            android:visibility="gone"
+            app:drawableTint="@color/velocity_inactive_gray"
+            app:drawableTopCompat="@drawable/ic_notifications" />
 
         <ProgressBar
             android:id="@+id/progressNotifPopup"

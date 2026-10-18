@@ -502,15 +502,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnViewAllUpcoming"
-                            style="@style/Widget.Velocity.Flat.Button.Outlined"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:minHeight="48dp"
-                            android:text="@string/view_all_upcoming_transactions" />
                     </LinearLayout>
                 </LinearLayout>
 
