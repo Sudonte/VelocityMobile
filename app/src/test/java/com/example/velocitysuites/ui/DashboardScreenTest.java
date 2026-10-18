@@ -3,6 +3,7 @@ package com.example.velocitysuites.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -144,17 +145,17 @@ public class DashboardScreenTest {
         answer(seven);
 
         LinearLayout list = activity.findViewById(R.id.recentUpcomingList);
-        assertEquals(5, list.getChildCount());
+        assertEquals("collapsed: the first three cards and the Show all button", 4, list.getChildCount());
         assertEquals("7", text(activity, R.id.recentUpcomingCount));
-        TextView toggle = activity.findViewById(R.id.btnRecentUpcomingToggle);
-        assertEquals(View.VISIBLE, toggle.getVisibility());
-        assertEquals("View all", toggle.getText().toString());
+        TextView toggle = list.findViewById(R.id.btnPreviewToggle);
+        assertEquals("Show all (7)", toggle.getText().toString());
 
         tap(toggle);
-        assertEquals(7, list.getChildCount());
+        assertEquals("expanded: all seven and Show less", 8, list.getChildCount());
+        toggle = list.findViewById(R.id.btnPreviewToggle);
         assertEquals("Show less", toggle.getText().toString());
-        tap(toggle);
-        assertEquals(5, list.getChildCount());
+        tap(activity.findViewById(R.id.recentUpcomingToggle)); // the header chevron collapses it again
+        assertEquals(4, list.getChildCount());
 
         tap(list.getChildAt(0));
         Intent next = nextScreen(activity);
@@ -175,7 +176,55 @@ public class DashboardScreenTest {
 
         assertEquals(0, ((LinearLayout) activity.findViewById(R.id.recentUpcomingList)).getChildCount());
         assertEquals(View.VISIBLE, activity.findViewById(R.id.recentUpcomingEmpty).getVisibility());
-        assertEquals(View.GONE, activity.findViewById(R.id.btnRecentUpcomingToggle).getVisibility());
+        assertNull("no Show all button for an empty list", activity.findViewById(R.id.btnPreviewToggle));
+    }
+
+    @Test
+    public void listSections_withThreeOrFewerItems_showThemAll_andNoShowAllButton() {
+        DashboardActivity activity = launch();
+        ReservationDto[] three = new ReservationDto[3];
+        for (int i = 0; i < three.length; i++) {
+            three[i] = stay(300 + i, 3 + i, 1);
+            three[i].status = "AWAITING_GCASH_PAYMENT";
+        }
+        answer(three);
+        LinearLayout list = activity.findViewById(R.id.recentUpcomingList);
+        assertEquals(3, list.getChildCount());
+        assertNull(list.findViewById(R.id.btnPreviewToggle));
+    }
+
+    @Test
+    public void otherStays_showThreeCollapsed_allExpanded_withACount() {
+        DashboardActivity activity = launch();
+        ReservationDto[] six = new ReservationDto[6];
+        for (int i = 0; i < six.length; i++) six[i] = stay(400 + i, 2 + i, 1);
+        answer(six);
+        LinearLayout list = activity.findViewById(R.id.moreStaysList);
+        // 6 stays: the selected day shows one, the other five are in Other Stays - three of them while collapsed
+        assertEquals(3 + 1, list.getChildCount());
+        assertEquals("Show all (5)", ((TextView) list.findViewById(R.id.btnPreviewToggle)).getText().toString());
+        assertEquals("5", text(activity, R.id.moreStaysCount));
+
+        tap(activity.findViewById(R.id.moreStaysToggle));
+        assertEquals(5 + 1, list.getChildCount());
+        assertEquals("Show less", ((TextView) list.findViewById(R.id.btnPreviewToggle)).getText().toString());
+    }
+
+    @Test
+    public void summaryAndQuickActions_collapsedShowACompactRow_expandedShowEverything() {
+        DashboardActivity activity = launch();
+        answer(stay(500, 2, 1));
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.tileActiveBooking).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.tileActiveReservation).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.tilePastBooking).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.tileCancelReservation).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.actionBrowseRooms).getVisibility());
+        assertEquals("Quick Actions collapsed: only the first row", View.GONE,
+                ((View) activity.findViewById(R.id.actionReservation).getParent()).getVisibility());
+
+        tap(activity.findViewById(R.id.summaryToggle));
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.tilePastBooking).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.tileCancelReservation).getVisibility());
     }
 
     // ---- structure
@@ -234,6 +283,8 @@ public class DashboardScreenTest {
     @Test
     public void quickActionsEachHaveAnIconAndAWordLabel_andAreAtLeast48dpTall() {
         DashboardActivity activity = launch();
+        activity.findViewById(R.id.quickActionsToggle).performClick(); // collapsed shows one row; expanded shows all four
+        idle();
         View decor = activity.getWindow().getDecorView();
         int w = app.getResources().getDisplayMetrics().widthPixels;
         decor.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(app.getResources().getDisplayMetrics().heightPixels, View.MeasureSpec.EXACTLY));
@@ -242,7 +293,7 @@ public class DashboardScreenTest {
         float min = 48 * app.getResources().getDisplayMetrics().density;
         for (int id : new int[]{R.id.actionBrowseRooms, R.id.actionBooking, R.id.actionReservation, R.id.actionHistory}) {
             View action = activity.findViewById(id);
-            assertTrue(action.getHeight() >= min);
+            assertTrue(app.getResources().getResourceEntryName(id) + " height " + action.getHeight() + " vis " + action.getVisibility(), action.getHeight() >= min);
             assertNotNull("icon", firstOf(action, ImageView.class));
             TextView label = firstOf(action, TextView.class);
             assertNotNull("label", label);
@@ -295,7 +346,7 @@ public class DashboardScreenTest {
         selectDay(activity, 1);
         assertEquals("Check-in day", text(activity, R.id.tvNextStayHint));
         assertEquals("Deluxe", text(activity, R.id.tvNextStayRooms));
-        assertEquals("2 nights", text(activity, R.id.tvNextStayNights));
+        assertEquals("2 nights · 2 Guests", text(activity, R.id.tvNextStayNights));
         assertTrue(text(activity, R.id.tvNextStayDates).contains(" → "));
         assertEquals("Waiting for payment", text(activity, R.id.tvNextStayStatus));
         assertEquals(app.getString(R.string.next_stay_payment_label), text(activity, R.id.tvNextStayBalanceLabel));
@@ -650,33 +701,45 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void everySectionCollapsesToAOneLineSummary_andExpandsAgain() {
+    public void everySection_startsCollapsed_hasAChevronThatTurns_andTheHeaderRowTogglesIt() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
 
-        int[][] sections = {
-                {R.id.nextStayToggle, R.id.nextStaySummary, R.id.nextStayCard},
-                {R.id.moreStaysToggle, R.id.moreStaysSummary, R.id.moreStaysBody},
-                {R.id.stayCalToggle, R.id.stayCalCollapsedSummary, R.id.stayCalBody},
-                {R.id.bookingsToggle, R.id.bookingsSummary, R.id.bookingsBody},
-                {R.id.notificationsToggle, R.id.notificationsSummary, R.id.notificationsBody},
-                {R.id.paymentsToggle, R.id.paymentsSummary, R.id.paymentsBody},
-                {R.id.quickActionsToggle, R.id.quickActionsSummary, R.id.quickActionsBody},
-                {R.id.summaryToggle, R.id.summarySummary, R.id.summaryBody},
-                {R.id.supportToggle, R.id.supportSummary, R.id.supportDesc}};
-        for (int[] s : sections) {
-            String name = activity.getResources().getResourceEntryName(s[0]);
-            assertEquals(name + " starts expanded", View.VISIBLE, activity.findViewById(s[2]).getVisibility());
-            assertEquals(name + " summary hidden while expanded", View.GONE, activity.findViewById(s[1]).getVisibility());
-
-            activity.findViewById(s[0]).performClick();
-            assertEquals(name + " body hidden", View.GONE, activity.findViewById(s[2]).getVisibility());
-            assertEquals(name + " summary shown", View.VISIBLE, activity.findViewById(s[1]).getVisibility());
-            assertTrue(name + " summary says something", text(activity, s[1]).length() > 0);
-
-            activity.findViewById(s[0]).performClick();
-            assertEquals(name + " body back", View.VISIBLE, activity.findViewById(s[2]).getVisibility());
+        for (int body : new int[]{R.id.nextStayCard, R.id.moreStaysBody, R.id.quickActionsBody, R.id.summaryBody, R.id.bookingsBody,
+                R.id.notificationsBody, R.id.paymentsBody, R.id.recentUpcomingList, R.id.stayCalBody}) {
+            assertEquals(activity.getResources().getResourceEntryName(body) + ": collapsed never means hidden",
+                    View.VISIBLE, activity.findViewById(body).getVisibility());
         }
+
+        int[] toggles = {R.id.nextStayToggle, R.id.moreStaysToggle, R.id.stayCalToggle, R.id.recentUpcomingToggle, R.id.bookingsToggle,
+                R.id.notificationsToggle, R.id.paymentsToggle, R.id.quickActionsToggle, R.id.summaryToggle, R.id.supportToggle};
+        for (int id : toggles) {
+            View toggle = activity.findViewById(id);
+            String name = activity.getResources().getResourceEntryName(id);
+            assertEquals(name + " starts collapsed", app.getString(R.string.section_expand), toggle.getContentDescription().toString());
+            assertEquals(name + " chevron points down", 0f, toggle.getRotation(), 0.01f);
+
+            toggle.performClick(); // the chevron
+            idle();
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+            assertEquals(name + " expanded", app.getString(R.string.section_collapse), toggle.getContentDescription().toString());
+            assertEquals(name + " chevron turned over", 180f, toggle.getRotation(), 0.01f);
+
+            ((View) toggle.getParent()).performClick(); // the header row
+            idle();
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+            assertEquals(name + " collapsed again from the header row", app.getString(R.string.section_expand), toggle.getContentDescription().toString());
+        }
+    }
+
+    @Test
+    public void needHelp_collapsedShowsOneLine_expandedShowsTheCard() {
+        DashboardActivity activity = launch();
+        assertEquals(View.GONE, activity.findViewById(R.id.supportDesc).getVisibility());
+        assertTrue(text(activity, R.id.supportSummary).length() > 0);
+        activity.findViewById(R.id.supportToggle).performClick();
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.supportDesc).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.supportSummary).getVisibility());
     }
 
     @Test
@@ -688,7 +751,7 @@ public class DashboardScreenTest {
         assertTrue("today's check-in is listed", entries.getChildCount() >= 1);
         View entry = entries.getChildAt(0);
         assertEquals("Reservation #588", ((TextView) entry.findViewById(R.id.tvRecentStayRef)).getText().toString());
-        assertTrue(((TextView) entry.findViewById(R.id.tvRecentStayDates)).getText().toString().contains("1 night"));
+        assertTrue(((TextView) entry.findViewById(R.id.tvRecentStayMeta)).getText().toString().startsWith("1 night"));
         assertTrue(((TextView) entry.findViewById(R.id.tvRecentStayStatus)).getText().length() > 0);
 
         tap(entry);
@@ -733,26 +796,21 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void otherStays_collapsedShowsOnlyTheSummary_expandedShowsEveryStay() {
+    public void otherStays_collapsedShowsThree_expandedShowsEveryStay() {
         DashboardActivity activity = launch();
-        // 1 next stay + 7 further upcoming stays
+        // 8 upcoming stays: the selected (nearest) day shows one, the other 7 are Other Stays
         ReservationDto[] reservations = new ReservationDto[8];
         for (int i = 0; i < 8; i++) reservations[i] = stay(600 + i, 2 + i, 1);
         answerWith(ScreenTestSupport.reservations(reservations), ScreenTestSupport.directBookings());
 
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
-        assertEquals("expanded: every stay", 7, more.getChildCount());
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysBody).getVisibility());
-        assertEquals(View.GONE, activity.findViewById(R.id.moreStaysSummary).getVisibility());
+        assertEquals("collapsed: three cards and the Show all button", 3 + 1, more.getChildCount());
+        assertEquals("Show all (7)", ((TextView) more.findViewById(R.id.btnPreviewToggle)).getText().toString());
 
         activity.findViewById(R.id.moreStaysToggle).performClick();
-        assertEquals("collapsed: no list, no button", View.GONE, activity.findViewById(R.id.moreStaysBody).getVisibility());
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysSummary).getVisibility());
-        assertTrue(text(activity, R.id.moreStaysSummary).startsWith("7 stays"));
-
-        activity.findViewById(R.id.moreStaysToggle).performClick();
-        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysBody).getVisibility());
-        assertEquals(7, more.getChildCount());
+        assertEquals("expanded: every stay and Show less", 7 + 1, more.getChildCount());
+        activity.findViewById(R.id.btnPreviewToggle).performClick();
+        assertEquals("the button collapses it again", 3 + 1, more.getChildCount());
     }
 
     @Test

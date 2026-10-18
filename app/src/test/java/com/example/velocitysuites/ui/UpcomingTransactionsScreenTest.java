@@ -342,8 +342,8 @@ public class UpcomingTransactionsScreenTest {
         android.app.Dialog sheet = sheet();
         assertNotNull("the details sheet opened", sheet);
         String text = sheetText(sheet);
-        for (String expected : new String[]{"Booking #10", "Suite", "Check-in", "Check-out", "Total Guests", "Grand Total",
-                "Amount Already Paid", "Remaining Balance"}) {
+        for (String expected : new String[]{"Booking #10", "Suite", "Check-in", "Check-out", "Total Guests", "Stay Details", "Room Details",
+                "Payment Details", "Total Amount", "Amount Paid", "Balance"}) {
             assertTrue(expected + " in: " + text, text.contains(expected));
         }
         assertTrue(text, !text.contains("null"));

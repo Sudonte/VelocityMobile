@@ -282,13 +282,41 @@
                     android:layout_marginTop="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_booking"
+                        app:tint="@color/velocity_red_primary" />
                     <TextView
-                        style="@style/TextAppearance.Velocity.Label.Section"
+                        style="@style/TextAppearance.Velocity.Section.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:accessibilityHeading="true"
                         android:text="@string/next_stay_section_title" />
+                    <TextView
+                        android:id="@+id/nextStayCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:minWidth="24dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="3"
+                        tools:visibility="visible" />
                     <ImageButton
                     android:id="@+id/nextStayToggle"
                     android:layout_width="48dp"
@@ -456,10 +484,21 @@
                     android:layout_marginTop="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_dashboard"
+                        app:tint="@color/velocity_red_primary" />
                     <TextView
-                        style="@style/TextAppearance.Velocity.Label.Section"
+                        style="@style/TextAppearance.Velocity.Section.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:accessibilityHeading="true"
                         android:text="@string/quick_actions" />
@@ -719,13 +758,41 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
-                        <TextView
-                            style="@style/TextAppearance.Velocity.Label.Section"
+                        <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_transaction_history"
+                        app:tint="@color/velocity_red_primary" />
+                    <TextView
+                            style="@style/TextAppearance.Velocity.Section.Title"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
                             android:accessibilityHeading="true"
                             android:text="@string/more_stays_title" />
+                    <TextView
+                        android:id="@+id/moreStaysCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:minWidth="24dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:textColor="@color/velocity_red_primary"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="3"
+                        tools:visibility="visible" />
                         <ImageButton
                     android:id="@+id/moreStaysToggle"
                     android:layout_width="48dp"
@@ -792,7 +859,7 @@
                                 android:src="@drawable/ic_calendar"
                                 app:tint="@color/velocity_red_primary" />
                             <TextView
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="11dp"
@@ -815,6 +882,15 @@
                                 android:visibility="gone"
                                 tools:text="7"
                                 tools:visibility="visible" />
+                            <ImageButton
+                                android:id="@+id/recentUpcomingToggle"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="-6dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/section_collapse"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="@color/velocity_text_secondary" />
                         </LinearLayout>
                         <TextView
                             android:layout_width="match_parent"
@@ -841,15 +917,7 @@
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="13sp"
                             android:visibility="gone" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRecentUpcomingToggle"
-                            style="@style/Widget.Velocity.Flat.Button.Outlined"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:minHeight="48dp"
-                            android:text="@string/recent_upcoming_view_all"
-                            android:visibility="gone" />
+                        
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -883,7 +951,7 @@
                                 android:src="@drawable/ic_booking"
                                 app:tint="@color/velocity_red_primary" />
                             <TextView
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="11dp"
@@ -1134,13 +1202,12 @@
                                 app:tint="@color/velocity_red_primary" />
                             <TextView
                                 android:id="@+id/bookingDetailsTitle"
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="11dp"
                                 android:layout_marginEnd="8dp"
                                 android:layout_weight="1"
-                                android:textSize="12sp"
                                 android:text="@string/recent_bookings_title" />
                             <TextView
                                 android:id="@+id/bookingCountBadge"
@@ -1303,7 +1370,7 @@
                                 app:tint="@color/velocity_blue_primary" />
                             <TextView
                                 android:id="@+id/notificationsTitle"
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="11dp"
@@ -1441,13 +1508,12 @@
                                 app:tint="@color/velocity_orange_primary" />
                             <TextView
                                 android:id="@+id/paymentStatusTitle"
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="11dp"
                                 android:layout_marginEnd="8dp"
                                 android:layout_weight="1"
-                                android:textSize="12sp"
                                 android:text="@string/payment_status" />
                             <TextView
                                 android:id="@+id/paymentCountBadge"
@@ -1578,7 +1644,7 @@
                                 android:src="@drawable/ic_profile"
                                 app:tint="@color/velocity_red_primary" />
                             <TextView
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="11dp"

@@ -565,13 +565,12 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
             upcomingCheckIn = true;
             tomorrowDate = b.getCheckInDate();
         }
-        // The same "check-in → check-out · N nights" line as every Dashboard stay card, then the guests.
-        String stayLine = StayCardBinder.datesText(this, b);
-        if (b.getGuests() > 0) {
-            stayLine = getString(R.string.upcoming_stay_line_with_guests, stayLine,
-                    getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
-        }
-        ((TextView) card.findViewById(R.id.tvTransactionStay)).setText(stayLine);
+        // The same compact dates and "1 night · 2 guests" lines as every Dashboard stay card.
+        ((TextView) card.findViewById(R.id.tvTransactionStay)).setText(StayCardText.dates(b));
+        TextView tvMeta = card.findViewById(R.id.tvTransactionMeta);
+        String meta = StayCardText.nightsAndGuests(this, b);
+        tvMeta.setText(meta);
+        tvMeta.setVisibility(meta.isEmpty() ? View.GONE : View.VISIBLE);
 
         if (StayCalendarModel.isClosed(b)) mute(card); // cancelled / rejected: clearly not an active booking
         // Balance still to pay, from the same helper as every other status in the app.

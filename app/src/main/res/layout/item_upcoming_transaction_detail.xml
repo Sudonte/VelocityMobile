@@ -41,45 +41,22 @@
             tools:text="Check-in Tomorrow"
             tools:visibility="visible" />
 
-        <!-- 1) Type + reference, status badge -->
+        <!-- 1) The full ID (wraps, never cut off) and the status chip -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvTransactionBookingId"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvTransactionType"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/shape_intro_pill"
-                    android:backgroundTint="@color/velocity_red_soft"
-                    android:fontFamily="sans-serif-black"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    android:textAllCaps="true"
-                    android:textColor="@color/velocity_red_primary"
-                    android:textSize="11sp"
-                    tools:text="Booking" />
-
-                <TextView
-                    android:id="@+id/tvTransactionBookingId"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-black"
-                    android:maxLines="1"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="17sp"
-                    tools:text="Booking #338" />
-            </LinearLayout>
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="16sp"
+                tools:text="Booking #338" />
 
             <TextView
                 android:id="@+id/tvTransactionStatus"
@@ -95,12 +72,28 @@
                 tools:text="Confirmed" />
         </LinearLayout>
 
-        <!-- 2) Room -->
+        <!-- 2) Type chip -->
+        <TextView
+            android:id="@+id/tvTransactionType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/shape_intro_pill"
+            android:backgroundTint="@color/velocity_red_soft"
+            android:fontFamily="sans-serif-black"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textAllCaps="true"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="11sp"
+            tools:text="Booking" />
+
+        <!-- 3) Room -->
         <TextView
             android:id="@+id/tvTransactionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:drawablePadding="8dp"
             android:fontFamily="sans-serif-medium"
             android:gravity="center_vertical"
@@ -168,11 +161,23 @@
             android:layout_marginTop="10dp"
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="12sp"
             app:drawableStartCompat="@drawable/ic_calendar"
             app:drawableTint="@color/velocity_text_secondary"
-            tools:text="Stay: Oct 18, 2026 to Oct 20, 2026 - 2 guests" />
+            tools:text="Oct 18 → Oct 20, 2026" />
+
+        <TextView
+            android:id="@+id/tvTransactionMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="2 nights · 2 guests" />
 
         <View
             android:layout_width="match_parent"

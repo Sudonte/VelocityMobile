@@ -241,6 +241,20 @@
         <item name="android:textSize">12sp</item>
     </style>
 
+    <!-- A dashboard section title: Title Case, one line (shrinks a little rather than wrapping). -->
+    <style name="TextAppearance.Velocity.Section.Title" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/velocity_text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:autoSizeMinTextSize">11sp</item>
+        <item name="android:autoSizeMaxTextSize">15sp</item>
+        <item name="android:autoSizeStepGranularity">1sp</item>
+    </style>
+
     <style name="TextAppearance.Velocity.Label.Input" parent="TextAppearance.MaterialComponents.Subtitle2">
         <item name="android:fontFamily">sans-serif-bold</item>
         <item name="android:letterSpacing">0.05</item>

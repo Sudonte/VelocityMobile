@@ -51,12 +51,15 @@ public class DashboardActivity extends BaseNavigationActivity {
     private TextView bookingCountBadge, notificationCountBadge, paymentCountBadge;
     /** Collapse / expand controls: every dashboard section except Account Summary. (Stay Calendar owns its own.) */
     private CollapsibleSection nextStaySection, moreStaysSection, bookingsSection, notificationsSection, paymentsSection;
+    private CollapsibleSection recentUpcomingSection;
+    /** The data the list sections were last drawn from, so a collapse / expand can redraw without asking the network. */
+    private List<Booking> lastBookings = new ArrayList<>();
+    private List<Notification> lastNotifications = new ArrayList<>();
     private CollapsibleSection quickActionsSection, summarySection, supportSection;
     /** Every stay Other Stays lists: upcoming soonest first, finished latest first. */
     private List<Booking> moreStaysUpcoming = new ArrayList<>(), moreStaysRecent = new ArrayList<>();
     /** "Recent Upcoming Stay": every Pending / Confirmed transaction, and whether the full list is showing. */
     private List<Booking> recentUpcoming = new ArrayList<>();
-    private boolean recentUpcomingExpanded;
     /** The day chosen in Your Next Stay's day selector (null until first drawn: then Today), and the data it draws from. */
     private java.time.LocalDate selectedStayDay;
     private List<Booking> nextStayBookings = new ArrayList<>();
@@ -195,24 +198,30 @@ public class DashboardActivity extends BaseNavigationActivity {
         notificationCountBadge = findViewById(R.id.notificationCountBadge);
         paymentCountBadge = findViewById(R.id.paymentCountBadge);
 
+        // List sections keep their list on screen: collapsed = the first few items + "Show all (N)", expanded = everything.
         nextStaySection = new CollapsibleSection(this, "next_stay", findViewById(R.id.nextStayToggle),
-                findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard));
+                findViewById(R.id.nextStaySummary), findViewById(R.id.nextStayCard)).previewList(this::renderNextStayDaysIfShown);
         moreStaysSection = new CollapsibleSection(this, "more_stays", findViewById(R.id.moreStaysToggle),
-                findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody));
+                findViewById(R.id.moreStaysSummary), findViewById(R.id.moreStaysBody)).previewList(this::renderMoreStays);
+        // Quick Actions collapsed: the first row of two. Summary collapsed: Active Bookings and Active Reservations only.
         quickActionsSection = new CollapsibleSection(this, "quick_actions", findViewById(R.id.quickActionsToggle),
-                findViewById(R.id.quickActionsSummary), findViewById(R.id.quickActionsBody));
-        quickActionsSection.setSummary(getString(R.string.quick_actions_summary));
+                findViewById(R.id.quickActionsSummary), findViewById(R.id.quickActionsBody))
+                .collapsedHides((View) findViewById(R.id.actionReservation).getParent());
         summarySection = new CollapsibleSection(this, "booking_summary", findViewById(R.id.summaryToggle),
-                findViewById(R.id.summarySummary), findViewById(R.id.summaryBody));
+                findViewById(R.id.summarySummary), findViewById(R.id.summaryBody))
+                .collapsedHides(findViewById(R.id.tilePastBooking), findViewById(R.id.tilePastReservation),
+                        findViewById(R.id.tileCancelBooking), findViewById(R.id.tileCancelReservation));
+        recentUpcomingSection = new CollapsibleSection(this, "recent_upcoming", findViewById(R.id.recentUpcomingToggle),
+                null, findViewById(R.id.recentUpcomingList)).previewList(this::renderRecentUpcoming);
         supportSection = new CollapsibleSection(this, "support", findViewById(R.id.supportToggle),
                 findViewById(R.id.supportSummary), findViewById(R.id.supportDesc), findViewById(R.id.btnContactSupport));
         supportSection.setSummary(getString(R.string.support_collapsed_summary));
         bookingsSection = new CollapsibleSection(this, "recent_bookings", findViewById(R.id.bookingsToggle),
-                findViewById(R.id.bookingsSummary), findViewById(R.id.bookingsBody));
+                findViewById(R.id.bookingsSummary), findViewById(R.id.bookingsBody)).previewList(() -> populateBookings(lastBookings));
         notificationsSection = new CollapsibleSection(this, "notifications", findViewById(R.id.notificationsToggle),
-                findViewById(R.id.notificationsSummary), findViewById(R.id.notificationsBody));
+                findViewById(R.id.notificationsSummary), findViewById(R.id.notificationsBody)).previewList(() -> populateNotifications(lastNotifications));
         paymentsSection = new CollapsibleSection(this, "payment_status", findViewById(R.id.paymentsToggle),
-                findViewById(R.id.paymentsSummary), findViewById(R.id.paymentsBody));
+                findViewById(R.id.paymentsSummary), findViewById(R.id.paymentsBody)).previewList(() -> populatePayments(lastBookings));
 
         accountFullNameText = findViewById(R.id.accountFullNameText);
         accountEmailText = findViewById(R.id.accountEmailText);
@@ -369,6 +378,8 @@ public class DashboardActivity extends BaseNavigationActivity {
         dimSummaryTileIfEmpty(R.id.tileCancelReservation, cancelReservations);
 
         // Populate Sections
+        lastBookings = allBookings;
+        lastNotifications = allNotifications;
         populateBookings(allBookings);
         populatePayments(allBookings);
         populateNotifications(allNotifications);
@@ -416,9 +427,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         }
     }
 
-    /** How many of the most recent paid bookings the Recent Bookings section shows. */
-    private static final int RECENT_BOOKINGS_LIMIT = 5;
-
     private void populateBookings(List<Booking> bookings) {
         bookingListContainer.removeAllViews();
         List<Booking> displayBookings = new java.util.ArrayList<>();
@@ -435,9 +443,9 @@ public class DashboardActivity extends BaseNavigationActivity {
         displayBookings.sort((firstBooking, secondBooking) ->
                 Long.compare(parseDateSafe(bookingDateFormat, secondBooking.getBookingDate()),
                         parseDateSafe(bookingDateFormat, firstBooking.getBookingDate())));
-        if (displayBookings.size() > RECENT_BOOKINGS_LIMIT) {
-            displayBookings = new java.util.ArrayList<>(displayBookings.subList(0, RECENT_BOOKINGS_LIMIT));
-        }
+        final int totalBookings = displayBookings.size();
+        List<Booking> allDisplay = displayBookings;
+        displayBookings = SectionPreview.visible(allDisplay, bookingsSection.isExpanded());
 
         if (displayBookings.isEmpty()) {
 
@@ -451,14 +459,15 @@ public class DashboardActivity extends BaseNavigationActivity {
             for (Booking booking : displayBookings) {
                 addBookingCard(booking);
             }
+            SectionPreview.addToggle(this, bookingListContainer, totalBookings, bookingsSection.isExpanded(), bookingsSection::toggle);
         }
-        setCountBadge(bookingCountBadge, displayBookings.size());
+        setCountBadge(bookingCountBadge, totalBookings);
         if (displayBookings.isEmpty()) {
             bookingsSection.setSummary(getString(R.string.no_bookings_found));
         } else {
             Booking latest = displayBookings.get(0);
             bookingsSection.setSummary(getString(R.string.summary_with_latest,
-                    getResources().getQuantityString(R.plurals.summary_bookings_count, displayBookings.size(), displayBookings.size()),
+                    getResources().getQuantityString(R.plurals.summary_bookings_count, totalBookings, totalBookings),
                     getString(R.string.summary_ref_status, TransactionText.reference(this, true, latest.getDisplayId()),
                             TransactionStatusChip.label(latest.getStatus()))));
         }
@@ -495,9 +504,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         if ("Cancelled".equalsIgnoreCase(status)) return 3;
         return 4;
     }
-
-    /** How many Payment Status items the dashboard preview shows at most. */
-    private static final int PAYMENT_STATUS_LIMIT = 5;
 
     /**
      * True when {@code booking} is relevant to the Payment Status preview "today":
@@ -552,9 +558,9 @@ public class DashboardActivity extends BaseNavigationActivity {
             if (firstDue != secondDue) return firstDue ? -1 : 1;
             return getBookingPriority(firstBooking) - getBookingPriority(secondBooking);
         });
-        if (paymentBookings.size() > PAYMENT_STATUS_LIMIT) {
-            paymentBookings = new java.util.ArrayList<>(paymentBookings.subList(0, PAYMENT_STATUS_LIMIT));
-        }
+        final int totalPayments = paymentBookings.size();
+        List<Booking> allPayments = paymentBookings;
+        paymentBookings = SectionPreview.visible(allPayments, paymentsSection.isExpanded());
 
         if (paymentBookings.isEmpty()) {
             if (noPaymentsText != null) noPaymentsText.setVisibility(View.VISIBLE);
@@ -563,14 +569,15 @@ public class DashboardActivity extends BaseNavigationActivity {
             for (Booking booking : paymentBookings) {
                 addPaymentItem(booking);
             }
+            SectionPreview.addToggle(this, paymentListContainer, totalPayments, paymentsSection.isExpanded(), paymentsSection::toggle);
         }
-        setCountBadge(paymentCountBadge, paymentBookings.size());
+        setCountBadge(paymentCountBadge, totalPayments);
         if (paymentBookings.isEmpty()) {
             paymentsSection.setSummary(getString(R.string.no_active_payment_status));
         } else {
             Booking first = paymentBookings.get(0);
             paymentsSection.setSummary(getString(R.string.summary_with_first,
-                    getResources().getQuantityString(R.plurals.summary_payments_count, paymentBookings.size(), paymentBookings.size()),
+                    getResources().getQuantityString(R.plurals.summary_payments_count, totalPayments, totalPayments),
                     getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
                             PaymentStatusResolver.resolve(this, first).label)));
         }
@@ -753,14 +760,13 @@ public class DashboardActivity extends BaseNavigationActivity {
             setCountBadge(notificationCountBadge, 0);
         } else {
             noNotificationsText.setVisibility(View.GONE);
-            // Show only top 3 recent notifications
-            int count = 0;
-            for (Notification n : notifications) {
-                if (count >= 3) break;
+            // The first few while collapsed, every notification once expanded.
+            for (Notification n : SectionPreview.visible(notifications, notificationsSection.isExpanded())) {
                 addNotificationCardCompact(n, notificationListContainer);
-                count++;
             }
-            setCountBadge(notificationCountBadge, count);
+            SectionPreview.addToggle(this, notificationListContainer, notifications.size(), notificationsSection.isExpanded(),
+                    notificationsSection::toggle);
+            setCountBadge(notificationCountBadge, notifications.size());
         }
         if (notifications.isEmpty()) {
             notificationsSection.setSummary(getString(R.string.no_notifications));
@@ -1180,9 +1186,16 @@ public class DashboardActivity extends BaseNavigationActivity {
         LinearLayout list = findViewById(R.id.moreStaysList);
         View section = findViewById(R.id.moreStaysSection);
         list.removeAllViews();
-        for (Booking b : moreStaysUpcoming) StayCardBinder.add(this, list, b, StayCardBinder.Tag.UPCOMING);
-        for (Booking b : moreStaysRecent) StayCardBinder.add(this, list, b, StayCardBinder.Tag.RECENT);
         int total = moreStaysUpcoming.size() + moreStaysRecent.size();
+        List<Booking> ordered = new ArrayList<>(moreStaysUpcoming);
+        ordered.addAll(moreStaysRecent);
+        for (Booking b : SectionPreview.visible(ordered, moreStaysSection.isExpanded())) {
+            StayCardBinder.add(this, list, b, moreStaysUpcoming.contains(b) ? StayCardBinder.Tag.UPCOMING : StayCardBinder.Tag.RECENT);
+        }
+        SectionPreview.addToggle(this, list, total, moreStaysSection.isExpanded(), moreStaysSection::toggle);
+        TextView moreCount = findViewById(R.id.moreStaysCount);
+        moreCount.setText(String.valueOf(total));
+        moreCount.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
         section.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
         Booking first = !moreStaysUpcoming.isEmpty() ? moreStaysUpcoming.get(0) : (!moreStaysRecent.isEmpty() ? moreStaysRecent.get(0) : null);
         if (first != null) {
@@ -1199,25 +1212,18 @@ public class DashboardActivity extends BaseNavigationActivity {
         renderRecentUpcoming();
     }
 
-    /** Collapsed: the first five. Expanded: all. Empty: a message. The toggle shows only when there is more than five. */
+    /** Collapsed: the first three. Expanded: all. Empty: a message. The Show all / Show less button shows only past three. */
     private void renderRecentUpcoming() {
         LinearLayout list = findViewById(R.id.recentUpcomingList);
         TextView count = findViewById(R.id.recentUpcomingCount);
         View empty = findViewById(R.id.recentUpcomingEmpty);
-        com.google.android.material.button.MaterialButton toggle = findViewById(R.id.btnRecentUpcomingToggle);
         list.removeAllViews();
         int total = recentUpcoming.size();
-        boolean hasMore = total > RecentUpcomingStays.COLLAPSED_LIMIT;
-        for (Booking b : RecentUpcomingStays.visible(recentUpcoming, recentUpcomingExpanded)) addRecentUpcomingRow(b, list);
+        for (Booking b : SectionPreview.visible(recentUpcoming, recentUpcomingSection.isExpanded())) addRecentUpcomingRow(b, list);
+        SectionPreview.addToggle(this, list, total, recentUpcomingSection.isExpanded(), recentUpcomingSection::toggle);
         empty.setVisibility(total == 0 ? View.VISIBLE : View.GONE);
         count.setVisibility(total == 0 ? View.GONE : View.VISIBLE);
         count.setText(String.valueOf(total));
-        toggle.setVisibility(hasMore ? View.VISIBLE : View.GONE);
-        toggle.setText(recentUpcomingExpanded ? R.string.recent_upcoming_show_less : R.string.recent_upcoming_view_all);
-        toggle.setOnClickListener(NavUtils.debounce(v -> {
-            recentUpcomingExpanded = !recentUpcomingExpanded;
-            renderRecentUpcoming();
-        }));
     }
 
     /** Type, reference, room, dates and status; a tap opens Upcoming Hotel Transactions filtered to this type and status, on this transaction. */
@@ -1285,6 +1291,10 @@ public class DashboardActivity extends BaseNavigationActivity {
             renderNextStayDays();
         });
         row.setVisibility(View.VISIBLE);
+    }
+
+    private void renderNextStayDaysIfShown() {
+        if (nextStayContent.getVisibility() == View.VISIBLE && selectedStayDay != null) renderNextStayDays();
     }
 
     /** True when at least one non-cancelled transaction has a readable check-in date (so the day selector has something to show). */
@@ -1394,16 +1404,21 @@ public class DashboardActivity extends BaseNavigationActivity {
         String countText = getResources().getQuantityString(R.plurals.summary_transactions_count, dayStays.size(), dayStays.size());
         heading.setText(getString(R.string.next_stay_day_heading_format, dayLabel, countText));
         empty.setVisibility(dayStays.isEmpty() ? View.VISIBLE : View.GONE);
-        for (int i = 0; i < dayStays.size(); i++) {
+        List<NextStay> shownStays = SectionPreview.visible(dayStays, nextStaySection.isExpanded());
+        for (int i = 0; i < shownStays.size(); i++) {
             if (i > 0) {
                 View divider = new View(this);
                 divider.setBackgroundColor(getColor(R.color.velocity_divider_hairline));
                 cards.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
             }
             View item = inflater.inflate(R.layout.item_next_stay, cards, false);
-            bindNextStayItem(item, dayStays.get(i), selectedStayDay);
+            bindNextStayItem(item, shownStays.get(i), selectedStayDay);
             cards.addView(item);
         }
+        SectionPreview.addToggle(this, cards, dayStays.size(), nextStaySection.isExpanded(), nextStaySection::toggle);
+        TextView stayCount = findViewById(R.id.nextStayCount);
+        stayCount.setText(String.valueOf(dayStays.size()));
+        stayCount.setVisibility(dayStays.isEmpty() ? View.GONE : View.VISIBLE);
         nextStaySection.setSummary(getString(R.string.next_stay_day_heading_format, dayLabel,
                 dayStays.isEmpty() ? getString(R.string.summary_nothing_scheduled) : countText));
     }
@@ -1417,8 +1432,10 @@ public class DashboardActivity extends BaseNavigationActivity {
                 startActivity(UpcomingTransactionsActivity.intentWithFilters(this, stay.booking)));
         ref.setOnClickListener(openInUpcoming);
         ((TextView) item.findViewById(R.id.tvNextStayRooms)).setText(TransactionRow.roomTextOf(stay.booking));
-        ((TextView) item.findViewById(R.id.tvNextStayDates)).setText(stay.datesText(this));
-        ((TextView) item.findViewById(R.id.tvNextStayNights)).setText(stay.nightsText(this));
+        ((TextView) item.findViewById(R.id.tvNextStayType)).setText(
+                stay.booking.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
+        ((TextView) item.findViewById(R.id.tvNextStayDates)).setText(StayCardText.dates(stay.booking));
+        ((TextView) item.findViewById(R.id.tvNextStayNights)).setText(StayCardText.nightsAndGuests(this, stay.booking));
         TextView statusChip = item.findViewById(R.id.tvNextStayStatus);
         if (stay.isFinished()) {
             TransactionStatusChip.apply(this, statusChip, stay.booking.getStatus());

@@ -9,60 +9,114 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * Collapse / expand control for one Dashboard section. Expanded shows the section's whole body; collapsed hides it and
- * shows a one-line summary (a count and the most relevant item) in its place. The choice is remembered per section.
- * Only the visibility of existing views changes - the section's data and its populate code are untouched, so a
- * collapsed section keeps refreshing and is complete the moment it is expanded again.
+ * Collapse / expand control for one Dashboard section; the section starts collapsed. Collapsed never means hidden:
+ * <ul>
+ *   <li><b>List sections</b> ({@link #previewList}) keep their list on screen - collapsed shows the first
+ *       {@link SectionPreview#PREVIEW_COUNT} items and a "Show all (N)" button, expanded shows every item and "Show less".
+ *       The section only reports the change ({@code onChange}); the screen redraws its list from its own data.</li>
+ *   <li><b>Other sections</b> ({@link #collapsedHides}) show a compact version (for example the first row of tiles)
+ *       and reveal the rest when expanded.</li>
+ *   <li>The plain form hides the whole body and shows a one-line summary instead (the Need help? card).</li>
+ * </ul>
+ * Tapping the header row or its chevron toggles it; the chevron turns over with a short animation. The choice is
+ * remembered per section for as long as the app's preferences live, so it survives scrolling, rotation and a trip to
+ * another screen.
  */
 final class CollapsibleSection {
 
     private static final String PREFS = "VelocityPrefs";
-    private static final String KEY_PREFIX = "dashboard_section_expanded_";
+    /** v2: the section now starts collapsed (v1 started expanded and meant "hide the body"). */
+    private static final String KEY_PREFIX = "dashboard_section_v2_expanded_";
+    private static final long TURN_MS = 180L;
 
     private final SharedPreferences prefs;
     private final String key;
     private final ImageView toggle;
-    private final TextView summary;
+    @Nullable private final TextView summary;
     private final View[] bodies;
     private boolean expanded;
     private CharSequence summaryText = "";
+    private boolean previewMode;
+    @Nullable private Runnable onChange;
+    private View[] collapsedHides = new View[0];
 
     /**
-     * @param toggle  the chevron button
-     * @param summary the one-line summary shown while collapsed
-     * @param bodies  everything that is hidden while collapsed
+     * @param toggle  the chevron button (its parent row is made tappable too)
+     * @param summary the one-line summary shown while collapsed (plain form only)
+     * @param bodies  everything that is hidden while collapsed (plain form only)
      */
     CollapsibleSection(@NonNull android.content.Context context, @NonNull String key, @NonNull ImageView toggle,
-                       @NonNull TextView summary, @NonNull View... bodies) {
+                       @Nullable TextView summary, @NonNull View... bodies) {
         this.prefs = context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
         this.key = key;
         this.toggle = toggle;
         this.summary = summary;
         this.bodies = bodies;
-        this.expanded = prefs.getBoolean(KEY_PREFIX + key, true);
-        toggle.setOnClickListener(v -> {
-            expanded = !expanded;
-            prefs.edit().putBoolean(KEY_PREFIX + this.key, expanded).apply();
-            apply();
-        });
-        apply();
+        this.expanded = prefs.getBoolean(KEY_PREFIX + key, false);
+        View.OnClickListener flip = v -> setExpanded(!expanded);
+        toggle.setOnClickListener(flip);
+        if (toggle.getParent() instanceof View) {
+            View header = (View) toggle.getParent();
+            header.setOnClickListener(flip);
+        }
+        apply(false);
+    }
+
+    /** A list section: the list stays visible, {@code onChange} redraws it (the preview or everything). */
+    CollapsibleSection previewList(@Nullable Runnable onChange) {
+        this.previewMode = true;
+        this.onChange = onChange;
+        apply(false);
+        return this;
+    }
+
+    /** These views are shown only while expanded; the rest of the section stays visible when collapsed. */
+    CollapsibleSection collapsedHides(@NonNull View... views) {
+        this.previewMode = true;
+        this.collapsedHides = views;
+        apply(false);
+        return this;
     }
 
     boolean isExpanded() {
         return expanded;
     }
 
-    /** Sets the collapsed-state summary; shown immediately if the section is collapsed. */
-    void setSummary(@Nullable CharSequence text) {
-        summaryText = text == null ? "" : text;
-        apply();
+    /** Sets the state and notifies the list (also what the "Show all / Show less" button calls). */
+    void setExpanded(boolean value) {
+        if (expanded == value) return;
+        expanded = value;
+        prefs.edit().putBoolean(KEY_PREFIX + key, expanded).apply();
+        apply(true);
+        if (onChange != null) onChange.run();
     }
 
-    private void apply() {
-        for (View body : bodies) body.setVisibility(expanded ? View.VISIBLE : View.GONE);
-        summary.setText(summaryText);
-        summary.setVisibility(!expanded && summaryText.length() > 0 ? View.VISIBLE : View.GONE);
-        toggle.setImageResource(expanded ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
+    void toggle() {
+        setExpanded(!expanded);
+    }
+
+    /** Sets the collapsed-state summary of the plain form; shown immediately if the section is collapsed. */
+    void setSummary(@Nullable CharSequence text) {
+        summaryText = text == null ? "" : text;
+        apply(false);
+    }
+
+    private void apply(boolean animate) {
+        if (previewMode) {
+            for (View body : bodies) body.setVisibility(View.VISIBLE); // collapsed never means hidden
+            for (View v : collapsedHides) v.setVisibility(expanded ? View.VISIBLE : View.GONE);
+            if (summary != null) summary.setVisibility(View.GONE);
+        } else {
+            for (View body : bodies) body.setVisibility(expanded ? View.VISIBLE : View.GONE);
+            if (summary != null) {
+                summary.setText(summaryText);
+                summary.setVisibility(!expanded && summaryText.length() > 0 ? View.VISIBLE : View.GONE);
+            }
+        }
+        toggle.setImageResource(R.drawable.ic_expand_more);
+        float target = expanded ? 180f : 0f;
+        if (animate) toggle.animate().rotation(target).setDuration(TURN_MS).start();
+        else toggle.setRotation(target);
         toggle.setContentDescription(toggle.getContext().getString(expanded ? R.string.section_collapse : R.string.section_expand));
     }
 }

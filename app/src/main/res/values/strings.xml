@@ -485,15 +485,15 @@
     <string name="guest_email">ombid.guest@velocitysuites.com</string>
     <string name="executive_suite">Executive Suite</string>
     <string name="quick_actions">Quick Actions</string>
-    <string name="quick_actions_desc">Shortcuts to the things guests do most.</string>
+    <string name="quick_actions_desc">Shortcuts to common tasks</string>
     <string name="quick_action_browse_rooms">Browse rooms</string>
     <string name="quick_action_my_bookings">My bookings</string>
     <string name="quick_action_my_reservations">My reservations</string>
-    <string name="booking_reservation_summary_explainer">New here? A booking confirms your stay once you pay. A reservation holds a room with no payment now - pay later to turn it into a booking.</string>
+    <string name="booking_reservation_summary_explainer">A booking is paid; a reservation holds a room to pay later.</string>
     <string name="quick_action_history">Transaction history</string>
     <!-- Dashboard: next stay -->
     <string name="next_stay_section_title">Your Next Stay</string>
-    <string name="next_stay_section_desc">The date and time at the hotel, and the stay coming up next.</string>
+    <string name="next_stay_section_desc">Your stays on the selected day</string>
     <string name="dashboard_date_format">EEEE, MMMM d, yyyy</string>
     <string name="dashboard_time_format">hh:mm:ss a</string>
     <string name="next_stay_loading">Looking for your next stay…</string>
@@ -570,12 +570,12 @@
     <string name="check_in_tomorrow_label">Check-in Tomorrow</string>
     <string name="check_out_tomorrow_label">Check-out Tomorrow</string>
     <string name="tomorrow_badge_short">Tomorrow</string>
-    <string name="payment_status_dashboard_desc">How much you have paid for each booking and reservation, and what is still due.</string>
+    <string name="payment_status_dashboard_desc">What you have paid and what is still due</string>
     <string name="upcoming_transactions_desc">Your next check-ins and check-outs, soonest first.</string>
-    <string name="notifications_dashboard_desc">Updates about your bookings, payments and the hotel. Tap one to mark it as read.</string>
+    <string name="notifications_dashboard_desc">Updates on your stays and payments</string>
     <string name="account_summary_desc">Your profile and contact details. Tap to review or edit them.</string>
     <string name="booking_reservation_summary_title">Booking &amp; Reservation Summary</string>
-    <string name="booking_reservation_summary_desc">A quick count of your active, past and cancelled bookings and reservations. Tap a tile to see the list.</string>
+    <string name="booking_reservation_summary_desc">Your stays at a glance</string>
     <string name="br_summary_active_bookings">Active Bookings</string>
     <string name="br_summary_active_reservations">Active Reservations</string>
     <string name="br_summary_past_bookings">Past Bookings</string>
@@ -583,7 +583,7 @@
     <string name="br_summary_cancel_bookings">Cancelled Bookings</string>
     <string name="br_summary_cancel_reservations">Cancelled Reservations</string>
     <string name="recent_bookings_title">Recent Bookings</string>
-    <string name="recent_bookings_desc">Your latest bookings and how much you have paid. Tap one for details.</string>
+    <string name="recent_bookings_desc">Your latest bookings and payments</string>
     <string name="account_status_active">Account Active</string>
     <string name="account_status_signed_out">Session Expired</string>
     <string name="payment_details_title">Payment Details</string>
@@ -788,14 +788,14 @@
     <string name="transaction_history_desc">Track your stays and billing records. Review your past reservations and payment history with Velocity Suites.</string>
     <string name="search_label">Search</string>
     <string name="search_transactions_hint">Search reference or room…</string>
-    <string name="more_stays_title">Other Recent and Upcoming Stays</string>
+    <string name="more_stays_title">Other Recent &amp; Upcoming Stays</string>
     <string name="details_label_checked_in_at">Checked-In At</string>
     <string name="details_label_checked_out_at">Checked-Out At</string>
     <string name="details_expected_time_format">Expected %1$s</string>
     <string name="stay_calendar_kind_checked_out">Checked out</string>
     <string name="upcoming_balance_label">Balance</string>
     <string name="stay_calendar_title">Stay Calendar</string>
-    <string name="stay_calendar_desc">Dots mark days with a check-in or check-out. Tap a day to see what is on it.</string>
+    <string name="stay_calendar_desc">Dots mark check-ins and check-outs</string>
     <string name="stay_calendar_daily">Daily</string>
     <string name="stay_calendar_weekly">Weekly</string>
     <string name="stay_calendar_monthly">Monthly</string>
@@ -903,7 +903,6 @@
     <string name="payment_method_label">Payment Method: %1$s</string>
     <string name="payment_method_colon_format">Payment Method: %1$s</string>
     <string name="paid_column_label">Paid</string>
-    <string name="details_section_payment">Payment Information</string>
     <string name="error_invalid_gcash_number">Please enter a valid 10-digit mobile number</string>
 
     <!-- Payment amount: a single unified selector - 20/30/40/50% or Full Payment -->
@@ -2061,11 +2060,8 @@
     <string name="section_collapse">Collapse section</string>
     <string name="section_expand">Expand section</string>
     <string name="recent_upcoming_title">Recent Upcoming Stay</string>
-    <string name="recent_upcoming_desc">Your pending and confirmed bookings and reservations. Tap one to see its details.</string>
+    <string name="recent_upcoming_desc">Pending and confirmed stays</string>
     <string name="recent_upcoming_empty">No pending or confirmed upcoming stays right now.</string>
-    <string name="recent_upcoming_view_all">View all</string>
-    <string name="recent_upcoming_show_less">Show less</string>
-    <string name="recent_upcoming_dates_format">%1$s – %2$s</string>
     <plurals name="summary_stays_count">
         <item quantity="one">%d stay</item>
         <item quantity="other">%d stays</item>
@@ -2107,9 +2103,6 @@
     <string name="upcoming_filter_status_label">Status</string>
     <string name="upcoming_view_in_history">View in Transaction History</string>
     <string name="upcoming_view_details">View Details</string>
-    <string name="sheet_label_room">Room</string>
-    <string name="sheet_label_check_in">Check-in</string>
-    <string name="sheet_label_check_out">Check-out</string>
     <string name="upcoming_results_format">Showing %1$d of %2$d</string>
     <string name="upcoming_group_active">Upcoming and in house</string>
     <string name="upcoming_group_closed">Completed and closed</string>
@@ -2117,11 +2110,8 @@
     <string name="upcoming_stay_short_format">%1$s to %2$s · %3$s</string>
     <string name="upcoming_clear_filters">Clear filters</string>
     <string name="upcoming_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
-    <string name="quick_actions_summary">Browse rooms · Booking · Reservation · History</string>
     <string name="support_collapsed_summary">Contact the front desk anytime</string>
     <string name="summary_overview_format">Active %1$d · Past %2$d · Cancelled %3$d</string>
-
-    <string name="stay_card_dates_format">%1$s → %2$s · %3$s</string>
     <string name="stay_card_tag_upcoming">Upcoming</string>
     <string name="stay_card_tag_recent">Recent</string>
     <string name="next_stay_day_yesterday">Yesterday</string>
@@ -2152,11 +2142,19 @@
     <string name="upcoming_section_stay">Stay Details</string>
     <string name="upcoming_section_room">Room Details</string>
     <string name="upcoming_section_payment">Payment Details</string>
-    <string name="upcoming_stay_line_with_guests">%1$s · %2$s</string>
     <plurals name="next_stay_day_cd">
         <item quantity="one">%1$s, %2$d transaction</item>
         <item quantity="other">%1$s, %2$d transactions</item>
     </plurals>
+    <string name="preview_show_all_format">Show all (%d)</string>
+    <string name="preview_show_less">Show less</string>
+    <string name="stay_card_nights_guests_format">%1$s · %2$s</string>
+    <string name="details_label_booking_id">Booking ID</string>
+    <string name="details_label_reservation_id">Reservation ID</string>
+    <string name="details_label_type">Type</string>
+    <string name="details_label_quantity">Quantity</string>
+    <string name="details_label_rate_per_night">Rate per Night</string>
+    <string name="details_label_balance">Balance</string>
 </resources>
 
 

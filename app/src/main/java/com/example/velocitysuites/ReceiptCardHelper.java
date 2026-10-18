@@ -138,7 +138,10 @@ final class ReceiptCardHelper {
         for (Booking.ReceiptSummary receipt : receipts) {
             View card = inflater.inflate(R.layout.item_receipt_summary_card, container, false);
             ((TextView) card.findViewById(R.id.tvReceiptCardType)).setText(ReceiptTypeMapper.labelWithStage(receipt.receiptType));
-            ((TextView) card.findViewById(R.id.tvReceiptCardNumber)).setText(receipt.receiptNumber != null && !receipt.receiptNumber.trim().isEmpty() ? receipt.receiptNumber : activity.getString(R.string.value_missing));
+            TextView receiptNumber = card.findViewById(R.id.tvReceiptCardNumber);
+            boolean hasNumber = receipt.receiptNumber != null && !receipt.receiptNumber.trim().isEmpty();
+            receiptNumber.setText(hasNumber ? receipt.receiptNumber : "");
+            receiptNumber.setVisibility(hasNumber ? View.VISIBLE : View.GONE);
             ((TextView) card.findViewById(R.id.tvReceiptCardAmount)).setText(formatPrice(receipt.amount));
 
             TextView statusView = card.findViewById(R.id.tvReceiptCardStatus);
@@ -172,8 +175,9 @@ final class ReceiptCardHelper {
                 ? activity.getString(R.string.payment_method_gcash) : activity.getString(R.string.payment_method_cash);
         String typeLabel = ReceiptTypeMapper.labelForTransactionType(tx.transactionType);
         ((TextView) row.findViewById(R.id.tvTxTitle)).setText(methodLabel + " " + typeLabel);
-        ((TextView) row.findViewById(R.id.tvTxDate)).setText(
-                tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : activity.getString(R.string.value_missing));
+        TextView txDate = row.findViewById(R.id.tvTxDate);
+        txDate.setText(tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "");
+        txDate.setVisibility(tx.paymentDate != null ? View.VISIBLE : View.GONE);
 
         TextView statusView = row.findViewById(R.id.tvTxStatus);
         String statusLabel;
@@ -221,7 +225,8 @@ final class ReceiptCardHelper {
                 isGcash ? GcashReferenceFormatter.formatMobileNumber(tx.gcashNumber) : null);
         String reference = tx.gcashReferenceNumber != null ? tx.gcashReferenceNumber : tx.referenceNumber;
         bindInflatedRow(activity, row, R.id.rowTxGcashReference, activity.getString(R.string.receipt_gcash_reference_number_label),
-                isGcash ? GcashReferenceFormatter.formatOrFallback(reference, activity.getString(R.string.receipt_gcash_value_missing),
+                isGcash && reference != null && !reference.trim().isEmpty()
+                        ? GcashReferenceFormatter.formatOrFallback(reference, activity.getString(R.string.receipt_gcash_value_missing),
                         activity.getString(R.string.receipt_gcash_reference_legacy_incomplete)) : null);
         bindInflatedRow(activity, row, R.id.rowTxVerifiedAt, activity.getString(R.string.receipt_verified_at_label),
                 tx.verifiedAt != null ? TimeUtils.formatDateTime(tx.verifiedAt) : null);

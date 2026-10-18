@@ -181,8 +181,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.tvTxDetailRef)).setText(
                 TransactionText.reference(this, booking.isHasBooking(), booking.getDisplayId()));
         ((TextView) findViewById(R.id.tvTxDetailTitle)).setText(TransactionStatusHelper.headlineRes(summary));
-        ((TextView) findViewById(R.id.tvTxDetailRoom)).setText(
-                TransactionText.roomOrDash(this, TransactionRow.roomTextOf(booking)));
+        showOrHide(findViewById(R.id.tvTxDetailRoom), TransactionRow.roomTextOf(booking));
 
         // The latest payment's date, when there is one - never a placeholder standing in for a real date.
         String lastPayment = transaction.getDate();
@@ -202,9 +201,8 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             note.setText(FrontDeskNote.messageFor(this, booking));
             money.addView(note);
         }
-        if (summary.hasPendingPayment) {
-            addMoneyRow(money, getString(R.string.txn_submitted_label), MoneyFormat.isPositive(summary.pendingSubmitted)
-                    ? MoneyFormat.format(summary.pendingSubmitted) : getString(R.string.value_missing));
+        if (summary.hasPendingPayment && MoneyFormat.isPositive(summary.pendingSubmitted)) {
+            addMoneyRow(money, getString(R.string.txn_submitted_label), MoneyFormat.format(summary.pendingSubmitted));
         }
     }
 
@@ -225,12 +223,10 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     }
 
     private void buildInfoSection(LinearLayout container) {
-        // Grouped into labeled sub-sections (Stay / Guest / Payment) via addSectionDivider(), one flat card.
-        addSectionDivider(container, getString(R.string.room_and_stay_title));
-        addInfoRowOrDash(container, getString(R.string.details_label_room_type),
-                TextUtils.join(", ", booking.getAllRoomTypeNames()));
-        addInfoRowOrDash(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
-        addInfoRowOrDash(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
+        // Stay Details, Room Details, Payment Details: the shared grouping; a fact the app does not have is left out.
+        TransactionDetailSections model = TransactionDetailSections.of(this, booking, transaction.getMethod());
+        addGroup(container, getString(R.string.upcoming_section_stay), model.stay);
+        addGroup(container, getString(R.string.upcoming_section_room), model.room);
 
         // The representative guest, when one was entered - an older/guest-less record skips straight to Payment.
         if (!TextUtils.isEmpty(booking.getRepresentativeName())) {
@@ -238,29 +234,30 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             addInfoRow(container, getString(R.string.details_label_representative_name), booking.getRepresentativeName());
         }
 
-        addSectionDivider(container, getString(R.string.details_section_payment));
+        addSectionDivider(container, getString(R.string.upcoming_section_payment));
+        for (TransactionDetailSections.Row row : model.payment) addRow(container, row.label, row.value);
         String method = transaction.getMethod();
         boolean isGcash = "gcash".equalsIgnoreCase(method);
         String rawReference = transaction.getReferenceNumber() != null ? transaction.getReferenceNumber() : booking.getTransactionRef();
         if (isGcash) {
             // GCash Mobile # / GCash Reference # belong to the latest payment; only grouped into
             // "XXXX XXX XXXXXX" when exactly 13 digits - a short stored reference is never shown as a bare
-            // digit string (see GcashReferenceFormatter#formatOrFallback).
-            addInfoRow(container, getString(R.string.receipt_gcash_mobile_label),
-                    GcashReferenceFormatter.formatMobileNumber(transaction.getGcashNumber()));
-            addInfoRow(container, getString(R.string.receipt_gcash_reference_number_label),
-                    GcashReferenceFormatter.formatOrFallback(rawReference,
-                            getString(R.string.receipt_gcash_value_missing),
-                            getString(R.string.receipt_gcash_reference_legacy_incomplete)));
+            // digit string (see GcashReferenceFormatter#formatOrFallback). A number or reference that was never
+            // captured is left out rather than shown as a placeholder.
+            if (!TextUtils.isEmpty(transaction.getGcashNumber())) {
+                addInfoRow(container, getString(R.string.receipt_gcash_mobile_label),
+                        GcashReferenceFormatter.formatMobileNumber(transaction.getGcashNumber()));
+            }
+            if (!TextUtils.isEmpty(rawReference)) {
+                addInfoRow(container, getString(R.string.receipt_gcash_reference_number_label),
+                        GcashReferenceFormatter.formatOrFallback(rawReference,
+                                getString(R.string.receipt_gcash_value_missing),
+                                getString(R.string.receipt_gcash_reference_legacy_incomplete)));
+            }
         } else {
-            addInfoRowOrDash(container, getString(R.string.details_label_transaction_ref), rawReference);
+            addInfoRow(container, getString(R.string.details_label_transaction_ref), rawReference);
         }
-
-        addInfoRowOrDash(container, getString(R.string.details_label_payment_method), TextUtils.isEmpty(method) ? null
-                : "cash".equalsIgnoreCase(method) ? getString(R.string.payment_method_cash) : getString(R.string.payment_method_gcash));
-        addInfoRow(container, getString(R.string.payment_status),
-                getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.statusOf(booking)).labelRes));
-        addInfoRowOrDash(container, getString(R.string.details_label_payment_date), transaction.getDate());
+        addInfoRow(container, getString(R.string.details_label_payment_date), transaction.getDate());
         if (booking.getPaymentVerificationStatus() != null) {
             addInfoRow(container, getString(R.string.details_label_verification_status),
                     friendlyVerificationStatus(booking.getPaymentVerificationStatus()));
@@ -313,10 +310,8 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
     private View buildPaymentHistoryRow(ViewGroup parent, Booking.PaymentRecord record) {
         View row = LayoutInflater.from(this).inflate(R.layout.item_payment_history_entry, parent, false);
-        ((TextView) row.findViewById(R.id.tvHistoryMethod)).setText(
-                TextUtils.isEmpty(record.method) ? getString(R.string.value_missing) : record.method);
-        ((TextView) row.findViewById(R.id.tvHistoryDate)).setText(
-                TextUtils.isEmpty(record.date) ? getString(R.string.value_missing) : record.date);
+        showOrHide(row.findViewById(R.id.tvHistoryMethod), record.method);
+        showOrHide(row.findViewById(R.id.tvHistoryDate), record.date);
         ((TextView) row.findViewById(R.id.tvHistoryAmount)).setText(MoneyFormat.format(MoneyFormat.parse(record.amount)));
         ((TextView) row.findViewById(R.id.tvHistoryStatus)).setText(friendlyPaymentStatus(record.status));
         return row;
@@ -324,7 +319,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
     /** The backend's payment_status ("completed", "pending", ...) is an internal vocabulary - guests read "Verified" / "Awaiting verification" / "Rejected". */
     private String friendlyPaymentStatus(@Nullable String status) {
-        if (status == null || status.trim().isEmpty()) return getString(R.string.value_missing);
+        if (!TransactionDetailSections.isShowable(status)) return "";
         switch (status.trim().toLowerCase(java.util.Locale.US)) {
             case "completed":
                 return getString(R.string.txn_history_status_verified);
@@ -336,6 +331,13 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             default:
                 return status;
         }
+    }
+
+    /** The text, or the view gone when there is none - a details screen never shows a placeholder. */
+    private static void showOrHide(TextView view, @Nullable String value) {
+        boolean show = TransactionDetailSections.isShowable(value);
+        view.setText(show ? value : "");
+        view.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     private String friendlyVerificationStatus(String status) {
@@ -353,13 +355,15 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
     /** A row that is hidden when there is nothing to show (an optional field). */
     private void addInfoRow(LinearLayout container, String label, @Nullable String value) {
-        if (TextUtils.isEmpty(value)) return;
+        if (!TransactionDetailSections.isShowable(value)) return;
         addRow(container, label, value);
     }
 
-    /** A row for a field every transaction is expected to have: a missing value reads "—", never a blank or "null". */
-    private void addInfoRowOrDash(LinearLayout container, String label, @Nullable String value) {
-        addRow(container, label, TextUtils.isEmpty(value) ? getString(R.string.value_missing) : value);
+    /** A titled group; nothing at all (not even the title) when the group has no rows. */
+    private void addGroup(LinearLayout container, String title, List<TransactionDetailSections.Row> rows) {
+        if (rows.isEmpty()) return;
+        addSectionDivider(container, title);
+        for (TransactionDetailSections.Row row : rows) addRow(container, row.label, row.value);
     }
 
     private void addRow(LinearLayout container, String label, String value) {

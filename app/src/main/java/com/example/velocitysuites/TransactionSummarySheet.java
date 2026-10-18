@@ -49,38 +49,20 @@ final class TransactionSummarySheet {
         }
     }
 
+    private static List<Row> rowsOf(List<TransactionDetailSections.Row> source) {
+        List<Row> rows = new ArrayList<>();
+        for (TransactionDetailSections.Row r : source) rows.add(new Row(r.label, r.value));
+        return rows;
+    }
+
     /** The sections to show, in order; a section with nothing to say is left out entirely. */
     @NonNull
     static List<Section> sections(@NonNull Context context, @NonNull Booking b) {
-        List<Row> stay = new ArrayList<>();
-        add(stay, context.getString(R.string.sheet_label_check_in), whenOf(context, b.getCheckInDate(), StayCalendarModel.CHECK_IN_TIME));
-        add(stay, context.getString(R.string.sheet_label_check_out), whenOf(context, b.getCheckOutDate(), StayCalendarModel.CHECK_OUT_TIME));
-        long nights = StayDateCalculator.nightsBetween(b.getCheckInDate(), b.getCheckOutDate());
-        if (nights > 0) {
-            add(stay, context.getString(R.string.nights_label),
-                    context.getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights));
-        }
-        if (b.getGuests() > 0) {
-            add(stay, context.getString(R.string.total_guests_label),
-                    context.getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
-        }
-        List<Row> room = new ArrayList<>();
-        add(room, context.getString(R.string.sheet_label_room), BillingSummaryActivity.roomNameOf(b));
-        List<Row> payment = new ArrayList<>();
-        TransactionStatusHelper.Summary money = TransactionStatusHelper.summarize(b);
-        add(payment, context.getString(R.string.grand_total_label), MoneyFormat.format(b.getTotalAmount()));
-        add(payment, context.getString(R.string.billing_amount_paid_label), MoneyFormat.format(b.getEffectiveTotalAmountPaid()));
-        add(payment, context.getString(R.string.billing_remaining_balance_label), MoneyFormat.format(money.balance));
-        String method = b.getPaymentMethod();
-        if (method != null && !method.trim().isEmpty()) {
-            add(payment, context.getString(R.string.review_payment_method_label),
-                    "cash".equalsIgnoreCase(method.trim()) ? context.getString(R.string.payment_method_cash)
-                            : context.getString(R.string.payment_method_gcash));
-        }
+        TransactionDetailSections model = TransactionDetailSections.of(context, b, null);
         List<Section> sections = new ArrayList<>();
-        if (!stay.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_stay), stay));
-        if (!room.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_room), room));
-        if (!payment.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_payment), payment));
+        if (!model.stay.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_stay), rowsOf(model.stay)));
+        if (!model.room.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_room), rowsOf(model.room)));
+        if (!model.payment.isEmpty()) sections.add(new Section(context.getString(R.string.upcoming_section_payment), rowsOf(model.payment)));
         return sections;
     }
 
@@ -90,16 +72,6 @@ final class TransactionSummarySheet {
         List<Row> all = new ArrayList<>();
         for (Section section : sections(context, b)) all.addAll(section.rows);
         return all;
-    }
-
-    private static void add(List<Row> rows, String label, @Nullable String value) {
-        if (value != null && !value.trim().isEmpty() && !"null".equalsIgnoreCase(value.trim())) rows.add(new Row(label, value));
-    }
-
-    @Nullable
-    private static String whenOf(Context context, @Nullable String date, java.time.LocalTime time) {
-        if (date == null || date.trim().isEmpty()) return null;
-        return context.getString(R.string.stay_calendar_when_format, date, StayCalendarModel.formatTime(time));
     }
 
     /** Shows the sheet; {@code onViewFull} runs when the guest asks for the full record. Returns it (null if the screen is closing). */

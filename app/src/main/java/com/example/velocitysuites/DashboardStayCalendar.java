@@ -1,7 +1,6 @@
 package com.example.velocitysuites;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -76,8 +75,11 @@ final class DashboardStayCalendar {
         this.modeGroup = root.findViewById(R.id.stayCalMode);
         this.countLabel = root.findViewById(R.id.stayCalCount);
         this.showCancelled = root.findViewById(R.id.stayCalShowCancelled);
+        // Collapsed: the filter, the count and the first few transactions; the month grid opens with the section.
         this.section = new CollapsibleSection(context, "stay_calendar", root.findViewById(R.id.stayCalToggle),
-                root.findViewById(R.id.stayCalCollapsedSummary), root.findViewById(R.id.stayCalBody));
+                root.findViewById(R.id.stayCalCollapsedSummary), root.findViewById(R.id.stayCalBody))
+                .previewList(this::renderSummary)
+                .collapsedHides(root.findViewById(R.id.stayCalNavRow), grid);
         this.selected = today;
         this.shown = YearMonth.from(today);
 
@@ -237,7 +239,8 @@ final class DashboardStayCalendar {
         List<Booking> entries = model.transactionsFor(mode, selected, showCancelled.isChecked());
         emptyText.setVisibility(entries.isEmpty() ? View.VISIBLE : View.GONE);
         countLabel.setText(context.getResources().getQuantityString(R.plurals.summary_transactions_count, entries.size(), entries.size()));
-        for (Booking b : entries) StayCardBinder.add(context, summary, b, StayCardBinder.Tag.NONE);
+        for (Booking b : SectionPreview.visible(entries, section.isExpanded())) StayCardBinder.add(context, summary, b, StayCardBinder.Tag.NONE);
+        SectionPreview.addToggle(context, summary, entries.size(), section.isExpanded(), section::toggle);
 
         // The one-line summary shown while the section is collapsed: how many, and what comes first.
         if (entries.isEmpty()) {

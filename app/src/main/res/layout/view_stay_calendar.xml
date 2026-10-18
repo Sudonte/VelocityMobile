@@ -22,10 +22,21 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                style="@style/TextAppearance.Velocity.Label.Section"
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/velocity_red_soft"
+                android:importantForAccessibility="no"
+                android:padding="7dp"
+                android:src="@drawable/ic_calendar"
+                app:tint="@color/velocity_red_primary" />
+                    <TextView
+                style="@style/TextAppearance.Velocity.Section.Title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:accessibilityHeading="true"
                 android:text="@string/stay_calendar_title" />
@@ -106,6 +117,7 @@
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <LinearLayout
+            android:id="@+id/stayCalNavRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
