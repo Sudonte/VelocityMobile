@@ -112,6 +112,12 @@
             android:textSize="12sp"
             tools:text="Stay: Oct 18, 2026 to Oct 20, 2026 - 2 guests" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/velocity_divider_hairline" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

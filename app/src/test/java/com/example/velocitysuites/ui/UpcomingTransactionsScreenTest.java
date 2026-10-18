@@ -192,14 +192,15 @@ public class UpcomingTransactionsScreenTest {
     }
 
     @Test
-    public void filtersAreThreeComboBoxes_eachDefaultingToAll() {
+    public void filtersAreTwoComboBoxes_typeAndStatus_eachDefaultingToAll_withNoDateFilter() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
-        for (int id : new int[]{R.id.dropdownUpcomingType, R.id.dropdownUpcomingStatus, R.id.dropdownUpcomingDate}) {
+        for (int id : new int[]{R.id.dropdownUpcomingType, R.id.dropdownUpcomingStatus}) {
             android.widget.AutoCompleteTextView dropdown = activity.findViewById(id);
             assertEquals("All", dropdown.getText().toString());
             assertEquals("All", dropdown.getAdapter().getItem(0).toString());
         }
-        assertEquals(4, ((android.widget.AutoCompleteTextView) activity.findViewById(R.id.dropdownUpcomingDate)).getAdapter().getCount());
+        assertEquals("the Date filter is gone", 0,
+                activity.getResources().getIdentifier("dropdownUpcomingDate", "id", activity.getPackageName()));
     }
 
     @Test
@@ -232,35 +233,24 @@ public class UpcomingTransactionsScreenTest {
     }
 
     @Test
-    public void tappingACalendarDay_filtersTheList_andShowsDailyInTheDateBox() {
+    public void tappingACalendarDay_doesNotFilterTheList() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
         assertEquals(6, refs(activity).size());
 
-        tapCalendarDay(activity, today().plusDays(2)); // Booking #10 stays that night; nothing else does
-        assertEquals(java.util.Collections.singletonList("Booking #10"), refs(activity));
-        assertEquals("Daily", shown(activity, R.id.dropdownUpcomingDate));
-
-        pick(activity, R.id.dropdownUpcomingDate, "All");
-        assertEquals(6, refs(activity).size());
+        tapCalendarDay(activity, today().plusDays(2));
+        assertEquals("the calendar is a view, not a filter", 6, refs(activity).size());
     }
 
     @Test
-    public void pagingTheCalendar_onlyChangesTheMonth_neverTheDayOrTheDateFilter() {
+    public void pagingTheCalendar_neverChangesTheList() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
 
         activity.findViewById(R.id.stayCalNext).performClick();
         idle();
-        assertEquals("no Date filter turned on", "All", shown(activity, R.id.dropdownUpcomingDate));
         assertEquals(6, refs(activity).size());
-
         activity.findViewById(R.id.stayCalPrev).performClick();
-        tapCalendarDay(activity, today().plusDays(2));
-        assertEquals(java.util.Collections.singletonList("Booking #10"), refs(activity));
-        activity.findViewById(R.id.stayCalNext).performClick();
-        activity.findViewById(R.id.stayCalNext).performClick();
         idle();
-        assertEquals("the chosen day still filters the list", java.util.Collections.singletonList("Booking #10"), refs(activity));
-        assertEquals("Daily", shown(activity, R.id.dropdownUpcomingDate));
+        assertEquals(6, refs(activity).size());
     }
 
     @Test
@@ -308,20 +298,29 @@ public class UpcomingTransactionsScreenTest {
     }
 
     @Test
-    public void withADateChosen_statusAllListsEveryStay_includingCancelledAndRejected() {
+    public void dashboardLink_appliesTheTypeAndStatusFilters_andFocusesThatTransaction() {
+        Intent intent = new Intent(app, UpcomingTransactionsActivity.class)
+                .putExtra(UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID, "10")
+                .putExtra(UpcomingTransactionsActivity.EXTRA_SELECTED_DIRECT, true)
+                .putExtra(UpcomingTransactionsActivity.EXTRA_TYPE_FILTER, "BOOKINGS")
+                .putExtra(UpcomingTransactionsActivity.EXTRA_STATUS_FILTER, "CONFIRMED");
+        UpcomingTransactionsActivity activity = launchWithEverything(intent);
+
+        assertEquals("Bookings", shown(activity, R.id.dropdownUpcomingType));
+        assertEquals("Confirmed", shown(activity, R.id.dropdownUpcomingStatus));
+        assertEquals(java.util.Collections.singletonList("Booking #10"), refs(activity));
+        assertEquals("the focused card is outlined", (int) (3 * activity.getResources().getDisplayMetrics().density),
+                cardOf(activity, "Booking #10").getStrokeWidth());
+    }
+
+    @Test
+    public void statusAllListsEveryStay_includingCancelledAndRejected() {
         UpcomingTransactionsActivity activity = launchWithEverything(new Intent(app, UpcomingTransactionsActivity.class));
-        tapCalendarDay(activity, today().plusDays(8));
-        assertEquals("All means all: the cancelled booking is listed", java.util.Collections.singletonList("Booking #13"), refs(activity));
-
-        tapCalendarDay(activity, today().plusDays(7));
-        assertEquals(java.util.Collections.singletonList("Reservation #2"), refs(activity)); // rejected
-
-        tapCalendarDay(activity, today().plusDays(6)); // pending #1 and rejected #2 both cover it
-        assertEquals(java.util.Arrays.asList("Reservation #1", "Reservation #2"), refs(activity));
+        java.util.List<String> all = refs(activity);
+        assertTrue(all.contains("Booking #13")); // cancelled
+        assertTrue(all.contains("Reservation #2")); // rejected
 
         pick(activity, R.id.dropdownUpcomingStatus, "Cancelled");
-        assertEquals(java.util.Collections.emptyList(), refs(activity));
-        tapCalendarDay(activity, today().plusDays(8));
         assertEquals(java.util.Collections.singletonList("Booking #13"), refs(activity));
     }
 

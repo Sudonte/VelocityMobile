@@ -98,7 +98,7 @@
                 android:paddingTop="14dp"
                 android:paddingBottom="36dp">
 
-                <!-- a) Filters: three combo boxes side by side. -->
+                <!-- a) Filters: type and status, side by side. -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -133,37 +133,13 @@
                         style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="4dp"
+                        android:layout_marginStart="4dp"
                         android:layout_weight="1"
                         android:hint="@string/upcoming_filter_status_label"
                         app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
 
                         <AutoCompleteTextView
                             android:id="@+id/dropdownUpcomingStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-bold"
-                            android:includeFontPadding="false"
-                            android:inputType="none"
-                            android:maxLines="1"
-                            android:paddingVertical="10dp"
-                            android:text="@string/upcoming_filter_all"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="12sp"
-                            tools:ignore="LabelFor" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:layout_weight="1"
-                        android:hint="@string/upcoming_filter_date_label"
-                        app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/dropdownUpcomingDate"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-bold"

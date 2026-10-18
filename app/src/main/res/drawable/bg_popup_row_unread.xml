@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An unread row in the notification popover: a soft brand tint (read rows keep the plain ripple) so unread stands out. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/velocity_red_bg_start" />
+        </shape>
+    </item>
+</ripple>

@@ -124,6 +124,58 @@ public class DashboardScreenTest {
         }
     }
 
+    // ---- Recent Upcoming Stay
+
+    @Test
+    public void recentUpcomingStay_sitsBelowTheSummary_showsFive_expandsToAll_andOpensFilteredUpcoming() {
+        DashboardActivity activity = launch();
+        View content = (View) activity.findViewById(R.id.welcomeCard).getParent();
+        assertTrue(topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
+                > topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard)));
+        assertTrue(topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
+                < topLevelIndex(content, activity.findViewById(R.id.bookingDetailsCard)));
+
+        ReservationDto[] seven = new ReservationDto[7];
+        for (int i = 0; i < seven.length; i++) {
+            seven[i] = stay(100 + i, 3 + i, 1);
+            seven[i].status = "AWAITING_GCASH_PAYMENT"; // Pending
+        }
+        answer(seven);
+
+        LinearLayout list = activity.findViewById(R.id.recentUpcomingList);
+        assertEquals(5, list.getChildCount());
+        assertEquals("7", text(activity, R.id.recentUpcomingCount));
+        TextView toggle = activity.findViewById(R.id.btnRecentUpcomingToggle);
+        assertEquals(View.VISIBLE, toggle.getVisibility());
+        assertEquals("View all", toggle.getText().toString());
+
+        tap(toggle);
+        assertEquals(7, list.getChildCount());
+        assertEquals("Show less", toggle.getText().toString());
+        tap(toggle);
+        assertEquals(5, list.getChildCount());
+
+        tap(list.getChildAt(0));
+        Intent next = nextScreen(activity);
+        assertNotNull(next);
+        assertEquals("com.example.velocitysuites.UpcomingTransactionsActivity", next.getComponent().getClassName());
+        assertEquals("RESERVATIONS", next.getStringExtra("EXTRA_TYPE_FILTER"));
+        assertEquals("PENDING", next.getStringExtra("EXTRA_STATUS_FILTER"));
+        assertEquals("100", next.getStringExtra("EXTRA_SELECTED_BOOKING_ID"));
+    }
+
+    @Test
+    public void recentUpcomingStay_showsAnEmptyState_whenNothingIsPendingOrConfirmed() {
+        DashboardActivity activity = launch();
+        ReservationDto cancelled = stay(200, 3, 1);
+        cancelled.status = "REJECTED_RESERVATION";
+        answer(cancelled);
+
+        assertEquals(0, ((LinearLayout) activity.findViewById(R.id.recentUpcomingList)).getChildCount());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.recentUpcomingEmpty).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.btnRecentUpcomingToggle).getVisibility());
+    }
+
     // ---- structure
 
     @Test

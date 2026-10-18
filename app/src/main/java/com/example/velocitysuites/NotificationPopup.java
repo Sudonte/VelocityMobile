@@ -141,6 +141,8 @@ public final class NotificationPopup {
             TextView time = row.findViewById(R.id.tvPopupNotifTime);
             time.setText(TimeUtils.formatCompact(n.getCreatedAtMillis(), now));
             row.findViewById(R.id.unreadDotPopup).setVisibility(n.isRead() ? View.INVISIBLE : View.VISIBLE);
+            if (!n.isRead()) row.setBackgroundResource(R.drawable.bg_popup_row_unread); // unread: tinted; read: plain
+            else row.findViewById(R.id.tvPopupNotifMessage).setAlpha(0.8f);
             TextView title = row.findViewById(R.id.tvPopupNotifTitle);
             title.setTypeface(title.getTypeface(), n.isRead() ? android.graphics.Typeface.NORMAL : android.graphics.Typeface.BOLD);
             View markRead = row.findViewById(R.id.btnPopupNotifMarkRead);

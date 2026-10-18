@@ -38,12 +38,12 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
     private TextView tvBillingRef, tvBillingStatus, tvBillingRoomHeadline, tvBillingRoomType, tvBillingDates,
             tvBillingNights, tvBillingRate, tvBillingRoomRate, tvBillingDiscount, tvBillingPrimaryGuest, tvBillingRepresentativeName, tvBillingGuestCount, tvBillingIdType,
-            tvBillingTotalAmenities, tvBillingBalanceDue, tvBillingSelectedPayment,
+            tvBillingTotalAmenities, tvBillingBalanceDue, tvBillingAlreadyPaid, tvBillingRemaining,
+            tvBillingPayNowOption, tvBillingPayNowAmount,
             tvBillingPaymentMethod, tvBillingPaymentType, tvBillingPaymentStatus,
             tvAmenitiesSectionTotal, tvNoAmenitiesMessage,
             tvBillingBreakdownRoomRate, tvBillingBreakdownNights,
             tvBillingRoomQuantity, tvBillingSingleRoomRate, tvBillingRoomSubtotalPerNight, tvBillingStayRoomAmount;
-    private View layoutBillingSelectedPayment;
     private View tvViewBillingTerms;
     private View layoutBillingAdditionalGuestsSection;
     private LinearLayout layoutBillingAdditionalGuests;
@@ -188,8 +188,10 @@ public class BillingSummaryActivity extends AppCompatActivity {
         tvBillingIdType = findViewById(R.id.tvBillingIdType);
         tvBillingTotalAmenities = findViewById(R.id.tvBillingTotalAmenities);
         tvBillingBalanceDue = findViewById(R.id.tvBillingBalanceDue);
-        layoutBillingSelectedPayment = findViewById(R.id.layoutBillingSelectedPayment);
-        tvBillingSelectedPayment = findViewById(R.id.tvBillingSelectedPayment);
+        tvBillingAlreadyPaid = findViewById(R.id.tvBillingAlreadyPaid);
+        tvBillingRemaining = findViewById(R.id.tvBillingRemaining);
+        tvBillingPayNowOption = findViewById(R.id.tvBillingPayNowOption);
+        tvBillingPayNowAmount = findViewById(R.id.tvBillingPayNowAmount);
         tvAmenitiesSectionTotal = findViewById(R.id.tvAmenitiesSectionTotal);
         tvNoAmenitiesMessage = findViewById(R.id.tvNoAmenitiesMessage);
         tvBillingBreakdownRoomRate = findViewById(R.id.tvBillingBreakdownRoomRate);
@@ -260,10 +262,12 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
     private void populateSummary() {
         tvBillingRef.setText(getString(booking.isHasBooking() ? R.string.booking_ref_label : R.string.reservation_ref_label, booking.getDisplayId()));
-        tvBillingStatus.setText(booking.getStatus().toUpperCase(Locale.US));
+        tvBillingStatus.setText(orDefault(booking.getStatus(), getString(R.string.status_pending)).toUpperCase(Locale.US));
         tvBillingRoomHeadline.setText(roomHeadline());
-        tvBillingRoomType.setText(android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()));
-        tvBillingDates.setText(getString(R.string.date_range_format, booking.getCheckInDate(), booking.getCheckOutDate()));
+        tvBillingRoomType.setText(orDefault(android.text.TextUtils.join(", ", booking.getAllRoomTypeNames()), getString(R.string.no_room_selected)));
+        tvBillingDates.setText(getString(R.string.date_range_format,
+                orDefault(booking.getCheckInDate(), getString(R.string.not_specified)),
+                orDefault(booking.getCheckOutDate(), getString(R.string.not_specified))));
         nights = nightsBetween(booking.getCheckInDate(), booking.getCheckOutDate());
         tvBillingNights.setText(getString(R.string.nights_count_format, (int) nights));
         if (layoutBillingDiscount != null && tvBillingDiscount != null) {
@@ -273,7 +277,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
             boolean hasDiscount = booking.getDiscountAmount() > 0.009;
             layoutBillingDiscount.setVisibility(hasDiscount ? View.VISIBLE : View.GONE);
             if (hasDiscount) {
-                tvBillingDiscount.setText(String.format(Locale.US, "-₱%,.2f", booking.getDiscountAmount()));
+                tvBillingDiscount.setText(MoneyFormat.format(-booking.getDiscountAmount()));
             }
         }
 
@@ -299,7 +303,8 @@ public class BillingSummaryActivity extends AppCompatActivity {
         if (hasAdditionalGuests) {
             for (Booking.AdditionalGuest guest : additionalGuests) {
                 TextView row = new TextView(this);
-                row.setText(getString(R.string.details_guest_entry, guest.name, guest.relationship));
+                row.setText(getString(R.string.details_guest_entry, orDefault(guest.name, getString(R.string.not_specified)),
+                        orDefault(guest.relationship, getString(R.string.not_specified))));
                 row.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
                 row.setTextSize(13f);
                 row.setPadding(0, 0, 0, (int) (getResources().getDisplayMetrics().density * 4));
@@ -315,24 +320,6 @@ public class BillingSummaryActivity extends AppCompatActivity {
         updateBillingBreakdownAmounts();
 
         double alreadyPaid = booking.getAmountPaid();
-
-        // GCash only - the percentage/amount chosen once at reservation
-        // creation (see PaymentActivity#selectedGcashPercentageForRequest()),
-        // shown here so the guest can review it before Confirm Booking hands
-        // off to PaymentActivity, which reuses this exact stored figure.
-        Double selectedPercentage = booking.getSelectedPaymentPercentage();
-        Double requiredAmount = booking.getRequiredPaymentAmount();
-        boolean hasSelectedPayment = selectedPercentage != null && requiredAmount != null;
-        if (layoutBillingSelectedPayment != null) {
-            layoutBillingSelectedPayment.setVisibility(hasSelectedPayment ? View.VISIBLE : View.GONE);
-        }
-        if (hasSelectedPayment && tvBillingSelectedPayment != null) {
-            String percentText = selectedPercentage == Math.floor(selectedPercentage)
-                    ? String.valueOf(selectedPercentage.intValue())
-                    : String.valueOf(selectedPercentage);
-            tvBillingSelectedPayment.setText(getString(R.string.selected_payment_value_format, percentText,
-                    String.format(Locale.US, "%,.2f", requiredAmount)));
-        }
 
         // Payment Information card: hidden entirely (rather than shown with fabricated/
         // placeholder values) until this specific reservation actually carries a payment
@@ -371,12 +358,12 @@ public class BillingSummaryActivity extends AppCompatActivity {
     private String roomHeadline() {
         List<BookingRoom> roomLines = booking.getRooms();
         if (roomLines == null || roomLines.isEmpty()) {
-            return booking.getRoomName();
+            return orDefault(booking.getRoomName(), getString(R.string.no_room_selected));
         }
         StringBuilder sb = new StringBuilder();
         for (BookingRoom line : roomLines) {
             if (sb.length() > 0) sb.append(" + ");
-            sb.append(line.getRoomTypeName());
+            sb.append(orDefault(line.getRoomTypeName(), getString(R.string.no_room_selected)));
         }
         return sb.toString();
     }
@@ -451,19 +438,42 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
             if (tvBillingRoomQuantity != null) tvBillingRoomQuantity.setText(getString(R.string.rooms_quantity_format, roomQuantity));
             if (tvBillingSingleRoomRate != null) tvBillingSingleRoomRate.setText(getString(R.string.price_per_night_format, perRoomRate));
-            if (tvBillingRoomSubtotalPerNight != null) tvBillingRoomSubtotalPerNight.setText(String.format(Locale.US, "₱%,.2f", roomSubtotalPerNight));
-            if (tvBillingRoomRate != null) tvBillingRoomRate.setText(String.format(Locale.US, "₱%,.2f", totalRoomRatePerNight));
-            if (tvBillingBreakdownRoomRate != null) tvBillingBreakdownRoomRate.setText(String.format(Locale.US, "₱%,.2f", totalRoomRatePerNight));
+            if (tvBillingRoomSubtotalPerNight != null) tvBillingRoomSubtotalPerNight.setText(MoneyFormat.format(roomSubtotalPerNight));
+            if (tvBillingRoomRate != null) tvBillingRoomRate.setText(MoneyFormat.format(totalRoomRatePerNight));
+            if (tvBillingBreakdownRoomRate != null) tvBillingBreakdownRoomRate.setText(MoneyFormat.format(totalRoomRatePerNight));
         }
 
         if (tvBillingBreakdownNights != null) tvBillingBreakdownNights.setText(String.valueOf(nights));
-        if (tvBillingStayRoomAmount != null) tvBillingStayRoomAmount.setText(String.format(Locale.US, "₱%,.2f", roomTotal));
-        if (tvBillingRate != null) tvBillingRate.setText(String.format(Locale.US, "₱%,.2f", roomTotal));
+        if (tvBillingStayRoomAmount != null) tvBillingStayRoomAmount.setText(MoneyFormat.format(roomTotal));
+        if (tvBillingRate != null) tvBillingRate.setText(MoneyFormat.format(roomTotal));
 
-        if (tvBillingTotalAmenities != null) tvBillingTotalAmenities.setText(String.format(Locale.US, "₱%,.2f", totalAmenitiesAmount));
-        if (tvBillingBalanceDue != null) tvBillingBalanceDue.setText(String.format(Locale.US, "₱%,.2f", grandTotal));
+        if (tvBillingTotalAmenities != null) tvBillingTotalAmenities.setText(MoneyFormat.format(totalAmenitiesAmount));
+        if (tvBillingBalanceDue != null) tvBillingBalanceDue.setText(MoneyFormat.format(grandTotal));
+        bindPayNow(grandTotal);
 
         if (tvBillingRoomHeadline != null) tvBillingRoomHeadline.setText(roomHeadline());
+    }
+
+    /**
+     * Amount Already Paid, Remaining Balance and the highlighted Total Amount to Pay - for the option the guest chose
+     * (Partial = its percentage, Full = everything left), else the plain balance. Always real peso figures, never blank.
+     */
+    private void bindPayNow(double grandTotal) {
+        BillingAmounts amounts = BillingAmounts.compute(grandTotal, booking.getAmountPaid(),
+                booking.getSelectedPaymentPercentage(), booking.getRequiredPaymentAmount());
+        if (tvBillingAlreadyPaid != null) tvBillingAlreadyPaid.setText(MoneyFormat.format(amounts.alreadyPaid));
+        if (tvBillingRemaining != null) tvBillingRemaining.setText(MoneyFormat.format(amounts.remaining));
+        if (tvBillingPayNowAmount != null) tvBillingPayNowAmount.setText(MoneyFormat.format(amounts.amountToPay));
+        if (tvBillingPayNowOption != null) {
+            tvBillingPayNowOption.setText(amounts.option == BillingAmounts.Option.PARTIAL
+                    ? getString(R.string.billing_option_partial_format, amounts.percentage)
+                    : getString(amounts.option == BillingAmounts.Option.FULL
+                            ? R.string.billing_option_full : R.string.billing_option_balance));
+        }
+    }
+
+    private static String orDefault(String value, String fallback) {
+        return value == null || value.trim().isEmpty() || "null".equalsIgnoreCase(value.trim()) ? fallback : value;
     }
 
     /** One itemized room-type row: name header + price/night, quantity, nights, subtotal -
@@ -476,7 +486,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
         container.setPadding(0, vPad, 0, vPad);
 
         TextView tvName = new TextView(this);
-        tvName.setText(room.getRoomTypeName());
+        tvName.setText(orDefault(room.getRoomTypeName(), getString(R.string.no_room_selected)));
         tvName.setTextSize(14f);
         tvName.setTypeface(tvName.getTypeface(), android.graphics.Typeface.BOLD);
         tvName.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
@@ -488,11 +498,11 @@ public class BillingSummaryActivity extends AppCompatActivity {
         // room.getSubtotal() (rate x quantity x nights) - only the redundant display row
         // is removed.
         container.addView(buildAmenityRow(getString(R.string.price_per_room_night_label),
-                String.format(Locale.US, "₱%,.2f", room.getPricePerNight())));
+                MoneyFormat.format(room.getPricePerNight())));
         container.addView(buildAmenityRow(getString(R.string.selected_room_quantity_label),
                 String.valueOf(room.getQuantity())));
         container.addView(buildAmenityRow(getString(R.string.room_line_subtotal_label),
-                String.format(Locale.US, "₱%,.2f", room.getSubtotal())));
+                MoneyFormat.format(room.getSubtotal())));
 
         return container;
     }
@@ -521,7 +531,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
                 total += subtotal;
                 layoutBillingAmenitiesRows.addView(buildAmenityRow(
                         getString(R.string.summary_amenity_row_qty_format, item.amenity_name, quantity),
-                        String.format(Locale.US, "₱%,.2f", subtotal)));
+                        MoneyFormat.format(subtotal)));
             }
         }
         totalAmenitiesAmount = total;
@@ -530,7 +540,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
             tvNoAmenitiesMessage.setVisibility(layoutBillingAmenitiesRows.getChildCount() == 0 ? View.VISIBLE : View.GONE);
         }
         if (tvAmenitiesSectionTotal != null) {
-            tvAmenitiesSectionTotal.setText(String.format(Locale.US, "₱%,.2f", totalAmenitiesAmount));
+            tvAmenitiesSectionTotal.setText(MoneyFormat.format(totalAmenitiesAmount));
         }
         updateBillingBreakdownAmounts();
     }

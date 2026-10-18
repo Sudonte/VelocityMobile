@@ -32,8 +32,7 @@ import java.util.function.Consumer;
 /**
  * "Upcoming Hotel Transactions": EVERY booking and reservation the guest has, whatever its status (pending, confirmed,
  * checked in, checked out, cancelled, rejected), one card per transaction. Nothing is dropped by the client - the only
- * things that narrow the list are the filters the guest picks (type, status, date - three combo boxes, or a day on the
- * Stay Calendar), and a transaction that was checked
+ * things that narrow the list are the two filters the guest picks (type and status), and a transaction that was checked
  * out or cancelled stays here for tracking.
  * <p>
  * Deep link: {@link #EXTRA_SELECTED_BOOKING_ID} (+ {@link #EXTRA_SELECTED_DIRECT} to tell a direct booking from a
@@ -49,6 +48,8 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     public static final String EXTRA_SELECTED_DIRECT = "EXTRA_SELECTED_DIRECT";
     /** Optional: opens with this status filter (a {@link StatusFilter} name); absent means All Statuses. */
     public static final String EXTRA_STATUS_FILTER = "EXTRA_STATUS_FILTER";
+    /** Optional: opens with this type filter (a {@link TypeFilter} name); absent means All types. */
+    public static final String EXTRA_TYPE_FILTER = "EXTRA_TYPE_FILTER";
 
     /** The Status filter - All Statuses plus each individual status. */
     enum StatusFilter {
@@ -96,17 +97,15 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         TypeFilter(int labelRes) {
             this.labelRes = labelRes;
         }
-    }
 
-    /** The Date filter's choices: no date filter, or the calendar's Daily / Weekly / Monthly window around the chosen day. */
-    private static final StayCalendarModel.Mode[] PERIOD_CHOICES = {
-            null, StayCalendarModel.Mode.DAILY, StayCalendarModel.Mode.WEEKLY, StayCalendarModel.Mode.MONTHLY};
-
-    private static int periodLabel(@Nullable StayCalendarModel.Mode mode) {
-        if (mode == StayCalendarModel.Mode.DAILY) return R.string.stay_calendar_daily;
-        if (mode == StayCalendarModel.Mode.WEEKLY) return R.string.stay_calendar_weekly;
-        if (mode == StayCalendarModel.Mode.MONTHLY) return R.string.stay_calendar_monthly;
-        return R.string.upcoming_filter_all;
+        static TypeFilter fromName(@Nullable String name) {
+            if (name != null) {
+                for (TypeFilter f : values()) {
+                    if (f.name().equalsIgnoreCase(name)) return f;
+                }
+            }
+            return ALL;
+        }
     }
 
     /** Opacity of a cancelled / rejected card's details. */
@@ -121,6 +120,23 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
                 .putExtra(EXTRA_STATUS_FILTER, StatusFilter.ALL.name());
     }
 
+    /**
+     * Opens Upcoming Hotel Transactions with the Type (Booking / Reservation) and Status filters set to this transaction's
+     * own, scrolled to and highlighting exactly it - the Dashboard's "Recent Upcoming Stay" tap.
+     */
+    public static Intent intentWithFilters(@NonNull Context context, @NonNull Booking booking) {
+        return intentFor(context, booking)
+                .putExtra(EXTRA_TYPE_FILTER, (booking.isHasBooking() ? TypeFilter.BOOKINGS : TypeFilter.RESERVATIONS).name())
+                .putExtra(EXTRA_STATUS_FILTER, statusFilterOf(booking).name());
+    }
+
+    private static StatusFilter statusFilterOf(@NonNull Booking booking) {
+        for (StatusFilter f : StatusFilter.values()) {
+            if (f != StatusFilter.ALL && f.matches(booking)) return f;
+        }
+        return StatusFilter.ALL;
+    }
+
     /** Opens Upcoming Hotel Transactions scrolled to and highlighting exactly this transaction. */
     public static Intent intentFor(@NonNull Context context, @NonNull Booking booking) {
         return new Intent(context, UpcomingTransactionsActivity.class)
@@ -132,14 +148,11 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     private View emptyState, loadingOverlay;
     private TextView resultCount;
     private androidx.core.widget.NestedScrollView screenContent;
-    private AutoCompleteTextView dropdownType, dropdownStatus, dropdownDate;
+    private AutoCompleteTextView dropdownType, dropdownStatus;
     private TextView clock;
     private DashboardStayCalendar calendar;
     /** Type + Status the calendar's shading was last built for. */
     private String shadingKey;
-    private StayCalendarModel.Mode periodMode = null; // null = any date
-    /** The day the Daily / Weekly / Monthly window is cut around - the calendar's selected day. */
-    private LocalDate periodDate = LocalDate.now(TimeUtils.ZONE_MANILA);
     private RoomRepository repository;
     private final Handler clockHandler = new Handler(Looper.getMainLooper());
     private final Runnable clockTick = new Runnable() {
@@ -167,7 +180,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.upcomingtransactions);
-        setupGuestNavigation(R.id.nav_upcoming_transactions);
+        setupGuestNavigation(View.NO_ID); // reached from the Dashboard, not a drawer entry
         animateScreenContent();
 
         repository = RoomRepository.getInstance(this);
@@ -179,7 +192,6 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         screenContent = findViewById(R.id.screenContent);
         dropdownType = findViewById(R.id.dropdownUpcomingType);
         dropdownStatus = findViewById(R.id.dropdownUpcomingStatus);
-        dropdownDate = findViewById(R.id.dropdownUpcomingDate);
         clock = findViewById(R.id.tvUpcomingClock);
 
         setupFilters();
@@ -218,13 +230,14 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         selectedDirect = intent.hasExtra(EXTRA_SELECTED_DIRECT) ? intent.getBooleanExtra(EXTRA_SELECTED_DIRECT, false) : null;
         pendingScrollToSelected = selectedId != null;
         attemptedLookup = false;
-        if (intent.hasExtra(EXTRA_STATUS_FILTER)) {
+        if (intent.hasExtra(EXTRA_STATUS_FILTER) || intent.hasExtra(EXTRA_TYPE_FILTER)) {
             statusFilter = StatusFilter.fromName(intent.getStringExtra(EXTRA_STATUS_FILTER));
+            typeFilter = TypeFilter.fromName(intent.getStringExtra(EXTRA_TYPE_FILTER));
             syncDropdowns();
         }
     }
 
-    /** The three combo boxes: picking a value re-filters the list at once. */
+    /** The two combo boxes (Type, Status): picking a value re-filters the list at once. */
     private void setupFilters() {
         bindDropdown(dropdownType, TypeFilter.values(), f -> f.labelRes, f -> {
             typeFilter = f;
@@ -232,11 +245,6 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         });
         bindDropdown(dropdownStatus, StatusFilter.values(), f -> f.labelRes, f -> {
             statusFilter = f;
-            renderEvents();
-        });
-        bindDropdown(dropdownDate, PERIOD_CHOICES, UpcomingTransactionsActivity::periodLabel, mode -> {
-            periodMode = mode;
-            if (mode != null) calendar.setWindow(mode, periodDate); // the calendar shows the window the list is cut to
             renderEvents();
         });
         syncDropdowns();
@@ -254,40 +262,30 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         if (dropdownType == null) return;
         dropdownType.setText(getString(typeFilter.labelRes), false);
         dropdownStatus.setText(getString(statusFilter.labelRes), false);
-        dropdownDate.setText(getString(periodLabel(periodMode)), false);
     }
 
     /**
-     * The same Stay Calendar the Dashboard shows. Picking a day (or Daily / Weekly / Monthly / a specific date) on it
-     * becomes the Date filter, so the list below shows that window; its own list is hidden because the cards below are it.
+     * The same Stay Calendar the Dashboard shows. It is a view of the guest's stays (shaded by the Type and Status
+     * filters) with its own list for the chosen day or window; it does not filter the transaction cards below.
      */
     private void setupCalendar() {
-        calendar = new DashboardStayCalendar(findViewById(R.id.stayCalendar), periodDate);
-        calendar.setSummaryVisible(false);
-        calendar.setListener((mode, date) -> {
-            periodMode = mode;
-            periodDate = date;
-            syncDropdowns();
-            renderEvents();
-        });
+        calendar = new DashboardStayCalendar(findViewById(R.id.stayCalendar), LocalDate.now(TimeUtils.ZONE_MANILA));
     }
 
-    /** All Upcoming + All Statuses + Any date: the way out of an over-filtered list, and what a deep link needs to be visible. */
+    /** All types + All statuses: the way out of an over-filtered list, and what a deep link needs to be visible. */
     private void resetFilters() {
         typeFilter = TypeFilter.ALL;
         statusFilter = StatusFilter.ALL;
-        periodMode = null;
         syncDropdowns();
         renderEvents();
     }
 
     private boolean anyFilterActive() {
-        return typeFilter != TypeFilter.ALL || statusFilter != StatusFilter.ALL || periodMode != null;
+        return typeFilter != TypeFilter.ALL || statusFilter != StatusFilter.ALL;
     }
 
     private boolean passesFilters(@NonNull Booking b) {
-        if (!typeMatches(b) || !statusFilter.matches(b)) return false;
-        return inPeriod(b);
+        return typeMatches(b) && statusFilter.matches(b);
     }
 
     private boolean typeMatches(@NonNull Booking b) {
@@ -313,17 +311,6 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         } else {
             calendar.setShading(b -> typeMatches(b) && statusFilter.matches(b), null);
         }
-    }
-
-    /** True when the stay overlaps the chosen Daily / Weekly / Monthly window around the calendar's selected day; always true for "All". */
-    private boolean inPeriod(@NonNull Booking b) {
-        if (periodMode == null) return true;
-        LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
-        LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
-        if (in == null) return false;
-        if (out == null || out.isBefore(in)) out = in;
-        return !in.isAfter(StayCalendarModel.windowEnd(periodMode, periodDate))
-                && !out.isBefore(StayCalendarModel.windowStart(periodMode, periodDate));
     }
 
     private void loadEvents() {

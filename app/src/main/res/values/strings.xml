@@ -931,6 +931,13 @@
     <string name="remaining_balance_label">Remaining Balance</string>
     <string name="already_paid_label">Already Paid</string>
     <string name="selected_payment_label">Selected Payment</string>
+    <string name="billing_amount_paid_label">Amount Already Paid</string>
+    <string name="billing_remaining_balance_label">Remaining Balance</string>
+    <string name="billing_total_to_pay_label">Total Amount to Pay</string>
+    <string name="billing_option_partial_format">Partial Payment (%1$d%%)</string>
+    <string name="billing_option_full">Full Payment</string>
+    <string name="billing_option_balance">Remaining balance</string>
+    <string name="billing_terms_notice">Please read the Terms and Policy first. You must open and read them before you can check the box below and continue to payment.</string>
     <string name="room_type_summary_label">Room Type</string>
     <string name="stay_dates_summary_label">Stay Dates</string>
 
@@ -2054,6 +2061,12 @@
     <!-- ============ Dashboard sections: collapse / expand, summaries, Upcoming Hotel Transactions ============ -->
     <string name="section_collapse">Collapse section</string>
     <string name="section_expand">Expand section</string>
+    <string name="recent_upcoming_title">Recent Upcoming Stay</string>
+    <string name="recent_upcoming_desc">Your pending and confirmed bookings and reservations. Tap one to see its details.</string>
+    <string name="recent_upcoming_empty">No pending or confirmed upcoming stays right now.</string>
+    <string name="recent_upcoming_view_all">View all</string>
+    <string name="recent_upcoming_show_less">Show less</string>
+    <string name="recent_upcoming_dates_format">%1$s – %2$s</string>
     <plurals name="summary_stays_count">
         <item quantity="one">%d stay</item>
         <item quantity="other">%d stays</item>
@@ -2098,7 +2111,6 @@
     <string name="upcoming_type_reservations">Reservations</string>
     <string name="upcoming_filter_type_label">Type</string>
     <string name="upcoming_filter_status_label">Status</string>
-    <string name="upcoming_filter_date_label">Date</string>
     <string name="upcoming_view_in_history">View in Transaction History</string>
     <string name="upcoming_results_format">Showing %1$d of %2$d</string>
     <string name="upcoming_group_active">Upcoming and in house</string>

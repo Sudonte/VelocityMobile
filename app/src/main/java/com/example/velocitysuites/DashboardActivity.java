@@ -56,6 +56,9 @@ public class DashboardActivity extends BaseNavigationActivity {
     private CollapsibleSection quickActionsSection, summarySection, supportSection;
     /** Every stay Other Stays lists: upcoming soonest first, finished latest first. */
     private List<Booking> moreStaysUpcoming = new ArrayList<>(), moreStaysRecent = new ArrayList<>();
+    /** "Recent Upcoming Stay": every Pending / Confirmed transaction, and whether the full list is showing. */
+    private List<Booking> recentUpcoming = new ArrayList<>();
+    private boolean recentUpcomingExpanded;
     /** Every stay "Your Next Stay" currently shows (all the transactions on the nearest day). */
     private List<NextStay> currentNextStays = new ArrayList<>();
 
@@ -309,6 +312,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         RoomRepository repository = RoomRepository.getInstance(this);
 
         updateNextStay(allBookings);
+        updateRecentUpcoming(allBookings);
 
         // Booking and Reservation Summary: reservations (no payment yet) vs.
         // bookings (paid), each split by TransactionCategorizer - the same
@@ -1216,6 +1220,47 @@ public class DashboardActivity extends BaseNavigationActivity {
         ((TextView) row.findViewById(R.id.tvStayCompactWhen)).setText(getString(R.string.stay_calendar_entry_when, type, when));
         TransactionStatusChip.apply(this, row.findViewById(R.id.tvStayCompactStatus), b.getStatus());
         row.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentFor(this, b))));
+        container.addView(row);
+    }
+
+    /** Redraws "Recent Upcoming Stay" from these bookings (Pending / Confirmed only). */
+    private void updateRecentUpcoming(List<Booking> bookings) {
+        recentUpcoming = RecentUpcomingStays.select(bookings);
+        renderRecentUpcoming();
+    }
+
+    /** Collapsed: the first five. Expanded: all. Empty: a message. The toggle shows only when there is more than five. */
+    private void renderRecentUpcoming() {
+        LinearLayout list = findViewById(R.id.recentUpcomingList);
+        TextView count = findViewById(R.id.recentUpcomingCount);
+        View empty = findViewById(R.id.recentUpcomingEmpty);
+        com.google.android.material.button.MaterialButton toggle = findViewById(R.id.btnRecentUpcomingToggle);
+        list.removeAllViews();
+        int total = recentUpcoming.size();
+        boolean hasMore = total > RecentUpcomingStays.COLLAPSED_LIMIT;
+        for (Booking b : RecentUpcomingStays.visible(recentUpcoming, recentUpcomingExpanded)) addRecentUpcomingRow(b, list);
+        empty.setVisibility(total == 0 ? View.VISIBLE : View.GONE);
+        count.setVisibility(total == 0 ? View.GONE : View.VISIBLE);
+        count.setText(String.valueOf(total));
+        toggle.setVisibility(hasMore ? View.VISIBLE : View.GONE);
+        toggle.setText(recentUpcomingExpanded ? R.string.recent_upcoming_show_less : R.string.recent_upcoming_view_all);
+        toggle.setOnClickListener(NavUtils.debounce(v -> {
+            recentUpcomingExpanded = !recentUpcomingExpanded;
+            renderRecentUpcoming();
+        }));
+    }
+
+    /** Type, reference, room, dates and status; a tap opens Upcoming Hotel Transactions filtered to this type and status, on this transaction. */
+    private void addRecentUpcomingRow(Booking b, LinearLayout container) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_recent_upcoming_stay, container, false);
+        ((TextView) row.findViewById(R.id.tvRecentStayType)).setText(
+                b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
+        ((TextView) row.findViewById(R.id.tvRecentStayRef)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
+        ((TextView) row.findViewById(R.id.tvRecentStayRoom)).setText(TransactionRow.roomTextOf(b));
+        ((TextView) row.findViewById(R.id.tvRecentStayDates)).setText(getString(R.string.recent_upcoming_dates_format,
+                b.getCheckInDate(), b.getCheckOutDate()));
+        TransactionStatusChip.apply(this, row.findViewById(R.id.tvRecentStayStatus), b.getStatus());
+        row.setOnClickListener(NavUtils.debounce(v -> startActivity(UpcomingTransactionsActivity.intentWithFilters(this, b))));
         container.addView(row);
     }
 
