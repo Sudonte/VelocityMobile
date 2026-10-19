@@ -104,7 +104,7 @@ public class Phase2RegressionTest {
         assertNotNull(badge);
         assertEquals(app.getString(R.string.no_refund_badge), badge.getText().toString());
         assertEquals(View.VISIBLE, badge.getVisibility());
-        assertTrue(app.getString(R.string.hotel_policies_content).contains("No Refund Policy"));
+        assertTrue(com.example.velocitysuites.HotelPolicy.policiesText(app).contains("No Refund Policy"));
     }
 
     // ---- room details
@@ -138,9 +138,11 @@ public class Phase2RegressionTest {
         assertEquals("A nice room", ((TextView) dialog.findViewById(R.id.detailRoomDescription)).getText().toString());
 
         android.widget.LinearLayout policies = dialog.findViewById(R.id.layoutDetailPolicies);
-        assertEquals("only the refund policy: no check-in / check-out times (the app is not given any)", 1, policies.getChildCount());
+        assertEquals("refund policy, check-in and check-out, all from HotelPolicy", 3, policies.getChildCount());
         assertEquals("Refund policy", ((TextView) ((android.view.ViewGroup) policies.getChildAt(0)).getChildAt(0)).getText().toString());
         assertEquals("Non-refundable", ((TextView) ((android.view.ViewGroup) policies.getChildAt(0)).getChildAt(1)).getText().toString());
+        assertEquals("From 2:00 PM", ((TextView) ((android.view.ViewGroup) policies.getChildAt(1)).getChildAt(1)).getText().toString());
+        assertEquals("Until 12:00 PM", ((TextView) ((android.view.ViewGroup) policies.getChildAt(2)).getChildAt(1)).getText().toString());
 
         TextView more = dialog.findViewById(R.id.detailPoliciesBody);
         assertEquals("the long hotel policies start folded", View.GONE, more.getVisibility());

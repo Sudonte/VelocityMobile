@@ -136,8 +136,7 @@ final class TransactionDetailSections {
         String method = isShowable(paymentMethod) ? paymentMethod : b.getPaymentMethod();
         if (isShowable(method)) {
             add(out.payment, context.getString(R.string.review_payment_method_label),
-                    "cash".equalsIgnoreCase(method.trim()) ? context.getString(R.string.payment_method_cash)
-                            : "gcash".equalsIgnoreCase(method.trim()) ? context.getString(R.string.payment_method_gcash) : method.trim());
+                    DisplayLabels.paymentMethod(context, method));
         }
         add(out.payment, context.getString(R.string.payment_status),
                 context.getString(TransactionStatusHelper.styleFor(TransactionStatusHelper.statusOf(b)).labelRes));

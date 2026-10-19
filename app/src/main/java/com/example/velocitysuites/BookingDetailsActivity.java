@@ -483,9 +483,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
         addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
         // The moment the receptionist actually checked the guest in / out, to the second; until then the hotel's posted time.
         addInfoRow(container, getString(R.string.details_label_checked_in_at), actualOrExpected(booking.getCheckedInAtDisplay(),
-                StayCalendarModel.CHECK_IN_TIME));
+                HotelPolicy.CHECK_IN_TIME));
         addInfoRow(container, getString(R.string.details_label_checked_out_at), actualOrExpected(booking.getCheckedOutAtDisplay(),
-                StayCalendarModel.CHECK_OUT_TIME));
+                HotelPolicy.CHECK_OUT_TIME));
         StayInfo stay = booking.getStay();
         if (stay != null) {
             // In house or finished: the dates and nights the front desk actually billed - scheduled, actual, nights

@@ -118,14 +118,14 @@ public class TransactionExporterTest {
         Booking pending = booking("588", "Pending", 1800, "Deluxe");
         pay(pending, "1800.00", "pending");
         String[] lines = TransactionExporter.pdfLines(context, TransactionRow.from(pending));
-        assertEquals("Reservation #588  ·  PENDING  ·  Deluxe", lines[0]);
+        assertEquals("Reservation #588  ·  Pending  ·  Deluxe", lines[0]);
         assertEquals("Oct 01, 2026 – Oct 02, 2026  ·  Total ₱1,800.00  ·  Paid ₱0.00  ·  Balance ₱1,800.00  ·  Submitted ₱1,800.00", lines[1]);
 
         Booking paid = booking("589", "Confirmed", 1800, "Suite");
         paid.setHasBooking(true);
         pay(paid, "1800.00", "completed");
         lines = TransactionExporter.pdfLines(context, TransactionRow.from(paid));
-        assertEquals("Booking #589  ·  PAID  ·  Suite", lines[0]);
+        assertEquals("Booking #589  ·  Paid  ·  Suite", lines[0]);
         assertEquals("Oct 01, 2026 – Oct 02, 2026  ·  Total ₱1,800.00  ·  Paid ₱1,800.00  ·  Balance ₱0.00", lines[1]);
     }
 
@@ -137,7 +137,7 @@ public class TransactionExporterTest {
         bare.setCheckInDate(null);
         bare.setCheckOutDate(null);
         String[] lines = TransactionExporter.pdfLines(context, TransactionRow.from(bare));
-        assertEquals("Reservation #9  ·  PENDING", lines[0]);
+        assertEquals("Reservation #9  ·  Pending", lines[0]);
         assertTrue(lines[1], lines[1].startsWith("N/A  ·  Total ₱0.00"));
         assertFalse(lines[0] + lines[1], (lines[0] + lines[1]).contains("null"));
     }

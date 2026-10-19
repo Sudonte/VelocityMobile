@@ -216,7 +216,7 @@ final class TransactionExporter {
     /** The two lines a record prints in the PDF: "Reservation #588  ·  PENDING  ·  Deluxe" and the stay/total/paid/balance line. Pure text, so it is unit-testable without drawing. */
     static String[] pdfLines(Context ctx, TransactionRow row) {
         TransactionStatusHelper.Summary s = row.summary;
-        String status = ctx.getString(TransactionStatusHelper.styleFor(s.status).labelRes).toUpperCase(Locale.US);
+        String status = ctx.getString(TransactionStatusHelper.styleFor(s.status).labelRes);
         String kind = row.kind == TransactionRow.Kind.BOOKING ? "Booking" : "Reservation";
         String line1 = kind + " #" + row.booking.getDisplayId() + "  ·  " + status + (row.roomText.isEmpty() ? "" : "  ·  " + row.roomText);
         String line2 = TransactionText.stay(ctx, row.checkIn, row.checkOut) + "  ·  Total " + MoneyFormat.format(s.grandTotal)

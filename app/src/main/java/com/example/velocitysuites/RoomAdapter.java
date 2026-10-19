@@ -345,6 +345,11 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         }
 
+        View refund = holder.itemView.findViewById(R.id.tvNoRefundBadge);
+        if (refund instanceof TextView) {
+            ((TextView) refund).setText(HotelPolicy.refundChip(context));
+            refund.setVisibility(HotelPolicy.NON_REFUNDABLE ? View.VISIBLE : View.GONE);
+        }
         bindQuantityStepper(holder, room, available, context);
         bindFavorite(holder, room, context);
 

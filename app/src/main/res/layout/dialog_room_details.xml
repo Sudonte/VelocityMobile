@@ -313,7 +313,6 @@
                     android:backgroundTint="@color/velocity_red_bg_end"
                     android:lineSpacingExtra="5dp"
                     android:padding="13dp"
-                    android:text="@string/hotel_policies_content"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />
 

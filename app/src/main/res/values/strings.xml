@@ -634,15 +634,13 @@
     <string name="time_format_seconds">hh:mm:ss a</string>
     <string name="date_format_short">MMM dd, yyyy</string>
     <string name="booking_item_format">%1$s (%2$s)</string>
-    <string name="status_pending">PENDING</string>
-    <string name="status_modified">MODIFIED</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_modified">Modified</string>
     <string name="status_booking_pending">Booking Pending</string>
     <string name="status_payment_verification_label">Paid - Pending Verification</string>
     <string name="status_validated">Validated</string>
     <string name="status_completed_reservation">Completed Reservation</string>
-    <string name="status_no_show">NO-SHOW</string>
-    <string name="check_in_time">2:00 PM</string>
-    <string name="check_out_time">12:00 PM</string>
+    <string name="status_no_show">No-show</string>
     <string name="mock_mobile">+63 912 345 6789</string>
     <string name="age_hint">Age</string>
     <string name="active_reservations_label">Pending/Confirmed Reservations</string>
@@ -713,8 +711,8 @@
     <string name="capacity_label">Capacity</string>
     <string name="hotel_policies_label">Hotel Policies</string>
     <string name="room_quantity_label">Room Quantity</string>
-    <string name="hotel_policies_content">• Check-In Time: Starts at 2:00 PM.\n• Check-Out Time: Until 12:00 PM (noon).\n• Front Desk: Available 24 hours a day, 7 days a week.\n• Pet Policy: Pets are strictly not allowed.\n• Minimum Stay: Requires a 1-day minimum stay (subject to change based on seasonality).\n• Smoking Policy: Strictly non-smoking rooms (designated areas may apply).\n• Payment Methods: Cash and major local electronic payment methods are accepted upon check-in.
-• No Refund Policy: Payments made for a booking or reservation are non-refundable, including on cancellation or early check-out.</string>
+    <string name="hotel_policies_content">• Check-In Time: Starts at %1$s.\n• Check-Out Time: Until %2$s.\n• Front Desk: Available 24 hours a day, 7 days a week.\n• Pet Policy: Pets are strictly not allowed.\n• Minimum Stay: Requires a 1-day minimum stay (subject to change based on seasonality).\n• Smoking Policy: Strictly non-smoking rooms (designated areas may apply).\n• Payment Methods: Cash and major local electronic payment methods are accepted upon check-in.</string>
+    <string name="hotel_policies_refund_line">• No Refund Policy: Payments made for a booking or reservation are non-refundable, including on cancellation or early check-out.</string>
     <string name="no_refund_badge">No refund</string>
     <string name="king_bed">King Size Bed</string>
     <string name="queen_bed">Queen Size Bed</string>
@@ -809,7 +807,7 @@
     <string name="booking_ref_label">Booking Ref: %1$s</string>
     <string name="reservation_ref_label">Reservation Ref: %1$s</string>
     <string name="hash_id_format">#%1$s</string>
-    <string name="status_unpaid">UNPAID</string>
+    <string name="status_unpaid">Unpaid</string>
     <string name="room_charges_label">Room Charges</string>
     <string name="grand_total_label">Grand Total</string>
     <!-- GCash payment: how to pay (numbered steps), copy amount, inline validation, submission error -->
@@ -1010,7 +1008,7 @@
     <string name="confirm_convert_reservation_msg">This withdraws your current GCash payment attempt (receipt and number) and keeps the room held as an unpaid reservation you can pay for later.</string>
     <string name="cancel_payment_success_msg">Your pending payment was cancelled and the transaction is now marked Transaction Failed.</string>
     <string name="convert_to_reservation_success_msg">Your payment attempt was withdrawn. The room is still held for you as an unpaid reservation.</string>
-    <string name="transaction_failed_label">TRANSACTION FAILED</string>
+    <string name="transaction_failed_label">Transaction failed</string>
     <string name="error_no_booking_data">No booking data available. Please go back and select a booking to pay for.</string>
     <string name="error_booking_not_found">We couldn\'t find this booking. Please try again.</string>
     <string name="error_no_active_booking">No active booking was selected for payment.</string>
@@ -1328,7 +1326,7 @@
     <!-- Booking wizard Step 7 -> payment.xml handoff -->
     <string name="booking_payment_next_notice">You\'ll complete GCash payment on the next screen before your booking is created.</string>
     <string name="pending_booking_ref_label">New Booking</string>
-    <string name="pending_booking_status_label">PAYMENT PENDING</string>
+    <string name="pending_booking_status_label">Payment pending</string>
     <string name="pending_booking_id_review_label">Will be generated after submission</string>
 
     <!-- Landing/Room Browsing multi-room selection cart -->
@@ -1698,8 +1696,8 @@
     <string name="status_confirmed">Confirmed</string>
     <string name="status_checked_in">Checked In</string>
     <string name="status_checked_out">Checked Out</string>
-    <string name="status_verified">VERIFIED</string>
-    <string name="status_rejected">REJECTED</string>
+    <string name="status_verified">Verified</string>
+    <string name="status_rejected">Rejected</string>
     <string name="payment_submitted_msg">Your payment has been submitted and is currently pending validation by our receptionist. You will be notified once verified.</string>
     <string name="confirm_payment_title">Confirm Payment Details</string>
     <string name="confirm_and_proceed">Confirm &amp; Proceed</string>
@@ -1757,7 +1755,7 @@
     <string name="landing_hotel_website">www.velocitysuites.com</string>
     <string name="landing_hotel_tap_website">Tap to visit</string>
     <string name="landing_hotel_hours_label">Operating Hours</string>
-    <string name="landing_hotel_hours">Front Desk: 24 / 7\nCheck-In: From 2:00 PM\nCheck-Out: Until 12:00 PM</string>
+    <string name="landing_hotel_hours">Front Desk: 24 / 7\nCheck-In: From %1$s\nCheck-Out: Until %2$s</string>
     <string name="landing_hotel_event_booking_label">Event Booking</string>
     <string name="landing_hotel_event_booking">Day Slot: 8:00 AM – 6:00 AM\nNight Slot: 7:00 PM – 5:00 AM</string>
 
@@ -2331,6 +2329,11 @@
     <string name="room_fact_size">Size</string>
     <string name="room_policy_refund_label">Refund policy</string>
     <string name="room_policy_refund_value">Non-refundable</string>
+    <string name="room_policy_refund_value_refundable">Refundable</string>
+    <string name="room_policy_from_format">From %1$s</string>
+    <string name="room_policy_until_format">Until %1$s</string>
+    <string name="room_policy_checkin_label">Check-in</string>
+    <string name="room_policy_checkout_label">Check-out</string>
 </resources>
 
 

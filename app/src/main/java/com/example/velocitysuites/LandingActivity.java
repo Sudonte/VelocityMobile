@@ -126,6 +126,8 @@ public class LandingActivity extends AppCompatActivity implements RoomAdapter.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.landing);
+        android.widget.TextView hotelHours = findViewById(R.id.tvLandingHotelHours);
+        if (hotelHours != null) hotelHours.setText(HotelPolicy.hoursBlock(this));
 
         View landingRoot = findViewById(R.id.landingRoot);
         ViewCompat.setOnApplyWindowInsetsListener(landingRoot, (v, insets) -> {

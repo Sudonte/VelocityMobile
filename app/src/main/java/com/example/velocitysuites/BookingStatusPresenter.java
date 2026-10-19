@@ -28,10 +28,10 @@ public final class BookingStatusPresenter {
         return noShow
                 ? context.getString(R.string.status_no_show)
                 : pendingVerification
-                    ? context.getString(R.string.pending_verification_label).toUpperCase(Locale.US)
+                    ? context.getString(R.string.pending_verification_label)
                     : cancelledWithPaymentAttempt
                         ? context.getString(R.string.transaction_failed_label)
-                        : b.getStatus().toUpperCase(Locale.US);
+                        : DisplayLabels.status(b.getStatus());
     }
 
     public static void styleStatusBadge(Context context, TextView badge, Booking b) {

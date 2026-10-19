@@ -285,7 +285,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
     private void populateSummary() {
         tvBillingRef.setText(getString(booking.isHasBooking() ? R.string.booking_ref_label : R.string.reservation_ref_label, booking.getDisplayId()));
-        tvBillingStatus.setText((hasText(booking.getStatus()) ? booking.getStatus() : getString(R.string.status_pending)).toUpperCase(Locale.US));
+        tvBillingStatus.setText(hasText(booking.getStatus()) ? DisplayLabels.status(booking.getStatus()) : getString(R.string.status_pending));
         logRawReservationForDebug();
         setRow(tvBillingRoomType, roomHeadline());
         setRow(tvBillingDates, hasText(booking.getCheckInDate()) && hasText(booking.getCheckOutDate())
@@ -340,7 +340,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
         boolean hasPaymentType = amounts != null && amounts.alreadyPaid > 0.009;
         String method = booking.getPaymentMethod();
         tvBillingPaymentMethod.setText("cash".equalsIgnoreCase(method) ? getString(R.string.payment_method_cash)
-                : getString(R.string.payment_method_gcash));
+                : getString(R.string.payment_method_gcash)); // no method on record: the GCash screen is the one that opens
         layoutBillingPaymentType.setVisibility(hasPaymentType ? View.VISIBLE : View.GONE);
         if (hasPaymentType) {
             tvBillingPaymentType.setText(PaymentStateUtil.isFullyPaid(booking)

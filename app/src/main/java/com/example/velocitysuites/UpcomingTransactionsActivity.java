@@ -556,12 +556,12 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         } else if ("Checked-In".equalsIgnoreCase(status)) {
             tvKind.setText(R.string.stay_calendar_kind_checkout);
             tvWhen.setText(getString(R.string.stay_calendar_when_format, b.getCheckOutDate(),
-                    StayCalendarModel.formatTime(StayCalendarModel.CHECK_OUT_TIME)));
+                    StayCalendarModel.formatTime(HotelPolicy.CHECK_OUT_TIME)));
             tomorrowDate = b.getCheckOutDate();
         } else {
             tvKind.setText(R.string.stay_calendar_kind_checkin);
             tvWhen.setText(getString(R.string.stay_calendar_when_format, b.getCheckInDate(),
-                    StayCalendarModel.formatTime(StayCalendarModel.CHECK_IN_TIME)));
+                    StayCalendarModel.formatTime(HotelPolicy.CHECK_IN_TIME)));
             upcomingCheckIn = true;
             tomorrowDate = b.getCheckInDate();
         }

@@ -22,14 +22,12 @@ import java.util.TreeMap;
  * them. Pure data and rules (days are hotel-local calendar days, passed in), so it is unit-testable.
  *
  * Several transactions on the same day are all kept - nothing is collapsed to "the" transaction of a day.
- * Check-in and check-out use the hotel's posted times (2:00 PM / 12:00 PM), shown as HH:MM:SS.
+ * Check-in and check-out use the hotel's posted times (see {@link HotelPolicy}), shown as HH:MM:SS.
  */
 public final class StayCalendarModel {
 
     public enum Mode { DAILY, WEEKLY, MONTHLY }
 
-    public static final LocalTime CHECK_IN_TIME = LocalTime.of(14, 0, 0);
-    public static final LocalTime CHECK_OUT_TIME = LocalTime.of(12, 0, 0);
 
     private static final DateTimeFormatter HMS = DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.ENGLISH);
 
@@ -66,7 +64,7 @@ public final class StayCalendarModel {
 
         public LocalTime time() {
             if (actual != null) return actual.toLocalTime();
-            return checkIn ? CHECK_IN_TIME : CHECK_OUT_TIME;
+            return checkIn ? HotelPolicy.CHECK_IN_TIME : HotelPolicy.CHECK_OUT_TIME;
         }
 
         /** "02:00:00 PM" - hours, minutes and seconds. */

@@ -269,14 +269,14 @@ public class CalendarActivity extends BaseNavigationActivity {
         tvDate.setText(e.dateLabel);
 
         if (e.isCheckIn) {
-            tvTime.setText(R.string.check_in_time);
+            tvTime.setText(HotelPolicy.checkInText());
             ivIcon.setImageResource(R.drawable.ic_calendar);
             if (iconContainer instanceof com.google.android.material.card.MaterialCardView) {
                 ((com.google.android.material.card.MaterialCardView) iconContainer)
                         .setCardBackgroundColor(getResources().getColorStateList(R.color.velocity_red_soft, getTheme()));
             }
         } else {
-            tvTime.setText(R.string.check_out_time);
+            tvTime.setText(HotelPolicy.checkOutText());
             ivIcon.setImageResource(R.drawable.ic_clock);
             ivIcon.setImageTintList(getResources().getColorStateList(R.color.velocity_green_primary, getTheme()));
             if (iconContainer instanceof com.google.android.material.card.MaterialCardView) {

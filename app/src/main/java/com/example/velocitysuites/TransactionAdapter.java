@@ -70,7 +70,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         boolean noShow = booking.isNoShow();
         holder.tvBookingId.setText(holder.itemView.getContext().getString(
                 booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId()));
-        holder.tvStatusBadge.setText(noShow ? holder.itemView.getContext().getString(R.string.status_no_show) : booking.getStatus());
+        holder.tvStatusBadge.setText(noShow ? holder.itemView.getContext().getString(R.string.status_no_show) : DisplayLabels.status(booking.getStatus()));
         holder.tvRoomName.setText(booking.getRoomName());
         
         String dateInfo = booking.getCheckInDate() + " – " + booking.getCheckOutDate();
@@ -81,7 +81,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         android.content.Context cardCtx = holder.itemView.getContext();
         String naLabel = cardCtx.getString(R.string.label_not_available);
         holder.tvCardPaymentMethod.setText(cardCtx.getString(R.string.payment_method_label,
-                booking.getPaymentMethod() != null ? booking.getPaymentMethod() : naLabel));
+                booking.getPaymentMethod() != null ? DisplayLabels.paymentMethod(cardCtx, booking.getPaymentMethod()) : naLabel));
         holder.tvCardPaymentDate.setText(cardCtx.getString(R.string.payment_date_label,
                 booking.getPaymentDate() != null ? booking.getPaymentDate() : naLabel));
         holder.tvCardTransactionRef.setText(cardCtx.getString(R.string.transaction_ref_label,

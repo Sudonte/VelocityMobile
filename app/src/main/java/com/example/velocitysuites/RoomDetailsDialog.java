@@ -297,14 +297,17 @@ public final class RoomDetailsDialog {
 
         bindAmenityGrid(activity, dialogView.findViewById(R.id.detailRoomAmenities), room);
 
-        // Policies: the hotel-wide refund policy first (the app has no check-in / check-out times from the server, so none are shown), then the full hotel policies (folded) with the
+        // Policies: the hotel-wide refund policy first (the posted times and refund policy come from HotelPolicy), then the full hotel policies (folded) with the
         // admin's per-room-type notes (if any) under them.
         LinearLayout policies = dialogView.findViewById(R.id.layoutDetailPolicies);
-        addLabelValue(policies, activity.getString(R.string.room_policy_refund_label), activity.getString(R.string.room_policy_refund_value));
+        addLabelValue(policies, activity.getString(R.string.room_policy_refund_label), HotelPolicy.refundValue(activity));
+        addLabelValue(policies, activity.getString(R.string.room_policy_checkin_label), HotelPolicy.checkInFrom(activity));
+        addLabelValue(policies, activity.getString(R.string.room_policy_checkout_label), HotelPolicy.checkOutUntil(activity));
         TextView policiesBody = dialogView.findViewById(R.id.detailPoliciesBody);
-        if (room.getPolicies() != null && !room.getPolicies().trim().isEmpty()) {
-            policiesBody.setText(activity.getString(R.string.hotel_policies_content) + "\n\n" + room.getPolicies().trim());
-        }
+        policiesBody.setText(room.getPolicies() != null && !room.getPolicies().trim().isEmpty()
+                ? HotelPolicy.policiesText(activity) + "\n\n" + room.getPolicies().trim() : HotelPolicy.policiesText(activity));
+        dialogView.findViewById(R.id.detailRefundChip).setVisibility(HotelPolicy.NON_REFUNDABLE ? View.VISIBLE : View.GONE);
+        ((TextView) dialogView.findViewById(R.id.detailRefundChip)).setText(HotelPolicy.refundChip(activity));
         makeCollapsible(dialogView.findViewById(R.id.headMorePolicies), policiesBody, false);
 
         // Cap the scrollable sections so the sticky bar below them always stays on screen, even on a small phone - see
