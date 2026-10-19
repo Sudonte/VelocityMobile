@@ -3,9 +3,53 @@
      small Today button), then the stay cards - all straight in the section, no card around them
      (built by DashboardActivity#renderNextStayDays). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
+
+    <!-- Daily | Weekly | Monthly: always one selected, remembered like the other section state. -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/nextStayMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nextStayModeDaily"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:letterSpacing="0"
+            android:minHeight="48dp"
+            android:text="@string/stay_calendar_daily"
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nextStayModeWeekly"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:letterSpacing="0"
+            android:minHeight="48dp"
+            android:text="@string/stay_calendar_weekly"
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nextStayModeMonthly"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:letterSpacing="0"
+            android:minHeight="48dp"
+            android:text="@string/stay_calendar_monthly"
+            android:textSize="13sp" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <HorizontalScrollView
         android:id="@+id/nextStayDayScroll"

@@ -41,11 +41,13 @@ final class NotificationRowBinder {
         icon.setImageResource(category.iconRes);
         icon.setColorFilter(ContextCompat.getColor(context, category.fgColorRes));
 
+        // The friendly title and description built in the app (the server's own words when no template applies).
+        NotificationText.Content content = NotificationText.of(context, n);
         TextView title = root.findViewById(R.id.tvNotifTitle);
-        title.setText(n.getTitle());
+        title.setText(content.title);
         // Bold while unread, regular once read: a text-level cue that does not rely on colour, beside the dot.
         title.setTypeface(null, isRead ? Typeface.NORMAL : Typeface.BOLD);
-        ((TextView) root.findViewById(R.id.tvNotifMessage)).setText(n.getMessage());
+        ((TextView) root.findViewById(R.id.tvNotifMessage)).setText(content.description);
         ((TextView) root.findViewById(R.id.tvNotifTime)).setText(timeOf(context, n, nowMillis));
 
         View dot = root.findViewById(R.id.viewNotifUnreadDot);

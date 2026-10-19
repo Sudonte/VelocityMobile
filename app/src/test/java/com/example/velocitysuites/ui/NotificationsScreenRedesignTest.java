@@ -151,11 +151,12 @@ public class NotificationsScreenRedesignTest {
     }
 
     @Test
-    public void allCaughtUp_onlyAtZero_andMarkAllIsHidden() {
+    public void allCaughtUp_onlyAtZero_andMarkAllStaysVisibleButDisabled() {
         NotificationActivity a = launch().get();
         answer(0, n(1, "Booking Confirmed", "booking", true, 1));
         assertEquals("You're all caught up", text(a, R.id.tvUnreadSummary));
-        assertEquals(View.GONE, a.findViewById(R.id.btnMarkAllRead).getVisibility());
+        assertEquals(View.VISIBLE, a.findViewById(R.id.btnMarkAllRead).getVisibility());
+        assertFalse("grayed out at 0 unread", a.findViewById(R.id.btnMarkAllRead).isEnabled());
     }
 
     @Test

@@ -166,7 +166,7 @@
                     app:layout_constraintBottom_toBottomOf="parent" />
 
                 <!-- "12 unread" (or "You're all caught up" only when nothing is unread) at the start, "Mark all as read" at the end
-                     (hidden at 0 unread). The summary is bounded by the button so a large font wraps it instead of running underneath. -->
+                     (always shown; disabled and grayed out at 0 unread). The summary is bounded by the button so a large font wraps it instead of running underneath. -->
                 <TextView
                     android:id="@+id/tvUnreadSummary"
                     android:layout_width="0dp"
@@ -192,7 +192,7 @@
                     android:paddingHorizontal="10dp"
                     android:text="@string/mark_all_read_label"
                     android:textAllCaps="false"
-                    android:textColor="@color/velocity_red_primary"
+                    android:textColor="@color/mark_all_read_text"
                     android:textSize="13sp"
                     app:cornerRadius="0dp"
                     app:layout_constraintBottom_toBottomOf="parent"

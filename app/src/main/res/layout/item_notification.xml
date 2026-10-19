@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     One Notifications-screen card (NotificationAdapter). The whole card is the tap target - it opens the linked
-     transaction (or the notification's own screen) and marks the notification read.
+     One Notifications-screen card (NotificationAdapter). The whole card is the tap target - it opens the notification's
+     detail view and marks it read.
 
-       Today                                              <- date group header, Title Case (first row of a group only)
-       [icon]  Title (bold while unread)            4m ago
-               Message, up to 3 lines                  ●
-               More                                    ⋮   <- overflow: Mark as read / Mark as unread
-               [Amenities]  Booking #567
+       Today                                                     <- date group header, Title Case, on the cards' left edge
+       [icon]  Title (bold while unread)              ●  4m ago  ⋮
+               Description, the first 2 lines
+               [Amenities]  Booking #567              Mark as read   <- the button only while unread
 
      Plain LinearLayouts (no Flow/Barrier): every row is a box whose flexible child takes whatever the fixed-size children
      leave, so nothing can overlap at any width or system font size - text wraps or ellipsizes instead. The same icon circle,
-     title, message, time and dot ids as the Dashboard/popup row (item_notification_row.xml), bound by the same
+     title, description, time and dot ids as the Dashboard/popup row (item_notification_row.xml), bound by the same
      NotificationRowBinder.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -25,7 +24,7 @@
         android:id="@+id/tvNotificationDateGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
+        android:layout_marginStart="14dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="6dp"
         android:fontFamily="sans-serif-bold"
@@ -49,140 +48,67 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:baselineAligned="false"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:paddingStart="12dp"
-            android:paddingTop="12dp"
+            android:paddingTop="10dp"
             android:paddingEnd="4dp"
-            android:paddingBottom="8dp">
+            android:paddingBottom="2dp">
 
-            <FrameLayout
-                android:id="@+id/frameNotifIcon"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/shape_notification_icon_circle"
-                android:backgroundTint="@color/velocity_red_soft">
-
-                <ImageView
-                    android:id="@+id/ivNotifIcon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_gravity="center"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_notifications"
-                    app:tint="@color/velocity_red_primary" />
-            </FrameLayout>
-
+            <!-- Row 1: icon, title, unread dot, time, overflow. -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/frameNotifIcon"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/shape_notification_icon_circle"
+                    android:backgroundTint="@color/velocity_red_soft">
+
+                    <ImageView
+                        android:id="@+id/ivNotifIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_notifications"
+                        app:tint="@color/velocity_red_primary" />
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/tvNotifTitle"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
                     android:ellipsize="end"
                     android:maxLines="2"
                     android:textColor="@color/velocity_text_primary"
-                    android:textSize="13sp"
-                    tools:text="Amenity Request Approved" />
-
-                <TextView
-                    android:id="@+id/tvNotifMessage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:ellipsize="end"
-                    android:maxLines="3"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="12sp"
-                    tools:text="Your request for 1 x Additional Pillow (Room 1-001) (₱50.00) was approved and added to your bill." />
-
-                <!-- Only when the message is longer than 3 lines. -->
-                <TextView
-                    android:id="@+id/tvNotifMore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:fontFamily="sans-serif-bold"
-                    android:minHeight="32dp"
-                    android:gravity="center_vertical"
-                    android:paddingStart="0dp"
-                    android:paddingEnd="12dp"
-                    android:text="@string/notif_more"
-                    android:textColor="@color/velocity_action_text"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvNotifCategory"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/shape_intro_pill"
-                        android:backgroundTint="@color/status_cancelled_bg"
-                        android:ellipsize="end"
-                        android:fontFamily="sans-serif-bold"
-                        android:maxLines="1"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp"
-                        android:textColor="@color/status_cancelled_fg"
-                        android:textSize="11sp"
-                        tools:text="Amenities" />
-
-                    <TextView
-                        android:id="@+id/tvNotifLinked"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:fontFamily="sans-serif-medium"
-                        android:maxLines="1"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="11sp"
-                        tools:text="Booking #567" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:gravity="end"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvNotifTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:maxLines="1"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="11sp"
-                    tools:text="24m ago" />
+                    android:textSize="14sp"
+                    tools:text="Your Additional Pillow request is approved" />
 
                 <View
                     android:id="@+id/viewNotifUnreadDot"
                     android:layout_width="8dp"
                     android:layout_height="8dp"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="6dp"
                     android:background="@drawable/bg_notification_dot"
                     android:visibility="gone"
                     tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/tvNotifTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:maxLines="1"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="11sp"
+                    tools:text="24m ago" />
 
                 <ImageButton
                     android:id="@+id/btnNotifOverflow"
@@ -192,6 +118,75 @@
                     android:contentDescription="@string/notif_more_options"
                     android:src="@drawable/ic_more_vert"
                     app:tint="@color/velocity_text_secondary" />
+            </LinearLayout>
+
+            <!-- Row 2: the first 2 lines of the description (the detail view shows all of it). -->
+            <TextView
+                android:id="@+id/tvNotifMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="46dp"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="The front desk approved 1 × Additional Pillow for Room 1-001 on Booking #569. ₱50.00 has been added to your bill." />
+
+            <!-- Row 3: the category chip and the linked transaction, and Mark as read (unread cards only) on the right. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="46dp"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvNotifCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/status_cancelled_bg"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/status_cancelled_fg"
+                    android:textSize="11sp"
+                    tools:text="Amenities" />
+
+                <TextView
+                    android:id="@+id/tvNotifLinked"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="11sp"
+                    tools:text="Booking #567" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNotifMarkRead"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:insetTop="6dp"
+                    android:insetBottom="6dp"
+                    android:letterSpacing="0"
+                    android:maxLines="1"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/mark_as_read_action"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

@@ -213,24 +213,6 @@
                                 </com.google.android.material.textfield.TextInputLayout>
                             </LinearLayout>
 
-                            <!-- "2 nights" once both dates are picked. -->
-                            <TextView
-                                android:id="@+id/tvNightsSummary"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:drawablePadding="6dp"
-                                android:fontFamily="sans-serif-bold"
-                                android:gravity="center_vertical"
-                                android:textColor="@color/velocity_action_text"
-                                android:textSize="13sp"
-                                android:visibility="gone"
-                                app:drawableStartCompat="@drawable/ic_clock"
-                                app:drawableTint="@color/velocity_action_text"
-                                app:layout_constraintTop_toBottomOf="@id/dateFieldsRow"
-                                tools:text="2 nights"
-                                tools:visibility="visible" />
-
                             <!-- Filled primary; enabled only for two valid dates (then white on red), otherwise a quiet gray with readable text. -->
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSearchAvailability"
@@ -250,7 +232,7 @@
                                 app:iconPadding="8dp"
                                 app:iconSize="18dp"
                                 app:iconTint="@color/button_primary_text"
-                                app:layout_constraintTop_toBottomOf="@id/tvNightsSummary" />
+                                app:layout_constraintTop_toBottomOf="@id/dateFieldsRow" />
 
                             <!-- Only shown when something is set. -->
                             <com.google.android.material.button.MaterialButton
@@ -348,14 +330,12 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSort"
-                            style="@style/Widget.Velocity.Flat.Button.Outlined"
+                            style="@style/Widget.Velocity.Flat.Button.Compact.Subtle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:ellipsize="end"
                             android:fontFamily="sans-serif-medium"
-                            android:insetTop="4dp"
-                            android:insetBottom="4dp"
                             android:letterSpacing="0"
                             android:maxLines="1"
                             android:maxWidth="190dp"
@@ -369,18 +349,15 @@
                             app:iconPadding="2dp"
                             app:iconSize="18dp"
                             app:iconTint="@color/velocity_text_secondary"
-                            app:strokeColor="@color/filter_box_stroke"
-                            app:strokeWidth="1dp" />
+                            />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnFilters"
-                            style="@style/Widget.Velocity.Flat.Button.Outlined"
+                            style="@style/Widget.Velocity.Flat.Button.Compact.Subtle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:fontFamily="sans-serif-medium"
-                            android:insetTop="4dp"
-                            android:insetBottom="4dp"
                             android:letterSpacing="0"
                             android:maxLines="1"
                             android:minWidth="0dp"
@@ -393,8 +370,7 @@
                             app:iconPadding="6dp"
                             app:iconSize="16dp"
                             app:iconTint="@color/velocity_text_secondary"
-                            app:strokeColor="@color/filter_box_stroke"
-                            app:strokeWidth="1dp" />
+                            />
                     </LinearLayout>
 
                     <!-- Active filters: removable chips + Clear all. Hidden when none. -->
@@ -438,16 +414,16 @@
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:drawablePadding="6dp"
-                        android:fontFamily="sans-serif-bold"
+                        android:fontFamily="sans-serif-medium"
                         android:gravity="center_vertical"
                         android:minHeight="40dp"
                         android:paddingHorizontal="16dp"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_text_secondary"
                         android:textSize="12sp"
                         android:visibility="gone"
                         app:drawableStartCompat="@drawable/ic_calendar"
-                        app:drawableTint="@color/velocity_red_primary"
-                        tools:text="Oct 12 - Oct 14 - 2 nights"
+                        app:drawableTint="@color/velocity_text_secondary"
+                        tools:text="Oct 21 → Oct 22 · 1 night"
                         tools:visibility="visible" />
 
                     <View

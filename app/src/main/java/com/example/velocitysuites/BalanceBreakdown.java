@@ -92,6 +92,10 @@ public final class BalanceBreakdown implements Serializable {
         return Math.abs(checkin - checkinGrandTotal) < 0.005 && Math.abs(total - finalGrandTotal) < 0.005;
     }
 
+    static Item itemOf(String name, int quantity, double unitPrice, double subtotal) {
+        return new Item(name, quantity, unitPrice, subtotal);
+    }
+
     private static List<Item> items(@Nullable List<StayBillDto.Line> lines) {
         List<Item> out = new ArrayList<>();
         if (lines != null) {

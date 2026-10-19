@@ -33,6 +33,13 @@ public final class StayCalendarModel {
 
     private static final DateTimeFormatter HMS = DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.ENGLISH);
 
+    private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
+
+    /** "2:00 PM". */
+    public static String formatClock(LocalTime time) {
+        return time.format(CLOCK);
+    }
+
     /** "02:00:00 PM". */
     public static String formatTime(LocalTime time) {
         return time.format(HMS);

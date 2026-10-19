@@ -73,6 +73,17 @@ final class StayCardText {
         return dates.isEmpty() ? nights : context.getString(R.string.recent_booking_dates_format, dates, nights);
     }
 
+    /** "Deluxe · 1 guest" / "Deluxe, Executive · 2 guests": the room type(s), then how many guests; either part alone when the other is unknown. */
+    @NonNull
+    static String roomsAndGuests(@NonNull Context context, @NonNull Booking b) {
+        String rooms = TransactionRow.roomTextOf(b).replace(" • ", ", ");
+        String guests = b.getGuests() > 0
+                ? context.getResources().getQuantityString(R.plurals.guests_count_lower, b.getGuests(), b.getGuests()) : "";
+        if (rooms.isEmpty()) return guests;
+        if (guests.isEmpty()) return rooms;
+        return rooms + " · " + guests;
+    }
+
     @NonNull
     private static String clean(@Nullable String s) {
         return s == null ? "" : s.trim();

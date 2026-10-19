@@ -107,4 +107,6 @@
     <color name="velocity_filter_stroke">#8C8080</color>
     <!-- "Unpaid": red text on its soft chip. Light mode keeps the brand red; dark mode lightens it so it stays readable on the dark chip. -->
     <color name="status_unpaid_fg">#D32F2F</color>
+    <!-- A card sitting inside another bordered container (the payment cards in Payment Status): a touch off the container's surface, so it does not look heavy. -->
+    <color name="velocity_card_inset">#FBF7F7</color>
 </resources>

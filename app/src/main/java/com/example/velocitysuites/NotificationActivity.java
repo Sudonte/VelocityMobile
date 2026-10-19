@@ -497,15 +497,21 @@ public class NotificationActivity extends BaseNavigationActivity {
             // Unknown is not zero: before the first successful load (or after a failed one) the count can't be
             // claimed to be 0, so the summary must not say "You're all caught up".
             tvUnreadSummary.setText(initialLoadFailed ? R.string.notif_unread_unavailable : R.string.notif_unread_checking);
-            findViewById(R.id.btnMarkAllRead).setVisibility(View.GONE);
+            setMarkAllReadEnabled(false);
             return;
         }
         int unread = repository.getUnreadNotificationCount();
         tvUnreadSummary.setText(unread > 0
                 ? getString(R.string.summary_unread_count, unread)
                 : getString(R.string.notif_all_caught_up));
-        // "Mark all as read" has nothing to do at 0 unread.
-        findViewById(R.id.btnMarkAllRead).setVisibility(unread > 0 ? View.VISIBLE : View.GONE);
+        // "Mark all as read" is always there; with nothing unread it is disabled and grayed out.
+        setMarkAllReadEnabled(unread > 0);
+    }
+
+    private void setMarkAllReadEnabled(boolean enabled) {
+        View button = findViewById(R.id.btnMarkAllRead);
+        button.setVisibility(View.VISIBLE);
+        button.setEnabled(enabled);
     }
 
     /**
@@ -659,7 +665,10 @@ public class NotificationActivity extends BaseNavigationActivity {
                 updateDropdownStartIcon(currentFilter);
                 filterDropdownAdapter.setSelectedKey(currentFilter);
                 applyFilters();
+                // The popup hands focus back to the field when it closes, so release it again after that.
+                dropdownNotificationStatus.post(this::releaseFilterFocus);
             });
+            dropdownNotificationStatus.setOnDismissListener(() -> dropdownNotificationStatus.post(this::releaseFilterFocus));
         }
     }
 
@@ -710,6 +719,11 @@ public class NotificationActivity extends BaseNavigationActivity {
         StringBuilder haystack = new StringBuilder(128);
         append(haystack, n.getTitle());
         append(haystack, n.getMessage());
+        NotificationText.Content friendly = NotificationText.of(this, n);
+        if (friendly.templated) {
+            append(haystack, friendly.title);
+            append(haystack, friendly.description);
+        }
         append(haystack, n.getType());
         NotificationStatusResolver.Result status = NotificationStatusResolver.resolve(this, n);
         if (status != null) append(haystack, status.label);

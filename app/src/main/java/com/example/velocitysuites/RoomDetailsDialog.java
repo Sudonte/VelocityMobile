@@ -1,9 +1,11 @@
 package com.example.velocitysuites;
 
 import android.app.Activity;
+import android.content.Context;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -51,7 +53,18 @@ public final class RoomDetailsDialog {
 
     public static AlertDialog show(Activity activity, Room room, String action,
                              String occupiedRangeText, ActionListener listener) {
+        return show(activity, room, action, occupiedRangeText, null, listener);
+    }
+
+    /** As above; {@code datesSummary} ("Oct 21 → Oct 22 · 1 night") is shown in the sticky bar beside the price when the guest searched for dates. */
+    public static AlertDialog show(Activity activity, Room room, String action,
+                             String occupiedRangeText, @Nullable String datesSummary, ActionListener listener) {
         View dialogView = inflateAndBindCommonFields(activity, room);
+        TextView barDates = dialogView.findViewById(R.id.detailBarDates);
+        if (barDates != null && datesSummary != null && !datesSummary.trim().isEmpty()) {
+            barDates.setText(datesSummary.trim());
+            barDates.setVisibility(View.VISIBLE);
+        }
         AlertDialog dialog = new SafeDialogs.Plain(activity, R.style.VelocityDialogTheme)
                 .setView(dialogView)
                 .create();
@@ -156,6 +169,7 @@ public final class RoomDetailsDialog {
         if (layoutActions != null) layoutActions.setVisibility(View.GONE);
         if (layoutOccupiedInfo != null) layoutOccupiedInfo.setVisibility(View.GONE);
         layoutQuantitySection.setVisibility(View.VISIBLE);
+        dialogView.findViewById(R.id.layoutDetailBarSummary).setVisibility(View.GONE);
 
         int maxQty = Math.max(1, availableCount);
         int[] qty = {Math.max(0, Math.min(initialQuantity, maxQty))};
@@ -201,7 +215,7 @@ public final class RoomDetailsDialog {
         return showDialog(dialog);
     }
 
-    /** Binds every field the two entry points above share (image/gallery, name, type, price, capacity, bed type, room size, description, amenities) - only the bottom action area differs between them. */
+    /** Binds every field the two entry points above share (gallery, name, price, type, refund, overview, facts, amenities, policies) - only the sticky bar's actions differ between them. */
     private static View inflateAndBindCommonFields(Activity activity, Room room) {
         View dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_room_details, null);
 
@@ -209,29 +223,39 @@ public final class RoomDetailsDialog {
         TextView tvType = dialogView.findViewById(R.id.detailRoomType);
         TextView tvPrice = dialogView.findViewById(R.id.detailRoomPrice);
         TextView tvDesc = dialogView.findViewById(R.id.detailRoomDescription);
-        TextView tvCapacity = dialogView.findViewById(R.id.detailRoomCapacity);
-        TextView tvBedType = dialogView.findViewById(R.id.detailRoomBedType);
-        TextView tvRoomSize = dialogView.findViewById(R.id.detailRoomSize);
-        TextView tvAmenities = dialogView.findViewById(R.id.detailRoomAmenities);
         ImageView ivRoomImage = dialogView.findViewById(R.id.detailRoomImage);
         ViewPager2 pagerRoomImages = dialogView.findViewById(R.id.detailRoomImagePager);
         View galleryCountCard = dialogView.findViewById(R.id.detailGalleryCountCard);
         TextView tvGalleryCount = dialogView.findViewById(R.id.detailGalleryCount);
-        ImageView ivTypeIcon = dialogView.findViewById(R.id.detailRoomTypeIcon);
 
         RoomFavoritesStore.bindHeart(dialogView.findViewById(R.id.detailBtnFavorite), activity, room.getId(), room.getName());
 
-        tvName.setText(room.getName());
-        tvType.setText(room.getType());
-        tvPrice.setText(activity.getString(R.string.price_format_night, room.getPricePerNight()));
-        tvDesc.setText(room.getDescription());
-        tvCapacity.setText(activity.getString(R.string.capacity_persons_format, room.getCapacity()));
-        tvBedType.setText(room.getBedType() == null || room.getBedType().isEmpty()
-                ? RoomVisuals.getBedType(activity, room.getType(), room.getCapacity())
-                : room.getBedType());
-        tvRoomSize.setText(room.getRoomSize() == null || room.getRoomSize().isEmpty()
-                ? activity.getString(R.string.not_specified)
-                : room.getRoomSize());
+        // The name once; the type is a small chip only when it says something the name does not.
+        String name = room.getName() == null ? "" : room.getName().trim();
+        String type = room.getType() == null ? "" : room.getType().trim();
+        tvName.setText(name.isEmpty() ? type : name);
+        tvType.setText(type);
+        tvType.setVisibility(!type.isEmpty() && !name.isEmpty() && !type.equalsIgnoreCase(name) ? View.VISIBLE : View.GONE);
+        String price = activity.getString(R.string.price_format_per_night, room.getPricePerNight());
+        tvPrice.setText(price);
+        ((TextView) dialogView.findViewById(R.id.detailBarPrice)).setText(price);
+
+        // Overview: the full description (the section is left out when there is none).
+        String description = room.getDescription() == null ? "" : room.getDescription().trim();
+        tvDesc.setText(description);
+        int descVisibility = description.isEmpty() ? View.GONE : View.VISIBLE;
+        tvDesc.setVisibility(descVisibility);
+        dialogView.findViewById(R.id.headOverview).setVisibility(descVisibility);
+
+        // Room facts: label left, value right.
+        LinearLayout facts = dialogView.findViewById(R.id.layoutDetailFacts);
+        int capacity = Math.max(1, room.getCapacity());
+        addLabelValue(facts, activity.getString(R.string.room_fact_guests),
+                activity.getResources().getQuantityString(R.plurals.guests_count_lower, capacity, capacity));
+        addLabelValue(facts, activity.getString(R.string.room_fact_beds), room.getBedType() == null || room.getBedType().isEmpty()
+                ? RoomVisuals.getBedType(activity, room.getType(), room.getCapacity()) : room.getBedType());
+        addLabelValue(facts, activity.getString(R.string.room_fact_size), room.getRoomSize() == null || room.getRoomSize().isEmpty()
+                ? activity.getString(R.string.not_specified) : room.getRoomSize());
 
         int fallbackImage = RoomVisuals.getRoomImage(room.getType());
         List<String> galleryUrls = room.getImageUrls();
@@ -270,42 +294,98 @@ public final class RoomDetailsDialog {
         } else {
             ivRoomImage.setImageResource(fallbackImage);
         }
-        ivTypeIcon.setImageResource(RoomVisuals.getTypeIcon(room.getType()));
 
-        if (room.getAmenities().isEmpty()) {
-            tvAmenities.setText(R.string.no_amenities_available);
-        } else {
-            // Name only - no description, price, category, or status here;
-            // shared by both landing.xml and roombrowsing.xml since both
-            // open this same dialog.
-            StringBuilder amenities = new StringBuilder();
-            for (RoomAmenity amenity : room.getAmenities()) {
-                amenities.append("• ").append(amenity.getName()).append("\n");
-            }
-            tvAmenities.setText(amenities.toString().trim());
-        }
+        bindAmenityGrid(activity, dialogView.findViewById(R.id.detailRoomAmenities), room);
 
-        ((TextView) dialogView.findViewById(R.id.detailPricingText)).setText(
-                activity.getString(R.string.pricing_text_format,
-                        activity.getString(R.string.price_format_night, room.getPricePerNight())));
-        // The admin's per-room-type notes (if any) are appended under the hotel-wide policies.
+        // Policies: the refund policy and the posted times first, then the full hotel policies (folded) with the
+        // admin's per-room-type notes (if any) under them.
+        LinearLayout policies = dialogView.findViewById(R.id.layoutDetailPolicies);
+        addLabelValue(policies, activity.getString(R.string.room_policy_refund_label), activity.getString(R.string.room_policy_refund_value));
+        addLabelValue(policies, activity.getString(R.string.room_policy_checkin_label),
+                activity.getString(R.string.room_policy_from_format, StayCalendarModel.formatClock(StayCalendarModel.CHECK_IN_TIME)));
+        addLabelValue(policies, activity.getString(R.string.room_policy_checkout_label),
+                activity.getString(R.string.room_policy_until_format, StayCalendarModel.formatClock(StayCalendarModel.CHECK_OUT_TIME)));
         TextView policiesBody = dialogView.findViewById(R.id.detailPoliciesBody);
         if (room.getPolicies() != null && !room.getPolicies().trim().isEmpty()) {
             policiesBody.setText(activity.getString(R.string.hotel_policies_content) + "\n\n" + room.getPolicies().trim());
         }
-        makeCollapsible(dialogView.findViewById(R.id.headDescription), tvDesc, true);
-        makeCollapsible(dialogView.findViewById(R.id.headAmenities), tvAmenities, true);
-        makeCollapsible(dialogView.findViewById(R.id.headPolicies), policiesBody, false);
+        makeCollapsible(dialogView.findViewById(R.id.headMorePolicies), policiesBody, false);
 
-        // Cap the scrollable content area so a long description/amenities/policies
-        // stack can never push the quantity selector or action row below the
-        // dialog's visible bounds on a small screen - see
-        // MaxHeightNestedScrollView's doc comment for why a plain android:maxHeight
-        // attribute (the original approach here) never actually worked.
+        // Cap the scrollable sections so the sticky bar below them always stays on screen, even on a small phone - see
+        // MaxHeightNestedScrollView's doc comment for why a plain android:maxHeight attribute never worked.
         MaxHeightNestedScrollView scroll = dialogView.findViewById(R.id.scrollRoomDetails);
-        scroll.setMaxHeightPx((int) (activity.getResources().getDisplayMetrics().heightPixels * 0.6f));
+        scroll.setMaxHeightPx((int) (activity.getResources().getDisplayMetrics().heightPixels * 0.42f));
 
         return dialogView;
+    }
+
+    /** One row: the label on the left (secondary), the value on the right (bold). */
+    private static void addLabelValue(LinearLayout container, String label, String value) {
+        Context context = container.getContext();
+        float density = context.getResources().getDisplayMetrics().density;
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(Math.round(36 * density));
+        TextView l = new TextView(context);
+        l.setText(label);
+        l.setTextSize(13);
+        l.setTextColor(context.getColor(R.color.velocity_text_secondary));
+        row.addView(l, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        TextView v = new TextView(context);
+        v.setText(value);
+        v.setTextSize(13);
+        v.setGravity(Gravity.END);
+        v.setTypeface(v.getTypeface(), android.graphics.Typeface.BOLD);
+        v.setTextColor(context.getColor(R.color.velocity_text_primary));
+        LinearLayout.LayoutParams vp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f);
+        vp.setMarginStart(Math.round(12 * density));
+        row.addView(v, vp);
+        container.addView(row);
+    }
+
+    /** The amenities as a two-column list, each with its icon (or one line saying there are none). */
+    private static void bindAmenityGrid(Activity activity, GridLayout grid, Room room) {
+        grid.removeAllViews();
+        List<RoomAmenity> amenities = room.getAmenities();
+        float density = activity.getResources().getDisplayMetrics().density;
+        if (amenities == null || amenities.isEmpty()) {
+            grid.setColumnCount(1);
+            TextView none = new TextView(activity);
+            none.setText(R.string.no_amenities_available);
+            none.setTextSize(13);
+            none.setTextColor(activity.getColor(R.color.velocity_text_secondary));
+            grid.addView(none);
+            return;
+        }
+        grid.setColumnCount(2);
+        for (RoomAmenity amenity : amenities) {
+            TextView item = new TextView(activity);
+            item.setText(amenity.getName());
+            item.setTextSize(13);
+            item.setTextColor(activity.getColor(R.color.velocity_text_primary));
+            item.setGravity(Gravity.CENTER_VERTICAL);
+            item.setMinHeight(Math.round(36 * density));
+            item.setMaxLines(2);
+            item.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            item.setCompoundDrawablePadding(Math.round(8 * density));
+            int icon = RoomVisuals.getAmenityIcon(amenity.getName());
+            if (icon != 0) {
+                android.graphics.drawable.Drawable d = ContextCompat.getDrawable(activity, icon);
+                if (d != null) {
+                    d = d.mutate();
+                    int size = Math.round(18 * density);
+                    d.setBounds(0, 0, size, size);
+                    d.setTint(activity.getColor(R.color.velocity_red_primary));
+                    item.setCompoundDrawablesRelative(d, null, null, null);
+                }
+            }
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED, 1f));
+            lp.width = 0;
+            lp.height = GridLayout.LayoutParams.WRAP_CONTENT;
+            lp.setMarginEnd(Math.round(8 * density));
+            grid.addView(item, lp);
+        }
     }
 
     /**

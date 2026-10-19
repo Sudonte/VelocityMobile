@@ -98,4 +98,5 @@
     <color name="velocity_filter_stroke">#A39797</color>
     <!-- "Unpaid": red text on its soft chip. Light mode keeps the brand red; dark mode lightens it so it stays readable on the dark chip. -->
     <color name="status_unpaid_fg">#FF8A80</color>
+    <color name="velocity_card_inset">#2B1B1B</color>
 </resources>

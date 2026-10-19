@@ -81,7 +81,7 @@ public class RoomBrowsingRecreateTest {
         Calendar restoredCheckIn = (Calendar) in.get(b);
         assertEquals("the check-in date is back", 12, restoredCheckIn.get(Calendar.DAY_OF_MONTH));
         assertEquals(Calendar.OCTOBER, restoredCheckIn.get(Calendar.MONTH));
-        assertEquals("2 nights", ((TextView) b.findViewById(R.id.tvNightsSummary)).getText().toString());
+        assertEquals("2 nights", ((com.google.android.material.textfield.TextInputLayout) b.findViewById(R.id.checkOutLayout)).getHelperText().toString());
         assertEquals(View.VISIBLE, b.findViewById(R.id.tvPinnedDates).getVisibility());
 
         Bundle again = new Bundle();

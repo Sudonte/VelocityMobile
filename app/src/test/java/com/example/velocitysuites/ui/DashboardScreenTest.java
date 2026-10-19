@@ -349,9 +349,10 @@ public class DashboardScreenTest {
         assertOnly(activity, R.id.nextStayContent);
         selectDay(activity, 1);
         assertEquals("Check-in day", text(activity, R.id.tvNextStayHint));
-        assertEquals("Deluxe", text(activity, R.id.tvNextStayRooms));
-        assertEquals("2 nights · 2 Guests", text(activity, R.id.tvNextStayNights));
+        assertEquals("room type(s) and guests on one row", "Deluxe · 2 guests", text(activity, R.id.tvNextStayRooms));
         assertTrue(text(activity, R.id.tvNextStayDates).contains(" → "));
+        assertTrue("the length of the stay is on the dates row: " + text(activity, R.id.tvNextStayDates),
+                text(activity, R.id.tvNextStayDates).endsWith(" · 2 nights"));
         assertEquals("Waiting for payment", text(activity, R.id.tvNextStayStatus));
         assertEquals("Balance due", text(activity, R.id.tvNextStayBalanceLabel));
         assertEquals("₱1,800.00", text(activity, R.id.tvNextStayBalance));
@@ -367,18 +368,29 @@ public class DashboardScreenTest {
 
         assertOnly(activity, R.id.nextStayContent);
         LinearLayout money = activity.findViewById(R.id.nextStayMoney);
+        assertEquals("the full details are hidden by default", View.GONE, money.getVisibility());
+        TextView toggle = activity.findViewById(R.id.btnNextStayToggleDetails);
+        assertEquals("Show full details", toggle.getText().toString());
+        tap(toggle);
         assertEquals(View.VISIBLE, money.getVisibility());
+        assertEquals("Hide full details", toggle.getText().toString());
         List<String> rows = new ArrayList<>();
         collectText(money, rows);
         String all = String.join(" | ", rows);
         int last = -1;
-        for (String needle : new String[]{"Check-in Total", "₱1,600.00", "Approved amenities", "Breakfast (×1)", "₱200.00", "Broken lamp", "₱300.00",
-                "Amenities total", "Remaining Balance – payable at check-out", "₱500.00", "Final Total", "₱2,100.00", "1 amenity request awaiting approval"}) {
+        for (String needle : new String[]{"Room charges", "₱2,000.00", "Approved amenities", "Breakfast × 1", "₱200.00", "Amenities total", "Additional charges", "Broken lamp", "₱300.00",
+                "Total", "₱2,100.00", "Paid", "₱1,600.00", "Balance due", "₱500.00", "Payable at check-out", "1 amenity request awaiting approval"}) {
             int at = all.indexOf(needle, Math.max(0, last));
             assertTrue(needle + " missing or out of order in: " + all, at >= 0);
             last = at;
         }
         assertFalse("a pending request is never part of the numbers", all.contains("₱100.00"));
+        assertFalse("one balance line only", all.contains("Remaining Balance"));
+        assertEquals(1, all.split("Balance due", -1).length - 1);
+        tap(toggle);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertEquals("hides again", View.GONE, money.getVisibility());
+        assertEquals("Show full details", toggle.getText().toString());
     }
 
     @Test
@@ -906,7 +918,7 @@ public class DashboardScreenTest {
 
         View root = activity.getWindow().getDecorView();
         int[] ids = {R.id.tvNextStayRef, R.id.tvNextStayStatus, R.id.tvNextStayType, R.id.tvNextStayHint, R.id.tvNextStayRooms,
-                R.id.tvNextStayDates, R.id.tvNextStayNights, R.id.nextStayPaymentRow, R.id.btnNextStayRequestAmenities,
+                R.id.tvNextStayDates, R.id.nextStayPaymentRow, R.id.btnNextStayRequestAmenities,
                 R.id.tvNextStayViewDetails};
         android.graphics.Rect bounds = LayoutHarness.boundsIn(root, card);
         java.util.List<View> shown = new java.util.ArrayList<>();
@@ -964,23 +976,25 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void card_checkedIn_paid_theScreenshotCase_buttonSitsBesideViewDetails_withoutCoveringThePaymentRow() {
+    public void card_checkedIn_paid_requestAmenitiesIsACompactButtonOnItsOwnRow_belowTheActionRow() {
         DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(checkedIn(567, true)));
         TextView button = a.findViewById(R.id.btnNextStayRequestAmenities);
         assertTrue("the amenities button is shown while checked in", button.isShown());
-        assertEquals("Request Amenities", button.getText().toString());
+        assertEquals("Request amenities", button.getText().toString());
         assertEquals("one line", 1, button.getLineCount());
         assertEquals("no letter-spacing", 0f, button.getLetterSpacing(), 0.0001f);
-        assertEquals("48dp tall", LayoutHarness.dp(app, 48), a.findViewById(R.id.btnNextStayRequestAmenities).getHeight());
+        assertTrue("compact: about 40dp to look at", button.getHeight() <= LayoutHarness.dp(app, 48));
 
-        com.example.velocitysuites.NextStayActionRow row = a.findViewById(R.id.nextStayActions);
-        assertFalse("both fit side by side at 360dp", row.isStacked());
-        View details = a.findViewById(R.id.tvNextStayViewDetails);
         View root = a.getWindow().getDecorView();
-        assertTrue("View details is to the right of the button",
-                LayoutHarness.boundsIn(root, details).right > LayoutHarness.boundsIn(root, button).right);
-        assertEquals("vertically centred together", LayoutHarness.boundsIn(root, button).centerY(),
-                LayoutHarness.boundsIn(root, details).centerY(), LayoutHarness.dp(app, 2));
+        View actions = a.findViewById(R.id.nextStayActions);
+        assertTrue("on its own row, never overlapping the actions",
+                LayoutHarness.boundsIn(root, actions).bottom <= LayoutHarness.boundsIn(root, button).top);
+        View toggle = a.findViewById(R.id.btnNextStayToggleDetails);
+        View open = a.findViewById(R.id.tvNextStayViewDetails);
+        assertEquals("Show full details", ((TextView) toggle).getText().toString());
+        assertEquals("Open booking ›", ((TextView) open).getText().toString());
+        assertTrue("Show full details left, Open booking right",
+                LayoutHarness.boundsIn(root, toggle).right <= LayoutHarness.boundsIn(root, open).left);
 
         // the check is beside "Paid" - not beside the "Payment" label
         TextView paid = a.findViewById(R.id.tvNextStayBalance);
@@ -1013,11 +1027,9 @@ public class DashboardScreenTest {
             DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(checkedIn(567, true)));
             TextView button = a.findViewById(R.id.btnNextStayRequestAmenities);
             assertEquals("the button label never wraps", 1, button.getLineCount());
-            com.example.velocitysuites.NextStayActionRow row = a.findViewById(R.id.nextStayActions);
-            assertTrue("stacked when both do not fit", row.isStacked());
             View root = a.getWindow().getDecorView();
-            assertTrue("the full-width button comes first, View details below it",
-                    LayoutHarness.boundsIn(root, button).bottom <= LayoutHarness.boundsIn(root, a.findViewById(R.id.tvNextStayViewDetails)).top);
+            assertTrue("the button sits below the action row, no overlap",
+                    LayoutHarness.boundsIn(root, a.findViewById(R.id.nextStayActions)).bottom <= LayoutHarness.boundsIn(root, button).top);
         } finally {
             config.fontScale = 1f;
             app.getResources().updateConfiguration(config, app.getResources().getDisplayMetrics());
@@ -1089,7 +1101,11 @@ public class DashboardScreenTest {
         assertEquals("no filled pink block", null, viewAll.getBackgroundTintList());
         assertTrue("48dp tap target", viewAll.getMinHeight() >= LayoutHarness.dp(app, 48));
         com.google.android.material.card.MaterialCardView section = activity.findViewById(R.id.paymentStatusCard);
-        assertEquals("the section has no border of its own (no card inside a card)", 0, section.getStrokeWidth());
+        com.google.android.material.card.MaterialCardView account = activity.findViewById(R.id.accountSummaryCard);
+        assertEquals("the same border width as Account Summary", account.getStrokeWidth(), section.getStrokeWidth());
+        assertTrue(section.getStrokeWidth() > 0);
+        assertEquals("the same corner radius", account.getRadius(), section.getRadius(), 0.01f);
+        assertEquals("the same elevation", account.getCardElevation(), section.getCardElevation(), 0.01f);
         TextView desc = findTextView((ViewGroup) activity.findViewById(R.id.paymentsBody), R.string.payment_status_dashboard_desc);
         assertNotNull("the one-line description", desc);
         assertEquals("Paid and still due", desc.getText().toString());
@@ -1715,5 +1731,77 @@ public class DashboardScreenTest {
         controller.resume();
         shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(2));
         assertTrue("back in front it shows the time again", !text(a, R.id.timeText).equals("stale"));
+    }
+
+    // ---- Your Next Stay: Daily / Weekly / Monthly ----
+
+    @Test
+    public void nextStay_hasADailyWeeklyMonthlyControl_defaultingToDaily_andTheChoiceIsSaved() {
+        DashboardActivity activity = launch();
+        answer(stay(7001, 1, 2));
+        com.google.android.material.button.MaterialButtonToggleGroup group = activity.findViewById(R.id.nextStayMode);
+        assertEquals(R.id.nextStayModeDaily, group.getCheckedButtonId());
+        tap(activity.findViewById(R.id.nextStayModeWeekly));
+        assertEquals(R.id.nextStayModeWeekly, group.getCheckedButtonId());
+        assertEquals("WEEKLY", app.getSharedPreferences("VelocityPrefs", Context.MODE_PRIVATE).getString("next_stay_mode_v1", ""));
+        tap(activity.findViewById(R.id.nextStayModeMonthly));
+        assertEquals("MONTHLY", app.getSharedPreferences("VelocityPrefs", Context.MODE_PRIVATE).getString("next_stay_mode_v1", ""));
+    }
+
+    @Test
+    public void nextStay_weekly_listsEachTransactionOnce_withContextLineBadge() {
+        DashboardActivity activity = launch();
+        answer(stay(7002, 1, 3));
+        tap(activity.findViewById(R.id.nextStayModeWeekly));
+        ViewGroup cards = activity.findViewById(R.id.nextStayDayCards);
+        assertEquals("one card for a multi-day stay", 1, cards.getChildCount());
+        String info = text(activity, R.id.nextStayDayInfo);
+        assertTrue(info, info.endsWith(" · 1 stay"));
+        assertEquals("1", text(activity, R.id.nextStayCount));
+        assertTrue("week chips", ((ViewGroup) activity.findViewById(R.id.nextStayDayStrip)).getChildCount() >= 10);
+    }
+
+    @Test
+    public void nextStay_monthly_showsMonthChips_andTheMonthContextLine() {
+        DashboardActivity activity = launch();
+        answer(stay(7003, 1, 2));
+        tap(activity.findViewById(R.id.nextStayModeMonthly));
+        String info = text(activity, R.id.nextStayDayInfo);
+        assertTrue(info, info.matches("[A-Z][a-z]+ \\d{4} · \\d+ stays?"));
+        TextView firstTitle = ((ViewGroup) activity.findViewById(R.id.nextStayDayStrip)).getChildAt(0).findViewById(R.id.tvDayName);
+        assertTrue(firstTitle.getText().toString(), firstTitle.getText().toString().matches("[A-Z][a-z]{2} \\d{4}"));
+    }
+
+    @Test
+    public void nextStayCard_collapsedByDefault_expandsOnShowFullDetails_andKeepsItOnAFreshScreen() {
+        DashboardActivity a = launch();
+        answer(stay(7004, 0, 2));
+        assertEquals(View.GONE, a.findViewById(R.id.nextStayMoney).getVisibility());
+        assertEquals("Open reservation ›", text(a, R.id.tvNextStayViewDetails));
+        tap(a.findViewById(R.id.btnNextStayToggleDetails));
+        assertEquals(View.VISIBLE, a.findViewById(R.id.nextStayMoney).getVisibility());
+        // Switching period and back rebuilds the cards: the open state is kept.
+        tap(a.findViewById(R.id.nextStayModeWeekly));
+        tap(a.findViewById(R.id.nextStayModeDaily));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertEquals("still open after the cards were rebuilt", View.VISIBLE, a.findViewById(R.id.nextStayMoney).getVisibility());
+        assertEquals("Hide full details", text(a, R.id.btnNextStayToggleDetails));
+    }
+
+    @Test
+    public void bordered_sectionContainers_areIdentical_andNoAllCapsWelcome() {
+        DashboardActivity a = launch();
+        TextView welcome = a.findViewById(R.id.welcomeText);
+        assertFalse(welcome.isAllCaps());
+        assertEquals(0f, welcome.getLetterSpacing(), 0f);
+        com.google.android.material.card.MaterialCardView acc = a.findViewById(R.id.accountSummaryCard);
+        int[] ids = {R.id.paymentStatusCard, R.id.bookingDetailsCard, R.id.notificationsCard};
+        for (int id : ids) {
+            com.google.android.material.card.MaterialCardView c = a.findViewById(id);
+            assertEquals(acc.getStrokeWidth(), c.getStrokeWidth());
+            assertEquals(acc.getStrokeColor(), c.getStrokeColor());
+            assertEquals(acc.getRadius(), c.getRadius(), 0.01f);
+            assertEquals(acc.getCardElevation(), c.getCardElevation(), 0.01f);
+        }
     }
 }

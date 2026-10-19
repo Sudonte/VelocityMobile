@@ -364,4 +364,31 @@ public class NotificationsCatalogAndDetailTest {
         assertEquals(1, repository.getUnreadNotificationCount());
         assertNull(null);
     }
+
+    @Test
+    public void afterPickingEachShowOption_theBorderIsTheGrayUnfocusedColor() throws Exception {
+        NotificationActivity a = launch().get();
+        answerApi(0, ScreenTestSupport.notification(1, "Booking Confirmed", "booking", 5L, true));
+        AutoCompleteTextView dd = a.findViewById(R.id.dropdownNotificationStatus);
+        com.google.android.material.textfield.TextInputLayout til = a.findViewById(R.id.layoutNotificationStatusFilter);
+        java.lang.reflect.Field f = com.google.android.material.textfield.TextInputLayout.class.getDeclaredField("defaultStrokeColor");
+        f.setAccessible(true);
+        for (int i = 0; i < dd.getAdapter().getCount(); i++) {
+            dd.requestFocus();
+            pick(a, i);
+            assertFalse("option " + i + " released focus", dd.isFocused());
+            assertEquals("option " + i + " is gray, not red", a.getColor(R.color.velocity_filter_stroke), f.getInt(til));
+        }
+    }
+
+    @Test
+    public void markAllAsRead_isAlwaysVisible_andEnabledOnlyWhileSomethingIsUnread() {
+        NotificationActivity a = launch().get();
+        answerApi(1, ScreenTestSupport.notification(1, "Booking Confirmed", "booking", 5L, false));
+        View all = a.findViewById(R.id.btnMarkAllRead);
+        assertEquals(View.VISIBLE, all.getVisibility());
+        assertTrue(all.isEnabled());
+        assertNotNull("an unread card has its own Mark as read", row(a, 0).findViewById(R.id.btnNotifMarkRead));
+        assertEquals(View.VISIBLE, row(a, 0).findViewById(R.id.btnNotifMarkRead).getVisibility());
+    }
 }

@@ -318,10 +318,8 @@
     <string name="details_request_pending">Pending approval – not counted</string>
     <string name="details_request_rejected">Not approved – not counted</string>
     <string name="details_request_rejected_reason">Not approved (%1$s) – not counted</string>
-    <string name="next_stay_checkin_total">Check-in Total</string>
     <string name="next_stay_approved_amenities">Approved amenities</string>
     <string name="next_stay_amenities_total">Amenities total</string>
-    <string name="next_stay_final_total">Final Total</string>
     <plurals name="next_stay_pending_requests">
         <item quantity="one">%d amenity request awaiting approval – not counted yet</item>
         <item quantity="other">%d amenity requests awaiting approval – not counted yet</item>
@@ -707,26 +705,17 @@
     <string name="available_label">Available</string>
     <string name="limited_label">Limited availability</string>
     <string name="unavailable_label">Fully Booked</string>
-    <string name="price_format_night">&#8369;%,.0f</string>
     <string name="price_format_per_night">&#8369;%,.0f / night</string>
-    <string name="per_night_suffix">/ night</string>
     <string name="room_type_capacity_format">%1$s  %2$d Guests</string>
-    <string name="pricing_label">Pricing</string>
-    <string name="pricing_text_format">%1$s per night\nNo Refund - payments are non-refundable.</string>
-    <string name="description_label">Description</string>
     <string name="amenities_label">Amenities</string>
     <string name="room_browsing_desc">Find a room for your dates</string>
     <string name="all_categories">All types</string>
     <string name="capacity_label">Capacity</string>
-    <string name="bed_type_label">Bed Type</string>
-    <string name="room_size_label">Room Size</string>
     <string name="hotel_policies_label">Hotel Policies</string>
-    <string name="room_overview_label">Room Overview</string>
     <string name="room_quantity_label">Room Quantity</string>
-    <string name="actions_label">Actions</string>
     <string name="hotel_policies_content">• Check-In Time: Starts at 2:00 PM.\n• Check-Out Time: Until 12:00 PM (noon).\n• Front Desk: Available 24 hours a day, 7 days a week.\n• Pet Policy: Pets are strictly not allowed.\n• Minimum Stay: Requires a 1-day minimum stay (subject to change based on seasonality).\n• Smoking Policy: Strictly non-smoking rooms (designated areas may apply).\n• Payment Methods: Cash and major local electronic payment methods are accepted upon check-in.
 • No Refund Policy: Payments made for a booking or reservation are non-refundable, including on cancellation or early check-out.</string>
-    <string name="no_refund_badge">No Refund</string>
+    <string name="no_refund_badge">No refund</string>
     <string name="king_bed">King Size Bed</string>
     <string name="queen_bed">Queen Size Bed</string>
     <string name="twin_beds">Twin Beds</string>
@@ -749,7 +738,7 @@
     <string name="sort_price_low_high">Price: Low to High</string>
     <string name="sort_price_high_low">Price: High to Low</string>
     <string name="sort_name_az">Name: A-Z</string>
-    <string name="view_details">View Details</string>
+    <string name="view_details">View details</string>
     <string name="book_now">Book Now</string>
     <string name="reserve_now">Reserve Now</string>
     <string name="cd_view_details_format">View %1$s details</string>
@@ -1955,7 +1944,7 @@
         <item quantity="one">%1$d night</item>
         <item quantity="other">%1$d nights</item>
     </plurals>
-    <string name="pinned_dates_format">%1$s – %2$s · %3$s</string>
+    <string name="pinned_dates_format">%1$s → %2$s · %3$s</string>
     <string name="pinned_dates_cd">Dates: %1$s. Tap to change.</string>
     <string name="guest_label_name">Name</string>
     <string name="guest_label_email">Email</string>
@@ -2097,7 +2086,7 @@
     <string name="section_expand_named">Expand %1$s</string>
     <string name="section_state_expanded_named">%1$s expanded</string>
     <string name="section_state_collapsed_named">%1$s collapsed</string>
-    <string name="next_stay_request_amenities">Request Amenities</string>
+    <string name="next_stay_request_amenities">Request amenities</string>
     <string name="next_stay_ctx_staying">You\'re staying with us</string>
     <string name="account_summary_desc">Your profile and contact details</string>
     <string name="payment_status_dashboard_desc">Paid and still due</string>
@@ -2179,8 +2168,6 @@
     <string name="notif_filter_label">Show</string>
     <string name="notif_filter_payment">Payment</string>
     <string name="notif_category_amenity">Amenities</string>
-    <string name="notif_more">More</string>
-    <string name="notif_less">Less</string>
     <string name="notif_more_options">More options</string>
     <string name="notif_clear_filters">Clear filters</string>
     <string name="notif_unread_badge_cd">%1$s unread notifications</string>
@@ -2216,10 +2203,6 @@
     <string name="rooms_empty_both_title">No rooms match your dates and filters</string>
     <string name="rooms_empty_both_desc">Clear the filters or try different dates.</string>
     <string name="change_dates_label">Change dates</string>
-    <plurals name="room_card_up_to_guests">
-        <item quantity="one">Up to %1$d guest</item>
-        <item quantity="other">Up to %1$d guests</item>
-    </plurals>
     <string name="cd_remove_filter_format">Remove filter %1$s</string>
     <string name="notif_detail_view_format">View %1$s</string>
     <string name="notif_detail_view_payment">View payment</string>
@@ -2247,6 +2230,111 @@
         <item quantity="one">Only %1$d left</item>
         <item quantity="other">Only %1$d left</item>
     </plurals>
+    <string name="next_stay_period_this_week">This week</string>
+    <string name="next_stay_period_next_week">Next week</string>
+    <string name="next_stay_period_last_week">Last week</string>
+    <string name="next_stay_period_this_month">This month</string>
+    <string name="next_stay_period_next_month">Next month</string>
+    <string name="next_stay_period_last_month">Last month</string>
+    <plurals name="next_stay_period_context">
+        <item quantity="one">%1$s · %2$d stay</item>
+        <item quantity="other">%1$s · %2$d stays</item>
+    </plurals>
+    <string name="next_stay_period_empty">Nothing booked in this period. Pick another above.</string>
+    <string name="next_stay_show_details">Show full details</string>
+    <string name="next_stay_hide_details">Hide full details</string>
+    <string name="next_stay_open_booking">Open booking ›</string>
+    <string name="next_stay_open_reservation">Open reservation ›</string>
+    <string name="next_stay_detail_room_charges">Room charges</string>
+    <string name="next_stay_detail_booked_amenities">Booked amenities</string>
+    <string name="next_stay_detail_discount">Discount</string>
+    <string name="next_stay_detail_additional_charges">Additional charges</string>
+    <string name="next_stay_detail_adjustment">Adjustment</string>
+    <string name="next_stay_detail_total">Total</string>
+    <string name="next_stay_detail_payable_at_checkout">Payable at check-out</string>
+    <string name="next_stay_detail_item_format">%1$s × %2$d</string>
+    <plurals name="guests_count_lower">
+        <item quantity="one">%1$d guest</item>
+        <item quantity="other">%1$d guests</item>
+    </plurals>
+    <!-- Notification templates (NotificationText): written from the notification's own facts, never invented. -->
+    <string name="nt_noun_booking">booking</string>
+    <string name="nt_noun_reservation">reservation</string>
+    <string name="nt_your_noun_format">your %1$s</string>
+    <string name="nt_for_room_format">" for Room %1$s"</string>
+    <string name="nt_on_label_format">" on %1$s"</string>
+    <string name="nt_for_label_format">" for %1$s"</string>
+    <string name="nt_of_amount_format">" of %1$s"</string>
+    <string name="nt_reason_format">Reason: %1$s.</string>
+    <string name="nt_open_details_format">Open the %1$s to see the full details.</string>
+    <string name="nt_open_to_see_due_format">Open the %1$s to see what is still due.</string>
+    <string name="nt_amenity_approved_title_format">Your %1$s request is approved</string>
+    <string name="nt_amenity_approved_s1">The front desk approved %1$d × %2$s%3$s%4$s.</string>
+    <string name="nt_amenity_added_amount_format">%1$s has been added to your bill.</string>
+    <string name="nt_amenity_added">It has been added to your bill.</string>
+    <string name="nt_amenity_settle">You can settle it at check-out or pay through the app.</string>
+    <string name="nt_amenity_open_total">Open the booking to see your updated total.</string>
+    <string name="nt_amenity_rejected_title_format">Your %1$s request was not approved</string>
+    <string name="nt_amenity_rejected_s1">The front desk could not approve %1$d × %2$s%3$s%4$s.</string>
+    <string name="nt_amenity_not_added">Nothing was added to your bill.</string>
+    <string name="nt_amenity_request_again">You can send a new request from your booking while you stay.</string>
+    <string name="nt_confirmed_title_format">%1$s is confirmed</string>
+    <string name="nt_confirmed_s1">%1$s is confirmed.</string>
+    <string name="nt_stay_on_format">Your stay is on %1$s.</string>
+    <string name="nt_stay_in_on_format">Your stay in %1$s is on %2$s.</string>
+    <string name="nt_checkin_times_format">Check-in is from %1$s and check-out is by %2$s.</string>
+    <string name="nt_closed_title_format">%1$s was %2$s</string>
+    <string name="nt_verb_rejected">rejected</string>
+    <string name="nt_verb_cancelled">cancelled</string>
+    <string name="nt_closed_s1_format">%1$s was %2$s.</string>
+    <string name="nt_closed_s1_dates_format">%1$s for %2$s was %3$s.</string>
+    <string name="nt_closed_s2">You can browse rooms and make a new booking at any time.</string>
+    <string name="nt_payment_received_title">We received your payment</string>
+    <string name="nt_payment_received_s1">Your payment%1$s%2$s was received.</string>
+    <string name="nt_payment_received_waiting">It is waiting for the front desk to verify it.</string>
+    <string name="nt_payment_received_s2">Your balance updates once the payment is verified.</string>
+    <string name="nt_payment_received_s3">You can follow its status in Transaction History.</string>
+    <string name="nt_payment_verified_title">Your payment is verified</string>
+    <string name="nt_payment_verified_s1">Your payment%1$s%2$s was verified.</string>
+    <string name="nt_payment_verified_s2">Your balance has been updated.</string>
+    <string name="nt_payment_verified_s3">You can view the receipt from the booking or in Transaction History.</string>
+    <string name="nt_payment_rejected_title">Your payment was not accepted</string>
+    <string name="nt_payment_rejected_s1">Your payment%1$s%2$s could not be verified.</string>
+    <string name="nt_payment_rejected_s2">Your balance has not changed.</string>
+    <string name="nt_checkin_title">You\'re checked in</string>
+    <string name="nt_checkin_s1">You were checked in%1$s.</string>
+    <string name="nt_your_room_format">Your room: %1$s.</string>
+    <string name="nt_checkout_on_format">Check-out is by %1$s on %2$s.</string>
+    <string name="nt_checkin_amenities">You can request additional amenities from your booking during your stay.</string>
+    <string name="nt_checkout_title">You\'re checked out</string>
+    <string name="nt_checkout_s1">You were checked out%1$s.</string>
+    <string name="nt_checkout_s2">Thank you for staying with Velocity Suites.</string>
+    <string name="nt_checkout_s3">Your receipts are in Transaction History.</string>
+    <string name="nt_promo_valid_format">It is valid %1$s.</string>
+    <string name="nt_promo_room_format">It applies to %1$s.</string>
+    <string name="nt_promo_includes_format">It includes %1$s.</string>
+    <string name="nt_promo_discount_format">The discount is %1$s.</string>
+    <string name="nt_promo_browse">Browse rooms to see it on your dates.</string>
+    <string name="nt_system_from">This is an announcement from Velocity Suites.</string>
+    <string name="nt_system_published_format">It was published on %1$s.</string>
+    <string name="room_card_reserve">Reserve</string>
+    <string name="room_card_book_now">Book now</string>
+    <plurals name="room_card_amenities_more">
+        <item quantity="one">+%1$d amenity</item>
+        <item quantity="other">+%1$d amenities</item>
+    </plurals>
+    <string name="room_section_overview">Overview</string>
+    <string name="room_section_facts">Room Facts</string>
+    <string name="room_section_policies">Policies</string>
+    <string name="room_fact_guests">Guests</string>
+    <string name="room_fact_beds">Beds</string>
+    <string name="room_fact_size">Size</string>
+    <string name="room_policy_refund_label">Refund policy</string>
+    <string name="room_policy_refund_value">Non-refundable</string>
+    <string name="room_policy_checkin_label">Check-in</string>
+    <string name="room_policy_checkout_label">Check-out</string>
+    <string name="room_policy_from_format">From %1$s</string>
+    <string name="room_policy_until_format">Until %1$s</string>
 </resources>
 
 

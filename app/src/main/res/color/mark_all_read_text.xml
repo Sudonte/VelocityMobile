@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mark all as read: the action colour, a quiet gray once there is nothing left to mark. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/velocity_inactive_gray" android:state_enabled="false" />
+    <item android:color="@color/velocity_red_primary" />
+</selector>

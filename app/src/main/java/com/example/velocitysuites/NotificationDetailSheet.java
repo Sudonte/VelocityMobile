@@ -125,10 +125,12 @@ final class NotificationDetailSheet {
         icon.setImageResource(category.iconRes);
         icon.setColorFilter(ContextCompat.getColor(activity, category.fgColorRes));
         ((TextView) view.findViewById(R.id.tvNotifDetailCategory)).setText(category.labelRes);
-        ((TextView) view.findViewById(R.id.tvNotifDetailTitle)).setText(n.getTitle() == null ? "" : n.getTitle());
+        // The friendly title and the full description (the server's own words when no template applies).
+        NotificationText.Content content = NotificationText.of(activity, n);
+        ((TextView) view.findViewById(R.id.tvNotifDetailTitle)).setText(content.title);
         TextView message = view.findViewById(R.id.tvNotifDetailMessage);
-        message.setText(n.getMessage() == null ? "" : n.getMessage());
-        message.setVisibility(n.getMessage() == null || n.getMessage().trim().isEmpty() ? View.GONE : View.VISIBLE);
+        message.setText(content.description);
+        message.setVisibility(content.description.trim().isEmpty() ? View.GONE : View.VISIBLE);
         String when = whenText(n);
         TextView time = view.findViewById(R.id.tvNotifDetailTime);
         time.setText(when);

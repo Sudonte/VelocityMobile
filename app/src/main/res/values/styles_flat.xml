@@ -70,6 +70,12 @@
         <item name="shapeAppearance">@style/ShapeAppearance.Velocity.Card</item>
     </style>
 
+    <!-- A card inside a bordered container: a subtle off-surface fill, a thin hairline, no shadow. -->
+    <style name="Widget.Velocity.Card.Flat.Inset" parent="Widget.Velocity.Card.Flat">
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/velocity_card_inset</item>
+    </style>
+
     <!-- Choice chips -->
     <style name="Widget.Velocity.Flat.Chip" parent="Widget.MaterialComponents.Chip.Choice">
         <item name="shapeAppearance">@style/ShapeAppearance.Velocity.Square</item>
@@ -214,5 +220,30 @@
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- The compact primary action (Pay Now): filled, about 40dp tall visually, normal-case text, no outline. -->
+    <style name="Widget.Velocity.Flat.Button.Compact.Filled" parent="Widget.Velocity.Flat.Button">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:insetTop">4dp</item>
+        <item name="android:insetBottom">4dp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="backgroundTint">@color/button_primary_bg</item>
+        <item name="android:textColor">@color/button_primary_text</item>
+    </style>
+
+    <!-- Sort and Filters in the results bar: compact (about 36dp to look at, 48dp to touch) with a light hairline instead of a heavy box. -->
+    <style name="Widget.Velocity.Flat.Button.Compact.Subtle" parent="Widget.Velocity.Flat.Button.Compact">
+        <item name="android:insetTop">6dp</item>
+        <item name="android:insetBottom">6dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/velocity_text_primary</item>
+        <item name="strokeColor">@color/velocity_divider_hairline</item>
     </style>
 </resources>

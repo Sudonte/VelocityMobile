@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- A room in Room Browsing and on the landing page: only the important details.
+       Photo (availability chip + favorite heart; tapping the photo or the name opens the details)
+       Name (about 20sp, bold, shown once) ..... price (about 20sp, bold) - side by side when they fit, else the price under the name
+       A small type chip only when the room type differs from the name
+       One compact facts row with small icons: guests, beds, size   +  a "No refund" chip
+       "+5 amenities" (small, secondary) and a "View details" text link
+       Room quantity stepper, then Reserve (outlined) and Book now (filled) side by side.
+     The description and the full amenity list live on the Room Details screen. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/Widget.Velocity.Card.Glass"
+    tools:ignore="UselessParent"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/room_list_card_spacing"
@@ -17,11 +26,8 @@
         android:orientation="vertical"
         android:padding="@dimen/room_list_card_content_padding">
 
-        <!-- Image column + info column. Info column is centered vertically
-             against the image so shorter content doesn't sit top-heavy.
-             On a narrow screen or with a large system font this row (and the action row below) is
-             restacked top-to-bottom by RoomAdapter#applyRoomyLayout(): a 140dp photo beside a column
-             that is only ~80dp wide leaves the text breaking in the middle of words. -->
+        <!-- On a narrow screen or with a large system font RoomAdapter#applyRoomyLayout() restacks the actions; this
+             column is already one vertical stack. -->
         <LinearLayout
             android:id="@+id/roomCardTopRow"
             android:layout_width="match_parent"
@@ -29,9 +35,6 @@
             android:gravity="start"
             android:orientation="vertical">
 
-            <!-- Room Image - clean: only the availability badge, favorite
-                 toggle, and price badge live on the photo. Amenities live in
-                 their own full-width section below (see amenitiesChipGroup). -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/roomImageCard"
                 android:layout_width="match_parent"
@@ -47,9 +50,9 @@
                         android:id="@+id/roomImage"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
                         android:background="@color/velocity_red_soft"
-                        android:contentDescription="@string/cd_room_image" />
+                        android:contentDescription="@string/cd_room_image"
+                        android:scaleType="centerCrop" />
 
                     <View
                         android:layout_width="match_parent"
@@ -57,8 +60,7 @@
                         android:background="@drawable/gradient_overlay"
                         android:importantForAccessibility="no" />
 
-                    <!-- Availability status pill - top-left of the image. Self-styled
-                         via bg_badge_* drawables set in RoomAdapter#bindRoom(). -->
+                    <!-- Availability chip, top-left; styled by RoomAdapter#bindRoom(). -->
                     <TextView
                         android:id="@+id/roomStatusBadge"
                         android:layout_width="wrap_content"
@@ -67,15 +69,15 @@
                         android:layout_margin="6dp"
                         android:fontFamily="sans-serif-black"
                         android:includeFontPadding="false"
+                        android:letterSpacing="0"
                         android:paddingHorizontal="7dp"
                         android:paddingVertical="3dp"
                         android:text="@string/available_label"
-                        android:textColor="@color/velocity_green_primary"
-                        android:textSize="12sp"
                         android:textAllCaps="false"
-                        android:letterSpacing="0" />
+                        android:textColor="@color/velocity_green_primary"
+                        android:textSize="12sp" />
 
-                    <!-- Favorite toggle - top-right of the image. -->
+                    <!-- Favorite toggle, top-right. -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -92,17 +94,14 @@
                             android:layout_width="40dp"
                             android:layout_height="40dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/cd_add_to_favorites"
                             android:padding="9dp"
                             android:src="@drawable/ic_favorite_border"
-                            android:contentDescription="@string/cd_add_to_favorites"
                             app:tint="@color/velocity_red_primary" />
                     </com.google.android.material.card.MaterialCardView>
-
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Info column. The three facts are 12sp and may wrap onto a second line (they used to be 10sp
-                 and cut off with an ellipsis), so a large font or a long bed description is still readable. -->
             <LinearLayout
                 android:id="@+id/roomInfoColumn"
                 android:layout_width="match_parent"
@@ -110,155 +109,167 @@
                 android:layout_marginTop="8dp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/roomName"
+                <!-- Name left, price right - or the price directly under the name when both do not fit. -->
+                <com.example.velocitysuites.NamePriceRow
+                    android:id="@+id/roomNamePriceRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
-                    android:includeFontPadding="false"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="14sp"
-                    android:letterSpacing="-0.02"
-                    tools:text="Standard Room" />
+                    android:orientation="horizontal">
 
+                    <TextView
+                        android:id="@+id/roomName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:fontFamily="sans-serif-black"
+                        android:includeFontPadding="false"
+                        android:letterSpacing="0"
+                        android:maxLines="2"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="20sp"
+                        tools:text="Deluxe" />
+
+                    <TextView
+                        android:id="@+id/roomPrice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:fontFamily="sans-serif-black"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="20sp"
+                        tools:text="₱3,500 / night" />
+                </com.example.velocitysuites.NamePriceRow>
+
+                <!-- Only when the room type is not just the name again. -->
                 <TextView
                     android:id="@+id/roomTypeText"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/shape_intro_pill"
+                    android:backgroundTint="@color/status_cancelled_bg"
                     android:ellipsize="end"
+                    android:fontFamily="sans-serif-bold"
+                    android:letterSpacing="0"
                     android:maxLines="1"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="12sp"
-                    tools:text="Deluxe" />
-
-                <TextView
-                    android:id="@+id/roomPrice"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:fontFamily="sans-serif-black"
-                    android:includeFontPadding="false"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="16sp"
-                    tools:text="₱3,600.00 / night" />
-
-                <!-- Short description: two lines at most, hidden when the room has none. -->
-                <TextView
-                    android:id="@+id/roomDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:lineSpacingExtra="1dp"
-                    android:maxLines="2"
-                    android:textColor="@color/velocity_text_secondary"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/status_cancelled_fg"
                     android:textSize="12sp"
                     android:visibility="gone"
-                    tools:text="A bright, quiet room with a city view and a king bed."
+                    tools:text="Deluxe Suite"
                     tools:visibility="visible" />
 
-                <!-- Guest capacity -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <!-- One compact facts row: small icon + value, wrapping to a second line only when they cannot fit. -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="6dp">
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_people"
-                        app:tint="@color/velocity_red_primary" />
-
-                    <TextView
-                        android:id="@+id/roomGuestsText"
+                    <LinearLayout
+                        android:id="@+id/factGuests"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="12sp"
-                        tools:text="2 Guests" />
-                </LinearLayout>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                <!-- Bed type -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_people"
+                            app:tint="@color/velocity_red_primary" />
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_bed"
-                        app:tint="@color/velocity_red_primary" />
+                        <TextView
+                            android:id="@+id/roomGuestsText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:text="2 guests" />
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/roomBedType"
+                    <LinearLayout
+                        android:id="@+id/factBeds"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="12sp"
-                        tools:text="King Bed" />
-                </LinearLayout>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                <!-- Room size -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_bed"
+                            app:tint="@color/velocity_red_primary" />
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_area"
-                        app:tint="@color/velocity_red_primary" />
+                        <TextView
+                            android:id="@+id/roomBedType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:maxWidth="200dp"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:text="2 beds" />
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/roomSizeText"
+                    <LinearLayout
+                        android:id="@+id/factSize"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="12sp"
-                        tools:text="42 sqm" />
-                </LinearLayout>
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                <!-- LIMITED-tier hint only - see RoomAvailabilityStatus. Hidden for
-                     AVAILABLE/FULLY_BOOKED so the compact card stays uncluttered. -->
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_area"
+                            app:tint="@color/velocity_red_primary" />
+
+                        <TextView
+                            android:id="@+id/roomSizeText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="12sp"
+                            tools:text="29.99 sqm" />
+                    </LinearLayout>
+
+                    <androidx.constraintlayout.helper.widget.Flow
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:constraint_referenced_ids="factGuests,factBeds,factSize"
+                        app:flow_horizontalBias="0"
+                        app:flow_horizontalGap="12dp"
+                        app:flow_horizontalStyle="packed"
+                        app:flow_verticalGap="4dp"
+                        app:flow_wrapMode="chain"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Rarely used hint; always hidden on the compact card. -->
                 <TextView
                     android:id="@+id/tvRoomsLeftHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:fontFamily="sans-serif-bold"
-                    android:textColor="@color/velocity_action_text"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    tools:text="Only 2 room(s) left"
-                    tools:visibility="visible" />
+                    android:visibility="gone" />
 
-                <!-- Hotel-wide No Refund indicator, shown on every room card (landing + Room Browsing). -->
+                <!-- Refund policy, as a small chip. -->
                 <TextView
                     android:id="@+id/tvNoRefundBadge"
                     android:layout_width="wrap_content"
@@ -267,42 +278,57 @@
                     android:background="@drawable/bg_badge_warning"
                     android:fontFamily="sans-serif-black"
                     android:includeFontPadding="false"
+                    android:letterSpacing="0"
                     android:paddingHorizontal="7dp"
                     android:paddingVertical="3dp"
                     android:text="@string/no_refund_badge"
                     android:textColor="@color/velocity_action_text"
                     android:textSize="12sp" />
+
+                <!-- "+5 amenities" (small, secondary) and the View details link. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvAmenitiesMore"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp"
+                        tools:text="+5 amenities" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewDetails"
+                        style="@style/Widget.Velocity.Flat.Button.Text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="none"
+                        android:insetTop="4dp"
+                        android:insetBottom="4dp"
+                        android:letterSpacing="0"
+                        android:maxLines="1"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="4dp"
+                        android:text="@string/view_details"
+                        android:textColor="@color/velocity_action_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Amenities - full-width section directly below the image/info
-             row, showing every amenity assigned to this room type (never
-             capped/hidden, never truncated). Full-width, wrapping ChipGroup
-             (no singleLine, no HorizontalScrollView) so every amenity is
-             visible directly in the card - once a row fills, remaining
-             amenities automatically flow onto the next row - populated in
-             RoomAdapter#bindAmenities. -->
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/amenitiesChipGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            app:chipSpacingHorizontal="4dp"
-            app:chipSpacingVertical="4dp" />
-
-        <!-- Room Quantity - full-width row, directly above the divider and
-             action buttons. Multi-room cart stepper: lets a guest stage N
-             units of this room type into a running multi-room cart
-             (landing.xml/roombrowsing.xml summary bar) without leaving the
-             list, capped at Room#getAvailableCount(). Hidden entirely for
-             unavailable rooms and in details-only mode - see
-             RoomAdapter#bindRoom(). The - and + buttons are 40dp (they were 22dp)
-             and the label and count are readable sizes. -->
+        <!-- Room quantity: a compact stepper, "+" disabled once the available count is reached. Hidden for unavailable rooms
+             and in details-only mode (RoomAdapter#bindQuantityStepper). -->
         <LinearLayout
             android:id="@+id/cardRoomQtyStepper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:background="@drawable/shape_search_field"
             android:backgroundTint="@color/velocity_red_bg_end"
             android:gravity="center_vertical"
@@ -374,8 +400,7 @@
                 app:iconTint="@color/white" />
         </LinearLayout>
 
-        <!-- Occupied info row: shown instead of the CTA row for unavailable rooms.
-             Only the occupancy period is surfaced here - no guest/booking identity. -->
+        <!-- Occupied info row: shown instead of the stepper for unavailable rooms (the occupancy period only - no guest identity). -->
         <LinearLayout
             android:id="@+id/layoutOccupiedInfo"
             android:layout_width="match_parent"
@@ -403,32 +428,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-bold"
                 android:maxLines="2"
-                android:ellipsize="end"
                 android:textColor="@color/velocity_text_secondary"
                 android:textSize="12sp"
                 tools:text="Occupied: Aug 10, 2026 – Aug 14, 2026" />
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="6dp"
-            android:background="@color/velocity_red_subtle"
-            android:alpha="0.5"
-            android:importantForAccessibility="no" />
-
-        <!-- Action area: Reserve Now / Book Now side by side (Book Now, the filled one, is the main action),
-             View Details underneath. Every room card always offers all three - a fully-booked room keeps them
-             visible but disabled rather than hiding them. Each is a real 48dp touch target with 13sp text that
-             can wrap onto a second line; in one cramped 9sp row (the old layout) the labels were unreadable
-             and cut off at a large font size. -->
+        <!-- Actions: Reserve (outlined) and Book now (filled) side by side, compact. A fully-booked room keeps them visible but disabled. -->
         <LinearLayout
             android:id="@+id/layoutRoomActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -439,94 +452,37 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnReserveNow"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Velocity.Flat.Button.Compact"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:ellipsize="end"
-                    android:fontFamily="sans-serif-bold"
-                    android:includeFontPadding="false"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    android:maxLines="2"
-                    android:minHeight="48dp"
-                    android:paddingHorizontal="6dp"
-                    android:stateListAnimator="@null"
-                    android:text="@string/reserve_now"
-                    android:textAllCaps="false"
-                    android:textColor="@color/velocity_action_text"
-                    android:textSize="12sp"
-                    app:cornerRadius="0dp"
-                    app:elevation="0dp"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/room_card_reserve"
                     app:icon="@drawable/ic_calendar"
                     app:iconGravity="textStart"
                     app:iconPadding="6dp"
                     app:iconSize="16dp"
-                    app:iconTint="@color/velocity_action_text"
-                    app:strokeColor="@color/velocity_red_primary" />
+                    app:iconTint="@color/velocity_action_text" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnQuickBook"
+                    style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:ellipsize="end"
-                    android:fontFamily="sans-serif-bold"
-                    android:includeFontPadding="false"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    android:maxLines="2"
-                    android:minHeight="48dp"
-                    android:paddingHorizontal="6dp"
-                    android:stateListAnimator="@null"
-                    android:text="@string/book_now"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    app:backgroundTint="@color/velocity_red_primary"
-                    app:cornerRadius="0dp"
-                    app:elevation="0dp"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/room_card_book_now"
                     app:icon="@drawable/ic_booking"
                     app:iconGravity="textStart"
                     app:iconPadding="6dp"
                     app:iconSize="16dp"
-                    app:iconTint="@color/white" />
+                    app:iconTint="@color/button_primary_text" />
             </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnViewDetails"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-bold"
-                android:includeFontPadding="false"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:maxLines="2"
-                android:minHeight="48dp"
-                android:paddingHorizontal="6dp"
-                android:stateListAnimator="@null"
-                android:text="@string/view_details"
-                android:textAllCaps="false"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="12sp"
-                app:cornerRadius="0dp"
-                app:elevation="0dp"
-                app:icon="@drawable/ic_eye"
-                app:iconGravity="textStart"
-                app:iconPadding="6dp"
-                app:iconSize="16dp"
-                app:iconTint="@color/velocity_text_primary"
-                app:strokeColor="@color/velocity_red_subtle" />
         </LinearLayout>
 
     </LinearLayout>

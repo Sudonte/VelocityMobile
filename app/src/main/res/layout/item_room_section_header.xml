@@ -1,30 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- A heading between groups of rooms (only "Unavailable for your dates"): the shared bold section title, Title Case, no bullet. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
     android:gravity="center_vertical"
+    android:orientation="horizontal"
     android:paddingTop="16dp"
-    android:paddingBottom="10dp">
-
-    <View
-        android:id="@+id/sectionHeaderDot"
-        android:layout_width="8dp"
-        android:layout_height="8dp"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/shape_intro_pill"
-        android:backgroundTint="@color/velocity_green_primary"
-        android:importantForAccessibility="no" />
+    android:paddingBottom="8dp">
 
     <TextView
         android:id="@+id/tvSectionHeader"
-        style="@style/TextAppearance.Velocity.Label.Section"
+        style="@style/TextAppearance.Velocity.Section.Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textColor="@color/velocity_text_primary"
-        android:textSize="12sp"
-        tools:text="Available Rooms (12)" />
+        tools:text="Unavailable For Your Dates (2)" />
 
 </LinearLayout>

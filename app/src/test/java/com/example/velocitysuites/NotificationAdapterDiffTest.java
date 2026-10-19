@@ -46,7 +46,7 @@ public class NotificationAdapterDiffTest {
     private static List<NotificationAdapter.Row> rowsOf(Notification... notifications) {
         List<NotificationAdapter.Row> rows = new ArrayList<>();
         for (int i = 0; i < notifications.length; i++) {
-            rows.add(new NotificationAdapter.Row(notifications[i], notifications[i].isRead(), i == 0, "Today", false));
+            rows.add(new NotificationAdapter.Row(notifications[i], notifications[i].isRead(), i == 0, "Today"));
         }
         return rows;
     }

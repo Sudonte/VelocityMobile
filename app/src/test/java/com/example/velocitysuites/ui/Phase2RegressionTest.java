@@ -114,7 +114,7 @@ public class Phase2RegressionTest {
     }
 
     @Test
-    public void roomDetails_haveSections_pricingShowsNoRefund_andTheLongSectionsFold() {
+    public void roomDetails_haveTheirSections_refundPolicyAndTimes_andTheLongPoliciesFold() {
         androidx.appcompat.app.AppCompatActivity host = Robolectric.buildActivity(RoomBrowsingActivity.class, new Intent(app, RoomBrowsingActivity.class)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
         RoomDetailsDialog.show(host, room("5", "Deluxe", 3500), "VIEW_DETAILS", null, new RoomDetailsDialog.ActionListener() {
@@ -129,25 +129,35 @@ public class Phase2RegressionTest {
         shadowOf(Looper.getMainLooper()).idle();
         android.app.Dialog dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog();
 
-        TextView pricing = dialog.findViewById(R.id.detailPricingText);
-        assertTrue(pricing.getText().toString(), pricing.getText().toString().contains("3,500"));
-        assertTrue(pricing.getText().toString().contains("No Refund"));
+        assertEquals("₱3,500 / night", ((TextView) dialog.findViewById(R.id.detailRoomPrice)).getText().toString());
+        assertEquals("₱3,500 / night", ((TextView) dialog.findViewById(R.id.detailBarPrice)).getText().toString());
+        assertEquals("Overview", ((TextView) dialog.findViewById(R.id.headOverview)).getText().toString());
+        assertEquals("Room Facts", ((TextView) dialog.findViewById(R.id.headFacts)).getText().toString());
+        assertEquals("Amenities", ((TextView) dialog.findViewById(R.id.headAmenities)).getText().toString());
+        assertEquals("Policies", ((TextView) dialog.findViewById(R.id.headPolicies)).getText().toString());
+        assertEquals("A nice room", ((TextView) dialog.findViewById(R.id.detailRoomDescription)).getText().toString());
 
-        View description = dialog.findViewById(R.id.detailRoomDescription);
-        View amenities = dialog.findViewById(R.id.detailRoomAmenities);
-        TextView policies = dialog.findViewById(R.id.detailPoliciesBody);
-        assertEquals("description starts open", View.VISIBLE, description.getVisibility());
-        assertEquals("amenities start open", View.VISIBLE, amenities.getVisibility());
-        assertEquals("the long policies list starts folded", View.GONE, policies.getVisibility());
-        assertTrue(policies.getText().toString().contains("No Refund Policy"));
-        assertTrue("the room type's own notes are shown too", policies.getText().toString().contains("Quiet hours after 10 PM."));
+        android.widget.LinearLayout policies = dialog.findViewById(R.id.layoutDetailPolicies);
+        assertEquals(3, policies.getChildCount());
+        assertEquals("Refund policy", ((TextView) ((android.view.ViewGroup) policies.getChildAt(0)).getChildAt(0)).getText().toString());
+        assertEquals("Non-refundable", ((TextView) ((android.view.ViewGroup) policies.getChildAt(0)).getChildAt(1)).getText().toString());
+        assertEquals("From 2:00 PM", ((TextView) ((android.view.ViewGroup) policies.getChildAt(1)).getChildAt(1)).getText().toString());
+        assertEquals("Until 12:00 PM", ((TextView) ((android.view.ViewGroup) policies.getChildAt(2)).getChildAt(1)).getText().toString());
 
-        dialog.findViewById(R.id.headPolicies).performClick();
-        assertEquals(View.VISIBLE, policies.getVisibility());
-        dialog.findViewById(R.id.headDescription).performClick();
-        assertEquals(View.GONE, description.getVisibility());
-        dialog.findViewById(R.id.headDescription).performClick();
-        assertEquals(View.VISIBLE, description.getVisibility());
+        TextView more = dialog.findViewById(R.id.detailPoliciesBody);
+        assertEquals("the long hotel policies start folded", View.GONE, more.getVisibility());
+        assertTrue(more.getText().toString().contains("No Refund Policy"));
+        assertTrue("the room type's own notes are shown too", more.getText().toString().contains("Quiet hours after 10 PM."));
+        dialog.findViewById(R.id.headMorePolicies).performClick();
+        assertEquals(View.VISIBLE, more.getVisibility());
+        dialog.findViewById(R.id.headMorePolicies).performClick();
+        assertEquals(View.GONE, more.getVisibility());
+
+        assertEquals("the type equals the name's first word only: a different type is shown as a chip", View.VISIBLE,
+                dialog.findViewById(R.id.detailRoomType).getVisibility());
+        assertNotNull("the sticky bar holds the actions", dialog.findViewById(R.id.layoutDetailBottomBar).findViewById(R.id.btnBookRoom));
+        assertEquals("Book now", ((TextView) dialog.findViewById(R.id.btnBookRoom)).getText().toString());
+        assertEquals("Reserve", ((TextView) dialog.findViewById(R.id.btnReserveRoom)).getText().toString());
     }
 
     // ---- date linking into the booking flow

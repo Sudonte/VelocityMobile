@@ -43,9 +43,8 @@
             android:fontFamily="sans-serif-medium"
             android:importantForAccessibility="no"
             android:includeFontPadding="false"
-            android:letterSpacing="0.04"
+            android:letterSpacing="0"
             android:text="@string/menu_label"
-            android:textAllCaps="true"
             android:textColor="@color/velocity_red_primary"
             android:textSize="@dimen/guest_header_menu_label_text_size" />
 
@@ -79,7 +78,8 @@
         <ImageView
             android:id="@+id/headerLogoImage"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="match_parent"
+
             android:contentDescription="@string/app_logo"
             android:padding="4dp"
             android:scaleType="fitCenter"
@@ -110,17 +110,16 @@
             android:autoSizeMinTextSize="8sp"
             android:autoSizeStepGranularity="0.5sp"
             android:autoSizeTextType="uniform"
-            android:letterSpacing="0.02"
+            android:letterSpacing="0"
             android:maxLines="1"
             android:text="@string/velocity_suites"
-            android:textAllCaps="true"
             android:textColor="@color/velocity_red_primary"
             android:textSize="@dimen/guest_header_app_name_text_size"
             android:shadowColor="@color/velocity_red_alpha_20"
             android:shadowDx="0"
             android:shadowDy="2"
             android:shadowRadius="2"
-            tools:text="VELOCITY SUITES" />
+            tools:text="Velocity Suites" />
 
         <TextView
             android:id="@+id/headerTagline"
@@ -134,13 +133,12 @@
             android:autoSizeMinTextSize="7sp"
             android:autoSizeStepGranularity="0.5sp"
             android:autoSizeTextType="uniform"
-            android:letterSpacing="0.04"
+            android:letterSpacing="0"
             android:maxLines="1"
             android:text="@string/welcome_tagline"
-            android:textAllCaps="true"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="@dimen/guest_header_tagline_text_size"
-            tools:text="YOUR COMFORT IS OUR SERVICE" />
+            tools:text="Your comfort is our service" />
     </LinearLayout>
 
     <!-- Header Notification Entry Point -->
@@ -177,7 +175,8 @@
         <ImageView
             android:id="@+id/headerNotificationIcon"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="match_parent"
+
             android:contentDescription="@string/title_notifications"
             android:padding="7dp"
             android:scaleType="centerInside"
@@ -241,7 +240,8 @@
             <ImageView
                 android:id="@+id/headerThemeIcon"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="match_parent"
+
                 android:importantForAccessibility="no"
                 android:padding="7dp"
                 android:scaleType="centerInside"

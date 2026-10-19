@@ -99,7 +99,7 @@ public class AmenityEntryPointsTest {
 
         View button = a.findViewById(R.id.btnNextStayRequestAmenities);
         assertEquals(View.VISIBLE, button.getVisibility());
-        assertTrue("48dp touch target", button.getLayoutParams().height >= Math.round(48 * a.getResources().getDisplayMetrics().density));
+        assertTrue("48dp touch target", ((android.widget.TextView) button).getMinHeight() >= Math.round(48 * a.getResources().getDisplayMetrics().density));
 
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
         button.performClick();

@@ -79,7 +79,7 @@
                 android:fontFamily="sans-serif-black"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
-                android:textAllCaps="true"
+                android:letterSpacing="0"
                 android:textColor="@color/status_cancelled_fg"
                 android:textSize="11sp"
                 tools:text="Booking" />
@@ -93,7 +93,7 @@
                 android:fontFamily="sans-serif-black"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
-                android:textAllCaps="true"
+                android:letterSpacing="0"
                 android:textSize="11sp"
                 android:visibility="gone"
                 tools:text="Upcoming"

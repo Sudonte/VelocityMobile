@@ -3,6 +3,7 @@ package com.example.velocitysuites.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -160,7 +161,8 @@ public class RoomBrowsingRedesignTest {
         assertEquals("Pick a check-in date first", out.getHelperText().toString());
 
         setDates(a, 2, 4);
-        assertEquals("At least 1 night", out.getHelperText().toString());
+        assertEquals("the check-out helper states the length once valid", "2 nights", out.getHelperText().toString());
+        assertNull("no separate night line", a.findViewById(R.id.tvNightsSummary));
         TextView title = a.findViewById(R.id.tvSearchHeader);
         assertEquals("Find Your Perfect Stay", title.getText().toString());
         assertTrue("bold shared title style", title.getTypeface().isBold() || title.getTypeface().getWeight() >= 700);
@@ -536,5 +538,64 @@ public class RoomBrowsingRedesignTest {
         set(a, "selectedRoomTypeFilter", "Deluxe");
         invoke(a, "applyControlChange");
         assertEquals("0 rooms", text(a, R.id.tvResultsCount));
+    }
+
+    // ---- the compact room card, the results bar, the details screen ----
+
+    private View firstRoomCard(RoomBrowsingActivity a) {
+        RecyclerView rv = a.findViewById(R.id.rvRooms);
+        androidx.recyclerview.widget.RecyclerView.ViewHolder h = null;
+        for (int i = 0; i < rv.getAdapter().getItemCount() && h == null; i++) h = rv.findViewHolderForAdapterPosition(i);
+        assertNotNull("a card is laid out", h);
+        return h.itemView;
+    }
+
+    @Test
+    public void roomCard_showsTheNameOnce_bigNameAndPrice_noDescriptionNoAmenityChips_andCompactActions() throws Exception {
+        RoomBrowsingActivity a = launchWithThreeRooms();
+        View card = firstRoomCard(a);
+        TextView name = card.findViewById(R.id.roomName);
+        TextView price = card.findViewById(R.id.roomPrice);
+        assertEquals(20f, name.getTextSize() / app.getResources().getDisplayMetrics().scaledDensity, 0.6f);
+        assertEquals(20f, price.getTextSize() / app.getResources().getDisplayMetrics().scaledDensity, 0.6f);
+        assertTrue(price.getText().toString().contains("/ night"));
+        // The name is the room type here: the type chip must not repeat it.
+        assertEquals(View.GONE, card.findViewById(R.id.roomTypeText).getVisibility());
+        assertEquals("no description view on the card", 0, app.getResources().getIdentifier("roomDescription", "id", app.getPackageName()));
+        assertEquals("no amenity chips on the card", 0, app.getResources().getIdentifier("amenitiesChipGroup", "id", app.getPackageName()));
+        assertEquals("Reserve", ((TextView) card.findViewById(R.id.btnReserveNow)).getText().toString());
+        assertEquals("Book now", ((TextView) card.findViewById(R.id.btnQuickBook)).getText().toString());
+        assertEquals("View details", ((TextView) card.findViewById(R.id.btnViewDetails)).getText().toString());
+        assertEquals(0f, ((TextView) card.findViewById(R.id.btnQuickBook)).getLetterSpacing(), 0f);
+        assertEquals("No refund", ((TextView) card.findViewById(R.id.tvNoRefundBadge)).getText().toString());
+    }
+
+    @Test
+    public void roomCard_plusIsDisabledAtTheAvailableCount() throws Exception {
+        RoomBrowsingActivity a = launch().get();
+        answerRooms(type(3, "Family", "3999.00", 6, 1));
+        View card = firstRoomCard(a);
+        View plus = card.findViewById(R.id.btnRoomQtyPlus);
+        assertTrue(plus.isEnabled());
+        plus.performClick();
+        idle();
+        assertFalse("1 left: + is disabled at 1", firstRoomCard(a).findViewById(R.id.btnRoomQtyPlus).isEnabled());
+    }
+
+    @Test
+    public void resultsBar_hasNoAvailableRoomsHeading_andTheDatesAreSummarisedOnce() throws Exception {
+        RoomBrowsingActivity a = launchWithThreeRooms();
+        setDates(a, 2, 3);
+        RecyclerView rv = a.findViewById(R.id.rvRooms);
+        for (int i = 0; i < rv.getAdapter().getItemCount(); i++) {
+            androidx.recyclerview.widget.RecyclerView.ViewHolder h = rv.findViewHolderForAdapterPosition(i);
+            if (h == null) continue;
+            TextView header = h.itemView.findViewById(R.id.tvSectionHeader);
+            assertNull("no AVAILABLE ROOMS heading", header);
+        }
+        TextView pinned = a.findViewById(R.id.tvPinnedDates);
+        assertTrue(pinned.getText().toString(), pinned.getText().toString().matches(".+ → .+ · 1 night"));
+        assertEquals("3 rooms", text(a, R.id.tvResultsCount));
+        assertFalse(((TextView) a.findViewById(R.id.btnSort)).isAllCaps());
     }
 }

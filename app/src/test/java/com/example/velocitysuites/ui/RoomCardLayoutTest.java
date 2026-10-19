@@ -102,7 +102,7 @@ public class RoomCardLayoutTest {
         Rect book = bounds(card, R.id.btnQuickBook);
         assertEquals("Reserve and Book share a row", reserve.top, book.top);
         assertTrue(book.left >= reserve.right);
-        assertTrue("View Details is the row below", bounds(card, R.id.btnViewDetails).top >= reserve.bottom);
+        assertTrue("View details is a link in the details column, above the actions", bounds(card, R.id.btnViewDetails).bottom <= reserve.top);
     }
 
     @Test
@@ -149,9 +149,8 @@ public class RoomCardLayoutTest {
         Rect book = bounds(card, R.id.btnQuickBook);
         Rect details = bounds(card, R.id.btnViewDetails);
         assertTrue(when + ": Reserve is above Book", book.top >= reserve.bottom);
-        assertTrue(when + ": Book is above View Details", details.top >= book.bottom);
-        assertEquals(when + ": all three actions have the same width", reserve.width(), book.width());
-        assertEquals(when + ": all three actions have the same width", book.width(), details.width());
+        assertTrue(when + ": View details is a link above the actions", details.bottom <= reserve.top);
+        assertEquals(when + ": Reserve and Book have the same width", reserve.width(), book.width());
         assertTrue(when + ": and that is the full width of the card", reserve.width() >= topRow.width() - 2);
     }
 

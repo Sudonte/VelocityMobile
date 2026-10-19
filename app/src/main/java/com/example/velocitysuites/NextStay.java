@@ -122,6 +122,19 @@ public final class NextStay {
         return out;
     }
 
+    /** The stay for one transaction with a readable check-in date (an unreadable check-out is read as a same-day stay), else null. */
+    @Nullable
+    public static NextStay of(@Nullable Booking b, @NonNull LocalDate today) {
+        if (b == null) return null;
+        LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
+        if (in == null) return null;
+        LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
+        if (out == null || out.isBefore(in)) out = in;
+        boolean inHouse = "Checked-In".equalsIgnoreCase(b.getStatus());
+        return new NextStay(b, inHouse ? Phase.IN_HOUSE : Phase.UPCOMING, in, out,
+                ChronoUnit.DAYS.between(today, inHouse ? out : in), today);
+    }
+
     /** True when the stay is over (checked out / completed): its own status, not a "waiting" one, describes it. */
     public boolean isFinished() {
         String status = booking.getStatus();

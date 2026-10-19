@@ -55,7 +55,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     /** What the Check-in / Check-out fields show: "Mon, Oct 12, 2026". */
     private final SimpleDateFormat fieldDateFormat = new SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault());
     private final SimpleDateFormat shortDateFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
-    private TextView tvNightsSummary, tvPinnedDates;
+    private TextView tvPinnedDates;
     private ChipGroup chipsActiveFilters;
     private View layoutActiveFilters;
     /** The Filters bottom sheet while it is open (one at a time; dismissed with the screen). */
@@ -257,7 +257,6 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         etCheckIn = findViewById(R.id.etCheckIn);
         etCheckOut = findViewById(R.id.etCheckOut);
         checkInLayout = findViewById(R.id.checkInLayout);
-        tvNightsSummary = findViewById(R.id.tvNightsSummary);
         tvPinnedDates = findViewById(R.id.tvPinnedDates);
         checkOutLayout = findViewById(R.id.checkOutLayout);
         chipsActiveFilters = findViewById(R.id.chipsActiveFilters);
@@ -533,7 +532,13 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         String earliest = CheckInWindow.earliest().format(java.time.format.DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US));
         checkInLayout.setHelperText(getString(R.string.helper_earliest_format, earliest));
         oneLine((TextView) checkInLayout.findViewById(com.google.android.material.R.id.textinput_helper_text));
-        checkOutLayout.setHelperText(getString(checkInDate == null ? R.string.helper_pick_checkin_first : R.string.helper_checkout_after_checkin));
+        boolean valid = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
+        if (valid) {
+            int nights = (int) StayDateCalculator.nightsBetween(checkInDate, checkOutDate);
+            checkOutLayout.setHelperText(getResources().getQuantityString(R.plurals.nights_lower, nights, nights));
+        } else {
+            checkOutLayout.setHelperText(getString(checkInDate == null ? R.string.helper_pick_checkin_first : R.string.helper_checkout_after_checkin));
+        }
         oneLine((TextView) checkOutLayout.findViewById(com.google.android.material.R.id.textinput_helper_text));
     }
 
@@ -625,23 +630,21 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         updateSearchButton();
     }
 
-    /** "2 nights" under the fields and "Oct 12 - Oct 14 - 2 nights" in the pinned bar - only when both dates are set. */
+    /** "Oct 21 → Oct 22 · 1 night" in the results bar - only when both dates are set (the one place the dates are summarised). */
     private void updateDateSummary() {
         boolean both = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
         checkInLayout.setEndIconVisible(checkInDate != null);
         checkOutLayout.setEndIconVisible(checkOutDate != null);
         refreshHelperTexts();
         updateSearchButton();
-        if (tvNightsSummary == null || tvPinnedDates == null) return;
+        if (tvPinnedDates == null) return;
         if (!both) {
-            tvNightsSummary.setVisibility(View.GONE);
             tvPinnedDates.setVisibility(View.GONE);
             return;
         }
+        // The length of the stay is said once here and once in the check-out helper text - nowhere else.
         int nights = (int) StayDateCalculator.nightsBetween(checkInDate, checkOutDate);
         String nightsText = getResources().getQuantityString(R.plurals.nights_lower, nights, nights);
-        tvNightsSummary.setText(nightsText);
-        tvNightsSummary.setVisibility(View.VISIBLE);
         String pinned = getString(R.string.pinned_dates_format,
                 shortDateFormat.format(checkInDate.getTime()), shortDateFormat.format(checkOutDate.getTime()), nightsText);
         tvPinnedDates.setText(pinned);
@@ -1322,7 +1325,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                         dateFormat.format(checkInDate.getTime()), dateFormat.format(checkOutDate.getTime()))
                 : null;
 
-        RoomDetailsDialog.show(this, room, action, occupiedRangeText, new RoomDetailsDialog.ActionListener() {
+        RoomDetailsDialog.show(this, room, action, occupiedRangeText,
+                tvPinnedDates != null && tvPinnedDates.getVisibility() == View.VISIBLE ? tvPinnedDates.getText().toString() : null,
+                new RoomDetailsDialog.ActionListener() {
             @Override
             public void onBook(Room room) {
                 navigateToBooking(room, false);

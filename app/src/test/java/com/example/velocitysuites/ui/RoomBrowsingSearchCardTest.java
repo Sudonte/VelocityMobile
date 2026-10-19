@@ -64,7 +64,6 @@ public class RoomBrowsingSearchCardTest {
 
     @Test
     public void nothingShownUntilBothDatesArePicked() {
-        assertEquals(View.GONE, activity.findViewById(R.id.tvNightsSummary).getVisibility());
         assertEquals(View.GONE, activity.findViewById(R.id.tvPinnedDates).getVisibility());
     }
 
@@ -72,21 +71,19 @@ public class RoomBrowsingSearchCardTest {
     public void bothDates_showNightsUnderTheFields_andACompactSummaryInThePinnedBar() throws Exception {
         setDates(day(2026, Calendar.OCTOBER, 12), day(2026, Calendar.OCTOBER, 14));
 
-        TextView nights = activity.findViewById(R.id.tvNightsSummary);
-        assertEquals(View.VISIBLE, nights.getVisibility());
-        assertEquals("2 nights", nights.getText().toString());
+        assertEquals("2 nights", ((com.google.android.material.textfield.TextInputLayout) activity.findViewById(R.id.checkOutLayout)).getHelperText().toString());
 
         TextView pinned = activity.findViewById(R.id.tvPinnedDates);
         assertEquals(View.VISIBLE, pinned.getVisibility());
         assertTrue(pinned.getText().toString(), pinned.getText().toString().endsWith("2 nights"));
-        assertTrue(pinned.getText().toString(), pinned.getText().toString().contains("Oct 12"));
+        assertTrue(pinned.getText().toString(), pinned.getText().toString().contains("Oct 12 → Oct 14"));
         assertTrue("tapping it is possible", pinned.hasOnClickListeners());
     }
 
     @Test
     public void oneNight_isSingular() throws Exception {
         setDates(day(2026, Calendar.OCTOBER, 12), day(2026, Calendar.OCTOBER, 13));
-        assertEquals("1 night", ((TextView) activity.findViewById(R.id.tvNightsSummary)).getText().toString());
+        assertEquals("1 night", ((com.google.android.material.textfield.TextInputLayout) activity.findViewById(R.id.checkOutLayout)).getHelperText().toString());
     }
 
     @Test
@@ -96,7 +93,6 @@ public class RoomBrowsingSearchCardTest {
         shadowOf(Looper.getMainLooper()).idle();
 
         assertEquals("", ((TextView) activity.findViewById(R.id.etCheckIn)).getText().toString());
-        assertEquals(View.GONE, activity.findViewById(R.id.tvNightsSummary).getVisibility());
         assertEquals(View.GONE, activity.findViewById(R.id.tvPinnedDates).getVisibility());
     }
 }

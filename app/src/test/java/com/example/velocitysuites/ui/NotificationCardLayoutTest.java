@@ -104,7 +104,7 @@ public class NotificationCardLayoutTest {
         assertEquals("time on one line: \"" + time.getText() + "\"\n" + ctx, 1, time.getLineCount());
         assertEquals("category chip on one line\n" + ctx, 1, category.getLineCount());
         assertTrue("title at most 2 lines\n" + ctx, title.getLineCount() <= 2);
-        assertTrue("message at most 3 lines\n" + ctx, message.getLineCount() <= NotificationAdapter.COLLAPSED_MESSAGE_LINES);
+        assertTrue("description at most 2 lines\n" + ctx, message.getLineCount() <= NotificationAdapter.DESCRIPTION_LINES);
         assertTrue("a non-empty title\n" + ctx, title.getText().length() > 0);
 
         assertFalse("title/time\n" + ctx, LayoutHarness.overlaps(root, title, time));
@@ -223,18 +223,27 @@ public class NotificationCardLayoutTest {
         assertEquals(Typeface.NORMAL, styleOf(read.findViewById(R.id.tvNotifTitle)));
     }
 
-    // ---- a long message: 3 lines and "More" ----
+    // ---- the description: the first 2 lines; Mark as read only while unread ----
 
     @Test
-    public void aLongMessageShowsThreeLinesAndMore_aShortOneHasNoMore() {
+    public void aLongDescriptionShowsItsFirstTwoLines_andThereIsNoMoreToggle() {
         Context context = LayoutHarness.themedContext(1.0f);
         NotificationAdapter.ViewHolder longOne = bind(context, longTitleAndMessage(), 360);
-        assertEquals(NotificationAdapter.COLLAPSED_MESSAGE_LINES, ((TextView) longOne.itemView.findViewById(R.id.tvNotifMessage)).getLineCount());
-        assertEquals("More", ((TextView) longOne.itemView.findViewById(R.id.tvNotifMore)).getText().toString());
-        assertEquals(View.VISIBLE, longOne.itemView.findViewById(R.id.tvNotifMore).getVisibility());
+        assertEquals(NotificationAdapter.DESCRIPTION_LINES, ((TextView) longOne.itemView.findViewById(R.id.tvNotifMessage)).getLineCount());
+        assertEquals(2, ((TextView) longOne.itemView.findViewById(R.id.tvNotifMessage)).getMaxLines());
+    }
 
-        View shortOne = bind(context, promotion(), 360).itemView;
-        assertEquals(View.GONE, shortOne.findViewById(R.id.tvNotifMore).getVisibility());
+    @Test
+    public void anUnreadCardShowsAMarkAsReadButton_aReadCardShowsNothingExtra() {
+        Context context = LayoutHarness.themedContext(1.0f);
+        View unread = bind(context, amenity(false), 360).itemView;
+        TextView button = unread.findViewById(R.id.btnNotifMarkRead);
+        assertEquals(View.VISIBLE, button.getVisibility());
+        assertEquals("Mark as read", button.getText().toString());
+        assertFalse("sentence case", button.isAllCaps());
+        assertEquals("no letter-spacing", 0f, button.getLetterSpacing(), 0f);
+        View read = bind(context, amenity(true), 360).itemView;
+        assertEquals(View.GONE, read.findViewById(R.id.btnNotifMarkRead).getVisibility());
     }
 
     @Test

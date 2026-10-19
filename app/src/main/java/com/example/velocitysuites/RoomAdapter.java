@@ -166,7 +166,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             newItems.add(RoomListItem.message(noAvailableRoomsMessage));
         }
         if (availableRooms != null && !availableRooms.isEmpty()) {
-            newItems.add(RoomListItem.header(availableHeaderText));
+            // No heading above the available rooms: the results bar already says "5 rooms".
             for (Room r : availableRooms) newItems.add(RoomListItem.forRoom(r));
         }
         if (unavailableRooms != null && !unavailableRooms.isEmpty()) {
@@ -248,24 +248,28 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private void bindRoom(RoomViewHolder holder, Room room, String occupiedRangeText, int position) {
         Context context = holder.itemView.getContext();
 
-        holder.roomName.setText(room.getName());
-        if (holder.roomDescription != null) {
-            String description = room.getDescription() == null ? "" : room.getDescription().trim();
-            holder.roomDescription.setText(description);
-            holder.roomDescription.setVisibility(description.isEmpty() ? View.GONE : View.VISIBLE);
-        }
-        holder.roomGuestsText.setText(context.getResources().getQuantityString(
-                R.plurals.room_card_up_to_guests, Math.max(1, room.getCapacity()), Math.max(1, room.getCapacity())));
+        // The name once, as the room's own name (the type when it has none); the type is a small chip only when it differs.
+        String name = room.getName() == null ? "" : room.getName().trim();
+        String type = room.getType() == null ? "" : room.getType().trim();
+        holder.roomName.setText(name.isEmpty() ? type : name);
         if (holder.roomTypeText != null) {
-            String type = room.getType() == null ? "" : room.getType().trim();
+            boolean differs = !type.isEmpty() && !name.isEmpty() && !type.equalsIgnoreCase(name);
             holder.roomTypeText.setText(type);
-            holder.roomTypeText.setVisibility(type.isEmpty() ? View.GONE : View.VISIBLE);
+            holder.roomTypeText.setVisibility(differs ? View.VISIBLE : View.GONE);
         }
-        holder.roomSizeText.setText(room.getRoomSize() == null || room.getRoomSize().isEmpty()
-                ? context.getString(R.string.not_specified)
-                : room.getRoomSize());
+        int capacity = Math.max(1, room.getCapacity());
+        holder.roomGuestsText.setText(context.getResources().getQuantityString(R.plurals.guests_count_lower, capacity, capacity));
+        String size = room.getRoomSize() == null ? "" : room.getRoomSize().trim();
+        holder.roomSizeText.setText(size);
+        if (holder.factSize != null) holder.factSize.setVisibility(size.isEmpty() ? View.GONE : View.VISIBLE);
+        List<RoomAmenity> amenityList = room.getAmenities();
+        int amenityCount = amenityList == null ? 0 : amenityList.size();
+        if (holder.tvAmenitiesMore != null) {
+            holder.tvAmenitiesMore.setText(amenityCount == 0 ? ""
+                    : context.getResources().getQuantityString(R.plurals.room_card_amenities_more, amenityCount, amenityCount));
+            holder.tvAmenitiesMore.setVisibility(amenityCount == 0 ? View.INVISIBLE : View.VISIBLE);
+        }
         holder.roomPrice.setText(context.getString(R.string.price_format_per_night, room.getPricePerNight()));
-        holder.roomName.setText(room.getName() == null || room.getName().trim().isEmpty() ? (room.getType() == null ? "" : room.getType()) : room.getName());
         holder.roomBedType.setText(room.getBedType() == null || room.getBedType().isEmpty()
                 ? RoomVisuals.getBedType(context, room.getType(), room.getCapacity())
                 : room.getBedType());
@@ -341,7 +345,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         }
 
-        bindAmenities(holder, room, context);
         bindQuantityStepper(holder, room, available, context);
         bindFavorite(holder, room, context);
 
@@ -429,89 +432,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
     }
 
-    /**
-     * Renders every amenity assigned to this room type as a small read-only
-     * chip in the full-width section below the image/info column - none are
-     * hidden behind a "+X more" cap and none are truncated. The ChipGroup
-     * wraps naturally (no singleLine, no HorizontalScrollView - see
-     * item_room_card.xml) so once a row fills, the remaining amenities flow
-     * onto the next row instead of requiring a scroll or being hidden.
-     */
-    private void bindAmenities(RoomViewHolder holder, Room room, Context context) {
-        List<RoomAmenity> amenities = room.getAmenities();
-
-        // The tags only depend on the amenity names: when a recycled card (or a quantity tap that rebinds it) already
-        // shows exactly this set, leave it alone instead of tearing it down and rebuilding it.
-        StringBuilder key = new StringBuilder();
-        if (amenities != null) {
-            for (RoomAmenity amenity : amenities) key.append(amenity.getName()).append('|');
-        }
-        String newKey = key.toString();
-        if (newKey.equals(holder.amenitiesKey)) return;
-        holder.amenitiesKey = newKey;
-
-        holder.amenitiesChipGroup.removeAllViews();
-        if (amenities == null || amenities.isEmpty()) {
-            holder.amenitiesChipGroup.addView(newAmenityTag(holder.amenitiesChipGroup, context.getString(R.string.no_amenities_available), 0));
-            return;
-        }
-
-        for (RoomAmenity amenity : amenities) {
-            holder.amenitiesChipGroup.addView(
-                    newAmenityTag(holder.amenitiesChipGroup, amenity.getName(), RoomVisuals.getAmenityIcon(amenity.getName())));
-        }
-    }
-
-    private android.widget.TextView newAmenityTag(ViewGroup parent, String text, int iconRes) {
-        android.widget.TextView tag = (android.widget.TextView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_room_amenity_tag, parent, false);
-        tag.setText(text);
-        if (iconRes != 0) {
-            tag.setCompoundDrawablesRelativeWithIntrinsicBounds(iconRes, 0, 0, 0);
-            int size = dpToPx(parent.getContext(), 14);
-            android.graphics.drawable.Drawable[] drawables = tag.getCompoundDrawablesRelative();
-            if (drawables[0] != null) {
-                drawables[0] = drawables[0].mutate();
-                drawables[0].setBounds(0, 0, size, size);
-                drawables[0].setTint(ContextCompat.getColor(parent.getContext(), R.color.velocity_red_primary));
-                tag.setCompoundDrawablesRelative(drawables[0], null, null, null);
-            }
-        }
-        return tag;
-    }
-
-    private com.google.android.material.chip.Chip newAmenityChip(Context context, String text, int iconRes) {
-        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(context);
-        chip.setText(text);
-        // 12sp (it was 8sp) and square like every other control in the app (it was a 10dp rounded corner).
-        chip.setTextSize(12f);
-        chip.setTextColor(ContextCompat.getColor(context, R.color.velocity_text_secondary));
-        chip.setChipBackgroundColorResource(R.color.velocity_surface_elevated);
-        chip.setChipStrokeColorResource(R.color.velocity_red_subtle);
-        chip.setChipStrokeWidth(dpToPx(context, 1));
-        chip.setChipCornerRadius(0f);
-        chip.setChipMinHeight(dpToPx(context, 28));
-        chip.setChipStartPadding(dpToPx(context, 6));
-        chip.setChipEndPadding(dpToPx(context, 6));
-        chip.setTextStartPadding(dpToPx(context, 2));
-        chip.setTextEndPadding(dpToPx(context, 2));
-        chip.setEnsureMinTouchTargetSize(false);
-        chip.setClickable(false);
-        chip.setCheckable(false);
-        chip.setFocusable(false);
-        if (iconRes != 0) {
-            chip.setChipIconResource(iconRes);
-            chip.setChipIconTint(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.velocity_red_primary)));
-            chip.setChipIconVisible(true);
-            chip.setChipIconSize(dpToPx(context, 14));
-            chip.setIconStartPadding(dpToPx(context, 2));
-            chip.setIconEndPadding(dpToPx(context, 2));
-        } else {
-            chip.setChipIconVisible(false);
-        }
-        return chip;
-    }
-
     private static final android.view.animation.Interpolator ENTRANCE_INTERPOLATOR = new android.view.animation.DecelerateInterpolator(1.5f);
 
     private void animateItemEntrance(View itemView, int position) {
@@ -562,7 +482,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     /**
      * Restacks a freshly inflated item_room_card for {@link #needsRoomyLayout}: the photo goes across the top, the
-     * details sit below it at full width, and Reserve Now / Book Now / View Details are three full-width rows.
+     * details sit below it at full width, and Reserve / Book now are two full-width rows.
      * Only layout parameters change - every view, id and click behaviour is the same as in the compact card.
      * A copy of the layout that lacks any of these parts is left exactly as it is.
      */
@@ -606,11 +526,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     static class RoomViewHolder extends RecyclerView.ViewHolder {
         ImageView roomImage;
         ImageButton btnFavorite;
-        /** Names of the amenities the tags currently show - lets bindAmenities() skip a no-op rebuild. */
-        String amenitiesKey;
-        TextView roomDescription;
-        TextView roomStatusBadge, roomPrice, roomName, roomTypeText, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint;
-        com.google.android.material.chip.ChipGroup amenitiesChipGroup;
+        TextView roomStatusBadge, roomPrice, roomName, roomTypeText, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint, tvAmenitiesMore;
+        View factSize;
         MaterialButton btnViewDetails, btnQuickBook, btnReserveNow;
         View layoutRoomActions, layoutOccupiedInfo;
         TextView tvOccupiedRange;
@@ -632,13 +549,13 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             roomStatusBadge = itemView.findViewById(R.id.roomStatusBadge);
             roomPrice = itemView.findViewById(R.id.roomPrice);
             roomName = itemView.findViewById(R.id.roomName);
-            roomDescription = itemView.findViewById(R.id.roomDescription);
             roomTypeText = itemView.findViewById(R.id.roomTypeText);
             roomGuestsText = itemView.findViewById(R.id.roomGuestsText);
             roomSizeText = itemView.findViewById(R.id.roomSizeText);
             roomBedType = itemView.findViewById(R.id.roomBedType);
             tvRoomsLeftHint = itemView.findViewById(R.id.tvRoomsLeftHint);
-            amenitiesChipGroup = itemView.findViewById(R.id.amenitiesChipGroup);
+            tvAmenitiesMore = itemView.findViewById(R.id.tvAmenitiesMore);
+            factSize = itemView.findViewById(R.id.factSize);
             btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
             btnQuickBook = itemView.findViewById(R.id.btnQuickBook);
             btnReserveNow = itemView.findViewById(R.id.btnReserveNow);

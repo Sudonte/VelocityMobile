@@ -219,7 +219,8 @@ public class NotificationScreenTest {
         RecyclerView rv = list(activity);
         assertFalse("every row flipped to read", isUnread(row(rv, 0)));
         assertFalse(isUnread(row(rv, 1)));
-        assertEquals("Mark all as read has nothing left to do", View.GONE, activity.findViewById(R.id.btnMarkAllRead).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.btnMarkAllRead).getVisibility());
+        assertFalse("Mark all as read has nothing left to do", activity.findViewById(R.id.btnMarkAllRead).isEnabled());
 
         FakeCall<Object> request = api.last("markAllNotificationsRead");
         request.succeed(new Object());
@@ -280,7 +281,7 @@ public class NotificationScreenTest {
         assertEquals("the badge dropped at once", "1", badgeText(activity));
         assertTrue("the other row is untouched", isUnread(row(list(activity), 0)));
         assertFalse(isUnread(row(list(activity), 1)));
-        assertEquals("Payment Received", ((TextView) sheet.findViewById(R.id.tvNotifDetailTitle)).getText().toString());
+        assertEquals("We received your payment", ((TextView) sheet.findViewById(R.id.tvNotifDetailTitle)).getText().toString());
         assertEquals("View payment", ((TextView) sheet.findViewById(R.id.btnNotifDetailAction)).getText().toString());
         assertNull("no screen opened from the card tap", shadowOf(activity).getNextStartedActivity());
     }

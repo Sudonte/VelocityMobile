@@ -1,7 +1,6 @@
 package com.example.velocitysuites;
 
 import android.content.Context;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,29 +11,25 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
- * The Notifications screen's cards (item_notification.xml). The whole card opens the notification's target and marks it
- * read; a small overflow menu on the card holds "Mark as read" / "Mark as unread"; a long message shows 3 lines and a
- * "More" / "Less" toggle. The icon, title, message, time and dot come from {@link NotificationRowBinder}, the same binder the
- * Dashboard rows and the bell popup use.
+ * The Notifications screen's cards (item_notification.xml). The whole card opens the notification's detail view and marks it
+ * read; an unread card also shows a small "Mark as read" button, and the overflow menu keeps "Mark as read" / "Mark as
+ * unread". The description shows its first 2 lines (the detail view has all of it). The icon, title, description, time and
+ * dot come from {@link NotificationRowBinder}, the same binder the Dashboard rows and the bell popup use.
  */
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
-    /** Lines of a message shown before "More". */
-    public static final int COLLAPSED_MESSAGE_LINES = 3;
+    /** Lines of the description a card shows. */
+    public static final int DESCRIPTION_LINES = 2;
 
     private final Context context;
     private final OnNotificationClickListener listener;
     private String highlightedNotificationId;
     /** The adapter's own copy of what's displayed - never the same List instance NotificationActivity mutates, so a diff against the PREVIOUS state is always possible. Replaced wholesale only inside submitList(); never mutated in place. */
     private List<Row> rows;
-    /** Ids of the notifications whose long message is expanded ("Less" showing). Survives refreshes; not rotation. */
-    private final Set<String> expandedIds = new HashSet<>();
 
     public interface OnNotificationClickListener {
         /** The whole card was tapped: open its target (receipt / transaction / details) and mark it read. */
@@ -68,14 +63,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         final boolean isRead;
         final boolean isFirstInGroup;
         final String groupLabel;
-        final boolean expanded;
 
-        Row(Notification notification, boolean isRead, boolean isFirstInGroup, String groupLabel, boolean expanded) {
+        Row(Notification notification, boolean isRead, boolean isFirstInGroup, String groupLabel) {
             this.notification = notification;
             this.isRead = isRead;
             this.isFirstInGroup = isFirstInGroup;
             this.groupLabel = groupLabel;
-            this.expanded = expanded;
         }
     }
 
@@ -87,7 +80,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         for (Notification n : notifications) {
             String group = NotificationDateGrouper.groupLabel(context, n.getCreatedAtMillis(), now);
             boolean isFirst = !group.equals(previousGroup);
-            result.add(new Row(n, n.isRead(), isFirst, group, expandedIds.contains(n.getId())));
+            result.add(new Row(n, n.isRead(), isFirst, group));
             previousGroup = group;
         }
         return result;
@@ -130,7 +123,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
 
         /**
-         * Every field onBindViewHolder() below actually renders, plus the date-header and expanded state. Deliberately
+         * Every field onBindViewHolder() below actually renders, plus the date-header state. Deliberately
          * excludes the relative time text - that changes purely from time passing, so comparing it would mean this method
          * almost never reports "unchanged".
          */
@@ -147,10 +140,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                     && Objects.equals(a.getType(), b.getType())
                     && Objects.equals(a.getReferenceId(), b.getReferenceId())
                     && Objects.equals(a.getPublishedAt(), b.getPublishedAt())
+                    && Objects.equals(a.getCatalogDetails(), b.getCatalogDetails())
                     && Objects.equals(a.getReceiptNumber(), b.getReceiptNumber())
                     && Objects.equals(a.getReceiptType(), b.getReceiptType())
                     && oldRow.isFirstInGroup == newRow.isFirstInGroup
-                    && oldRow.expanded == newRow.expanded
                     && Objects.equals(oldRow.groupLabel, newRow.groupLabel);
         }
     }
@@ -229,7 +222,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.tvLinked.setText(linked == null ? "" : linked);
         holder.tvLinked.setVisibility(linked == null ? View.GONE : View.VISIBLE);
 
-        bindMessage(holder, row);
+        holder.tvMessage.setMaxLines(DESCRIPTION_LINES);
+
+        // An unread card shows its own small "Mark as read"; a read card shows nothing extra (its overflow keeps "Mark as unread").
+        holder.btnMarkRead.setVisibility(isRead ? View.GONE : View.VISIBLE);
+        holder.btnMarkRead.setOnClickListener(v -> {
+            if (listener != null) listener.onToggleReadClick(notification);
+        });
 
         // Unread = a subtle brand-tinted card; read = the normal surface. Beside the bold title and the dot, so the cue is
         // never colour alone.
@@ -250,41 +249,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         } else {
             holder.card.setStrokeWidth((int) (1 * ctx.getResources().getDisplayMetrics().density));
             holder.card.setStrokeColor(ctx.getColor(isRead ? R.color.velocity_divider_hairline : R.color.velocity_red_subtle));
-        }
-    }
-
-    /** 3 lines of message, or all of it once expanded; "More" / "Less" appears only when the message is longer than 3 lines. */
-    private void bindMessage(ViewHolder holder, Row row) {
-        boolean expanded = row.expanded;
-        holder.tvMessage.setMaxLines(expanded ? Integer.MAX_VALUE : COLLAPSED_MESSAGE_LINES);
-        holder.tvMore.setVisibility(expanded ? View.VISIBLE : View.GONE);
-        holder.tvMore.setText(expanded ? R.string.notif_less : R.string.notif_more);
-        final String id = row.notification.getId();
-        holder.tvMore.setOnClickListener(v -> toggleExpanded(id));
-        // Whether the message is longer than 3 lines is only known once it has been laid out, so decide on every layout pass.
-        if (holder.messageLayoutListener != null) holder.tvMessage.removeOnLayoutChangeListener(holder.messageLayoutListener);
-        holder.messageLayoutListener = (v, l, t, r, b, ol, ot, or, ob) -> {
-            if (!Objects.equals(id, holder.boundId)) return; // recycled for another row in the meantime
-            Layout layout = holder.tvMessage.getLayout();
-            if (layout == null || layout.getLineCount() == 0) return;
-            boolean longMessage = layout.getLineCount() > COLLAPSED_MESSAGE_LINES
-                    || layout.getEllipsisCount(layout.getLineCount() - 1) > 0;
-            int wanted = longMessage || expanded ? View.VISIBLE : View.GONE;
-            if (holder.tvMore.getVisibility() != wanted) holder.tvMore.setVisibility(wanted);
-        };
-        holder.tvMessage.addOnLayoutChangeListener(holder.messageLayoutListener);
-    }
-
-    private void toggleExpanded(String id) {
-        if (id == null) return;
-        if (!expandedIds.remove(id)) expandedIds.add(id);
-        for (int i = 0; i < rows.size(); i++) {
-            Row old = rows.get(i);
-            if (id.equals(old.notification.getId())) {
-                rows.set(i, new Row(old.notification, old.isRead, old.isFirstInGroup, old.groupLabel, expandedIds.contains(id)));
-                notifyItemChanged(i);
-                break;
-            }
         }
     }
 
@@ -332,12 +296,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvMessage, tvMore, tvTime, tvCategory, tvLinked, tvDateGroup;
-        View btnOverflow, viewUnreadDot;
+        TextView tvTitle, tvMessage, tvTime, tvCategory, tvLinked, tvDateGroup;
+        View btnOverflow, viewUnreadDot, btnMarkRead;
         MaterialCardView card;
-        /** The id of the notification currently bound - guards the post-layout "More" check against a recycled row. */
+        /** The id of the notification currently bound. */
         String boundId;
-        View.OnLayoutChangeListener messageLayoutListener;
         /** The drawable resource currently shown in the icon circle. */
         int boundIconRes;
 
@@ -351,7 +314,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvNotifTitle);
             tvMessage = itemView.findViewById(R.id.tvNotifMessage);
-            tvMore = itemView.findViewById(R.id.tvNotifMore);
+            btnMarkRead = itemView.findViewById(R.id.btnNotifMarkRead);
             tvTime = itemView.findViewById(R.id.tvNotifTime);
             tvCategory = itemView.findViewById(R.id.tvNotifCategory);
             tvLinked = itemView.findViewById(R.id.tvNotifLinked);
