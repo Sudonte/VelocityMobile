@@ -473,6 +473,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 booking.getId());
         // Status sits directly below the identifier, ahead of the date rows.
         addInfoRow(container, getString(R.string.details_label_status), BookingStatusPresenter.computeStatusLabel(this, booking));
+        int cancelReason = TransactionActions.cancelBlockedReason(booking);
+        if (cancelReason != 0) addHelperText(container, getString(cancelReason));
         addInfoRow(container, getString(R.string.timeline_created), booking.getCreatedAtDisplay());
         // Confirmed/converted date (Booking#getBookingDate(), the backend's
         // confirmed_at) - distinct from Created Date above, which is the
@@ -977,7 +979,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         } else {
             amenityCharge = booking.getAmenityCharge();
             additionalGuestFee = booking.getAdditionalGuestFee();
-            totalAmount = booking.getTotalAmount();
+            totalAmount = TransactionStatusHelper.grandTotalOf(booking); // the one total every screen shows
             // Backend-authoritative payment_summary.total_amount_paid/remaining_balance
             // when attached, else the legacy client-side fields - see
             // Booking#getEffectiveTotalAmountPaid()'s own doc
@@ -985,6 +987,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
             amountPaid = booking.getEffectiveTotalAmountPaid();
             remainingBalance = booking.getEffectiveRemainingBalance();
         }
+
+        // Every room with its approved amenities (the one shared view), above the money.
+        container.addView(TransactionRoomsView.build(this, booking));
 
         // A stay that is in house or finished and was paid at check-in: the server's own breakdown, grouped
         // Check-in Billing / Amenities & Charges / Payment Summary (the same figures the 3rd receipt prints).

@@ -223,7 +223,7 @@ public class SectionAndBookingLayoutTest {
         TextView newBooking = a.findViewById(R.id.btnNewBooking);
         assertFalse(newBooking.isAllCaps());
         assertEquals(0f, newBooking.getLetterSpacing(), 0f);
-        assertTrue("compact, not full width" + at, newBooking.getWidth() < width * 0.7f);
+        assertTrue("full width right under the tabs, about 40dp to look at" + at, newBooking.getHeight() <= Math.round(48 * density));
 
         RecyclerView rv = a.findViewById(R.id.rvItemList);
         RecyclerView.ViewHolder holder = rv.findViewHolderForAdapterPosition(0);

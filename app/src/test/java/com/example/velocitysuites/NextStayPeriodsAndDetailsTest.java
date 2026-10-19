@@ -99,8 +99,10 @@ public class NextStayPeriodsAndDetailsTest {
         int balance = 0;
         for (NextStayDetails.Row r : rows) if ("Balance due".equals(r.label)) balance++;
         assertEquals(1, balance);
-        assertEquals("Total", rows.get(0).label);
-        assertEquals("Paid", rows.get(1).label);
+        List<NextStayDetails.Row> money = new ArrayList<>();
+        for (NextStayDetails.Row r : rows) if (r.kind != NextStayDetails.Kind.ROOMS) money.add(r);
+        assertEquals("Total", money.get(0).label);
+        assertEquals("Paid", money.get(1).label);
     }
 
     @Test

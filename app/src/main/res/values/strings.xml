@@ -624,10 +624,6 @@
 
     <string name="no_notifications">No new notifications</string>
     <string name="see_all">View all</string>
-    <string name="yes_cancel_booking">Yes, Cancel Booking</string>
-    <string name="yes_cancel_reservation">Yes, Cancel Reservation</string>
-    <string name="cancel_booking_button">Cancel Booking</string>
-    <string name="cancel_reservation_button">Cancel Reservation</string>
     <!-- yes_delete removed 2026-09-15: superseded by delete_permanently_button_label, the single consistent CTA text for the permanent-delete flow (see BookingAndReservationActivity#confirmDeleteTransaction()/TransactionListActivity#confirmDelete()). -->
     <string name="no_label">No</string>
     <string name="date_format_full">EEEE, MMM dd, yyyy</string>
@@ -672,7 +668,7 @@
     <string name="theme_light_mode_active">Light Mode is on</string>
     <string name="theme_dark_mode_active">Dark Mode is on</string>
     <string name="theme_toggle_content_description">Switch between Light Mode and Dark Mode</string>
-    <string name="pay_now">Pay Now</string>
+    <string name="pay_now">Pay now</string>
     <string name="pay_later">Pay Later</string>
     <string name="proceed_to_gcash">Show GCash QR Code</string>
     <string name="proceed_and_pay_later">Proceed &amp; Pay Later</string>
@@ -1189,7 +1185,6 @@
     <string name="empty_title_upcoming_bookings">No Upcoming Bookings Found</string>
     <!-- Real, permanent, non-recoverable deletion (hard DELETE against the guest's own row + its owned child records) - not the old hidden_at soft-hide. See RoomRepository#deleteReservationPermanently()/#deleteBookingPermanently() and TRANSACTION_PERMANENT_DELETE_BACKEND_SPEC.md. -->
     <string name="delete_permanently_button_label">Delete</string>
-    <string name="delete_transaction_permanently_title">Delete Permanently?</string>
     <string name="txn_removed_by_guest">Removed from bookings by guest</string>
     <!-- Itemized stay (server StayBill): booked vs actual check-out, nights and the extra nights' charge. -->
     <string name="stay_scheduled_check_in">Scheduled Check-In</string>
@@ -1204,9 +1199,7 @@
     <string name="wizard_progress_lost_restart">Your booking session was interrupted, so we\'ve restarted it from the beginning. Please re-enter your details.</string>
     <string name="delete_transaction_success_title">Deleted</string>
     <!-- Booking-tab vs Reservation-tab specific copy for confirmDeleteTransaction()/TransactionListActivity#confirmDelete() - a Booking may be deleted once Completed or Cancelled/Rejected, a Reservation only once Cancelled/Rejected (never merely Completed/staff-verified - see TransactionCategorizer's own doc). -->
-    <string name="delete_booking_transaction_confirm">Delete this booking permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
     <string name="delete_booking_transaction_success">Booking deleted.</string>
-    <string name="delete_reservation_transaction_confirm">Delete this reservation permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
     <string name="delete_reservation_transaction_success">Reservation deleted.</string>
     <string name="delete_transaction_failed_format">The transaction could not be removed. %1$s</string>
     <!-- Status-code-specific delete errors (RoomRepository#deleteErrorMessage()) - always a clean, fixed message, never the raw backend/framework error text. -->
@@ -1215,26 +1208,18 @@
     <string name="delete_error_not_found_reservation">This reservation transaction no longer exists.</string>
     <string name="delete_error_conflict">This transaction cannot be deleted because of its current status or related data.</string>
     <string name="delete_error_unavailable">Unable to delete the transaction right now. Please try again later.</string>
-    <string name="book_again_button">Book Again</string>
-    <string name="reserve_again_button">Reserve Again</string>
+    <string name="book_again_button">Book again</string>
+    <string name="reserve_again_button">Reserve again</string>
     <string name="book_again_room_unavailable">That room type is no longer available. Please choose a different room.</string>
     <string name="booking_tab_desc">Pay now to confirm your stay.</string>
     <string name="reservation_tab_desc">Hold a room now and pay later.</string>
-    <string name="cancel_booking_title">Cancel Booking</string>
-    <string name="cancel_partial_payment_reservation_confirm">This reservation will be cancelled permanently. Since a payment was already made, that amount is non-refundable and will not be returned. Do you want to proceed?</string>
-    <string name="cancel_booking_confirm">Are you sure you want to cancel your booking? Please note that cancelled bookings are non-refundable.</string>
-    <string name="cancel_reservation_title">Cancel Reservation</string>
-    <string name="cancel_reservation_confirm">Are you sure you want to cancel your reservation?</string>
     <string name="cancel_booking_success_title">Booking Cancelled Successfully</string>
     <string name="cancel_booking_success_msg">Your booking has been cancelled. The room and selected dates have been released and may now be used for a new booking or reservation, subject to current availability.</string>
     <string name="cancel_reservation_success_title">Reservation Cancelled Successfully</string>
     <string name="cancel_reservation_success_msg">Your reservation has been cancelled. The room and selected dates have been released and may now be used for a new booking or reservation, subject to current availability.</string>
-    <string name="cancel_failed_format">Couldn\'t cancel: %1$s</string>
     <string name="booking_cancellation_policy_notice">Cancellation Policy: Fully paid bookings cannot be cancelled. Bookings with only a partial payment can be cancelled, but the partial payment already made is non-refundable and will not be returned.</string>
     <string name="cancel_not_allowed_title">Cancellation Not Allowed</string>
     <string name="cancel_not_allowed_already_verified_msg">This can no longer be cancelled because the front desk has already verified or converted it.</string>
-    <string name="cancel_not_allowed_verified_msg">This booking is fully paid, so it can no longer be cancelled here. If you have concerns, please contact the front desk for assistance.</string>
-    <string name="cancel_partial_payment_confirm">This booking will be cancelled permanently. Since only a partial payment was made, that amount is non-refundable and will not be returned. Do you want to proceed?</string>
     <string name="additional_guest_age">Age</string>
     <string name="additional_guest_relationship">Relationship</string>
     <string name="guest_number_format">Guest %1$d</string>
@@ -1922,7 +1907,6 @@
     <string name="landing_feature_support_title">24/7 Guest Support</string>
     <string name="landing_feature_support_desc">We are always here to help.</string>
     <string name="booking_card_paid_format">Paid %1$s</string>
-    <string name="delete_completed_copy_confirm">Remove this completed reservation from your list? Your booking and your Transaction History are not changed.</string>
     <plurals name="nights_lower">
         <item quantity="one">%1$d night</item>
         <item quantity="other">%1$d nights</item>
@@ -2344,6 +2328,38 @@
     <string name="cancellation_policy_expand_cd">Cancellation policy, collapsed. Tap to read it.</string>
     <string name="cancellation_policy_collapse_cd">Cancellation policy, expanded. Tap to hide it.</string>
     <string name="booking_items_desc">Your bookings and reservations</string>
+    <string name="cancel_blocked_fully_paid">Fully paid bookings can\'t be cancelled</string>
+    <string name="cancel_blocked_verified">Verified by the front desk — contact us to make changes</string>
+    <string name="cancel_blocked_stay_started">Your stay has started</string>
+    <string name="cancel_dialog_title_format">Cancel %1$s?</string>
+    <string name="cancel_dialog_paid_format">The %1$s you paid is non-refundable.</string>
+    <string name="cancel_dialog_unpaid">You can book again at any time.</string>
+    <string name="cancel_dialog_confirm_booking">Cancel booking</string>
+    <string name="cancel_dialog_confirm_reservation">Cancel reservation</string>
+    <string name="cancel_dialog_keep_booking">Keep booking</string>
+    <string name="cancel_dialog_keep_reservation">Keep reservation</string>
+    <string name="delete_dialog_title_format">Delete %1$s?</string>
+    <string name="delete_dialog_message">It will be removed from your list. This can\'t be undone.</string>
+    <string name="delete_dialog_keep">Keep</string>
+    <string name="converted_to_booking_format">Converted to %1$s</string>
+    <string name="view_booking_format">View %1$s</string>
+    <string name="reservation_policy_title">Reservation policy</string>
+    <string name="reservation_policy_notice">Reservation Policy: A reservation provisionally holds your requested dates and room type pending confirmation and, where applicable, payment verification. A reservation with no payment, or with only a partial payment, may be cancelled while it is pending; any amount already paid is non-refundable. Once the front desk has verified or confirmed it, or it has become a booking, it can no longer be cancelled here.</string>
+    <string name="your_rooms_title">Your rooms</string>
+    <string name="room_header_format">Room %1$s · %2$s</string>
+    <string name="room_header_number_only_format">Room %1$s</string>
+    <string name="room_header_unassigned_format">%1$s · room assigned at check-in</string>
+    <string name="room_header_unassigned_only">Room assigned at check-in</string>
+    <string name="all_rooms_label">All rooms</string>
+    <string name="room_amenities_subtotal">Room amenities subtotal</string>
+    <string name="amenities_subtotal_label">Amenities subtotal</string>
+    <string name="no_amenities_added">No amenities added</string>
+    <string name="waiting_for_approval">Waiting for approval</string>
+    <string name="pending_chip_label">Pending</string>
+    <string name="action_dot_separator">·</string>
+    <string name="delete_booking_transaction_confirm">Delete this booking permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
+    <string name="delete_reservation_transaction_confirm">Delete this reservation permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
+    <string name="delete_transaction_permanently_title">Delete Permanently?</string>
 </resources>
 
 

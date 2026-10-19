@@ -32,6 +32,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -591,6 +592,10 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
         dropdownTransactionSort = findViewById(R.id.dropdownTransactionSort);
         dropdownTransactionRoomType = findViewById(R.id.dropdownTransactionRoomType);
+        View focusSink = screenTitle;
+        DropdownFocus.attach(dropdownTransactionSort, focusSink);
+        DropdownFocus.attach(dropdownTransactionRoomType, focusSink);
+        if (dropdownStatus != null) DropdownFocus.attach(dropdownStatus, focusSink);
         setupTransactionSortDropdown();
         // Room Type options depend on allRooms, which isn't loaded yet at
         // this point in onCreate() - populated once refreshRooms() first
@@ -605,7 +610,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         dropdownTransactionSort.setOnItemClickListener((parent, view, position, id) -> {
             sortOrder = position == 1 ? "OLDEST" : "NEWEST";
             dropdownTransactionSort.setText(options[position], false);
-            dropdownTransactionSort.clearFocus();
+            releaseDropdownFocus(dropdownTransactionSort);
             renderList();
         });
     }
@@ -648,7 +653,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             String selected = options.get(position);
             selectedRoomTypeFilter = selected.equals(all) ? null : selected;
             dropdownTransactionRoomType.setText(selected, false);
-            dropdownTransactionRoomType.clearFocus();
+            releaseDropdownFocus(dropdownTransactionRoomType);
             renderList();
         });
         if (selectedRoomTypeFilter != null && options.contains(selectedRoomTypeFilter)) {
@@ -660,6 +665,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     }
 
     private List<String> roomTypeOptions;
+
+    /** Gives a dropdown's focus up so its border returns to the quiet gray (see {@link DropdownFocus}); repeated once the menu has closed. */
+    private void releaseDropdownFocus(AutoCompleteTextView dropdown) {
+        View sink = screenTitle;
+        DropdownFocus.release(dropdown, sink);
+        dropdown.post(() -> DropdownFocus.release(dropdown, sink));
+    }
 
     private boolean statusFilterIsAll(boolean reservation) {
         return reservation ? showAllReservationCategories : showAllBookingCategories;
@@ -889,7 +901,16 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // Only the Booking List carries an existing payment, so the
         // cancellation/refund policy notice is only relevant there.
         if (cardCancellationPolicy != null) {
-            cardCancellationPolicy.setVisibility(reservation ? View.GONE : View.VISIBLE);
+            // One expandable policy row on both tabs: Cancellation policy (Bookings) / Reservation policy (Reservations).
+            cardCancellationPolicy.setVisibility(View.VISIBLE);
+            TextView policyTitle = findViewById(R.id.tvCancellationPolicyTitle);
+            TextView policyText = findViewById(R.id.tvCancellationPolicyNotice);
+            if (policyTitle != null) policyTitle.setText(reservation ? R.string.reservation_policy_title : R.string.cancellation_policy_title);
+            if (policyText != null) {
+                policyText.setText(reservation ? R.string.reservation_policy_notice : R.string.booking_cancellation_policy_notice);
+                policyText.setVisibility(View.GONE);
+            }
+            if (ivCancellationChevron != null) ivCancellationChevron.setRotation(0f);
         }
         if (tvNoRoomsSelected != null) {
             tvNoRoomsSelected.setText(reservation ? R.string.no_rooms_selected_hint_reservation : R.string.no_rooms_selected_hint);
@@ -1025,7 +1046,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         dropdownStatus.setOnItemClickListener((parent, view, position, id) -> {
             boolean r = isReservationMode();
             dropdownStatus.setText(shortValues[position], false);
-            dropdownStatus.clearFocus();
+            releaseDropdownFocus(dropdownStatus);
             if (position == 0) selectAllStatuses(r);
             else selectCategory(r, position == 1 ? TransactionCategorizer.Category.ACTIVE
                     : position == 2 ? TransactionCategorizer.Category.COMPLETED : TransactionCategorizer.Category.CANCELLED);
@@ -3795,55 +3816,42 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             holder.itemView.setOnClickListener(v -> showBookingDetails(b));
             holder.btnViewDetails.setOnClickListener(v -> showBookingDetails(b));
 
-            // The one filled button: Pay now, only where PaymentEligibility allows it (a GCash reservation with a balance).
-            PaymentEligibility.PayAction action = PaymentEligibility.payActionFor(b);
-            boolean canPayNow = !isBookingTab && !b.getStatus().equalsIgnoreCase("Checked-Out") && action == PaymentEligibility.PayAction.PAY_NOW;
-            holder.btnPayNow.setVisibility(canPayNow ? View.VISIBLE : View.GONE);
-            holder.btnPayNow.setOnClickListener(canPayNow ? v -> showPayNowConfirmation(b) : null);
-            holder.tvPayAtDesk.setVisibility(!isBookingTab && action == PaymentEligibility.PayAction.FRONT_DESK && "CASH".equalsIgnoreCase(b.getPaymentMethod())
-                    ? View.VISIBLE : View.GONE);
-            // A confirmed booking is paid at the front desk: one small secondary line (replaces the old pink box).
-            boolean deskNote = PaymentEligibility.needsFrontDeskPayment(b);
-            holder.tvFrontDeskNote.setVisibility(deskNote ? View.VISIBLE : View.GONE);
-            holder.tvFrontDeskNote.setText(R.string.booking_card_front_desk_line);
+            // Every action comes from ONE plan (TransactionActions): which buttons, which text actions, which info line.
+            TransactionActions.Plan plan = TransactionActions.plan(b, isBookingTab,
+                    LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()));
+            // Info line above the actions, only when it applies (it replaces the old pink box).
+            String info = null;
+            switch (plan.info) {
+                case BALANCE_AT_FRONT_DESK: info = getString(R.string.booking_card_front_desk_line); break;
+                case PAY_AT_FRONT_DESK: info = getString(R.string.payment_pay_at_front_desk); break;
+                case CONVERTED: info = getString(R.string.converted_to_booking_format, convertedBookingLabel(b)); break;
+                default: break;
+            }
+            holder.tvFrontDeskNote.setText(info == null ? "" : info);
+            holder.tvFrontDeskNote.setVisibility(info == null ? View.GONE : View.VISIBLE);
 
-            TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
-            boolean deletable = category == TransactionCategorizer.Category.CANCELLED
-                    || (category == TransactionCategorizer.Category.COMPLETED && (isBookingTab || b.isHistoricalReservation()));
-            boolean canCancel = !deletable && BookingActionPolicy.canCancel(b);
-            boolean canModify = !deletable && !isBookingTab
-                    && ReservationEditPolicy.canEdit(b, LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()));
-            // Edit / Cancel share the row when they fit; with Pay now beside View details, or on a narrow / large-font phone,
-            // they move into a "more" menu instead, so no button text ever wraps.
-            boolean overflow = (canModify || canCancel)
-                    && (canPayNow || RoomAdapter.needsRoomyLayout(getResources().getConfiguration()));
-            holder.btnModify.setVisibility(canModify && !overflow ? View.VISIBLE : View.GONE);
-            holder.btnModify.setOnClickListener(canModify ? v -> launchModifyWizard(b) : null);
-            holder.btnCancel.setVisibility(canCancel && !overflow ? View.VISIBLE : View.GONE);
-            holder.btnCancel.setOnClickListener(canCancel ? v -> onCancelTapped(b) : null);
-            holder.btnCardOverflow.setVisibility(overflow ? View.VISIBLE : View.GONE);
-            holder.btnCardOverflow.setOnClickListener(overflow ? v -> {
-                android.widget.PopupMenu menu = new android.widget.PopupMenu(BookingAndReservationActivity.this, v);
-                if (canModify) menu.getMenu().add(0, 1, 0, R.string.booking_card_edit);
-                if (canCancel) menu.getMenu().add(0, 2, 1, R.string.cancel_label);
-                menu.setOnMenuItemClickListener(item -> {
-                    if (item.getItemId() == 1) launchModifyWizard(b);
-                    else onCancelTapped(b);
-                    return true;
-                });
-                menu.show();
-            } : null);
-
-            // Cancelled / completed: Book again and Delete (outlined / text, never filled). A historical (post-conversion)
-            // reservation record is view-only and never offers Delete (its id is not a real backend row).
-            boolean canBookAgain = category == TransactionCategorizer.Category.CANCELLED;
-            holder.layoutClosedActions.setVisibility(deletable ? View.VISIBLE : View.GONE);
-            holder.btnBookAgain.setVisibility(deletable && canBookAgain ? View.VISIBLE : View.GONE);
+            // Left: the buttons (the one filled button is Pay now). Right: the text actions.
+            holder.btnPayNow.setVisibility(plan.payNow ? View.VISIBLE : View.GONE);
+            holder.btnPayNow.setOnClickListener(plan.payNow ? v -> showPayNowConfirmation(b) : null);
+            holder.btnViewDetails.setVisibility(plan.viewDetailsOutlined ? View.VISIBLE : View.GONE);
+            holder.btnViewDetails.setOnClickListener(v -> showBookingDetails(b));
+            holder.btnViewDetailsText.setVisibility(plan.viewDetailsText ? View.VISIBLE : View.GONE);
+            holder.btnViewDetailsText.setOnClickListener(v -> showBookingDetails(b));
+            holder.btnBookAgain.setVisibility(plan.bookAgain ? View.VISIBLE : View.GONE);
             holder.btnBookAgain.setText(isBookingTab ? R.string.book_again_button : R.string.reserve_again_button);
-            holder.btnBookAgain.setOnClickListener(deletable && canBookAgain ? v -> startBookAgain(b) : null);
-            holder.btnDelete.setVisibility(deletable ? View.VISIBLE : View.GONE);
+            holder.btnBookAgain.setOnClickListener(plan.bookAgain ? v -> startBookAgain(b) : null);
+            holder.btnViewBooking.setVisibility(plan.viewConvertedBooking ? View.VISIBLE : View.GONE);
+            holder.btnViewBooking.setText(getString(R.string.view_booking_format, convertedBookingLabel(b)));
+            holder.btnViewBooking.setOnClickListener(plan.viewConvertedBooking ? v -> openConvertedBooking(b) : null);
+            holder.btnModify.setVisibility(plan.edit ? View.VISIBLE : View.GONE);
+            holder.btnModify.setOnClickListener(plan.edit ? v -> launchModifyWizard(b) : null);
+            holder.tvActionDot.setVisibility(plan.edit && plan.cancel ? View.VISIBLE : View.GONE);
+            holder.btnCancel.setVisibility(plan.cancel ? View.VISIBLE : View.GONE);
+            holder.btnCancel.setOnClickListener(plan.cancel ? v -> onCancelTapped(b) : null);
+            holder.btnDelete.setVisibility(plan.delete ? View.VISIBLE : View.GONE);
             holder.btnDelete.setEnabled(true);
-            holder.btnDelete.setOnClickListener(deletable ? v -> confirmDeleteTransaction(b) : null);
+            holder.btnDelete.setOnClickListener(plan.delete ? v -> confirmDeleteTransaction(b) : null);
+            holder.layoutActionsRight.setVisibility(plan.edit || plan.cancel || plan.delete ? View.VISIBLE : View.GONE);
 
             // Highlight the card the guest selected from the dashboard.
             if (holder.itemView instanceof com.google.android.material.card.MaterialCardView) {
@@ -3863,10 +3871,9 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingPrice;
-            TextView tvBookingPaymentMethod, tvBookingPaidLine, tvFrontDeskNote, tvPayAtDesk;
-            LinearLayout layoutActionButtons, layoutClosedActions;
-            ImageButton btnCardOverflow;
-            MaterialButton btnModify, btnCancel, btnViewDetails, btnPayNow, btnDelete, btnBookAgain;
+            TextView tvBookingPaymentMethod, tvBookingPaidLine, tvFrontDeskNote, tvActionDot;
+            LinearLayout layoutActionButtons, layoutActionsRight;
+            MaterialButton btnModify, btnCancel, btnViewDetails, btnViewDetailsText, btnViewBooking, btnPayNow, btnDelete, btnBookAgain;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -3879,10 +3886,11 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 tvBookingPaymentMethod = itemView.findViewById(R.id.tvBookingPaymentMethod);
                 tvBookingPaidLine = itemView.findViewById(R.id.tvBookingPaidLine);
                 tvFrontDeskNote = itemView.findViewById(R.id.tvFrontDeskNote);
-                tvPayAtDesk = itemView.findViewById(R.id.tvPayAtDesk);
+                tvActionDot = itemView.findViewById(R.id.tvActionDot);
                 layoutActionButtons = itemView.findViewById(R.id.layoutActionButtons);
-                layoutClosedActions = itemView.findViewById(R.id.layoutClosedActions);
-                btnCardOverflow = itemView.findViewById(R.id.btnCardOverflow);
+                layoutActionsRight = itemView.findViewById(R.id.layoutActionsRight);
+                btnViewDetailsText = itemView.findViewById(R.id.btnViewDetailsText);
+                btnViewBooking = itemView.findViewById(R.id.btnViewBooking);
                 btnModify = itemView.findViewById(R.id.btnModify);
                 btnCancel = itemView.findViewById(R.id.btnCancel);
                 btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
@@ -3891,6 +3899,32 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 btnBookAgain = itemView.findViewById(R.id.btnBookAgain);
             }
         }
+    }
+
+    /**
+     * "Booking #572": the number the converted booking shows in the Bookings list (the live booking shares the reservation's id and
+     * display number); the server's own booking id only when that booking is not loaded.
+     */
+    private String convertedBookingLabel(Booking reservation) {
+        for (Booking candidate : allMyBookings) {
+            if (candidate.getId().equals(reservation.getId()) && candidate.isHasBooking() && !candidate.isDirectBooking()) {
+                return getString(R.string.direct_booking_ref_format, candidate.getDisplayId());
+            }
+        }
+        String id = reservation.getConvertedBookingId();
+        return getString(R.string.direct_booking_ref_format, id != null && !id.isEmpty() ? id : reservation.getDisplayId());
+    }
+
+    /** Opens the live booking a converted reservation became (it shares the reservation's id); the frozen copy if it is not loaded. */
+    private void openConvertedBooking(Booking historical) {
+        if (!NavUtils.allowClick()) return;
+        for (Booking candidate : allMyBookings) {
+            if (candidate.getId().equals(historical.getId()) && candidate.isHasBooking() && !candidate.isDirectBooking()) {
+                startActivity(BookingDetailsActivity.newIntent(this, candidate));
+                return;
+            }
+        }
+        startActivity(BookingDetailsActivity.newIntent(this, historical));
     }
 
     /**
@@ -3999,34 +4033,30 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private void showCancelDialog(Booking booking) {
         boolean isBooking = booking.isHasBooking();
 
-        // Fully paid is locked in here as a last line of defense; a receptionist-
-        // verified booking is blocked earlier, by BookingActionPolicy in
-        // onCancelTapped() (and again server-side).
-        if (PaymentStateUtil.isFullyPaid(booking)) {
-            new SafeDialogs.Material(this)
-                    .setTitle(R.string.cancel_not_allowed_title)
-                    .setMessage(R.string.cancel_not_allowed_verified_msg)
-                    .setPositiveButton(R.string.close_label, null)
-                    .show();
+        // Last line of defence: the rule (TransactionActions) is checked once more, here.
+        if (!TransactionActions.canCancel(booking)) {
+            int reason = TransactionActions.cancelBlockedReason(booking);
+            Snackbar.make(findViewById(android.R.id.content), reason != 0 ? reason : R.string.cancel_blocked_verified, Snackbar.LENGTH_LONG).show();
             return;
         }
 
-        // A partially paid booking can still be cancelled, but the guest must be
-        // explicitly warned that the partial payment already made is forfeited.
-        int messageRes = PaymentStateUtil.isPartiallyPaid(booking)
-                ? (isBooking ? R.string.cancel_partial_payment_confirm : R.string.cancel_partial_payment_reservation_confirm)
-                : (isBooking ? R.string.cancel_booking_confirm : R.string.cancel_reservation_confirm);
+        String ref = getString(isBooking ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, booking.getDisplayId());
+        double paid = TransactionStatusHelper.summarize(booking).verifiedPaid;
+        String dialogMessage = MoneyFormat.isPositive(paid)
+                ? getString(R.string.cancel_dialog_paid_format, MoneyFormat.format(paid))
+                : getString(R.string.cancel_dialog_unpaid);
 
         AlertDialog dialog = new SafeDialogs.Material(this)
-                .setTitle(isBooking ? R.string.cancel_booking_title : R.string.cancel_reservation_title)
-                .setMessage(messageRes)
-                .setPositiveButton(isBooking ? R.string.yes_cancel_booking : R.string.yes_cancel_reservation, null)
-                .setNegativeButton(R.string.no_label, null)
+                .setTitle(getString(R.string.cancel_dialog_title_format, ref))
+                .setMessage(dialogMessage)
+                .setPositiveButton(isBooking ? R.string.cancel_dialog_confirm_booking : R.string.cancel_dialog_confirm_reservation, null)
+                .setNegativeButton(isBooking ? R.string.cancel_dialog_keep_booking : R.string.cancel_dialog_keep_reservation, null)
                 .create();
 
         dialog.setOnShowListener(shownDialog -> {
             android.widget.Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             android.widget.Button negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            positive.setTextColor(getColor(R.color.velocity_red_primary));
             positive.setOnClickListener(v -> {
                 // Disable both buttons and swap in a "Cancelling..." label so a
                 // repeated tap while the request is in flight can't fire it twice -
@@ -4077,12 +4107,10 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     @Override
                     public void onError(String message) {
                         if (isFinishing() || isDestroyed()) return;
-                        // Leave the dialog open and re-enable controls so the
-                        // guest can retry, matching confirmDeleteTransaction().
-                        positive.setEnabled(true);
-                        negative.setEnabled(true);
-                        positive.setText(isBooking ? R.string.yes_cancel_booking : R.string.yes_cancel_reservation);
-                        Toast.makeText(BookingAndReservationActivity.this, getString(R.string.cancel_failed_format, message), Toast.LENGTH_LONG).show();
+                        // The server said no (for example the front desk verified it in the meantime): say what it said, sync the row.
+                        dismissSafely(dialog);
+                        Snackbar.make(findViewById(android.R.id.content), message != null && !message.trim().isEmpty()
+                                ? message : getString(R.string.cancel_blocked_verified), Snackbar.LENGTH_LONG).show();
                         // A rejection may mean the receptionist just verified it - sync the row.
                         refreshMyBookings();
                     }
@@ -4108,20 +4136,21 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // same isHasBooking() split the ref-text/status labels already use)
         // - orthogonal to isDirectBooking() below, which decides which
         // backend table's endpoint the delete call itself must hit.
-        int messageRes = booking.isHistoricalReservation() ? R.string.delete_completed_copy_confirm
-                : booking.isHasBooking() ? R.string.delete_booking_transaction_confirm : R.string.delete_reservation_transaction_confirm;
+        if (!TransactionActions.canDelete(booking)) return; // only finished or cancelled / rejected items can ever be deleted
         int successMsgRes = booking.isHasBooking() ? R.string.delete_booking_transaction_success : R.string.delete_reservation_transaction_success;
+        String ref = getString(booking.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, booking.getDisplayId());
 
         AlertDialog dialog = new SafeDialogs.Material(this)
-                .setTitle(R.string.delete_transaction_permanently_title)
-                .setMessage(messageRes)
+                .setTitle(getString(R.string.delete_dialog_title_format, ref))
+                .setMessage(R.string.delete_dialog_message)
                 .setPositiveButton(R.string.delete_permanently_button_label, null)
-                .setNegativeButton(R.string.cancel_label, null)
+                .setNegativeButton(R.string.delete_dialog_keep, null)
                 .create();
 
         dialog.setOnShowListener(shownDialog -> {
             android.widget.Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             android.widget.Button negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            positive.setTextColor(getColor(R.color.velocity_red_primary));
             positive.setOnClickListener(v -> {
                 // Disable both buttons and swap in a "Deleting..." label so a
                 // repeated tap while the request is in flight can't fire it twice.

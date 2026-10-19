@@ -28,7 +28,7 @@ import java.util.Set;
  */
 final class NextStayDetails {
 
-    enum Kind { LINE, HEADER, DIVIDER, NOTE }
+    enum Kind { LINE, HEADER, DIVIDER, NOTE, ROOMS }
 
     enum Tone { NORMAL, DUE, PAID }
 
@@ -97,11 +97,17 @@ final class NextStayDetails {
 
     @NonNull
     static List<Row> rows(@NonNull Context c, @NonNull Booking booking) {
+        return rows(c, booking, true);
+    }
+
+    @NonNull
+    static List<Row> rows(@NonNull Context c, @NonNull Booking booking, boolean withRooms) {
         List<Row> rows = new ArrayList<>();
         StayInfo info = booking.getStay();
         BalanceBreakdown b = info != null ? info.balanceBreakdown : null;
         if (b == null) {
             TransactionStatusHelper.Summary s = TransactionStatusHelper.summarize(booking);
+            if (withRooms) rows.add(new Row(Kind.ROOMS, "", "", false, Tone.NORMAL));
             rows.add(line(c.getString(R.string.next_stay_detail_total), s.grandTotal, true, Tone.NORMAL));
             rows.add(line(c.getString(R.string.next_stay_paid), s.verifiedPaid, false, Tone.NORMAL));
             rows.add(balanceLine(c, s.balance));
@@ -114,10 +120,9 @@ final class NextStayDetails {
         if (b.discount > MoneyFormat.EPSILON) {
             rows.add(new Row(Kind.LINE, c.getString(R.string.next_stay_detail_discount), "-" + MoneyFormat.format(b.discount), false, Tone.NORMAL));
         }
-        List<BalanceBreakdown.Item> amenities = grouped(b.amenities);
-        if (!amenities.isEmpty()) {
-            rows.add(new Row(Kind.HEADER, c.getString(R.string.next_stay_approved_amenities), "", false, Tone.NORMAL));
-            for (BalanceBreakdown.Item item : amenities) rows.add(itemLine(c, item));
+        // Every room as its own small card with its approved amenities, then the amenities total (one shared view).
+        rows.add(new Row(Kind.ROOMS, "", "", false, Tone.NORMAL));
+        if (!b.amenities.isEmpty()) {
             rows.add(line(c.getString(R.string.next_stay_amenities_total), b.amenitiesTotal, false, Tone.NORMAL));
         }
         List<BalanceBreakdown.Item> charges = grouped(b.charges);
@@ -162,10 +167,19 @@ final class NextStayDetails {
 
     /** Fills {@code box} with the rows: label on the left, amount right-aligned, the same text sizes on every card. */
     static void render(@NonNull Context c, @NonNull LinearLayout box, @NonNull List<Row> rows) {
+        render(c, box, rows, null);
+    }
+
+    /** Fills {@code box}; a ROOMS row becomes the shared "Your rooms" section built from {@code booking}. */
+    static void render(@NonNull Context c, @NonNull LinearLayout box, @NonNull List<Row> rows, @Nullable Booking booking) {
         box.removeAllViews();
         float density = c.getResources().getDisplayMetrics().density;
         for (Row row : rows) {
             switch (row.kind) {
+                case ROOMS: {
+                    if (booking != null) box.addView(TransactionRoomsView.build(c, booking));
+                    break;
+                }
                 case DIVIDER: {
                     View divider = new View(c);
                     divider.setBackgroundColor(c.getColor(R.color.velocity_divider_hairline));

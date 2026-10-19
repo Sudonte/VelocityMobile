@@ -92,6 +92,7 @@ final class TransactionSummarySheet {
             container.addView(buildHeader(activity, section.title, container.getChildCount() == 0));
             for (Row row : section.rows) container.addView(buildRow(activity, row));
         }
+        container.addView(TransactionRoomsView.build(activity, b)); // each room with its approved amenities (the one shared view)
         content.findViewById(R.id.btnSheetViewFull).setOnClickListener(v -> {
             dialog.dismiss();
             onViewFull.run();

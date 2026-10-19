@@ -41,6 +41,8 @@
                     <TextView
                         android:id="@+id/screenTitle"
                         style="@style/TextAppearance.Velocity.ScreenTitle"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="22dp"
@@ -137,7 +139,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="14dp"
-                android:paddingTop="8dp"
+                android:paddingTop="0dp"
                 android:paddingBottom="29dp">
 
                 <!-- Landing actions: launch the 7-step BookingWizardActivity for a
@@ -147,14 +149,13 @@
                     android:id="@+id/layoutWizardEntryActions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:gravity="end"
+                    android:layout_marginBottom="12dp"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNewBooking"
                         style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/tab_new_booking"
                         app:icon="@drawable/ic_bed"
@@ -166,7 +167,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNewReservation"
                         style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/tab_new_reservation"
                         app:icon="@drawable/ic_calendar"
@@ -1350,6 +1351,7 @@
                                     android:layout_marginStart="8dp"
                                     android:layout_weight="1"
                                     android:fontFamily="sans-serif-medium"
+                                    android:id="@+id/tvCancellationPolicyTitle"
                                     android:maxLines="1"
                                     android:text="@string/cancellation_policy_title"
                                     android:textColor="@color/velocity_text_primary"

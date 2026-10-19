@@ -210,7 +210,7 @@ public class FlatStyleTest {
         BookingWizardActivity activity = controller.get();
 
         new MaterialAlertDialogBuilder(activity).setTitle("Cancel Booking").setMessage("Are you sure?")
-                .setPositiveButton(R.string.yes_cancel_booking, null).setNegativeButton(R.string.no_label, null).show();
+                .setPositiveButton(R.string.cancel_dialog_confirm_booking, null).setNegativeButton(R.string.no_label, null).show();
         idle();
         Dialog alert = ShadowDialog.getLatestDialog();
         assertEquals("dialog window has no shadow", 0f, alert.getWindow().getDecorView().getElevation(), 0f);

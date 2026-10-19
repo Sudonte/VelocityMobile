@@ -1410,7 +1410,7 @@ public class DashboardActivity extends BaseNavigationActivity {
     private void bindNextStayMoney(View stayView, NextStay stay) {
         LinearLayout box = stayView.findViewById(R.id.nextStayMoney);
         com.google.android.material.button.MaterialButton toggle = stayView.findViewById(R.id.btnNextStayToggleDetails);
-        NextStayDetails.render(this, box, NextStayDetails.rows(this, stay.booking));
+        NextStayDetails.render(this, box, NextStayDetails.rows(this, stay.booking), stay.booking);
         boolean open = NextStayDetails.isOpen(stay.booking);
         box.setVisibility(open ? View.VISIBLE : View.GONE);
         applyDetailsToggle(toggle, open);

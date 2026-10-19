@@ -227,6 +227,7 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         TransactionDetailSections model = TransactionDetailSections.of(this, booking, transaction.getMethod());
         addGroup(container, getString(R.string.upcoming_section_stay), model.stay);
         addGroup(container, getString(R.string.upcoming_section_room), model.room);
+        container.addView(TransactionRoomsView.build(this, booking));
 
         // The representative guest, when one was entered - an older/guest-less record skips straight to Payment.
         if (!TextUtils.isEmpty(booking.getRepresentativeName())) {

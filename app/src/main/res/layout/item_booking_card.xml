@@ -179,8 +179,9 @@
             tools:text="Pay the balance at the front desk"
             tools:visibility="visible" />
 
-        <!-- Actions -->
-        <LinearLayout
+        <!-- ONE aligned action row (CardActionRow): buttons on the left, text actions on the right; the text actions wrap to a
+             second row, right-aligned, when they do not fit. Only one filled button (Pay now) per card. -->
+        <com.example.velocitysuites.CardActionRow
             android:id="@+id/layoutActionButtons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -188,118 +189,142 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- The one filled button (Reservation tab, only while Pay now is allowed) -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPayNow"
-                style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:ellipsize="none"
-                android:maxLines="1"
-                android:text="@string/pay_now"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/tvPayAtDesk"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="@string/payment_pay_at_front_desk"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="13sp"
-                android:visibility="gone" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnViewDetails"
-                style="@style/Widget.Velocity.Flat.Button.Compact"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="none"
-                android:maxLines="1"
-                android:paddingHorizontal="14dp"
-                android:text="@string/view_details" />
-
-            <View
+            <LinearLayout
+                android:id="@+id/layoutActionsLeft"
                 android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnModify"
-                style="@style/Widget.Velocity.Flat.Button.Text"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPayNow"
+                    style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:ellipsize="none"
+                    android:maxLines="1"
+                    android:text="@string/pay_now"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBookAgain"
+                    style="@style/Widget.Velocity.Flat.Button.Compact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:ellipsize="none"
+                    android:maxLines="1"
+                    android:paddingHorizontal="14dp"
+                    android:text="@string/book_again_button"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewBooking"
+                    style="@style/Widget.Velocity.Flat.Button.Compact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:maxLines="1"
+                    android:paddingHorizontal="14dp"
+                    android:text="@string/view_booking_format"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewDetails"
+                    style="@style/Widget.Velocity.Flat.Button.Compact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:maxLines="1"
+                    android:paddingHorizontal="14dp"
+                    android:text="@string/view_details" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewDetailsText"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:insetTop="4dp"
+                    android:insetBottom="4dp"
+                    android:maxLines="1"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/view_details"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutActionsRight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="none"
-                android:insetTop="4dp"
-                android:insetBottom="4dp"
-                android:minWidth="0dp"
-                android:paddingHorizontal="10dp"
-                android:text="@string/booking_card_edit"
-                android:textSize="13sp"
-                android:visibility="gone" />
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancel"
-                style="@style/Widget.Velocity.Flat.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="none"
-                android:insetTop="4dp"
-                android:insetBottom="4dp"
-                android:minWidth="0dp"
-                android:paddingHorizontal="10dp"
-                android:text="@string/cancel_label"
-                android:textColor="?attr/colorError"
-                android:textSize="13sp"
-                android:visibility="gone" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModify"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:insetTop="4dp"
+                    android:insetBottom="4dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/booking_card_edit"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
 
-            <ImageButton
-                android:id="@+id/btnCardOverflow"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/notif_more_options"
-                android:src="@drawable/ic_more_vert"
-                android:visibility="gone"
-                app:tint="@color/velocity_text_secondary" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tvActionDot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no"
+                    android:text="@string/action_dot_separator"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
 
-        <!-- Cancelled / completed: Book again / Delete (outlined, never filled) -->
-        <LinearLayout
-            android:id="@+id/layoutClosedActions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="gone">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancel"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:insetTop="4dp"
+                    android:insetBottom="4dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/cancel_label"
+                    android:textColor="?attr/colorError"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBookAgain"
-                style="@style/Widget.Velocity.Flat.Button.Compact"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:ellipsize="none"
-                android:maxLines="1"
-                android:text="@string/book_again_button"
-                android:visibility="gone" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDelete"
-                style="@style/Widget.Velocity.Flat.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="none"
-                android:insetTop="4dp"
-                android:insetBottom="4dp"
-                android:maxLines="1"
-                android:minWidth="0dp"
-                android:text="@string/delete_permanently_button_label"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="13sp"
-                android:visibility="gone" />
-        </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDelete"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="none"
+                    android:insetTop="4dp"
+                    android:insetBottom="4dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/delete_permanently_button_label"
+                    android:textColor="?attr/colorError"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_delete"
+                    app:iconGravity="textStart"
+                    app:iconPadding="4dp"
+                    app:iconSize="16dp"
+                    app:iconTint="?attr/colorError" />
+            </LinearLayout>
+        </com.example.velocitysuites.CardActionRow>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

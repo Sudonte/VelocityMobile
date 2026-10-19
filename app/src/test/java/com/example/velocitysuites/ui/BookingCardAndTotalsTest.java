@@ -181,7 +181,7 @@ public class BookingCardAndTotalsTest {
     }
 
     @Test
-    public void reservationCard_payNowIsTheOnlyFilledButton_editAndCancelMoveIntoTheMenu() {
+    public void reservationCard_payNowIsTheOnlyFilledButton_editAndCancelAreVisibleTextActions() {
         ReservationDto r = ScreenTestSupport.reservation(630, 3600);
         r.check_in = today().plusDays(1).toString();
         r.check_out = today().plusDays(2).toString();
@@ -192,12 +192,11 @@ public class BookingCardAndTotalsTest {
         idle();
         View c = card(a, 0);
         assertEquals("Reservation #630", text(c, R.id.tvBookingId));
-        assertEquals("Pay Now", text(c, R.id.btnPayNow));
+        assertEquals("Pay now", text(c, R.id.btnPayNow));
         assertEquals(View.VISIBLE, c.findViewById(R.id.btnPayNow).getVisibility());
         assertEquals(View.VISIBLE, c.findViewById(R.id.btnViewDetails).getVisibility());
-        assertEquals("Edit and Cancel are in the menu beside Pay now", View.VISIBLE, c.findViewById(R.id.btnCardOverflow).getVisibility());
-        assertEquals(View.GONE, c.findViewById(R.id.btnModify).getVisibility());
-        assertEquals(View.GONE, c.findViewById(R.id.btnCancel).getVisibility());
+        assertEquals("Edit and Cancel are visible text actions (never hidden)", View.VISIBLE, c.findViewById(R.id.btnModify).getVisibility());
+        assertEquals(View.VISIBLE, c.findViewById(R.id.btnCancel).getVisibility());
         assertEquals("GCash", text(c, R.id.tvBookingPaymentMethod));
     }
 
@@ -214,7 +213,8 @@ public class BookingCardAndTotalsTest {
         idle();
         assertEquals("Hold a room now and pay later.", text(a.findViewById(android.R.id.content), R.id.screenDescription));
         assertEquals("New reservation", text(a.findViewById(android.R.id.content), R.id.btnNewReservation));
-        assertEquals("the cancellation policy row is for bookings only", View.GONE, a.findViewById(R.id.cardCancellationPolicy).getVisibility());
+        assertEquals("the Reservations tab has its own policy row", View.VISIBLE, a.findViewById(R.id.cardCancellationPolicy).getVisibility());
+        assertEquals("Reservation policy", text(a.findViewById(android.R.id.content), R.id.tvCancellationPolicyTitle));
         ((TabLayout) a.findViewById(R.id.tabLayout)).getTabAt(0).select();
         idle();
         View policy = a.findViewById(R.id.layoutCancellationPolicyRow);
