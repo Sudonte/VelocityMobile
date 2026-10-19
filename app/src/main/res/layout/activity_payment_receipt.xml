@@ -189,7 +189,7 @@
                         android:layout_marginTop="13dp"
                         android:fontFamily="sans-serif-black"
                         android:gravity="center"
-                        android:letterSpacing="0.04"
+                        android:letterSpacing="0"
                         android:text="@string/official_payment_receipt_title"
                         android:textColor="@color/velocity_text_primary"
                         android:textSize="13sp" />
@@ -256,11 +256,11 @@
                         android:drawablePadding="6dp"
                         android:fontFamily="sans-serif-black"
                         android:gravity="center_vertical"
-                        android:letterSpacing="0.04"
+                        android:letterSpacing="0"
                         android:maxLines="1"
                         android:paddingHorizontal="13dp"
                         android:paddingVertical="6dp"
-                        android:textAllCaps="true"
+                        android:textAllCaps="false"
                         android:textSize="12sp"
                         tools:text="Paid" />
 
@@ -440,10 +440,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:letterSpacing="0.04"
+                            android:letterSpacing="0"
                             android:text="@string/receipt_total_amount_paid_label"
                             android:fontFamily="sans-serif-bold"
-        android:textAllCaps="true"
+        android:textAllCaps="false"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="11sp" />
 

@@ -317,9 +317,9 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:fontFamily="sans-serif-black"
-                                        android:letterSpacing="0.08"
+                                        android:letterSpacing="0"
                                         android:text="@string/guest_role"
-                                        android:textAllCaps="true"
+                                        android:textAllCaps="false"
                                         android:textColor="@color/white"
                                         android:textSize="11sp" />
                                 </LinearLayout>

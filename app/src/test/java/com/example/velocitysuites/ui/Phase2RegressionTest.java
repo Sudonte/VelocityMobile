@@ -138,11 +138,9 @@ public class Phase2RegressionTest {
         assertEquals("A nice room", ((TextView) dialog.findViewById(R.id.detailRoomDescription)).getText().toString());
 
         android.widget.LinearLayout policies = dialog.findViewById(R.id.layoutDetailPolicies);
-        assertEquals(3, policies.getChildCount());
+        assertEquals("only the refund policy: no check-in / check-out times (the app is not given any)", 1, policies.getChildCount());
         assertEquals("Refund policy", ((TextView) ((android.view.ViewGroup) policies.getChildAt(0)).getChildAt(0)).getText().toString());
         assertEquals("Non-refundable", ((TextView) ((android.view.ViewGroup) policies.getChildAt(0)).getChildAt(1)).getText().toString());
-        assertEquals("From 2:00 PM", ((TextView) ((android.view.ViewGroup) policies.getChildAt(1)).getChildAt(1)).getText().toString());
-        assertEquals("Until 12:00 PM", ((TextView) ((android.view.ViewGroup) policies.getChildAt(2)).getChildAt(1)).getText().toString());
 
         TextView more = dialog.findViewById(R.id.detailPoliciesBody);
         assertEquals("the long hotel policies start folded", View.GONE, more.getVisibility());

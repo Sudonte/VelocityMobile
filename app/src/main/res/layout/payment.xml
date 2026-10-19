@@ -291,9 +291,9 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:fontFamily="sans-serif-black"
-                            android:letterSpacing="0.1"
+                            android:letterSpacing="0"
                             android:text="@string/total_amount_due"
-                            android:textAllCaps="true"
+                            android:textAllCaps="false"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp" />
 
@@ -344,9 +344,9 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:fontFamily="sans-serif-black"
-                            android:letterSpacing="0.1"
+                            android:letterSpacing="0"
                             android:text="@string/front_desk_title"
-                            android:textAllCaps="true"
+                            android:textAllCaps="false"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp" />
 
@@ -420,9 +420,9 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
                                     android:fontFamily="sans-serif-black"
-                                    android:letterSpacing="0.05"
+                                    android:letterSpacing="0"
                                     android:text="@string/payment_step_review"
-                                    android:textAllCaps="true"
+                                    android:textAllCaps="false"
                                     android:textColor="@color/velocity_action_text"
                                     android:textSize="12sp" />
                             </LinearLayout>
@@ -457,9 +457,9 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
                                     android:fontFamily="sans-serif-bold"
-                                    android:letterSpacing="0.05"
+                                    android:letterSpacing="0"
                                     android:text="@string/payment_step_gcash"
-                                    android:textAllCaps="true"
+                                    android:textAllCaps="false"
                                     android:textColor="@color/velocity_text_secondary"
                                     android:textSize="12sp" />
                             </LinearLayout>
@@ -499,9 +499,9 @@
                                     android:layout_height="wrap_content"
                                     android:layout_toStartOf="@id/ivTotalDueDecor"
                                     android:fontFamily="sans-serif-black"
-                                    android:letterSpacing="0.15"
+                                    android:letterSpacing="0"
                                     android:text="@string/total_amount_due"
-                                    android:textAllCaps="true"
+                                    android:textAllCaps="false"
                                     android:textColor="#E6FFFFFF"
                                     android:textSize="12sp" />
 
@@ -545,7 +545,7 @@
                                         android:background="@drawable/shape_intro_pill"
                                         android:backgroundTint="#59000000"
                                         android:fontFamily="sans-serif-black"
-                                        android:letterSpacing="0.05"
+                                        android:letterSpacing="0"
                                         android:paddingHorizontal="11dp"
                                         android:paddingVertical="8dp"
                                         android:text="@string/status_unpaid"
@@ -1125,9 +1125,9 @@
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:fontFamily="sans-serif-black"
-                                        android:letterSpacing="0.03"
+                                        android:letterSpacing="0"
                                         android:text="@string/payment_balance_due_label"
-                                        android:textAllCaps="true"
+                                        android:textAllCaps="false"
                                         android:textColor="@color/velocity_action_text"
                                         android:textSize="14sp" />
 
@@ -1605,9 +1605,9 @@
                                 android:layout_marginBottom="8dp"
                                 android:accessibilityLiveRegion="polite"
                                 android:fontFamily="sans-serif-black"
-                                android:letterSpacing="0.08"
+                                android:letterSpacing="0"
                                 android:text="@string/registration_step_format"
-                                android:textAllCaps="true"
+                                android:textAllCaps="false"
                                 android:textColor="@color/velocity_action_text"
                                 android:textSize="12sp" />
 
@@ -1654,7 +1654,7 @@
                                         android:layout_toStartOf="@id/ivGcashHeaderIcon"
                                         android:ellipsize="end"
                                         android:fontFamily="sans-serif-black"
-                                        android:letterSpacing="0.02"
+                                        android:letterSpacing="0"
                                         android:maxLines="1"
                                         android:text="@string/payment_method_gcash"
                                         android:textColor="@color/white"
@@ -1828,9 +1828,9 @@
                                                     android:layout_width="wrap_content"
                                                     android:layout_height="wrap_content"
                                                     android:fontFamily="sans-serif-bold"
-                                                    android:letterSpacing="0.08"
+                                                    android:letterSpacing="0"
                                                     android:text="@string/amount_to_pay_label"
-                                                    android:textAllCaps="true"
+                                                    android:textAllCaps="false"
                                                     android:textColor="@color/velocity_text_secondary"
                                                     android:textSize="12sp" />
 
@@ -2270,9 +2270,9 @@
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginBottom="8dp"
                                                     android:fontFamily="sans-serif-black"
-                                                    android:letterSpacing="0.03"
+                                                    android:letterSpacing="0"
                                                     android:text="@string/review_section_booking_info_title"
-                                                    android:textAllCaps="true"
+                                                    android:textAllCaps="false"
                                                     android:textColor="@color/velocity_action_text"
                                                     android:textSize="12sp" />
 
@@ -2468,9 +2468,9 @@
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginBottom="8dp"
                                                     android:fontFamily="sans-serif-black"
-                                                    android:letterSpacing="0.03"
+                                                    android:letterSpacing="0"
                                                     android:text="@string/review_section_payment_summary_title"
-                                                    android:textAllCaps="true"
+                                                    android:textAllCaps="false"
                                                     android:textColor="@color/velocity_action_text"
                                                     android:textSize="12sp" />
 
@@ -2731,9 +2731,9 @@
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginBottom="8dp"
                                                     android:fontFamily="sans-serif-black"
-                                                    android:letterSpacing="0.03"
+                                                    android:letterSpacing="0"
                                                     android:text="@string/review_section_receipt_title"
-                                                    android:textAllCaps="true"
+                                                    android:textAllCaps="false"
                                                     android:textColor="@color/velocity_action_text"
                                                     android:textSize="12sp" />
 

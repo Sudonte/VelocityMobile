@@ -81,11 +81,11 @@
                             android:ellipsize="end"
                             android:fontFamily="sans-serif-black"
                             android:gravity="center_vertical"
-                            android:letterSpacing="0.04"
+                            android:letterSpacing="0"
                             android:maxLines="1"
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="3dp"
-                            android:textAllCaps="true"
+                            android:textAllCaps="false"
                             android:textSize="12sp"
                             tools:text="Pending" />
 
@@ -97,9 +97,9 @@
                             android:layout_weight="1"
                             android:ellipsize="end"
                             android:fontFamily="sans-serif-black"
-                            android:letterSpacing="0.03"
+                            android:letterSpacing="0"
                             android:maxLines="2"
-                            android:textAllCaps="true"
+                            android:textAllCaps="false"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp"
                             tools:text="Reservation #588" />

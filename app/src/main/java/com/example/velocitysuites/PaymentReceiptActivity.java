@@ -553,9 +553,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     private void addSubheadingText(ViewGroup parent, String text) {
         TextView view = new TextView(ui);
         view.setText(text);
-        view.setAllCaps(true);
+        view.setAllCaps(false);
         view.setTypeface(view.getTypeface(), android.graphics.Typeface.BOLD);
-        view.setLetterSpacing(0.04f);
+        view.setLetterSpacing(0f);
         view.setTextSize(12);
         view.setTextColor(ui.getColor(R.color.velocity_text_secondary));
         view.setPadding(0, dp(4), 0, dp(4));
@@ -590,9 +590,9 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             row.setPadding(0, dp(4), 0, dp(4));
             TextView label = new TextView(ui);
             label.setText(labels[i]);
-            label.setAllCaps(true);
+            label.setAllCaps(false);
             label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
-            label.setLetterSpacing(0.04f);
+            label.setLetterSpacing(0f);
             label.setTextColor(ui.getColor(R.color.velocity_text_primary));
             label.setTextSize(12);
             row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -660,10 +660,10 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         badge.setPadding(dp(14), dp(6), dp(14), dp(6));
         badge.setGravity(android.view.Gravity.CENTER_VERTICAL);
         badge.setCompoundDrawablePadding(dp(6));
-        badge.setAllCaps(true);
+        badge.setAllCaps(false);
         badge.setMaxLines(1);
         badge.setTextSize(12);
-        badge.setLetterSpacing(0.04f);
+        badge.setLetterSpacing(0f);
         badge.setTypeface(badge.getTypeface(), android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = android.view.Gravity.CENTER_HORIZONTAL;
@@ -959,7 +959,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
             titleView.setTextColor(ui.getColor(R.color.velocity_red_primary));
             titleView.setTypeface(titleView.getTypeface(), android.graphics.Typeface.BOLD);
             titleView.setTextSize(12);
-            titleView.setLetterSpacing(0.04f);
+            titleView.setLetterSpacing(0f);
             LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             titleParams.bottomMargin = dp(10);
             titleView.setLayoutParams(titleParams);
@@ -1005,11 +1005,11 @@ public class PaymentReceiptActivity extends AppCompatActivity {
 
         TextView labelView = new TextView(ui);
         labelView.setText(label);
-        labelView.setAllCaps(true);
+        labelView.setAllCaps(false);
         labelView.setGravity(android.view.Gravity.CENTER);
         labelView.setTextColor(ui.getColor(R.color.velocity_text_secondary));
         labelView.setTextSize(11);
-        labelView.setLetterSpacing(0.04f);
+        labelView.setLetterSpacing(0f);
         panel.addView(labelView);
 
         TextView valueView = new TextView(ui);

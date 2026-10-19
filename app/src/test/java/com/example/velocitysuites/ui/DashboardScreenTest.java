@@ -63,6 +63,11 @@ public class DashboardScreenTest {
         java.lang.reflect.Field last = com.example.velocitysuites.NavUtils.class.getDeclaredField("lastClickAtMs");
         last.setAccessible(true);
         last.setLong(null, Long.MIN_VALUE / 2);
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        // Which Next Stay cards are expanded lives for the whole process; every test starts like a fresh app start.
+        java.lang.reflect.Method reset = Class.forName("com.example.velocitysuites.NextStayDetails").getDeclaredMethod("resetForTests");
+        reset.setAccessible(true);
+        reset.invoke(null);
         app = ApplicationProvider.getApplicationContext();
         api = new ScreenTestSupport.FakeApi();
         ScreenTestSupport.freshRepository(app, api);
@@ -919,7 +924,7 @@ public class DashboardScreenTest {
         View root = activity.getWindow().getDecorView();
         int[] ids = {R.id.tvNextStayRef, R.id.tvNextStayStatus, R.id.tvNextStayType, R.id.tvNextStayHint, R.id.tvNextStayRooms,
                 R.id.tvNextStayDates, R.id.nextStayPaymentRow, R.id.btnNextStayRequestAmenities,
-                R.id.tvNextStayViewDetails};
+                R.id.btnNextStayToggleDetails, R.id.tvNextStayViewDetails};
         android.graphics.Rect bounds = LayoutHarness.boundsIn(root, card);
         java.util.List<View> shown = new java.util.ArrayList<>();
         for (int id : ids) {
@@ -1749,19 +1754,6 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void nextStay_weekly_listsEachTransactionOnce_withContextLineBadge() {
-        DashboardActivity activity = launch();
-        answer(stay(7002, 1, 3));
-        tap(activity.findViewById(R.id.nextStayModeWeekly));
-        ViewGroup cards = activity.findViewById(R.id.nextStayDayCards);
-        assertEquals("one card for a multi-day stay", 1, cards.getChildCount());
-        String info = text(activity, R.id.nextStayDayInfo);
-        assertTrue(info, info.endsWith(" · 1 stay"));
-        assertEquals("1", text(activity, R.id.nextStayCount));
-        assertTrue("week chips", ((ViewGroup) activity.findViewById(R.id.nextStayDayStrip)).getChildCount() >= 10);
-    }
-
-    @Test
     public void nextStay_monthly_showsMonthChips_andTheMonthContextLine() {
         DashboardActivity activity = launch();
         answer(stay(7003, 1, 2));
@@ -1770,6 +1762,248 @@ public class DashboardScreenTest {
         assertTrue(info, info.matches("[A-Z][a-z]+ \\d{4} · \\d+ stays?"));
         TextView firstTitle = ((ViewGroup) activity.findViewById(R.id.nextStayDayStrip)).getChildAt(0).findViewById(R.id.tvDayName);
         assertTrue(firstTitle.getText().toString(), firstTitle.getText().toString().matches("[A-Z][a-z]{2} \\d{4}"));
+    }
+
+    /** Every TextView-bearing badge count of the strip, as the chip shows it ("" when the badge is invisible). */
+    private static String badge(View chip) {
+        View b = chip.findViewById(R.id.tvDayCount);
+        return b.getVisibility() == View.VISIBLE ? ((TextView) b).getText().toString() : "";
+    }
+
+    private static String chipTitle(View chip) {
+        return ((TextView) chip.findViewById(R.id.tvDayName)).getText().toString();
+    }
+
+    private static LocalDate sundayOf(LocalDate d) {
+        return d.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY));
+    }
+
+    /** True when the stay [in, out] touches [start, end] at all (an independent re-statement of "overlaps"). */
+    private static boolean overlaps(LocalDate in, LocalDate out, LocalDate start, LocalDate end) {
+        return !out.isBefore(start) && !in.isAfter(end);
+    }
+
+    @Test
+    public void nextStay_weekly_hasTheRightWeekChipsAndCounts_andListsEachOverlappingTransactionOnce_sortedByCheckIn() {
+        DashboardActivity activity = launch();
+        // A: a 3-night stay starting tomorrow (may cross into next week); B: starts in 8 days; C: starts in 15 days, 1 night.
+        // Booked out of order on purpose.
+        ReservationDto c = stay(7013, 15, 1);
+        ReservationDto a = stay(7011, 1, 3);
+        ReservationDto b = stay(7012, 8, 2);
+        answer(c, a, b);
+        tap(activity.findViewById(R.id.nextStayModeWeekly));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+
+        LocalDate today = manilaToday();
+        LocalDate thisWeek = sundayOf(today);
+        LocalDate[][] stays = {
+                {today.plusDays(1), today.plusDays(4)},
+                {today.plusDays(8), today.plusDays(10)},
+                {today.plusDays(15), today.plusDays(16)}};
+        long[] ids = {7011, 7012, 7013};
+
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        int thisWeekIndex = -1;
+        for (int i = 0; i < strip.getChildCount(); i++) if (chipTitle(strip.getChildAt(i)).equals("This week")) thisWeekIndex = i;
+        assertTrue("a This week chip exists with past weeks to its left", thisWeekIndex >= 4);
+        assertEquals("Next week", chipTitle(strip.getChildAt(thisWeekIndex + 1)));
+        assertEquals("Last week", chipTitle(strip.getChildAt(thisWeekIndex - 1)));
+        for (int i = 0; i < strip.getChildCount(); i++) {
+            LocalDate start = thisWeek.plusWeeks(i - thisWeekIndex);
+            LocalDate end = start.plusDays(6);
+            int expected = 0;
+            for (LocalDate[] s : stays) if (overlaps(s[0], s[1], start, end)) expected++;
+            assertEquals("badge of the week starting " + start, expected == 0 ? "" : String.valueOf(expected), badge(strip.getChildAt(i)));
+            if (i > thisWeekIndex + 1) {
+                String range = ((TextView) strip.getChildAt(i).findViewById(R.id.tvDayName)).getText().toString();
+                assertTrue("a date range title: " + range, range.matches("[A-Z][a-z]{2} \\d{1,2}–(\\d{1,2}|[A-Z][a-z]{2} \\d{1,2})"));
+            }
+        }
+
+        // For every chip with something in it: the cards are exactly the overlapping stays, each once, nearest check-in first.
+        for (int i = 0; i < strip.getChildCount(); i++) {
+            LocalDate start = thisWeek.plusWeeks(i - thisWeekIndex);
+            LocalDate end = start.plusDays(6);
+            java.util.List<String> expected = new java.util.ArrayList<>();
+            for (int k = 0; k < stays.length; k++) if (overlaps(stays[k][0], stays[k][1], start, end)) expected.add("#" + ids[k]);
+            if (expected.isEmpty()) continue;
+            tap(strip.getChildAt(i));
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+            ViewGroup cards = activity.findViewById(R.id.nextStayDayCards);
+            java.util.List<String> shown = new java.util.ArrayList<>();
+            for (int k = 0; k < cards.getChildCount(); k++) {
+                String ref = ((TextView) cards.getChildAt(k).findViewById(R.id.tvNextStayRef)).getText().toString();
+                shown.add(ref.substring(ref.indexOf('#')));
+            }
+            assertEquals("cards of the week starting " + start, expected, shown);
+            assertEquals("the header badge counts the cards", String.valueOf(expected.size()), text(activity, R.id.nextStayCount));
+            String info = text(activity, R.id.nextStayDayInfo);
+            assertTrue(info, info.endsWith(" · " + expected.size() + (expected.size() == 1 ? " stay" : " stays")));
+            strip = activity.findViewById(R.id.nextStayDayStrip);
+        }
+    }
+
+    @Test
+    public void nextStay_monthly_hasMonthChipsWithCounts_andListsEachOverlappingTransactionOnce() {
+        DashboardActivity activity = launch();
+        ReservationDto a = stay(7021, 1, 2);
+        ReservationDto b = stay(7022, 40, 2);
+        answer(b, a);
+        tap(activity.findViewById(R.id.nextStayModeMonthly));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        LocalDate today = manilaToday();
+        LocalDate[][] stays = {{today.plusDays(1), today.plusDays(3)}, {today.plusDays(40), today.plusDays(42)}};
+        ViewGroup strip = activity.findViewById(R.id.nextStayDayStrip);
+        int thisMonthIndex = -1;
+        for (int i = 0; i < strip.getChildCount(); i++) {
+            String sub = ((TextView) strip.getChildAt(i).findViewById(R.id.tvDayDate)).getText().toString();
+            if (sub.equals("This month")) thisMonthIndex = i;
+        }
+        assertTrue("a This month chip with past months to its left", thisMonthIndex >= 3);
+        for (int i = 0; i < strip.getChildCount(); i++) {
+            LocalDate start = today.withDayOfMonth(1).plusMonths(i - thisMonthIndex);
+            LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+            int expected = 0;
+            for (LocalDate[] s : stays) if (overlaps(s[0], s[1], start, end)) expected++;
+            assertEquals("badge of " + start.getMonth(), expected == 0 ? "" : String.valueOf(expected), badge(strip.getChildAt(i)));
+            assertEquals(start.format(java.time.format.DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH)), chipTitle(strip.getChildAt(i)));
+        }
+    }
+
+    @Test
+    public void dayRoleChip_isShownInDaily_butHiddenInWeeklyAndMonthly() {
+        DashboardActivity activity = launch();
+        answer(stay(7031, 0, 2));
+        assertEquals("Daily keeps it", View.VISIBLE, activity.findViewById(R.id.tvNextStayHint).getVisibility());
+        tap(activity.findViewById(R.id.nextStayModeWeekly));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertTrue(((ViewGroup) activity.findViewById(R.id.nextStayDayCards)).getChildCount() > 0);
+        assertEquals("Weekly hides it", View.GONE, activity.findViewById(R.id.tvNextStayHint).getVisibility());
+        assertEquals("the type chip stays", View.VISIBLE, activity.findViewById(R.id.tvNextStayType).getVisibility());
+        tap(activity.findViewById(R.id.nextStayModeMonthly));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertEquals("Monthly hides it", View.GONE, activity.findViewById(R.id.tvNextStayHint).getVisibility());
+        tap(activity.findViewById(R.id.nextStayModeDaily));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertEquals("back in Daily", View.VISIBLE, activity.findViewById(R.id.tvNextStayHint).getVisibility());
+    }
+
+    // ---- Your Next Stay card: 393dp and dark mode, collapsed and expanded; recreation and coming back ----
+
+    /** Expands the first card and checks the full details stay inside it, on one line each, with nothing overlapping. */
+    private void assertExpandedFits(DashboardActivity a) {
+        View toggle = a.findViewById(R.id.btnNextStayToggleDetails);
+        tap(toggle);
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        layOut(a, app);
+        idle();
+        layOut(a, app);
+        View root = a.getWindow().getDecorView();
+        View card = a.findViewById(R.id.nextStayItem);
+        LinearLayout money = a.findViewById(R.id.nextStayMoney);
+        assertEquals(View.VISIBLE, money.getVisibility());
+        assertTrue(money.getChildCount() >= 3);
+        android.graphics.Rect cardBounds = LayoutHarness.boundsIn(root, card);
+        android.graphics.Rect moneyBounds = LayoutHarness.boundsIn(root, money);
+        assertTrue("details inside the card: " + moneyBounds + " vs " + cardBounds,
+                moneyBounds.left >= cardBounds.left && moneyBounds.right <= cardBounds.right && moneyBounds.bottom <= cardBounds.bottom);
+        android.graphics.Rect actions = LayoutHarness.boundsIn(root, a.findViewById(R.id.nextStayActions));
+        assertTrue("the details end above the actions", moneyBounds.bottom <= actions.top);
+        android.graphics.Rect previous = null;
+        for (int i = 0; i < money.getChildCount(); i++) {
+            View row = money.getChildAt(i);
+            android.graphics.Rect r = LayoutHarness.boundsIn(root, row);
+            assertTrue("row " + i + " inside the card width", r.left >= cardBounds.left && r.right <= cardBounds.right);
+            if (previous != null) assertTrue("rows " + (i - 1) + "/" + i + " do not overlap", r.top >= previous.bottom - 1);
+            previous = r;
+            if (row instanceof LinearLayout) {
+                LinearLayout line = (LinearLayout) row;
+                if (line.getChildCount() == 2) {
+                    TextView label = (TextView) line.getChildAt(0);
+                    TextView value = (TextView) line.getChildAt(1);
+                    assertEquals("amount on one line: " + value.getText(), 1, value.getLineCount());
+                    assertFalse("label and amount do not overlap", LayoutHarness.overlaps(root, label, value));
+                    assertTrue("the amount is right-aligned", LayoutHarness.boundsIn(root, value).right >= r.right - LayoutHarness.dp(app, 2));
+                }
+            }
+        }
+        assertEquals("Hide full details", text(a, R.id.btnNextStayToggleDetails));
+    }
+
+    @Test
+    public void nextStayCard_at393dp_fitsCollapsedAndExpanded() {
+        org.robolectric.RuntimeEnvironment.setQualifiers("w393dp-h851dp-xxhdpi"); // set explicitly so an earlier test cannot leave another mode behind
+        app = ApplicationProvider.getApplicationContext();
+        DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(StayMoneyScreensTest.inHouseWithMoney()));
+        assertExpandedFits(a);
+    }
+
+    @Test
+    public void nextStayCard_at393dpInDarkMode_fitsCollapsedAndExpanded() {
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM); // an earlier test may have forced a mode (the theme toggle)
+        try {
+            org.robolectric.RuntimeEnvironment.setQualifiers("w393dp-h851dp-night-xxhdpi"); // set explicitly so an earlier test cannot leave another mode behind
+            app = ApplicationProvider.getApplicationContext();
+            DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(StayMoneyScreensTest.inHouseWithMoney()));
+            assertEquals("night mode is really on", android.content.res.Configuration.UI_MODE_NIGHT_YES,
+                    a.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK);
+            assertExpandedFits(a);
+        } finally {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    @Test
+    public void nextStayCard_at360dpInDarkMode_fitsCollapsedAndExpanded_withReadableColours() {
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM); // an earlier test may have forced a mode (the theme toggle)
+        try {
+            org.robolectric.RuntimeEnvironment.setQualifiers("w360dp-h800dp-night-xxhdpi"); // set explicitly so an earlier test cannot leave another mode behind
+            app = ApplicationProvider.getApplicationContext();
+            DashboardActivity a = showCard(NO_RESERVATIONS, java.util.Arrays.asList(StayMoneyScreensTest.inHouseWithMoney()));
+            assertEquals("night mode is really on", android.content.res.Configuration.UI_MODE_NIGHT_YES,
+                    a.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK);
+            assertExpandedFits(a);
+            // balance is the red, not the dark-on-dark primary text
+            TextView balance = a.findViewById(R.id.tvNextStayBalance);
+            assertEquals(app.getColor(R.color.velocity_red_primary), balance.getCurrentTextColor());
+        } finally {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    @Test
+    public void nextStayCard_expandedState_survivesARealRecreation_andComingBackFromAnotherScreen() {
+        ActivityController<DashboardActivity> controller = launchController();
+        DashboardActivity a = controller.get();
+        answerWith(NO_RESERVATIONS, java.util.Arrays.asList(StayMoneyScreensTest.inHouseWithMoney()));
+        assertEquals(View.GONE, a.findViewById(R.id.nextStayMoney).getVisibility());
+        tap(a.findViewById(R.id.btnNextStayToggleDetails));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertEquals(View.VISIBLE, a.findViewById(R.id.nextStayMoney).getVisibility());
+
+        // rotation: the activity is destroyed and a new one built
+        controller.recreate();
+        idle();
+        DashboardActivity b = controller.get();
+        if (b.findViewById(R.id.nextStayItem) == null && api.count("getReservations") > 1) {
+            ScreenTestSupport.answerBookingLoad(api, api.count("getReservations") - 1, NO_RESERVATIONS,
+                    java.util.Arrays.asList(StayMoneyScreensTest.inHouseWithMoney()));
+            idle();
+        }
+        assertTrue("a different activity instance", a != b);
+        assertNotNull("the card is back", b.findViewById(R.id.nextStayItem));
+        assertEquals("still expanded after rotation", View.VISIBLE, b.findViewById(R.id.nextStayMoney).getVisibility());
+        assertEquals("Hide full details", text(b, R.id.btnNextStayToggleDetails));
+
+        // another screen opens on top, then the guest comes back
+        controller.pause().stop();
+        controller.restart().start().resume();
+        idle();
+        assertEquals("still expanded after returning", View.VISIBLE, b.findViewById(R.id.nextStayMoney).getVisibility());
+        tap(b.findViewById(R.id.btnNextStayToggleDetails));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertEquals("it can still be hidden again", View.GONE, b.findViewById(R.id.nextStayMoney).getVisibility());
     }
 
     @Test

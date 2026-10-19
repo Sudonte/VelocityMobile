@@ -10,8 +10,8 @@
     android:layout_marginTop="4dp"
     android:layout_marginBottom="10dp"
     android:fontFamily="sans-serif-black"
-    android:letterSpacing="0.06"
-    android:textAllCaps="true"
+    android:letterSpacing="0"
+    android:textAllCaps="false"
     android:textColor="@color/velocity_text_secondary"
     android:textSize="11sp"
     tools:text="Selected Rooms" />

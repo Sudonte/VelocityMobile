@@ -107,7 +107,7 @@ public class NotificationTextTest {
         NotificationText.Content confirmed = build(n(Notification.TYPE_BOOKING, "Booking Confirmed", "Your booking was confirmed."), "Booking #567");
         assertEquals("Booking #567 is confirmed", confirmed.title);
         assertTrue(confirmed.description.startsWith("Booking #567 is confirmed. "));
-        assertTrue("the posted times", confirmed.description.contains("Check-in is from 2:00 PM and check-out is by 12:00 PM."));
+        assertFalse("no check-in / check-out times: the data does not carry them", confirmed.description.contains("PM"));
         assertThreeOrFour(confirmed);
 
         NotificationText.Content rejected = build(n(Notification.TYPE_RESERVATION, "Reservation Rejected", "Reason: Room unavailable."), "Reservation #12");
@@ -157,6 +157,7 @@ public class NotificationTextTest {
         assertEquals("You're checked in", in.title);
         assertTrue(in.description.startsWith("You were checked in on Booking #567."));
         assertTrue(in.description.contains("request additional amenities"));
+        assertFalse("no times", in.description.contains("PM"));
 
         NotificationText.Content out = build(n(Notification.TYPE_CHECK_IN, "Checked Out", "You are checked out."), "Booking #567");
         assertEquals("You're checked out", out.title);

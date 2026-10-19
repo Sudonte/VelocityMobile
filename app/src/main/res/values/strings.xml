@@ -2282,7 +2282,7 @@
     <string name="nt_confirmed_s1">%1$s is confirmed.</string>
     <string name="nt_stay_on_format">Your stay is on %1$s.</string>
     <string name="nt_stay_in_on_format">Your stay in %1$s is on %2$s.</string>
-    <string name="nt_checkin_times_format">Check-in is from %1$s and check-out is by %2$s.</string>
+    <string name="nt_keep_confirmation">Keep this confirmation handy for your arrival.</string>
     <string name="nt_closed_title_format">%1$s was %2$s</string>
     <string name="nt_verb_rejected">rejected</string>
     <string name="nt_verb_cancelled">cancelled</string>
@@ -2304,7 +2304,7 @@
     <string name="nt_checkin_title">You\'re checked in</string>
     <string name="nt_checkin_s1">You were checked in%1$s.</string>
     <string name="nt_your_room_format">Your room: %1$s.</string>
-    <string name="nt_checkout_on_format">Check-out is by %1$s on %2$s.</string>
+    <string name="nt_checkout_on_format">Your stay ends on %1$s.</string>
     <string name="nt_checkin_amenities">You can request additional amenities from your booking during your stay.</string>
     <string name="nt_checkout_title">You\'re checked out</string>
     <string name="nt_checkout_s1">You were checked out%1$s.</string>
@@ -2331,10 +2331,6 @@
     <string name="room_fact_size">Size</string>
     <string name="room_policy_refund_label">Refund policy</string>
     <string name="room_policy_refund_value">Non-refundable</string>
-    <string name="room_policy_checkin_label">Check-in</string>
-    <string name="room_policy_checkout_label">Check-out</string>
-    <string name="room_policy_from_format">From %1$s</string>
-    <string name="room_policy_until_format">Until %1$s</string>
 </resources>
 
 

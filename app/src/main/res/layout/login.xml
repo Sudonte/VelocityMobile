@@ -102,9 +102,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:fontFamily="sans-serif-black"
-                    android:letterSpacing="0.1"
+                    android:letterSpacing="0"
                     android:text="@string/velocity_suites"
-                    android:textAllCaps="true"
+                    android:textAllCaps="false"
                     android:textColor="@color/velocity_red_primary"
                     android:textSize="23sp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -117,9 +117,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.2"
+                    android:letterSpacing="0"
                     android:text="@string/welcome_tagline"
-                    android:textAllCaps="true"
+                    android:textAllCaps="false"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -457,7 +457,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:textAllCaps="true" />
+                        android:textAllCaps="false" />
 
                     <TextView
                         android:id="@+id/forgotPasswordDesc"
@@ -663,7 +663,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:text="@string/reactivate_account_title"
-                        android:textAllCaps="true" />
+                        android:textAllCaps="false" />
 
                     <TextView
                         android:id="@+id/reactivationDesc"

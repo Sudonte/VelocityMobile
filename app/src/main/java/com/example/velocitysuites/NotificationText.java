@@ -44,7 +44,6 @@ final class NotificationText {
     private static final Pattern AMOUNT = Pattern.compile("₱\\s*([\\d,]+(?:\\.\\d{1,2})?)");
     private static final Pattern REASON = Pattern.compile("(?is)(?:reason|note|remarks?)\\s*[:\\-]\\s*(.+?)\\s*$");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH);
-    private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
 
     private NotificationText() {
     }
@@ -131,7 +130,7 @@ final class NotificationText {
                 if (!dates.isEmpty()) {
                     s.add(rooms.isEmpty() ? c.getString(R.string.nt_stay_on_format, dates) : c.getString(R.string.nt_stay_in_on_format, rooms, dates));
                 }
-                s.add(c.getString(R.string.nt_checkin_times_format, hhmm(StayCalendarModel.CHECK_IN_TIME), hhmm(StayCalendarModel.CHECK_OUT_TIME)));
+                s.add(c.getString(R.string.nt_keep_confirmation));
                 s.add(c.getString(R.string.nt_open_details_format, noun));
                 return new Content(c.getString(R.string.nt_confirmed_title_format, label != null ? label : cap(c.getString(R.string.nt_your_noun_format, noun))), join(s), true);
             }
@@ -161,7 +160,7 @@ final class NotificationText {
                 s.add(c.getString(R.string.nt_checkin_s1, to));
                 if (!rooms.isEmpty()) s.add(c.getString(R.string.nt_your_room_format, rooms));
                 LocalDate out = linked != null ? PaymentDates.parseDate(linked.getCheckOutDate()) : null;
-                if (out != null) s.add(c.getString(R.string.nt_checkout_on_format, hhmm(StayCalendarModel.CHECK_OUT_TIME), DAY.format(out)));
+                if (out != null) s.add(c.getString(R.string.nt_checkout_on_format, DAY.format(out)));
                 s.add(c.getString(R.string.nt_checkin_amenities));
                 return new Content(c.getString(R.string.nt_checkin_title), join(s), true);
             }
@@ -258,10 +257,6 @@ final class NotificationText {
         String reason = match.group(1).trim();
         while (reason.endsWith(".")) reason = reason.substring(0, reason.length() - 1).trim();
         return reason.isEmpty() ? null : reason;
-    }
-
-    private static String hhmm(java.time.LocalTime time) {
-        return time.format(CLOCK);
     }
 
     private static String cap(String s) {

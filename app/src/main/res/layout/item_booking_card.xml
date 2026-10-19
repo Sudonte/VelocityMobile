@@ -64,7 +64,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-black"
-                        android:textAllCaps="true"
+                        android:textAllCaps="false"
                         android:textAppearance="@style/TextAppearance.Velocity.SectionHeader"
                         tools:text="Booking #164" />
                 </LinearLayout>
@@ -160,10 +160,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:letterSpacing="0.05"
+                    android:letterSpacing="0"
                     android:text="@string/details_grand_total_label"
                     android:fontFamily="sans-serif-bold"
-        android:textAllCaps="true"
+        android:textAllCaps="false"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />
 

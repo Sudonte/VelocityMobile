@@ -22,8 +22,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:fontFamily="sans-serif-black"
-        android:letterSpacing="0.04"
-        android:textAllCaps="true"
+        android:letterSpacing="0"
+        android:textAllCaps="false"
         android:textColor="@color/velocity_red_text"
         android:textSize="12sp"
         tools:text="Grand Total" />

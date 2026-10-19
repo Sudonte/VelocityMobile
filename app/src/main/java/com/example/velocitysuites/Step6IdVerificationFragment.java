@@ -318,7 +318,7 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         TextView l = new TextView(requireContext());
         l.setText(label);
         l.setTextSize(12);
-        l.setAllCaps(true);
+        l.setAllCaps(false);
         l.setTextColor(requireContext().getColor(R.color.velocity_text_secondary));
         TextView v = new TextView(requireContext());
         v.setText(value);

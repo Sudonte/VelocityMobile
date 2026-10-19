@@ -1231,7 +1231,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         } else {
             StayCalendarModel model = new StayCalendarModel(nextStayBookings);
             selectedChip = buildPeriodChips(strip, inflater, today, mode, model);
-            periodStart = StayCalendarModel.windowStart(mode, selectedStayDay);
             for (Booking b : model.transactionsFor(mode, selectedStayDay)) {
                 NextStay stay = NextStay.of(b, today);
                 if (stay != null) dayStays.add(stay);
@@ -1256,7 +1255,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         for (int i = 0; i < dayStays.size(); i++) {
             View item = inflater.inflate(R.layout.item_next_stay, cards, false);
             NextStay stay = dayStays.get(i);
-            bindNextStayItem(item, stay, mode == StayCalendarModel.Mode.DAILY ? selectedStayDay : roleDay(stay, today));
+            bindNextStayItem(item, stay, selectedStayDay);
             cards.addView(item);
         }
         TextView stayCount = findViewById(R.id.nextStayCount);
@@ -1265,14 +1264,6 @@ public class DashboardActivity extends BaseNavigationActivity {
         nextStaySection.setSummary(mode == StayCalendarModel.Mode.DAILY
                 ? NextStayDayText.line(this, selectedStayDay, today, false, false)
                 : NextStayPeriods.contextLine(this, mode, selectedStayDay, today, dayStays.size()));
-    }
-
-    private java.time.LocalDate periodStart;
-
-    /** Which day of a stay a week / month card describes: Today while the guest is in it, else the stay's first day inside the window. */
-    private java.time.LocalDate roleDay(NextStay stay, java.time.LocalDate today) {
-        if (!today.isBefore(stay.checkIn) && !today.isAfter(stay.checkOut)) return today;
-        return stay.checkIn.isBefore(periodStart) ? periodStart : stay.checkIn;
     }
 
     /** Two weeks back through a month ahead, widened to cover every stay; returns the selected chip. */
@@ -1356,7 +1347,10 @@ public class DashboardActivity extends BaseNavigationActivity {
 
     /** Fills one stay's block and wires its taps: the block opens its Booking Details, the button asks for amenities. */
     private void bindNextStayItem(View item, NextStay stay, java.time.LocalDate day) {
-        ((TextView) item.findViewById(R.id.tvNextStayHint)).setText(stay.dayRole(this, day));
+        // The day role (Check-in day / Staying / Check-out day) describes one day, so only the Daily view shows it.
+        TextView role = item.findViewById(R.id.tvNextStayHint);
+        role.setText(stay.dayRole(this, day));
+        role.setVisibility(nextStayMode() == StayCalendarModel.Mode.DAILY ? View.VISIBLE : View.GONE);
         TextView ref = item.findViewById(R.id.tvNextStayRef);
         ref.setText(TransactionText.reference(this, stay.booking.isHasBooking(), stay.booking.getDisplayId()));
         View.OnClickListener openInUpcoming = NavUtils.debounce(v ->

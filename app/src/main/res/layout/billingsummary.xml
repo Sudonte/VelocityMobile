@@ -94,7 +94,7 @@
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="#40000000"
                             android:fontFamily="sans-serif-black"
-                            android:letterSpacing="0.05"
+                            android:letterSpacing="0"
                             android:paddingHorizontal="11dp"
                             android:paddingVertical="6dp"
                             android:textColor="@color/white"
@@ -718,9 +718,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:letterSpacing="0.03"
+                    android:letterSpacing="0"
                     android:text="@string/billing_total_to_pay_label"
-                    android:textAllCaps="true"
+                    android:textAllCaps="false"
                     android:textColor="@color/velocity_red_text"
                     android:textSize="12sp" />
 

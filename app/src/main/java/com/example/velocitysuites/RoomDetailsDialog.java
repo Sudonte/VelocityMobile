@@ -297,14 +297,10 @@ public final class RoomDetailsDialog {
 
         bindAmenityGrid(activity, dialogView.findViewById(R.id.detailRoomAmenities), room);
 
-        // Policies: the refund policy and the posted times first, then the full hotel policies (folded) with the
+        // Policies: the hotel-wide refund policy first (the app has no check-in / check-out times from the server, so none are shown), then the full hotel policies (folded) with the
         // admin's per-room-type notes (if any) under them.
         LinearLayout policies = dialogView.findViewById(R.id.layoutDetailPolicies);
         addLabelValue(policies, activity.getString(R.string.room_policy_refund_label), activity.getString(R.string.room_policy_refund_value));
-        addLabelValue(policies, activity.getString(R.string.room_policy_checkin_label),
-                activity.getString(R.string.room_policy_from_format, StayCalendarModel.formatClock(StayCalendarModel.CHECK_IN_TIME)));
-        addLabelValue(policies, activity.getString(R.string.room_policy_checkout_label),
-                activity.getString(R.string.room_policy_until_format, StayCalendarModel.formatClock(StayCalendarModel.CHECK_OUT_TIME)));
         TextView policiesBody = dialogView.findViewById(R.id.detailPoliciesBody);
         if (room.getPolicies() != null && !room.getPolicies().trim().isEmpty()) {
             policiesBody.setText(activity.getString(R.string.hotel_policies_content) + "\n\n" + room.getPolicies().trim());

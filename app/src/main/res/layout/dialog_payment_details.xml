@@ -24,7 +24,7 @@
                 android:text="@string/payment_details_title"
                 android:textColor="@color/velocity_red_text"
                 android:textSize="18sp"
-                android:letterSpacing="-0.02"
+                android:letterSpacing="0"
                 android:layout_marginBottom="8dp"/>
 
             <View
@@ -52,7 +52,7 @@
                     android:fontFamily="sans-serif-black"
                     android:textColor="@color/white"
                     android:textSize="14sp"
-                    android:letterSpacing="0.02"
+                    android:letterSpacing="0"
                     tools:text="Booking ID: VS-1029" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -80,8 +80,8 @@
                         android:text="@string/title_booking_info"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="12sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.1"
+                        android:textAllCaps="false"
+                        android:letterSpacing="0"
                         android:layout_marginBottom="11dp"/>
 
                     <TextView
@@ -113,7 +113,7 @@
                         android:paddingVertical="6dp"
                         android:fontFamily="sans-serif-black"
                         android:textSize="11sp"
-                        android:textAllCaps="true"
+                        android:textAllCaps="false"
                         android:layout_marginBottom="10dp"
                         tools:text="Fully Paid" />
 
@@ -201,8 +201,8 @@
                         android:text="@string/title_payment_breakdown"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="12sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.1"
+                        android:textAllCaps="false"
+                        android:letterSpacing="0"
                         android:layout_marginBottom="11dp"/>
 
                     <LinearLayout
@@ -268,8 +268,8 @@
                         android:text="@string/title_payment_history"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="12sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.1"
+                        android:textAllCaps="false"
+                        android:letterSpacing="0"
                         android:layout_marginBottom="11dp"/>
 
                     <LinearLayout

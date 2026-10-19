@@ -1070,8 +1070,8 @@
                                 android:textColor="@color/velocity_text_secondary"
                                 android:textSize="12sp"
                                 android:fontFamily="sans-serif-bold"
-        android:textAllCaps="true"
-                                android:letterSpacing="0.05" />
+        android:textAllCaps="false"
+                                android:letterSpacing="0" />
 
                             <LinearLayout
                                 android:id="@+id/layoutSummaryAmenitiesRows"

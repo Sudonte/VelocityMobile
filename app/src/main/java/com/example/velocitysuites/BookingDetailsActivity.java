@@ -297,7 +297,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
         TextView title = new TextView(this);
         title.setText(R.string.balance_summary_title);
-        title.setAllCaps(true);
+        title.setAllCaps(false);
         title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
         title.setTextColor(getColor(R.color.velocity_red_primary));
         title.setTextSize(12);
@@ -1676,7 +1676,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         tvLabel.setTextSize(14);
         tvLabel.setTypeface(null, android.graphics.Typeface.BOLD);
         tvLabel.setTextColor(getResources().getColor(R.color.velocity_red_dark));
-        tvLabel.setAllCaps(true);
+        tvLabel.setAllCaps(false);
         LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         tvLabel.setLayoutParams(labelParams);
 

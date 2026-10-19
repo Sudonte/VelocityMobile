@@ -60,9 +60,9 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
             android:includeFontPadding="false"
-            android:letterSpacing="0.03"
+            android:letterSpacing="0"
             android:text="@string/velocity_suites"
-            android:textAllCaps="true"
+            android:textAllCaps="false"
             android:textColor="@color/velocity_red_primary"
             android:textSize="17sp" />
 
@@ -74,9 +74,9 @@
             android:alpha="0.8"
             android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
-            android:letterSpacing="0.05"
+            android:letterSpacing="0"
             android:text="@string/welcome_tagline"
-            android:textAllCaps="true"
+            android:textAllCaps="false"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="11sp" />
 

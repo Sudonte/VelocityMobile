@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
         android:gravity="center"
-        android:textAllCaps="true"
+        android:textAllCaps="false"
         android:textColor="@color/velocity_text_primary"
         android:textSize="15sp"
         tools:text="Booking Created Successfully" />

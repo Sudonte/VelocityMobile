@@ -77,7 +77,7 @@
                     android:fontFamily="sans-serif-black"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:textAllCaps="true"
+                    android:textAllCaps="false"
                     android:textColor="@color/velocity_green_dark"
                     android:textSize="12sp"
                     tools:text="Verified" />

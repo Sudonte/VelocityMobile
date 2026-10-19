@@ -106,8 +106,8 @@ final class TransactionSummarySheet {
         TextView header = new TextView(context);
         header.setText(title);
         header.setTextSize(12f);
-        header.setAllCaps(true);
-        header.setLetterSpacing(0.04f);
+        header.setAllCaps(false);
+        header.setLetterSpacing(0f);
         header.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         header.setTextColor(context.getColor(R.color.velocity_red_primary));
         header.setPadding(0, (int) ((first ? 0 : 14) * density), 0, (int) (2 * density));
