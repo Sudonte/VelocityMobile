@@ -75,6 +75,16 @@ public final class TransactionActions {
         return s.isEmpty() || "Pending".equalsIgnoreCase(s) || (b.isHasBooking() && "Confirmed".equalsIgnoreCase(s));
     }
 
+    /**
+     * A booking the front desk has not verified yet. Its stored status already says "Confirmed" (ACTIVE_BOOKING), but the guest must
+     * read "Awaiting verification" until it is verified; this is the same flag {@link #canCancel} uses, so the chip and the Cancel
+     * button always agree.
+     */
+    public static boolean isAwaitingVerification(@Nullable Booking b) {
+        return b != null && b.isHasBooking() && !isConverted(b) && !b.isStaffVerified()
+                && "Confirmed".equalsIgnoreCase(status(b));
+    }
+
     public static boolean canCancel(@Nullable Booking b) {
         if (b == null || isConverted(b)) return false;
         if (!isPending(b)) return false;      // confirmed, checked in / out, cancelled, rejected, completed

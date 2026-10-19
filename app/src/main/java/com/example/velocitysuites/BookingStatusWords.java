@@ -15,6 +15,12 @@ final class BookingStatusWords {
     private BookingStatusWords() {
     }
 
+    /** The label for a transaction: "Awaiting verification" while a booking is unverified, else the label of its status. */
+    @NonNull
+    static String label(@NonNull Context context, @NonNull Booking b) {
+        return TransactionActions.isAwaitingVerification(b) ? context.getString(R.string.status_awaiting_verification) : label(context, b.getStatus());
+    }
+
     /** The label for a raw status ("Checked-In", "Pending", ...); "" when there is none. */
     @NonNull
     static String label(@NonNull Context context, @Nullable String status) {

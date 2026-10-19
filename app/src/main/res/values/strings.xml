@@ -510,7 +510,7 @@
     <string name="next_stay_dates_format">%1$s → %2$s</string>
     <string name="next_stay_status_staying">Staying with us</string>
     <string name="next_stay_status_confirmed">Confirmed</string>
-    <string name="next_stay_status_waiting_confirmation">Waiting for confirmation</string>
+    <string name="next_stay_status_waiting_confirmation">Awaiting verification</string>
     <string name="next_stay_status_payment_review">Payment under review</string>
     <string name="next_stay_status_waiting_payment">Waiting for payment</string>
     <string name="next_stay_hint_checkin_today">Check-in today</string>
@@ -1836,6 +1836,7 @@
     <string name="txn_submitted_label">Submitted (awaiting verification)</string>
     <string name="txn_history_status_verified">Verified</string>
     <string name="txn_history_status_awaiting">Awaiting verification</string>
+    <string name="status_awaiting_verification">Awaiting verification</string>
     <string name="txn_history_status_rejected">Rejected</string>
 
     <!-- Export -->

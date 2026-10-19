@@ -80,7 +80,7 @@ final class TransactionDetailSections {
                 b.getDisplayId());
         add(out.stay, context.getString(R.string.details_label_type),
                 context.getString(b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix));
-        add(out.stay, context.getString(R.string.details_label_status), TransactionStatusChip.label(b.getStatus()));
+        add(out.stay, context.getString(R.string.details_label_status), TransactionStatusChip.label(context, b));
         add(out.stay, context.getString(R.string.details_label_check_in), b.getCheckInDate());
         add(out.stay, context.getString(R.string.details_label_check_out), b.getCheckOutDate());
         Long nights = StayDateCalculator.nightsBetweenOrNull(b.getCheckInDate(), b.getCheckOutDate());

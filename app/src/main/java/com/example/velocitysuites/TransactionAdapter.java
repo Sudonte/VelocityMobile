@@ -70,7 +70,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         boolean noShow = booking.isNoShow();
         holder.tvBookingId.setText(holder.itemView.getContext().getString(
                 booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId()));
-        holder.tvStatusBadge.setText(noShow ? holder.itemView.getContext().getString(R.string.status_no_show) : DisplayLabels.status(booking.getStatus()));
+        holder.tvStatusBadge.setText(noShow ? holder.itemView.getContext().getString(R.string.status_no_show) : BookingStatusPresenter.statusWord(holder.itemView.getContext(), booking));
         holder.tvRoomName.setText(booking.getRoomName());
         
         String dateInfo = booking.getCheckInDate() + " – " + booking.getCheckOutDate();
@@ -137,8 +137,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         // Set status badge color based on status - kept in sync with the same
         // Confirmed/Checked-In/Checked-Out/Verified = success convention
         // DashboardActivity and UpcomingTransactionsActivity use.
-        if ("Confirmed".equalsIgnoreCase(booking.getStatus()) || "Checked-In".equalsIgnoreCase(booking.getStatus())
-                || "Checked-Out".equalsIgnoreCase(booking.getStatus()) || "Verified".equalsIgnoreCase(booking.getStatus())) {
+        String colourStatus = TransactionStatusChip.colourStatus(booking);
+        if ("Confirmed".equalsIgnoreCase(colourStatus) || "Checked-In".equalsIgnoreCase(colourStatus)
+                || "Checked-Out".equalsIgnoreCase(colourStatus) || "Verified".equalsIgnoreCase(colourStatus)) {
             holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_success);
         } else if ("Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus())) {
             holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_error);

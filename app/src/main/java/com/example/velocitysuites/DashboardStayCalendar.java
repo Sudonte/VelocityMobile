@@ -250,7 +250,7 @@ final class DashboardStayCalendar {
             Booking first = entries.get(0);
             String firstText = context.getString(R.string.summary_ref_status,
                     TransactionText.reference(context, first.isHasBooking(), first.getDisplayId()),
-                    TransactionStatusChip.label(first.getStatus()));
+                    TransactionStatusChip.label(context, first));
             section.setSummary(context.getString(R.string.summary_calendar_format,
                     rangeLabel.getText(),
                     context.getString(R.string.summary_with_first,

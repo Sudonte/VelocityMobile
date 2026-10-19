@@ -2283,7 +2283,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         tvBookingRef.setText(hasBooking
                 ? getString(R.string.booking_ref_label, currentBooking.getDisplayId())
                 : getString(R.string.reservation_ref_label, currentBooking.getDisplayId()));
-        tvPaymentStatus.setText(DisplayLabels.status(currentBooking.getStatus()));
+        tvPaymentStatus.setText(BookingStatusPresenter.statusWord(this, currentBooking));
 
         if (tvTransactionType != null) {
             tvTransactionType.setText(hasBooking

@@ -181,7 +181,7 @@ public class NextStayTest {
         assertEquals(NextStay.PlainStatus.WAITING_PAYMENT, NextStay.plainStatus(stay("1", TODAY, TODAY.plusDays(1), "Pending", false, false, false)));
         assertEquals(NextStay.PlainStatus.PAYMENT_REVIEW, NextStay.plainStatus(stay("1", TODAY, TODAY.plusDays(1), "Pending", false, false, true)));
 
-        assertEquals("Waiting for confirmation", c.getString(NextStay.PlainStatus.WAITING_CONFIRMATION.labelRes));
+        assertEquals("Awaiting verification", c.getString(NextStay.PlainStatus.WAITING_CONFIRMATION.labelRes));
         assertEquals("Staying with us", c.getString(NextStay.PlainStatus.STAYING.labelRes));
     }
 

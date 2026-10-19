@@ -55,7 +55,7 @@ final class RecentBookingCard {
             addChip(context, chips, day == DayChip.TODAY ? R.string.today_badge_short : R.string.tomorrow_badge_short,
                     R.color.velocity_red_status_soft, R.color.velocity_red_primary);
         }
-        String status = BookingStatusWords.label(context, b.getStatus());
+        String status = BookingStatusWords.label(context, b);
         if (!status.isEmpty()) {
             TextView chip = addChip(context, chips, 0, R.color.status_cancelled_bg, R.color.status_cancelled_fg);
             chip.setText(status);

@@ -459,7 +459,7 @@ public class DashboardActivity extends BaseNavigationActivity {
             bookingsSection.setSummary(getString(R.string.summary_with_latest,
                     getResources().getQuantityString(R.plurals.summary_bookings_count, totalBookings, totalBookings),
                     getString(R.string.summary_ref_status, TransactionText.reference(this, true, latest.getDisplayId()),
-                            TransactionStatusChip.label(latest.getStatus()))));
+                            TransactionStatusChip.label(this, latest))));
         }
     }
     /**
@@ -543,7 +543,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         // Which stay: its dates and booking status ("Oct 21 → Oct 22, 2026 · Pending approval").
         String stayDates = StayCardText.dates(b);
-        String lifecycle = BookingStatusWords.label(this, b.getStatus());
+        String lifecycle = BookingStatusWords.label(this, b);
         TextView meta = card.findViewById(R.id.tvPaymentStayMeta);
         String metaText = stayDates.isEmpty() ? lifecycle : lifecycle.isEmpty() ? stayDates : getString(R.string.payment_card_meta_format, stayDates, lifecycle);
         meta.setText(metaText);
@@ -1016,7 +1016,7 @@ public class DashboardActivity extends BaseNavigationActivity {
             moreStaysSection.setSummary(getString(R.string.summary_with_first,
                     getResources().getQuantityString(R.plurals.summary_stays_count, total, total),
                     getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
-                            TransactionStatusChip.label(first.getStatus()))));
+                            TransactionStatusChip.label(this, first))));
         }
     }
 
@@ -1361,7 +1361,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         ((TextView) item.findViewById(R.id.tvNextStayDates)).setText(StayCardText.datesAndNights(this, stay.booking));
         TextView statusChip = item.findViewById(R.id.tvNextStayStatus);
         if (stay.isFinished()) {
-            TransactionStatusChip.apply(this, statusChip, stay.booking.getStatus());
+            TransactionStatusChip.apply(this, statusChip, stay.booking);
             statusChip.setCompoundDrawables(null, null, null, null);
         } else {
             styleNextStayStatus(statusChip, stay.status);
@@ -1388,7 +1388,7 @@ public class DashboardActivity extends BaseNavigationActivity {
                 balance.setCompoundDrawables(check, null, null, null);
             }
         }
-        item.findViewById(R.id.nextStayAccent).setBackgroundColor(getColor(TransactionStatusChip.accentColor(stay.booking.getStatus())));
+        item.findViewById(R.id.nextStayAccent).setBackgroundColor(getColor(TransactionStatusChip.accentColor(TransactionStatusChip.colourStatus(stay.booking))));
         bindNextStayMoney(item, stay);
 
         View amenities = item.findViewById(R.id.btnNextStayRequestAmenities);

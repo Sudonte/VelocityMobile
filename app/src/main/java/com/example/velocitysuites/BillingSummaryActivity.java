@@ -285,7 +285,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
 
     private void populateSummary() {
         tvBillingRef.setText(getString(booking.isHasBooking() ? R.string.booking_ref_label : R.string.reservation_ref_label, booking.getDisplayId()));
-        tvBillingStatus.setText(hasText(booking.getStatus()) ? DisplayLabels.status(booking.getStatus()) : getString(R.string.status_pending));
+        tvBillingStatus.setText(hasText(booking.getStatus()) ? BookingStatusPresenter.statusWord(this, booking) : getString(R.string.status_pending));
         logRawReservationForDebug();
         setRow(tvBillingRoomType, roomHeadline());
         setRow(tvBillingDates, hasText(booking.getCheckInDate()) && hasText(booking.getCheckOutDate())

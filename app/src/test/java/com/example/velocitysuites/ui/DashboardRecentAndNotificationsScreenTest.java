@@ -162,7 +162,7 @@ public class DashboardRecentAndNotificationsScreenTest {
         assertEquals("Booking #569", ref.getText().toString());
         assertEquals("primary text colour, not red", ContextCompat.getColor(app, R.color.velocity_text_primary), ref.getCurrentTextColor());
         assertTrue("bold", ref.getTypeface() != null && ref.getTypeface().getWeight() >= 700 || ref.getTypeface().getStyle() == Typeface.BOLD);
-        assertEquals("Confirmed", chipTexts(card).get(0));
+        assertEquals("Awaiting verification", chipTexts(card).get(0));
         assertEquals("Unpaid", chipTexts(card).get(1));
         assertEquals("Deluxe", ((TextView) card.findViewById(R.id.tvRecentBookingRoom)).getText().toString());
         String dates = ((TextView) card.findViewById(R.id.tvRecentBookingDates)).getText().toString();

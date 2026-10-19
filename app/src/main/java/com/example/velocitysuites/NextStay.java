@@ -212,6 +212,7 @@ public final class NextStay {
         boolean review = b.isPaymentPendingVerification() && !b.isStaffVerified();
         if (!b.isHasBooking()) return review ? PlainStatus.PAYMENT_REVIEW : PlainStatus.WAITING_PAYMENT;
         if (b.isStaffVerified()) return PlainStatus.CONFIRMED;
+        if (TransactionActions.isAwaitingVerification(b)) return PlainStatus.WAITING_CONFIRMATION; // reads "Awaiting verification", whatever its payment state
         return review ? PlainStatus.PAYMENT_REVIEW : PlainStatus.WAITING_CONFIRMATION;
     }
 

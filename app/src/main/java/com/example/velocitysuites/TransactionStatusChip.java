@@ -33,6 +33,23 @@ final class TransactionStatusChip {
         return R.color.status_pending_fg;
     }
 
+    /** The status a guest reads for this transaction: "Awaiting verification" until the front desk verifies a booking, else {@link #label(String)}. */
+    @NonNull
+    static String label(@NonNull Context context, @NonNull Booking b) {
+        return TransactionActions.isAwaitingVerification(b) ? context.getString(R.string.status_awaiting_verification) : label(b.getStatus());
+    }
+
+    /** The status as the colour scheme sees it: an unverified booking is amber like Pending, not green. */
+    @Nullable
+    static String colourStatus(@NonNull Booking b) {
+        return TransactionActions.isAwaitingVerification(b) ? "Pending" : b.getStatus();
+    }
+
+    static void apply(@NonNull Context context, @NonNull TextView chip, @NonNull Booking b) {
+        apply(context, chip, colourStatus(b));
+        chip.setText(label(context, b));
+    }
+
     static void apply(@NonNull Context context, @NonNull TextView chip, @Nullable String status) {
         int bg;
         int fg;

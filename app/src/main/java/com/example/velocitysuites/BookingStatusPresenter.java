@@ -20,9 +20,14 @@ public final class BookingStatusPresenter {
 
     private BookingStatusPresenter() {}
 
+    /** The status word for a transaction: "Awaiting verification" until the front desk verifies a booking (same flag the Cancel rule uses). */
+    public static String statusWord(Context context, Booking b) {
+        return TransactionStatusChip.label(context, b);
+    }
+
     public static String computeStatusLabel(Context context, Booking b) {
         boolean noShow = b.isNoShow();
-        boolean pendingVerification = b.isPaymentPendingVerification() && !b.isStaffVerified();
+        boolean pendingVerification = b.isPaymentPendingVerification() && !b.isStaffVerified() && !TransactionActions.isAwaitingVerification(b);
         boolean cancelledWithPaymentAttempt = b.getStatus().equalsIgnoreCase("Cancelled")
                 && (b.getGcashNumber() != null || b.getTransactionRef() != null || b.getAmountPaid() > 0.009);
         return noShow
@@ -31,13 +36,14 @@ public final class BookingStatusPresenter {
                     ? context.getString(R.string.pending_verification_label)
                     : cancelledWithPaymentAttempt
                         ? context.getString(R.string.transaction_failed_label)
-                        : DisplayLabels.status(b.getStatus());
+                        : statusWord(context, b);
     }
 
     public static void styleStatusBadge(Context context, TextView badge, Booking b) {
-        boolean pendingVerification = b.isPaymentPendingVerification() && !b.isStaffVerified();
+        boolean pendingVerification = b.isPaymentPendingVerification() && !b.isStaffVerified() && !TransactionActions.isAwaitingVerification(b);
         int iconRes = R.drawable.ic_clock;
-        String status = b.getStatus() == null ? "" : b.getStatus();
+        String colour = TransactionStatusChip.colourStatus(b);
+        String status = colour == null ? "" : colour;
         // One colour scheme across the app: Pending amber, Confirmed and Checked in green, Checked out gray, Cancelled / Rejected red
         // (a payment still waiting for the front desk is blue).
         int bg;

@@ -52,7 +52,7 @@ final class StayCardBinder {
         String metaText = StayCardText.nightsAndGuests(context, b);
         meta.setText(metaText);
         meta.setVisibility(metaText.isEmpty() ? View.GONE : View.VISIBLE);
-        TransactionStatusChip.apply(context, row.findViewById(R.id.tvRecentStayStatus), b.getStatus());
+        TransactionStatusChip.apply(context, row.findViewById(R.id.tvRecentStayStatus), b);
         bindTag(context, row.findViewById(R.id.tvRecentStayTag), tag);
         if (StayCalendarModel.isClosed(b)) row.setAlpha(UpcomingTransactionsActivity.MUTED_ALPHA);
         row.setOnClickListener(NavUtils.debounce(v -> context.startActivity(UpcomingTransactionsActivity.intentWithFilters(context, b))));

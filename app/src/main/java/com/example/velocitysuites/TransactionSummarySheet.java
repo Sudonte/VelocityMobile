@@ -85,7 +85,7 @@ final class TransactionSummarySheet {
         ((TextView) content.findViewById(R.id.tvSheetType)).setText(
                 b.isHasBooking() ? R.string.upcoming_event_booking_prefix : R.string.upcoming_event_reservation_prefix);
         ((TextView) content.findViewById(R.id.tvSheetRef)).setText(TransactionText.reference(activity, b.isHasBooking(), b.getDisplayId()));
-        TransactionStatusChip.apply(activity, content.findViewById(R.id.tvSheetStatus), b.getStatus());
+        TransactionStatusChip.apply(activity, content.findViewById(R.id.tvSheetStatus), b);
 
         LinearLayout container = content.findViewById(R.id.sheetRows);
         for (Section section : sections(activity, b)) {

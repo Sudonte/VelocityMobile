@@ -539,7 +539,7 @@ public class UpcomingTransactionsActivity extends BaseNavigationActivity {
         // The reference leads: "Booking #338" / "Reservation #588".
         ((TextView) card.findViewById(R.id.tvTransactionBookingId)).setText(TransactionText.reference(this, b.isHasBooking(), b.getDisplayId()));
         ((TextView) card.findViewById(R.id.tvTransactionTitle)).setText(TransactionRow.roomTextOf(b));
-        TransactionStatusChip.apply(this, card.findViewById(R.id.tvTransactionStatus), b.getStatus());
+        TransactionStatusChip.apply(this, card.findViewById(R.id.tvTransactionStatus), b);
 
         // What happens (or happened) and when.
         TextView tvKind = card.findViewById(R.id.tvEventKind);
