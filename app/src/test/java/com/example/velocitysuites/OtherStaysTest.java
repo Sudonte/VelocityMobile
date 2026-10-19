@@ -49,43 +49,41 @@ public class OtherStaysTest {
     }
 
     @Test
-    public void noTransactionIsHiddenFromBothSections_onAnySelectedDay() {
+    public void otherStays_isIndependentOfYourNextStay_onAnySelectedDay() {
         List<Booking> all = sample();
+        OtherStays reference = OtherStays.build(all);
         for (int offset = -20; offset <= 60; offset++) {
-            LocalDate selected = TODAY.plusDays(offset);
-            List<Booking> shown = new ArrayList<>();
-            for (NextStay s : NextStay.forDay(all, selected, TODAY)) shown.add(s.booking);
-            OtherStays others = OtherStays.build(all, shown);
-            Set<String> seen = keys(shown);
-            seen.addAll(keys(others.upcoming));
-            seen.addAll(keys(others.recent));
-            for (Booking b : all) {
-                if (StayCalendarModel.isClosed(b)) continue; // cancelled / rejected are found through the calendar's toggle
-                assertTrue("day " + selected + ": " + StayCalendarModel.keyOf(b) + " is in neither section", seen.contains(StayCalendarModel.keyOf(b)));
-            }
+            // whatever day Your Next Stay shows, this section is the same
+            assertEquals(keys(reference.upcoming), keys(OtherStays.build(all).upcoming));
+            assertEquals(keys(reference.recent), keys(OtherStays.build(all).recent));
+        }
+        assertEquals("every non-cancelled transaction is listed", 7, reference.size());
+        for (Booking b : all) {
+            if (StayCalendarModel.isClosed(b)) continue;
+            assertTrue(StayCalendarModel.keyOf(b), keys(reference.upcoming).contains(StayCalendarModel.keyOf(b)) || keys(reference.recent).contains(StayCalendarModel.keyOf(b)));
         }
     }
 
     @Test
-    public void whatTheSelectedDayShows_isLeftOutOfOtherStays_andComesBackWhenTheDayChanges() {
-        List<Booking> all = sample();
-        List<Booking> day3 = new ArrayList<>();
-        for (NextStay s : NextStay.forDay(all, TODAY.plusDays(3), TODAY)) day3.add(s.booking);
-        assertEquals(2, day3.size());
-        OtherStays withDay3 = OtherStays.build(all, day3);
-        assertFalse(keys(withDay3.upcoming).containsAll(keys(day3)) || keys(withDay3.upcoming).contains(StayCalendarModel.keyOf(day3.get(0))));
-
-        OtherStays withNothing = OtherStays.build(all, new ArrayList<>());
-        assertTrue(keys(withNothing.upcoming).containsAll(keys(day3)));
+    public void aReservationAndABookingWithTheSameId_areDifferentTransactions() {
+        OtherStays others = OtherStays.build(sample());
+        assertTrue("reservation #1 listed", keys(others.upcoming).contains("R:1"));
+        assertTrue("booking #1 listed as recent", keys(others.recent).contains("B:1"));
     }
 
     @Test
-    public void aReservationAndABookingWithTheSameId_areDifferentTransactions() {
-        List<Booking> all = sample();
-        List<Booking> shown = new ArrayList<>();
-        for (NextStay s : NextStay.forDay(all, TODAY.minusDays(9), TODAY)) shown.add(s.booking); // booking #1 only
-        OtherStays others = OtherStays.build(all, shown);
-        assertTrue("reservation #1 still listed", keys(others.upcoming).contains("R:1"));
+    public void nothingToList_givesAnEmptyResult_notACrash() {
+        assertEquals(0, OtherStays.build(new ArrayList<>()).size());
+        assertEquals(0, OtherStays.build(null).size());
+        assertEquals(0, OtherStays.build(Arrays.asList(stay("7", 2, 3, "Cancelled", false))).size());
+    }
+
+    @Test
+    public void tags_aCheckedInStayIsCurrent_neverUpcoming_aCheckedOutOneIsRecent() {
+        assertEquals(StayCardBinder.Tag.CURRENT, StayCardBinder.tagFor(stay("2", -1, 2, "Checked-In", false)));
+        assertEquals(StayCardBinder.Tag.UPCOMING, StayCardBinder.tagFor(stay("4", 3, 5, "Pending", false)));
+        assertEquals(StayCardBinder.Tag.UPCOMING, StayCardBinder.tagFor(stay("3", 0, 1, "Confirmed", true)));
+        assertEquals(StayCardBinder.Tag.RECENT, StayCardBinder.tagFor(stay("1", -10, -8, "Checked-Out", false)));
     }
 
     @Test

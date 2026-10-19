@@ -5,17 +5,14 @@ import androidx.annotation.Nullable;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
- * What "Other Recent and Upcoming Stays" lists: every non-cancelled transaction that Your Next Stay is NOT showing for
- * the selected day - upcoming / in-house ones soonest first, finished ones latest first. Because it is "everything
- * minus what the selected day shows", no transaction can be hidden from both sections at once. Pure data and rules, so
- * it is unit-testable.
+ * What "Other Recent and Upcoming Stays" lists: every non-cancelled transaction - upcoming / in-house ones soonest first,
+ * finished ones latest first. The list is INDEPENDENT of Your Next Stay and the Stay Calendar: whatever day, week, month or
+ * filter is selected there, this section does not change (a stay may appear in both). Pure data and rules, so it is
+ * unit-testable.
  */
 final class OtherStays {
 
@@ -32,14 +29,12 @@ final class OtherStays {
     }
 
     @NonNull
-    static OtherStays build(@Nullable List<Booking> all, @NonNull Collection<Booking> shownInNextStay) {
-        Set<String> shown = new HashSet<>();
-        for (Booking b : shownInNextStay) shown.add(StayCalendarModel.keyOf(b));
+    static OtherStays build(@Nullable List<Booking> all) {
         List<Booking> upcoming = new ArrayList<>();
         List<Booking> recent = new ArrayList<>();
         if (all != null) {
             for (Booking b : all) {
-                if (b == null || shown.contains(StayCalendarModel.keyOf(b))) continue;
+                if (b == null) continue;
                 TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
                 if (category == TransactionCategorizer.Category.UPCOMING || category == TransactionCategorizer.Category.ACTIVE) upcoming.add(b);
                 else if (category == TransactionCategorizer.Category.COMPLETED) recent.add(b);

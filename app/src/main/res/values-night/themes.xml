@@ -18,6 +18,19 @@
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Velocity.Square</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Velocity.Card</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Velocity.Square</item>
+        <item name="textAppearanceButton">@style/TextAppearance.Velocity.Button</item>
+        <item name="textAppearanceHeadline1">@style/TextAppearance.Velocity.Base.Headline1</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.Velocity.Base.Headline2</item>
+        <item name="textAppearanceHeadline3">@style/TextAppearance.Velocity.Base.Headline3</item>
+        <item name="textAppearanceHeadline4">@style/TextAppearance.Velocity.Base.Headline4</item>
+        <item name="textAppearanceHeadline5">@style/TextAppearance.Velocity.Base.Headline5</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.Velocity.Base.Headline6</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.Velocity.Base.Subtitle1</item>
+        <item name="textAppearanceSubtitle2">@style/TextAppearance.Velocity.Base.Subtitle2</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.Velocity.Base.Body1</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.Velocity.Base.Body2</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.Velocity.Base.Caption</item>
+        <item name="tabStyle">@style/Widget.Velocity.TabLayout</item>
         <item name="materialButtonStyle">@style/Widget.Velocity.Flat.Button</item>
         <item name="materialButtonOutlinedStyle">@style/Widget.Velocity.Flat.Button.Outlined</item>
         <item name="borderlessButtonStyle">@style/Widget.Velocity.Flat.Button.Text</item>
@@ -31,6 +44,7 @@
     </style>
 
     <style name="Theme.VelocitySuites.Introduction" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="textAppearanceButton">@style/TextAppearance.Velocity.Button</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:statusBarColor">#FFFFFF</item>

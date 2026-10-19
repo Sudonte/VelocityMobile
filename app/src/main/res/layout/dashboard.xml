@@ -273,12 +273,24 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/nextStaySectionCard"
+                    style="@style/Widget.Velocity.Card.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dashboard_section_gap">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="12dp">
                 <!-- Section header: a clear title and one line saying what the section is for -->
                 <LinearLayout
                     android:id="@+id/nextStayHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dashboard_section_gap"
                     android:gravity="center_vertical"
                     android:minHeight="48dp"
                     android:orientation="horizontal">
@@ -466,259 +478,261 @@
                             android:visibility="gone" />
                 </FrameLayout>
 
-                <!-- Section header: a clear title and one line saying what the section is for -->
-                <LinearLayout
-                    android:id="@+id/quickActionsHeader"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dashboard_section_gap"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:background="@drawable/shape_intro_pill"
-                        android:backgroundTint="@color/velocity_red_soft"
-                        android:importantForAccessibility="no"
-                        android:padding="8dp"
-                        android:src="@drawable/ic_dashboard"
-                        app:tint="@color/velocity_red_primary" />
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Section.Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="11dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:accessibilityHeading="true"
-                        android:text="@string/quick_actions" />
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/quickActionsBody"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                <TextView
-                            style="@style/TextAppearance.Velocity.Section.Description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/quick_actions_desc" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
+                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/quickActionsCard"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="0dp"
-                    android:orientation="vertical">
-
+                    android:layout_marginTop="@dimen/dashboard_section_gap">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="11dp"
-                        android:baselineAligned="false"
-                        android:orientation="horizontal">
-
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="12dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:minHeight="48dp"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:importantForAccessibility="no"
+                                android:padding="8dp"
+                                android:src="@drawable/ic_dashboard"
+                                app:tint="@color/velocity_red_primary" />
+                            <TextView
+                                android:id="@+id/quickActionsTitle"
+                                style="@style/TextAppearance.Velocity.Section.Title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="11dp"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/quick_actions" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/quickActionsBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <TextView
+                                style="@style/TextAppearance.Velocity.Section.Description"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/quick_actions_desc" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:baselineAligned="false"
+                                android:orientation="horizontal">
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/actionBrowseRooms"
-                            style="@style/Widget.Velocity.Card.Glass.Compact"
+                            style="@style/Widget.Velocity.Card.Flat.Inset"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginStart="0dp"
+                            android:layout_marginEnd="4dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:minHeight="88dp"
-                            app:cardElevation="@dimen/card_elevation"
-                            app:strokeColor="@color/velocity_red_subtle">
+                            android:minHeight="96dp">
                             <LinearLayout
+                                tools:ignore="UseCompoundDrawables"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:background="@drawable/bg_glass_card_white"
                                 android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="11dp">
+                                android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
-                                    android:padding="8dp"
+                                    android:padding="10dp"
                                     android:src="@drawable/ic_room_search"
                                     app:tint="@color/velocity_red_primary" />
                                 <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:fontFamily="sans-serif-black"
-                                    android:textStyle="bold"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:letterSpacing="0"
+                                    android:maxLines="2"
                                     android:text="@string/quick_action_browse_rooms"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
-                                    android:maxLines="2"
-                                    android:ellipsize="end"
-                                    android:gravity="center" />
+                                    android:textSize="13sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/actionBooking"
-                            style="@style/Widget.Velocity.Card.Glass.Compact"
+                            style="@style/Widget.Velocity.Card.Flat.Inset"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="0dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:minHeight="88dp"
-                            app:cardElevation="@dimen/card_elevation"
-                            app:strokeColor="@color/velocity_red_subtle">
+                            android:minHeight="96dp">
                             <LinearLayout
+                                tools:ignore="UseCompoundDrawables"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:background="@drawable/bg_glass_card_white"
                                 android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="11dp">
+                                android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
-                                    android:padding="8dp"
+                                    android:padding="10dp"
                                     android:src="@drawable/ic_booking"
                                     app:tint="@color/velocity_red_primary" />
                                 <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:fontFamily="sans-serif-black"
-                                    android:textStyle="bold"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:letterSpacing="0"
+                                    android:maxLines="2"
                                     android:text="@string/quick_action_my_bookings"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
-                                    android:maxLines="2"
-                                    android:ellipsize="end"
-                                    android:gravity="center" />
+                                    android:textSize="13sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:baselineAligned="false"
-                        android:orientation="horizontal">
-
+                            </LinearLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:baselineAligned="false"
+                                android:orientation="horizontal">
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/actionReservation"
-                            style="@style/Widget.Velocity.Card.Glass.Compact"
+                            style="@style/Widget.Velocity.Card.Flat.Inset"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginStart="0dp"
+                            android:layout_marginEnd="4dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:minHeight="88dp"
-                            app:cardElevation="@dimen/card_elevation"
-                            app:strokeColor="@color/velocity_red_subtle">
+                            android:minHeight="96dp">
                             <LinearLayout
+                                tools:ignore="UseCompoundDrawables"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:background="@drawable/bg_glass_card_white"
                                 android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="11dp">
+                                android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
-                                    android:padding="8dp"
+                                    android:padding="10dp"
                                     android:src="@drawable/ic_reservation"
                                     app:tint="@color/velocity_red_primary" />
                                 <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:fontFamily="sans-serif-black"
-                                    android:textStyle="bold"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:letterSpacing="0"
+                                    android:maxLines="2"
                                     android:text="@string/quick_action_my_reservations"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
-                                    android:maxLines="2"
-                                    android:ellipsize="end"
-                                    android:gravity="center" />
+                                    android:textSize="13sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/actionHistory"
-                            style="@style/Widget.Velocity.Card.Glass.Compact"
+                            style="@style/Widget.Velocity.Card.Flat.Inset"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="0dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:minHeight="88dp"
-                            app:cardElevation="@dimen/card_elevation"
-                            app:strokeColor="@color/velocity_red_subtle">
+                            android:minHeight="96dp">
                             <LinearLayout
+                                tools:ignore="UseCompoundDrawables"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:background="@drawable/bg_glass_card_white"
                                 android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="11dp">
+                                android:padding="12dp">
                                 <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:background="@drawable/shape_intro_pill"
                                     android:backgroundTint="@color/velocity_red_soft"
                                     android:importantForAccessibility="no"
-                                    android:padding="8dp"
+                                    android:padding="10dp"
                                     android:src="@drawable/ic_transaction_history"
                                     app:tint="@color/velocity_red_primary" />
                                 <TextView
-                                    style="@style/TextAppearance.Velocity.Label.Section"
-                                    android:fontFamily="sans-serif-black"
-                                    android:textStyle="bold"
-                                    android:layout_width="wrap_content"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="6dp"
+                                    android:layout_marginTop="8dp"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-bold"
+                                    android:gravity="center"
+                                    android:letterSpacing="0"
+                                    android:maxLines="2"
                                     android:text="@string/quick_action_history"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
-                                    android:maxLines="2"
-                                    android:ellipsize="end"
-                                    android:gravity="center" />
+                                    android:textSize="13sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
+                            </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
-                </LinearLayout>
-                </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <include
                     android:id="@+id/stayCalendar"
                     layout="@layout/view_stay_calendar" />
 
                                 <!-- Other recent and upcoming stays (several can fall on the same day), then the calendar. -->
-                <LinearLayout
+                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/moreStaysSection"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dashboard_section_gap"
-                    android:orientation="vertical"
-                    android:visibility="gone">
+                    android:layout_marginTop="@dimen/dashboard_section_gap">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="12dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -793,18 +807,31 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
+                        <TextView
+                            android:id="@+id/moreStaysEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_flat_box"
+                            android:gravity="center"
+                            android:padding="16dp"
+                            android:text="@string/more_stays_empty"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
                     </LinearLayout>
-                </LinearLayout>
+                                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
 
                 <!-- Pending &amp; Confirmed Stays: the guest's Pending / Confirmed bookings and reservations (5, or all when expanded). -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/recentUpcomingCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dashboard_section_gap"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
+                    >
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -888,12 +915,11 @@
                 <!-- Booking and Reservation Summary -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/bookingReservationSummaryCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dashboard_section_gap"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
+                    >
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1132,12 +1158,11 @@
                 <!-- 1. Booking Details & Payment Status -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/bookingDetailsCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dashboard_section_gap"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
+                    >
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1293,12 +1318,11 @@
                 <!-- 3. Notifications & Payments Status -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/notificationsCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dashboard_section_gap"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
+                    >
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1424,12 +1448,11 @@
                 <!-- 4. Payment Status Summary -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/paymentStatusCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dashboard_section_gap"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
+                    >
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1555,12 +1578,11 @@
                 <!-- 5. Account Summary -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/accountSummaryCard"
-                    style="@style/Widget.Velocity.Card.Glass.Compact"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dashboard_section_gap"
-                    app:cardElevation="@dimen/card_elevation"
-                    app:strokeColor="@color/velocity_red_subtle">
+                    >
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

@@ -205,13 +205,13 @@ public class DashboardScreenTest {
         for (int i = 0; i < six.length; i++) six[i] = stay(400 + i, 2 + i, 1);
         answer(six);
         LinearLayout list = activity.findViewById(R.id.moreStaysList);
-        // 6 stays: the selected day shows one, the other five are in Other Stays - three of them while collapsed
+        // 6 stays: Other Stays lists every one of them (whatever Your Next Stay shows) - three while collapsed
         assertEquals(3 + 1, list.getChildCount());
-        assertEquals("Show all (5)", ((TextView) list.findViewById(R.id.btnPreviewToggle)).getText().toString());
-        assertEquals("5", text(activity, R.id.moreStaysCount));
+        assertEquals("Show all (6)", ((TextView) list.findViewById(R.id.btnPreviewToggle)).getText().toString());
+        assertEquals("6", text(activity, R.id.moreStaysCount));
 
         tap(activity.findViewById(R.id.moreStaysToggle));
-        assertEquals(5 + 1, list.getChildCount());
+        assertEquals(6 + 1, list.getChildCount());
         assertEquals("Show less", ((TextView) list.findViewById(R.id.btnPreviewToggle)).getText().toString());
     }
 
@@ -1436,20 +1436,25 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void otherStays_followTheSelectedDay_soNothingIsHiddenFromBothSections() {
+    public void otherStays_isIndependentOfTheSelectedDay_andNeverHides() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
 
-        assertEquals("on 588's day, Other Stays lists only 338", 1, more.getChildCount());
-        assertEquals("Booking #338", ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
-
-        selectDay(activity, 5);
-        assertEquals("on 338's day, Other Stays lists only 588", 1, more.getChildCount());
-        assertEquals("Reservation #588", ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
-
-        selectDay(activity, 0);
-        assertEquals("on a quiet day both are listed", 2, more.getChildCount());
+        assertEquals("both stays are listed", 2, more.getChildCount());
+        String first = ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString();
+        for (int day : new int[]{5, 0, 2, 20}) {
+            selectDay(activity, day);
+            assertEquals("selecting day " + day + " does not change Other Stays", 2, more.getChildCount());
+            assertEquals(first, ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
+        }
+        for (int mode : new int[]{R.id.nextStayModeWeekly, R.id.nextStayModeMonthly, R.id.nextStayModeDaily}) {
+            tap(activity.findViewById(mode));
+            assertEquals("changing Daily / Weekly / Monthly does not either", 2, more.getChildCount());
+        }
+        tap(activity.findViewById(R.id.stayCalModeMonthly));
+        assertEquals("nor does the Stay Calendar filter", 2, more.getChildCount());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysSection).getVisibility());
     }
 
     @Test
@@ -1479,13 +1484,12 @@ public class DashboardScreenTest {
     }
 
     @Test
-    public void aStayIsShownOnlyOnceAcrossNextStayAndTheOtherStays() {
+    public void aStayMayAppearInBothYourNextStayAndTheOtherStays() {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
 
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
-        assertEquals(1, more.getChildCount());
-        assertEquals("Booking #338", ((TextView) more.getChildAt(0).findViewById(R.id.tvRecentStayRef)).getText().toString());
+        assertEquals("Other Stays is not reduced by what Your Next Stay shows", 2, more.getChildCount());
     }
 
     @Test
@@ -1493,7 +1497,7 @@ public class DashboardScreenTest {
         DashboardActivity activity = launch();
         answerWith(ScreenTestSupport.reservations(stay(588, 2, 1)), ScreenTestSupport.directBookings(booking(338, 5)));
 
-        tap(activity.<ViewGroup>findViewById(R.id.moreStaysList).getChildAt(0));
+        tap(activity.<ViewGroup>findViewById(R.id.moreStaysList).getChildAt(1)); // 588 comes first (soonest), 338 second
         Intent opened = nextScreen(activity);
         assertEquals(new ComponentName(activity, com.example.velocitysuites.UpcomingTransactionsActivity.class), opened.getComponent());
         assertEquals("338", opened.getStringExtra(com.example.velocitysuites.UpcomingTransactionsActivity.EXTRA_SELECTED_BOOKING_ID));
@@ -1601,17 +1605,17 @@ public class DashboardScreenTest {
     @Test
     public void otherStays_collapsedShowsThree_expandedShowsEveryStay() {
         DashboardActivity activity = launch();
-        // 8 upcoming stays: the selected (nearest) day shows one, the other 7 are Other Stays
+        // 8 upcoming stays: Other Stays lists all of them
         ReservationDto[] reservations = new ReservationDto[8];
         for (int i = 0; i < 8; i++) reservations[i] = stay(600 + i, 2 + i, 1);
         answerWith(ScreenTestSupport.reservations(reservations), ScreenTestSupport.directBookings());
 
         ViewGroup more = activity.findViewById(R.id.moreStaysList);
         assertEquals("collapsed: three cards and the Show all button", 3 + 1, more.getChildCount());
-        assertEquals("Show all (7)", ((TextView) more.findViewById(R.id.btnPreviewToggle)).getText().toString());
+        assertEquals("Show all (8)", ((TextView) more.findViewById(R.id.btnPreviewToggle)).getText().toString());
 
         activity.findViewById(R.id.moreStaysToggle).performClick();
-        assertEquals("expanded: every stay and Show less", 7 + 1, more.getChildCount());
+        assertEquals("expanded: every stay and Show less", 8 + 1, more.getChildCount());
         activity.findViewById(R.id.btnPreviewToggle).performClick();
         assertEquals("the button collapses it again", 3 + 1, more.getChildCount());
     }

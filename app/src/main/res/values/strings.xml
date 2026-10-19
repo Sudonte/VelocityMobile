@@ -690,7 +690,7 @@
     <string name="check_in_label">Check-in</string>
     <string name="check_out_label">Check-out</string>
     <string name="select_date_hint">Select date</string>
-    <string name="sort_row_label">Sort by</string>
+    <string name="sort_row_label">Sort</string>
     <string name="room_type_row_label">Room type</string>
     <string name="room_status_row_label">Availability</string>
     <string name="filter_status_all_rooms">Any availability</string>
@@ -745,8 +745,7 @@
     <string name="amenities_more_format">+%1$d more</string>
     <string name="sorting_by_label">Sorting by: %1$s</string>
     <string name="capacity_persons_format">%1$d Persons</string>
-    <string name="search_label">Search</string>
-    <string name="search_transactions_hint">Search reference or room…</string>
+    <string name="search_transactions_hint">Search by ID or room</string>
     <string name="more_stays_title">Other Recent &amp; Upcoming Stays</string>
     <string name="details_label_checked_in_at">Checked-In At</string>
     <string name="details_label_checked_out_at">Checked-Out At</string>
@@ -1042,8 +1041,8 @@
     <string name="error_load_notifications_format">Couldn\'t load notifications: %1$s</string>
 
     <!-- Booking and Reservation Module Strings -->
-    <string name="tab_new_booking">New Booking</string>
-    <string name="tab_new_reservation">New Reservation</string>
+    <string name="tab_new_booking">New booking</string>
+    <string name="tab_new_reservation">New reservation</string>
 
     <!-- startingbooking.xml / startingreservation.xml - intro screens shown between
          Book Now/Reserve Now (or NEW BOOKING/NEW RESERVATION) and Step 1 of the wizard. -->
@@ -1127,7 +1126,6 @@
     <string name="reservation_created_msg">Your reservation #%1$s is in. No payment has been made - use Pay Now whenever you\'re ready to turn it into a booking.</string>
     <string name="pending_verification_label">Pending Verification</string>
     <string name="no_payment_yet_label">Reservation - no payment yet</string>
-    <string name="booking_list_title">Booking List</string>
     <!-- Full list-section headings, one per Confirmed/Completed/Cancelled
          sub-tab, shown in tvListTitle (see applyListFilterLabels()) - the
          Reservations tab's "Confirmed" bucket is deliberately labelled
@@ -1151,15 +1149,10 @@
          Booking &amp; Reservation list (not combined into one Filter dialog) -
          reuses sort_row_label/room_type_row_label, the same labels
          RoomBrowsingActivity's own Sort/Room Type dropdowns already use. -->
-    <string name="transaction_sort_newest">Newest First</string>
-    <string name="transaction_sort_oldest">Oldest First</string>
+    <string name="transaction_sort_newest">Newest first</string>
+    <string name="transaction_sort_oldest">Oldest first</string>
     <string name="all_room_types_label">All Room Types</string>
-    <string name="search_no_bookings_found_title">No matching booking found</string>
-    <string name="search_no_reservations_found_title">No matching reservation found</string>
     <string name="search_empty_state_desc">Try another transaction number, room type, or date.</string>
-    <string name="booking_items_desc">Your bookings with payment activity. Tap any item to view its complete details.</string>
-    <string name="reservation_items_desc">Your reservations with no payment yet. Tap any item to view its complete details.</string>
-    <string name="showing_category_format">Showing: %1$s</string>
     <string name="expand_count_label">Expand (%1$d)</string>
     <string name="no_bookings_yet">You have no active bookings. Start by reserving a room to see your bookings here.</string>
     <string name="no_reservations_yet">No reservations found. Your upcoming reservations will be displayed here.</string>
@@ -1225,8 +1218,8 @@
     <string name="book_again_button">Book Again</string>
     <string name="reserve_again_button">Reserve Again</string>
     <string name="book_again_room_unavailable">That room type is no longer available. Please choose a different room.</string>
-    <string name="booking_tab_desc">Book a room and complete your payment right away. Your booking is confirmed once the payment is verified. Please note that full payment is required to confirm your booking, and all payments are non-refundable.</string>
-    <string name="reservation_tab_desc">Hold a room with no payment needed now. You can pay later to turn your reservation into a booking.</string>
+    <string name="booking_tab_desc">Pay now to confirm your stay.</string>
+    <string name="reservation_tab_desc">Hold a room now and pay later.</string>
     <string name="cancel_booking_title">Cancel Booking</string>
     <string name="cancel_partial_payment_reservation_confirm">This reservation will be cancelled permanently. Since a payment was already made, that amount is non-refundable and will not be returned. Do you want to proceed?</string>
     <string name="cancel_booking_confirm">Are you sure you want to cancel your booking? Please note that cancelled bookings are non-refundable.</string>
@@ -1277,7 +1270,6 @@
     <string name="details_guest_entry">- %1$s (%2$s)</string>
     <string name="details_total_amount_label">Total Amount: &#8369;%,.2f</string>
     <string name="close_label">Close</string>
-    <string name="modify_label">Edit Reservation</string>
     <string name="id_card_preview_desc">ID Card Preview</string>
     <string name="error_upload_id">Please upload your ID card</string>
     <string name="error_required">Required</string>
@@ -1929,15 +1921,8 @@
     <string name="landing_feature_notify_desc">Instant updates on your stay.</string>
     <string name="landing_feature_support_title">24/7 Guest Support</string>
     <string name="landing_feature_support_desc">We are always here to help.</string>
-    <string name="booking_card_payment_format">Payment: %1$s</string>
-    <string name="booking_card_paid_remaining_format">Paid %1$s · Remaining %2$s</string>
     <string name="booking_card_paid_format">Paid %1$s</string>
-    <string name="date_range_nights_format">%1$s - %2$s · %3$s</string>
     <string name="delete_completed_copy_confirm">Remove this completed reservation from your list? Your booking and your Transaction History are not changed.</string>
-    <string name="chip_status_all">All</string>
-    <string name="chip_status_active">Active</string>
-    <string name="chip_status_completed">Completed</string>
-    <string name="chip_status_cancelled">Cancelled / Rejected</string>
     <plurals name="nights_lower">
         <item quantity="one">%1$d night</item>
         <item quantity="other">%1$d nights</item>
@@ -2334,6 +2319,31 @@
     <string name="room_policy_until_format">Until %1$s</string>
     <string name="room_policy_checkin_label">Check-in</string>
     <string name="room_policy_checkout_label">Check-out</string>
+    <string name="stay_card_tag_current">Current</string>
+    <string name="more_stays_empty">No recent or upcoming stays</string>
+    <string name="filter_all_label">All</string>
+    <string name="status_option_all_bookings">All bookings</string>
+    <string name="status_option_all_reservations">All reservations</string>
+    <string name="status_option_active">Active</string>
+    <string name="status_option_completed">Completed</string>
+    <string name="status_option_cancelled">Cancelled / rejected</string>
+    <string name="status_filter_label">Status</string>
+    <string name="no_bookings_match_filters">No bookings match your filters</string>
+    <string name="no_reservations_match_filters">No reservations match your filters</string>
+    <string name="clear_filters_label">Clear filters</string>
+    <string name="tab_with_count_format">%1$s (%2$d)</string>
+    <plurals name="list_results_count">
+        <item quantity="one">%1$d result</item>
+        <item quantity="other">%1$d results</item>
+    </plurals>
+    <string name="booking_card_total_label">Total</string>
+    <string name="booking_card_edit">Edit</string>
+    <string name="booking_card_front_desk_line">Pay the balance at the front desk</string>
+    <string name="booking_card_paid_balance_format">Paid %1$s · Balance %2$s</string>
+    <string name="cancellation_policy_title">Cancellation policy</string>
+    <string name="cancellation_policy_expand_cd">Cancellation policy, collapsed. Tap to read it.</string>
+    <string name="cancellation_policy_collapse_cd">Cancellation policy, expanded. Tap to hide it.</string>
+    <string name="booking_items_desc">Your bookings and reservations</string>
 </resources>
 
 

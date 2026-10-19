@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One Booking / Reservation in the Booking & Reservation list (the same card for both tabs):
+       Row 1  "Booking #569" (bold, never cut off) ........ status chip  >
+       Row 2  room type(s)             Row 3  "Oct 21 → Oct 22, 2026 · 1 night · 2 guests"
+       (divider)
+       Row 4  Total ........ ₱7,860.00 (bold, right)
+       Row 5  "Paid ₱7,560.00 · Balance ₱300.00" (balance coloured) and a small payment-method chip
+       Row 6  (only when a balance is paid at the hotel) one small secondary line
+       Actions on one compact row; only ONE filled (primary) button per card. The whole card opens the details. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.Velocity.Card.Flat"
+    style="@style/Widget.Velocity.Card.Flat.Inset"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -13,322 +21,285 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_flat_box"
         android:orientation="vertical"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="8dp">
+        android:paddingHorizontal="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp">
 
-        <!-- Summary row: ID / rooms / dates / status, chevron (no picture). Full
-             guest/payment/timeline info lives in BookingDetailsActivity, opened by tapping
-             anywhere on this card. -->
+        <!-- Row 1 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvModifiedBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/shape_flat_badge"
+                android:backgroundTint="@color/status_cancelled_bg"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="@string/status_modified"
+                android:textColor="@color/status_cancelled_fg"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tvBookingId"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="16sp"
+                tools:text="Booking #569" />
 
-                <!-- Level 1 (primary heading): Booking/Reservation ID - the main
-                     identifier of this transaction, per the required card
-                     hierarchy (never the room name). Not constrained to a single
-                     line/ellipsized - an ID must never be truncated or hidden. -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvModifiedBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/shape_flat_badge"
-                        android:backgroundTint="@color/status_cancelled_bg"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="3dp"
-                        android:text="@string/status_modified"
-                        android:textAppearance="@style/TextAppearance.Velocity.Caption"
-                        android:textColor="@color/status_cancelled_fg"
-                        android:fontFamily="sans-serif-black"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-
-                    <TextView
-                        android:id="@+id/tvBookingId"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif-black"
-                        android:textAllCaps="false"
-                        android:textAppearance="@style/TextAppearance.Velocity.SectionHeader"
-                        tools:text="Booking #164" />
-                </LinearLayout>
-
-                <!-- Level 2 (secondary): every selected room type and its
-                     quantity ("Executive ×2", or "Bryan Dela Cruz ×1 • Deluxe
-                     ×1" for multiple types - see BookingsAdapter#
-                     buildTrueMultiRoomSummaryText()/buildGroupSummaryText()).
-                     Not line/ellipsize-constrained - a long multi-room-type
-                     selection must wrap onto additional lines rather than
-                     being truncated; sits in a plain vertical LinearLayout,
-                     so wrapping only pushes the dates/status rows below it
-                     down, never overlaps them. -->
-                <TextView
-                    android:id="@+id/tvBookingRoomName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="@string/executive_suite"
-                    android:textAppearance="@style/TextAppearance.Velocity.Caption" />
-
-                <!-- Level 3: Stay dates. -->
-                <TextView
-                    android:id="@+id/tvBookingDates"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="@string/loading_date"
-                    android:textAppearance="@style/TextAppearance.Velocity.BodyText" />
-
-                <!-- Level 4: Status badge - the one status indicator on the
-                     compact card (payment method/status/amount-paid detail all
-                     moved into Booking Details' Guest Info/Payment tabs). -->
-                <TextView
-                    android:id="@+id/tvBookingStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="@drawable/shape_flat_badge"
-                    android:backgroundTint="@color/velocity_red_subtle"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:text="@string/status_pending"
-                    android:textColor="@color/velocity_red_primary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-black" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tvBookingStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/shape_intro_pill"
+                android:fontFamily="sans-serif-black"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textSize="12sp"
+                tools:text="Checked in" />
 
             <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_marginStart="4dp"
-                android:layout_gravity="center_vertical"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_arrow_forward"
-                app:tint="@color/velocity_inactive_gray" />
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="6dp"
+                android:alpha="0.4"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="@color/velocity_text_secondary" />
         </LinearLayout>
+
+        <!-- Row 2: hidden (never an empty gap) when no room type is known. -->
+        <TextView
+            android:id="@+id/tvBookingRoomName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Deluxe, Executive" />
+
+        <!-- Row 3 -->
+        <TextView
+            android:id="@+id/tvBookingDates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="Oct 21 → Oct 22, 2026 · 1 night · 2 guests" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            android:background="@color/velocity_red_subtle"/>
+            android:background="@color/velocity_divider_hairline" />
 
+        <!-- Row 4 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvBookingGuests"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/summary_guests_default"
-                android:textAppearance="@style/TextAppearance.Velocity.Caption" />
+                android:text="@string/booking_card_total_label"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvBookingPrice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-
-                <!-- Explicit "Grand Total" caption above the amount - the whole point of
-                     grouping every room/room type/amenity under one card is that this one
-                     figure represents the complete transaction, not just one room type, so
-                     it must never read as an unlabeled number (see MULTI_ROOM_TRANSACTION_
-                     BACKEND_SPEC.md and the list-vs-details total-consistency requirement). -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0"
-                    android:text="@string/details_grand_total_label"
-                    android:fontFamily="sans-serif-bold"
-        android:textAllCaps="false"
-                    android:textColor="@color/velocity_text_secondary"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvBookingPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
-                    android:text="@string/zero_price"
-                    android:textColor="@color/velocity_red_primary"
-                    android:textSize="14sp" />
-            </LinearLayout>
+                android:fontFamily="sans-serif-black"
+                android:gravity="end"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="15sp"
+                tools:text="₱7,860.00" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvBookingPaymentMethod"
+        <!-- Row 5 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:textAppearance="@style/TextAppearance.Velocity.Caption"
-            tools:text="Payment: GCash" />
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <TextView
+                android:id="@+id/tvBookingPaidLine"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="Paid ₱7,560.00 · Balance ₱300.00" />
+
+            <TextView
+                android:id="@+id/tvBookingPaymentMethod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/shape_intro_pill"
+                android:backgroundTint="@color/status_cancelled_bg"
+                android:fontFamily="sans-serif-bold"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:textColor="@color/status_cancelled_fg"
+                android:textSize="12sp"
+                tools:text="GCash" />
+        </LinearLayout>
+
+        <!-- Row 6: replaces the old pink box. -->
         <TextView
-            android:id="@+id/tvBookingPaidLine"
+            android:id="@+id/tvFrontDeskNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:fontFamily="sans-serif-medium"
-            android:textAppearance="@style/TextAppearance.Velocity.Caption"
-            tools:text="Paid ₱500.00 · Remaining ₱700.00" />
+            android:layout_marginTop="4dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Pay the balance at the front desk"
+            tools:visibility="visible" />
 
+        <!-- Actions -->
         <LinearLayout
             android:id="@+id/layoutActionButtons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- The one filled button (Reservation tab, only while Pay now is allowed) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPayNow"
+                style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="none"
+                android:maxLines="1"
+                android:text="@string/pay_now"
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/tvFrontDeskNote"
-                android:layout_width="match_parent"
+                android:id="@+id/tvPayAtDesk"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@color/velocity_red_soft"
+                android:layout_marginEnd="8dp"
                 android:fontFamily="sans-serif-medium"
-                android:lineSpacingExtra="2dp"
-                android:padding="10dp"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="12sp"
+                android:text="@string/payment_pay_at_front_desk"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewDetails"
+                style="@style/Widget.Velocity.Flat.Button.Compact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="none"
+                android:maxLines="1"
+                android:paddingHorizontal="14dp"
+                android:text="@string/view_details" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnModify"
+                style="@style/Widget.Velocity.Flat.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="none"
+                android:insetTop="4dp"
+                android:insetBottom="4dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/booking_card_edit"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                style="@style/Widget.Velocity.Flat.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="none"
+                android:insetTop="4dp"
+                android:insetBottom="4dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/cancel_label"
+                android:textColor="?attr/colorError"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/btnCardOverflow"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/notif_more_options"
+                android:src="@drawable/ic_more_vert"
                 android:visibility="gone"
-                tools:text="Remaining balance: ₱1,400.00. Please pay at the Velocity Suites front desk."
-                tools:visibility="visible" />
+                app:tint="@color/velocity_text_secondary" />
+        </LinearLayout>
 
-            <!--
-              Primary row: View Details always shown; Pay Now only for an active
-              Reservation List card (see BookingAndReservationActivity.BookingsAdapter).
-            -->
-            <LinearLayout
-                android:layout_width="match_parent"
+        <!-- Cancelled / completed: Book again / Delete (outlined, never filled) -->
+        <LinearLayout
+            android:id="@+id/layoutClosedActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBookAgain"
+                style="@style/Widget.Velocity.Flat.Button.Compact"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="4dp">
+                android:layout_marginEnd="8dp"
+                android:ellipsize="none"
+                android:maxLines="1"
+                android:text="@string/book_again_button"
+                android:visibility="gone" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnViewDetails"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                    android:layout_weight="1"
-                    android:text="@string/view_details"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    app:backgroundTint="@color/velocity_red_primary"
-                    android:textColor="@color/white"
-                    android:fontFamily="sans-serif-black" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPayNow"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/pay_now"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    app:backgroundTint="@color/velocity_green_primary"
-                    android:textColor="@color/white"
-                    android:fontFamily="sans-serif-black" />
-            </LinearLayout>
-
-            <!-- Secondary row: Modify (Reservation List only, while Pending) and Cancel. -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDelete"
+                style="@style/Widget.Velocity.Flat.Button.Text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnModify"
-                    style="@style/Widget.Velocity.Flat.Button.Outlined"
-                    android:layout_width="0dp"
-                    android:layout_height="56dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/modify_label"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    app:strokeColor="@color/velocity_red_primary"
-                    android:textColor="@color/velocity_red_primary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCancel"
-                    style="@style/Widget.Velocity.Flat.Button.Outlined"
-                    android:layout_width="0dp"
-                    android:layout_height="56dp"
-                    android:layout_weight="1"
-                    android:text="@string/cancel_label"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    app:strokeColor="?attr/colorError"
-                    android:textColor="?attr/colorError" />
-            </LinearLayout>
-
-            <!-- Book/Reserve Again + Delete: only Completed/Cancelled transactions
-                 may be removed from the guest's own view (see
-                 TransactionCategorizer); Book/Reserve Again only appears for
-                 Cancelled items and only when a matching room is still
-                 bookable (see BookingsAdapter). Shares this row so either
-                 button expands to fill the width when the other is gone. -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBookAgain"
-                    style="@style/Widget.Velocity.Flat.Button.Outlined"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/book_again_button"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    app:strokeColor="@color/velocity_red_primary"
-                    android:textColor="@color/velocity_red_primary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDelete"
-                    style="@style/Widget.Velocity.Flat.Button.Outlined"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                    android:layout_weight="1"
-                    android:text="@string/delete_permanently_button_label"
-                    android:textAllCaps="false"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    app:strokeColor="@color/velocity_inactive_gray"
-                    android:textColor="@color/velocity_text_secondary" />
-            </LinearLayout>
+                android:ellipsize="none"
+                android:insetTop="4dp"
+                android:insetBottom="4dp"
+                android:maxLines="1"
+                android:minWidth="0dp"
+                android:text="@string/delete_permanently_button_label"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

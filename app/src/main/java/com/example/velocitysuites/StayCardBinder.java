@@ -19,7 +19,16 @@ import androidx.core.content.ContextCompat;
  */
 final class StayCardBinder {
 
-    enum Tag { NONE, UPCOMING, RECENT }
+    enum Tag { NONE, CURRENT, UPCOMING, RECENT }
+
+    /** A checked-in stay is "Current" (never "Upcoming"); a checked-out one is "Recent"; everything else still to come is "Upcoming". */
+    @NonNull
+    static Tag tagFor(@NonNull Booking b) {
+        String status = b.getStatus();
+        if ("Checked-In".equalsIgnoreCase(status)) return Tag.CURRENT;
+        if ("Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) return Tag.RECENT;
+        return Tag.UPCOMING;
+    }
 
     private StayCardBinder() {
     }
@@ -55,9 +64,12 @@ final class StayCardBinder {
             chip.setVisibility(View.GONE);
             return;
         }
-        @StringRes int label = tag == Tag.UPCOMING ? R.string.stay_card_tag_upcoming : R.string.stay_card_tag_recent;
-        int bg = tag == Tag.UPCOMING ? R.color.velocity_blue_soft : R.color.status_cancelled_bg;
-        int fg = tag == Tag.UPCOMING ? R.color.velocity_blue_primary : R.color.status_cancelled_fg;
+        @StringRes int label = tag == Tag.CURRENT ? R.string.stay_card_tag_current
+                : tag == Tag.UPCOMING ? R.string.stay_card_tag_upcoming : R.string.stay_card_tag_recent;
+        boolean blue = tag == Tag.UPCOMING;
+        boolean green = tag == Tag.CURRENT;
+        int bg = green ? R.color.status_paid_bg : blue ? R.color.velocity_blue_soft : R.color.status_cancelled_bg;
+        int fg = green ? R.color.status_paid_fg : blue ? R.color.velocity_blue_primary : R.color.status_cancelled_fg;
         chip.setText(label);
         chip.setBackgroundTintList(ContextCompat.getColorStateList(context, bg));
         chip.setTextColor(ContextCompat.getColor(context, fg));

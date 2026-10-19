@@ -1051,7 +1051,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 addInfoRow(container, getString(R.string.details_label_additional_guest_fee), formatPrice(additionalGuestFee));
             }
             if (booking.getDiscountAmount() > 0.009) {
-                addInfoRow(container, getString(R.string.details_label_discount), formatPrice(booking.getDiscountAmount()));
+                addInfoRow(container, getString(R.string.details_label_discount), "−" + formatPrice(booking.getDiscountAmount()));
             }
             addGrandTotalRow(container, getString(R.string.details_grand_total_label), formatPrice(totalAmount));
         }

@@ -64,9 +64,8 @@ public class DashboardActivity extends BaseNavigationActivity {
     private java.time.LocalDate selectedStayDay;
     private List<Booking> nextStayBookings = new ArrayList<>();
     private boolean nextStayStripBuilt;
-    /** Every transaction Other Stays is drawn from, and the ones Your Next Stay shows right now (for the selected day) - those are left out of Other Stays. */
+    /** Every transaction Other Stays is drawn from (independent of what Your Next Stay shows). */
     private List<Booking> otherStaysSource = new ArrayList<>();
-    private List<Booking> nextStayShown = new ArrayList<>();
     /** Set when the day strip should scroll the selected day into view on its next draw (first draw, Today shortcut). */
     private boolean scrollStripToSelected;
     /** Daily / Weekly / Monthly of Your Next Stay; saved with the other section state. */
@@ -991,7 +990,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
     /** Every stay (upcoming first, then the finished ones); collapsing the section hides the list and leaves the summary. */
     private void renderMoreStays() {
-        OtherStays others = OtherStays.build(otherStaysSource, nextStayShown);
+        OtherStays others = OtherStays.build(otherStaysSource);
         moreStaysUpcoming = others.upcoming;
         moreStaysRecent = others.recent;
         LinearLayout list = findViewById(R.id.moreStaysList);
@@ -1001,15 +1000,19 @@ public class DashboardActivity extends BaseNavigationActivity {
         List<Booking> ordered = new ArrayList<>(moreStaysUpcoming);
         ordered.addAll(moreStaysRecent);
         for (Booking b : SectionPreview.visible(ordered, moreStaysSection.isExpanded())) {
-            StayCardBinder.add(this, list, b, moreStaysUpcoming.contains(b) ? StayCardBinder.Tag.UPCOMING : StayCardBinder.Tag.RECENT);
+            StayCardBinder.add(this, list, b, StayCardBinder.tagFor(b));
         }
         SectionPreview.addToggle(this, list, total, moreStaysSection.isExpanded(), moreStaysSection::toggle);
         TextView moreCount = findViewById(R.id.moreStaysCount);
         moreCount.setText(String.valueOf(total));
         moreCount.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
-        section.setVisibility(total > 0 ? View.VISIBLE : View.GONE);
+        // Never hidden: with nothing to list it says so.
+        section.setVisibility(View.VISIBLE);
+        findViewById(R.id.moreStaysEmpty).setVisibility(total == 0 ? View.VISIBLE : View.GONE);
         Booking first = !moreStaysUpcoming.isEmpty() ? moreStaysUpcoming.get(0) : (!moreStaysRecent.isEmpty() ? moreStaysRecent.get(0) : null);
-        if (first != null) {
+        if (first == null) {
+            moreStaysSection.setSummary(getString(R.string.more_stays_empty));
+        } else {
             moreStaysSection.setSummary(getString(R.string.summary_with_first,
                     getResources().getQuantityString(R.plurals.summary_stays_count, total, total),
                     getString(R.string.summary_ref_status, TransactionText.reference(this, first.isHasBooking(), first.getDisplayId()),
@@ -1054,7 +1057,6 @@ public class DashboardActivity extends BaseNavigationActivity {
      * whether they are bookings or reservations.
      */
     private void updateNextStay(List<Booking> bookings) {
-        nextStayShown = new ArrayList<>();
         if (!bookingsResolved && bookings.isEmpty()) {
             showNextStayState(nextStayLoading);
             nextStaySection.setSummary(getString(R.string.dashboard_section_loading));
@@ -1243,9 +1245,6 @@ public class DashboardActivity extends BaseNavigationActivity {
             scroll.post(() -> scroll.scrollTo(keepScroll, 0));
         }
 
-        nextStayShown = new ArrayList<>();
-        for (NextStay stay : dayStays) nextStayShown.add(stay.booking);
-        renderMoreStays();
         LinearLayout cards = content.findViewById(R.id.nextStayDayCards);
         TextView empty = content.findViewById(R.id.nextStayDayEmpty);
         cards.removeAllViews();

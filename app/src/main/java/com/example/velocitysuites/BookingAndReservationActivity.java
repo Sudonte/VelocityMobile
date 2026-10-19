@@ -110,9 +110,23 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private TextView tvSummaryTax;
     private List<AddOnAmenity> addOnCatalog = new ArrayList<>();
     private final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
-    private ChipGroup cgStatusFilter;
-    /** True while code (not the guest) is checking a chip, so the listener does not re-filter. */
-    private boolean syncingStatusChips;
+    /** The Status dropdown (its options and its value follow the open tab). */
+    private AutoCompleteTextView dropdownStatus;
+    /** Search, Sort and Room type are remembered PER TAB (0 = Bookings, 1 = Reservations); the Status choice already is (see the *Categor* fields). */
+    private final String[] tabSearch = {"", ""};
+    private final String[] tabSort = {"NEWEST", "NEWEST"};
+    private final String[] tabRoomType = {null, null};
+    /** Which tab the search / sort / room type fields currently show (-1 until the first applyMode()). */
+    private int shownTab = -1;
+    /** True while code (not the guest) fills the search box, so the watcher does not re-filter. */
+    private boolean applyingTabState;
+    private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable searchRunnable = () -> {
+        listExpanded = true;
+        renderList();
+    };
+    private MaterialButton btnClearListFilters;
+    private View layoutCancellationPolicyRow, ivCancellationChevron;
     private View cardCancellationPolicy;
     /**
      * Independent per-tab Status Filter state - a Reservation status pick
@@ -267,6 +281,11 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
             restoreCategoryState(false, savedInstanceState.getString(STATE_CATEGORY_BOOKING));
             restoreCategoryState(true, savedInstanceState.getString(STATE_CATEGORY_RESERVATION));
+            for (int i = 0; i < 2; i++) {
+                tabSearch[i] = savedInstanceState.getString("state_search_" + i, "");
+                tabSort[i] = savedInstanceState.getString("state_sort_" + i, "NEWEST");
+                tabRoomType[i] = savedInstanceState.getString("state_room_type_" + i);
+            }
         }
         applyMode();
 
@@ -309,6 +328,17 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         outState.putString(STATE_CATEGORY_BOOKING, showAllBookingCategories ? "ALL" : currentBookingCategory.name());
         outState.putString(STATE_CATEGORY_RESERVATION, showAllReservationCategories ? "ALL" : currentReservationCategory.name());
         outState.putInt(STATE_TAB_POSITION, tabLayout != null ? tabLayout.getSelectedTabPosition() : 0);
+        // Search / sort / room type of both tabs (the shown tab's live values first).
+        if (shownTab >= 0) {
+            tabSearch[shownTab] = searchQuery;
+            tabSort[shownTab] = sortOrder;
+            tabRoomType[shownTab] = selectedRoomTypeFilter;
+        }
+        for (int i = 0; i < 2; i++) {
+            outState.putString("state_search_" + i, tabSearch[i]);
+            outState.putString("state_sort_" + i, tabSort[i]);
+            outState.putString("state_room_type_" + i, tabRoomType[i]);
+        }
     }
 
     /** Restores one tab's Status Filter state from a saved Bundle string ("ALL" or a TransactionCategorizer.Category name) - the Booking and Reservation tabs are restored independently, each from its own key. */
@@ -525,8 +555,23 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         tvAmenitiesEmptyState = findViewById(R.id.tvAmenitiesEmptyState);
         loadAmenityCatalog();
 
-        cgStatusFilter = findViewById(R.id.cgStatusFilter);
+        dropdownStatus = findViewById(R.id.dropdownTransactionStatus);
         cardCancellationPolicy = findViewById(R.id.cardCancellationPolicy);
+        layoutCancellationPolicyRow = findViewById(R.id.layoutCancellationPolicyRow);
+        ivCancellationChevron = findViewById(R.id.ivCancellationChevron);
+        View policyText = findViewById(R.id.tvCancellationPolicyNotice);
+        if (layoutCancellationPolicyRow != null && policyText != null) {
+            // One compact row; tapping it opens the full policy wording and turns the chevron over.
+            layoutCancellationPolicyRow.setOnClickListener(v -> {
+                boolean open = policyText.getVisibility() != View.VISIBLE;
+                policyText.setVisibility(open ? View.VISIBLE : View.GONE);
+                if (ivCancellationChevron != null) ivCancellationChevron.setRotation(open ? 180f : 0f);
+                layoutCancellationPolicyRow.setContentDescription(getString(open
+                        ? R.string.cancellation_policy_collapse_cd : R.string.cancellation_policy_expand_cd));
+            });
+        }
+        btnClearListFilters = findViewById(R.id.btnClearListFilters);
+        if (btnClearListFilters != null) btnClearListFilters.setOnClickListener(v -> clearListFilters());
 
         etSearchTransactions = findViewById(R.id.etSearchTransactions);
         if (etSearchTransactions != null) {
@@ -535,17 +580,11 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
                 @Override
                 public void afterTextChanged(Editable s) {
-                    // The full transaction list is already resident in
-                    // allMyBookings (loaded once by refreshMyBookings()) -
-                    // filtering happens entirely in-memory per keystroke,
-                    // no network call per character. Only the search text
-                    // changes here - the active Bookings/Reservations tab and
-                    // Confirmed/Completed/Cancelled status are left exactly
-                    // as they were, per spec ("search must apply only to the
-                    // currently selected transaction type and status").
+                    if (applyingTabState) return;
+                    // The whole list is already in memory: filter locally, once the guest pauses typing (no network call).
                     searchQuery = s.toString().trim().toLowerCase(Locale.getDefault());
-                    listExpanded = true;
-                    renderList();
+                    searchHandler.removeCallbacks(searchRunnable);
+                    searchHandler.postDelayed(searchRunnable, 250L);
                 }
             });
         }
@@ -558,12 +597,15 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // succeeds (see onCreate()) and refreshed every time it's reloaded.
     }
 
-    /** Newest First / Oldest First - single-select, mirrors RoomBrowsingActivity's own dropdownSort wiring pattern. */
+    /** Newest first / Oldest first (by the date the booking or reservation was made); the choice is kept per tab. */
     private void setupTransactionSortDropdown() {
         String[] options = {getString(R.string.transaction_sort_newest), getString(R.string.transaction_sort_oldest)};
-        dropdownTransactionSort.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
+        dropdownTransactionSort.setAdapter(new NonFilteringArrayAdapter(this, options));
+        dropdownTransactionSort.setText(options[0], false);
         dropdownTransactionSort.setOnItemClickListener((parent, view, position, id) -> {
             sortOrder = position == 1 ? "OLDEST" : "NEWEST";
+            dropdownTransactionSort.setText(options[position], false);
+            dropdownTransactionSort.clearFocus();
             renderList();
         });
     }
@@ -584,28 +626,92 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (dropdownTransactionRoomType == null) return;
         java.util.TreeSet<String> distinctTypes = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (Room r : allRooms) {
-            if (r.getType() != null && !r.getType().trim().isEmpty()) {
-                distinctTypes.add(r.getType().trim());
+            if (r.getType() != null && !r.getType().trim().isEmpty()) distinctTypes.add(r.getType().trim());
+        }
+        if (distinctTypes.isEmpty()) {
+            // No catalog (yet): fall back to the room types of the guest's own bookings and reservations.
+            for (Booking b : allMyBookings) {
+                for (String type : b.getAllRoomTypeNames()) {
+                    if (type != null && !type.trim().isEmpty()) distinctTypes.add(type.trim());
+                }
             }
         }
+        final String all = getString(R.string.filter_all_label);
         List<String> options = new ArrayList<>();
-        options.add(getString(R.string.all_room_types_label));
+        options.add(all);
         options.addAll(distinctTypes);
+        if (options.equals(roomTypeOptions)) return;
+        roomTypeOptions = options;
 
-        String previousSelection = dropdownTransactionRoomType.getText() != null ? dropdownTransactionRoomType.getText().toString() : null;
-        dropdownTransactionRoomType.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, options));
+        dropdownTransactionRoomType.setAdapter(new NonFilteringArrayAdapter(this, options));
         dropdownTransactionRoomType.setOnItemClickListener((parent, view, position, id) -> {
             String selected = options.get(position);
-            selectedRoomTypeFilter = selected.equals(getString(R.string.all_room_types_label)) ? null : selected;
+            selectedRoomTypeFilter = selected.equals(all) ? null : selected;
+            dropdownTransactionRoomType.setText(selected, false);
+            dropdownTransactionRoomType.clearFocus();
             renderList();
         });
-
-        if (previousSelection != null && options.contains(previousSelection)) {
-            dropdownTransactionRoomType.setText(previousSelection, false);
+        if (selectedRoomTypeFilter != null && options.contains(selectedRoomTypeFilter)) {
+            dropdownTransactionRoomType.setText(selectedRoomTypeFilter, false);
         } else {
-            dropdownTransactionRoomType.setText(getString(R.string.all_room_types_label), false);
+            dropdownTransactionRoomType.setText(all, false);
             selectedRoomTypeFilter = null;
         }
+    }
+
+    private List<String> roomTypeOptions;
+
+    private boolean statusFilterIsAll(boolean reservation) {
+        return reservation ? showAllReservationCategories : showAllBookingCategories;
+    }
+
+    /** True while anything narrows the list: a search, a room type or a status other than All. */
+    private boolean filtersNarrowTheList() {
+        return !searchQuery.isEmpty() || selectedRoomTypeFilter != null || !statusFilterIsAll(isReservationMode());
+    }
+
+    /** Everything back to its default on the open tab: no search, All statuses, All room types, Newest first. */
+    private void clearListFilters() {
+        boolean reservation = isReservationMode();
+        searchHandler.removeCallbacks(searchRunnable);
+        searchQuery = "";
+        selectedRoomTypeFilter = null;
+        sortOrder = "NEWEST";
+        if (reservation) showAllReservationCategories = true; else showAllBookingCategories = true;
+        applyTabStateToViews();
+        listExpanded = false;
+        applyListFilterLabels();
+        renderList();
+    }
+
+    /** Writes the open tab's search / sort / room type into the fields (without re-filtering). */
+    private void applyTabStateToViews() {
+        applyingTabState = true;
+        if (etSearchTransactions != null) etSearchTransactions.setText(searchQuery);
+        applyingTabState = false;
+        if (dropdownTransactionSort != null) {
+            dropdownTransactionSort.setText(getString("OLDEST".equals(sortOrder) ? R.string.transaction_sort_oldest : R.string.transaction_sort_newest), false);
+        }
+        if (dropdownTransactionRoomType != null) {
+            dropdownTransactionRoomType.setText(selectedRoomTypeFilter != null ? selectedRoomTypeFilter : getString(R.string.filter_all_label), false);
+        }
+        syncStatusFilterDisplay();
+    }
+
+    /** Remembers the shown tab's fields and loads the other tab's. */
+    private void switchShownTab(int tab) {
+        if (shownTab == tab) return;
+        if (shownTab >= 0) {
+            tabSearch[shownTab] = searchQuery;
+            tabSort[shownTab] = sortOrder;
+            tabRoomType[shownTab] = selectedRoomTypeFilter;
+        }
+        shownTab = tab;
+        searchHandler.removeCallbacks(searchRunnable);
+        searchQuery = tabSearch[tab] == null ? "" : tabSearch[tab];
+        sortOrder = tabSort[tab] == null ? "NEWEST" : tabSort[tab];
+        selectedRoomTypeFilter = tabRoomType[tab];
+        applyTabStateToViews();
     }
 
     private boolean isReservationMode() {
@@ -751,6 +857,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      */
     private void applyMode() {
         boolean reservation = isReservationMode();
+        switchShownTab(reservation ? 1 : 0);
         if (editingBookingId == null) {
             btnConfirmBooking.setText(reservation ? R.string.confirm_reservation_label : R.string.confirm_booking_label);
             btnConfirmBooking.setIconResource(reservation ? R.drawable.ic_reservation : R.drawable.ic_payment_card);
@@ -761,7 +868,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (tvStepDetails != null) {
             tvStepDetails.setText(reservation ? R.string.step_details_title : R.string.step_booking_details_title);
         }
-        tvListDesc.setText(reservation ? R.string.reservation_items_desc : R.string.booking_items_desc);
         if (tvListEmptyTitle != null) {
             tvListEmptyTitle.setText(reservation ? R.string.reservation_list_empty_title : R.string.booking_list_empty_title);
         }
@@ -824,8 +930,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             listTitleRes = reservation ? R.string.list_title_all_reservations : R.string.list_title_all_bookings;
             categoryLabelRes = listTitleRes;
             emptyDescRes = reservation ? R.string.no_reservations_yet : R.string.no_bookings_yet;
-            tvListTitle.setText(listTitleRes);
-            tvListDesc.setText(getString(R.string.showing_category_format, getString(categoryLabelRes)));
+            tvListTitle.setText(reservation ? R.string.tab_reservation_list_switcher : R.string.tab_booking_list_switcher);
+            tvListDesc.setVisibility(View.GONE);
             if (tvListEmptyDesc != null) {
                 tvListEmptyDesc.setText(emptyDescRes);
             }
@@ -857,8 +963,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 emptyDescRes = reservation ? R.string.no_confirmed_reservations : R.string.no_confirmed_bookings;
                 break;
         }
-        tvListTitle.setText(listTitleRes);
-        tvListDesc.setText(getString(R.string.showing_category_format, getString(categoryLabelRes)));
+        tvListTitle.setText(reservation ? R.string.tab_reservation_list_switcher : R.string.tab_booking_list_switcher);
+        tvListDesc.setVisibility(View.GONE);
         // Empty state now reflects the active status filter, not just the
         // active tab (see no_confirmed_bookings/no_completed_bookings/etc.) -
         // applyMode() still sets the generic "no bookings/reservations yet"
@@ -876,17 +982,6 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      * being its own chip. Each tab keeps its own selection - see syncStatusFilterDisplay().
      */
     private void setupStatusFilterChips() {
-        if (cgStatusFilter != null) {
-            cgStatusFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
-                if (syncingStatusChips || checkedIds.isEmpty()) return;
-                boolean reservation = isReservationMode();
-                int id = checkedIds.get(0);
-                if (id == R.id.chipStatusActive) selectCategory(reservation, TransactionCategorizer.Category.ACTIVE);
-                else if (id == R.id.chipStatusCompleted) selectCategory(reservation, TransactionCategorizer.Category.COMPLETED);
-                else if (id == R.id.chipStatusCancelled) selectCategory(reservation, TransactionCategorizer.Category.CANCELLED);
-                else selectAllStatuses(reservation);
-            });
-        }
         syncStatusFilterDisplay();
     }
 
@@ -919,20 +1014,27 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         renderList();
     }
 
-    /** Checks the chip matching the OPEN tab's own remembered filter; called on every tab switch, so the chips never show the other tab's choice. */
+    /** The Status dropdown: the open tab's own options and its own remembered choice (short value in the field, full names in the list). */
     private void syncStatusFilterDisplay() {
-        if (cgStatusFilter != null) {
-            boolean reservation = isReservationMode();
-            boolean all = reservation ? showAllReservationCategories : showAllBookingCategories;
-            TransactionCategorizer.Category category = reservation ? currentReservationCategory : currentBookingCategory;
-            int chipId = all ? R.id.chipStatusAll
-                    : category == TransactionCategorizer.Category.COMPLETED ? R.id.chipStatusCompleted
-                    : category == TransactionCategorizer.Category.CANCELLED ? R.id.chipStatusCancelled
-                    : R.id.chipStatusActive;
-            syncingStatusChips = true;
-            cgStatusFilter.check(chipId);
-            syncingStatusChips = false;
-        }
+        if (dropdownStatus == null) return;
+        boolean reservation = isReservationMode();
+        String[] options = {getString(reservation ? R.string.status_option_all_reservations : R.string.status_option_all_bookings),
+                getString(R.string.status_option_active), getString(R.string.status_option_completed), getString(R.string.status_option_cancelled)};
+        String[] shortValues = {getString(R.string.filter_all_label), options[1], options[2], options[3]};
+        dropdownStatus.setAdapter(new NonFilteringArrayAdapter(this, options));
+        dropdownStatus.setOnItemClickListener((parent, view, position, id) -> {
+            boolean r = isReservationMode();
+            dropdownStatus.setText(shortValues[position], false);
+            dropdownStatus.clearFocus();
+            if (position == 0) selectAllStatuses(r);
+            else selectCategory(r, position == 1 ? TransactionCategorizer.Category.ACTIVE
+                    : position == 2 ? TransactionCategorizer.Category.COMPLETED : TransactionCategorizer.Category.CANCELLED);
+        });
+        boolean all = statusFilterIsAll(reservation);
+        TransactionCategorizer.Category category = reservation ? currentReservationCategory : currentBookingCategory;
+        int index = all ? 0 : category == TransactionCategorizer.Category.COMPLETED ? 2
+                : category == TransactionCategorizer.Category.CANCELLED ? 3 : 1;
+        dropdownStatus.setText(shortValues[index], false);
     }
 
     private void setupListSection() {
@@ -1055,6 +1157,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             tvListEmptyDesc.setText(message);
         }
         if (btnListRetry != null) {
+            btnListRetry.setText(R.string.retry_label);
             btnListRetry.setVisibility(View.VISIBLE);
             btnListRetry.setOnClickListener(v -> refreshMyBookings());
         }
@@ -1185,12 +1288,21 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (query == null || query.isEmpty()) return true;
         String q = query.toLowerCase(Locale.getDefault());
         return containsIgnoreCase(b.getId(), q)
+                || containsIgnoreCase(b.getDisplayId(), q)
+                || amountMatches(b, q)
                 || b.anyRoomTypeContains(q)
                 || containsIgnoreCase(b.getRoomName(), q)
                 || containsIgnoreCase(b.getRepresentativeName(), q)
                 || containsIgnoreCase(computeStatusLabel(b), q)
                 || containsIgnoreCase(b.getCheckInDate(), q)
                 || containsIgnoreCase(b.getCheckOutDate(), q);
+    }
+
+    /** "7860", "7,860" or "₱7,860.00" all find a transaction whose total is ₱7,860.00. */
+    private boolean amountMatches(Booking b, String q) {
+        String digits = q.replace("₱", "").replace(",", "").trim();
+        if (digits.isEmpty() || !digits.matches("[0-9.]+")) return false;
+        return MoneyFormat.format(BookingTotals.totalOf(b, null)).replace("₱", "").replace(",", "").contains(digits);
     }
 
     private boolean containsIgnoreCase(String value, String lowerCaseQuery) {
@@ -1229,11 +1341,30 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
     }
 
+    /** "Bookings (2)" and "Reservations (2)": how many of each the guest has (before any filter). */
+    private void updateTabCounts() {
+        if (tabLayout == null) return;
+        int bookings = 0;
+        int reservations = repository.getCompletedHistoricalReservations().size();
+        for (Booking b : allMyBookings) {
+            if (b.isHasBooking()) bookings++; else reservations++;
+        }
+        TabLayout.Tab first = tabLayout.getTabAt(0);
+        TabLayout.Tab second = tabLayout.getTabAt(1);
+        if (first != null) first.setText(getString(R.string.tab_with_count_format, getString(R.string.tab_booking_list_switcher), bookings));
+        if (second != null) second.setText(getString(R.string.tab_with_count_format, getString(R.string.tab_reservation_list_switcher), reservations));
+    }
+
     private void renderList() {
         List<Booking> source = itemsForCurrentTab();
         if (tvListCount != null) {
-            tvListCount.setText(String.valueOf(source.size()));
+            tvListCount.setText(getResources().getQuantityString(R.plurals.list_results_count, source.size(), source.size()));
         }
+        updateTabCounts();
+        if (btnClearListFilters != null) {
+            btnClearListFilters.setVisibility(filtersNarrowTheList() || !"NEWEST".equals(sortOrder) ? View.VISIBLE : View.GONE);
+        }
+        if (allRooms == null || allRooms.isEmpty()) refreshTransactionRoomTypeDropdown();
 
         if (source.isEmpty()) {
             // A failed fetch must never be mistaken for "you have no transactions" (task spec
@@ -1268,11 +1399,16 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             // this is the single source of truth for tvListEmptyTitle's text,
             // not just a conditional patch on top of applyMode()'s default.
             if (tvListEmptyTitle != null && tvListEmptyDesc != null) {
-                if (!searchQuery.isEmpty()) {
+                if (filtersNarrowTheList()) {
                     tvListEmptyTitle.setText(isReservationMode()
-                            ? R.string.search_no_reservations_found_title
-                            : R.string.search_no_bookings_found_title);
+                            ? R.string.no_reservations_match_filters
+                            : R.string.no_bookings_match_filters);
                     tvListEmptyDesc.setText(R.string.search_empty_state_desc);
+                    if (btnListRetry != null) {
+                        btnListRetry.setText(R.string.clear_filters_label);
+                        btnListRetry.setVisibility(View.VISIBLE);
+                        btnListRetry.setOnClickListener(v -> clearListFilters());
+                    }
                 } else {
                     tvListEmptyTitle.setText(isReservationMode()
                             ? R.string.reservation_list_empty_title
@@ -3560,31 +3696,35 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Payment method, then what is paid and what is left. The remaining balance is only shown while something is
-     * still owed on a live transaction (never for Cancelled/Rejected/Checked-Out/Completed, never at P0.00) - the
-     * figures come from the same TransactionStatusHelper summary the details screen uses (verified payments only).
+     * "Paid ₱7,560.00 · Balance ₱300.00" with the balance coloured (red while all of it is owed, amber when partly paid, green
+     * ₱0.00 once settled), and the payment method as a small chip. The paid figure is the verified payments only; Total = Paid +
+     * Balance, exactly as on Payment Status and Your Next Stay. Nothing is owed on a cancelled / rejected transaction.
      */
-    private void bindCardPayment(TextView methodView, TextView paidView, Booking b) {
+    private void bindCardPayment(TextView methodView, TextView paidView, Booking b, double total) {
         if (methodView == null || paidView == null) return;
-        String method = b.getPaymentMethod();
-        boolean hasMethod = method != null && !method.trim().isEmpty();
-        methodView.setVisibility(hasMethod ? View.VISIBLE : View.GONE);
-        if (hasMethod) {
-            methodView.setText(getString(R.string.booking_card_payment_format,
-                    getString("cash".equalsIgnoreCase(method) ? R.string.payment_method_cash : R.string.payment_method_gcash)));
-        }
+        String method = DisplayLabels.paymentMethod(this, b.getPaymentMethod());
+        methodView.setText(method);
+        methodView.setVisibility(method.isEmpty() ? View.GONE : View.VISIBLE);
         TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
+        double paid = summary.verifiedPaid;
         String status = b.getStatus();
-        boolean closed = "Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status)
-                || "Checked-Out".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status);
-        boolean showRemaining = !closed && MoneyFormat.isPositive(summary.balance);
-        if (showRemaining) {
-            paidView.setText(getString(R.string.booking_card_paid_remaining_format,
-                    MoneyFormat.format(summary.verifiedPaid), MoneyFormat.format(summary.balance)));
-        } else {
-            paidView.setText(getString(R.string.booking_card_paid_format, MoneyFormat.format(summary.verifiedPaid)));
+        boolean cancelled = "Cancelled".equalsIgnoreCase(status) || "Rejected".equalsIgnoreCase(status);
+        if (cancelled) {
+            paidView.setText(getString(R.string.booking_card_paid_format, MoneyFormat.format(paid)));
+            return;
         }
-        paidView.setVisibility(MoneyFormat.isPositive(summary.verifiedPaid) || showRemaining ? View.VISIBLE : View.GONE);
+        double balance = Math.max(0, total - paid);
+        String balanceText = MoneyFormat.format(balance);
+        String line = getString(R.string.booking_card_paid_balance_format, MoneyFormat.format(paid), balanceText);
+        android.text.SpannableString span = new android.text.SpannableString(line);
+        int color = !MoneyFormat.isPositive(balance) ? R.color.status_paid_fg
+                : MoneyFormat.isPositive(paid) ? R.color.status_pending_fg : R.color.velocity_red_primary;
+        int start = line.lastIndexOf(balanceText);
+        if (start >= 0) {
+            span.setSpan(new android.text.style.ForegroundColorSpan(getColor(color)), start, line.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            span.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), start, line.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        paidView.setText(span);
     }
 
     private class BookingsAdapter extends RecyclerView.Adapter<BookingsAdapter.ViewHolder> {
@@ -3609,11 +3749,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Booking b = mBookings.get(position);
             String groupRef = BookingGroupState.getGroupRef(BookingAndReservationActivity.this, b.getId());
-            // "Booking #X" for any actual Booking (direct or converted-from-
-            // reservation), "Reservation #X" for a still-unconverted
-            // Reservation (or a frozen historical record of one) - never the
-            // generic "Ref: X" here, which used to be indistinguishable from
-            // a real booking reference.
+            // "Booking #X" for any actual Booking (direct or converted-from-reservation), "Reservation #X" for a
+            // still-unconverted Reservation (or a frozen historical record of one).
             String refText = b.isHasBooking()
                     ? getString(R.string.direct_booking_ref_format, b.getDisplayId())
                     : getString(R.string.reservation_ref_format, b.getDisplayId());
@@ -3626,157 +3763,87 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
             holder.tvBookingId.setText(refText);
             holder.tvBookingStatus.setText(computeStatusLabel(b));
+            styleStatusBadge(holder.tvBookingStatus, b);
             if (holder.tvModifiedBadge != null) {
                 holder.tvModifiedBadge.setVisibility(
                         (b.isEditedOnce() || LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()))
                                 ? View.VISIBLE : View.GONE);
             }
-            Long nights = StayDateCalculator.nightsBetweenOrNull(b.getCheckInDate(), b.getCheckOutDate());
-            holder.tvBookingDates.setText(nights != null && nights > 0
-                    ? getString(R.string.date_range_nights_format, b.getCheckInDate(), b.getCheckOutDate(),
-                            getResources().getQuantityString(R.plurals.nights_count_plain, nights.intValue(), nights.intValue()))
-                    : getString(R.string.date_range_format, b.getCheckInDate(), b.getCheckOutDate()));
-            bindCardPayment(holder.tvBookingPaymentMethod, holder.tvBookingPaidLine, b);
-            // Payment method/status pill, amount paid, remaining balance, and
-            // created date/time all moved into BookingDetailsActivity's Guest
-            // Info/Payment tabs - the compact card no longer shows them
-            // directly (see showBookingDetails() below and section 3 of the
-            // simplified-card requirement this card now follows).
-            holder.tvBookingGuests.setText(getResources().getQuantityString(R.plurals.guests_count, b.getGuests(), b.getGuests()));
-            // Three mutually-exclusive cases, deliberately kept isolated (see
-            // MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md's "Temporary legacy
-            // compatibility" section). tvBookingRoomName is always visible -
-            // one compact line, never the full per-type/amenity breakdown
-            // (see buildTrueMultiRoomSummaryText()/buildGroupSummaryText()'s
-            // own doc), since Booking ID is now this card's primary heading.
-            //  1. True backend multi-room transaction (b.getRooms() non-empty) -
-            //     one real record already carries its own correct grand total,
-            //     nothing to sum. Never coexists with case 2, since a single-call
-            //     creation is never tagged by BookingGroupState in the first place.
-            //  2. Legacy client-side grouping (groupMembers != null) - N separate
-            //     sibling records tied by a local tag, see BookingGroupState's own
-            //     doc; the total here must be summed across every sibling.
-            //  3. A normal single-room transaction - unchanged, original behavior.
-            if (!b.getRooms().isEmpty()) {
-                holder.tvBookingRoomName.setText(buildTrueMultiRoomSummaryText(b));
-                holder.tvBookingPrice.setText(String.format(Locale.US, getString(R.string.price_format), b.getTotalAmount()));
-            } else if (groupMembers != null && !groupMembers.isEmpty()) {
-                holder.tvBookingRoomName.setText(buildGroupSummaryText(groupMembers));
-                double grandTotal = 0;
-                for (Booking member : groupMembers) grandTotal += member.getTotalAmount();
-                holder.tvBookingPrice.setText(String.format(Locale.US, getString(R.string.price_format), grandTotal));
+
+            // Room type(s) from the same source the Dashboard uses; the row is hidden (never an empty gap) when there is none.
+            String roomText;
+            if (groupMembers != null && !groupMembers.isEmpty() && b.getRooms().isEmpty()) {
+                roomText = buildGroupSummaryText(groupMembers);
             } else {
-                int quantity = Math.max(1, b.getRoomsRequested());
-                holder.tvBookingRoomName.setText(quantity > 1 ? b.getRoomName() + " ×" + quantity : b.getRoomName());
-                holder.tvBookingPrice.setText(String.format(Locale.US, getString(R.string.price_format), b.getTotalAmount()));
+                roomText = TransactionRow.roomTextOf(b);
             }
+            roomText = roomText == null ? "" : roomText.replace(" • ", ", ").trim();
+            holder.tvBookingRoomName.setText(roomText);
+            holder.tvBookingRoomName.setVisibility(roomText.isEmpty() ? View.GONE : View.VISIBLE);
+
+            // "Oct 21 → Oct 22, 2026 · 1 night · 2 guests"
+            String stay = StayCardText.nightsAndGuests(BookingAndReservationActivity.this, b);
+            String dates = StayCardText.dates(b);
+            holder.tvBookingDates.setText(dates.isEmpty() ? stay : stay.isEmpty() ? dates : dates + " · " + stay.replace(" Guests", " guests").replace(" Guest", " guest"));
+
+            // ONE total for every screen: the amount the guest actually owes (after discounts, including amenities) - see
+            // TransactionStatusHelper. Total = Paid + Balance here exactly as in Payment Status and Your Next Stay.
+            double total = BookingTotals.totalOf(b, groupMembers);
+            holder.tvBookingPrice.setText(MoneyFormat.format(total));
+            bindCardPayment(holder.tvBookingPaymentMethod, holder.tvBookingPaidLine, b, total);
 
             holder.itemView.setOnClickListener(v -> showBookingDetails(b));
             holder.btnViewDetails.setOnClickListener(v -> showBookingDetails(b));
 
-            // Pay Now only makes sense for a plain Reservation (no payment yet)
-            // that's still active - the Booking List's items already have a
-            // payment on record. See PaymentEligibility.canPayNow() for the
-            // full, single-source-of-truth eligibility rule (also used by
-            // DashboardActivity) - it already excludes Cancelled/Rejected and
-            // an already-converted Booking, so only the Booking-tab and
-            // Checked-Out exclusions need to be added here.
-            boolean canPayNow = !isBookingTab
-                    && !b.getStatus().equalsIgnoreCase("Checked-Out")
-                    && PaymentEligibility.canPayNow(b);
-            if (holder.btnPayNow != null) {
-                holder.btnPayNow.setVisibility(canPayNow ? View.VISIBLE : View.GONE);
-                holder.btnPayNow.setOnClickListener(v -> showPayNowConfirmation(b));
-            }
-            // A confirmed booking is paid at the front desk: the message takes the place of Pay Now.
-            FrontDeskNote.bind(holder.tvFrontDeskNote, b);
+            // The one filled button: Pay now, only where PaymentEligibility allows it (a GCash reservation with a balance).
+            PaymentEligibility.PayAction action = PaymentEligibility.payActionFor(b);
+            boolean canPayNow = !isBookingTab && !b.getStatus().equalsIgnoreCase("Checked-Out") && action == PaymentEligibility.PayAction.PAY_NOW;
+            holder.btnPayNow.setVisibility(canPayNow ? View.VISIBLE : View.GONE);
+            holder.btnPayNow.setOnClickListener(canPayNow ? v -> showPayNowConfirmation(b) : null);
+            holder.tvPayAtDesk.setVisibility(!isBookingTab && action == PaymentEligibility.PayAction.FRONT_DESK && "CASH".equalsIgnoreCase(b.getPaymentMethod())
+                    ? View.VISIBLE : View.GONE);
+            // A confirmed booking is paid at the front desk: one small secondary line (replaces the old pink box).
+            boolean deskNote = PaymentEligibility.needsFrontDeskPayment(b);
+            holder.tvFrontDeskNote.setVisibility(deskNote ? View.VISIBLE : View.GONE);
+            holder.tvFrontDeskNote.setText(R.string.booking_card_front_desk_line);
 
-            // Delete is only offered for Cancelled/Rejected transactions on
-            // either tab, plus Completed on the Booking tab specifically -
-            // a Reservation never offers Delete for Category.COMPLETED, even
-            // though a staff-verified-but-not-yet-converted reservation does
-            // reach that category (see TransactionCategorizer's own doc on
-            // the "Completed Reservation List" tab): that bucket is still an
-            // active, in-progress reservation from the guest's perspective,
-            // not a terminal state, so only an actual Cancelled/Rejected
-            // reservation may ever be permanently deleted. Cancel/Modify only
-            // make sense while a transaction is still Upcoming/Active - see
-            // TransactionCategorizer for the shared definition every list/
-            // dashboard screen now agrees on.
             TransactionCategorizer.Category category = TransactionCategorizer.categorize(b);
             boolean deletable = category == TransactionCategorizer.Category.CANCELLED
                     || (category == TransactionCategorizer.Category.COMPLETED && (isBookingTab || b.isHistoricalReservation()));
-            styleStatusBadge(holder.tvBookingStatus, b);
-            if (deletable) {
-                holder.btnModify.setVisibility(View.GONE);
-                holder.btnCancel.setVisibility(View.GONE);
-                // A historical (post-conversion) reservation record is
-                // view/record-only - it must never offer Delete either, since
-                // its "-completed"-suffixed id isn't a real backend row this
-                // app can call delete against, and the record must stay
-                // available as a permanent historical reference regardless.
-                if (holder.btnDelete != null) {
-                    holder.btnDelete.setVisibility(View.VISIBLE);
-                    holder.btnDelete.setEnabled(true);
-                    holder.btnDelete.setText(R.string.delete_permanently_button_label);
-                    holder.btnDelete.setOnClickListener(v -> confirmDeleteTransaction(b));
-                }
-                // Book/Reserve Again only makes sense for a Cancelled item -
-                // a Completed stay is already done, nothing to redo.
-                if (holder.btnBookAgain != null) {
-                    boolean canBookAgain = category == TransactionCategorizer.Category.CANCELLED;
-                    holder.btnBookAgain.setVisibility(canBookAgain ? View.VISIBLE : View.GONE);
-                    if (canBookAgain) {
-                        holder.btnBookAgain.setText(isBookingTab ? R.string.book_again_button : R.string.reserve_again_button);
-                        holder.btnBookAgain.setOnClickListener(v -> startBookAgain(b));
-                    }
-                }
-            } else {
-                if (holder.btnDelete != null) {
-                    holder.btnDelete.setVisibility(View.GONE);
-                }
-                if (holder.btnBookAgain != null) {
-                    holder.btnBookAgain.setVisibility(View.GONE);
-                }
-                // Cancel visibility has exactly one rule - BookingActionPolicy.canCancel():
-                // hidden (GONE, not merely disabled) once the booking is fully paid or
-                // the receptionist has verified it (Booking::verified_at, mirrored by
-                // the backend's own cancel gate). Every piece of recycled-ViewHolder
-                // state (visibility, enabled, alpha, listener) is reset on both
-                // branches so a stale listener can never survive a rebind.
-                if (!BookingActionPolicy.canCancel(b)) {
-                    holder.btnCancel.setVisibility(View.GONE);
-                    holder.btnCancel.setEnabled(false);
-                    holder.btnCancel.setAlpha(1f);
-                    holder.btnCancel.setOnClickListener(null);
-                } else {
-                    holder.btnCancel.setVisibility(View.VISIBLE);
-                    holder.btnCancel.setText(b.isHasBooking() ? R.string.cancel_booking_button : R.string.cancel_reservation_button);
-                    holder.btnCancel.setEnabled(true);
-                    holder.btnCancel.setAlpha(1f);
-                    holder.btnCancel.setOnClickListener(v -> onCancelTapped(b));
-                }
+            boolean canCancel = !deletable && BookingActionPolicy.canCancel(b);
+            boolean canModify = !deletable && !isBookingTab
+                    && ReservationEditPolicy.canEdit(b, LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()));
+            // Edit / Cancel share the row when they fit; with Pay now beside View details, or on a narrow / large-font phone,
+            // they move into a "more" menu instead, so no button text ever wraps.
+            boolean overflow = (canModify || canCancel)
+                    && (canPayNow || RoomAdapter.needsRoomyLayout(getResources().getConfiguration()));
+            holder.btnModify.setVisibility(canModify && !overflow ? View.VISIBLE : View.GONE);
+            holder.btnModify.setOnClickListener(canModify ? v -> launchModifyWizard(b) : null);
+            holder.btnCancel.setVisibility(canCancel && !overflow ? View.VISIBLE : View.GONE);
+            holder.btnCancel.setOnClickListener(canCancel ? v -> onCancelTapped(b) : null);
+            holder.btnCardOverflow.setVisibility(overflow ? View.VISIBLE : View.GONE);
+            holder.btnCardOverflow.setOnClickListener(overflow ? v -> {
+                android.widget.PopupMenu menu = new android.widget.PopupMenu(BookingAndReservationActivity.this, v);
+                if (canModify) menu.getMenu().add(0, 1, 0, R.string.booking_card_edit);
+                if (canCancel) menu.getMenu().add(0, 2, 1, R.string.cancel_label);
+                menu.setOnMenuItemClickListener(item -> {
+                    if (item.getItemId() == 1) launchModifyWizard(b);
+                    else onCancelTapped(b);
+                    return true;
+                });
+                menu.show();
+            } : null);
 
-                // Booking List (a payment already exists) only ever shows
-                // View Details + Cancel. The Reservation List additionally
-                // allows a single Modify while the stay is still Pending (not
-                // once it's Confirmed - narrowed from Pending-or-Confirmed).
-                // b.isEditedOnce() is the server-authoritative one-time-edit lock
-                // (Reservation::edited_at, see Api\ReservationController::update())
-                // - the real enforcement, unbypassable by reinstall/another device.
-                // LocalTransactionState.hasModifiedOnce() is kept alongside it purely
-                // as an optimistic UI flag so the button disappears instantly right
-                // after a save, before the next server refresh lands.
-                boolean canModify = !isBookingTab
-                        && ReservationEditPolicy.canEdit(b, LocalTransactionState.hasModifiedOnce(BookingAndReservationActivity.this, b.getId()));
-                if (canModify) {
-                    holder.btnModify.setVisibility(View.VISIBLE);
-                    holder.btnModify.setOnClickListener(v -> launchModifyWizard(b));
-                } else {
-                    holder.btnModify.setVisibility(View.GONE);
-                }
-
-            }
+            // Cancelled / completed: Book again and Delete (outlined / text, never filled). A historical (post-conversion)
+            // reservation record is view-only and never offers Delete (its id is not a real backend row).
+            boolean canBookAgain = category == TransactionCategorizer.Category.CANCELLED;
+            holder.layoutClosedActions.setVisibility(deletable ? View.VISIBLE : View.GONE);
+            holder.btnBookAgain.setVisibility(deletable && canBookAgain ? View.VISIBLE : View.GONE);
+            holder.btnBookAgain.setText(isBookingTab ? R.string.book_again_button : R.string.reserve_again_button);
+            holder.btnBookAgain.setOnClickListener(deletable && canBookAgain ? v -> startBookAgain(b) : null);
+            holder.btnDelete.setVisibility(deletable ? View.VISIBLE : View.GONE);
+            holder.btnDelete.setEnabled(true);
+            holder.btnDelete.setOnClickListener(deletable ? v -> confirmDeleteTransaction(b) : null);
 
             // Highlight the card the guest selected from the dashboard.
             if (holder.itemView instanceof com.google.android.material.card.MaterialCardView) {
@@ -3784,7 +3851,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                         (com.google.android.material.card.MaterialCardView) holder.itemView;
                 boolean highlighted = highlightId != null && highlightId.equals(b.getId());
                 card.setStrokeColor(getResources().getColor(
-                        highlighted ? R.color.velocity_red_primary : R.color.velocity_red_subtle));
+                        highlighted ? R.color.velocity_red_primary : R.color.velocity_divider_hairline));
                 card.setStrokeWidth((int) (getResources().getDisplayMetrics().density * (highlighted ? 2 : 1)));
             }
         }
@@ -3795,10 +3862,10 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingGuests, tvBookingPrice;
-            TextView tvBookingPaymentMethod, tvBookingPaidLine;
-            LinearLayout layoutActionButtons;
-            TextView tvFrontDeskNote;
+            TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingPrice;
+            TextView tvBookingPaymentMethod, tvBookingPaidLine, tvFrontDeskNote, tvPayAtDesk;
+            LinearLayout layoutActionButtons, layoutClosedActions;
+            ImageButton btnCardOverflow;
             MaterialButton btnModify, btnCancel, btnViewDetails, btnPayNow, btnDelete, btnBookAgain;
 
             ViewHolder(View itemView) {
@@ -3808,16 +3875,18 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 tvModifiedBadge = itemView.findViewById(R.id.tvModifiedBadge);
                 tvBookingRoomName = itemView.findViewById(R.id.tvBookingRoomName);
                 tvBookingDates = itemView.findViewById(R.id.tvBookingDates);
-                tvBookingGuests = itemView.findViewById(R.id.tvBookingGuests);
                 tvBookingPrice = itemView.findViewById(R.id.tvBookingPrice);
                 tvBookingPaymentMethod = itemView.findViewById(R.id.tvBookingPaymentMethod);
                 tvBookingPaidLine = itemView.findViewById(R.id.tvBookingPaidLine);
+                tvFrontDeskNote = itemView.findViewById(R.id.tvFrontDeskNote);
+                tvPayAtDesk = itemView.findViewById(R.id.tvPayAtDesk);
                 layoutActionButtons = itemView.findViewById(R.id.layoutActionButtons);
+                layoutClosedActions = itemView.findViewById(R.id.layoutClosedActions);
+                btnCardOverflow = itemView.findViewById(R.id.btnCardOverflow);
                 btnModify = itemView.findViewById(R.id.btnModify);
                 btnCancel = itemView.findViewById(R.id.btnCancel);
                 btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
                 btnPayNow = itemView.findViewById(R.id.btnPayNow);
-                tvFrontDeskNote = itemView.findViewById(R.id.tvFrontDeskNote);
                 btnDelete = itemView.findViewById(R.id.btnDelete);
                 btnBookAgain = itemView.findViewById(R.id.btnBookAgain);
             }

@@ -181,8 +181,8 @@ public class DashboardSectionLayoutTest {
         List<Section> s = new ArrayList<>();
         s.add(new Section("hero", a.findViewById(R.id.welcomeCard)));
         s.add(new Section("clock", a.findViewById(R.id.dateTimeCard)));
-        s.add(new Section("Your Next Stay", a.findViewById(R.id.nextStayHeader), a.findViewById(R.id.nextStaySummary), a.findViewById(R.id.nextStayCard)));
-        s.add(new Section("Quick Actions", a.findViewById(R.id.quickActionsHeader), a.findViewById(R.id.quickActionsBody)));
+        s.add(new Section("Your Next Stay", a.findViewById(R.id.nextStaySectionCard)));
+        s.add(new Section("Quick Actions", a.findViewById(R.id.quickActionsCard)));
         s.add(new Section("Stay Calendar", a.findViewById(R.id.stayCalendar)));
         s.add(new Section("Other Recent & Upcoming Stays", a.findViewById(R.id.moreStaysSection)));
         s.add(new Section("Pending & Confirmed Stays", a.findViewById(R.id.recentUpcomingCard)));
@@ -219,7 +219,9 @@ public class DashboardSectionLayoutTest {
         DashboardActivity activity = launch();
         answer();
         assertEveryGapIsTheSharedOne(activity, "empty");
-        assertEquals("Other Stays is hidden with no data, and takes its gap with it", View.GONE, activity.findViewById(R.id.moreStaysSection).getVisibility());
+        assertEquals("Other Stays never disappears: with no data it says so", View.VISIBLE, activity.findViewById(R.id.moreStaysSection).getVisibility());
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.moreStaysEmpty).getVisibility());
+        assertEquals("No recent or upcoming stays", ((android.widget.TextView) activity.findViewById(R.id.moreStaysEmpty)).getText().toString());
     }
 
     @Test

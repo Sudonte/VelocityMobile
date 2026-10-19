@@ -64,7 +64,8 @@
                         android:layout_marginHorizontal="22dp"
                         android:layout_marginTop="8dp"
                         android:layout_marginBottom="14dp"
-                        android:lineSpacingExtra="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="@string/booking_tab_desc"
                         android:textColor="@color/velocity_text_secondary"
                         android:textSize="12sp" />
@@ -146,34 +147,33 @@
                     android:id="@+id/layoutWizardEntryActions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginBottom="6dp"
+                    android:gravity="end"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNewBooking"
-                        style="@style/Widget.Velocity.Flat.Button"
-                        android:layout_width="0dp"
+                        style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
                         android:text="@string/tab_new_booking"
-                        android:textSize="12sp"
                         app:icon="@drawable/ic_bed"
-                        app:backgroundTint="@color/velocity_red_primary" />
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        app:iconSize="18dp"
+                        app:iconTint="@color/button_primary_text" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNewReservation"
-                        style="@style/Widget.Velocity.Flat.Button"
-                        android:layout_width="0dp"
+                        style="@style/Widget.Velocity.Flat.Button.Compact.Filled"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
                         android:text="@string/tab_new_reservation"
-                        android:textSize="12sp"
                         app:icon="@drawable/ic_calendar"
-                        app:backgroundTint="@color/velocity_red_primary" />
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        app:iconSize="18dp"
+                        app:iconTint="@color/button_primary_text" />
                 </LinearLayout>
 
                 <!-- Edit-existing-reservation form (Modify action from the list below,
@@ -1213,7 +1213,7 @@
                 <!-- Booking List / Reservation List -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardListSection"
-                    style="@style/Widget.Velocity.Card.Flat"
+                    style="@style/Widget.Velocity.Card.Section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -1224,14 +1224,15 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_flat_box"
+                        android:background="@drawable/bg_glass_card_white"
                         android:orientation="vertical"
-                        android:padding="14dp">
+                        android:padding="12dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
+                            android:minHeight="48dp"
                             android:orientation="horizontal">
 
                             <ImageView
@@ -1246,30 +1247,24 @@
 
                             <TextView
                                 android:id="@+id/tvListTitle"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
+                                android:layout_marginStart="11dp"
                                 android:layout_marginEnd="8dp"
                                 android:layout_weight="1"
-                                android:fontFamily="sans-serif-black"
-                                android:text="@string/booking_list_title"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="14sp" />
+                                android:text="@string/tab_booking_list_switcher" />
 
                             <TextView
                                 android:id="@+id/tvListCount"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="8dp"
-                                android:background="@drawable/shape_flat_badge"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:fontFamily="sans-serif-black"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="3dp"
+                                android:fontFamily="sans-serif-medium"
                                 android:text="@string/zero"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
-                                tools:text="3" />
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="13sp"
+                                tools:text="2 results" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnExpandList"
@@ -1294,205 +1289,183 @@
                             android:id="@+id/tvListDesc"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:layout_marginBottom="8dp"
-                            android:lineSpacingExtra="2dp"
+                            android:visibility="gone"
                             android:text="@string/booking_items_desc"
                             android:textColor="@color/velocity_text_secondary"
                             android:textSize="12sp" />
 
-                        <!-- Search: filters rvItemList in-memory against the already-
-                             loaded allMyBookings, combined with whichever status chip
-                             is active below (see BookingAndReservationActivity#
-                             matchesSearch()/itemsForCurrentTab()) - no per-keystroke
-                             network call, and search never changes the active tab or
-                             status on its own. -->
-                        <TextView
-                            style="@style/TextAppearance.Velocity.Label.Input"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="4dp"
-                            android:fontFamily="sans-serif-bold"
-                            android:text="@string/search_label"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="12sp" />
-
+                        <!-- Search: filters the list in memory (ID, room type, amount), once the guest pauses typing. -->
                         <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
+                            android:id="@+id/tilSearchTransactions"
+                            style="@style/Widget.Velocity.TextInputLayout.Filter.Search"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="8dp"
-                            android:hint="@string/search_transactions_hint"
-                            android:textColorHint="@color/velocity_text_secondary"
                             app:endIconMode="clear_text"
-                            app:hintTextColor="@color/velocity_text_secondary"
-                            app:startIconDrawable="@drawable/ic_room_search"
-                            app:startIconTint="@color/velocity_red_primary">
+                            app:startIconDrawable="@drawable/ic_search">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etSearchTransactions"
                                 android:layout_width="match_parent"
-                                android:layout_height="46dp"
-                                android:inputType="text"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:hint="@string/search_transactions_hint"
                                 android:imeOptions="actionSearch"
+                                android:inputType="text"
                                 android:maxLines="1"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="12sp" />
+                                android:textSize="14sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Cancellation policy notice: shown above the Booking List only
-                             (payment already exists there), explaining that a fully paid
-                             booking cannot be cancelled while a partially paid one can be,
-                             without any refund of the partial amount. -->
-                        <com.google.android.material.card.MaterialCardView
+                        <!-- Cancellation policy: one compact row that opens the full wording (Bookings tab only). -->
+                        <LinearLayout
                             android:id="@+id/cardCancellationPolicy"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="8dp"
-                            app:cardBackgroundColor="@color/velocity_red_subtle"
-                            app:strokeColor="@color/velocity_red_soft"
-                            app:strokeWidth="1dp">
+                            android:orientation="vertical">
 
                             <LinearLayout
+                                android:id="@+id/layoutCancellationPolicyRow"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="top"
-                                android:orientation="horizontal"
-                                android:padding="8dp">
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:contentDescription="@string/cancellation_policy_expand_cd"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:minHeight="48dp"
+                                android:orientation="horizontal">
 
                                 <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:layout_marginTop="1dp"
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
                                     android:contentDescription="@null"
+                                    android:importantForAccessibility="no"
                                     android:src="@drawable/ic_info"
                                     app:tint="@color/velocity_red_primary" />
 
                                 <TextView
-                                    android:id="@+id/tvCancellationPolicyNotice"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:layout_weight="1"
-                                    android:lineSpacingExtra="2dp"
-                                    android:text="@string/booking_cancellation_policy_notice"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:maxLines="1"
+                                    android:text="@string/cancellation_policy_title"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
+                                    android:textSize="13sp" />
 
-                        <!-- Filter chips: All / Active / Completed / Cancelled-Rejected for whichever tab is open;
-                             each tab keeps its own selection (BookingAndReservationActivity#syncStatusFilterDisplay). -->
-                        <HorizontalScrollView
+                                <ImageView
+                                    android:id="@+id/ivCancellationChevron"
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_expand_more"
+                                    app:tint="@color/velocity_text_secondary" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvCancellationPolicyNotice"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="4dp"
+                                android:lineSpacingExtra="2dp"
+                                android:text="@string/booking_cancellation_policy_notice"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <!-- Status (full width), then Sort and Room type (half each): outlined, floating labels, single-line values. -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilTransactionStatus"
+                            style="@style/Widget.Velocity.TextInputLayout.Filter.Dropdown"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="8dp"
-                            android:scrollbars="none">
+                            android:hint="@string/status_filter_label">
 
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/cgStatusFilter"
-                                android:layout_width="wrap_content"
+                            <AutoCompleteTextView
+                                android:id="@+id/dropdownTransactionStatus"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                app:chipSpacingHorizontal="6dp"
-                                app:selectionRequired="true"
-                                app:singleLine="true"
-                                app:singleSelection="true">
+                                android:ellipsize="end"
+                                android:fontFamily="sans-serif-medium"
+                                android:inputType="none"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:text="@string/filter_all_label"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="14sp"
+                                tools:ignore="LabelFor" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipStatusAll"
-                                    style="@style/Widget.Velocity.Flat.Chip"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/chip_status_all"
-                                    android:textSize="13sp" />
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipStatusActive"
-                                    style="@style/Widget.Velocity.Flat.Chip"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/chip_status_active"
-                                    android:textSize="13sp" />
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipStatusCompleted"
-                                    style="@style/Widget.Velocity.Flat.Chip"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/chip_status_completed"
-                                    android:textSize="13sp" />
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipStatusCancelled"
-                                    style="@style/Widget.Velocity.Flat.Chip"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/chip_status_cancelled"
-                                    android:textSize="13sp" />
-                            </com.google.android.material.chip.ChipGroup>
-                        </HorizontalScrollView>
-
-                        <!-- Sort By / Room Type: two visually separate exposed-dropdown
-                             controls (not one combined Filter dialog) - same
-                             TextInputLayout.ExposedDropdown pattern RoomBrowsingActivity's
-                             own Sort/Room Type row already uses, for consistency. Room
-                             Type options are sourced from the active room catalog
-                             (allRooms, already loaded by this screen for Add Room), not
-                             from the guest's own past transactions, so a room type the
-                             Administrator has since deactivated stops being offered as a
-                             filter choice while any historical transaction that used it
-                             remains visible in the list untouched (see
-                             refreshRoomTypeFilterDropdown()). -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
+                            android:layout_marginBottom="4dp"
                             android:baselineAligned="false"
                             android:orientation="horizontal">
 
                             <com.google.android.material.textfield.TextInputLayout
-                                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
+                                style="@style/Widget.Velocity.TextInputLayout.Filter.Dropdown"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="@dimen/date_field_gap"
                                 android:layout_weight="1"
-                                android:hint="@string/sort_row_label"
-                                app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+                                android:hint="@string/sort_row_label">
 
                                 <AutoCompleteTextView
                                     android:id="@+id/dropdownTransactionSort"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-bold"
-                                    android:includeFontPadding="false"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-medium"
                                     android:inputType="none"
-                                    android:paddingVertical="8dp"
+                                    android:maxLines="1"
+                                    android:singleLine="true"
                                     android:text="@string/transaction_sort_newest"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
+                                    android:textSize="14sp"
                                     tools:ignore="LabelFor" />
                             </com.google.android.material.textfield.TextInputLayout>
 
                             <com.google.android.material.textfield.TextInputLayout
-                                style="@style/Widget.Velocity.TextInputLayout.ExposedDropdown.Square"
+                                style="@style/Widget.Velocity.TextInputLayout.Filter.Dropdown"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/date_field_gap"
                                 android:layout_weight="1"
-                                android:hint="@string/room_type_row_label"
-                                app:hintTextAppearance="@style/TextAppearance.Velocity.Label.Input">
+                                android:hint="@string/room_type_row_label">
 
                                 <AutoCompleteTextView
                                     android:id="@+id/dropdownTransactionRoomType"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:fontFamily="sans-serif-bold"
-                                    android:includeFontPadding="false"
+                                    android:ellipsize="end"
+                                    android:fontFamily="sans-serif-medium"
                                     android:inputType="none"
-                                    android:paddingVertical="8dp"
-                                    android:text="@string/all_room_types_label"
+                                    android:maxLines="1"
+                                    android:singleLine="true"
+                                    android:text="@string/filter_all_label"
                                     android:textColor="@color/velocity_text_primary"
-                                    android:textSize="12sp"
+                                    android:textSize="14sp"
                                     tools:ignore="LabelFor" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearListFilters"
+                            style="@style/Widget.Velocity.Flat.Button.Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:insetTop="4dp"
+                            android:insetBottom="4dp"
+                            android:text="@string/clear_filters_label"
+                            android:textColor="@color/velocity_action_text"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
 
                         <View
                             android:layout_width="match_parent"

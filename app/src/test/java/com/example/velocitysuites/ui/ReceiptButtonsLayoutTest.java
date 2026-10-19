@@ -88,7 +88,7 @@ public class ReceiptButtonsLayoutTest {
     public void cancelBookingAndCancelReservationButtons_showTheFullLabel_atEveryFontScaleAndWidth() {
         for (float scale : FONT_SCALES) {
             for (int widthDp : WIDTHS_DP) {
-                for (int labelRes : new int[]{R.string.cancel_booking_button, R.string.cancel_reservation_button}) {
+                for (int labelRes : new int[]{R.string.cancel_label}) { // the card says "Cancel"; the dialog keeps the full wording
                     Context context = LayoutHarness.themedContext(scale, R.style.Theme_VelocitySuites_Flat);
                     View card = LayoutInflater.from(context).inflate(R.layout.item_booking_card, LayoutHarness.parentOfWidth(context, widthDp), false);
                     MaterialButton cancel = card.findViewById(R.id.btnCancel);
