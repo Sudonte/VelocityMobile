@@ -396,13 +396,17 @@ public class BookingDetailsActivity extends AppCompatActivity {
         container.addView(row);
     }
 
+    private boolean offersAmenityRequests() {
+        String status = booking.getStatus();
+        return booking.isHasBooking() && !"Cancelled".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)
+                && !"Checked-Out".equalsIgnoreCase(status);
+    }
+
     /** Request Additional Amenities: offered for a stay that exists (not a cancelled one or a finished one); the server's answer enables it or explains why not. */
     private void bindRequestAmenities() {
         View button = findViewById(R.id.btnRequestAmenitiesDetails);
         TextView reason = findViewById(R.id.tvRequestAmenitiesDetailsReason);
-        String status = booking.getStatus();
-        boolean offered = booking.isHasBooking() && !"Cancelled".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)
-                && !"Checked-Out".equalsIgnoreCase(status);
+        boolean offered = offersAmenityRequests();
         if (!offered) {
             button.setVisibility(View.GONE);
             reason.setVisibility(View.GONE);
@@ -989,7 +993,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
         }
 
         // Every room with its approved amenities (the one shared view), above the money.
-        container.addView(TransactionRoomsView.build(this, booking));
+        // The button check below asks the server for the same request list and hands it to this view; otherwise ask here.
+        TransactionRoomsView.addLive(this, container, booking, !offersAmenityRequests());
 
         // A stay that is in house or finished and was paid at check-in: the server's own breakdown, grouped
         // Check-in Billing / Amenities & Charges / Payment Summary (the same figures the 3rd receipt prints).

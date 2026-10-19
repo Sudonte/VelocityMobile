@@ -195,6 +195,31 @@ final class NotificationText {
         return null;
     }
 
+    /**
+     * The amenity line an "Amenity Request Approved" / "...Rejected" message names - quantity, item, the "(Room 1-001)" it was for and
+     * the "(₱50.00)" it adds - or null when the text is not an amenity verdict. The same pattern that words the notification, so a
+     * room is only ever read from text the server wrote for exactly that purpose.
+     */
+    @Nullable
+    static AmenityRecord amenityRecordIn(@Nullable String message) {
+        if (message == null) return null;
+        Matcher match = AMENITY.matcher(message);
+        if (!match.find()) return null;
+        String item = match.group(2).trim();
+        if (item.isEmpty()) return null;
+        String verdict = match.group(5).toLowerCase(Locale.US);
+        double amount = -1;
+        if (match.group(4) != null) {
+            try {
+                amount = Double.parseDouble(match.group(4).replace(",", ""));
+            } catch (NumberFormatException ignored) {
+                // an unreadable amount is simply unknown
+            }
+        }
+        return new AmenityRecord(0, item, Integer.parseInt(match.group(1)), amount, match.group(3),
+                null, verdict.equals("approved") ? AmenityRecord.Status.APPROVED : AmenityRecord.Status.REJECTED);
+    }
+
     @Nullable
     private static Content amenity(Context c, String message, String t, String m, @Nullable String label) {
         Matcher match = AMENITY.matcher(message);

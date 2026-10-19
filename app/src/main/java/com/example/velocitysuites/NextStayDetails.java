@@ -177,7 +177,7 @@ final class NextStayDetails {
         for (Row row : rows) {
             switch (row.kind) {
                 case ROOMS: {
-                    if (booking != null) box.addView(TransactionRoomsView.build(c, booking));
+                    if (booking != null) TransactionRoomsView.addLive(c, box, booking);
                     break;
                 }
                 case DIVIDER: {

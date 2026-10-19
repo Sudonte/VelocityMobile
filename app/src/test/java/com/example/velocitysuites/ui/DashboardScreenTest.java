@@ -389,7 +389,9 @@ public class DashboardScreenTest {
             assertTrue(needle + " missing or out of order in: " + all, at >= 0);
             last = at;
         }
-        assertFalse("a pending request is never part of the numbers", all.contains("₱100.00"));
+        int waiting = all.indexOf("Waiting for approval");
+        assertTrue(all, waiting >= 0);
+        assertEquals("a pending request's amount is listed only under Waiting for approval, never in the numbers", -1, all.substring(0, waiting).indexOf("₱100.00"));
         assertFalse("one balance line only", all.contains("Remaining Balance"));
         assertEquals(1, all.split("Balance due", -1).length - 1);
         tap(toggle);

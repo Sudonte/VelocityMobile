@@ -514,6 +514,7 @@ public final class RoomRepository {
      * across a logout/login is both safe and desirable (avoids an unnecessary refetch).
      */
     public void clearAccountSpecificCache() {
+        AmenityRoomSources.clear(null);
         bookings.clear();
         completedHistoricalReservations.clear();
         notifications.clear();

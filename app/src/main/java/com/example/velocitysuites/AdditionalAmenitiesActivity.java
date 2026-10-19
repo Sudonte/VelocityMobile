@@ -41,11 +41,18 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         final long id;
         final String title;
         final String subtitle;
+        /** The room number ("1-001"), or null for the generic "your room". */
+        final String number;
 
         RoomEntry(long id, String title, String subtitle) {
+            this(id, title, subtitle, null);
+        }
+
+        RoomEntry(long id, String title, String subtitle, String number) {
             this.id = id;
             this.title = title;
             this.subtitle = subtitle;
+            this.number = number;
         }
     }
 
@@ -119,6 +126,8 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             @Override
             public void onSuccess(AdditionalAmenityInfoDto info) {
                 if (isFinishing()) return;
+                Booking known = currentStay();
+                if (known != null) AmenityRoomSources.putApi(known, info);
                 if (!info.can_request) {
                     showState(info.reason != null ? info.reason : getString(R.string.additional_amenities_not_available), false);
                     return;
@@ -144,21 +153,22 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
                 String title = r.room_number != null && !r.room_number.isEmpty()
                         ? getString(R.string.additional_amenities_room_title_format, r.room_number)
                         : (r.room_name != null ? r.room_name : getString(R.string.additional_amenities_your_room));
-                rooms.add(new RoomEntry(r.room_id, title, r.room_type != null ? r.room_type : ""));
+                rooms.add(new RoomEntry(r.room_id, title, r.room_type != null ? r.room_type : "", r.room_number));
             }
         }
         if (rooms.isEmpty()) rooms.add(new RoomEntry(0, getString(R.string.additional_amenities_your_room), ""));
     }
 
     /** "Booking #567 · Room 303 · Oct 20 → Oct 21, 2026": which stay this request is for (from the cached transaction). */
-    private void bindStaySummary() {
-        Booking stay = null;
+    private Booking currentStay() {
         for (Booking b : repository.getAllBookings()) {
-            if (b != null && id.equals(b.getId()) && b.isDirectBooking() == hasBooking) {
-                stay = b;
-                break;
-            }
+            if (b != null && id.equals(b.getId()) && b.isDirectBooking() == hasBooking) return b;
         }
+        return null;
+    }
+
+    private void bindStaySummary() {
+        Booking stay = currentStay();
         View card = findViewById(R.id.additionalAmenitiesStay);
         if (stay == null) {
             card.setVisibility(View.GONE);
@@ -390,6 +400,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
     private void submit() {
         if (submitting) return;
         AdditionalAmenitySubmitRequest request = new AdditionalAmenitySubmitRequest();
+        List<AmenityRecord> submitted = new ArrayList<>();
         for (RoomEntry room : rooms) {
             int[] quantities = selections.get(room.id);
             List<AdditionalAmenitySubmitRequest.Item> items = new ArrayList<>();
@@ -397,6 +408,10 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
                 if (quantities[i] <= 0) continue;
                 try {
                     items.add(new AdditionalAmenitySubmitRequest.Item(Long.parseLong(catalog.get(i).getId()), quantities[i]));
+                    if (room.number != null) {
+                        submitted.add(new AmenityRecord(0, catalog.get(i).getName(), quantities[i], catalog.get(i).getPrice() * quantities[i],
+                                room.number, room.subtitle, AmenityRecord.Status.PENDING));
+                    }
                 } catch (NumberFormatException e) {
                     // an amenity without a numeric id can't be requested; skip it rather than crash
                 }
@@ -412,6 +427,11 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
             public void onSuccess(AdditionalAmenityInfoDto info) {
                 if (isFinishing() || isDestroyed()) return;
                 submitting = false;
+                Booking known = currentStay();
+                if (known != null) {
+                    AmenityRoomSources.remember(AdditionalAmenitiesActivity.this, known, submitted); // which room each item was for
+                    AmenityRoomSources.putApi(known, info);
+                }
                 Toast.makeText(AdditionalAmenitiesActivity.this, R.string.additional_amenities_submitted, Toast.LENGTH_LONG).show();
                 setResult(RESULT_OK);
                 finish();

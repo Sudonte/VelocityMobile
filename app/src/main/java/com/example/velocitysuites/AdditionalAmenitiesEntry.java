@@ -39,6 +39,7 @@ final class AdditionalAmenitiesEntry {
                 new RoomRepository.RepositoryCallback<AdditionalAmenityInfoDto>() {
                     @Override
                     public void onSuccess(AdditionalAmenityInfoDto info) {
+                        AmenityRoomSources.publish(booking, info); // the same answer names the room of each request
                         button.setEnabled(info.can_request);
                         if (!info.can_request) {
                             reason.setText(info.reason != null ? info.reason : context.getString(R.string.additional_amenities_not_available));

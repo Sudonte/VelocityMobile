@@ -90,11 +90,14 @@ public final class StayInfo implements Serializable {
         public final String name;
         public final int quantity;
         public final double subtotal;
+        /** The room it was requested for, or null when the server does not link the line to a room. */
+        @Nullable public final String roomNumber;
 
-        AmenityLine(String name, int quantity, double subtotal) {
+        AmenityLine(String name, int quantity, double subtotal, @Nullable String roomNumber) {
             this.name = name != null ? name : "";
             this.quantity = Math.max(1, quantity);
             this.subtotal = subtotal;
+            this.roomNumber = roomNumber;
         }
     }
 
@@ -105,8 +108,10 @@ public final class StayInfo implements Serializable {
         public final double subtotal;
         public final boolean rejected;
         @Nullable public final String reason;
+        @Nullable public final String roomNumber;
 
-        RequestedAmenity(String name, int quantity, double subtotal, boolean rejected, @Nullable String reason) {
+        RequestedAmenity(String name, int quantity, double subtotal, boolean rejected, @Nullable String reason, @Nullable String roomNumber) {
+            this.roomNumber = roomNumber;
             this.name = name != null ? name : "";
             this.quantity = Math.max(1, quantity);
             this.subtotal = subtotal;
@@ -122,7 +127,7 @@ public final class StayInfo implements Serializable {
             for (StayBillDto.Amenity a : d.additional_amenities) {
                 if (a == null) continue;
                 extras.add(new String[]{a.amenity_name + " × " + a.quantity, MoneyFormat.format(a.subtotal)});
-                approved.add(new AmenityLine(a.amenity_name, a.quantity, a.subtotal));
+                approved.add(new AmenityLine(a.amenity_name, a.quantity, a.subtotal, a.room_number));
             }
         }
         this.additionalAmenities = Collections.unmodifiableList(extras);
@@ -131,7 +136,7 @@ public final class StayInfo implements Serializable {
         List<RequestedAmenity> requested = new ArrayList<>();
         if (d.requested_amenities != null) {
             for (StayBillDto.RequestedAmenity r : d.requested_amenities) {
-                if (r != null) requested.add(new RequestedAmenity(r.amenity_name, r.quantity, r.subtotal, "rejected".equals(r.status), r.reason));
+                if (r != null) requested.add(new RequestedAmenity(r.amenity_name, r.quantity, r.subtotal, "rejected".equals(r.status), r.reason, r.room_number));
             }
         }
         this.requestedAmenities = Collections.unmodifiableList(requested);

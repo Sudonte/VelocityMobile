@@ -76,6 +76,8 @@ public class StayBillDto {
 
     public static class RequestedAmenity {
         public String amenity_name;
+        /** The room it was requested for, when the server says (older servers send none). */
+        public String room_number;
         public int quantity;
         public double subtotal;
         /** "pending" or "rejected". */
@@ -85,6 +87,8 @@ public class StayBillDto {
 
     public static class Amenity {
         public String amenity_name;
+        /** The room it was requested for, when the server says (older servers send none). */
+        public String room_number;
         public int quantity;
         public double unit_price;
         public double subtotal;
