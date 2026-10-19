@@ -132,6 +132,21 @@ public class NotificationScreenTest {
         return title;
     }
 
+    /** Taps a card and returns the detail sheet it opens (the full message, the details, the action button). */
+    private Dialog openSheet(NotificationActivity activity, int position) {
+        row(list(activity), position).findViewById(R.id.cardNotification).performClick();
+        idle();
+        Dialog dialog = ShadowDialog.getLatestDialog();
+        assertNotNull("tapping a card opens its detail sheet", dialog);
+        assertNotNull(dialog.findViewById(R.id.notifDetailSheet));
+        return dialog;
+    }
+
+    private static void tapAction(Dialog sheet) {
+        sheet.findViewById(R.id.btnNotifDetailAction).performClick();
+        idle();
+    }
+
     private static String summary(NotificationActivity activity) {
         return ((TextView) activity.findViewById(R.id.tvUnreadSummary)).getText().toString();
     }
@@ -253,21 +268,21 @@ public class NotificationScreenTest {
     }
 
     @Test
-    public void tappingAnUnreadCard_marksItRead_andOpensItsDetails() {
+    public void tappingAnUnreadCard_marksItRead_andOpensTheDetailSheet_notTheTransaction() {
         NotificationActivity activity = launch().get();
         answerNotifications(2,
                 ScreenTestSupport.notification(1, "New Promotion", "promotion", null, false),
                 ScreenTestSupport.notification(2, "Payment Received", "payment", 6L, false));
         assertEquals("2", badgeText(activity));
 
-        row(list(activity), 0).findViewById(R.id.cardNotification).performClick();
-        idle();
+        Dialog sheet = openSheet(activity, 1); // the payment: it has a linked transaction, which must NOT open by itself
 
         assertEquals("the badge dropped at once", "1", badgeText(activity));
-        assertFalse(isUnread(row(list(activity), 0)));
-        assertTrue("the other row is untouched", isUnread(row(list(activity), 1)));
-        assertEquals(com.example.velocitysuites.NotificationDetailsActivity.class.getName(),
-                shadowOf(activity).getNextStartedActivity().getComponent().getClassName());
+        assertTrue("the other row is untouched", isUnread(row(list(activity), 0)));
+        assertFalse(isUnread(row(list(activity), 1)));
+        assertEquals("Payment Received", ((TextView) sheet.findViewById(R.id.tvNotifDetailTitle)).getText().toString());
+        assertEquals("View payment", ((TextView) sheet.findViewById(R.id.btnNotifDetailAction)).getText().toString());
+        assertNull("no screen opened from the card tap", shadowOf(activity).getNextStartedActivity());
     }
 
     // ---- View Transaction ----
@@ -285,15 +300,17 @@ public class NotificationScreenTest {
     }
 
     @Test
-    public void viewTransaction_opensTheExactLoadedRecord_onceEvenOnADoubleTap() {
+    public void viewTransaction_opensTheExactLoadedRecord_onlyFromTheSheetButton_onceEvenOnADoubleTap() {
         NotificationActivity activity = launch().get();
         // Two different transactions share id 5 (a reservation and a direct booking).
         repositoryHasBookings(ScreenTestSupport.reservation(5, 1800), ScreenTestSupport.directBooking(5, 3000));
         answerNotifications(1, ScreenTestSupport.notification(1, "Reservation Confirmed", "reservation", 5L, true));
 
-        View view = row(list(activity), 0).findViewById(R.id.cardNotification);
-        view.performClick();
-        view.performClick();
+        Dialog sheet = openSheet(activity, 0);
+        assertNull("the card tap alone opens nothing", shadowOf(activity).getNextStartedActivity());
+        assertEquals("View Reservation #5", ((TextView) sheet.findViewById(R.id.btnNotifDetailAction)).getText().toString());
+        sheet.findViewById(R.id.btnNotifDetailAction).performClick();
+        sheet.findViewById(R.id.btnNotifDetailAction).performClick();
 
         Intent started = shadowOf(activity).getNextStartedActivity();
         assertNotNull(started);
@@ -305,22 +322,22 @@ public class NotificationScreenTest {
     }
 
     @Test
-    public void aReceiptNotification_opensThatReceiptInOneTap() {
+    public void aReceiptNotification_opensThatReceiptFromTheSheetsButton() {
         NotificationActivity activity = launch().get();
         com.example.velocitysuites.network.dto.NotificationDto withReceipt = ScreenTestSupport.notification(1, "Checked In - Receipt 2 Ready", "booking", 5L, false);
         withReceipt.receipt_number = "SR-000123";
         withReceipt.receipt_type = "CHECKIN_SETTLEMENT_RECEIPT";
         answerNotifications(1, withReceipt);
 
-        View view = row(list(activity), 0).findViewById(R.id.cardNotification);
-        view.performClick();
-        view.performClick();
+        Dialog sheet = openSheet(activity, 0);
+        assertEquals("View receipt", ((TextView) sheet.findViewById(R.id.btnNotifDetailAction)).getText().toString());
+        tapAction(sheet);
 
         Intent started = shadowOf(activity).getNextStartedActivity();
         assertNotNull(started);
         assertEquals(com.example.velocitysuites.PaymentReceiptActivity.class.getName(), started.getComponent().getClassName());
         assertEquals("SR-000123", started.getStringExtra(com.example.velocitysuites.PaymentReceiptActivity.EXTRA_RECEIPT_NUMBER));
-        assertNull("no second screen from the second tap", shadowOf(activity).getNextStartedActivity());
+        assertNull(shadowOf(activity).getNextStartedActivity());
     }
 
     @Test
@@ -328,8 +345,7 @@ public class NotificationScreenTest {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Booking Pending", "booking", 77L, true));
 
-        row(list(activity), 0).findViewById(R.id.cardNotification).performClick();
-        idle();
+        tapAction(openSheet(activity, 0));
         assertEquals("a Booking notification asks the booking table first", "getDirectBooking(77)", api.log.get(api.log.size() - 1));
 
         FakeCall<DirectBookingResponseDto> call = api.last("getDirectBooking");
@@ -342,12 +358,12 @@ public class NotificationScreenTest {
     }
 
     @Test
-    public void viewTransaction_forARecordThatNoLongerExists_showsAFriendlyMessage() {
+    public void viewTransaction_forARecordThatNoLongerExists_saysSoInTheSheet_insteadOfCrashing() {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Payment Pending Validation", "payment", 9999L, true));
 
-        row(list(activity), 0).findViewById(R.id.cardNotification).performClick();
-        idle();
+        Dialog sheet = openSheet(activity, 0);
+        tapAction(sheet);
         FakeCall<ReservationDto> reservation = api.last("getReservation");
         reservation.http(404);
         idle();
@@ -355,9 +371,10 @@ public class NotificationScreenTest {
         direct.http(404);
         idle();
 
-        Dialog dialog = ShadowDialog.getLatestDialog();
-        assertNotNull("a friendly dialog, not a crash", dialog);
-        assertTrue(dialog.isShowing());
+        TextView error = sheet.findViewById(R.id.tvNotifDetailError);
+        assertEquals(View.VISIBLE, error.getVisibility());
+        assertEquals("This item is no longer available", error.getText().toString());
+        assertTrue("the sheet stays open", sheet.isShowing());
         assertNull("nothing was opened", shadowOf(activity).getNextStartedActivity());
     }
 
@@ -366,17 +383,16 @@ public class NotificationScreenTest {
         NotificationActivity activity = launch().get();
         answerNotifications(1, ScreenTestSupport.notification(1, "Payment Pending Validation", "payment", 9999L, true));
 
-        View view = row(list(activity), 0).findViewById(R.id.cardNotification);
-        view.performClick();
-        idle();
+        Dialog sheet = openSheet(activity, 0);
+        tapAction(sheet);
         FakeCall<ReservationDto> reservation = api.last("getReservation");
         reservation.offline();
         idle();
-        assertTrue(org.robolectric.shadows.ShadowToast.getTextOfLatestToast().startsWith("Couldn't open that transaction"));
+        TextView error = sheet.findViewById(R.id.tvNotifDetailError);
+        assertEquals(View.VISIBLE, error.getVisibility());
+        assertTrue(error.getText().toString().startsWith("Couldn't open it"));
 
-        idleFor(800);
-        view.performClick();
-        idle();
+        tapAction(sheet);
         assertEquals("a retry asks again", 2, api.count("getReservation"));
     }
 

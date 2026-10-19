@@ -71,9 +71,9 @@
                         android:paddingVertical="3dp"
                         android:text="@string/available_label"
                         android:textColor="@color/velocity_green_primary"
-                        android:textSize="11sp"
-                        android:textAllCaps="true"
-                        android:letterSpacing="0.05" />
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:letterSpacing="0" />
 
                     <!-- Favorite toggle - top-right of the image. -->
                     <com.google.android.material.card.MaterialCardView
@@ -81,10 +81,10 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|end"
                         android:layout_margin="6dp"
-                        app:cardBackgroundColor="@color/white"
+                        app:cardBackgroundColor="@color/velocity_surface_elevated"
                         app:cardCornerRadius="@dimen/card_corner_radius"
                         app:cardElevation="@dimen/card_elevation"
-                        app:strokeColor="@color/velocity_red_subtle"
+                        app:strokeColor="@color/velocity_red_primary"
                         app:strokeWidth="1dp">
 
                         <ImageButton
@@ -98,29 +98,6 @@
                             app:tint="@color/velocity_red_primary" />
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Price Tag - bottom-left of the image. -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|start"
-                        android:layout_margin="8dp"
-                        app:cardBackgroundColor="@color/velocity_red_primary"
-                        app:cardCornerRadius="@dimen/card_corner_radius"
-                        app:cardElevation="@dimen/card_elevation">
-
-                        <TextView
-                            android:id="@+id/roomPrice"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:includeFontPadding="false"
-                            android:paddingHorizontal="9dp"
-                            android:paddingVertical="4dp"
-                            android:textColor="@color/white"
-                            android:textSize="12sp"
-                            android:letterSpacing="-0.02"
-                            tools:text="3,500 / night" />
-                    </com.google.android.material.card.MaterialCardView>
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -145,6 +122,28 @@
                     android:textSize="14sp"
                     android:letterSpacing="-0.02"
                     tools:text="Standard Room" />
+
+                <TextView
+                    android:id="@+id/roomTypeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp"
+                    tools:text="Deluxe" />
+
+                <TextView
+                    android:id="@+id/roomPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-black"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="16sp"
+                    tools:text="₱3,600.00 / night" />
 
                 <!-- Short description: two lines at most, hidden when the room has none. -->
                 <TextView

@@ -78,7 +78,8 @@
         android:layout_width="wrap_content"
         android:layout_height="56dp"
         android:layout_marginTop="36dp"
-        android:fontFamily="sans-serif-black"
+        android:fontFamily="sans-serif-bold"
+        android:letterSpacing="0"
         android:paddingHorizontal="29dp"
         android:textAllCaps="false"
         android:textColor="@color/white"
@@ -91,5 +92,23 @@
         tools:icon="@drawable/ic_clock"
         tools:text="Refresh"
         tools:visibility="visible" />
+
+    <!-- An optional second, quieter action ("Change dates" next to "Clear filters"). -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEmptyAction2"
+        style="@style/Widget.Velocity.Flat.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-bold"
+        android:letterSpacing="0"
+        android:minHeight="48dp"
+        android:textAllCaps="false"
+        android:textColor="@color/velocity_action_text"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnEmptyAction"
+        tools:text="Change dates" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

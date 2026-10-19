@@ -407,8 +407,8 @@
     <string name="guest_counter_format">%1$d of %2$s</string>
     <string name="guest_count_adjusted_to_capacity">Guest count lowered to fit your rooms (up to %1$d guests).</string>
     <plurals name="rooms_found">
-        <item quantity="one">%d Room Found</item>
-        <item quantity="other">%d Rooms Found</item>
+        <item quantity="one">%d room</item>
+        <item quantity="other">%d rooms</item>
     </plurals>
     <plurals name="guests_noun">
         <item quantity="one">%1$d guest</item>
@@ -696,18 +696,17 @@
     <string name="select_date_hint">Select date</string>
     <string name="sort_row_label">Sort by</string>
     <string name="room_type_row_label">Room type</string>
-    <string name="room_status_row_label">Room status</string>
-    <string name="filter_status_all_rooms">All Rooms</string>
+    <string name="room_status_row_label">Availability</string>
+    <string name="filter_status_all_rooms">Any availability</string>
     <string name="filter_status_available">Available</string>
     <string name="filter_status_limited">Limited</string>
     <string name="filter_status_unavailable">Unavailable</string>
-    <string name="search_availability">View Availability</string>
+    <string name="search_availability">View availability</string>
     <string name="find_perfect_stay">Find Your Perfect Stay</string>
     <string name="no_rooms_available">No rooms available for the selected dates and filters.</string>
     <string name="available_label">Available</string>
-    <string name="limited_label">Limited</string>
+    <string name="limited_label">Limited availability</string>
     <string name="unavailable_label">Fully Booked</string>
-    <string name="rooms_left_format">Only %d room(s) left</string>
     <string name="price_format_night">&#8369;%,.0f</string>
     <string name="price_format_per_night">&#8369;%,.0f / night</string>
     <string name="per_night_suffix">/ night</string>
@@ -716,14 +715,9 @@
     <string name="pricing_text_format">%1$s per night\nNo Refund - payments are non-refundable.</string>
     <string name="description_label">Description</string>
     <string name="amenities_label">Amenities</string>
-    <string name="room_browsing_desc">Luxury comfort tailored to your preferences. Find your perfect stay with our refined selection of suites.</string>
-    <string name="all_categories">All Types</string>
+    <string name="room_browsing_desc">Find a room for your dates</string>
+    <string name="all_categories">All types</string>
     <string name="capacity_label">Capacity</string>
-    <string name="price_range_label">Price Range</string>
-    <string name="any_capacity">Any Capacity</string>
-    <string name="guests_1_2">1–2 Guests</string>
-    <string name="guests_3_4">3–4 Guests</string>
-    <string name="guests_5_plus">5+ Guests</string>
     <string name="bed_type_label">Bed Type</string>
     <string name="room_size_label">Room Size</string>
     <string name="hotel_policies_label">Hotel Policies</string>
@@ -736,16 +730,12 @@
     <string name="king_bed">King Size Bed</string>
     <string name="queen_bed">Queen Size Bed</string>
     <string name="twin_beds">Twin Beds</string>
-    <string name="budget_label">Budget: Under &#8369;%1$s</string>
-    <string name="apply_filters">Apply Filters</string>
-    <string name="filter_rooms_title">Filter Rooms</string>
+    <string name="filter_rooms_title">Filter rooms</string>
     <string name="no_matching_rooms">No rooms available</string>
     <string name="no_matching_rooms_desc">No rooms available for these dates. Try different dates.</string>
     <string name="reset_label">Reset</string>
     <string name="refresh_label">Refresh</string>
 
-    <string name="results_count_split_format">%1$d Available &#8226; %2$d Unavailable</string>
-    <string name="error_fill_search_fields">You must fill the search by room/types or check in and check out dates before clicking the search availability button</string>
     <string name="no_rooms_available_for_dates">No rooms are available for the selected check-in and check-out dates. Please choose different dates.</string>
     <string name="occupied_from_until_format">Occupied: %1$s – %2$s</string>
     <string name="available_rooms_header_format">Available Rooms (%1$d)</string>
@@ -754,8 +744,8 @@
     <string name="cd_close_dialog">Close dialog</string>
     <string name="filter_label">Filters</string>
     <string name="clear_label">Clear</string>
-    <string name="filters_count_format">FILTERS (%1$d)</string>
-    <string name="sort_default">Default</string>
+    <string name="filters_count_format">Filters \u00b7 %1$d</string>
+    <string name="sort_default">Recommended</string>
     <string name="sort_price_low_high">Price: Low to High</string>
     <string name="sort_price_high_low">Price: High to Low</string>
     <string name="sort_name_az">Name: A-Z</string>
@@ -1340,10 +1330,6 @@
         <item quantity="one">Up to %1$d guest total</item>
         <item quantity="other">Up to %1$d guests total</item>
     </plurals>
-    <plurals name="room_card_guests_format">
-        <item quantity="one">%1$d Guest</item>
-        <item quantity="other">%1$d Guests</item>
-    </plurals>
     <string name="capacity_reached_multi">Maximum combined capacity reached for your selected rooms (%1$d guests).</string>
     <string name="summary_room_row_format">%1$s — %2$d night(s)</string>
     <string name="summary_room_row_qty_format">%1$d× %2$s — %3$d night(s)</string>
@@ -1902,7 +1888,6 @@
     <string name="notif_category_promotion">Promotion</string>
     <string name="notif_category_sms">SMS</string>
     <string name="notif_category_system">System</string>
-    <string name="notif_category_announcement">Announcement</string>
     <!-- Header summary while the first load is still in flight / has failed: the unread count is
          UNKNOWN then, so "You're all caught up" (a claim that it is 0) must not be shown. -->
     <string name="notif_unread_checking">Checking for new alerts…</string>
@@ -2207,6 +2192,61 @@
     <string name="notif_time_hours_format">%dh ago</string>
     <string name="recent_booking_dates_format">%1$s · %2$s</string>
     <string name="cd_notification_options_format">Options for %1$s</string>
+    <string name="guests_header">Guests</string>
+    <string name="any_guests">Any</string>
+    <string name="guests_1_2_short">1\u20132</string>
+    <string name="guests_3_4_short">3\u20134</string>
+    <string name="guests_5_plus_short">5+</string>
+    <string name="price_per_night_header">Price per night</string>
+    <string name="price_range_format">\u20b1%1$s \u2013 \u20b1%2$s</string>
+    <string name="show_no_rooms">No rooms match</string>
+    <string name="sort_prefix_format">Sort: %1$s</string>
+    <string name="helper_earliest_format">Earliest: %1$s</string>
+    <string name="helper_pick_checkin_first">Pick a check-in date first</string>
+    <string name="error_pick_checkin">Choose a check-in date</string>
+    <string name="error_pick_checkout">Choose a check-out date</string>
+    <string name="chip_up_to_price_format">Up to \u20b1%1$s</string>
+    <string name="chip_from_price_format">From \u20b1%1$s</string>
+    <string name="chip_guests_format">%1$s guests</string>
+    <string name="clear_all_label">Clear all</string>
+    <string name="rooms_empty_dates_title">No rooms for these dates</string>
+    <string name="rooms_empty_dates_desc">Every room is booked for your check-in and check-out dates. Try different dates.</string>
+    <string name="rooms_empty_filters_title">No rooms match your filters</string>
+    <string name="rooms_empty_filters_desc">Try removing a filter to see more rooms.</string>
+    <string name="rooms_empty_both_title">No rooms match your dates and filters</string>
+    <string name="rooms_empty_both_desc">Clear the filters or try different dates.</string>
+    <string name="change_dates_label">Change dates</string>
+    <plurals name="room_card_up_to_guests">
+        <item quantity="one">Up to %1$d guest</item>
+        <item quantity="other">Up to %1$d guests</item>
+    </plurals>
+    <string name="cd_remove_filter_format">Remove filter %1$s</string>
+    <string name="notif_detail_view_format">View %1$s</string>
+    <string name="notif_detail_view_payment">View payment</string>
+    <string name="notif_detail_view_receipt">View receipt</string>
+    <string name="notif_detail_browse_rooms">Browse rooms</string>
+    <string name="notif_detail_unavailable">This item is no longer available</string>
+    <string name="notif_detail_lookup_error">Couldn\'t open it. Check your connection and try again.</string>
+    <string name="notif_detail_linked">Linked to</string>
+    <string name="notif_detail_room">Room</string>
+    <string name="notif_detail_total">Total</string>
+    <string name="notif_empty_unread_title">No unread notifications</string>
+    <string name="notif_empty_unread_desc">You\'re all caught up.</string>
+    <string name="notif_empty_promotions_title">No promotions right now</string>
+    <string name="notif_empty_promotions_desc">New offers and discounts will show up here.</string>
+    <string name="notif_empty_system_title">No announcements yet</string>
+    <string name="notif_empty_system_desc">Announcements from the hotel will show up here.</string>
+    <string name="notif_empty_category_title_format">No %1$s notifications</string>
+    <string name="notif_empty_category_desc">Nothing in this category yet.</string>
+    <string name="try_again_label">Try again</string>
+    <plurals name="show_rooms">
+        <item quantity="one">Show %1$d room</item>
+        <item quantity="other">Show %1$d rooms</item>
+    </plurals>
+    <plurals name="rooms_left">
+        <item quantity="one">Only %1$d left</item>
+        <item quantity="other">Only %1$d left</item>
+    </plurals>
 </resources>
 
 

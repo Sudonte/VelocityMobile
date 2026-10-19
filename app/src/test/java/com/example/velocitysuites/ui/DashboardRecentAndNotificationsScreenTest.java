@@ -23,7 +23,6 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.example.velocitysuites.DashboardActivity;
-import com.example.velocitysuites.NotificationDetailsActivity;
 import com.example.velocitysuites.R;
 import com.example.velocitysuites.RoomRepository;
 import com.example.velocitysuites.network.SessionManager;
@@ -310,11 +309,11 @@ public class DashboardRecentAndNotificationsScreenTest {
 
         assertEquals("the section badge dropped at once", "1", text(activity, R.id.notificationCountBadge));
         assertEquals("and the bell with it", "1", text(activity, R.id.headerNotificationBadge));
-        Intent next;
-        Intent opened = null;
-        while ((next = shadowOf(activity).getNextStartedActivity()) != null) if (next.getComponent() != null) opened = next;
-        assertNotNull(opened);
-        assertEquals(NotificationDetailsActivity.class.getName(), opened.getComponent().getClassName());
+        android.app.Dialog sheet = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertNotNull("the tap opens the detail sheet (the full message first)", sheet);
+        assertNotNull(sheet.findViewById(R.id.notifDetailSheet));
+        assertEquals("New Promotion", ((TextView) sheet.findViewById(R.id.tvNotifDetailTitle)).getText().toString());
+        assertEquals("Browse rooms", ((TextView) sheet.findViewById(R.id.btnNotifDetailAction)).getText().toString());
     }
 
     // ===================================================================

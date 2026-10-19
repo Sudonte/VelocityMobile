@@ -193,6 +193,6 @@ public final class NotificationPopup {
 
     private void onRowTapped(Notification n) {
         dismiss();
-        NotificationOpener.open(activity, n, null, onReadStateChanged);
+        NotificationOpener.open(activity, n, onReadStateChanged);
     }
 }

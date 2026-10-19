@@ -1074,7 +1074,7 @@ public final class ApiMapper {
     }
 
     /** Sortable epoch millis for a backend timestamp, or 0 when null/unparseable - see Booking#getCreatedAtMillis(). */
-    private static long epochMillis(String apiTimestamp) {
+    public static long epochMillis(String apiTimestamp) {
         java.time.Instant instant = TimeUtils.parseInstant(apiTimestamp);
         return instant != null ? instant.toEpochMilli() : 0L;
     }
@@ -1084,7 +1084,7 @@ public final class ApiMapper {
     }
 
     /** "MMM d, yyyy • h:mm a" in Asia/Manila - used for notification/announcement absolute timestamps, distinct from the relative timestamp above. */
-    private static String absoluteDateTime(String isoTimestamp) {
+    public static String absoluteDateTime(String isoTimestamp) {
         if (isoTimestamp == null) return "";
         String formatted = TimeUtils.formatDateTime(isoTimestamp);
         return "N/A".equals(formatted) ? "" : formatted;

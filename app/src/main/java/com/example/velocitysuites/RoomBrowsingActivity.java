@@ -48,7 +48,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private TextView tvResultsCount;
     private TextView emptyStateTitle, emptyStateDesc;
     private ImageView emptyStateIcon;
-    private MaterialButton btnEmptyStateAction;
+    private MaterialButton btnEmptyStateAction, btnEmptyStateAction2;
 
     private Calendar checkInDate, checkOutDate;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
@@ -56,10 +56,16 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private final SimpleDateFormat fieldDateFormat = new SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault());
     private final SimpleDateFormat shortDateFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
     private TextView tvNightsSummary, tvPinnedDates;
+    private ChipGroup chipsActiveFilters;
+    private View layoutActiveFilters;
+    /** The Filters bottom sheet while it is open (one at a time; dismissed with the screen). */
+    private com.google.android.material.bottomsheet.BottomSheetDialog filterSheet;
 
     // Filters and Sorting
     private int selectedCapacity = 0; // 0 for any, 1 for 1-2, 2 for 3-4, 3 for 5+
-    private float selectedMaxPrice = 15000;
+    /** Price range filter: {@link RoomFilter#UNSET} on a side = no limit there. */
+    private float selectedMinPrice = RoomFilter.UNSET;
+    private float selectedMaxPrice = RoomFilter.UNSET;
     private String currentSortMode = "Default"; // Default, PriceLow, PriceHigh, NameAZ
     private String selectedRoomTypeFilter = "All";
     private String selectedStatusFilter = "All"; // All, Available, Limited, Unavailable
@@ -143,7 +149,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private static final String STATE_CHECK_IN = "check_in_utc";
     private static final String STATE_CHECK_OUT = "check_out_utc";
     private static final String STATE_CAPACITY = "capacity";
-    private static final String STATE_MAX_PRICE = "max_price";
+    private static final String STATE_MAX_PRICE = "max_price_v2";
+    private static final String STATE_MIN_PRICE = "min_price_v2";
     private static final String STATE_SORT = "sort_mode";
     private static final String STATE_TYPE = "type_filter";
     private static final String STATE_STATUS = "status_filter";
@@ -166,6 +173,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         outState.putLong(STATE_CHECK_OUT, checkOutDate != null ? toUtcMidnight(checkOutDate) : -1L);
         outState.putInt(STATE_CAPACITY, selectedCapacity);
         outState.putFloat(STATE_MAX_PRICE, selectedMaxPrice);
+        outState.putFloat(STATE_MIN_PRICE, selectedMinPrice);
         outState.putString(STATE_SORT, currentSortMode);
         outState.putString(STATE_TYPE, selectedRoomTypeFilter);
         outState.putString(STATE_STATUS, selectedStatusFilter);
@@ -183,7 +191,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         restoredCheckInUtc = state.getLong(STATE_CHECK_IN, -1L);
         restoredCheckOutUtc = state.getLong(STATE_CHECK_OUT, -1L);
         selectedCapacity = state.getInt(STATE_CAPACITY, 0);
-        selectedMaxPrice = state.getFloat(STATE_MAX_PRICE, 15000);
+        selectedMaxPrice = state.getFloat(STATE_MAX_PRICE, RoomFilter.UNSET);
+        selectedMinPrice = state.getFloat(STATE_MIN_PRICE, RoomFilter.UNSET);
         currentSortMode = state.getString(STATE_SORT, "Default");
         selectedRoomTypeFilter = state.getString(STATE_TYPE, "All");
         selectedStatusFilter = state.getString(STATE_STATUS, "All");
@@ -246,13 +255,17 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             });
         }
         etCheckIn = findViewById(R.id.etCheckIn);
-        ((android.widget.TextView) findViewById(R.id.tvCheckInAdvanceNotice)).setText(CheckInNotice.notice(this));
         etCheckOut = findViewById(R.id.etCheckOut);
         checkInLayout = findViewById(R.id.checkInLayout);
         tvNightsSummary = findViewById(R.id.tvNightsSummary);
         tvPinnedDates = findViewById(R.id.tvPinnedDates);
-        stackDateFieldsOnNarrowScreens();
         checkOutLayout = findViewById(R.id.checkOutLayout);
+        chipsActiveFilters = findViewById(R.id.chipsActiveFilters);
+        layoutActiveFilters = findViewById(R.id.layoutActiveFilters);
+        // An error replaces the helper text under the field (never squeezed beside the value), and the red error icon is not
+        // drawn over the field's own clear (x) icon.
+        checkInLayout.setErrorIconDrawable(null);
+        checkOutLayout.setErrorIconDrawable(null);
         btnSearchAvailability = findViewById(R.id.btnSearchAvailability);
         btnFilters = findViewById(R.id.btnFilters);
         btnResetSearch = findViewById(R.id.btnResetSearch);
@@ -281,13 +294,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         btnEmptyStateAction = noResultsView.findViewById(R.id.btnEmptyAction);
         if (emptyStateTitle != null) emptyStateTitle.setText(R.string.no_matching_rooms);
         if (emptyStateDesc != null) emptyStateDesc.setText(R.string.no_matching_rooms_desc);
-        if (emptyStateIcon != null) emptyStateIcon.setImageResource(R.drawable.ic_room_search);
-        if (btnEmptyStateAction != null) {
-            btnEmptyStateAction.setText(R.string.reset_label);
-            btnEmptyStateAction.setIconResource(R.drawable.ic_filter);
-            btnEmptyStateAction.setVisibility(View.VISIBLE);
-            btnEmptyStateAction.setOnClickListener(v -> { clearAllFilters(); loadRooms(); });
-        }
+        if (emptyStateIcon != null) emptyStateIcon.setImageResource(R.drawable.ic_bed);
+        btnEmptyStateAction2 = noResultsView.findViewById(R.id.btnEmptyAction2);
 
         // Persistent network/API failure state - see roombrowsing.xml's layoutRoomError.
         layoutRoomError = findViewById(R.id.layoutRoomError);
@@ -298,7 +306,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         roomErrorTitle.setText(R.string.room_error_title);
         roomErrorDesc.setText(R.string.room_error_message);
         roomErrorIcon.setImageResource(R.drawable.ic_wifi_off);
-        btnRetryRooms.setText(R.string.retry_label);
+        btnRetryRooms.setText(R.string.try_again_label);
         btnRetryRooms.setVisibility(View.VISIBLE);
         btnRetryRooms.setOnClickListener(v -> loadRooms());
 
@@ -352,7 +360,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 setRoomsLoading(false);
                 if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                 layoutRoomError.setVisibility(View.GONE);
-                allRooms = result;
+                allRooms = result != null ? result : new ArrayList<>();
                 roomsGate.accept(allRooms); // what is about to be drawn - see onVisiblePoll()
                 refreshRoomTypeDropdownOptions();
                 showLoadedRooms();
@@ -383,12 +391,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             applyFilters();
             return;
         }
-        filteredRooms = new ArrayList<>(allRooms);
-        adapter.updateList(filteredRooms);
-        noResultsView.setVisibility(filteredRooms.isEmpty() ? View.VISIBLE : View.GONE);
-        if (tvResultsCount != null) {
-            tvResultsCount.setText(getResources().getQuantityString(R.plurals.rooms_found, filteredRooms.size(), filteredRooms.size()));
-        }
+        applyFilters();
     }
 
     /**
@@ -476,29 +479,62 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     }
 
     private void setupDatePickers() {
-        // Check-out stays disabled/inaccessible until a valid check-in is chosen.
+        // Check-out stays inaccessible until a valid check-in is chosen.
         etCheckIn.setOnClickListener(v -> showCheckInPicker());
         etCheckOut.setOnClickListener(v -> showCheckOutPicker());
+        // The x at the end of a field clears that date (clearing check-in clears check-out too: it needs a check-in).
+        checkInLayout.setEndIconOnClickListener(v -> {
+            checkInDate = null;
+            checkOutDate = null;
+            etCheckIn.setText("");
+            etCheckOut.setText("");
+            updateDateSummary();
+        });
+        checkOutLayout.setEndIconOnClickListener(v -> {
+            checkOutDate = null;
+            etCheckOut.setText("");
+            updateDateSummary();
+        });
 
         btnSearchAvailability.setOnClickListener(v -> {
-            boolean hasDates = (checkInDate != null && checkOutDate != null);
-
-            if (!hasDates) {
-                Toast.makeText(this, getString(R.string.error_fill_search_fields), Toast.LENGTH_LONG).show();
-                // Expand app bar to show date pickers if they are hidden
-                if (appBarLayout != null) {
-                    appBarLayout.setExpanded(true, true);
-                }
-                
-                // Highlight the date fields
-                if (checkInDate == null) checkInLayout.setError(getString(R.string.error_required));
-                if (checkOutDate == null) checkOutLayout.setError(getString(R.string.error_required));
-            } else {
-                checkInLayout.setError(null);
-                checkOutLayout.setError(null);
-                performSearchWithLoading();
+            if (!(checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate))) {
+                // Normally unreachable: the button is disabled until both dates are valid. Kept for accessibility tooling.
+                if (appBarLayout != null) appBarLayout.setExpanded(true, true);
+                if (checkInDate == null) setFieldError(checkInLayout, getString(R.string.error_pick_checkin));
+                if (checkOutDate == null) setFieldError(checkOutLayout, getString(R.string.error_pick_checkout));
+                return;
             }
+            checkInLayout.setError(null);
+            checkOutLayout.setError(null);
+            refreshHelperTexts();
+            performSearchWithLoading();
         });
+        refreshHelperTexts();
+        updateDateSummary();
+    }
+
+    /** The error goes in the field's own helper/error line (one line, ellipsized), never beside the value. */
+    private void setFieldError(TextInputLayout layout, String message) {
+        layout.setError(message);
+        oneLine((TextView) layout.findViewById(com.google.android.material.R.id.textinput_error));
+    }
+
+    private static void oneLine(@androidx.annotation.Nullable TextView view) {
+        if (view == null) return;
+        view.setMaxLines(1);
+        view.setEllipsize(android.text.TextUtils.TruncateAt.END);
+    }
+
+    /**
+     * One line of helper text under each field: the earliest check-in (from the 48-hour rule), and for check-out either the one-night rule
+     * or - while there is no check-in - why it cannot be picked yet. This is also where a disabled View availability says why.
+     */
+    private void refreshHelperTexts() {
+        String earliest = CheckInWindow.earliest().format(java.time.format.DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US));
+        checkInLayout.setHelperText(getString(R.string.helper_earliest_format, earliest));
+        oneLine((TextView) checkInLayout.findViewById(com.google.android.material.R.id.textinput_helper_text));
+        checkOutLayout.setHelperText(getString(checkInDate == null ? R.string.helper_pick_checkin_first : R.string.helper_checkout_after_checkin));
+        oneLine((TextView) checkOutLayout.findViewById(com.google.android.material.R.id.textinput_helper_text));
     }
 
     /** Sort / type / capacity / price changes re-filter the rooms already loaded: no network call, no spinner. */
@@ -522,7 +558,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             @Override
             public void onSuccess(List<Room> result) {
                 if (isFinishing() || isDestroyed() || seq != roomsRequestSeq) return;
-                allRooms = result;
+                allRooms = result != null ? result : new ArrayList<>();
                 roomsGate.accept(allRooms); // what is about to be drawn - see onVisiblePoll()
                 refreshRoomTypeDropdownOptions();
                 finishSearch();
@@ -565,6 +601,14 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         boolean valid = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
         btnSearchAvailability.setEnabled(valid && !roomsLoading);
         btnSearchAvailability.setText(roomsLoading ? R.string.searching_rooms_button : R.string.search_availability);
+        updateResetVisibility();
+    }
+
+    /** "Reset" shows only when something is set: a date, a filter or a sort. */
+    private void updateResetVisibility() {
+        if (btnResetSearch == null) return;
+        boolean something = checkInDate != null || checkOutDate != null || activeFilterCount() > 0 || !"Default".equals(currentSortMode);
+        btnResetSearch.setVisibility(something ? View.VISIBLE : View.GONE);
     }
 
     /** Skeleton cards while the room list loads; also puts the Search button in its loading state. */
@@ -584,6 +628,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     /** "2 nights" under the fields and "Oct 12 - Oct 14 - 2 nights" in the pinned bar - only when both dates are set. */
     private void updateDateSummary() {
         boolean both = checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate);
+        checkInLayout.setEndIconVisible(checkInDate != null);
+        checkOutLayout.setEndIconVisible(checkOutDate != null);
+        refreshHelperTexts();
         updateSearchButton();
         if (tvNightsSummary == null || tvPinnedDates == null) return;
         if (!both) {
@@ -602,22 +649,6 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         tvPinnedDates.setVisibility(View.VISIBLE);
     }
 
-    /** On a very narrow screen the two date fields stack (check-in above check-out) instead of squeezing side by side. */
-    private void stackDateFieldsOnNarrowScreens() {
-        android.widget.LinearLayout row = findViewById(R.id.dateFieldsRow);
-        if (row == null || getResources().getConfiguration().screenWidthDp >= 340) return;
-        row.setOrientation(android.widget.LinearLayout.VERTICAL);
-        for (int i = 0; i < row.getChildCount(); i++) {
-            android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) row.getChildAt(i).getLayoutParams();
-            lp.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-            lp.weight = 0f;
-            lp.setMarginStart(0);
-            lp.setMarginEnd(0);
-            lp.topMargin = i == 0 ? 0 : (int) (8 * getResources().getDisplayMetrics().density);
-            row.getChildAt(i).setLayoutParams(lp);
-        }
-    }
-
     /** Thicker red outline on the date field whose picker is open; restored when the picker closes. */
     private void highlightWhileOpen(com.google.android.material.textfield.TextInputLayout layout, MaterialDatePicker<Long> picker) {
         final int width = layout.getBoxStrokeWidth();
@@ -630,7 +661,13 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         });
     }
 
+    private boolean isPickerShowing() {
+        return getSupportFragmentManager().findFragmentByTag(TAG_CHECK_IN_PICKER) != null
+                || getSupportFragmentManager().findFragmentByTag(TAG_CHECK_OUT_PICKER) != null;
+    }
+
     private void showCheckInPicker() {
+        if (isPickerShowing()) return; // a rapid second tap must not stack a second picker
         // Earliest check-in: hotel-local today + 2 days, no upper limit (see CheckInWindow)
         long earliestCheckInUtc = CheckInWindow.earliestUtcMillis();
         com.google.android.material.datepicker.CalendarConstraints constraints =
@@ -662,6 +699,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             checkInDate = fromUtcMidnight(selection);
             etCheckIn.setText(fieldDateFormat.format(checkInDate.getTime()));
             checkInLayout.setError(null);
+            clearFieldFocus();
 
             // A previously chosen check-out that is no longer at least one
             // night after the new check-in must be re-picked
@@ -685,6 +723,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             checkOutDate = fromUtcMidnight(selection);
             etCheckOut.setText(fieldDateFormat.format(checkOutDate.getTime()));
             checkOutLayout.setError(null);
+            clearFieldFocus();
             updateDateSummary();
         });
         highlightWhileOpen(checkOutLayout, picker);
@@ -702,13 +741,18 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (checkOut instanceof MaterialDatePicker) attachCheckOutListeners((MaterialDatePicker<Long>) checkOut);
     }
 
+    private void clearFieldFocus() {
+        View focus = getCurrentFocus();
+        if (focus != null) focus.clearFocus();
+    }
+
     private void showCheckOutPicker() {
         if (checkInDate == null) {
-            // Defensive guard: the field is disabled until check-in is set, so this
-            // only fires if something (e.g. accessibility tooling) bypasses that.
-            checkInLayout.setError(getString(R.string.error_select_checkin_first));
+            // Check-out needs a check-in first: say so on the check-in field.
+            setFieldError(checkInLayout, getString(R.string.error_select_checkin_first));
             return;
         }
+        if (isPickerShowing()) return; // a rapid second tap must not stack a second picker
 
         // Check-out can only be picked from the day after check-in onward
         long earliestCheckOutUtc = toUtcMidnight(checkInDate) + ONE_DAY_MS;
@@ -760,9 +804,10 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         btnFilters.setOnClickListener(v -> showFilterDialog());
         btnResetSearch.setOnClickListener(v -> {
-            clearAllFilters();   // dates, sort, type, status, capacity, price
+            clearAllFilters();   // dates, sort, type, status, guests, price
             loadRooms();         // and back to the default room list
         });
+        findViewById(R.id.btnClearActiveFilters).setOnClickListener(v -> clearFiltersKeepDates());
         if (tvPinnedDates != null) {
             tvPinnedDates.setOnClickListener(v -> {
                 if (appBarLayout != null) appBarLayout.setExpanded(true, true);
@@ -795,17 +840,17 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (btnSort == null) return;
         String[] sortOptions = getResources().getStringArray(R.array.sort_options);
         int index = "PriceLow".equals(currentSortMode) ? 1 : "PriceHigh".equals(currentSortMode) ? 2 : "NameAZ".equals(currentSortMode) ? 3 : 0;
-        btnSort.setText(sortOptions[index]);
+        btnSort.setText(getString(R.string.sort_prefix_format, sortOptions[index]));
         btnSort.setContentDescription(getString(R.string.sorting_by_label, sortOptions[index]));
     }
 
-    /** Type / Status / Capacity / Price that differ from "show everything" - drives the FILTERS (n) badge. */
+    /** Type / availability / guests / price that differ from "show everything" - drives the "Filters . n" count and the chips. */
     private int activeFilterCount() {
         int count = 0;
         if (!"All".equals(selectedRoomTypeFilter)) count++;
         if (!"All".equals(selectedStatusFilter)) count++;
         if (selectedCapacity != 0) count++;
-        if (selectedMaxPrice < 15000) count++;
+        if (selectedMinPrice != RoomFilter.UNSET || selectedMaxPrice != RoomFilter.UNSET) count++;
         return count;
     }
 
@@ -813,6 +858,58 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         if (btnFilters == null) return;
         int count = activeFilterCount();
         btnFilters.setText(count == 0 ? getString(R.string.filter_label) : getString(R.string.filters_count_format, count));
+        updateActiveFilterChips();
+        updateResetVisibility();
+    }
+
+    private static String money(float value) {
+        return String.format(Locale.getDefault(), "%,.0f", value);
+    }
+
+    private String guestsText(int bucket) {
+        return getString(R.string.chip_guests_format, getString(bucket == 1 ? R.string.guests_1_2_short : bucket == 2 ? R.string.guests_3_4_short : R.string.guests_5_plus_short));
+    }
+
+    private String priceChipText() {
+        if (selectedMinPrice != RoomFilter.UNSET && selectedMaxPrice != RoomFilter.UNSET) {
+            return getString(R.string.price_range_format, money(selectedMinPrice), money(selectedMaxPrice));
+        }
+        if (selectedMaxPrice != RoomFilter.UNSET) return getString(R.string.chip_up_to_price_format, money(selectedMaxPrice));
+        return getString(R.string.chip_from_price_format, money(selectedMinPrice));
+    }
+
+    /** One removable chip per active filter ("Deluxe x", "3-4 guests x", "Up to P15,000 x") under the results row, plus Clear all. */
+    private void updateActiveFilterChips() {
+        if (chipsActiveFilters == null || layoutActiveFilters == null) return;
+        chipsActiveFilters.removeAllViews();
+        if (!"All".equals(selectedRoomTypeFilter)) {
+            addFilterChip(selectedRoomTypeFilter, () -> { selectedRoomTypeFilter = "All"; applyControlChange(); });
+        }
+        if (selectedCapacity != 0) addFilterChip(guestsText(selectedCapacity), () -> { selectedCapacity = 0; applyControlChange(); });
+        if (selectedMinPrice != RoomFilter.UNSET || selectedMaxPrice != RoomFilter.UNSET) {
+            addFilterChip(priceChipText(), () -> { selectedMinPrice = selectedMaxPrice = RoomFilter.UNSET; applyControlChange(); });
+        }
+        if (!"All".equals(selectedStatusFilter)) {
+            String[] labels = getResources().getStringArray(R.array.status_filter_options);
+            int i = "Available".equals(selectedStatusFilter) ? 1 : "Limited".equals(selectedStatusFilter) ? 2 : 3;
+            addFilterChip(labels[i], () -> { selectedStatusFilter = "All"; applyControlChange(); });
+        }
+        layoutActiveFilters.setVisibility(chipsActiveFilters.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    private void addFilterChip(String text, Runnable onRemove) {
+        com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(this);
+        chip.setText(text);
+        chip.setCloseIconVisible(true);
+        chip.setCloseIconContentDescription(getString(R.string.cd_remove_filter_format, text));
+        chip.setChipBackgroundColorResource(R.color.velocity_red_soft);
+        chip.setChipStrokeColorResource(R.color.velocity_red_primary);
+        chip.setChipStrokeWidth(getResources().getDisplayMetrics().density);
+        chip.setTextColor(getColor(R.color.velocity_action_text));
+        chip.setCloseIconTintResource(R.color.velocity_action_text);
+        chip.setEnsureMinTouchTargetSize(true);
+        chip.setOnCloseIconClickListener(v -> onRemove.run());
+        chipsActiveFilters.addView(chip);
     }
 
     /** Distinct room types in the loaded list (the admin can add / rename types at any time), "All" first. */
@@ -833,51 +930,82 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         }
     }
 
+    /**
+     * Filter rooms: an opaque bottom sheet. Choices are held as pending values and only written on "Show N rooms" (the button carries
+     * the live count of rooms they would leave). Room type and Availability are two different filters, each a labelled dropdown.
+     */
+    @android.annotation.SuppressLint("InflateParams") // a dialog has no parent to inflate against
     private void showFilterDialog() {
+        if (filterSheet != null && filterSheet.isShowing()) return; // a rapid second tap must not open a second sheet
+        if (isFinishing() || isDestroyed()) return;
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_room_filters, null);
-        AlertDialog dialog = new SafeDialogs.Plain(this, R.style.VelocityDialogTheme)
-                .setView(dialogView)
-                .create();
+        com.google.android.material.bottomsheet.BottomSheetDialog dialog = new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+        dialog.setContentView(dialogView);
+        filterSheet = dialog;
+        dialog.setOnDismissListener(d -> { if (filterSheet == dialog) filterSheet = null; });
+        dialog.getBehavior().setSkipCollapsed(true);
+        dialog.getBehavior().setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
 
-        ChipGroup capacityGroup = dialogView.findViewById(R.id.capacityChipGroup);
-        com.google.android.material.slider.Slider priceSlider = dialogView.findViewById(R.id.priceSlider);
+        com.google.android.material.button.MaterialButtonToggleGroup capacityGroup = dialogView.findViewById(R.id.capacityChipGroup);
+        com.google.android.material.slider.RangeSlider priceSlider = dialogView.findViewById(R.id.priceSlider);
         TextView tvPriceLabel = dialogView.findViewById(R.id.tvPriceLabel);
         MaterialButton btnApply = dialogView.findViewById(R.id.btnApplyFilters);
-        MaterialButton btnClose = dialogView.findViewById(R.id.btnCloseFilters);
+        View btnClose = dialogView.findViewById(R.id.btnCloseFilters);
         MaterialButton btnClear = dialogView.findViewById(R.id.btnClearAll);
         AutoCompleteTextView typeDropdown = dialogView.findViewById(R.id.dropdownRoomType);
         AutoCompleteTextView statusDropdown = dialogView.findViewById(R.id.dropdownStatus);
 
-        // Pending choices: only written to the real filters on Apply.
         final String[] pendingType = {selectedRoomTypeFilter};
         final String[] pendingStatus = {selectedStatusFilter};
+        final int[] pendingCapacity = {selectedCapacity};
         final String allTypes = getString(R.string.all_categories);
         final List<String> typeOptions = roomTypeOptions.isEmpty() ? java.util.Collections.singletonList(allTypes) : roomTypeOptions;
-        typeDropdown.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, typeOptions));
+        typeDropdown.setAdapter(new NonFilteringArrayAdapter(this, typeOptions));
         typeDropdown.setText("All".equals(pendingType[0]) ? allTypes : pendingType[0], false);
-        typeDropdown.setOnItemClickListener((parent, view, position, id) ->
-                pendingType[0] = position == 0 ? "All" : typeOptions.get(position));
         final String[] statusOptions = getResources().getStringArray(R.array.status_filter_options);
         final String[] statusKeys = {"All", "Available", "Limited", "Unavailable"};
-        statusDropdown.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, statusOptions));
+        statusDropdown.setAdapter(new NonFilteringArrayAdapter(this, statusOptions));
+        statusDropdown.setText(statusOptions[0], false);
         for (int i = 0; i < statusKeys.length; i++) {
             if (statusKeys[i].equals(pendingStatus[0])) statusDropdown.setText(statusOptions[i], false);
         }
-        statusDropdown.setOnItemClickListener((parent, view, position, id) ->
-                pendingStatus[0] = position < statusKeys.length ? statusKeys[position] : "All");
 
-        // Set current values
-        priceSlider.setValue(Math.min(selectedMaxPrice, priceSlider.getValueTo()));
-        tvPriceLabel.setText(getString(R.string.budget_label, String.format(Locale.getDefault(), "%,.0f", selectedMaxPrice)));
+        // The slider's bounds are the real lowest and highest room prices.
+        final float[] bounds = RoomFilter.priceBounds(allRooms);
+        priceSlider.setValueFrom(bounds[0]);
+        priceSlider.setValueTo(bounds[1]);
+        float lo = selectedMinPrice == RoomFilter.UNSET ? bounds[0] : Math.max(bounds[0], Math.min(selectedMinPrice, bounds[1]));
+        float hi = selectedMaxPrice == RoomFilter.UNSET ? bounds[1] : Math.max(bounds[0], Math.min(selectedMaxPrice, bounds[1]));
+        if (hi < lo) hi = lo;
+        priceSlider.setValues(lo, hi);
 
-        if (selectedCapacity == 0) capacityGroup.check(R.id.chipAnyCap);
-        else if (selectedCapacity == 1) capacityGroup.check(R.id.chip12);
-        else if (selectedCapacity == 2) capacityGroup.check(R.id.chip34);
-        else if (selectedCapacity == 3) capacityGroup.check(R.id.chip5plus);
+        capacityGroup.check(selectedCapacity == 1 ? R.id.chip12 : selectedCapacity == 2 ? R.id.chip34 : selectedCapacity == 3 ? R.id.chip5plus : R.id.chipAnyCap);
 
-        priceSlider.addOnChangeListener((slider, value, fromUser) -> 
-            tvPriceLabel.setText(getString(R.string.budget_label, String.format(Locale.getDefault(), "%,.0f", value)))
-        );
+        final Runnable refresh = () -> {
+            List<Float> v = priceSlider.getValues();
+            float min = v.get(0);
+            float max = v.get(v.size() - 1);
+            tvPriceLabel.setText(getString(R.string.price_range_format, money(min), money(max)));
+            int n = RoomFilter.count(allRooms, pendingType[0], pendingCapacity[0],
+                    min <= bounds[0] ? RoomFilter.UNSET : min, max >= bounds[1] ? RoomFilter.UNSET : max, pendingStatus[0]);
+            btnApply.setText(n == 0 ? getString(R.string.show_no_rooms) : getResources().getQuantityString(R.plurals.show_rooms, n, n));
+            btnApply.setEnabled(n > 0);
+        };
+        typeDropdown.setOnItemClickListener((parent, view, position, id) -> {
+            pendingType[0] = position == 0 ? "All" : typeOptions.get(position);
+            refresh.run();
+        });
+        statusDropdown.setOnItemClickListener((parent, view, position, id) -> {
+            pendingStatus[0] = position < statusKeys.length ? statusKeys[position] : "All";
+            refresh.run();
+        });
+        capacityGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            pendingCapacity[0] = checkedId == R.id.chip12 ? 1 : checkedId == R.id.chip34 ? 2 : checkedId == R.id.chip5plus ? 3 : 0;
+            refresh.run();
+        });
+        priceSlider.addOnChangeListener((slider, value, fromUser) -> refresh.run());
+        refresh.run();
 
         btnClose.setOnClickListener(v -> dialog.dismiss());
 
@@ -886,29 +1014,48 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             selectedRoomTypeFilter = "All";
             selectedStatusFilter = "All";
             selectedCapacity = 0;
-            selectedMaxPrice = 15000;
+            selectedMinPrice = selectedMaxPrice = RoomFilter.UNSET;
             dialog.dismiss();
             applyControlChange();
         });
 
         btnApply.setOnClickListener(v -> {
+            List<Float> values = priceSlider.getValues();
+            float min = values.get(0);
+            float max = values.get(values.size() - 1);
             selectedRoomTypeFilter = pendingType[0];
             selectedStatusFilter = pendingStatus[0];
-            selectedMaxPrice = priceSlider.getValue();
-            int checkedId = capacityGroup.getCheckedChipId();
-            if (checkedId == R.id.chipAnyCap) selectedCapacity = 0;
-            else if (checkedId == R.id.chip12) selectedCapacity = 1;
-            else if (checkedId == R.id.chip34) selectedCapacity = 2;
-            else if (checkedId == R.id.chip5plus) selectedCapacity = 3;
-            
+            selectedCapacity = pendingCapacity[0];
+            selectedMinPrice = min <= bounds[0] ? RoomFilter.UNSET : min;
+            selectedMaxPrice = max >= bounds[1] ? RoomFilter.UNSET : max;
             dialog.dismiss();
             applyControlChange();
         });
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
         SafeDialogs.show(dialog);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // A sheet or picker open while the screen is torn down (rotation, back) must not leak its window.
+        if (filterSheet != null) {
+            try {
+                filterSheet.dismiss();
+            } catch (RuntimeException ignored) {
+                // already gone
+            }
+            filterSheet = null;
+        }
+        super.onDestroy();
+    }
+
+    /** Back to "show every room" for type / availability / guests / price, keeping the dates and the sort (the chips' Clear all). */
+    private void clearFiltersKeepDates() {
+        selectedRoomTypeFilter = "All";
+        selectedStatusFilter = "All";
+        selectedCapacity = 0;
+        selectedMinPrice = selectedMaxPrice = RoomFilter.UNSET;
+        applyControlChange();
     }
 
     private void clearAllFilters() {
@@ -922,58 +1069,34 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         selectedRoomTypeFilter = "All";
         selectedStatusFilter = "All";
         selectedCapacity = 0;
-        selectedMaxPrice = 15000;
+        selectedMinPrice = selectedMaxPrice = RoomFilter.UNSET;
         currentSortMode = "Default";
         applyFilters();
     }
 
     private void applyFilters() {
         filtersApplied = true;
-        // Type filter comes from the Room Type exposed dropdown; defaults to "All" so
-        // an empty/"All" selection returns every room instead of matching nothing.
-        String typeFilter = selectedRoomTypeFilter;
-
-        // Use RoomRepository for the core filtering (query removed as requested, type, capacity bucket, price, dates)
-        List<Room> newFilteredList = RoomRepository.getInstance(this).searchRooms(
-                "",
-                typeFilter,
-                selectedCapacity,
-                0,
-                selectedMaxPrice >= 15000 ? Float.MAX_VALUE : selectedMaxPrice, // slider maximum = no limit
-                checkInDate,
-                checkOutDate
-        );
+        List<Room> rooms = allRooms == null ? new ArrayList<>() : allRooms;
+        List<Room> newFilteredList = new ArrayList<>();
+        for (Room room : rooms) {
+            if (RoomFilter.matches(room, selectedRoomTypeFilter, selectedCapacity, selectedMinPrice, selectedMaxPrice, "All")) {
+                newFilteredList.add(room);
+            }
+        }
 
         boolean isDateSearch = checkInDate != null && checkOutDate != null;
+        int shown;
 
         if (!isDateSearch) {
-            // Pre-search browsing (no dates chosen yet): unchanged flat-list
-            // behavior: the Available/Unavailable section split only applies
-            // once the guest has actually searched a date range.
-            if ("Available".equals(selectedStatusFilter)) {
-                newFilteredList.removeIf(room -> room == null || !room.isAvailable());
-            } else if ("Limited".equals(selectedStatusFilter)) {
-                newFilteredList.removeIf(room -> room == null || RoomAvailabilityStatus.of(room) != RoomAvailabilityStatus.LIMITED);
-            } else if ("Unavailable".equals(selectedStatusFilter)) {
-                newFilteredList.removeIf(room -> room == null || room.isAvailable());
-            }
+            // Pre-search browsing (no dates chosen yet): a flat list; the availability filter applies directly.
+            newFilteredList.removeIf(room -> !RoomFilter.statusMatches(selectedStatusFilter, room));
             sortRoomsList(newFilteredList);
-
             adapter.updateList(newFilteredList);
             filteredRooms = newFilteredList;
-            noResultsView.setVisibility(filteredRooms.isEmpty() ? View.VISIBLE : View.GONE);
-
-            if (tvResultsCount != null) {
-                String countText = getResources().getQuantityString(R.plurals.rooms_found, filteredRooms.size(), filteredRooms.size());
-                tvResultsCount.setText(countText);
-            }
+            shown = filteredRooms.size();
         } else {
             sortRoomsList(newFilteredList);
             filteredRooms = newFilteredList;
-            // The Available/Unavailable split itself carries the "no results"
-            // messaging now, so the full-screen empty state only fires for the
-            // pre-search browsing case above.
-            noResultsView.setVisibility(View.GONE);
 
             List<Room> trueAvailable = new ArrayList<>();
             List<Room> trueUnavailable = new ArrayList<>();
@@ -981,20 +1104,15 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 (r.isAvailable() ? trueAvailable : trueUnavailable).add(r);
             }
 
-            // The Room Status dropdown narrows which section(s) are shown, but must
-            // not change whether the "no rooms available" verdict is triggered -
-            // that verdict is about real availability, not the guest's own filter choice.
-            // "Limited" is a refinement of Available (low-stock-but-bookable), not a
-            // separate section, so it narrows displayAvailable and hides Unavailable.
+            // The availability filter narrows which section(s) are shown, but must not change whether the "no rooms available"
+            // verdict is triggered - that verdict is about real availability, not the guest's own filter choice.
             List<Room> displayAvailable;
             if ("Unavailable".equals(selectedStatusFilter)) {
                 displayAvailable = new ArrayList<>();
             } else if ("Limited".equals(selectedStatusFilter)) {
                 displayAvailable = new ArrayList<>();
                 for (Room r : trueAvailable) {
-                    if (RoomAvailabilityStatus.of(r) == RoomAvailabilityStatus.LIMITED) {
-                        displayAvailable.add(r);
-                    }
+                    if (RoomAvailabilityStatus.of(r) == RoomAvailabilityStatus.LIMITED) displayAvailable.add(r);
                 }
             } else {
                 displayAvailable = trueAvailable;
@@ -1004,7 +1122,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
             String occupiedRangeText = getString(R.string.occupied_from_until_format,
                     dateFormat.format(checkInDate.getTime()), dateFormat.format(checkOutDate.getTime()));
-            String noAvailableMessage = trueAvailable.isEmpty() ? getString(R.string.no_rooms_available_for_dates) : null;
+            String noAvailableMessage = trueAvailable.isEmpty() && !displayUnavailable.isEmpty() ? getString(R.string.no_rooms_available_for_dates) : null;
 
             adapter.updateSectionedResults(
                     displayAvailable,
@@ -1014,15 +1132,59 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                     occupiedRangeText,
                     noAvailableMessage
             );
-
-            if (tvResultsCount != null) {
-                tvResultsCount.setText(getString(R.string.results_count_split_format, trueAvailable.size(), trueUnavailable.size()));
-            }
+            shown = displayAvailable.size() + displayUnavailable.size();
         }
 
+        if (tvResultsCount != null) {
+            tvResultsCount.setText(getResources().getQuantityString(R.plurals.rooms_found, shown, shown));
+        }
+        showEmptyStateIfNeeded(shown == 0);
         updateSortButtonLabel();
         updateFilterBadge();
         updateSelectionSummaryBar();
+    }
+
+    /**
+     * Nothing to list: say why. Dates only -> "No rooms for these dates" + Change dates; filters only -> "No rooms match your filters" +
+     * Clear filters; both -> both buttons; neither (no rooms at all) -> a plain "No rooms available" + Refresh. The view sits in the normal
+     * layout flow below the results bar.
+     */
+    private void showEmptyStateIfNeeded(boolean empty) {
+        noResultsView.setVisibility(empty ? View.VISIBLE : View.GONE);
+        if (!empty) return;
+        boolean dates = checkInDate != null && checkOutDate != null;
+        boolean filters = activeFilterCount() > 0;
+        int title = dates && filters ? R.string.rooms_empty_both_title : dates ? R.string.rooms_empty_dates_title
+                : filters ? R.string.rooms_empty_filters_title : R.string.no_matching_rooms;
+        int desc = dates && filters ? R.string.rooms_empty_both_desc : dates ? R.string.rooms_empty_dates_desc
+                : filters ? R.string.rooms_empty_filters_desc : R.string.no_matching_rooms_desc;
+        if (emptyStateTitle != null) emptyStateTitle.setText(title);
+        if (emptyStateDesc != null) emptyStateDesc.setText(desc);
+        if (btnEmptyStateAction == null) return;
+        btnEmptyStateAction.setVisibility(View.VISIBLE);
+        btnEmptyStateAction.setIcon(null);
+        btnEmptyStateAction2.setVisibility(View.GONE);
+        if (filters) {
+            btnEmptyStateAction.setText(R.string.notif_clear_filters);
+            btnEmptyStateAction.setOnClickListener(v -> clearFiltersKeepDates());
+            if (dates) {
+                btnEmptyStateAction2.setText(R.string.change_dates_label);
+                btnEmptyStateAction2.setVisibility(View.VISIBLE);
+                btnEmptyStateAction2.setOnClickListener(v -> changeDates());
+            }
+        } else if (dates) {
+            btnEmptyStateAction.setText(R.string.change_dates_label);
+            btnEmptyStateAction.setOnClickListener(v -> changeDates());
+        } else {
+            btnEmptyStateAction.setText(R.string.refresh_label);
+            btnEmptyStateAction.setOnClickListener(v -> loadRooms());
+        }
+    }
+
+    /** Back up to the search card to pick other dates. */
+    private void changeDates() {
+        if (appBarLayout != null) appBarLayout.setExpanded(true, true);
+        if (rvRooms != null) rvRooms.scrollToPosition(0);
     }
 
     private void sortRoomsList(List<Room> roomsToSort) {
@@ -1034,7 +1196,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 Collections.sort(roomsToSort, (r1, r2) -> Double.compare(r2.getPricePerNight(), r1.getPricePerNight()));
                 break;
             case "NameAZ":
-                Collections.sort(roomsToSort, (r1, r2) -> r1.getName().compareToIgnoreCase(r2.getName()));
+                Collections.sort(roomsToSort, (r1, r2) -> (r1.getName() == null ? "" : r1.getName()).compareToIgnoreCase(r2.getName() == null ? "" : r2.getName()));
                 break;
             case "Default":
             default:

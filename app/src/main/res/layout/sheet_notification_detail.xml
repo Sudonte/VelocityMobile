@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A notification opened (NotificationDetailSheet): its category, the FULL title and message, when it came, a details block, and the
+     action that takes the guest on (the linked transaction opens only from this button). Opaque surface; the body scrolls when long. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/notifDetailSheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/velocity_surface_elevated"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="4dp">
+
+        <FrameLayout
+            android:id="@+id/frameNotifIcon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/shape_notification_icon_circle"
+            android:backgroundTint="@color/velocity_red_soft">
+
+            <ImageView
+                android:id="@+id/ivNotifIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_notifications"
+                app:tint="@color/velocity_red_primary" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvNotifDetailCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-bold"
+            android:maxLines="1"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp"
+            tools:text="Amenities" />
+
+        <ImageButton
+            android:id="@+id/btnNotifDetailClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close_label"
+            android:src="@drawable/ic_close"
+            app:tint="@color/velocity_text_secondary" />
+    </LinearLayout>
+
+    <com.example.velocitysuites.MaxHeightNestedScrollView
+        android:id="@+id/scrollNotifDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvNotifDetailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityHeading="true"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="18sp"
+                tools:text="Amenity Request Approved" />
+
+            <TextView
+                android:id="@+id/tvNotifDetailTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="12sp"
+                tools:text="Oct 19, 2026 · 2:15 PM" />
+
+            <TextView
+                android:id="@+id/tvNotifDetailMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingMultiplier="1.15"
+                android:textColor="@color/velocity_text_primary"
+                android:textIsSelectable="true"
+                android:textSize="14sp"
+                tools:text="Your request for 1 x Additional Pillow (Room 1-001) (₱50.00) was approved and added to your bill." />
+
+            <!-- Details block: label / value rows (linked ID, room, amount, promotion validity ...), only what is known. -->
+            <LinearLayout
+                android:id="@+id/layoutNotifDetailRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tvNotifDetailError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/status_unpaid_fg"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="This item is no longer available"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </com.example.velocitysuites.MaxHeightNestedScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/velocity_divider_hairline"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNotifDetailAction"
+            style="@style/Widget.Velocity.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:letterSpacing="0"
+            android:minHeight="48dp"
+            android:textAllCaps="false"
+            android:textColor="@color/button_primary_text"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:backgroundTint="@color/button_primary_bg"
+            tools:text="View Booking #567"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNotifDetailToggleRead"
+                style="@style/Widget.Velocity.Flat.Button.Text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-bold"
+                android:letterSpacing="0"
+                android:minHeight="48dp"
+                android:textAllCaps="false"
+                android:textColor="@color/velocity_action_text"
+                android:textSize="13sp"
+                tools:text="Mark as unread" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNotifDetailDone"
+                style="@style/Widget.Velocity.Flat.Button.Text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-bold"
+                android:letterSpacing="0"
+                android:minHeight="48dp"
+                android:text="@string/close_label"
+                android:textAllCaps="false"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -308,6 +308,22 @@ public class NotificationActivity extends BaseNavigationActivity {
         layoutNotificationStatusFilter.setStartIconTintList(android.content.res.ColorStateList.valueOf(getColor(category.fgColorRes)));
     }
 
+    /**
+     * A picked Show option gives up focus, so the field's border goes back to its normal gray (red only while focused or open). Focus
+     * is handed to the (focusable) screen title, not left to Android - which would give it to the search box.
+     */
+    private void releaseFilterFocus() {
+        if (dropdownNotificationStatus != null) dropdownNotificationStatus.clearFocus();
+        View holder = findViewById(R.id.screenTitle);
+        if (holder != null) holder.requestFocus();
+    }
+
+    /** Promotions / announcements finished loading: they belong in this list. */
+    @Override
+    protected void onNotificationsListChanged() {
+        if (isUiAlive() && repository != null) syncFromRepository();
+    }
+
     private void setupRecyclerView() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         rvNotifications.setLayoutManager(layoutManager);
@@ -372,29 +388,7 @@ public class NotificationActivity extends BaseNavigationActivity {
      * be tapped again.
      */
     private void openNotification(Notification notification) {
-        NotificationOpener.open(this, notification, new TransactionNavigator.Listener() {
-            @Override
-            public void onLookupStarted() {
-                swipeRefresh.setRefreshing(true); // the record is being fetched - show that something is happening
-            }
-
-            @Override
-            public void onLookupFinished() {
-                if (isUiAlive() && !refreshInFlight) swipeRefresh.setRefreshing(false);
-            }
-
-            @Override
-            public void onNotFound() {
-                if (!isUiAlive()) return;
-                TransactionNavigator.showNotFoundDialog(NotificationActivity.this);
-            }
-
-            @Override
-            public void onError(String message) {
-                if (!isUiAlive()) return;
-                Toast.makeText(NotificationActivity.this, getString(R.string.txn_lookup_error_format, message), Toast.LENGTH_LONG).show();
-            }
-        }, () -> {
+        NotificationOpener.open(this, notification, () -> {
             if (isUiAlive()) syncFromRepository();
         });
     }
@@ -472,7 +466,10 @@ public class NotificationActivity extends BaseNavigationActivity {
                 rvNotifications.getVisibility() == View.VISIBLE && rvNotifications.canScrollVertically(-1));
         // The pull gesture already shows the spinner itself, so this listener doesn't need to turn it on
         // again - loadNotifications() turns it off once done.
-        swipeRefresh.setOnRefreshListener(() -> loadNotifications(false));
+        swipeRefresh.setOnRefreshListener(() -> {
+            repository.refreshCatalogNotifications(true); // promotions and announcements too
+            loadNotifications(false);
+        });
     }
 
     /**
@@ -559,6 +556,12 @@ public class NotificationActivity extends BaseNavigationActivity {
                     scrollEmptyState.setVisibility(View.VISIBLE);
                     if (emptyTitle != null) emptyTitle.setText(R.string.no_notifications_load_error_title);
                     if (emptyDesc != null) emptyDesc.setText(R.string.no_notifications_load_error_desc);
+                    emptyActionClearsFilters = false;
+                    View retry = findViewById(R.id.btnEmptyAction);
+                    if (retry instanceof com.google.android.material.button.MaterialButton) {
+                        ((com.google.android.material.button.MaterialButton) retry).setText(R.string.try_again_label);
+                        ((com.google.android.material.button.MaterialButton) retry).setIcon(null);
+                    }
                 } else {
                     Toast.makeText(NotificationActivity.this, getString(R.string.error_load_notifications_format, message), Toast.LENGTH_LONG).show();
                 }
@@ -650,6 +653,7 @@ public class NotificationActivity extends BaseNavigationActivity {
             dropdownNotificationStatus.setOnItemClickListener((parent, view, position, id) -> {
                 currentFilter = NOTIF_FILTER_KEYS[position];
                 autoPagesLoaded = 0;
+                releaseFilterFocus();
                 // The CLOSED box always shows the plain label (no count suffix) - the popup rows are where counts live.
                 dropdownNotificationStatus.setText(labels[position], false);
                 updateDropdownStartIcon(currentFilter);
@@ -773,14 +777,26 @@ public class NotificationActivity extends BaseNavigationActivity {
                 rvNotifications.setVisibility(View.GONE);
                 scrollEmptyState.setVisibility(View.VISIBLE);
                 layoutInitialLoading.setVisibility(View.GONE);
-                // Something hides everything: say so and offer "Clear filters". Genuinely nothing at all: "No notifications yet".
+                // Something hides everything: say what (per filter) and offer "Clear filters". Genuinely nothing at all: "No notifications yet".
                 emptyActionClearsFilters = isFiltering();
-                if (emptyActionClearsFilters) {
-                    if (emptyTitle != null) emptyTitle.setText(R.string.no_search_results_title);
-                    if (emptyDesc != null) emptyDesc.setText(R.string.no_search_results_desc);
-                } else {
+                if (!emptyActionClearsFilters) {
                     if (emptyTitle != null) emptyTitle.setText(R.string.no_notifications_title);
                     if (emptyDesc != null) emptyDesc.setText(R.string.no_notifications_desc);
+                } else if (!searchQuery.isEmpty()) {
+                    if (emptyTitle != null) emptyTitle.setText(R.string.no_search_results_title);
+                    if (emptyDesc != null) emptyDesc.setText(R.string.no_search_results_desc);
+                } else if (FILTER_UNREAD.equals(currentFilter)) {
+                    if (emptyTitle != null) emptyTitle.setText(R.string.notif_empty_unread_title);
+                    if (emptyDesc != null) emptyDesc.setText(R.string.notif_empty_unread_desc);
+                } else if (Notification.TYPE_PROMOTION.equals(currentFilter)) {
+                    if (emptyTitle != null) emptyTitle.setText(R.string.notif_empty_promotions_title);
+                    if (emptyDesc != null) emptyDesc.setText(R.string.notif_empty_promotions_desc);
+                } else if (Notification.TYPE_SYSTEM.equals(currentFilter)) {
+                    if (emptyTitle != null) emptyTitle.setText(R.string.notif_empty_system_title);
+                    if (emptyDesc != null) emptyDesc.setText(R.string.notif_empty_system_desc);
+                } else {
+                    if (emptyTitle != null) emptyTitle.setText(getString(R.string.notif_empty_category_title_format, currentFilterDisplayLabel()));
+                    if (emptyDesc != null) emptyDesc.setText(R.string.notif_empty_category_desc);
                 }
                 View action = findViewById(R.id.btnEmptyAction);
                 if (action instanceof com.google.android.material.button.MaterialButton) {

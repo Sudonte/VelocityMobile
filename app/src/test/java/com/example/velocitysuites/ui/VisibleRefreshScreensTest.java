@@ -416,7 +416,7 @@ public class VisibleRefreshScreensTest {
                 LandingFixtures.roomType(2, "Suite", "3000.00", 2),
                 LandingFixtures.roomType(3, "Family", "4000.00", 5)));
         TextView count = activity.findViewById(R.id.tvResultsCount);
-        assertEquals("3 Rooms Found", count.getText().toString());
+        assertEquals("3 rooms", count.getText().toString());
 
         // The guest filters to one room type (their choice must survive every refresh from now on).
         activity.findViewById(R.id.btnFilters).performClick();
@@ -427,9 +427,9 @@ public class VisibleRefreshScreensTest {
         types.getOnItemClickListener().onItemClick(null, null, deluxe, 0);
         dialog.findViewById(R.id.btnApplyFilters).performClick();
         idle();
-        // a filter change re-filters the loaded rooms: no refetch, and the bar reads FILTERS (1)
-        assertEquals("1 Room Found", count.getText().toString());
-        assertEquals("FILTERS (1)", ((android.widget.Button) activity.findViewById(R.id.btnFilters)).getText().toString());
+        // a filter change re-filters the loaded rooms: no refetch, and the bar reads Filters · 1
+        assertEquals("1 room", count.getText().toString());
+        assertEquals("Filters · 1", ((android.widget.Button) activity.findViewById(R.id.btnFilters)).getText().toString());
         // every load of this screen - opening, searching, the beat - goes through the no-cache endpoint
 
         secondsUntilBeat("getRoomsFresh");
@@ -440,7 +440,7 @@ public class VisibleRefreshScreensTest {
                 LandingFixtures.roomType(2, "Suite", "3000.00", 2),
                 LandingFixtures.roomType(3, "Family", "4000.00", 5),
                 LandingFixtures.roomType(4, "Penthouse", "9000.00", 1)));
-        assertEquals("the guest's room-type filter is still applied after the refresh", "1 Room Found", count.getText().toString());
+        assertEquals("the guest's room-type filter is still applied after the refresh", "1 room", count.getText().toString());
 
         RecyclerView rooms = activity.findViewById(R.id.rvRooms);
         assertEquals("and the list shows just the Deluxe room", 1, rooms.getAdapter().getItemCount());

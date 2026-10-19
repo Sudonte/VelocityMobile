@@ -255,11 +255,17 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             holder.roomDescription.setVisibility(description.isEmpty() ? View.GONE : View.VISIBLE);
         }
         holder.roomGuestsText.setText(context.getResources().getQuantityString(
-                R.plurals.room_card_guests_format, room.getCapacity(), room.getCapacity()));
+                R.plurals.room_card_up_to_guests, Math.max(1, room.getCapacity()), Math.max(1, room.getCapacity())));
+        if (holder.roomTypeText != null) {
+            String type = room.getType() == null ? "" : room.getType().trim();
+            holder.roomTypeText.setText(type);
+            holder.roomTypeText.setVisibility(type.isEmpty() ? View.GONE : View.VISIBLE);
+        }
         holder.roomSizeText.setText(room.getRoomSize() == null || room.getRoomSize().isEmpty()
                 ? context.getString(R.string.not_specified)
                 : room.getRoomSize());
         holder.roomPrice.setText(context.getString(R.string.price_format_per_night, room.getPricePerNight()));
+        holder.roomName.setText(room.getName() == null || room.getName().trim().isEmpty() ? (room.getType() == null ? "" : room.getType()) : room.getName());
         holder.roomBedType.setText(room.getBedType() == null || room.getBedType().isEmpty()
                 ? RoomVisuals.getBedType(context, room.getType(), room.getCapacity())
                 : room.getBedType());
@@ -271,6 +277,10 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     .placeholder(fallbackImage)
                     .error(fallbackImage)
                     .thumbnail(0.25f)
+                    .override(holder.roomImage.getWidth() > 0 ? holder.roomImage.getWidth() : 1080,
+                            holder.roomImage.getHeight() > 0 ? holder.roomImage.getHeight() : 600)
+                    .centerCrop()
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.RESOURCE)
                     .into(holder.roomImage);
         } else if (room.getImageResId() != 0) {
             holder.roomImage.setImageResource(room.getImageResId());
@@ -285,7 +295,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // fixed dark ones too: the "available" badge used to be white text on a pale pink fill (about 1.1:1),
             // and the other two were under 4.5:1.
             case LIMITED:
-                holder.roomStatusBadge.setText(R.string.limited_label);
+                holder.roomStatusBadge.setText(room.getAvailableCount() > 0
+                        ? context.getResources().getQuantityString(R.plurals.rooms_left, room.getAvailableCount(), room.getAvailableCount()) : context.getString(R.string.limited_label));
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_warning);
                 holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_green_primary));
                 break;
@@ -302,14 +313,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 break;
         }
 
-        if (holder.tvRoomsLeftHint != null) {
-            if (status == RoomAvailabilityStatus.LIMITED) {
-                holder.tvRoomsLeftHint.setVisibility(View.VISIBLE);
-                holder.tvRoomsLeftHint.setText(context.getString(R.string.rooms_left_format, room.getAvailableCount()));
-            } else {
-                holder.tvRoomsLeftHint.setVisibility(View.GONE);
-            }
-        }
+        if (holder.tvRoomsLeftHint != null) holder.tvRoomsLeftHint.setVisibility(View.GONE);
 
         if (detailsOnlyMode) {
             holder.layoutRoomActions.setVisibility(View.GONE);
@@ -605,7 +609,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         /** Names of the amenities the tags currently show - lets bindAmenities() skip a no-op rebuild. */
         String amenitiesKey;
         TextView roomDescription;
-        TextView roomStatusBadge, roomPrice, roomName, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint;
+        TextView roomStatusBadge, roomPrice, roomName, roomTypeText, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint;
         com.google.android.material.chip.ChipGroup amenitiesChipGroup;
         MaterialButton btnViewDetails, btnQuickBook, btnReserveNow;
         View layoutRoomActions, layoutOccupiedInfo;
@@ -629,6 +633,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             roomPrice = itemView.findViewById(R.id.roomPrice);
             roomName = itemView.findViewById(R.id.roomName);
             roomDescription = itemView.findViewById(R.id.roomDescription);
+            roomTypeText = itemView.findViewById(R.id.roomTypeText);
             roomGuestsText = itemView.findViewById(R.id.roomGuestsText);
             roomSizeText = itemView.findViewById(R.id.roomSizeText);
             roomBedType = itemView.findViewById(R.id.roomBedType);

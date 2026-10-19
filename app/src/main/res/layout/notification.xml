@@ -44,6 +44,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="22dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
                         android:text="@string/title_notifications"
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="15sp"
@@ -147,65 +149,57 @@
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
-            <!-- Sticky Header for Actions -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- The summary row: a plain full-width row on the page background, aligned with the content padding (no rounded card). -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutNotifSummaryRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="@dimen/card_elevation"
-                app:strokeWidth="0dp">
+                android:background="@color/velocity_sticky_bar_bg"
+                android:minHeight="48dp"
+                android:paddingStart="22dp"
+                android:paddingEnd="14dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <View
                     android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/velocity_divider_hairline"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <!-- "12 unread" (or "You're all caught up" only when nothing is unread) at the start, "Mark all as read" at the end
+                     (hidden at 0 unread). The summary is bounded by the button so a large font wraps it instead of running underneath. -->
+                <TextView
+                    android:id="@+id/tvUnreadSummary"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@color/velocity_sticky_bar_bg"
-                    android:paddingHorizontal="22dp"
-                    android:paddingVertical="2dp">
+                    android:layout_marginEnd="8dp"
+                    android:fontFamily="sans-serif-bold"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/btnMarkAllRead"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="12 unread" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/velocity_divider_hairline"
-                        app:layout_constraintBottom_toBottomOf="parent" />
-
-                    <!-- "12 unread" (or "You're all caught up" only when nothing is unread) at the start, "Mark all as read" at
-                         the end (hidden at 0 unread). The summary is bounded by the button (0dp = match constraints) so a large
-                         system font wraps it instead of running underneath. -->
-                    <TextView
-                        android:id="@+id/tvUnreadSummary"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@+id/btnMarkAllRead"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="12 unread" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnMarkAllRead"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minHeight="48dp"
-                        android:text="@string/mark_all_read_label"
-                        android:textColor="@color/velocity_red_primary"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif-bold"
-                        android:textAllCaps="false"
-                        android:letterSpacing="0"
-                        android:paddingHorizontal="10dp"
-                        app:cornerRadius="0dp"
-                        app:rippleColor="@color/velocity_red_soft"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMarkAllRead"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-bold"
+                    android:letterSpacing="0"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/mark_all_read_label"
+                    android:textAllCaps="false"
+                    android:textColor="@color/velocity_red_primary"
+                    android:textSize="13sp"
+                    app:cornerRadius="0dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:rippleColor="@color/velocity_red_soft" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- The list is the direct scrolling child: a RecyclerView that recycles its rows (it used to sit

@@ -89,7 +89,7 @@ public class RoomBrowsingRecreateTest {
         assertArrayEquals("the same three rooms, not six", saved.getStringArray("cart_ids"), again.getStringArray("cart_ids"));
         assertArrayEquals(saved.getIntArray("cart_qty"), again.getIntArray("cart_qty"));
         assertArrayEquals(new int[]{2, 1}, again.getIntArray("cart_qty"));
-        assertEquals(4000f, again.getFloat("max_price"), 0.01f);
+        assertEquals(4000f, again.getFloat("max_price_v2"), 0.01f);
         assertEquals("PriceLow", again.getString("sort_mode"));
         assertTrue(again.getLong("check_in_utc") > 0);
         assertTrue(again.getLong("check_out_utc") > again.getLong("check_in_utc"));

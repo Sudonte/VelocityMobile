@@ -38,9 +38,9 @@ public final class ApiClient {
             // BODY only in debug builds - lets the actual HTTP status code and response
             // JSON that caused a parse failure show up in Logcat during development,
             // without ever exposing raw backend responses in a production build.
-            logging.setLevel(com.example.velocitysuites.BuildConfig.DEBUG
-                    ? HttpLoggingInterceptor.Level.BODY
-                    : HttpLoggingInterceptor.Level.BASIC);
+            // Even in debug only the request line and status are logged: BODY printed whole room catalogues and 200-notification
+            // pages into Logcat on every refresh, which is slow and noisy (DiagnosticLog has the targeted detail).
+            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(20, TimeUnit.SECONDS)

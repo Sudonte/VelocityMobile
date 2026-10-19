@@ -637,6 +637,13 @@ public class DashboardActivity extends BaseNavigationActivity {
         updateNotificationSectionBadge();
     }
 
+    /** Promotions / announcements finished loading: they are part of the Notifications section too. */
+    @Override
+    protected void onNotificationsListChanged() {
+        lastNotifications = RoomRepository.getInstance(this).getNotifications();
+        populateNotifications(lastNotifications);
+    }
+
 
     /** One notification on the Dashboard: the shared row (round category icon, title, 2-line preview, time and unread dot). A tap opens its target and marks it read. */
     private void addNotificationRow(Notification n, LinearLayout container) {
@@ -644,7 +651,7 @@ public class DashboardActivity extends BaseNavigationActivity {
         NotificationRowBinder.bind(card, n, n.isRead(), System.currentTimeMillis());
         compactNotificationTimeViews.add(new androidx.core.util.Pair<>(card.findViewById(R.id.tvNotifTime), n));
         card.findViewById(R.id.rowNotification).setOnClickListener(NavUtils.debounce(v ->
-                NotificationOpener.open(this, n, null, () -> {
+                NotificationOpener.open(this, n, () -> {
                     if (isFinishing() || isDestroyed()) return;
                     updateNotificationBadge();
                     populateNotifications(lastNotifications);

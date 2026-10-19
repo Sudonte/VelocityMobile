@@ -40,7 +40,8 @@ public final class NotificationCategoryPresenter {
         if (Notification.TYPE_CHECK_IN.equals(type)) return of(R.drawable.ic_clock, R.string.notif_category_check_in);
         if (Notification.TYPE_PROMOTION.equals(type)) return of(R.drawable.ic_star, R.string.notif_category_promotion);
         if (Notification.TYPE_SMS.equals(type)) return of(R.drawable.ic_info, R.string.notif_category_sms);
-        if (Notification.TYPE_ANNOUNCEMENT.equals(type)) return of(R.drawable.ic_info, R.string.notif_category_announcement);
+        // An announcement posted by the administrator is a System notification.
+        if (Notification.TYPE_ANNOUNCEMENT.equals(type)) return of(R.drawable.ic_info, R.string.notif_category_system);
         // TYPE_SYSTEM and anything unrecognized.
         return of(R.drawable.ic_notifications, R.string.notif_category_system);
     }

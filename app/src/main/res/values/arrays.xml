@@ -15,4 +15,10 @@
         <item>@string/filter_status_limited</item>
         <item>@string/filter_status_unavailable</item>
     </string-array>
+
+    <!-- Initial thumbs of the room price range slider; RoomBrowsingActivity replaces them with the real price bounds. -->
+    <array name="room_price_default_values">
+        <item>0.0</item>
+        <item>1000.0</item>
+    </array>
 </resources>

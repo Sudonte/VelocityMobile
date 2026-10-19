@@ -91,7 +91,8 @@
                         android:layout_marginHorizontal="22dp"
                         android:layout_marginTop="11dp"
                         android:layout_marginBottom="20dp"
-                        android:lineSpacingExtra="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:text="@string/room_browsing_desc" />
 
                     <com.google.android.material.card.MaterialCardView
@@ -110,16 +111,16 @@
                             android:background="@drawable/bg_search_panel_full_width"
                             android:padding="16dp">
 
-                            <com.google.android.material.card.MaterialCardView
+                            <!-- Section title: the shared bold title style, its icon in a round tinted circle (never clipped). -->
+                            <FrameLayout
                                 android:id="@+id/cardSearchHeaderIcon"
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                app:cardBackgroundColor="@color/velocity_red_soft"
-                                app:cardCornerRadius="@dimen/card_corner_radius"
-                                app:cardElevation="@dimen/card_elevation"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/shape_notification_icon_circle"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                app:layout_constraintBottom_toBottomOf="@id/tvSearchHeader"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="@id/tvSearchHeader">
+                                app:layout_constraintTop_toTopOf="@id/tvSearchHeader">
 
                                 <ImageView
                                     android:layout_width="18dp"
@@ -128,121 +129,88 @@
                                     android:importantForAccessibility="no"
                                     android:src="@drawable/ic_bed"
                                     app:tint="@color/velocity_red_primary" />
-                            </com.google.android.material.card.MaterialCardView>
+                            </FrameLayout>
 
                             <TextView
                                 android:id="@+id/tvSearchHeader"
-                                style="@style/TextAppearance.Velocity.Label.Section"
+                                style="@style/TextAppearance.Velocity.Section.Title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="10dp"
-                                android:ellipsize="end"
+                                android:accessibilityHeading="true"
+                                android:minHeight="32dp"
                                 android:gravity="center_vertical"
-                                android:maxLines="1"
                                 android:text="@string/find_perfect_stay"
-                                android:textAllCaps="false"
-                                android:textSize="15sp"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintStart_toEndOf="@id/cardSearchHeaderIcon"
                                 app:layout_constraintTop_toTopOf="parent" />
 
-                            <!-- Check-in / Check-out: equal-width symmetric row -->
+                            <!-- Check-in above check-out, each an outlined field with a floating label, a calendar icon and a
+                                 one-line value; the helper text under it is one line too (the error replaces it). -->
                             <LinearLayout
                                 android:id="@+id/dateFieldsRow"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="11dp"
-                                android:baselineAligned="false"
-                                android:orientation="horizontal"
+                                android:layout_marginTop="12dp"
+                                android:orientation="vertical"
                                 app:layout_constraintTop_toBottomOf="@id/tvSearchHeader">
 
-                                <LinearLayout
-                                    android:layout_width="0dp"
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/checkInLayout"
+                                    style="@style/Widget.Velocity.TextInputLayout.Filter.Date"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginEnd="@dimen/date_field_gap"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
+                                    android:hint="@string/check_in_label"
+                                    app:endIconDrawable="@drawable/ic_close"
+                                    app:endIconMode="custom"
+                                    app:helperTextEnabled="true"
+                                    app:helperTextTextColor="@color/velocity_text_secondary"
+                                    app:startIconDrawable="@drawable/ic_calendar">
 
-                                    <TextView
-                                        android:id="@+id/tvCheckInLabel"
-                                        style="@style/TextAppearance.Velocity.Label.Input"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginBottom="@dimen/date_field_label_margin_bottom"
-                                        android:labelFor="@+id/etCheckIn"
-                                        android:text="@string/check_in_label"
-                                        android:textColor="@color/velocity_text_primary" />
-
-                                    <com.google.android.material.textfield.TextInputLayout
-                                        android:id="@+id/checkInLayout"
-                                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etCheckIn"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:textColorHint="@color/velocity_text_secondary"
-                                        app:helperText="@string/helper_checkin_window"
-                                        app:helperTextTextColor="@color/velocity_text_secondary"
-                                        app:hintTextColor="@color/velocity_text_secondary"
-                                        app:startIconDrawable="@drawable/ic_calendar"
-                                        app:startIconTint="@color/velocity_red_primary">
+                                        android:clickable="true"
+                                        android:cursorVisible="false"
+                                        android:ellipsize="end"
+                                        android:focusable="false"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:singleLine="true"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="14sp" />
+                                </com.google.android.material.textfield.TextInputLayout>
 
-                                        <com.google.android.material.textfield.TextInputEditText
-                                            android:id="@+id/etCheckIn"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:focusable="false"
-                                            android:hint="@string/select_date_hint"
-                                            android:inputType="none"
-                                            android:paddingVertical="@dimen/date_field_text_padding"
-                                            android:textColor="@color/velocity_text_primary"
-                                            android:fontFamily="sans-serif-black"
-                                            android:includeFontPadding="false"
-                                            android:textSize="@dimen/date_field_text_size" />
-                                    </com.google.android.material.textfield.TextInputLayout>
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/checkOutLayout"
+                                    style="@style/Widget.Velocity.TextInputLayout.Filter.Date"
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/date_field_gap"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
+                                    android:layout_marginTop="8dp"
+                                    android:hint="@string/check_out_label"
+                                    app:endIconDrawable="@drawable/ic_close"
+                                    app:endIconMode="custom"
+                                    app:helperTextEnabled="true"
+                                    app:helperTextTextColor="@color/velocity_text_secondary"
+                                    app:startIconDrawable="@drawable/ic_calendar">
 
-                                    <TextView
-                                        android:id="@+id/tvCheckOutLabel"
-                                        style="@style/TextAppearance.Velocity.Label.Input"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginBottom="@dimen/date_field_label_margin_bottom"
-                                        android:labelFor="@+id/etCheckOut"
-                                        android:text="@string/check_out_label"
-                                        android:textColor="@color/velocity_text_primary" />
-
-                                    <com.google.android.material.textfield.TextInputLayout
-                                        android:id="@+id/checkOutLayout"
-                                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etCheckOut"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:textColorHint="@color/velocity_text_secondary"
-                                        app:helperText="@string/helper_checkout_after_checkin"
-                                        app:helperTextTextColor="@color/velocity_text_secondary"
-                                        app:hintTextColor="@color/velocity_text_secondary"
-                                        app:startIconDrawable="@drawable/ic_calendar"
-                                        app:startIconTint="@color/velocity_red_primary">
-
-                                        <com.google.android.material.textfield.TextInputEditText
-                                            android:id="@+id/etCheckOut"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:focusable="false"
-                                            android:hint="@string/select_date_hint"
-                                            android:inputType="none"
-                                            android:paddingVertical="@dimen/date_field_text_padding"
-                                            android:textColor="@color/velocity_text_primary"
-                                            android:fontFamily="sans-serif-black"
-                                            android:includeFontPadding="false"
-                                            android:textSize="@dimen/date_field_text_size" />
-                                    </com.google.android.material.textfield.TextInputLayout>
-                                </LinearLayout>
+                                        android:clickable="true"
+                                        android:cursorVisible="false"
+                                        android:ellipsize="end"
+                                        android:focusable="false"
+                                        android:fontFamily="sans-serif-medium"
+                                        android:inputType="none"
+                                        android:maxLines="1"
+                                        android:singleLine="true"
+                                        android:textColor="@color/velocity_text_primary"
+                                        android:textSize="14sp" />
+                                </com.google.android.material.textfield.TextInputLayout>
                             </LinearLayout>
 
                             <!-- "2 nights" once both dates are picked. -->
@@ -254,65 +222,58 @@
                                 android:drawablePadding="6dp"
                                 android:fontFamily="sans-serif-bold"
                                 android:gravity="center_vertical"
-                                android:textColor="@color/velocity_red_primary"
+                                android:textColor="@color/velocity_action_text"
                                 android:textSize="13sp"
                                 android:visibility="gone"
                                 app:drawableStartCompat="@drawable/ic_clock"
-                                app:drawableTint="@color/velocity_red_primary"
+                                app:drawableTint="@color/velocity_action_text"
                                 app:layout_constraintTop_toBottomOf="@id/dateFieldsRow"
                                 tools:text="2 nights"
                                 tools:visibility="visible" />
 
-                            <!-- 48-hour advance check-in note; text from CheckInNotice so the date is never hard-coded. -->
-                            <TextView
-                                android:id="@+id/tvCheckInAdvanceNotice"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:background="@color/velocity_red_bg_end"
-                                android:drawablePadding="8dp"
-                                android:padding="11dp"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="12sp"
-                                app:drawableStartCompat="@drawable/ic_info"
-                                app:drawableTint="@color/velocity_red_primary"
-                                app:layout_constraintTop_toBottomOf="@id/tvNightsSummary" />
-
+                            <!-- Filled primary; enabled only for two valid dates (then white on red), otherwise a quiet gray with readable text. -->
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSearchAvailability"
                                 style="@style/Widget.Velocity.Button"
                                 android:layout_width="match_parent"
                                 android:layout_height="@dimen/search_button_height"
-                                android:layout_marginTop="11dp"
+                                android:layout_marginTop="12dp"
+                                android:fontFamily="sans-serif-bold"
+                                android:letterSpacing="0"
                                 android:text="@string/search_availability"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
-                                app:backgroundTint="@color/bg_button_primary"
-                                app:iconTint="@color/white"
-                                app:layout_constraintTop_toBottomOf="@id/tvCheckInAdvanceNotice"
-                                app:icon="@drawable/ic_room_search"
+                                android:textAllCaps="false"
+                                android:textColor="@color/button_primary_text"
+                                android:textSize="14sp"
+                                app:backgroundTint="@color/button_primary_bg"
+                                app:icon="@drawable/ic_search"
                                 app:iconGravity="textStart"
-                                app:iconPadding="10dp"
-                                app:iconSize="18dp" />
+                                app:iconPadding="8dp"
+                                app:iconSize="18dp"
+                                app:iconTint="@color/button_primary_text"
+                                app:layout_constraintTop_toBottomOf="@id/tvNightsSummary" />
 
+                            <!-- Only shown when something is set. -->
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnResetSearch"
-                                style="@style/Widget.MaterialComponents.Button.TextButton"
-                                android:layout_width="match_parent"
+                                style="@style/Widget.Velocity.Flat.Button.Text"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="sans-serif-bold"
+                                android:letterSpacing="0"
                                 android:minHeight="48dp"
                                 android:text="@string/reset_label"
-                                android:textColor="@color/velocity_red_primary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif-black"
-                                android:insetTop="0dp"
-                                android:insetBottom="0dp"
+                                android:textAllCaps="false"
+                                android:textColor="@color/velocity_action_text"
+                                android:textSize="13sp"
+                                android:visibility="gone"
                                 app:icon="@drawable/ic_close"
                                 app:iconGravity="textStart"
-                                app:iconSize="14dp"
                                 app:iconPadding="4dp"
-                                app:iconTint="@color/velocity_red_primary"
+                                app:iconSize="14dp"
+                                app:iconTint="@color/velocity_action_text"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toBottomOf="@id/btnSearchAvailability" />
 
                         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -362,63 +323,112 @@
                         android:layout_height="1dp"
                         android:background="@color/velocity_red_subtle" />
 
-                    <!-- One compact row: result count | Sort | FILTERS (n). Type / Status / Capacity / Price live in the Filters dialog. -->
+                    <!-- One aligned row: "5 rooms" | Sort: Recommended v | Filters . 2. Active filters show as removable chips below. -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:paddingHorizontal="16dp"
-                        android:paddingTop="10dp"
-                        android:paddingBottom="8dp">
+                        android:paddingTop="8dp"
+                        android:paddingBottom="4dp">
 
                         <TextView
                             android:id="@+id/tvResultsCount"
-                            style="@style/TextAppearance.Velocity.Price"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:ellipsize="end"
+                            android:fontFamily="sans-serif-black"
                             android:includeFontPadding="false"
-                            android:maxLines="2"
-                            android:textColor="@color/velocity_red_text"
-                            android:textSize="13sp"
-                            tools:text="25 Rooms Found" />
+                            android:maxLines="1"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="15sp"
+                            tools:text="5 rooms" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSort"
-                            style="@style/Widget.Velocity.Button.Outlined"
+                            style="@style/Widget.Velocity.Flat.Button.Outlined"
                             android:layout_width="wrap_content"
-                            android:layout_height="48dp"
+                            android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:ellipsize="end"
+                            android:fontFamily="sans-serif-medium"
+                            android:insetTop="4dp"
+                            android:insetBottom="4dp"
+                            android:letterSpacing="0"
                             android:maxLines="1"
-                            android:maxWidth="132dp"
+                            android:maxWidth="190dp"
                             android:minWidth="0dp"
                             android:paddingHorizontal="10dp"
                             android:text="@string/sort_default"
-                            android:textAllCaps="false"
+                            android:textColor="@color/velocity_text_primary"
                             android:textSize="12sp"
                             app:icon="@drawable/ic_expand_more"
                             app:iconGravity="end"
                             app:iconPadding="2dp"
-                            app:iconSize="18dp" />
+                            app:iconSize="18dp"
+                            app:iconTint="@color/velocity_text_secondary"
+                            app:strokeColor="@color/filter_box_stroke"
+                            app:strokeWidth="1dp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnFilters"
-                            style="@style/Widget.Velocity.Button.Outlined"
+                            style="@style/Widget.Velocity.Flat.Button.Outlined"
                             android:layout_width="wrap_content"
-                            android:layout_height="48dp"
+                            android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:insetTop="4dp"
+                            android:insetBottom="4dp"
+                            android:letterSpacing="0"
+                            android:maxLines="1"
                             android:minWidth="0dp"
                             android:paddingHorizontal="10dp"
-                            android:maxLines="1"
                             android:text="@string/filter_label"
+                            android:textColor="@color/velocity_text_primary"
                             android:textSize="12sp"
                             app:icon="@drawable/ic_filter"
                             app:iconGravity="textStart"
                             app:iconPadding="6dp"
-                            app:iconSize="16dp" />
+                            app:iconSize="16dp"
+                            app:iconTint="@color/velocity_text_secondary"
+                            app:strokeColor="@color/filter_box_stroke"
+                            app:strokeWidth="1dp" />
+                    </LinearLayout>
+
+                    <!-- Active filters: removable chips + Clear all. Hidden when none. -->
+                    <LinearLayout
+                        android:id="@+id/layoutActiveFilters"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="8dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipsActiveFilters"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:chipSpacingHorizontal="6dp"
+                            app:chipSpacingVertical="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearActiveFilters"
+                            style="@style/Widget.Velocity.Flat.Button.Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:letterSpacing="0"
+                            android:minHeight="48dp"
+                            android:text="@string/clear_all_label"
+                            android:textAllCaps="false"
+                            android:textColor="@color/velocity_action_text"
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <!-- Compact dates, shown once dates are picked; tap = back up to the search card. -->
@@ -502,15 +512,24 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Empty State View -->
-        <include
+        <!-- Empty State View: in normal flow BELOW the app bar (the scrolling-view behaviour places it under the results bar) - no
+             overlap, no translation. It scrolls so a short screen or a big font can still reach its buttons. -->
+        <androidx.core.widget.NestedScrollView
             android:id="@+id/noResultsView"
-            layout="@layout/view_empty_state"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/velocity_red_bg_end"
+            android:fillViewport="true"
+            android:overScrollMode="never"
             android:visibility="gone"
-            app:behavior_overlapTop="150dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <include
+                android:id="@+id/layoutNoResultsContent"
+                layout="@layout/view_empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </androidx.core.widget.NestedScrollView>
 
         <!-- Persistent network/API failure state - distinct from noResultsView
              above ("no rooms match your filters" vs "couldn't load at all").
@@ -523,7 +542,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            app:behavior_overlapTop="150dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <!-- Multi-room selection cart: same pattern as landing.xml's

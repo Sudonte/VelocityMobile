@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One label / value row of the notification detail's details block. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:orientation="horizontal"
+    android:paddingVertical="4dp">
+
+    <TextView
+        android:id="@+id/tvDetailRowLabel"
+        android:layout_width="96dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="13sp"
+        tools:text="Room" />
+
+    <TextView
+        android:id="@+id/tvDetailRowValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="13sp"
+        tools:text="Deluxe" />
+</LinearLayout>

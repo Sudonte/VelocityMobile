@@ -356,8 +356,145 @@ public final class RoomRepository {
         return new ArrayList<>(completedHistoricalReservations);
     }
 
+    /** The guest's notifications: the API's, with the promotions and announcements built from the catalog merged in (newest first). */
     public List<Notification> getNotifications() {
-        return new ArrayList<>(notifications);
+        if (catalogNotifications.isEmpty()) return new ArrayList<>(notifications);
+        return CatalogNotifications.merge(notifications, catalogNotifications);
+    }
+
+    // ---- Promotions & announcements as notifications (see CatalogNotifications) ----
+
+    /** Told when the catalog notifications were (re)loaded, so open screens redraw. */
+    public interface CatalogNotificationsListener {
+        void onCatalogNotificationsChanged();
+    }
+
+    private List<Notification> catalogNotifications = new ArrayList<>();
+    private CatalogNotifications.ReadStore catalogReads;
+    private long catalogLoadedAtMs = 0;
+    private boolean catalogLoading = false;
+    private static final long CATALOG_STALE_MS = 20_000L;
+    private final List<CatalogNotificationsListener> catalogListeners = new ArrayList<>();
+
+    public void addCatalogNotificationsListener(CatalogNotificationsListener l) {
+        if (l != null && !catalogListeners.contains(l)) catalogListeners.add(l);
+    }
+
+    public void removeCatalogNotificationsListener(CatalogNotificationsListener l) {
+        catalogListeners.remove(l);
+    }
+
+    private CatalogNotifications.ReadStore catalogReads() {
+        if (catalogReads == null) catalogReads = new CatalogNotifications.ReadStore(appContext);
+        catalogReads.refreshGuest(appContext);
+        return catalogReads;
+    }
+
+    /** Loads the active promotions and the guest announcements (two no-cache requests, silent on failure) unless that was done a moment ago. */
+    public void refreshCatalogNotifications(boolean force) {
+        if (catalogLoading) return;
+        if (!force && System.currentTimeMillis() - catalogLoadedAtMs < CATALOG_STALE_MS) return;
+        catalogLoading = true;
+        final int requestGeneration = accountGeneration;
+        final Object[] results = new Object[3];
+        final int[] pending = {3};
+        final Runnable done = () -> {
+            if (--pending[0] > 0) return;
+            catalogLoading = false;
+            if (requestGeneration != accountGeneration) return;
+            if (results[0] == null && results[1] == null && results[2] == null) return; // all failed: keep what we had
+            CatalogNotifications.ReadStore reads = catalogReads();
+            List<Notification> built = new ArrayList<>();
+            if (results[0] != null) {
+                @SuppressWarnings("unchecked") List<com.example.velocitysuites.network.dto.PromotionDto> p = (List<com.example.velocitysuites.network.dto.PromotionDto>) results[0];
+                built.addAll(CatalogNotifications.fromPromotions(p, System.currentTimeMillis(), reads));
+            } else {
+                for (Notification n : catalogNotifications) if (n.getId().startsWith(CatalogNotifications.PROMO_PREFIX)) built.add(n);
+            }
+            if (results[2] != null) {
+                @SuppressWarnings("unchecked") List<com.example.velocitysuites.network.dto.DiscountDto> d = (List<com.example.velocitysuites.network.dto.DiscountDto>) results[2];
+                built.addAll(CatalogNotifications.fromDiscounts(d, System.currentTimeMillis(), reads));
+            } else {
+                for (Notification n : catalogNotifications) if (n.getId().startsWith(CatalogNotifications.DISCOUNT_PREFIX)) built.add(n);
+            }
+            if (results[1] != null) {
+                @SuppressWarnings("unchecked") List<com.example.velocitysuites.network.dto.AnnouncementDto> a = (List<com.example.velocitysuites.network.dto.AnnouncementDto>) results[1];
+                built.addAll(CatalogNotifications.fromAnnouncements(a, reads));
+            } else {
+                for (Notification n : catalogNotifications) if (n.getId().startsWith(CatalogNotifications.NEWS_PREFIX)) built.add(n);
+            }
+            catalogNotifications = built;
+            catalogLoadedAtMs = System.currentTimeMillis();
+            for (CatalogNotificationsListener l : new ArrayList<>(catalogListeners)) l.onCatalogNotificationsChanged();
+        };
+        try {
+            api.getPromotionsFresh().enqueue(new Callback<List<com.example.velocitysuites.network.dto.PromotionDto>>() {
+                @Override
+                public void onResponse(Call<List<com.example.velocitysuites.network.dto.PromotionDto>> call, Response<List<com.example.velocitysuites.network.dto.PromotionDto>> response) {
+                    if (response.isSuccessful()) results[0] = response.body() != null ? response.body() : new ArrayList<>();
+                    done.run();
+                }
+
+                @Override
+                public void onFailure(Call<List<com.example.velocitysuites.network.dto.PromotionDto>> call, Throwable t) {
+                    done.run();
+                }
+            });
+        } catch (RuntimeException e) {
+            done.run(); // promotions are optional: never let them break the notifications
+        }
+        try {
+            api.getAnnouncementsFresh().enqueue(new Callback<List<com.example.velocitysuites.network.dto.AnnouncementDto>>() {
+                @Override
+                public void onResponse(Call<List<com.example.velocitysuites.network.dto.AnnouncementDto>> call, Response<List<com.example.velocitysuites.network.dto.AnnouncementDto>> response) {
+                    if (response.isSuccessful()) results[1] = response.body() != null ? response.body() : new ArrayList<>();
+                    done.run();
+                }
+
+                @Override
+                public void onFailure(Call<List<com.example.velocitysuites.network.dto.AnnouncementDto>> call, Throwable t) {
+                    done.run();
+                }
+            });
+        } catch (RuntimeException e) {
+            done.run();
+        }
+        try {
+            api.getDiscountsFresh().enqueue(new Callback<List<com.example.velocitysuites.network.dto.DiscountDto>>() {
+                @Override
+                public void onResponse(Call<List<com.example.velocitysuites.network.dto.DiscountDto>> call, Response<List<com.example.velocitysuites.network.dto.DiscountDto>> response) {
+                    if (response.isSuccessful()) results[2] = response.body() != null ? response.body() : new ArrayList<>();
+                    done.run();
+                }
+
+                @Override
+                public void onFailure(Call<List<com.example.velocitysuites.network.dto.DiscountDto>> call, Throwable t) {
+                    done.run();
+                }
+            });
+        } catch (RuntimeException e) {
+            done.run();
+        }
+    }
+
+    private int catalogUnreadCount() {
+        int unread = 0;
+        for (Notification c : CatalogNotifications.merge(notifications, catalogNotifications)) {
+            if (CatalogNotifications.isCatalogId(c.getId()) && !c.isRead()) unread++;
+        }
+        return unread;
+    }
+
+    /** Sets the read flag of one catalog notification (kept on the phone). */
+    private boolean setCatalogRead(String id, boolean read) {
+        for (Notification c : catalogNotifications) {
+            if (id.equals(c.getId())) {
+                c.setRead(read);
+                catalogReads().setRead(id, read);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void clearBookings() {
@@ -380,6 +517,9 @@ public final class RoomRepository {
         bookings.clear();
         completedHistoricalReservations.clear();
         notifications.clear();
+        catalogNotifications = new ArrayList<>();
+        catalogLoadedAtMs = 0;
+        catalogLoading = false;
         correctedTotalIds.clear();
         // The actual account boundary for both "grow and replace" pagination
         // windows (bookingsPerPage/notificationsPerPage) - a new account
@@ -1051,6 +1191,7 @@ public final class RoomRepository {
                     // through here - see NotificationHelper for the dedup/grouping rules.
                     NotificationHelper.maybeAlertNewNotifications(appContext, mapped);
                     notifyNotificationsArrived(arrived);
+                    refreshCatalogNotifications(false);
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {
                     if (callback != null) callback.onError("Failed to load notifications.");
@@ -1090,7 +1231,7 @@ public final class RoomRepository {
         for (Notification n : notifications) {
             if (!n.isRead()) loadedUnread++;
         }
-        return Math.max(backendUnreadCount, loadedUnread);
+        return Math.max(backendUnreadCount, loadedUnread) + (catalogNotifications.isEmpty() ? 0 : catalogUnreadCount());
     }
 
     /**
@@ -1189,6 +1330,7 @@ public final class RoomRepository {
                     notificationsLoaded = true;
                     NotificationHelper.maybeAlertNewNotifications(appContext, fetched);
                     notifyNotificationsArrived(arrived);
+                    refreshCatalogNotifications(false);
                     if (callback != null) callback.onSuccess(getNotifications());
                 } else {
                     if (callback != null) callback.onError("Failed to check for new notifications.");
@@ -2498,6 +2640,12 @@ public final class RoomRepository {
      *               means the local change was reverted.
      */
     public void setNotificationReadState(String notificationId, boolean read, java.util.function.Consumer<Boolean> onDone) {
+        if (CatalogNotifications.isCatalogId(notificationId)) {
+            // A promotion / announcement notification has no server row: its read state lives on the phone.
+            boolean ok = setCatalogRead(notificationId, read);
+            if (onDone != null) onDone.accept(ok);
+            return;
+        }
         final boolean previousState = !read;
         final boolean changedLocally = applyReadStateLocally(notificationId, read);
         pendingReadStates.put(notificationId, read);
@@ -2546,6 +2694,9 @@ public final class RoomRepository {
      */
     public void markAllNotificationsAsRead(java.util.function.Consumer<Boolean> onDone) {
         final List<String> flippedIds = new ArrayList<>();
+        for (Notification c : catalogNotifications) {
+            if (!c.isRead()) setCatalogRead(c.getId(), true);
+        }
         for (Notification n : notifications) {
             if (!n.isRead()) {
                 n.setRead(true);
@@ -2598,9 +2749,13 @@ public final class RoomRepository {
         String lowerQuery = query == null ? "" : query.toLowerCase(Locale.US);
 
         for (Room r : rooms) {
-            boolean matchesQuery = r.getName().toLowerCase(Locale.US).contains(lowerQuery) || r.getDescription().toLowerCase(Locale.US).contains(lowerQuery);
+            if (r == null) continue;
+            String name = r.getName() == null ? "" : r.getName();
+            String description = r.getDescription() == null ? "" : r.getDescription();
+            String roomType = r.getType() == null ? "" : r.getType();
+            boolean matchesQuery = name.toLowerCase(Locale.US).contains(lowerQuery) || description.toLowerCase(Locale.US).contains(lowerQuery);
             boolean matchesType = type == null || type.isEmpty() || type.equalsIgnoreCase("All")
-                    || r.getType().toLowerCase(Locale.US).contains(type.toLowerCase(Locale.US));
+                    || roomType.toLowerCase(Locale.US).contains(type.toLowerCase(Locale.US));
             boolean matchesGuests = r.getCapacity() >= guests;
             boolean matchesPrice = r.getPricePerNight() >= minPrice && r.getPricePerNight() <= maxPrice;
 

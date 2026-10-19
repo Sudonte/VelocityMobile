@@ -70,8 +70,8 @@ android {
         // own UI displays. versionName is the human-facing "1.1.0"-style label; bump its
         // patch/minor/major segment per normal semver judgement, versionCode always by
         // exactly 1 regardless of how big the versionName jump is.
-        versionCode = 57
-        versionName = "1.34.0"
+        versionCode = 58
+        versionName = "1.35.0"
 
         // The Secrets Gradle Plugin (see the `secrets` block above) puts the real MAPS_API_KEY
         // into every app variant's manifest placeholders, but not into the unit-test manifest
@@ -141,7 +141,7 @@ android {
             // the end of a full run: the JVM then sits in garbage collection for minutes (one test "taking" 5-6
             // minutes) and dies with an OutOfMemoryError, failing the task although no test failed. Individual test
             // classes pass fine alone, which is what hid it.
-            all { it.maxHeapSize = "1536m" }
+            all { it.maxHeapSize = "2048m" }
         }
     }
     lint {

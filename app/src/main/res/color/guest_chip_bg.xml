@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Guests toggle buttons: selected = soft red fill, unselected = the page surface (never a fixed white). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/velocity_red_soft" android:state_checked="true" />
+    <item android:color="@color/velocity_surface_elevated" />
+</selector>

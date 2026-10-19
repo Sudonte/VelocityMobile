@@ -198,12 +198,27 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         // same reasoning as the notification badge refresh above.
         refreshHeader();
         visiblePoller.start();
+        RoomRepository repository = RoomRepository.getInstance(this);
+        repository.addCatalogNotificationsListener(catalogListener);
+        repository.refreshCatalogNotifications(false); // promotions / announcements as notifications
+    }
+
+    /** The promotions and announcements arrive after the API's notifications: repaint the badge and let the screen redraw its list. */
+    private final RoomRepository.CatalogNotificationsListener catalogListener = () -> {
+        if (isFinishing() || isDestroyed()) return;
+        updateNotificationBadge();
+        onNotificationsListChanged();
+    };
+
+    /** The notification list changed underneath this screen (promotions / announcements loaded). Screens that draw it override this. */
+    protected void onNotificationsListChanged() {
     }
 
     @Override
     protected void onPause() {
         // Nothing polls while the screen is covered, minimised or finished.
         visiblePoller.stop();
+        RoomRepository.getInstance(this).removeCatalogNotificationsListener(catalogListener);
         dismissNotificationPopup();
         super.onPause();
     }

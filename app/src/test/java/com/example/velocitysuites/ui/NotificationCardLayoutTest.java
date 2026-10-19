@@ -38,6 +38,11 @@ import java.util.Collections;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class NotificationCardLayoutTest {
 
+    @org.junit.Before
+    public void freshRepository() {
+        ScreenTestSupport.freshRepository(androidx.test.core.app.ApplicationProvider.getApplicationContext(), new ScreenTestSupport.FakeApi());
+    }
+
     private static final int[] WIDTHS_DP = {320, 360, 393, 411};
     private static final float[] FONT_SCALES = {1.0f, 1.3f, 1.5f};
 

@@ -89,6 +89,12 @@ public class Notification implements Serializable {
         return receiptNumber != null && !receiptNumber.trim().isEmpty();
     }
 
+    /** Extra "Label|Value" rows for the detail view (a promotion's validity, room type and inclusions); empty for everything else. */
+    private List<String> catalogDetails = java.util.Collections.emptyList();
+
+    public List<String> getCatalogDetails() { return catalogDetails; }
+    public void setCatalogDetails(List<String> lines) { this.catalogDetails = lines != null ? lines : java.util.Collections.emptyList(); }
+
     // Setters
     public void setRead(boolean read) { isRead = read; }
 }
