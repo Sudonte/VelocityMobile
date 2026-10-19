@@ -649,7 +649,7 @@
     <string name="cancelled_reservations_label">Cancelled Reservations</string>
     <string name="zero">0</string>
 
-    <string name="guest_role">GUEST</string>
+    <string name="guest_role">Guest</string>
     <string name="guest_mobile">+63 912 345 6789</string>
     <string name="profile_image_desc">Profile picture of the user</string>
     <string name="edit_profile_pic_desc">Edit profile picture</string>
@@ -786,7 +786,7 @@
     <string name="view_details_label">View Details</string>
     <string name="announcement_published_format">Published %1$s</string>
     <string name="promo_bundle_badge_label">Free Add-Ons Included</string>
-    <string name="promo_active_label">ACTIVE</string>
+    <string name="promo_active_label">Active</string>
     <string name="promo_validity_format">Valid %1$s</string>
     <string name="promotions_empty_title">No Ongoing Promotions</string>
     <string name="promotions_empty_desc">Check back soon for new special offers and bundled amenities.</string>
@@ -1050,11 +1050,11 @@
     <string name="starting_booking_headline">Let\'s get your booking started</string>
     <string name="starting_booking_desc">You\'re about to book a stay at Velocity Suites. Review your selection below, then continue to complete your booking in a few quick steps.</string>
     <string name="starting_booking_steps_preview">What\'s next:\n• Confirm your room(s) and stay dates\n• Add guest and identification details\n• Review charges and complete payment</string>
-    <string name="start_booking_cta">START BOOKING</string>
+    <string name="start_booking_cta">Start booking</string>
     <string name="starting_reservation_headline">Let\'s get your reservation started</string>
     <string name="starting_reservation_desc">You\'re about to reserve a room at Velocity Suites. Review your selection below, then continue to complete your reservation in a few quick steps.</string>
     <string name="starting_reservation_steps_preview">What\'s next:\n• Confirm your room(s) and stay dates\n• Add guest and identification details\n• Review charges and choose your payment method</string>
-    <string name="start_reservation_cta">START RESERVATION</string>
+    <string name="start_reservation_cta">Start reservation</string>
     <string name="room_recap_count_format">%1$d room(s) selected</string>
     <string name="selected_rooms_dialog_title">Selected Rooms</string>
     <string name="selected_rooms_dialog_count_format">%1$d room(s) selected</string>
