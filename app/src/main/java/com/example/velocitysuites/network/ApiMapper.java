@@ -334,6 +334,16 @@ public final class ApiMapper {
         // a plain unconverted Reservation has no check-in/out lifecycle of its own.
         booking.setCreatedAtDisplay(reformatDateTime(dto.created_at));
         booking.setCreatedAtMillis(epochMillis(dto.created_at));
+        booking.setEventTime("created", dto.created_at);
+        booking.setEventTime("edited", dto.edited_at);
+        booking.setEventTime("verified", dto.verified_at);
+        booking.setEventTime("cancelled", cancelledAt);
+        if (dto.booking != null) {
+            booking.setEventTime("confirmed", dto.booking.confirmed_at);
+            booking.setEventTime("checked_in", dto.booking.checked_in_at);
+            booking.setEventTime("checked_out", dto.booking.checked_out_at);
+            booking.setEventTime("completed", dto.booking.completed_at);
+        }
         if (dto.booking != null) {
             booking.setCheckedInAtDisplay(reformatDateTimeSeconds(dto.booking.checked_in_at));
             booking.setCheckedOutAtDisplay(reformatDateTimeSeconds(dto.booking.checked_out_at));
@@ -653,6 +663,12 @@ public final class ApiMapper {
         // A direct booking is created already confirmed - confirmed_at IS its creation instant.
         booking.setCreatedAtDisplay(reformatDateTime(dto.confirmed_at));
         booking.setCreatedAtMillis(epochMillis(dto.confirmed_at));
+        booking.setEventTime("created", dto.confirmed_at);
+        booking.setEventTime("verified", dto.verified_at);
+        booking.setEventTime("cancelled", dto.cancelled_at);
+        booking.setEventTime("checked_in", dto.checked_in_at);
+        booking.setEventTime("checked_out", dto.checked_out_at);
+        booking.setEventTime("completed", dto.completed_at);
         booking.setCheckedInAtDisplay(reformatDateTimeSeconds(dto.checked_in_at));
         booking.setCheckedOutAtDisplay(reformatDateTimeSeconds(dto.checked_out_at));
         booking.setCompletedAtDisplay(reformatDateTimeSeconds(dto.completed_at));
@@ -1042,7 +1058,7 @@ public final class ApiMapper {
             if (step == null || step.label == null) continue;
             boolean toTheSecond = "checked_in".equals(step.key) || "checked_out".equals(step.key) || "completed".equals(step.key);
             result.add(new Booking.TimelineEntry(step.key, step.label, step.status,
-                    toTheSecond ? reformatDateTimeSeconds(step.at) : reformatDateTime(step.at)));
+                    toTheSecond ? reformatDateTimeSeconds(step.at) : reformatDateTime(step.at), step.at));
         }
         return result;
     }

@@ -207,6 +207,8 @@ public class Booking implements Serializable {
     private String checkedInAtDisplay;
     private String checkedOutAtDisplay;
     /** The server's own check-in / check-out instants (ISO), kept raw so a screen can format them to the second. */
+    /** Every dated fact the server gave for this transaction, raw ISO, by name ("created", "edited", "verified", "confirmed", "cancelled", "checked_in", "checked_out", "completed") - the timeline is built from these. */
+    private final java.util.LinkedHashMap<String, String> eventTimes = new java.util.LinkedHashMap<>();
     private String checkedInAtRaw;
     private String checkedOutAtRaw;
     private String completedAtDisplay;
@@ -612,6 +614,12 @@ public class Booking implements Serializable {
     public long getCreatedAtMillis() { return createdAtMillis; }
     public String getCheckedInAtDisplay() { return checkedInAtDisplay; }
     public String getCheckedOutAtDisplay() { return checkedOutAtDisplay; }
+    @androidx.annotation.Nullable
+    public String getEventTime(String name) { return eventTimes.get(name); }
+    public void setEventTime(String name, @androidx.annotation.Nullable String raw) {
+        if (raw == null || raw.trim().isEmpty()) eventTimes.remove(name);
+        else eventTimes.put(name, raw);
+    }
     public String getCheckedInAtRaw() { return checkedInAtRaw; }
     public String getCheckedOutAtRaw() { return checkedOutAtRaw; }
     public void setCheckedInAtRaw(String raw) { this.checkedInAtRaw = raw; }
@@ -874,8 +882,15 @@ public class Booking implements Serializable {
         public final String label;
         public final String status;
         public final String atDisplay;
+        /** The server's raw instant (ISO), "" when the step has not happened yet. */
+        public final String atRaw;
 
         public TimelineEntry(String key, String label, String status, String atDisplay) {
+            this(key, label, status, atDisplay, "");
+        }
+
+        public TimelineEntry(String key, String label, String status, String atDisplay, String atRaw) {
+            this.atRaw = atRaw != null ? atRaw : "";
             this.key = key;
             this.label = label;
             this.status = status;

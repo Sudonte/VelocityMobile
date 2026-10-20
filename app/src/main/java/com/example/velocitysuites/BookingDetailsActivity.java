@@ -75,11 +75,17 @@ public class BookingDetailsActivity extends AppCompatActivity {
      */
     private final VisiblePoller visiblePoller = new VisiblePoller(() -> {
         if (booking == null) return;
+        if (!DetailsLive.isActive(booking)) { // checked out, cancelled, rejected or failed: nothing left to wait for
+            BookingDetailsActivity.this.visiblePoller.stop();
+            return;
+        }
         refreshFromServer(false);
+        AmenityRoomSources.fetch(this, booking);
         // Nothing else polls notifications while this screen is open, so check here: a receipt / verification
         // notification then reaches arrivalListener below and refreshes the page at once.
         RoomRepository.getInstance(this).pollNotifications(null);
-    }, VisiblePoller.LIVE_BOOKING_INTERVAL_MS);
+    }, DetailsLive.POLL_INTERVAL_MS);
+    private DetailsLive live;
 
     /**
      * A booking / payment / receipt notification arrived (the receptionist just verified, checked in or out):
@@ -119,6 +125,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
         swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
         FlatUi.removeSpinnerShadow(swipeRefresh);
         swipeRefresh.setOnRefreshListener(() -> refreshFromServer(true));
+        live = DetailsLive.attach(this, DetailsLive.contentOf(swipeRefresh), () -> refreshFromServer(true));
+        AmenityRoomSources.listen(booking, amenityRequestsListener);
 
         editLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK) {
@@ -145,7 +153,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         } else if (booking != null) {
             refreshFromServer(false); // back on the screen: catch up silently
         }
-        visiblePoller.start();
+        if (DetailsLive.isActive(booking)) visiblePoller.start();
     }
 
     @Override
@@ -169,6 +177,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         visiblePoller.stop();
+        if (booking != null) AmenityRoomSources.unlisten(booking, amenityRequestsListener);
         if (ioExecutor != null) ioExecutor.shutdownNow();
         // The downloaded ID photo is private: do not leave a copy in the cache.
         if (idCardFile != null) idCardFile.delete();
@@ -192,11 +201,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
             public void onSuccess(Booking fresh) {
                 if (isFinishing() || isDestroyed()) return;
                 swipeRefresh.setRefreshing(false);
+                live.markUpdated(System.currentTimeMillis());
                 // A silent check that finds the same transaction must not rebuild every section (pull-to-refresh and
                 // a saved edit always redraw, as before).
                 boolean changed = detailsGate.accept(fresh);
                 if (!changed && !userInitiated) return;
                 booking = fresh;
+                if (!DetailsLive.isActive(booking)) visiblePoller.stop();
                 correctTotalAmountThenRender();
             }
 
@@ -204,6 +215,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
             public void onError(String message) {
                 if (isFinishing() || isDestroyed()) return;
                 swipeRefresh.setRefreshing(false);
+                live.markFailed();
                 if (userInitiated) {
                     Toast.makeText(BookingDetailsActivity.this, R.string.details_refresh_failed, Toast.LENGTH_LONG).show();
                 }
@@ -246,6 +258,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
     }
 
     private void renderAllSections() {
+        androidx.core.widget.NestedScrollView scroller = DetailsLive.scrollerOf(swipeRefresh);
+        final int keepScroll = scroller.getScrollY();
+        renderSections();
+        if (keepScroll > 0) scroller.post(() -> scroller.scrollTo(0, keepScroll)); // a quiet refresh never jumps the page
+    }
+
+    private void renderSections() {
         // Re-rendering (after a refresh/edit) must replace, not append to, what was drawn before.
         int[] sectionIds = {R.id.sectionBalanceContent, R.id.sectionBookingInfoContent, R.id.sectionGuestInfoContent, R.id.sectionRoomInfoContent,
                 R.id.sectionPaymentInfoContent, R.id.sectionPaymentSummaryContent, R.id.sectionTimelineContent,
@@ -1116,162 +1135,21 @@ public class BookingDetailsActivity extends AppCompatActivity {
         container.addView(card);
     }
 
-    // ---- Timeline tab ----
+    // ---- Timeline ----
 
-    private static class TimelineStep {
-        final String label;
-        final boolean reached;
-        /** Manila-formatted "MMM d, yyyy • h:mm a" from the backend, or null when reached but the backend hasn't sent a timestamp for this step yet (older cached data). */
-        final String timestamp;
-        /** "Verified" / "Pending" / "Rejected" for a server-built step; null for the legacy locally-derived steps. */
-        final String statusText;
-        /** True for a step the server built (even a "Recorded" one with no status text). */
-        final boolean fromServer;
-        TimelineStep(String label, boolean reached, String timestamp) {
-            this.label = label;
-            this.reached = reached;
-            this.timestamp = timestamp;
-            this.statusText = null;
-            this.fromServer = false;
-        }
+    /** Keys of the timeline entries already shown, so a quiet refresh can highlight only what is new. */
+    private final java.util.Set<String> seenTimeline = new java.util.HashSet<>();
 
-        TimelineStep(String label, boolean reached, String timestamp, String statusText) {
-            this.label = label;
-            this.reached = reached;
-            this.timestamp = timestamp;
-            this.statusText = statusText;
-            this.fromServer = true;
-        }
-    }
-
-    /**
-     * The timeline exactly as the server built it (Api: `timeline`): every entry's own label,
-     * status (Verified / Pending / Rejected) and recorded date + time - including "Reservation
-     * modified by guest" and, once a receptionist verifies something, that entry as "Verified".
-     * Re-fetched whenever the details screen opens or is pull-to-refreshed.
-     */
-    private List<TimelineStep> serverTimelineSteps() {
-        List<TimelineStep> steps = new ArrayList<>();
-        for (Booking.TimelineEntry entry : booking.getTimeline()) {
-            boolean reached = !"Pending".equalsIgnoreCase(entry.status);
-            steps.add(new TimelineStep(entry.label, reached, entry.atDisplay, statusLabel(entry.status)));
-        }
-        return steps;
-    }
-
-    private String statusLabel(String serverStatus) {
-        if ("Verified".equalsIgnoreCase(serverStatus)) return getString(R.string.timeline_status_verified);
-        if ("Pending".equalsIgnoreCase(serverStatus)) return getString(R.string.timeline_status_pending);
-        if ("Rejected".equalsIgnoreCase(serverStatus)) return getString(R.string.timeline_status_rejected);
-        return null; // "Recorded": an event with nothing to verify - just show when it happened
-    }
-
+    /** The full, newest-first timeline (see {@link TransactionTimeline} for its sources). */
     private void buildTimelineSection(LinearLayout container) {
-        if (!booking.getTimeline().isEmpty()) {
-            List<TimelineStep> serverSteps = serverTimelineSteps();
-            for (int i = 0; i < serverSteps.size(); i++) {
-                container.addView(buildTimelineRow(serverSteps.get(i), i == serverSteps.size() - 1));
-            }
-            return;
-        }
-        List<TimelineStep> steps = new ArrayList<>();
-        steps.add(new TimelineStep(
-                getString(booking.isDirectBooking() ? R.string.timeline_booking_created : R.string.timeline_created),
-                true, booking.getCreatedAtDisplay()));
-
-        boolean isGcash = "gcash".equalsIgnoreCase(booking.getPaymentMethod());
-        if (isGcash) {
-            boolean submitted = booking.getTransactionRef() != null;
-            steps.add(new TimelineStep(getString(R.string.timeline_payment_submitted), submitted, submitted ? booking.getPaymentDate() : null));
-            steps.add(new TimelineStep(getString(R.string.timeline_payment_verified), booking.isPaymentVerified(), booking.getPaymentVerifiedAtDisplay()));
-        }
-
-        // A direct "New Booking" was never a Reservation, so it can never have
-        // been "Converted to Booking" - only a transaction that actually
-        // started as a Reservation (isDirectBooking()==false) gets that step.
-        // Previously this was one hardcoded "Confirmed / Converted to Booking"
-        // step shown for every booking, which was factually wrong for every
-        // direct booking (see timeline_confirmed's old value, strings.xml).
-        boolean confirmed = booking.isHasBooking();
-        if (booking.isDirectBooking()) {
-            steps.add(new TimelineStep(getString(R.string.timeline_booking_confirmed), confirmed, confirmed ? booking.getBookingDate() : null));
-        } else {
-            steps.add(new TimelineStep(getString(R.string.timeline_reservation_confirmed), confirmed, confirmed ? booking.getBookingDate() : null));
-            steps.add(new TimelineStep(getString(R.string.timeline_converted_to_booking), confirmed, confirmed ? booking.getBookingDate() : null));
-        }
-
-        boolean checkedIn = "Checked-In".equalsIgnoreCase(booking.getStatus()) || "Checked-Out".equalsIgnoreCase(booking.getStatus());
-        if (checkedIn) {
-            steps.add(new TimelineStep(getString(R.string.timeline_checked_in), true, booking.getCheckedInAtDisplay()));
-        }
-        if ("Checked-Out".equalsIgnoreCase(booking.getStatus())) {
-            steps.add(new TimelineStep(getString(R.string.timeline_checked_out), true, booking.getCheckedOutAtDisplay()));
-            steps.add(new TimelineStep(getString(R.string.timeline_completed), true, booking.getCompletedAtDisplay()));
-        }
-        if ("Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus())) {
-            steps.add(new TimelineStep(booking.getStatus(), true, booking.getCancellationDate()));
-        }
-
-        for (int i = 0; i < steps.size(); i++) {
-            container.addView(buildTimelineRow(steps.get(i), i == steps.size() - 1));
-        }
+        TransactionTimelineView.render(this, container, TransactionTimeline.of(this, booking), seenTimeline);
     }
 
-    private View buildTimelineRow(TimelineStep step, boolean isLast) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        rowParams.bottomMargin = isLast ? 0 : (int) (14 * getResources().getDisplayMetrics().density);
-        row.setLayoutParams(rowParams);
-
-        ImageView dot = new ImageView(this);
-        int dotSize = (int) (18 * getResources().getDisplayMetrics().density);
-        LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dotSize, dotSize);
-        dotParams.rightMargin = (int) (12 * getResources().getDisplayMetrics().density);
-        dot.setLayoutParams(dotParams);
-        Drawable icon = ContextCompat.getDrawable(this, step.reached ? R.drawable.ic_check_circle : R.drawable.ic_clock);
-        dot.setImageDrawable(icon);
-        dot.setColorFilter(getResources().getColor(step.reached ? R.color.velocity_green_primary : R.color.velocity_inactive_gray));
-
-        LinearLayout textColumn = new LinearLayout(this);
-        textColumn.setOrientation(LinearLayout.VERTICAL);
-
-        TextView label = new TextView(this);
-        label.setText(step.label);
-        label.setTextSize(13);
-        label.setTextColor(getResources().getColor(step.reached ? R.color.velocity_text_primary : R.color.velocity_inactive_gray));
-        label.setTypeface(null, step.reached ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
-        textColumn.addView(label);
-
-        // Only a reached step can meaningfully show "when" - an unreached
-        // step (e.g. Checked Out on a still-Checked-In stay) has no
-        // timestamp to show and would otherwise print a misleading "N/A".
-        if (step.fromServer) {
-            // Server-built step: "<status> • <date and time>", or just the status while it is still Pending.
-            TextView timeLabel = new TextView(this);
-            String when = !TextUtils.isEmpty(step.timestamp) ? step.timestamp : null;
-            String text;
-            if (step.statusText != null && when != null) text = step.statusText + " • " + when;
-            else if (step.statusText != null) text = step.statusText;
-            else text = when != null ? when : getString(step.reached ? R.string.timeline_done : R.string.timeline_pending);
-            timeLabel.setText(text);
-            timeLabel.setTextSize(11);
-            timeLabel.setTextColor(getResources().getColor(step.reached ? R.color.velocity_text_secondary : R.color.velocity_inactive_gray));
-            textColumn.addView(timeLabel);
-        } else if (step.reached) {
-            TextView timeLabel = new TextView(this);
-            timeLabel.setText(!TextUtils.isEmpty(step.timestamp) ? step.timestamp : getString(R.string.timeline_done));
-            timeLabel.setTextSize(11);
-            timeLabel.setTextColor(getResources().getColor(R.color.velocity_text_secondary));
-            textColumn.addView(timeLabel);
-        }
-
-        row.addView(dot);
-        row.addView(textColumn);
-        return row;
-    }
+    /** The amenity request list arrived or changed: redraw just the timeline. */
+    private final Runnable amenityRequestsListener = () -> {
+        if (isFinishing() || isDestroyed() || booking == null) return;
+        buildTimelineSection(findViewById(R.id.sectionTimelineContent));
+    };
 
     // ---- Shared row helper ----
 

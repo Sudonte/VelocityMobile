@@ -43,8 +43,13 @@ public class TransactionDetailsActivity extends AppCompatActivity {
      * for changes itself every 30s (the same light, merge-only poll Transaction History uses), one at a time, and
      * re-renders only if something the screen shows actually changed.
      */
-    private final VisiblePoller visiblePoller = new VisiblePoller(this::pollNow);
+    private final VisiblePoller visiblePoller = new VisiblePoller(this::pollNow, DetailsLive.POLL_INTERVAL_MS);
     private boolean pollInFlight = false;
+    private DetailsLive live;
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
+    private LinearLayout timelineBox;
+    private final java.util.Set<String> seenTimeline = new java.util.HashSet<>();
+    private final Runnable amenityRequestsListener = this::renderTimeline;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,6 +66,13 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
         ImageButton btnBack = findViewById(R.id.btnTransactionDetailsBack);
         btnBack.setOnClickListener(v -> finish());
+
+        swipeRefresh = findViewById(R.id.swipeRefreshTxDetails);
+        swipeRefresh.setColorSchemeResources(R.color.velocity_red_primary);
+        FlatUi.removeSpinnerShadow(swipeRefresh);
+        swipeRefresh.setOnRefreshListener(() -> pollNow(true));
+        live = DetailsLive.attach(this, DetailsLive.contentOf(swipeRefresh), () -> pollNow(true));
+        AmenityRoomSources.listen(booking, amenityRequestsListener);
 
         bindAll();
     }
@@ -83,7 +95,9 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        visiblePoller.start();
+        if (booking == null) return;
+        if (DetailsLive.isActive(booking)) visiblePoller.start();
+        pollNow(false); // back on the screen: catch up quietly
     }
 
     @Override
@@ -95,14 +109,39 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         visiblePoller.stop();
+        if (booking != null) AmenityRoomSources.unlisten(booking, amenityRequestsListener);
         super.onDestroy();
     }
 
     private void pollNow() {
-        if (pollInFlight || booking == null || isFinishing() || isDestroyed()) return;
+        if (!DetailsLive.isActive(booking)) { // checked out, cancelled, rejected or failed: nothing left to wait for
+            visiblePoller.stop();
+            return;
+        }
+        pollNow(false);
+    }
+
+    private void pollNow(boolean userInitiated) {
+        if (booking == null || isFinishing() || isDestroyed()) return;
+        if (pollInFlight) {
+            if (userInitiated) swipeRefresh.setRefreshing(false);
+            return;
+        }
         pollInFlight = true;
+        if (userInitiated) swipeRefresh.setRefreshing(true);
+        AmenityRoomSources.fetch(this, booking);
         // The merge inside the poll notifies bookingsChangedListener, which re-renders if this transaction changed.
-        RoomRepository.getInstance(this).pollBookingsSplit((merged, reservationsError, directError) -> pollInFlight = false);
+        RoomRepository.getInstance(this).pollBookingsSplit((merged, reservationsError, directError) -> {
+            pollInFlight = false;
+            if (isFinishing() || isDestroyed()) return;
+            swipeRefresh.setRefreshing(false);
+            if (reservationsError != null || directError != null) {
+                live.markFailed();
+            } else {
+                live.markUpdated(System.currentTimeMillis());
+            }
+            renderTimeline();
+        });
     }
 
     /**
@@ -126,6 +165,8 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     }
 
     private void bindAll() {
+        androidx.core.widget.NestedScrollView scroller = DetailsLive.scrollerOf(swipeRefresh);
+        final int keepScroll = scroller.getScrollY();
         bindViewBookingDetailsButton();
         bindHeader();
 
@@ -134,6 +175,13 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         buildInfoSection(sectionInfo);
 
         buildReceiptActionCard();
+        if (keepScroll > 0) scroller.post(() -> scroller.scrollTo(0, keepScroll)); // a quiet refresh never jumps the page
+    }
+
+    /** The full timeline (see {@link TransactionTimeline}); redrawn on its own whenever a source changes. */
+    private void renderTimeline() {
+        if (timelineBox == null || booking == null || isFinishing() || isDestroyed()) return;
+        TransactionTimelineView.render(this, timelineBox, TransactionTimeline.of(this, booking), seenTimeline);
     }
 
     /**
@@ -273,18 +321,12 @@ public class TransactionDetailsActivity extends AppCompatActivity {
 
         buildPaymentHistorySection(container);
 
-        // Full accurate timestamp trail - each row is skipped when the backend hasn't sent that timestamp yet.
-        boolean hasAnyTimestamp = !TextUtils.isEmpty(booking.getCreatedAtDisplay())
-                || !TextUtils.isEmpty(booking.getPaymentVerifiedAtDisplay())
-                || !TextUtils.isEmpty(booking.getCheckedInAtDisplay())
-                || !TextUtils.isEmpty(booking.getCheckedOutAtDisplay());
-        if (hasAnyTimestamp) {
-            addSectionDivider(container, getString(R.string.details_label_status));
-            addInfoRow(container, getString(R.string.timeline_created), booking.getCreatedAtDisplay());
-            addInfoRow(container, getString(R.string.timeline_payment_verified), booking.getPaymentVerifiedAtDisplay());
-            addInfoRow(container, getString(R.string.timeline_checked_in), booking.getCheckedInAtDisplay());
-            addInfoRow(container, getString(R.string.timeline_checked_out), booking.getCheckedOutAtDisplay());
-        }
+        // Timeline: every dated event from creation to check-out, newest first.
+        addSectionDivider(container, getString(R.string.section_title_transaction_timeline));
+        timelineBox = new LinearLayout(this);
+        timelineBox.setOrientation(LinearLayout.VERTICAL);
+        container.addView(timelineBox, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        renderTimeline();
     }
 
     /** Authoritative-first-with-fallback, same rule as BookingDetailsActivity#buildPaymentHistorySection(). */

@@ -24,8 +24,18 @@ final class AmenityRecord {
     @Nullable final String room;
     final String roomType;
     final Status status;
+    /** When the guest asked / when the front desk decided (epoch millis, 0 = not given). */
+    final long requestedAtMillis;
+    final long decidedAtMillis;
 
     AmenityRecord(long id, @Nullable String name, int quantity, double subtotal, @Nullable String room, @Nullable String roomType, @NonNull Status status) {
+        this(id, name, quantity, subtotal, room, roomType, status, 0, 0);
+    }
+
+    AmenityRecord(long id, @Nullable String name, int quantity, double subtotal, @Nullable String room, @Nullable String roomType,
+                  @NonNull Status status, long requestedAtMillis, long decidedAtMillis) {
+        this.requestedAtMillis = requestedAtMillis;
+        this.decidedAtMillis = decidedAtMillis;
         this.id = id;
         this.name = name == null ? "" : name.trim();
         this.quantity = Math.max(1, quantity);

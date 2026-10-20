@@ -82,7 +82,9 @@ final class AmenityRoomSources {
             for (AdditionalAmenityRequestDto r : info.requests) {
                 if (r == null) continue;
                 out.add(new AmenityRecord(r.id, r.name, r.quantity, r.subtotal > 0 ? r.subtotal : r.unit_price * Math.max(1, r.quantity),
-                        r.room_number, r.room_type, statusOf(r.status)));
+                        r.room_number, r.room_type, statusOf(r.status),
+                        com.example.velocitysuites.network.ApiMapper.epochMillis(r.requested_at),
+                        com.example.velocitysuites.network.ApiMapper.epochMillis(r.decided_at)));
             }
         }
         API.put(key(b), out);

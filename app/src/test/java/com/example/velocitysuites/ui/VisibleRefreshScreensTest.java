@@ -340,7 +340,7 @@ public class VisibleRefreshScreensTest {
 
     @Test
     public void bookingDetails_beatsWhileVisibleOnly() {
-        beatSeconds = LIVE_BEAT_SECONDS;
+        beatSeconds = (int) (com.example.velocitysuites.DetailsLive.POLL_INTERVAL_MS / 1000); // the details beat: 20 seconds
         Booking booking = ApiMapper.toBooking(ScreenTestSupport.reservation(588, 1800));
         assertVisibleOnlyBeat(BookingDetailsActivity.class,
                 plain(BookingDetailsActivity.class).putExtra(BookingDetailsActivity.EXTRA_BOOKING, booking), "getReservation");
@@ -348,6 +348,7 @@ public class VisibleRefreshScreensTest {
 
     @Test
     public void transactionDetails_stillBeatsWhileVisibleOnly() {
+        beatSeconds = (int) (com.example.velocitysuites.DetailsLive.POLL_INTERVAL_MS / 1000);
         Booking booking = ApiMapper.toBooking(ScreenTestSupport.reservation(588, 1800));
         assertVisibleOnlyBeat(TransactionDetailsActivity.class,
                 plain(TransactionDetailsActivity.class).putExtra(TransactionDetailsActivity.EXTRA_TRANSACTION, new PaymentTransaction(booking, null)),

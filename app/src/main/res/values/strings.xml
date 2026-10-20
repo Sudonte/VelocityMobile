@@ -340,20 +340,6 @@
     <string name="details_label_converted_booking">Converted Booking</string>
     <string name="details_label_cancelled_on">Cancelled On</string>
     <string name="timeline_created">Reservation Created</string>
-    <string name="timeline_booking_created">Booking Created</string>
-    <string name="timeline_payment_submitted">Payment Submitted</string>
-    <string name="timeline_payment_verified">Payment Verified</string>
-    <string name="timeline_booking_confirmed">Confirmed</string>
-    <string name="timeline_reservation_confirmed">Reservation Confirmed</string>
-    <string name="timeline_converted_to_booking">Converted to Booking</string>
-    <string name="timeline_checked_in">Checked In</string>
-    <string name="timeline_checked_out">Checked Out</string>
-    <string name="timeline_completed">Completed</string>
-    <string name="timeline_status_verified">Verified</string>
-    <string name="timeline_status_pending">Pending</string>
-    <string name="timeline_status_rejected">Rejected</string>
-    <string name="timeline_pending">Pending</string>
-    <string name="timeline_done">Done</string>
     <string name="member_since_format">Member since %1$s</string>
     <!-- Transaction History card: stay dates and "N Receipts Available". -->
     <string name="ptx_stay_label">Stay</string>
@@ -2366,6 +2352,34 @@
     <string name="delete_booking_transaction_confirm">Delete this booking permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
     <string name="delete_reservation_transaction_confirm">Delete this reservation permanently? This cannot be undone. It leaves your Bookings &amp; Reservations; your Transaction History keeps the record.</string>
     <string name="delete_transaction_permanently_title">Delete Permanently?</string>
+    <!-- Transaction timeline and live details -->
+    <string name="tl_booking_created">Booking created</string>
+    <string name="tl_reservation_created">Reservation created</string>
+    <string name="tl_reservation_modified">Reservation modified</string>
+    <string name="tl_booking_verified">Booking verified by the front desk</string>
+    <string name="tl_reservation_verified">Reservation verified by the front desk</string>
+    <string name="tl_converted_to_booking">Reservation converted to a booking</string>
+    <string name="tl_converted_detail">%1$s</string>
+    <string name="tl_checked_in">Checked in</string>
+    <plurals name="tl_rooms_assigned">
+        <item quantity="one">Room %1$s</item>
+        <item quantity="other">Rooms %1$s</item>
+    </plurals>
+    <string name="tl_checked_out">Checked out</string>
+    <string name="tl_final_balance_settled">Final balance settled</string>
+    <string name="tl_booking_cancelled">Booking cancelled</string>
+    <string name="tl_reservation_cancelled">Reservation cancelled</string>
+    <string name="tl_rejected">Rejected by the front desk</string>
+    <string name="tl_payment_submitted">Payment submitted</string>
+    <string name="tl_payment_verified">Payment verified by the front desk</string>
+    <string name="tl_payment_rejected">Payment rejected by the front desk</string>
+    <string name="tl_amenity_requested">Amenity requested</string>
+    <string name="tl_amenity_approved">Amenity request approved</string>
+    <string name="tl_amenity_rejected">Amenity request not approved</string>
+    <string name="tl_empty">Nothing has happened on this transaction yet.</string>
+    <string name="details_last_updated_format">Last updated %1$s</string>
+    <string name="details_update_failed_format">Couldn\u2019t update. Showing info from %1$s</string>
+    <string name="details_refresh_label">Refresh</string>
 </resources>
 
 

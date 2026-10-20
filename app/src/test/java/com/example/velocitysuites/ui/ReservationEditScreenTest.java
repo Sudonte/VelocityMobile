@@ -193,17 +193,18 @@ public class ReservationEditScreenTest {
     public void timeline_showsServerStepsWithStatusAndDateTime() {
         Booking b = pendingReservation();
         b.setTimeline(Arrays.asList(
-                new Booking.TimelineEntry("created", "Reservation created", "Recorded", "Oct 8, 2026 • 9:00 AM"),
-                new Booking.TimelineEntry("reservation_modified", "Reservation modified by guest", "Recorded", "Oct 8, 2026 • 10:30 AM"),
-                new Booking.TimelineEntry("payment_1", "Payment verified", "Verified", "Oct 8, 2026 • 11:00 AM"),
-                new Booking.TimelineEntry("confirmed", "Reservation confirmation", "Pending", "")));
+                new Booking.TimelineEntry("created", "Reservation created", "Recorded", "x", "2026-10-08T01:00:00Z"),
+                new Booking.TimelineEntry("reservation_modified", "Reservation modified by guest", "Recorded", "x", "2026-10-08T02:30:00Z"),
+                new Booking.TimelineEntry("payment_1", "Payment verified", "Verified", "x", "2026-10-08T03:00:00Z"),
+                new Booking.TimelineEntry("confirmed", "Reservation confirmation", "Pending", "", "")));
         BookingDetailsActivity activity = openDetails(b);
         String timeline = allText(activity.findViewById(R.id.sectionTimelineContent));
         assertTrue(timeline, timeline.contains("Reservation modified by guest"));
-        assertTrue(timeline, timeline.contains("Oct 8, 2026 • 10:30 AM"));
-        assertTrue(timeline, timeline.contains("Verified • Oct 8, 2026 • 11:00 AM"));
-        assertTrue(timeline, timeline.contains("Reservation confirmation"));
-        assertTrue(timeline, timeline.contains("Pending"));
+        assertTrue(timeline, timeline.contains("Oct 8, 2026 · 10:30 AM"));
+        assertTrue(timeline, timeline.contains("Payment verified"));
+        assertTrue(timeline, timeline.contains("Oct 8, 2026 · 11:00 AM"));
+        assertFalse("a step that has not happened has no date, so it is not listed", timeline.contains("Reservation confirmation"));
+        assertTrue("newest first", timeline.indexOf("Payment verified") < timeline.indexOf("Reservation created"));
     }
 
     @Test
@@ -212,17 +213,18 @@ public class ReservationEditScreenTest {
         b.setStatus("Completed");
         b.setHasBooking(true);
         b.setTimeline(Arrays.asList(
-                new Booking.TimelineEntry("created", "Reservation created", "Verified", "Oct 1, 2026 • 9:00 AM"),
-                new Booking.TimelineEntry("payment_1", "Payment verified", "Verified", "Oct 1, 2026 • 11:00 AM"),
-                new Booking.TimelineEntry("checked_in", "Checked in", "Verified", "Oct 2, 2026 • 2:00 PM"),
-                new Booking.TimelineEntry("checked_out", "Checked out", "Verified", "Oct 3, 2026 • 11:00 AM"),
-                new Booking.TimelineEntry("completed", "Completed", "Verified", "Oct 3, 2026 • 11:30 AM")));
+                new Booking.TimelineEntry("created", "Reservation created", "Verified", "x", "2026-10-01T01:00:00Z"),
+                new Booking.TimelineEntry("payment_1", "Payment verified", "Verified", "x", "2026-10-01T03:00:00Z"),
+                new Booking.TimelineEntry("checked_in", "Checked in", "Verified", "x", "2026-10-02T06:00:00Z"),
+                new Booking.TimelineEntry("checked_out", "Checked out", "Verified", "x", "2026-10-03T03:00:00Z"),
+                new Booking.TimelineEntry("completed", "Completed", "Verified", "x", "2026-10-03T03:30:00Z")));
         String timeline = allText(openDetails(b).findViewById(R.id.sectionTimelineContent));
         for (String label : Arrays.asList("Reservation created", "Payment verified", "Checked in", "Checked out", "Completed")) {
             assertTrue(label, timeline.contains(label));
         }
         assertFalse(timeline, timeline.contains("Pending"));
-        assertEquals(5, timeline.split("Verified • ").length - 1);
+        assertTrue("newest first", timeline.indexOf("Completed") < timeline.indexOf("Checked out")
+                && timeline.indexOf("Checked out") < timeline.indexOf("Checked in") && timeline.indexOf("Checked in") < timeline.indexOf("Reservation created"));
     }
 
     @Test
@@ -231,7 +233,8 @@ public class ReservationEditScreenTest {
         b.setTimeline(Collections.singletonList(new Booking.TimelineEntry("payment_1", "Payment awaiting verification", "Pending", "")));
         BookingDetailsActivity activity = openDetails(b);
         assertEquals("opens with one silent refresh", 1, api.count("getReservation"));
-        assertTrue(allText(activity.findViewById(R.id.sectionTimelineContent)).contains("Payment awaiting verification"));
+        assertFalse("a step that has not happened yet is not listed",
+                allText(activity.findViewById(R.id.sectionTimelineContent)).contains("Payment awaiting verification"));
 
         SwipeRefreshLayout swipe = activity.findViewById(R.id.swipeRefreshDetails);
         assertNotNull(swipe);
@@ -248,7 +251,6 @@ public class ReservationEditScreenTest {
         answer(activity, "Payment verified", "Verified", "2026-10-08T03:00:00Z");
         String timeline = allText(activity.findViewById(R.id.sectionTimelineContent));
         assertTrue(timeline, timeline.contains("Payment verified"));
-        assertTrue(timeline, timeline.contains("Verified"));
         assertFalse(timeline, timeline.contains("awaiting verification"));
         assertFalse("spinner stops", swipe.isRefreshing());
     }
