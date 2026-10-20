@@ -1131,6 +1131,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 "activeTab=" + (isReservationMode() ? "RESERVATION" : "BOOKING") + " hadCachedData=" + !allMyBookings.isEmpty());
         repository.refreshBookingsSplit((merged, reservationsError, bookingsError) -> {
             if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+            refreshAnswered = true;
             allMyBookings = merged != null ? merged : new ArrayList<>();
             listGate.accept(allMyBookings, repository.getCompletedHistoricalReservations(), ChangeGate.today()); // about to be drawn below
             if (bookingsError == null) hasLoadedBookingsOnce = true;
@@ -1377,6 +1378,14 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         if (second != null) second.setText(getString(R.string.tab_with_count_format, getString(R.string.tab_reservation_list_switcher), reservations));
     }
 
+    /** True once the first bookings answer (or failure) has come back. */
+    private boolean refreshAnswered;
+
+    private void setBookingsSkeleton(boolean visible) {
+        android.widget.LinearLayout box = findViewById(R.id.skeletonBookings);
+        if (box != null) SkeletonList.setVisible(box, visible);
+    }
+
     private void renderList() {
         List<Booking> source = itemsForCurrentTab();
         if (tvListCount != null) {
@@ -1402,9 +1411,17 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             boolean loadedOnce = reservation ? hasLoadedReservationsOnce : hasLoadedBookingsOnce;
             String loadError = reservation ? reservationsLoadError : bookingsLoadError;
             if (!loadedOnce && loadError != null) {
+                setBookingsSkeleton(false);
                 renderListLoadError(loadError);
                 return;
             }
+            if (!loadedOnce && !refreshAnswered) { // no answer yet: placeholders, never a flash of "nothing yet"
+                rvItemList.setVisibility(View.GONE);
+                tvListEmpty.setVisibility(View.GONE);
+                setBookingsSkeleton(true);
+                return;
+            }
+            setBookingsSkeleton(false);
 
             rvItemList.setVisibility(View.GONE);
             tvListEmpty.setVisibility(View.VISIBLE);
@@ -1445,6 +1462,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             return;
         }
 
+        setBookingsSkeleton(false);
         tvListEmpty.setVisibility(View.GONE);
         rvItemList.setVisibility(View.VISIBLE);
 

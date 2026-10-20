@@ -250,24 +250,27 @@
                     android:id="@+id/layoutInitialLoading"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center"
                     android:orientation="vertical"
+                    android:paddingTop="8dp"
                     android:visibility="gone"
                     tools:visibility="gone">
-
-                    <ProgressBar
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:indeterminateTint="@color/velocity_red_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/loading_notifications_label"
                         android:textColor="@color/velocity_text_secondary"
                         android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:id="@+id/skeletonCards"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="14dp"
+                        android:orientation="vertical" />
                 </LinearLayout>
             </FrameLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -134,6 +134,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         scrollEmptyState = findViewById(R.id.scrollEmptyState);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
+        SkeletonList.fill(layoutInitialLoading.findViewById(R.id.skeletonCards));
         tvUnreadSummary = findViewById(R.id.tvUnreadSummary);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearchNotifications = findViewById(R.id.etSearchNotifications);

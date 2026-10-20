@@ -228,6 +228,7 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         scrollEmptyState = findViewById(R.id.scrollEmptyState);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         layoutInitialLoading = findViewById(R.id.layoutInitialLoading);
+        SkeletonList.fill(layoutInitialLoading.findViewById(R.id.skeletonCards));
         swipeRefresh = findViewById(R.id.swipeRefresh);
         etSearch = findViewById(R.id.etSearch);
         dropdownTransaction = findViewById(R.id.dropdownTransaction);
