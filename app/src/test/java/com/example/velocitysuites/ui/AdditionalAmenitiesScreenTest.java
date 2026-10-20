@@ -48,6 +48,15 @@ public class AdditionalAmenitiesScreenTest {
         ScreenTestSupport.goOnline(app);
     }
 
+    /** The "Send this request?" confirmation: answer Send request. */
+    private static void confirmSend() {
+        androidx.appcompat.app.AlertDialog d = (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        org.junit.Assert.assertNotNull("the guest is asked before the request is sent", d);
+        assertEquals("Send this request?", String.valueOf(((TextView) d.findViewById(androidx.appcompat.R.id.alertTitle)).getText()));
+        d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+    }
+
     private AdditionalAmenitiesActivity open() {
         Intent intent = new Intent(app, AdditionalAmenitiesActivity.class)
                 .putExtra(AdditionalAmenitiesActivity.EXTRA_DIRECT_BOOKING, true)
@@ -249,6 +258,7 @@ public class AdditionalAmenitiesScreenTest {
         assertFalse("a room with nothing chosen is not in the summary", text.contains("Room 202"));
 
         a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
+        confirmSend();
         shadowOf(Looper.getMainLooper()).idle();
 
         assertEquals(1, api.count("submitBookingAdditionalAmenities"));
@@ -281,6 +291,7 @@ public class AdditionalAmenitiesScreenTest {
         closePicker();
 
         a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
+        confirmSend();
         shadowOf(Looper.getMainLooper()).idle();
         AdditionalAmenitySubmitRequest request = (AdditionalAmenitySubmitRequest) api.lastArgs.get("submitBookingAdditionalAmenities")[1];
         assertEquals(null, request.rooms);
@@ -295,6 +306,7 @@ public class AdditionalAmenitiesScreenTest {
         closePicker();
 
         a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
+        confirmSend();
         shadowOf(Looper.getMainLooper()).idle();
         api.<AdditionalAmenityInfoDto>last("submitBookingAdditionalAmenities").httpWithBody(422, "{\"message\":\"Only 1 of Extra Bed left\"}");
         shadowOf(Looper.getMainLooper()).idle();
@@ -315,5 +327,46 @@ public class AdditionalAmenitiesScreenTest {
                     v.getLayoutParams().height >= Math.round(48 * density) || v.getLayoutParams().height == -2 || v.getMinimumHeight() >= Math.round(48 * density));
             assertTrue(v.getLayoutParams().width >= Math.round(48 * density) || v.getLayoutParams().width < 0 || v.getMinimumWidth() >= Math.round(48 * density));
         }
+    }
+
+    // ---- Part 6: confirm before sending, discard guard ----
+
+    @Test
+    public void backWithAnItemPicked_asksBeforeDiscarding_andABlankFormLeavesAtOnce() {
+        AdditionalAmenitiesActivity blank = openWithRooms(infoWithRooms(room(11, "101", "Standard")));
+        blank.getOnBackPressedDispatcher().onBackPressed();
+        assertTrue("nothing entered: leaves at once", blank.isFinishing());
+
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(room(11, "101", "Standard")));
+        android.widget.LinearLayout list = openPicker(a, 0);
+        list.getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
+        a.getOnBackPressedDispatcher().onBackPressed();
+        assertFalse("something picked: stays and asks", a.isFinishing());
+        androidx.appcompat.app.AlertDialog d = (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertEquals("Discard your changes?", String.valueOf(((TextView) d.findViewById(androidx.appcompat.R.id.alertTitle)).getText()));
+        d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertFalse("Keep editing stays", a.isFinishing());
+        a.getOnBackPressedDispatcher().onBackPressed();
+        ((androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog()).getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("Discard leaves", a.isFinishing());
+    }
+
+    @Test
+    public void sendingARequest_asksFirst_andNothingIsSentUntilTheGuestConfirms() {
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(room(11, "101", "Standard")));
+        android.widget.LinearLayout list = openPicker(a, 0);
+        list.getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
+        a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
+        assertEquals("not sent yet", 0, api.count("submitBookingAdditionalAmenities"));
+        androidx.appcompat.app.AlertDialog d = (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).performClick();
+        assertEquals(0, api.count("submitBookingAdditionalAmenities"));
+        a.findViewById(R.id.additionalAmenitiesSubmit).performClick();
+        confirmSend();
+        assertEquals("one request, after Send request", 1, api.count("submitBookingAdditionalAmenities"));
     }
 }

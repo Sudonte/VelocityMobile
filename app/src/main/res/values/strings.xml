@@ -1202,10 +1202,6 @@
     <string name="book_again_room_unavailable">That room type is no longer available. Please choose a different room.</string>
     <string name="booking_tab_desc">Pay now to confirm your stay.</string>
     <string name="reservation_tab_desc">Hold a room now and pay later.</string>
-    <string name="cancel_booking_success_title">Booking Cancelled Successfully</string>
-    <string name="cancel_booking_success_msg">Your booking has been cancelled. The room and selected dates have been released and may now be used for a new booking or reservation, subject to current availability.</string>
-    <string name="cancel_reservation_success_title">Reservation Cancelled Successfully</string>
-    <string name="cancel_reservation_success_msg">Your reservation has been cancelled. The room and selected dates have been released and may now be used for a new booking or reservation, subject to current availability.</string>
     <string name="booking_cancellation_policy_notice">Cancellation Policy: Fully paid bookings cannot be cancelled. Bookings with only a partial payment can be cancelled, but the partial payment already made is non-refundable and will not be returned.</string>
     <string name="cancel_not_allowed_title">Cancellation Not Allowed</string>
     <string name="cancel_not_allowed_already_verified_msg">This can no longer be cancelled because the front desk has already verified or converted it.</string>
@@ -1352,7 +1348,6 @@
     <string name="additional_amenities_bullet_format">- %1$s</string>
     <string name="amenity_request_room_format">Room %1$s</string>
     <string name="additional_amenities_submit">Send Request</string>
-    <string name="additional_amenities_submitted">Request sent! The front desk will review it shortly.</string>
     <string name="additional_amenities_submit_error">Couldn\'t send your request: %1$s</string>
     <string name="amenity_quantity_zero">0</string>
     <string name="amenity_request_status_pending">⏳ Pending</string>
@@ -1657,7 +1652,6 @@
     <string name="status_checked_out">Checked Out</string>
     <string name="status_verified">Verified</string>
     <string name="status_rejected">Rejected</string>
-    <string name="payment_submitted_msg">Your payment has been submitted and is currently pending validation by our receptionist. You will be notified once verified.</string>
     <string name="confirm_payment_title">Confirm Payment Details</string>
     <string name="confirm_and_proceed">Confirm &amp; Proceed</string>
     <string name="payment_step_1">1</string>
@@ -2368,6 +2362,18 @@
     <string name="details_last_updated_format">Last updated %1$s</string>
     <string name="details_update_failed_format">Couldn\u2019t update. Showing info from %1$s</string>
     <string name="details_refresh_label">Refresh</string>
+    <string name="feedback_booking_cancelled">Booking cancelled</string>
+    <string name="feedback_reservation_cancelled">Reservation cancelled</string>
+    <string name="feedback_deleted">Removed from your list</string>
+    <string name="feedback_payment_submitted">Payment submitted for verification</string>
+    <string name="feedback_request_sent">Request sent</string>
+    <string name="amenity_send_confirm_title">Send this request?</string>
+    <string name="amenity_send_confirm_message">The front desk will review it. You are only charged for what they approve.</string>
+    <string name="amenity_send_confirm_yes">Send request</string>
+    <string name="form_discard_title">Discard your changes?</string>
+    <string name="form_discard_message">What you entered on this screen will be lost.</string>
+    <string name="form_discard_yes">Discard</string>
+    <string name="keep_editing">Keep editing</string>
 </resources>
 
 

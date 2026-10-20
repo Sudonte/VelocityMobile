@@ -25,7 +25,7 @@ final class SectionAnimator {
         if (running instanceof Animator) ((Animator) running).cancel();
         ViewGroup.LayoutParams params = view.getLayoutParams();
         View parent = view.getParent() instanceof View ? (View) view.getParent() : null;
-        boolean canAnimate = animate && params != null && parent != null && parent.getWidth() > 0;
+        boolean canAnimate = animate && Motion.enabled(view.getContext()) && params != null && parent != null && parent.getWidth() > 0;
         if (!canAnimate) {
             finish(view, show);
             return;

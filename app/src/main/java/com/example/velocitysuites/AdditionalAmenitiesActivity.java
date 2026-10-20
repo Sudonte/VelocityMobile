@@ -89,7 +89,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         id = getIntent().getStringExtra(EXTRA_ID);
         repository = RoomRepository.getInstance(this);
 
-        findViewById(R.id.btnAdditionalAmenitiesBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnAdditionalAmenitiesBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         stateBlock = findViewById(R.id.additionalAmenitiesState);
         stateText = findViewById(R.id.additionalAmenitiesStateText);
         retryButton = findViewById(R.id.additionalAmenitiesRetry);
@@ -102,7 +102,8 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         hintAddOne = findViewById(R.id.additionalAmenitiesHint);
 
         retryButton.setOnClickListener(v -> load());
-        submitButton.setOnClickListener(v -> submit());
+        submitButton.setOnClickListener(v -> confirmAndSubmit());
+        UnsavedChanges.guard(this, this::hasSelection);
 
         if (id == null || id.isEmpty()) {
             showState(getString(R.string.additional_amenities_load_error), true);
@@ -397,6 +398,25 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
         }
     }
 
+    /** Asks before sending: a request goes to the front desk and cannot be taken back from here. */
+    private void confirmAndSubmit() {
+        if (submitting) return;
+        new SafeDialogs.Material(this)
+                .setTitle(R.string.amenity_send_confirm_title)
+                .setMessage(R.string.amenity_send_confirm_message)
+                .setNegativeButton(R.string.keep_editing, null)
+                .setPositiveButton(R.string.amenity_send_confirm_yes, (d, w) -> submit())
+                .show();
+    }
+
+    /** True once the guest has picked at least one item. */
+    private boolean hasSelection() {
+        for (int[] quantities : selections.values()) {
+            for (int q : quantities) if (q > 0) return true;
+        }
+        return false;
+    }
+
     private void submit() {
         if (submitting) return;
         AdditionalAmenitySubmitRequest request = new AdditionalAmenitySubmitRequest();
@@ -432,7 +452,7 @@ public class AdditionalAmenitiesActivity extends AppCompatActivity {
                     AmenityRoomSources.remember(AdditionalAmenitiesActivity.this, known, submitted); // which room each item was for
                     AmenityRoomSources.putApi(known, info);
                 }
-                Toast.makeText(AdditionalAmenitiesActivity.this, R.string.additional_amenities_submitted, Toast.LENGTH_LONG).show();
+                Feedback.later(getString(R.string.feedback_request_sent));
                 setResult(RESULT_OK);
                 finish();
             }

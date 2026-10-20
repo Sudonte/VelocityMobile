@@ -28,6 +28,14 @@ public final class Motion {
         }
     }
 
+    /** Animates the next layout change inside {@code container} (expand / collapse) in about 200 ms - an instant change when animations are off. */
+    public static void beginDelayed(@NonNull android.view.ViewGroup container) {
+        if (!enabled(container.getContext())) return;
+        android.transition.AutoTransition t = new android.transition.AutoTransition();
+        t.setDuration(SHORT_MS);
+        android.transition.TransitionManager.beginDelayedTransition(container, t);
+    }
+
     /** {@code ms} when animations are on, else 0. */
     public static long duration(@NonNull Context c, long ms) {
         return enabled(c) ? ms : 0L;

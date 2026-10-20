@@ -4075,11 +4075,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     public void onSuccess(Booking result) {
                         dismissSafely(dialog);
                         if (isFinishing() || isDestroyed()) return;
-                        new SafeDialogs.Material(BookingAndReservationActivity.this)
-                                .setTitle(isBooking ? R.string.cancel_booking_success_title : R.string.cancel_reservation_success_title)
-                                .setMessage(isBooking ? R.string.cancel_booking_success_msg : R.string.cancel_reservation_success_msg)
-                                .setPositiveButton(R.string.close_label, null)
-                                .show();
+                        Feedback.show(BookingAndReservationActivity.this, isBooking ? R.string.feedback_booking_cancelled : R.string.feedback_reservation_cancelled);
                         refreshMyBookings();
                         // The cancelled room's availability just changed
                         // server-side - refresh the cached inventory so
@@ -4163,11 +4159,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                     public void onSuccess(Void result) {
                         dismissSafely(dialog);
                         if (isFinishing() || isDestroyed()) return;
-                        new SafeDialogs.Material(BookingAndReservationActivity.this)
-                                .setTitle(R.string.delete_transaction_success_title)
-                                .setMessage(successMsgRes)
-                                .setPositiveButton(R.string.close_label, null)
-                                .show();
+                        Feedback.show(BookingAndReservationActivity.this, R.string.feedback_deleted);
                         // No manual renderList() needed - RoomRepository's
                         // change notification (see onBookingsChanged) refreshes it.
                     }

@@ -309,6 +309,8 @@ public class PaymentActivity extends BaseNavigationActivity {
         btnUploadReceipt = findViewById(R.id.btnUploadReceipt);
 
         etGcashNumber = findViewById(R.id.etGcashNumber);
+        UnsavedChanges.guard(this, () -> (etGcashNumber != null && etGcashNumber.getText() != null && etGcashNumber.getText().length() > 0)
+                || (etGcashReferenceNumber != null && etGcashReferenceNumber.getText() != null && etGcashReferenceNumber.getText().length() > 0));
         tilGcashNumber = findViewById(R.id.tilGcashNumber);
         etGcashReferenceNumber = findViewById(R.id.etGcashReferenceNumber);
         tilGcashReferenceNumber = findViewById(R.id.tilGcashReferenceNumber);
@@ -3325,7 +3327,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             return;
         }
 
-        Toast.makeText(this, R.string.payment_submitted_msg, Toast.LENGTH_LONG).show();
+        Feedback.later(getString(R.string.feedback_payment_submitted));
         openScreen(TransactionHistoryActivity.class);
     }
 
