@@ -1048,11 +1048,9 @@
     <string name="check_out_hint">Check-out</string>
     <string name="who_is_staying_label">Check-in details</string>
     <string name="who_is_staying_hint">Tell us if someone else will check in for you.</string>
-    <string name="representative_name_label">Representative name (optional)</string>
     <string name="representative_name_helper">Optional. Fill this in only if someone else will check in on your behalf. Your representative must present 1 valid ID at the front desk. If left blank, the account owner must present the booking or reservation transaction and 1 valid ID.</string>
     <string name="representative_who_title">Who can check in?</string>
     <string name="representative_who_body">You may skip this field if you, the account owner, will personally handle the transaction at the hotel. Fill it in only if another person will represent your booking or reservation at the hotel. Your representative must present one (1) valid ID at the front desk. If you leave this blank, you (the account owner) must personally present the booking or reservation at the hotel, together with one (1) valid ID.</string>
-    <string name="error_representative_invalid">Enter a valid full name</string>
     <string name="representative_line_format">Representative: %1$s — must present 1 valid ID</string>
     <string name="check_in_by_owner_line">Check-in by: account owner — present 1 valid ID</string>
     <string name="representative_label">Representative</string>
@@ -2374,6 +2372,15 @@
     <string name="form_discard_message">What you entered on this screen will be lost.</string>
     <string name="form_discard_yes">Discard</string>
     <string name="keep_editing">Keep editing</string>
+    <string name="rep_group_title">Representative (optional)</string>
+    <string name="rep_last_name_label">Last name</string>
+    <string name="rep_first_name_label">First name</string>
+    <string name="rep_middle_name_label">Middle name (optional)</string>
+    <string name="error_rep_last_required">Enter the representative\u2019s last name</string>
+    <string name="error_rep_first_required">Enter the representative\u2019s first name</string>
+    <string name="error_rep_letters_only">Use letters only</string>
+    <string name="error_rep_too_short">Enter at least 2 letters</string>
+    <string name="error_rep_too_long">Use 40 characters or fewer</string>
 </resources>
 
 

@@ -444,17 +444,26 @@ public class WizardStepsScreenTest {
     // ---- Step 4: the optional representative name ----
 
     @Test
-    public void step4_representativeIsOptional_inEveryFlow_withHelperTextAndTheWhoCanCheckInRow() {
+    public void step4_representativeIsOptional_inEveryFlow_withTheThreeFieldsHelperTextAndTheWhoCanCheckInRow() {
         for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
             BookingWizardActivity activity = launch(mode).get();
             activity.getState().selectedRooms.add(room("R1", 6));
             activity.goToStep(4);
             idle();
-            com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilRepresentativeName);
-            assertEquals("Representative name (optional)", til.getHint().toString());
+            assertEquals("Representative (optional)", text(find(activity, R.id.tvRepresentativeTitle)));
+            assertEquals("Last name", String.valueOf(((com.google.android.material.textfield.TextInputLayout) find(activity, R.id.tilRepLast)).getHint()));
+            assertEquals("First name", String.valueOf(((com.google.android.material.textfield.TextInputLayout) find(activity, R.id.tilRepFirst)).getHint()));
+            assertEquals("Middle name (optional)", String.valueOf(((com.google.android.material.textfield.TextInputLayout) find(activity, R.id.tilRepMiddle)).getHint()));
+            View last = find(activity, R.id.tilRepLast);
+            View first = find(activity, R.id.tilRepFirst);
+            View middle = find(activity, R.id.tilRepMiddle);
+            assertEquals("stacked full width on a phone, in order", ((android.view.ViewGroup) last.getParent()).getChildAt(0), last);
+            assertEquals(((android.view.ViewGroup) last.getParent()).getChildAt(1), first);
+            assertEquals(((android.view.ViewGroup) last.getParent()).getChildAt(2), middle);
+            assertTrue(((android.widget.LinearLayout) last.getParent()).getOrientation() == android.widget.LinearLayout.VERTICAL);
             assertEquals(app.getString(R.string.representative_name_helper), text(find(activity, R.id.tvRepresentativeHelper)));
             assertEquals("the helper is always visible", View.VISIBLE, find(activity, R.id.tvRepresentativeHelper).getVisibility());
-            assertTrue("Next is never blocked by an empty field", ((WizardStepFragment) fragment(activity)).validateBeforeNext());
+            assertTrue("Next is never blocked by an empty block", ((WizardStepFragment) fragment(activity)).validateBeforeNext());
 
             View body = find(activity, R.id.tvRepresentativeWhoBody);
             assertEquals(View.GONE, body.getVisibility());
@@ -467,29 +476,61 @@ public class WizardStepsScreenTest {
     }
 
     @Test
-    public void step4_aFilledNameIsChecked_aBlankOneSendsTheAccountOwner() {
+    public void step4_anyFieldFilled_makesLastAndFirstRequired_withInlineErrors() {
         BookingWizardActivity activity = launch(BookingWizardState.Mode.RESERVATION).get();
+        activity.getState().selectedRooms.add(room("R1", 6));
+        activity.goToStep(4);
+        idle();
+        TextView last = find(activity, R.id.etRepLast);
+        TextView first = find(activity, R.id.etRepFirst);
+        TextView middle = find(activity, R.id.etRepMiddle);
+        com.google.android.material.textfield.TextInputLayout tilLast = find(activity, R.id.tilRepLast);
+        com.google.android.material.textfield.TextInputLayout tilFirst = find(activity, R.id.tilRepFirst);
+        WizardStepFragment step = (WizardStepFragment) fragment(activity);
+
+        last.setText("Dela Cruz");
+        assertFalse("last name only", step.validateBeforeNext());
+        assertEquals("Enter the representative’s first name", String.valueOf(tilFirst.getError()));
+        assertEquals(null, tilLast.getError());
+
+        last.setText("");
+        middle.setText("Santos");
+        assertFalse("middle name only", step.validateBeforeNext());
+        assertEquals("Enter the representative’s last name", String.valueOf(tilLast.getError()));
+        assertEquals("Enter the representative’s first name", String.valueOf(tilFirst.getError()));
+
+        last.setText("Dela Cruz");
+        first.setText("Juan");
+        assertEquals("the errors clear as soon as the fields are right", null, tilFirst.getError());
+        assertTrue(step.validateBeforeNext());
+        assertEquals("Juan", activity.getState().guestFirstName);
+        assertEquals("Santos", activity.getState().guestMiddleName);
+        assertEquals("Dela Cruz", activity.getState().guestLastName);
+
+        middle.setText("");
+        assertTrue(step.validateBeforeNext());
+        assertEquals("", activity.getState().guestMiddleName);
+
+        first.setText("J");
+        assertFalse(step.validateBeforeNext());
+        assertEquals("Enter at least 2 letters", String.valueOf(tilFirst.getError()));
+    }
+
+    @Test
+    public void step4_lettersOnly_andBlankSendsTheAccountOwner() {
+        BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
         activity.getState().selectedRooms.add(room("R1", 6));
         app.getSharedPreferences("VelocityPrefs", android.content.Context.MODE_PRIVATE).edit()
                 .putString("userFirstName", "Maria").putString("userLastName", "Santos").apply();
         activity.goToStep(4);
         idle();
-        TextView field = find(activity, R.id.etRepresentativeName);
-        com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilRepresentativeName);
+        TextView last = find(activity, R.id.etRepLast);
+        last.setText("Peña 123 @");
+        assertEquals("digits and symbols cannot be typed", "Peña  ", text(last));
 
-        field.setText("Juan");
-        assertFalse(((WizardStepFragment) fragment(activity)).validateBeforeNext());
-        assertEquals("Enter a valid full name", String.valueOf(til.getError()));
-        field.setText("Juan Dela Cruz");
-        assertEquals("the error clears as soon as the name is right", null, til.getError());
+        last.setText("");
         assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
-        assertEquals("Juan Dela Cruz", activity.getState().representativeName);
-        assertEquals("Juan Dela", activity.getState().guestFirstName);
-        assertEquals("Cruz", activity.getState().guestLastName);
-
-        field.setText("   ");
-        assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
-        assertEquals("", activity.getState().representativeName);
+        assertEquals("", activity.getState().repLast + activity.getState().repFirst + activity.getState().repMiddle);
         assertEquals("the account owner's names go where the API expects them", "Maria", activity.getState().guestFirstName);
         assertEquals("Santos", activity.getState().guestLastName);
     }
@@ -504,12 +545,16 @@ public class WizardStepsScreenTest {
 
             activity.goToStep(4);
             idle();
-            ((TextView) find(activity, R.id.etRepresentativeName)).setText("Ana Cruz");
+            ((TextView) find(activity, R.id.etRepLast)).setText("Cruz");
+            ((TextView) find(activity, R.id.etRepFirst)).setText("Ana");
+            ((TextView) find(activity, R.id.etRepMiddle)).setText("Reyes");
             activity.goToStep(3); // Back
             idle();
             activity.goToStep(4);
             idle();
-            assertEquals("Ana Cruz", text(find(activity, R.id.etRepresentativeName)));
+            assertEquals("Cruz", text(find(activity, R.id.etRepLast)));
+            assertEquals("Ana", text(find(activity, R.id.etRepFirst)));
+            assertEquals("Reyes", text(find(activity, R.id.etRepMiddle)));
 
             activity.goToStep(5);
             idle();

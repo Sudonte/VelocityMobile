@@ -72,26 +72,21 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilRepresentativeName"
-                    style="@style/Widget.Velocity.TextInputLayout.Filter.Date"
+                <TextView
+                    android:id="@+id/tvRepresentativeTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/representative_name_label"
-                    app:counterEnabled="false"
-                    app:startIconDrawable="@drawable/ic_person">
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/rep_group_title"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="14sp" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etRepresentativeName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:inputType="textPersonName|textCapWords"
-                        android:maxLength="60"
-                        android:singleLine="true"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="14sp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                <include
+                    android:id="@+id/repFields"
+                    layout="@layout/view_representative_fields"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
                 <!-- Always visible (an error replaces a TextInputLayout's helper, so it is a plain TextView). -->
                 <TextView

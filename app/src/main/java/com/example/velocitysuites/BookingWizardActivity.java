@@ -316,12 +316,18 @@ public class BookingWizardActivity extends SafeActivity {
      * link), Step 1 simply starts without a pre-selected room and the guest
      * re-picks it, same graceful fallback as a brand new wizard run.
      */
+    private void applyRepresentativeFields(RepresentativeName.Parts p) {
+        state.repLast = p.last;
+        state.repFirst = p.first;
+        state.repMiddle = p.middle;
+    }
+
     private void seedStateForEdit(Booking booking) {
         editingReservationId = booking.getId();
         originalPaymentMethod = booking.getPaymentMethod() != null ? booking.getPaymentMethod() : "CASH";
         state.paymentMethod = "GCASH".equalsIgnoreCase(originalPaymentMethod) ? "gcash" : "cash";
 
-        state.representativeName = RepresentativeName.fieldValueFor(this, booking);
+        applyRepresentativeFields(RepresentativeName.fieldsFor(this, booking));
         state.guestFirstName = booking.getGuestFirstName();
         state.guestMiddleName = booking.getGuestMiddleName();
         state.guestLastName = booking.getGuestLastName();
@@ -465,7 +471,7 @@ public class BookingWizardActivity extends SafeActivity {
      * PendingWizardRooms, before this is called.
      */
     private void seedStateForBookAgain(Booking original) {
-        state.representativeName = RepresentativeName.fieldValueFor(this, original);
+        applyRepresentativeFields(RepresentativeName.fieldsFor(this, original));
         state.guestFirstName = original.getGuestFirstName();
         state.guestMiddleName = original.getGuestMiddleName();
         state.guestLastName = original.getGuestLastName();

@@ -272,7 +272,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 getResources().getQuantityString(R.plurals.children_count, state.children, state.children)));
 
         tvSummaryRepresentative.setVisibility(View.VISIBLE);
-        tvSummaryRepresentative.setText(RepresentativeName.summaryLine(requireContext(), state.representativeName));
+        tvSummaryRepresentative.setText(RepresentativeName.summaryLine(requireContext(), state.representative()));
 
         layoutSummaryRooms.removeAllViews();
         for (List<Room> group : state.selectedRoomsGroupedByType().values()) {

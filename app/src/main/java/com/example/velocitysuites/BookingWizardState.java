@@ -35,8 +35,15 @@ public class BookingWizardState {
 
     public final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
 
-    /** The optional representative's full name the guest typed on Step 4 ("" = the account owner checks in). */
-    public String representativeName = "";
+    /** The optional representative the guest typed on Step 4 (all three "" = the account owner checks in). */
+    public String repLast = "";
+    public String repFirst = "";
+    public String repMiddle = "";
+
+    /** The representative block as typed. */
+    public RepresentativeName.Parts representative() {
+        return new RepresentativeName.Parts(repLast, repFirst, repMiddle);
+    }
     public String guestFirstName;
     public String guestMiddleName;
     public String guestLastName;
