@@ -69,6 +69,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class PaymentScreenTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final String NUMBER = "9171234567";
     // deliberately NOT the reference the fixture payments carry - the screen rejects a reference already in the guest's history
     private static final String REFERENCE = "9876543210987";

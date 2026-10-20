@@ -18,6 +18,9 @@ import java.time.ZonedDateTime;
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 public class NotificationTimeAndGroupTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private final Context ctx = ApplicationProvider.getApplicationContext();
     private static final ZoneId MNL = ZoneId.of("Asia/Manila");
 

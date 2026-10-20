@@ -33,6 +33,9 @@ import java.util.Calendar;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class RoomBrowsingSearchCardTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private RoomBrowsingActivity activity;
 
     @Before

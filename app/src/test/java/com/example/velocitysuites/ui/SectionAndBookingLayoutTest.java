@@ -48,6 +48,9 @@ import java.time.ZoneId;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class SectionAndBookingLayoutTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final String[] MODES = {"w360dp-h800dp-xxhdpi", "w360dp-h800dp-night-xxhdpi", "w393dp-h851dp-xxhdpi", "w393dp-h851dp-night-xxhdpi"};
 
     private Context app;

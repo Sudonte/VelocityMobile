@@ -24,6 +24,9 @@ import java.util.List;
 @Config(sdk = 35, application = TestApplication.class)
 public class TransactionAdapterDiffTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static Booking booking(String id, String status) {
         Booking b = new Booking(id, "1", "Deluxe", "Deluxe", "Oct 01, 2026", "Oct 03, 2026", 2, 5000.0, status, "Sep 30, 2026");
         b.setHasBooking(true);

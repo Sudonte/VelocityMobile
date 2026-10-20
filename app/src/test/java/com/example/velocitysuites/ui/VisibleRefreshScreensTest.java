@@ -81,6 +81,9 @@ import java.util.Set;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class VisibleRefreshScreensTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     /** The usual beat; the dashboard's Your Next Stay and Booking Details follow the front desk more closely (15s). */
     private static final int STANDARD_BEAT_SECONDS = 30;
     private static final int LIVE_BEAT_SECONDS = 15;

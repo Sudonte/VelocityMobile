@@ -41,6 +41,9 @@ import org.robolectric.shadows.ShadowDialog;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ChangePasswordFlowTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private FakeApi api;
     private ProfileManagementActivity activity;
     private AlertDialog dialog;

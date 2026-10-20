@@ -47,6 +47,9 @@ import java.util.Map;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ReceiptFromApiPayloadTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     /** The shared head of every payload: the stay itself (2 nights x 2,500.00 = 5,000.00). */
     private static String stay(String type, int stage, String number, String issuedAt) {
         return "\"receipt_type\":\"" + type + "\",\"receipt_number\":\"" + number + "\",\"receipt_stage\":" + stage

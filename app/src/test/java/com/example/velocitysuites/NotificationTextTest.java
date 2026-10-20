@@ -26,6 +26,9 @@ import java.util.regex.Pattern;
 @Config(sdk = 35, application = com.example.velocitysuites.ui.TestApplication.class)
 public class NotificationTextTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private Context app;
 
     @Before

@@ -42,6 +42,9 @@ import java.util.Locale;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class StayCardAndDetailsTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.US);
     private static final String[] PLACEHOLDERS = {"N/A", "n/a", "null", "None", "-", "—", "–", "undefined"};
 

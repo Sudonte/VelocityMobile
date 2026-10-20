@@ -57,6 +57,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ScreenshotMatrixTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final String[][] SIZES = {{"small", "360", "640"}, {"large", "480", "1000"}};
     private static final String[] MODES = {"light", "dark"};
 

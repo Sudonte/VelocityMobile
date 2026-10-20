@@ -45,6 +45,9 @@ import java.util.ArrayList;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class AmenityEntryPointsTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private Context app;
     private ScreenTestSupport.FakeApi api;
 

@@ -45,6 +45,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class RoomCardLayoutTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static Context context(int widthDp, float fontScale) {
         Context app = ApplicationProvider.getApplicationContext();
         Configuration config = new Configuration(app.getResources().getConfiguration());

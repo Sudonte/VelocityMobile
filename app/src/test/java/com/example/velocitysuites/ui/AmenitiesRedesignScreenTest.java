@@ -45,6 +45,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class AmenitiesRedesignScreenTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private Context app;
     private ScreenTestSupport.FakeApi api;
 

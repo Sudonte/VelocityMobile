@@ -46,6 +46,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class StayMoneyScreensTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     /** In house since yesterday: 2 nights x 1,000, Senior 20% -> 1,600 paid at check-in; one approved amenity (200), one pending (100), a 300 desk charge. */
     static DirectBookingResponseDto inHouseWithMoney() {
         return inHouse("{\"amenity_name\":\"Massage\",\"quantity\":1,\"subtotal\":100,\"status\":\"pending\"}");

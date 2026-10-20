@@ -32,6 +32,9 @@ import java.util.Collections;
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
 public class TransactionHistoryPolishTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static boolean hasField(Class<?> type, String name) {
         try {
             type.getField(name);

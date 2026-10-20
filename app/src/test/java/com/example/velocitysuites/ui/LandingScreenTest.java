@@ -55,6 +55,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class LandingScreenTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     /** The five reads the landing page makes - always through the no-cache variants. */
     private static final String[] FRESH = {"getRoomsFresh", "getAnnouncementsFresh", "getAmenitiesFresh", "getPromotionsFresh", "getDiscountsFresh"};
     private static final String[] PLAIN = {"getRooms", "getAnnouncements", "getAmenities", "getPromotions", "getDiscounts"};

@@ -66,6 +66,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class PaymentHeaderLayoutTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final int WIDTH_PX = 1080;
     private static final int HEIGHT_PX = 2400;
 

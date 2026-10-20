@@ -39,6 +39,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class TransactionCardLayoutTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final int[] WIDTHS_DP = {320, 360, 411};
     private static final float[] FONT_SCALES = {1.0f, 1.15f, 1.3f, 1.5f};
 

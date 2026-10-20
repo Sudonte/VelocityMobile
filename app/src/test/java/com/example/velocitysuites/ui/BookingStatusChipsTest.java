@@ -40,6 +40,9 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class BookingStatusChipsTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private BookingAndReservationActivity activity;
     private org.robolectric.android.controller.ActivityController<BookingAndReservationActivity> controller;
     private ScreenTestSupport.FakeApi api;

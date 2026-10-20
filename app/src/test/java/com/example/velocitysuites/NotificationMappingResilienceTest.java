@@ -20,6 +20,9 @@ import java.util.List;
 @Config(sdk = 35, application = com.example.velocitysuites.ui.TestApplication.class)
 public class NotificationMappingResilienceTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static NotificationDto row(long id, String createdAt, String category) {
         NotificationDto dto = new NotificationDto();
         dto.id = id;

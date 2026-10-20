@@ -26,6 +26,9 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class OtpBoxesTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private LinearLayout container;
     private OtpBoxes boxes;
     private String lastCode;

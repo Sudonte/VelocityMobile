@@ -38,6 +38,9 @@ import java.util.Collections;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class NotificationCardLayoutTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     @org.junit.Before
     public void freshRepository() {
         ScreenTestSupport.freshRepository(androidx.test.core.app.ApplicationProvider.getApplicationContext(), new ScreenTestSupport.FakeApi());

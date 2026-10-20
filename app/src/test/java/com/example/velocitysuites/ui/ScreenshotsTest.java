@@ -42,6 +42,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ScreenshotsTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final String TAG = System.getenv("SHOT_TAG") != null ? System.getenv("SHOT_TAG") : "after";
 
     private Context app;

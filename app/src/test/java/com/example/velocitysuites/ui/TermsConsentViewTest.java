@@ -32,6 +32,9 @@ import static org.robolectric.Shadows.shadowOf;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class TermsConsentViewTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private TermsConsentView newView(Activity activity) {
         TermsConsentView view = new TermsConsentView(activity);
         view.setId(R.id.termsConsent);

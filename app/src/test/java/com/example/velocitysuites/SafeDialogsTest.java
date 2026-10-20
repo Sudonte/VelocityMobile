@@ -21,6 +21,9 @@ import org.robolectric.annotation.Config;
 @Config(sdk = 35, application = TestApplication.class)
 public class SafeDialogsTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     @Test
     public void dialogOnALiveScreenIsShown() {
         Activity activity = Robolectric.buildActivity(WelcomeActivity.class).setup().get();

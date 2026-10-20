@@ -28,6 +28,9 @@ import java.util.Locale;
 @Config(sdk = 35, application = TestApplication.class)
 public class NextStayPeriodsAndDetailsTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.US);
     private static final LocalDate TODAY = LocalDate.of(2026, 10, 19); // a Monday
 

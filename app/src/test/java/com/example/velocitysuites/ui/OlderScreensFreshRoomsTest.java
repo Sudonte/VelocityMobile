@@ -37,6 +37,9 @@ import java.nio.file.Files;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class OlderScreensFreshRoomsTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private Context app;
     private ScreenTestSupport.FakeApi api;
 

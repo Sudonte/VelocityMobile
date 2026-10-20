@@ -28,6 +28,9 @@ import java.util.List;
 @Config(sdk = 35, application = TestApplication.class)
 public class StayInfoTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static StayBillDto.Room room(String number, String type, double rate, int nights, int extra, double subtotal, String status) {
         StayBillDto.Room r = new StayBillDto.Room();
         r.room_number = number;

@@ -26,6 +26,9 @@ import java.util.List;
 @Config(sdk = 35, application = TestApplication.class)
 public class HotelPolicyAndDisplayLabelsTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private final Context app = ApplicationProvider.getApplicationContext();
 
     // ---- HotelPolicy

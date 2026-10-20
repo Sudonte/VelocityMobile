@@ -32,6 +32,9 @@ import java.nio.file.Files;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ResponsiveWindowTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(new File(path).toPath()), "UTF-8");
     }

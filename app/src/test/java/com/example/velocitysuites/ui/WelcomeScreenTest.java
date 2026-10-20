@@ -48,6 +48,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class WelcomeScreenTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static WelcomeActivity launch() {
         ActivityController<WelcomeActivity> controller = Robolectric.buildActivity(WelcomeActivity.class);
         controller.setup();

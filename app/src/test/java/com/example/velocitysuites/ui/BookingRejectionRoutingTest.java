@@ -34,6 +34,9 @@ import java.util.List;
 @Config(sdk = 35, application = TestApplication.class)
 public class BookingRejectionRoutingTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private ScreenTestSupport.FakeApi api;
     private RoomRepository repository;
 

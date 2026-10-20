@@ -47,6 +47,9 @@ import java.util.List;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class BalanceBreakdownReceiptTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     /** 2 nights x 2,500 = 5,000, Senior 20% = -1,000 -> paid 4,000 at check-in; towels 2 x 50 + lamp 300 -> 400 at check-out. */
     private static String receipt(String stayBillExtra, String highlight) {
         return "{\"receipt\":{\"receipt_type\":\"OFFICIAL_RECEIPT\",\"receipt_number\":\"OR-20261017-000900\",\"receipt_stage\":3,"

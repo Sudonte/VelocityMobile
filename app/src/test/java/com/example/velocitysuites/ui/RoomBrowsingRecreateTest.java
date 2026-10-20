@@ -39,6 +39,9 @@ import java.util.Calendar;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class RoomBrowsingRecreateTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static Calendar day(int year, int month, int day) {
         Calendar c = Calendar.getInstance();
         c.clear();

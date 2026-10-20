@@ -32,6 +32,9 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class GuestHeaderTouchTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private final int[] clicks = new int[3];
 
     private ViewGroup header(Activity activity) {

@@ -22,6 +22,9 @@ import org.robolectric.annotation.Config;
 @Config(sdk = 35, application = TestApplication.class)
 public class AwaitingVerificationTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static Context ctx() {
         return new ContextThemeWrapper(ApplicationProvider.getApplicationContext(), R.style.Theme_VelocitySuites);
     }

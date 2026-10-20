@@ -47,6 +47,9 @@ import java.lang.reflect.Field;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class NotificationPopupAndReceiptViewerTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private Context app;
     private FakeApi api;
     private RoomRepository repository;

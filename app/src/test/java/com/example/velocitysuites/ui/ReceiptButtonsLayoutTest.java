@@ -31,6 +31,9 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ReceiptButtonsLayoutTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     private static final float[] FONT_SCALES = {1.0f, 1.15f, 1.3f, 2.0f};
     private static final int[] WIDTHS_DP = {360, 320};
 

@@ -40,6 +40,9 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class AdditionalAmenitiesFixesTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     /** What GET /api/guest/bookings/{id}/additional-amenities returns (shape pinned by the backend feature test). */
     private static final String SAMPLE = "{\"booking_id\":338,\"can_request\":true,\"reason\":null,\"requests\":["
             + "{\"id\":5,\"amenity_id\":7,\"name\":\"Extra Bed\",\"quantity\":2,\"unit_price\":200,\"subtotal\":400,"

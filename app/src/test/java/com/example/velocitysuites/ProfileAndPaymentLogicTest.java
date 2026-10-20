@@ -31,6 +31,9 @@ import java.util.Locale;
 @Config(sdk = 35, application = TestApplication.class)
 public class ProfileAndPaymentLogicTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static Context themed() {
         return new ContextThemeWrapper(ApplicationProvider.getApplicationContext(), R.style.Theme_VelocitySuites);
     }

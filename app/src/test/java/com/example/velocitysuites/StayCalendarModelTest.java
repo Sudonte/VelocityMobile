@@ -23,6 +23,9 @@ import java.util.Locale;
 @Config(sdk = 35, application = TestApplication.class)
 public class StayCalendarModelTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.US);
 
     private static Booking stay(String id, LocalDate in, LocalDate out, String status) {

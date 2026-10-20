@@ -47,6 +47,9 @@ import java.util.List;
 @Config(sdk = 35, application = TestApplication.class)
 public class TransactionRoomsTest {
 
+    @org.junit.Rule
+    public final ThemeResetRule themeReset = new ThemeResetRule();
+
     private static final AmenityRecord.Status APPROVED = AmenityRecord.Status.APPROVED;
     private static final AmenityRecord.Status PENDING = AmenityRecord.Status.PENDING;
     private static final AmenityRecord.Status REJECTED = AmenityRecord.Status.REJECTED;

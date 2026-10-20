@@ -34,6 +34,9 @@ import java.time.Duration;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class LandingHeroFoldTest {
 
+    @org.junit.Rule
+    public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
+
     @Before
     public void setUp() {
         Context app = ApplicationProvider.getApplicationContext();
