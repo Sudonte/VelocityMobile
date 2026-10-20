@@ -44,7 +44,7 @@ import java.util.List;
 /**
  * Transaction History's search and filters, end to end on the real screen: the three dropdowns (Transaction, Booking
  * status, Room type) that always open with their full list, the two date fields, the Show / Hide toggle, Clear filters,
- * the result count, the empty state, Export using the filtered rows, filters surviving a trip to a transaction's details
+ * the result count, the empty state, filters surviving a trip to a transaction's details
  * and a screen rotation, and filtering across every page.
  */
 @RunWith(AndroidJUnit4.class)
@@ -337,17 +337,14 @@ public class TransactionHistoryFiltersScreenTest {
         assertEquals("", text(a, R.id.etCheckIn));
     }
 
-    // ---- Export, details round trip, rotation, pagination -----------------------------------------------------
+    // ---- details round trip, rotation, pagination -----------------------------------------------------
 
     @Test
-    public void export_usesExactlyTheFilteredAndSearchedRows() throws Exception {
+    public void filterAndSearchTogether_showExactlyTheMatchingRow() throws Exception {
         TransactionHistoryActivity a = launchWithEverything().get();
         pickTransaction(a, "Paid");
         ((TextView) a.findViewById(R.id.etSearch)).setText("suite");
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));
-        List<?> exported = (List<?>) invoke(a, "rowsForExport");
-        assertEquals("exactly the one row on screen", 1, exported.size());
-        assertEquals("2", field(exported.get(0), "id"));
         assertEquals(1, shownRefs(a).size());
     }
 
@@ -481,9 +478,11 @@ public class TransactionHistoryFiltersScreenTest {
         assertTrue(LayoutHarness.boundsIn(root, a.findViewById(R.id.btnToggleFilters)).height() >= LayoutHarness.dp(app, 48));
 
         View count = a.findViewById(R.id.tvResultCount);
-        View export = a.findViewById(R.id.btnExport);
-        assertFalse("the count does not overlap Export", Rect.intersects(LayoutHarness.boundsIn(root, count), LayoutHarness.boundsIn(root, export)));
-        assertTrue("Export is fully on screen", LayoutHarness.boundsIn(root, export).right <= w);
+        View title = a.findViewById(R.id.tvTransactionHeader);
+        assertTrue("\"Transactions \u00b7 N results\" is one line: the count sits right of the title",
+                LayoutHarness.boundsIn(root, count).left > LayoutHarness.boundsIn(root, title).right
+                        && Math.abs(LayoutHarness.boundsIn(root, count).centerY() - LayoutHarness.boundsIn(root, title).centerY()) <= LayoutHarness.dp(app, 6));
+        assertTrue("the count is fully on screen", LayoutHarness.boundsIn(root, count).right <= w);
         assertEquals("the description is one line", 1, ((TextView) a.findViewById(R.id.screenDescription)).getLineCount());
     }
 

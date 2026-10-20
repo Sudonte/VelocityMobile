@@ -54,7 +54,7 @@
                         style="@style/TextAppearance.Velocity.ScreenTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginHorizontal="14dp"
                         android:textSize="15sp"
                         android:textColor="@color/velocity_red_primary"
                         android:text="@string/title_transaction_history" />
@@ -62,7 +62,7 @@
                     <View
                         android:layout_width="56dp"
                         android:layout_height="6dp"
-                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginHorizontal="14dp"
                         android:layout_marginTop="11dp"
                         android:background="@drawable/shape_intro_pill"
                         android:backgroundTint="@color/velocity_red_primary"
@@ -73,7 +73,7 @@
                         style="@style/TextAppearance.Velocity.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginHorizontal="14dp"
                         android:layout_marginTop="11dp"
                         android:layout_marginBottom="18dp"
                         android:lineSpacingExtra="4dp"
@@ -85,7 +85,7 @@
                         style="@style/Widget.Velocity.Card.Flat"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="22dp"
+                        android:layout_marginHorizontal="14dp"
                         android:layout_marginBottom="13dp">
 
                         <LinearLayout
@@ -327,64 +327,44 @@
                 app:cardElevation="@dimen/card_elevation"
                 app:strokeWidth="0dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/velocity_sticky_bar_bg"
-                    android:paddingHorizontal="22dp"
-                    android:paddingVertical="11dp">
+                    android:baselineAligned="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp">
 
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:background="@color/velocity_divider_hairline"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                    <TextView
+                        android:id="@+id/tvTransactionHeader"
+                        style="@style/TextAppearance.Velocity.Section.Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/transactions_title" />
 
-                    <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="6dp"
+                        android:importantForAccessibility="no"
+                        android:text="@string/action_dot_separator"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvResultCount"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="11dp"
-                        android:orientation="vertical"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/btnExport"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <TextView
-                            android:id="@+id/tvTransactionHeader"
-                            style="@style/TextAppearance.Velocity.Section.Title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/transactions_title" />
-
-                        <TextView
-                            android:id="@+id/tvResultCount"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:accessibilityLiveRegion="polite"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp"
-                            tools:text="12 results" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnExport"
-                        style="@style/Widget.Velocity.Flat.Button.Text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:letterSpacing="0"
-                        android:text="@string/export_label"
+                        android:layout_weight="1"
+                        android:accessibilityLiveRegion="polite"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/velocity_text_secondary"
                         android:textSize="13sp"
-                        app:icon="@drawable/ic_upload"
-                        app:iconGravity="textStart"
-                        app:iconPadding="6dp"
-                        app:iconSize="16dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        tools:text="12 results" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </com.google.android.material.appbar.AppBarLayout>

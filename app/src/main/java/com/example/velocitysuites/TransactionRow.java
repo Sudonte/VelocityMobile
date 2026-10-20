@@ -62,6 +62,8 @@ public final class TransactionRow {
     final boolean removedByGuest;
     /** Lower-cased text the search box matches against (reference, room, dates, status words, payment/receipt references, amounts). */
     final String searchText;
+    /** An unverified booking: its chip reads "Awaiting verification" (see {@link TransactionActions#isAwaitingVerification}). */
+    final boolean awaitingVerification;
 
     private TransactionRow(Booking booking, String id, boolean direct, Kind kind, TransactionStatusHelper.Summary summary,
                            String roomText, String checkIn, String checkOut, long sortMillis, @Nullable LocalDate checkInDate, @Nullable LocalDate checkOutDate,
@@ -86,6 +88,7 @@ public final class TransactionRow {
         this.hasAnyPayment = hasAnyPayment;
         this.removedByGuest = removedByGuest;
         this.searchText = searchText;
+        this.awaitingVerification = TransactionActions.isAwaitingVerification(booking);
     }
 
     // ---- Building ----
@@ -179,7 +182,8 @@ public final class TransactionRow {
                 && Objects.equals(checkIn, o.checkIn)
                 && Objects.equals(checkOut, o.checkOut)
                 && receiptCount == o.receiptCount
-                && removedByGuest == o.removedByGuest;
+                && removedByGuest == o.removedByGuest
+                && awaitingVerification == o.awaitingVerification;
     }
 
     // ---- Derivations ----

@@ -1,6 +1,5 @@
 package com.example.velocitysuites;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,10 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -37,8 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Transaction History: one card per reservation/booking with its status, grand total, stay dates and what has
@@ -56,7 +50,7 @@ import java.util.concurrent.Executors;
  *   <li><b>Cheap</b>: rows are immutable snapshots built once per data change; search is debounced; the
  *       list is a real recycling RecyclerView (the screen's scroll container), so paging by scrolling works.</li>
  *   <li><b>Safe</b>: no UI work after the screen is gone, handlers/executors released in onDestroy, repeated
- *       taps swallowed ({@link ClickGuard}), and Export can only end in a saved file or a clear message.</li>
+ *       taps swallowed ({@link ClickGuard}).</li>
  * </ul>
  */
 public class TransactionHistoryActivity extends BaseNavigationActivity {
@@ -159,21 +153,6 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         }
     };
 
-    // Export. Two launchers (one per MIME type) so the saved file is typed correctly; the rows to export are
-    // the snapshot of what was on screen when Export was tapped, even if a poll changes the list while the
-    // system file picker is open.
-    private final ExecutorService exportExecutor = Executors.newSingleThreadExecutor();
-    @Nullable private List<TransactionRow> pendingExportRows;
-    @Nullable private AlertDialog exportProgressDialog;
-    private final ActivityResultLauncher<String> createCsvLauncher = registerForActivityResult(
-            new ActivityResultContracts.CreateDocument("text/csv"), uri -> {
-                if (uri != null) exportTo(uri, false);
-            });
-    private final ActivityResultLauncher<String> createPdfLauncher = registerForActivityResult(
-            new ActivityResultContracts.CreateDocument("application/pdf"), uri -> {
-                if (uri != null) exportTo(uri, true);
-            });
-
     // ---- Lifecycle ----
 
     @Override
@@ -190,7 +169,6 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         setupFilters();
         setupSearch();
         setupSwipeRefresh();
-        findViewById(R.id.btnExport).setOnClickListener(v -> onExportClicked());
 
         readDeepLink();
 
@@ -236,10 +214,6 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
     @Override
     protected void onDestroy() {
         handler.removeCallbacksAndMessages(null);
-        dismissSafely(exportProgressDialog);
-        exportProgressDialog = null;
-        // Let a write already in progress finish (interrupting it would leave a half-written file).
-        exportExecutor.shutdown();
         super.onDestroy();
     }
 
@@ -647,11 +621,6 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
         });
     }
 
-    /** What Export writes: exactly the rows on screen - filtered AND searched. */
-    List<TransactionRow> rowsForExport() {
-        return new ArrayList<>(displayedRows);
-    }
-
     private void render() {
         adapter.submit(displayedRows);
         tvResultCount.setText(getResources().getQuantityString(R.plurals.transactions_results, displayedRows.size(), displayedRows.size()));
@@ -840,68 +809,5 @@ public class TransactionHistoryActivity extends BaseNavigationActivity {
                 }
             }
         });
-    }
-
-    // ---- Export ----
-
-    private void onExportClicked() {
-        if (!clickGuard.tryAcquire()) return;
-        if (displayedRows.isEmpty()) {
-            Toast.makeText(this, R.string.msg_export_nothing, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String[] options = {getString(R.string.export_as_pdf), getString(R.string.export_as_csv)};
-        new SafeDialogs.Material(this)
-                .setTitle(R.string.export_options_title)
-                .setItems(options, (dialog, which) -> {
-                    pendingExportRows = rowsForExport();
-                    long now = System.currentTimeMillis();
-                    try {
-                        if (which == 0) {
-                            createPdfLauncher.launch(TransactionExporter.fileName("pdf", now));
-                        } else {
-                            createCsvLauncher.launch(TransactionExporter.fileName("csv", now));
-                        }
-                    } catch (RuntimeException e) {
-                        // No app on the device can create documents (a stripped-down ROM): say so.
-                        Toast.makeText(this, R.string.msg_export_error, Toast.LENGTH_LONG).show();
-                    }
-                })
-                .show();
-    }
-
-    private void exportTo(Uri uri, boolean pdf) {
-        final List<TransactionRow> rows = pendingExportRows != null ? pendingExportRows : new ArrayList<>(displayedRows);
-        pendingExportRows = null;
-        final String format = pdf ? "PDF" : "CSV";
-
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_loading, null);
-        TextView message = dialogView.findViewById(R.id.loadingMessage);
-        if (message != null) message.setText(getString(R.string.msg_exporting_format, format));
-        exportProgressDialog = new SafeDialogs.Material(this).setView(dialogView).setCancelable(false).create();
-        SafeDialogs.show(exportProgressDialog);
-        final AlertDialog progress = exportProgressDialog;
-
-        // Application context: the worker must not keep this Activity alive, and only needs strings and the resolver.
-        final android.content.Context appContext = getApplicationContext();
-        final String generatedOn = TimeUtils.formatDateTime(Instant.now().toString());
-        try {
-            exportExecutor.execute(() -> {
-                final String failureMessage = TransactionExporter.exportToUri(appContext, uri, pdf, rows, generatedOn);
-                runOnUiThread(() -> {
-                    // The file was written (or not) regardless of the guest having left; only the dialog and
-                    // toast are skipped once the screen is gone.
-                    dismissSafely(progress);
-                    if (progress == exportProgressDialog) exportProgressDialog = null;
-                    if (!isUiAlive()) return;
-                    Toast.makeText(this, failureMessage == null
-                            ? getString(R.string.msg_export_success, getString(R.string.downloads_folder_name))
-                            : failureMessage, Toast.LENGTH_LONG).show();
-                });
-            });
-        } catch (RuntimeException rejected) {
-            // The executor was shut down (screen closing) - nothing left to do but drop the dialog.
-            dismissSafely(progress);
-        }
     }
 }

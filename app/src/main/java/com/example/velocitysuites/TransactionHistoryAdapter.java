@@ -118,7 +118,13 @@ public class TransactionHistoryAdapter extends RecyclerView.Adapter<TransactionH
         // The booking / reservation status beside the payment status, so both filters make sense on the card.
         boolean hasLifecycle = row.lifecycleStatus != null && !row.lifecycleStatus.trim().isEmpty();
         holder.tvBookingStatus.setVisibility(hasLifecycle ? View.VISIBLE : View.GONE);
-        if (hasLifecycle) holder.tvBookingStatus.setText(BookingStatusWords.label(ctx, row.lifecycleStatus));
+        if (hasLifecycle) {
+            holder.tvBookingStatus.setText(row.awaitingVerification ? ctx.getString(R.string.status_awaiting_verification)
+                    : BookingStatusWords.label(ctx, row.lifecycleStatus));
+            // neutral gray like every lifecycle chip here, amber only while the front desk has not verified the booking yet
+            holder.tvBookingStatus.setBackgroundTintList(ctx.getColorStateList(row.awaitingVerification ? R.color.status_pending_bg : R.color.status_cancelled_bg));
+            holder.tvBookingStatus.setTextColor(ctx.getColor(row.awaitingVerification ? R.color.status_pending_fg : R.color.status_cancelled_fg));
+        }
 
         holder.tvRemoved.setVisibility(row.removedByGuest ? View.VISIBLE : View.GONE);
 

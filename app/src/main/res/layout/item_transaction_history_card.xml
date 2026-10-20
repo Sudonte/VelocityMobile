@@ -20,23 +20,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cardTransaction"
-    style="@style/Widget.Velocity.Card.Glass.Compact"
+    style="@style/Widget.Velocity.Card.Flat.Inset"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="14dp"
     android:layout_marginBottom="8dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardBackgroundColor="@color/velocity_surface_elevated"
-    app:cardCornerRadius="@dimen/card_corner_radius"
-    app:cardElevation="@dimen/card_elevation"
     app:rippleColor="@color/velocity_red_subtle">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="13dp"
+        android:paddingHorizontal="12dp"
         android:paddingVertical="11dp">
 
         <!-- Row 1: the ID (bold, Title Case, wraps rather than being cut) | the amount (bold, never wraps) | chevron. -->
@@ -53,7 +50,7 @@
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 tools:text="Reservation #630" />
 
             <TextView
@@ -64,14 +61,15 @@
                 android:fontFamily="sans-serif-black"
                 android:gravity="end"
                 android:textColor="@color/velocity_text_primary"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 tools:text="₱3,600.00" />
 
             <ImageView
                 android:id="@+id/ivTxnChevron"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:layout_marginStart="6dp"
+                android:alpha="0.4"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_chevron_right"
                 app:tint="@color/velocity_text_secondary" />
@@ -82,7 +80,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -94,7 +92,7 @@
                 android:fontFamily="sans-serif-black"
                 android:maxLines="1"
                 android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
+                android:paddingVertical="3dp"
                 android:textSize="12sp"
                 tools:text="Unpaid" />
 
@@ -108,7 +106,7 @@
                 android:fontFamily="sans-serif-black"
                 android:maxLines="1"
                 android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
+                android:paddingVertical="3dp"
                 android:textColor="@color/status_cancelled_fg"
                 android:textSize="12sp"
                 android:visibility="gone"

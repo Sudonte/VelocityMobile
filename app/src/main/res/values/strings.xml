@@ -753,7 +753,6 @@
     <string name="filter_bookings">Bookings</string>
     <string name="filter_payments">Payments</string>
     <string name="filter_reservations">Reservations</string>
-    <string name="export_label">Export</string>
     <string name="total_paid_label">Total Paid</string>
     <string name="booking_id_format">Booking ID: %1$s</string>
     <string name="reservation_id_format">Reservation ID: %1$s</string>
@@ -1464,13 +1463,6 @@
     <string name="label_current_status">Current Status: %1$s</string>
     <string name="title_booking_info">Booking Information</string>
     <string name="title_payment_history">Payment History</string>
-    <string name="export_options_title">Export Transaction History</string>
-    <string name="export_as_pdf">Export as PDF Document</string>
-    <string name="export_as_csv">Export as CSV Spreadsheet</string>
-    <string name="msg_export_success">Exported successfully to %1$s</string>
-    <string name="msg_exporting_format">Generating %1$s report…</string>
-    <string name="msg_export_error">Failed to export file</string>
-    <string name="downloads_folder_name">Downloads</string>
     <string name="error_load_transactions_format">Couldn\'t load transactions: %1$s</string>
     <string name="no_transactions_load_error_title">Unable to Load Transactions</string>
     <string name="no_transactions_load_error_desc">Please check your internet connection and try again.</string>
@@ -1829,10 +1821,6 @@
     <string name="status_awaiting_verification">Awaiting verification</string>
     <string name="txn_history_status_rejected">Rejected</string>
 
-    <!-- Export -->
-    <string name="msg_export_nothing">There are no transactions to export.</string>
-    <string name="msg_export_error_write">Couldn\'t save the file. Check that the location has free space and try again.</string>
-    <string name="msg_export_error_unexpected">Something went wrong while creating the report. Please try again.</string>
 
     <!-- ===== Notification card ===== -->
     <string name="view_transaction_label">View Transaction</string>

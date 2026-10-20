@@ -358,20 +358,6 @@ public class TransactionHistoryScreenTest {
         assertEquals(1, activity.<RecyclerView>findViewById(R.id.rvTransactions).getAdapter().getItemCount());
     }
 
-    // ---- export ----
-
-    @Test
-    public void exportWithNothingToExport_saysSo_insteadOfOpeningAPicker() {
-        ActivityController<TransactionHistoryActivity> controller = launch();
-        TransactionHistoryActivity activity = controller.get();
-        answerInitialLoad(Collections.emptyList(), Collections.emptyList());
-
-        activity.findViewById(R.id.btnExport).performClick();
-        idle();
-
-        assertEquals("There are no transactions to export.", ShadowToast.getTextOfLatestToast());
-    }
-
     // ---- opening a record ----
 
     @Test
