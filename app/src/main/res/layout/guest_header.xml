@@ -200,7 +200,7 @@
         android:paddingHorizontal="4dp"
         android:text="@string/zero"
         android:textColor="@color/white"
-        android:textSize="9sp"
+        android:textSize="11sp"
         android:visibility="gone"
         android:elevation="0dp"
         app:layout_constraintCircle="@id/headerNotificationContainer"
