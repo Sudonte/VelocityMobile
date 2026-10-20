@@ -75,4 +75,42 @@ public class ResponsiveWindowTest {
         assertFalse("tablets and landscape are supported", manifest.contains("screenOrientation=\"portrait\""));
         assertTrue(read("src/main/java/com/example/velocitysuites/VelocitySuitesApp.java").contains("registerActivityLifecycleCallbacks(new ResponsiveWindow())"));
     }
+
+    @Test
+    public void phonesLockToPortrait_tabletsRotate() {
+        org.robolectric.RuntimeEnvironment.setQualifiers("w393dp-h851dp-xxhdpi");
+        Activity phone = Robolectric.buildActivity(TransactionHistoryActivity.class).setup().get();
+        ResponsiveWindow.applyOrientation(phone);
+        assertFalse(ResponsiveWindow.isTablet(phone));
+        assertEquals(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, phone.getRequestedOrientation());
+
+        org.robolectric.RuntimeEnvironment.setQualifiers("w600dp-h960dp-xxhdpi");
+        Activity tablet = Robolectric.buildActivity(TransactionHistoryActivity.class).setup().get();
+        ResponsiveWindow.applyOrientation(tablet);
+        assertTrue(ResponsiveWindow.isTablet(tablet));
+        assertEquals(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, tablet.getRequestedOrientation());
+        org.robolectric.RuntimeEnvironment.setQualifiers("w360dp-h800dp-xxhdpi");
+    }
+
+    @Test
+    public void tabletScreensSurviveRotation_recreateWithSavedState() {
+        android.content.Context app = androidx.test.core.app.ApplicationProvider.getApplicationContext();
+        ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
+        com.example.velocitysuites.network.SessionManager.saveSession(app, "t", 1L, "Ana", "Reyes", "", "Ana Reyes", "a@b.c", "09171234567", "Female", "Jan 01, 1990", "");
+        org.robolectric.RuntimeEnvironment.setQualifiers("w840dp-h1280dp-xxhdpi");
+        Class<?>[] screens = {TransactionHistoryActivity.class, com.example.velocitysuites.NotificationActivity.class,
+                com.example.velocitysuites.DashboardActivity.class, com.example.velocitysuites.BookingAndReservationActivity.class};
+        for (Class<?> type : screens) {
+            @SuppressWarnings("unchecked")
+            org.robolectric.android.controller.ActivityController<? extends Activity> c =
+                    Robolectric.buildActivity((Class<? extends Activity>) type).setup();
+            org.robolectric.RuntimeEnvironment.setQualifiers("w1280dp-h800dp-land-xxhdpi");
+            c.configurationChange();
+            c.recreate();
+            shadowOf(Looper.getMainLooper()).idle();
+            assertFalse(type.getSimpleName(), c.get().isFinishing());
+            org.robolectric.RuntimeEnvironment.setQualifiers("w840dp-h1280dp-port-xxhdpi");
+        }
+        org.robolectric.RuntimeEnvironment.setQualifiers("w360dp-h800dp-xxhdpi");
+    }
 }

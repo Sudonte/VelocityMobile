@@ -83,6 +83,25 @@ public final class ResponsiveWindow implements Application.ActivityLifecycleCall
 
     // ---- lifecycle
 
+    /** Phones (smallest width under 600dp) stay in portrait; tablets rotate freely. */
+    public static final int TABLET_MIN_SMALLEST_WIDTH_DP = 600;
+
+    public static boolean isTablet(@NonNull Activity activity) {
+        return activity.getResources().getConfiguration().smallestScreenWidthDp >= TABLET_MIN_SMALLEST_WIDTH_DP;
+    }
+
+    /** Locks a phone to portrait and leaves a tablet unlocked. */
+    public static void applyOrientation(@NonNull Activity activity) {
+        activity.setRequestedOrientation(isTablet(activity)
+                ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
+    @Override
+    public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        applyOrientation(activity);
+    }
+
     @Override
     public void onActivityPostCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
         apply(activity);
