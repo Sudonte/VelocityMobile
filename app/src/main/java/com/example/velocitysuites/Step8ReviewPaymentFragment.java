@@ -271,13 +271,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 getResources().getQuantityString(R.plurals.adults_count, state.adults, state.adults),
                 getResources().getQuantityString(R.plurals.children_count, state.children, state.children)));
 
-        String representative = buildRepresentativeName(state);
-        if (representative != null) {
-            tvSummaryRepresentative.setVisibility(View.VISIBLE);
-            tvSummaryRepresentative.setText(getString(R.string.details_label_representative_name) + ": " + representative);
-        } else {
-            tvSummaryRepresentative.setVisibility(View.GONE);
-        }
+        tvSummaryRepresentative.setVisibility(View.VISIBLE);
+        tvSummaryRepresentative.setText(RepresentativeName.summaryLine(requireContext(), state.representativeName));
 
         layoutSummaryRooms.removeAllViews();
         for (List<Room> group : state.selectedRoomsGroupedByType().values()) {
@@ -340,19 +335,6 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
     private String money(double amount) {
         return String.format(Locale.US, getString(R.string.price_format), amount);
-    }
-
-    @Nullable
-    private String buildRepresentativeName(BookingWizardState state) {
-        if (state.guestFirstName == null || state.guestFirstName.trim().isEmpty()) return null;
-        StringBuilder sb = new StringBuilder(state.guestFirstName.trim());
-        if (state.guestMiddleName != null && !state.guestMiddleName.trim().isEmpty()) {
-            sb.append(" ").append(state.guestMiddleName.trim());
-        }
-        if (state.guestLastName != null && !state.guestLastName.trim().isEmpty()) {
-            sb.append(" ").append(state.guestLastName.trim());
-        }
-        return sb.toString();
     }
 
     private View buildRow(String label, String amount) {

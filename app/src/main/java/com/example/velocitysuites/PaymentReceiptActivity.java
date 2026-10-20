@@ -735,7 +735,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
     private void buildGuestSection(ViewGroup parent, ReceiptDetail detail) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_guest_information_title));
         addRowOrDash(content, getString(R.string.receipt_guest_account_name_label), detail.getGuestAccountName());
-        addRow(content, getString(R.string.details_label_representative_name), detail.getRepresentativeName());
+        addRow(content, getString(R.string.details_label_representative_name), RepresentativeName.representativeOf(this, detail.getRepresentativeName()));
     }
 
     /**
@@ -1141,7 +1141,7 @@ public class PaymentReceiptActivity extends AppCompatActivity {
         android.content.SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
         bindRowOrDash(R.id.rowGuestName, getString(R.string.receipt_guest_account_name_label),
                 prefs.getString("userName", null));
-        bindRow(R.id.rowRepresentativeName, getString(R.string.details_label_representative_name), booking.getRepresentativeName());
+        bindRow(R.id.rowRepresentativeName, getString(R.string.details_label_representative_name), RepresentativeName.representativeOf(this, booking));
         bindRow(R.id.rowGuestEmail, getString(R.string.receipt_guest_email_label),
                 prefs.getString("userEmail", null));
         bindRow(R.id.rowGuestMobile, getString(R.string.mobile_label), prefs.getString("userMobile", null));

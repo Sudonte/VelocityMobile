@@ -441,6 +441,59 @@ public class WizardStepsScreenTest {
         assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
     }
 
+    // ---- Step 4: the optional representative name ----
+
+    @Test
+    public void step4_representativeIsOptional_inEveryFlow_withHelperTextAndTheWhoCanCheckInRow() {
+        for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
+            BookingWizardActivity activity = launch(mode).get();
+            activity.getState().selectedRooms.add(room("R1", 6));
+            activity.goToStep(4);
+            idle();
+            com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilRepresentativeName);
+            assertEquals("Representative name (optional)", til.getHint().toString());
+            assertEquals(app.getString(R.string.representative_name_helper), text(find(activity, R.id.tvRepresentativeHelper)));
+            assertEquals("the helper is always visible", View.VISIBLE, find(activity, R.id.tvRepresentativeHelper).getVisibility());
+            assertTrue("Next is never blocked by an empty field", ((WizardStepFragment) fragment(activity)).validateBeforeNext());
+
+            View body = find(activity, R.id.tvRepresentativeWhoBody);
+            assertEquals(View.GONE, body.getVisibility());
+            find(activity, R.id.rowRepresentativeWho).performClick();
+            assertEquals(View.VISIBLE, body.getVisibility());
+            assertEquals(app.getString(R.string.representative_who_body), text(body));
+            find(activity, R.id.rowRepresentativeWho).performClick();
+            assertEquals(View.GONE, body.getVisibility());
+        }
+    }
+
+    @Test
+    public void step4_aFilledNameIsChecked_aBlankOneSendsTheAccountOwner() {
+        BookingWizardActivity activity = launch(BookingWizardState.Mode.RESERVATION).get();
+        activity.getState().selectedRooms.add(room("R1", 6));
+        app.getSharedPreferences("VelocityPrefs", android.content.Context.MODE_PRIVATE).edit()
+                .putString("userFirstName", "Maria").putString("userLastName", "Santos").apply();
+        activity.goToStep(4);
+        idle();
+        TextView field = find(activity, R.id.etRepresentativeName);
+        com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilRepresentativeName);
+
+        field.setText("Juan");
+        assertFalse(((WizardStepFragment) fragment(activity)).validateBeforeNext());
+        assertEquals("Enter a valid full name", String.valueOf(til.getError()));
+        field.setText("Juan Dela Cruz");
+        assertEquals("the error clears as soon as the name is right", null, til.getError());
+        assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
+        assertEquals("Juan Dela Cruz", activity.getState().representativeName);
+        assertEquals("Juan Dela", activity.getState().guestFirstName);
+        assertEquals("Cruz", activity.getState().guestLastName);
+
+        field.setText("   ");
+        assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
+        assertEquals("", activity.getState().representativeName);
+        assertEquals("the account owner's names go where the API expects them", "Maria", activity.getState().guestFirstName);
+        assertEquals("Santos", activity.getState().guestLastName);
+    }
+
     // ---- back navigation never loses what was typed ----
 
     @Test
@@ -451,14 +504,12 @@ public class WizardStepsScreenTest {
 
             activity.goToStep(4);
             idle();
-            ((TextView) find(activity, R.id.etPrimaryGuestFirstName)).setText("Ana");
-            ((TextView) find(activity, R.id.etPrimaryGuestLastName)).setText("Cruz");
+            ((TextView) find(activity, R.id.etRepresentativeName)).setText("Ana Cruz");
             activity.goToStep(3); // Back
             idle();
             activity.goToStep(4);
             idle();
-            assertEquals("Ana", text(find(activity, R.id.etPrimaryGuestFirstName)));
-            assertEquals("Cruz", text(find(activity, R.id.etPrimaryGuestLastName)));
+            assertEquals("Ana Cruz", text(find(activity, R.id.etRepresentativeName)));
 
             activity.goToStep(5);
             idle();

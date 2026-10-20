@@ -321,6 +321,7 @@ public class BookingWizardActivity extends AppCompatActivity {
         originalPaymentMethod = booking.getPaymentMethod() != null ? booking.getPaymentMethod() : "CASH";
         state.paymentMethod = "GCASH".equalsIgnoreCase(originalPaymentMethod) ? "gcash" : "cash";
 
+        state.representativeName = RepresentativeName.fieldValueFor(this, booking);
         state.guestFirstName = booking.getGuestFirstName();
         state.guestMiddleName = booking.getGuestMiddleName();
         state.guestLastName = booking.getGuestLastName();
@@ -464,6 +465,7 @@ public class BookingWizardActivity extends AppCompatActivity {
      * PendingWizardRooms, before this is called.
      */
     private void seedStateForBookAgain(Booking original) {
+        state.representativeName = RepresentativeName.fieldValueFor(this, original);
         state.guestFirstName = original.getGuestFirstName();
         state.guestMiddleName = original.getGuestMiddleName();
         state.guestLastName = original.getGuestLastName();

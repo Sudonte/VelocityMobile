@@ -553,11 +553,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
     private void buildGuestInfoSection(LinearLayout container) {
         android.content.SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
         String guestAccountName = prefs.getString("userName", null);
-        String representativeName = booking.getRepresentativeName();
         addIconRow(container, R.drawable.ic_person, getString(R.string.guest_label_name), guestAccountName);
-        if (representativeName != null && !representativeName.trim().equalsIgnoreCase(guestAccountName == null ? "" : guestAccountName.trim())) {
-            addIconRow(container, R.drawable.ic_people, getString(R.string.details_label_representative_name), representativeName);
-        }
+        addIconRow(container, R.drawable.ic_people, RepresentativeName.rowLabel(this, booking), RepresentativeName.rowValue(this, booking));
         addIconRow(container, R.drawable.ic_email, getString(R.string.guest_label_email), prefs.getString("userEmail", null));
         addIconRow(container, R.drawable.ic_phone, getString(R.string.guest_label_phone), prefs.getString("userMobile", null));
         addIconRow(container, R.drawable.ic_location, getString(R.string.guest_label_address), prefs.getString("userAddress", null));

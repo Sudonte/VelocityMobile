@@ -229,11 +229,9 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         addGroup(container, getString(R.string.upcoming_section_room), model.room);
         TransactionRoomsView.addLive(this, container, booking);
 
-        // The representative guest, when one was entered - an older/guest-less record skips straight to Payment.
-        if (!TextUtils.isEmpty(booking.getRepresentativeName())) {
-            addSectionDivider(container, getString(R.string.guest_information_title));
-            addInfoRow(container, getString(R.string.details_label_representative_name), booking.getRepresentativeName());
-        }
+        // Who checks in: the representative, or the account owner.
+        addSectionDivider(container, getString(R.string.guest_information_title));
+        addInfoRow(container, RepresentativeName.rowLabel(this, booking), RepresentativeName.rowValue(this, booking));
 
         addSectionDivider(container, getString(R.string.upcoming_section_payment));
         for (TransactionDetailSections.Row row : model.payment) addRow(container, row.label, row.value);

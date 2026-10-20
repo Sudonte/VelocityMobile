@@ -72,111 +72,84 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    android:text="@string/required_fields_note"
-                    android:textColor="@color/velocity_red_primary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-medium" />
-
-                <!-- Last Name: static top-left label, always visible (not a
-                     floating Material hint) - the label never depends on
-                     focus/typed-text state, per spec. The field's own hint
-                     is just an inline placeholder (hintEnabled=false so it
-                     never doubles as a second, redundant label). -->
-                <TextView
-                    style="@style/TextAppearance.Velocity.Label.Section"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/guest_last_name_hint"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="12sp" />
-
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilPrimaryGuestLastName"
-                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
+                    android:id="@+id/tilRepresentativeName"
+                    style="@style/Widget.Velocity.TextInputLayout.Filter.Date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    app:hintEnabled="false"
-                    app:startIconDrawable="@drawable/ic_person"
-                    app:startIconTint="@color/velocity_red_primary">
+                    android:hint="@string/representative_name_label"
+                    app:counterEnabled="false"
+                    app:startIconDrawable="@drawable/ic_person">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPrimaryGuestLastName"
+                        android:id="@+id/etRepresentativeName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/guest_last_name_placeholder"
-                        android:textColorHint="@color/velocity_text_secondary"
-                        android:inputType="textPersonName"
+                        android:imeOptions="actionDone"
+                        android:inputType="textPersonName|textCapWords"
+                        android:maxLength="60"
+                        android:singleLine="true"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="13sp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- First Name: same static-label pattern as Last Name. -->
+                <!-- Always visible (an error replaces a TextInputLayout's helper, so it is a plain TextView). -->
                 <TextView
-                    style="@style/TextAppearance.Velocity.Label.Section"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/guest_first_name_hint"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="12sp" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilPrimaryGuestFirstName"
-                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
+                    android:id="@+id/tvRepresentativeHelper"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    app:hintEnabled="false"
-                    app:startIconDrawable="@drawable/ic_person"
-                    app:startIconTint="@color/velocity_red_primary">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPrimaryGuestFirstName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/guest_first_name_placeholder"
-                        android:textColorHint="@color/velocity_text_secondary"
-                        android:inputType="textPersonName"
-                        android:textColor="@color/velocity_text_primary"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Middle Name: same pattern, de-emphasized icon tint since
-                     it's the one optional field. -->
-                <TextView
-                    style="@style/TextAppearance.Velocity.Label.Section"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/middle_name_label"
-                    android:textColor="@color/velocity_text_primary"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/representative_name_helper"
+                    android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilPrimaryGuestMiddleName"
-                    style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Square"
+                <LinearLayout
+                    android:id="@+id/rowRepresentativeWho"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:hintEnabled="false"
-                    app:startIconDrawable="@drawable/ic_person"
-                    app:startIconTint="@color/velocity_text_secondary">
+                    android:layout_marginTop="10dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPrimaryGuestMiddleName"
-                        android:layout_width="match_parent"
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_info"
+                        app:tint="@color/velocity_red_primary" />
+
+                    <TextView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:hint="@string/middle_name_placeholder"
-                        android:textColorHint="@color/velocity_text_secondary"
-                        android:inputType="textPersonName"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/representative_who_title"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/ivRepresentativeWhoChevron"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="@color/velocity_text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvRepresentativeWhoBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="@string/representative_who_body"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

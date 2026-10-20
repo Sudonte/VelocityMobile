@@ -35,6 +35,8 @@ public class BookingWizardState {
 
     public final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
 
+    /** The optional representative's full name the guest typed on Step 4 ("" = the account owner checks in). */
+    public String representativeName = "";
     public String guestFirstName;
     public String guestMiddleName;
     public String guestLastName;

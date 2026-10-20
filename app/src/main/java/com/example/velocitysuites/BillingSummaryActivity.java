@@ -306,7 +306,7 @@ public class BillingSummaryActivity extends AppCompatActivity {
         setRow(tvBillingPrimaryGuest, guestAccountName());
         // Transaction-specific: the name captured on THIS booking at creation time, never the signed-in account's own
         // name above - a guest can book a stay for someone else.
-        setRow(tvBillingRepresentativeName, booking.getRepresentativeName());
+        setRow(tvBillingRepresentativeName, RepresentativeName.representativeOf(this, booking));
         tvBillingGuestCount.setText(getResources().getQuantityString(R.plurals.guests_count, booking.getGuests(), booking.getGuests()));
 
         String idType = booking.getIdCardType();
