@@ -136,10 +136,10 @@ public class DashboardScreenTest {
     public void recentUpcomingStay_sitsBelowTheSummary_showsFive_expandsToAll_andOpensFilteredUpcoming() {
         DashboardActivity activity = launch();
         View content = (View) activity.findViewById(R.id.welcomeCard).getParent();
-        assertTrue("Pending & Confirmed Stays now comes before the summary",
-                topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
-                < topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard)));
-        assertTrue(topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard))
+        assertTrue("the summary now comes before Pending & Confirmed Stays",
+                topLevelIndex(content, activity.findViewById(R.id.bookingReservationSummaryCard))
+                < topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard)));
+        assertTrue(topLevelIndex(content, activity.findViewById(R.id.recentUpcomingCard))
                 < topLevelIndex(content, activity.findViewById(R.id.bookingDetailsCard)));
 
         ReservationDto[] seven = new ReservationDto[7];
@@ -246,8 +246,8 @@ public class DashboardScreenTest {
         DashboardActivity activity = launch();
         View content = (View) activity.findViewById(R.id.welcomeCard).getParent();
 
-        int[] order = {R.id.welcomeCard, R.id.dateTimeCard, R.id.nextStayCard, R.id.actionBrowseRooms,
-                R.id.bookingReservationSummaryCard, R.id.bookingDetailsCard, R.id.notificationsCard,
+        int[] order = {R.id.welcomeCard, R.id.dateTimeCard, R.id.actionBrowseRooms,
+                R.id.bookingReservationSummaryCard, R.id.nextStayCard, R.id.recentUpcomingCard, R.id.bookingDetailsCard, R.id.notificationsCard,
                 R.id.paymentStatusCard, R.id.accountSummaryCard};
         int previous = -1;
         for (int id : order) {

@@ -3,6 +3,7 @@ package com.example.velocitysuites.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -102,8 +103,8 @@ public class DashboardSectionLayoutTest {
         if (v instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) collect(((ViewGroup) v).getChildAt(i), text, out);
     }
 
-    private static final int[] TITLES = {R.string.next_stay_section_title, R.string.quick_actions, R.string.stay_calendar_title, R.string.more_stays_title,
-            R.string.recent_upcoming_title, R.string.booking_reservation_summary_title, R.string.recent_bookings_title, R.string.notifications,
+    private static final int[] TITLES = {R.string.quick_actions, R.string.booking_reservation_summary_title, R.string.next_stay_section_title,
+            R.string.stay_calendar_title, R.string.more_stays_title, R.string.recent_upcoming_title, R.string.recent_bookings_title, R.string.notifications,
             R.string.payment_status, R.string.account_summary, R.string.support_need_help_title};
 
     @Test
@@ -181,12 +182,12 @@ public class DashboardSectionLayoutTest {
         List<Section> s = new ArrayList<>();
         s.add(new Section("hero", a.findViewById(R.id.welcomeCard)));
         s.add(new Section("clock", a.findViewById(R.id.dateTimeCard)));
-        s.add(new Section("Your Next Stay", a.findViewById(R.id.nextStaySectionCard)));
         s.add(new Section("Quick Actions", a.findViewById(R.id.quickActionsCard)));
+        s.add(new Section("Booking & Reservation Summary", a.findViewById(R.id.bookingReservationSummaryCard)));
+        s.add(new Section("Your Next Stay", a.findViewById(R.id.nextStaySectionCard)));
         s.add(new Section("Stay Calendar", a.findViewById(R.id.stayCalendar)));
         s.add(new Section("Other Recent & Upcoming Stays", a.findViewById(R.id.moreStaysSection)));
         s.add(new Section("Pending & Confirmed Stays", a.findViewById(R.id.recentUpcomingCard)));
-        s.add(new Section("Booking & Reservation Summary", a.findViewById(R.id.bookingReservationSummaryCard)));
         s.add(new Section("Recent Bookings", a.findViewById(R.id.bookingDetailsCard)));
         s.add(new Section("Notifications", a.findViewById(R.id.notificationsCard)));
         s.add(new Section("Payment Status", a.findViewById(R.id.paymentStatusCard)));
@@ -271,5 +272,89 @@ public class DashboardSectionLayoutTest {
         DashboardActivity activity = launch();
         many();
         assertEveryGapIsTheSharedOne(activity, "393 dark");
+    }
+
+    // ---- order, hero and clock ----
+
+    @Test
+    public void sectionsAreInTheRequestedOrder_fromTopToBottom() {
+        DashboardActivity activity = launch();
+        answer();
+        layOut(activity);
+        int[] ids = {R.id.welcomeCard, R.id.dateTimeCard, R.id.quickActionsCard, R.id.bookingReservationSummaryCard, R.id.nextStaySectionCard,
+                R.id.stayCalendar, R.id.moreStaysSection, R.id.recentUpcomingCard, R.id.bookingDetailsCard, R.id.notificationsCard,
+                R.id.paymentStatusCard, R.id.accountSummaryCard, R.id.supportCard};
+        ViewGroup column = (ViewGroup) activity.findViewById(R.id.welcomeCard).getParent();
+        int last = -1;
+        for (int id : ids) {
+            View v = activity.findViewById(id);
+            assertNotNull(id + "", v);
+            assertSame("one shared column", column, v.getParent());
+            int at = column.indexOfChild(v);
+            assertTrue("section " + app.getResources().getResourceEntryName(id) + " is below the previous one", at > last);
+            last = at;
+        }
+    }
+
+    @Test
+    public void hero_isAGreetingLine_aBoldNameLine_andOneShortSentence_leftAligned() {
+        DashboardActivity a = launch();
+        answer();
+        layOut(a);
+        TextView greeting = a.findViewById(R.id.welcomeText);
+        TextView name = a.findViewById(R.id.userNameText);
+        TextView line = a.findViewById(R.id.welcomeSubtitle);
+        assertTrue(greeting.getText().toString(), greeting.getText().toString().matches("Good (morning|afternoon|evening),"));
+        assertEquals("Here\u2019s a quick look at your stays and payments.", line.getText().toString());
+        assertEquals(1, name.getMaxLines());
+        assertEquals(android.text.TextUtils.TruncateAt.END, name.getEllipsize());
+        assertTrue(name.getTypeface().getWeight() >= 700 || name.getTypeface().isBold());
+        assertTrue("greeting above name above line", greeting.getBottom() <= name.getTop() + 1 && name.getBottom() <= line.getTop() + 1);
+        assertEquals("same left edge", greeting.getLeft(), name.getLeft());
+        assertEquals("same left edge", name.getLeft(), line.getLeft());
+        assertFalse(greeting.isAllCaps() || name.isAllCaps() || line.isAllCaps());
+    }
+
+    @Test
+    public void dateAndTime_aTickDoesNotRelayoutTheDashboard() {
+        DashboardActivity a = launch();
+        answer();
+        layOut(a);
+        TextView date = a.findViewById(R.id.dateText);
+        TextView time = a.findViewById(R.id.timeText);
+        assertTrue(date.getText().toString(), date.getText().toString().matches("[A-Z][a-z]+, [A-Z][a-z]+ \\d{1,2}, \\d{4}"));
+        assertEquals("the date sits above the time, both beside the round icon", date.getLeft(), time.getLeft());
+        assertTrue(date.getBottom() <= time.getTop() + 1);
+        assertEquals(ViewGroup.LayoutParams.MATCH_PARENT, time.getLayoutParams().width);
+        assertEquals("a tick only changes the clock text", 1, time.getMaxLines());
+        View card = a.findViewById(R.id.dateTimeCard);
+        assertTrue("tapping opens Upcoming Transactions, so the chevron stays", card.hasOnClickListeners());
+        assertEquals(View.VISIBLE, a.findViewById(R.id.dateTimeChevron).getVisibility());
+        View icon = a.findViewById(R.id.clockIcon);
+        assertEquals(icon.getWidth(), icon.getHeight());
+        View block = (View) time.getParent();
+        int blockMid = block.getTop() + block.getHeight() / 2;
+        int iconMid = icon.getTop() + icon.getHeight() / 2;
+        assertEquals("icon and text are centred on the same line", blockMid, iconMid, 3);
+        assertTrue(block.getHeight() > 0);
+    }
+
+    @Test
+    public void clock_stopsWhenTheScreenIsNotVisible_andRestartsOnResume() throws Exception {
+        ActivityController<DashboardActivity> c = Robolectric.buildActivity(DashboardActivity.class).setup();
+        DashboardActivity a = c.get();
+        java.lang.reflect.Field f = DashboardActivity.class.getDeclaredField("clockHandler");
+        f.setAccessible(true);
+        android.os.Handler handler = (android.os.Handler) f.get(a);
+        java.lang.reflect.Field r = DashboardActivity.class.getDeclaredField("clockRunnable");
+        r.setAccessible(true);
+        Runnable tick = (Runnable) r.get(a);
+        assertTrue("ticking while resumed", handler.hasCallbacks(tick));
+        c.pause();
+        assertFalse("no clock callback left once paused", handler.hasCallbacks(tick));
+        c.resume();
+        assertTrue(handler.hasCallbacks(tick));
+        c.pause().stop().destroy();
+        assertFalse("nothing leaks after destroy", handler.hasCallbacks(tick));
     }
 }

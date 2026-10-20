@@ -151,26 +151,29 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:minHeight="132dp"
-                            android:gravity="center_vertical"
+                            android:minHeight="112dp"
+                            android:gravity="start|center_vertical"
                             android:orientation="vertical"
-                            android:padding="14dp">
+                            android:padding="16dp">
 
                             <TextView
                                 android:id="@+id/welcomeText"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-bold"
-                                android:text="@string/welcome_back_label"
+                                android:fontFamily="sans-serif-medium"
+                                android:gravity="start"
+                                android:maxLines="1"
+                                android:text="@string/greeting_good_morning"
                                 android:textColor="@color/white"
-                                android:alpha="0.92"
-                                android:textSize="13sp" />
+                                android:alpha="0.95"
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/userNameText"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
+                                android:gravity="start"
                                 android:ellipsize="end"
                                 android:fontFamily="sans-serif-black"
                                 android:letterSpacing="0"
@@ -183,12 +186,15 @@
                                 android:textSize="22sp" />
 
                             <TextView
+                                android:id="@+id/welcomeSubtitle"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:alpha="0.92"
+                                android:layout_marginTop="6dp"
+                                android:alpha="0.95"
                                 android:fontFamily="sans-serif-medium"
-                                android:lineSpacingExtra="2dp"
+                                android:gravity="start"
+                                android:maxLines="2"
+                                android:ellipsize="end"
                                 android:text="@string/dashboard_welcome_subtitle"
                                 android:textColor="@color/white"
                                 android:textSize="12sp" />
@@ -218,12 +224,12 @@
 
                         <ImageView
                             android:id="@+id/clockIcon"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:background="@drawable/shape_intro_pill"
                             android:backgroundTint="@color/velocity_red_soft"
                             android:contentDescription="@string/system_clock_label"
-                            android:padding="6dp"
+                            android:padding="10dp"
                             android:src="@drawable/ic_clock"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -233,17 +239,20 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="8dp"
                             android:orientation="vertical"
-                            app:layout_constraintBottom_toBottomOf="@id/clockIcon"
+                            app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@id/dateTimeChevron"
                             app:layout_constraintStart_toEndOf="@id/clockIcon"
-                            app:layout_constraintTop_toTopOf="@id/clockIcon">
+                            app:layout_constraintTop_toTopOf="parent">
 
                             <TextView
                                 android:id="@+id/dateText"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:ellipsize="end"
                                 android:fontFamily="sans-serif-medium"
                                 android:text="@string/loading_date"
                                 android:textColor="@color/velocity_text_secondary"
@@ -251,8 +260,9 @@
 
                             <TextView
                                 android:id="@+id/timeText"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:maxLines="1"
                                 android:fontFamily="sans-serif-black"
                                 android:text="@string/time_placeholder"
                                 android:textColor="@color/velocity_text_primary"
@@ -271,214 +281,6 @@
                             app:layout_constraintTop_toTopOf="parent"
                             app:tint="@color/velocity_text_secondary" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/nextStaySectionCard"
-                    style="@style/Widget.Velocity.Card.Section"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dashboard_section_gap">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:padding="12dp">
-                <!-- Section header: a clear title and one line saying what the section is for -->
-                <LinearLayout
-                    android:id="@+id/nextStayHeader"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:background="@drawable/shape_intro_pill"
-                        android:backgroundTint="@color/velocity_red_soft"
-                        android:importantForAccessibility="no"
-                        android:padding="8dp"
-                        android:src="@drawable/ic_booking"
-                        app:tint="@color/velocity_red_primary" />
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Section.Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="11dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:accessibilityHeading="true"
-                        android:text="@string/next_stay_section_title" />
-                    <TextView
-                        android:id="@+id/nextStayCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
-                        android:background="@drawable/bg_count_badge"
-                        android:fontFamily="sans-serif-black"
-                        android:gravity="center"
-                        android:minWidth="24dp"
-                        android:minHeight="24dp"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="0dp"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:visibility="gone"
-                        tools:text="3"
-                        tools:visibility="visible" />
-                    <ImageButton
-                    android:id="@+id/nextStayToggle"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="-6dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/section_collapse"
-                    android:src="@drawable/ic_expand_less"
-                    app:tint="@color/velocity_text_secondary" />
-                </LinearLayout>
-                <TextView
-                    android:id="@+id/nextStaySummary"
-                    style="@style/TextAppearance.Velocity.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
-                <!-- The next stay: room(s), dates, nights, status chip, balance due, and a plain hint. One tap opens its details.
-                     Exactly one of the four states below is visible: loading, error (Retry), empty (make a booking) or content. -->
-                <FrameLayout
-                    android:id="@+id/nextStayCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    >
-
-                        <LinearLayout
-                            android:id="@+id/nextStayLoading"
-                            android:background="@drawable/bg_flat_box"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:minHeight="96dp"
-                            android:orientation="horizontal"
-                            android:padding="14dp">
-
-                            <com.google.android.material.progressindicator.CircularProgressIndicator
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:indeterminate="true"
-                                app:indicatorColor="@color/velocity_red_primary"
-                                app:indicatorSize="24dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="11dp"
-                                android:text="@string/next_stay_loading"
-                                android:textColor="@color/velocity_text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/nextStayError"
-                            android:background="@drawable/bg_flat_box"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="14dp"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="sans-serif-black"
-                                android:gravity="center"
-                                android:text="@string/next_stay_error_title"
-                                android:textColor="@color/velocity_red_text"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center"
-                                android:text="@string/next_stay_error_desc"
-                                android:textColor="@color/velocity_text_secondary"
-                                android:textSize="12sp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnNextStayRetry"
-                                style="@style/Widget.Velocity.Flat.Button"
-                                android:layout_width="wrap_content"
-                                android:layout_height="48dp"
-                                android:layout_marginTop="11dp"
-                                android:minWidth="140dp"
-                                android:text="@string/retry_label" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/nextStayEmpty"
-                            android:background="@drawable/bg_flat_box"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="14dp"
-                            android:visibility="gone">
-
-                            <ImageView
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:alpha="0.5"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_calendar"
-                                app:tint="@color/velocity_red_primary" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:fontFamily="sans-serif-black"
-                                android:gravity="center"
-                                android:text="@string/next_stay_empty_title"
-                                android:textColor="@color/velocity_text_primary"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center"
-                                android:text="@string/next_stay_empty_desc"
-                                android:textColor="@color/velocity_text_secondary"
-                                android:textSize="12sp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnNextStayBook"
-                                style="@style/Widget.Velocity.Flat.Button"
-                                android:layout_width="wrap_content"
-                                android:layout_height="48dp"
-                                android:layout_marginTop="11dp"
-                                android:minWidth="160dp"
-                                android:text="@string/next_stay_book_action" />
-                        </LinearLayout>
-
-                        <!-- One item_next_stay per transaction on the nearest day (see DashboardActivity#updateNextStay). -->
-                        <LinearLayout
-                            android:id="@+id/nextStayContent"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="gone" />
-                </FrameLayout>
-
-                    </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
@@ -712,203 +514,6 @@
                         </com.google.android.material.card.MaterialCardView>
                             </LinearLayout>
                         </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <include
-                    android:id="@+id/stayCalendar"
-                    layout="@layout/view_stay_calendar" />
-
-                                <!-- Other recent and upcoming stays (several can fall on the same day), then the calendar. -->
-                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/moreStaysSection"
-                    style="@style/Widget.Velocity.Card.Section"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dashboard_section_gap">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:padding="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-                        <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:background="@drawable/shape_intro_pill"
-                        android:backgroundTint="@color/velocity_red_soft"
-                        android:importantForAccessibility="no"
-                        android:padding="8dp"
-                        android:src="@drawable/ic_transaction_history"
-                        app:tint="@color/velocity_red_primary" />
-                    <TextView
-                            style="@style/TextAppearance.Velocity.Section.Title"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="11dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                            android:accessibilityHeading="true"
-                            android:text="@string/more_stays_title" />
-                    <TextView
-                        android:id="@+id/moreStaysCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
-                        android:background="@drawable/bg_count_badge"
-                        android:fontFamily="sans-serif-black"
-                        android:gravity="center"
-                        android:minWidth="24dp"
-                        android:minHeight="24dp"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="0dp"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:visibility="gone"
-                        tools:text="3"
-                        tools:visibility="visible" />
-                        <ImageButton
-                    android:id="@+id/moreStaysToggle"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="-6dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/section_collapse"
-                    android:src="@drawable/ic_expand_less"
-                    app:tint="@color/velocity_text_secondary" />
-                    </LinearLayout>
-
-                    <TextView
-                    android:id="@+id/moreStaysSummary"
-                    style="@style/TextAppearance.Velocity.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
-
-                    <LinearLayout
-                        android:id="@+id/moreStaysBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <LinearLayout
-                            android:id="@+id/moreStaysList"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-                        <TextView
-                            android:id="@+id/moreStaysEmpty"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:background="@drawable/bg_flat_box"
-                            android:gravity="center"
-                            android:padding="16dp"
-                            android:text="@string/more_stays_empty"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp"
-                            android:visibility="gone" />
-                    </LinearLayout>
-                                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-
-                <!-- Pending &amp; Confirmed Stays: the guest's Pending / Confirmed bookings and reservations (5, or all when expanded). -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/recentUpcomingCard"
-                    style="@style/Widget.Velocity.Card.Section"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dashboard_section_gap"
-                    >
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/bg_glass_card_white"
-                        android:padding="12dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/shape_intro_pill"
-                                android:backgroundTint="@color/velocity_red_soft"
-                                android:importantForAccessibility="no"
-                                android:padding="8dp"
-                                android:src="@drawable/ic_calendar"
-                                app:tint="@color/velocity_red_primary" />
-                            <TextView
-                                style="@style/TextAppearance.Velocity.Section.Title"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="11dp"
-                                android:layout_weight="1"
-                                android:accessibilityHeading="true"
-                                android:text="@string/recent_upcoming_title" />
-                            <TextView
-                                android:id="@+id/recentUpcomingCount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_count_badge"
-                                android:fontFamily="sans-serif-black"
-                                android:minWidth="24dp"
-                        android:minHeight="24dp"
-                                android:gravity="center"
-                                android:paddingHorizontal="8dp"
-                                android:paddingVertical="0dp"
-                                android:textColor="@color/white"
-                                android:textSize="12sp"
-                                android:visibility="gone"
-                                tools:text="7"
-                                tools:visibility="visible" />
-                            <ImageButton
-                                android:id="@+id/recentUpcomingToggle"
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:layout_marginEnd="-6dp"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/section_collapse"
-                                android:src="@drawable/ic_expand_more"
-                                app:tint="@color/velocity_text_secondary" />
-                        </LinearLayout>
-                        <TextView
-                            style="@style/TextAppearance.Velocity.Section.Description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/recent_upcoming_desc" />
-                        <LinearLayout
-                            android:id="@+id/recentUpcomingList"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-                        <TextView
-                            android:id="@+id/recentUpcomingEmpty"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_flat_box"
-                            android:gravity="center"
-                            android:padding="16dp"
-                            android:text="@string/recent_upcoming_empty"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="13sp"
-                            android:visibility="gone" />
-                        
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -1152,6 +757,411 @@
                             </LinearLayout>
                         </GridLayout>
                         </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/nextStaySectionCard"
+                    style="@style/Widget.Velocity.Card.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dashboard_section_gap">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="12dp">
+                <!-- Section header: a clear title and one line saying what the section is for -->
+                <LinearLayout
+                    android:id="@+id/nextStayHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_booking"
+                        app:tint="@color/velocity_red_primary" />
+                    <TextView
+                        style="@style/TextAppearance.Velocity.Section.Title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="11dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:accessibilityHeading="true"
+                        android:text="@string/next_stay_section_title" />
+                    <TextView
+                        android:id="@+id/nextStayCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/bg_count_badge"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:minWidth="24dp"
+                        android:minHeight="24dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="0dp"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="3"
+                        tools:visibility="visible" />
+                    <ImageButton
+                    android:id="@+id/nextStayToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/nextStaySummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+                <!-- The next stay: room(s), dates, nights, status chip, balance due, and a plain hint. One tap opens its details.
+                     Exactly one of the four states below is visible: loading, error (Retry), empty (make a booking) or content. -->
+                <FrameLayout
+                    android:id="@+id/nextStayCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    >
+
+                        <LinearLayout
+                            android:id="@+id/nextStayLoading"
+                            android:background="@drawable/bg_flat_box"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:minHeight="96dp"
+                            android:orientation="horizontal"
+                            android:padding="14dp">
+
+                            <com.google.android.material.progressindicator.CircularProgressIndicator
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:indeterminate="true"
+                                app:indicatorColor="@color/velocity_red_primary"
+                                app:indicatorSize="24dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="11dp"
+                                android:text="@string/next_stay_loading"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/nextStayError"
+                            android:background="@drawable/bg_flat_box"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="14dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:text="@string/next_stay_error_title"
+                                android:textColor="@color/velocity_red_text"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:text="@string/next_stay_error_desc"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnNextStayRetry"
+                                style="@style/Widget.Velocity.Flat.Button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:layout_marginTop="11dp"
+                                android:minWidth="140dp"
+                                android:text="@string/retry_label" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/nextStayEmpty"
+                            android:background="@drawable/bg_flat_box"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="14dp"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:alpha="0.5"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_calendar"
+                                app:tint="@color/velocity_red_primary" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif-black"
+                                android:gravity="center"
+                                android:text="@string/next_stay_empty_title"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:text="@string/next_stay_empty_desc"
+                                android:textColor="@color/velocity_text_secondary"
+                                android:textSize="12sp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnNextStayBook"
+                                style="@style/Widget.Velocity.Flat.Button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:layout_marginTop="11dp"
+                                android:minWidth="160dp"
+                                android:text="@string/next_stay_book_action" />
+                        </LinearLayout>
+
+                        <!-- One item_next_stay per transaction on the nearest day (see DashboardActivity#updateNextStay). -->
+                        <LinearLayout
+                            android:id="@+id/nextStayContent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone" />
+                </FrameLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <include
+                    android:id="@+id/stayCalendar"
+                    layout="@layout/view_stay_calendar" />
+
+                                <!-- Other recent and upcoming stays (several can fall on the same day), then the calendar. -->
+                <!-- One shared section container: the same border, radius, elevation, fill and 12dp padding for EVERY dashboard section. -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/moreStaysSection"
+                    style="@style/Widget.Velocity.Card.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dashboard_section_gap">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/shape_intro_pill"
+                        android:backgroundTint="@color/velocity_red_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_transaction_history"
+                        app:tint="@color/velocity_red_primary" />
+                    <TextView
+                            style="@style/TextAppearance.Velocity.Section.Title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="11dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                            android:accessibilityHeading="true"
+                            android:text="@string/more_stays_title" />
+                    <TextView
+                        android:id="@+id/moreStaysCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/bg_count_badge"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:minWidth="24dp"
+                        android:minHeight="24dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="0dp"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="3"
+                        tools:visibility="visible" />
+                        <ImageButton
+                    android:id="@+id/moreStaysToggle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="-6dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/section_collapse"
+                    android:src="@drawable/ic_expand_less"
+                    app:tint="@color/velocity_text_secondary" />
+                    </LinearLayout>
+
+                    <TextView
+                    android:id="@+id/moreStaysSummary"
+                    style="@style/TextAppearance.Velocity.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                    <LinearLayout
+                        android:id="@+id/moreStaysBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:id="@+id/moreStaysList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                        <TextView
+                            android:id="@+id/moreStaysEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_flat_box"
+                            android:gravity="center"
+                            android:padding="16dp"
+                            android:text="@string/more_stays_empty"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+
+                <!-- Pending &amp; Confirmed Stays: the guest's Pending / Confirmed bookings and reservations (5, or all when expanded). -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/recentUpcomingCard"
+                    style="@style/Widget.Velocity.Card.Section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dashboard_section_gap"
+                    >
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_glass_card_white"
+                        android:padding="12dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/shape_intro_pill"
+                                android:backgroundTint="@color/velocity_red_soft"
+                                android:importantForAccessibility="no"
+                                android:padding="8dp"
+                                android:src="@drawable/ic_calendar"
+                                app:tint="@color/velocity_red_primary" />
+                            <TextView
+                                style="@style/TextAppearance.Velocity.Section.Title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="11dp"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/recent_upcoming_title" />
+                            <TextView
+                                android:id="@+id/recentUpcomingCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_count_badge"
+                                android:fontFamily="sans-serif-black"
+                                android:minWidth="24dp"
+                        android:minHeight="24dp"
+                                android:gravity="center"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="0dp"
+                                android:textColor="@color/white"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                tools:text="7"
+                                tools:visibility="visible" />
+                            <ImageButton
+                                android:id="@+id/recentUpcomingToggle"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_marginEnd="-6dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/section_collapse"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="@color/velocity_text_secondary" />
+                        </LinearLayout>
+                        <TextView
+                            style="@style/TextAppearance.Velocity.Section.Description"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/recent_upcoming_desc" />
+                        <LinearLayout
+                            android:id="@+id/recentUpcomingList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                        <TextView
+                            android:id="@+id/recentUpcomingEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_flat_box"
+                            android:gravity="center"
+                            android:padding="16dp"
+                            android:text="@string/recent_upcoming_empty"
+                            android:textColor="@color/velocity_text_secondary"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
+                        
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

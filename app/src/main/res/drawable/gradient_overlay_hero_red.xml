@@ -9,6 +9,15 @@
                 android:endColor="#00000000" />
         </shape>
     </item>
+    <!-- Dark scrim so the white text stays readable on the photo in light AND dark mode -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#80000000"
+                android:endColor="#1A000000" />
+        </shape>
+    </item>
     <!-- Dominant Velocity Suites red wash, matching the reference hero -->
     <item>
         <shape android:shape="rectangle">
