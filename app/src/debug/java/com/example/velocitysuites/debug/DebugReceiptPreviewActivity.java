@@ -1,5 +1,6 @@
 package com.example.velocitysuites.debug;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -31,6 +32,7 @@ import com.example.velocitysuites.ThemePreferences;
  * screen or any normal in-app navigation; a developer launches it via:
  * adb shell am start -n com.example.velocitysuites/.debug.DebugReceiptPreviewActivity
  */
+@SuppressLint("SetTextI18n") // a developer-only receipt preview, never shipped
 public class DebugReceiptPreviewActivity extends AppCompatActivity {
 
     @Override

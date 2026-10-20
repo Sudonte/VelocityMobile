@@ -93,8 +93,7 @@ public class Step2DatesFragment extends WizardStepFragment {
             return;
         }
         cardNightsSummary.setVisibility(View.VISIBLE);
-        tvNightsSummary.setText(getString(R.string.stay_duration_summary_format,
-                state.nights(), dateFormat.format(state.checkIn.getTime()), dateFormat.format(state.checkOut.getTime())));
+        tvNightsSummary.setText(getResources().getQuantityString(R.plurals.stay_duration_summary_format, (int) state.nights(), state.nights(), dateFormat.format(state.checkIn.getTime()), dateFormat.format(state.checkOut.getTime())));
     }
 
     @Override

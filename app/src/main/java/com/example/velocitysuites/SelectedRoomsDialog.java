@@ -137,7 +137,7 @@ final class SelectedRoomsDialog {
         }
 
         if (tvCount != null) {
-            tvCount.setText(activity.getString(R.string.selected_rooms_dialog_count_format, totalUnits));
+            tvCount.setText(activity.getResources().getQuantityString(R.plurals.selected_rooms_dialog_count_format, totalUnits, totalUnits));
         }
         if (tvTotal != null) {
             tvTotal.setText(String.format(Locale.US, "₱%,.2f", combinedTotal));

@@ -502,7 +502,7 @@ public class NotificationActivity extends BaseNavigationActivity {
         }
         int unread = repository.getUnreadNotificationCount();
         tvUnreadSummary.setText(unread > 0
-                ? getString(R.string.summary_unread_count, unread)
+                ? getResources().getQuantityString(R.plurals.summary_unread_count, unread, unread)
                 : getString(R.string.notif_all_caught_up));
         // "Mark all as read" is always there; with nothing unread it is disabled and grayed out.
         setMarkAllReadEnabled(unread > 0);

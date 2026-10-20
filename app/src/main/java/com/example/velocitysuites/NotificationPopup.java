@@ -156,7 +156,7 @@ public final class NotificationPopup {
 
         int unread = repository.getUnreadNotificationCount();
         if (unread > 0) {
-            unreadLabel.setText(activity.getString(R.string.notif_popup_unread_format, unread));
+            unreadLabel.setText(activity.getResources().getQuantityString(R.plurals.notif_popup_unread_format, unread, unread));
             unreadLabel.setVisibility(View.VISIBLE);
         } else {
             unreadLabel.setVisibility(View.GONE);

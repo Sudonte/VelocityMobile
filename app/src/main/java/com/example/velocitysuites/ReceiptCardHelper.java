@@ -174,7 +174,7 @@ final class ReceiptCardHelper {
         String methodLabel = "gcash".equalsIgnoreCase(tx.paymentMethod)
                 ? activity.getString(R.string.payment_method_gcash) : activity.getString(R.string.payment_method_cash);
         String typeLabel = ReceiptTypeMapper.labelForTransactionType(tx.transactionType);
-        ((TextView) row.findViewById(R.id.tvTxTitle)).setText(methodLabel + " " + typeLabel);
+        ((TextView) row.findViewById(R.id.tvTxTitle)).setText(activity.getString(R.string.two_word_format, methodLabel, typeLabel));
         TextView txDate = row.findViewById(R.id.tvTxDate);
         txDate.setText(tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "");
         txDate.setVisibility(tx.paymentDate != null ? View.VISIBLE : View.GONE);

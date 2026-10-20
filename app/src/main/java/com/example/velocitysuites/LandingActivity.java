@@ -864,7 +864,7 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
         }
         if (tvLandingRoomsCount != null) {
             tvLandingRoomsCount.setVisibility(hasRooms ? View.VISIBLE : View.GONE);
-            tvLandingRoomsCount.setText(getString(R.string.landing_rooms_count_badge, typeFiltered.size()));
+            tvLandingRoomsCount.setText(getResources().getQuantityString(R.plurals.landing_rooms_count_badge, typeFiltered.size(), typeFiltered.size()));
         }
 
         boolean canCollapse = typeFiltered.size() > COLLAPSED_ROOM_COUNT;

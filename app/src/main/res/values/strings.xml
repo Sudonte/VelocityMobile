@@ -1,9 +1,12 @@
-﻿<resources>
+﻿<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Velocity Suites</string>
     <string name="app_logo">Velocity Suites logo</string>
     <string name="notification_channel_name">Booking &amp; Payment Alerts</string>
     <string name="notification_channel_description">Booking, reservation, payment, verification, cancellation, check-in, and promotion alerts from Velocity Suites.</string>
-    <string name="notification_group_summary_format">%1$d new updates</string>
+    <plurals name="notification_group_summary_format">
+        <item quantity="one">%1$d new update</item>
+        <item quantity="other">%1$d new updates</item>
+    </plurals>
     <string name="introduction_loading_message">Loading…</string>
     <string name="introduction_loading_percent_initial">0%</string>
     <string name="introduction_starting">Starting Velocity Suites…</string>
@@ -81,7 +84,6 @@
     <string name="profile_picture_selected">Photo selected</string>
     <string name="remove_photo">Remove photo</string>
     <string name="sign_up_now">Sign Up Now</string>
-    <string name="terms_and_agreement_title">Velocity Suites Terms and Agreement</string>
     <string name="msg_terms_not_viewed">Please read the Terms and Agreement before proceeding.</string>
     <string name="msg_terms_not_checked">You must accept the Terms and Agreement to continue.</string>
     <string name="terms_and_agreement_body">Welcome to Velocity Suites.\n\nBy creating an account, you acknowledge that you have read, understood, and agreed to comply with the following Terms and Agreement.\n\n1. You agree that all personal information provided during registration is accurate, complete, and truthful. Providing false or misleading information may result in the suspension or termination of your account.\n\n2. You are responsible for maintaining the confidentiality of your account credentials, including your email address, mobile number, and password. Do not share your login information with other individuals.\n\n3. Velocity Suites collects your personal information solely for account management, room reservations, payment processing, customer support, security, and other hotel-related services. Your information will be handled in accordance with applicable privacy laws and will not be disclosed to unauthorized third parties without your consent unless required by law.\n\n4. You agree to use the Velocity Suites application only for lawful purposes. Any fraudulent booking, unauthorized access, abusive behavior, or misuse of the system may result in account suspension or permanent termination.\n\n5. Room availability, reservation confirmation, promotional offers, prices, and hotel services are subject to change without prior notice.\n\n6. Reservation cancellations, refunds, modifications, and payment processing are subject to the hotel\'s cancellation and payment policies.\n\n7. Velocity Suites reserves the right to reject, suspend, or terminate accounts that violate these Terms and Agreement or any applicable laws and regulations.\n\n8. Users are responsible for ensuring that all booking details and personal information remain accurate and up to date.\n\n9. Velocity Suites implements reasonable security measures to protect user information; however, users are also responsible for protecting their own account credentials.\n\n10. By selecting the agreement checkbox and continuing with the registration process, you confirm that you voluntarily agree to these Terms and Agreement and consent to the collection and processing of your personal information for hotel management purposes.</string>
@@ -353,7 +355,10 @@
     <string name="submit_failed_change">Change rooms or dates</string>
     <string name="error_submit_generic">Something went wrong. Please check your connection and try again. Nothing you entered was lost.</string>
     <string name="wizard_final_step_label">Final step</string>
-    <string name="stay_duration_summary_format">%1$d night(s) · %2$s – %3$s</string>
+    <plurals name="stay_duration_summary_format">
+        <item quantity="one">%1$d night · %2$s – %3$s</item>
+        <item quantity="other">%1$d nights · %2$s – %3$s</item>
+    </plurals>
     <plurals name="wizard_steps_remaining">
         <item quantity="one">%1$d step remaining</item>
         <item quantity="other">%1$d steps remaining</item>
@@ -381,15 +386,15 @@
     <string name="adults_label">Adults</string>
     <string name="children_label">Children</string>
     <string name="child_age_notice">Each child\'s age must be 7 years old or below.</string>
-    <string name="child_age_field_format">Child %1$d Age</string>
+    <string name="child_age_field_format" tools:ignore="PluralsCandidate">Child %1$d Age</string>
     <string name="stepper_decrement_symbol">—</string>
     <string name="stepper_increment_symbol">+</string>
     <string name="default_adults_count_display">1</string>
     <string name="default_children_count_display">0</string>
-    <string name="capacity_hint_format">The rooms you selected fit up to %1$d guests in total. At least 1 adult is required.</string>
+    <string name="capacity_hint_format" tools:ignore="PluralsCandidate">The rooms you selected fit up to %1$d guests in total. At least 1 adult is required.</string>
     <string name="guest_capacity_reached_hint">Room capacity reached. Remove a guest or add a room to bring in more.</string>
     <string name="guest_counter_format">%1$d of %2$s</string>
-    <string name="guest_count_adjusted_to_capacity">Guest count lowered to fit your rooms (up to %1$d guests).</string>
+    <string name="guest_count_adjusted_to_capacity" tools:ignore="PluralsCandidate">Guest count lowered to fit your rooms (up to %1$d guests).</string>
     <plurals name="rooms_found">
         <item quantity="one">%d room</item>
         <item quantity="other">%d rooms</item>
@@ -416,7 +421,7 @@
     <string name="error_child_age_required">Please enter every child\'s age.</string>
     <string name="amenity_quantity_clamped_to_guests">Some amenity quantities were adjusted to match your total number of guests.</string>
     <string name="error_amenity_qty_exceeds_capacity">Quantity can\'t exceed the room capacity you selected.</string>
-    <string name="payment_due_in_days_hours_format">Payment Due In: %1$d Day%2$s %3$02d Hr%4$s</string>
+    <string name="payment_due_in_days_hours_format" tools:ignore="PluralsCandidate">Payment Due In: %1$d Day%2$s %3$02d Hr%4$s</string>
     <string name="payment_due_in_hours_format">Payment Due In: %1$02d Hr%2$s</string>
     <string name="payment_due_in_expiring">Payment Due In: Less than 1 Hr</string>
     <string name="error_receipt_too_large">This receipt image is too large. Please attach a file no larger than 50 MB.</string>
@@ -490,7 +495,6 @@
     <string name="next_stay_payment_label">Payment</string>
     <string name="dashboard_section_loading">Loading…</string>
     <string name="dashboard_section_error">Couldn\'t load this section. Please try again.</string>
-    <string name="next_stay_fully_paid">Fully paid</string>
     <string name="next_stay_view_details">View details ›</string>
     <string name="next_stay_dates_format">%1$s → %2$s</string>
     <string name="next_stay_status_staying">Staying with us</string>
@@ -515,7 +519,6 @@
     <string name="next_stay_hint_checkout_due">Check-out was due on %1$s</string>
     <string name="quick_action_booking">Booking</string>
     <string name="quick_action_reservation">Reservation</string>
-    <string name="logout">Logout</string>
     <string name="system_clock_label">System Clock</string>
     <string name="loading_date">Loading Date…</string>
     <string name="time_placeholder">00:00</string>
@@ -552,7 +555,6 @@
     <string name="check_in_tomorrow_label">Check-in Tomorrow</string>
     <string name="check_out_tomorrow_label">Check-out Tomorrow</string>
     <string name="tomorrow_badge_short">Tomorrow</string>
-    <string name="upcoming_transactions_desc">Your next check-ins and check-outs, soonest first.</string>
     <string name="notifications_dashboard_desc">Updates on your stays and payments</string>
     <string name="booking_reservation_summary_title">Booking &amp; Reservation Summary</string>
     <string name="booking_reservation_summary_desc">Your stays at a glance</string>
@@ -564,8 +566,6 @@
     <string name="br_summary_cancel_reservations">Cancelled Reservations</string>
     <string name="recent_bookings_title">Recent Bookings</string>
     <string name="recent_bookings_desc">Your latest bookings</string>
-    <string name="payment_details_title">Payment Details</string>
-    <string name="title_payment_breakdown">Payment Breakdown</string>
     <string name="title_upcoming_transactions">Upcoming Hotel Transactions</string>
     <string name="upcoming_transactions_screen_desc">All your bookings and reservations in one place, whatever their status. Tap one to see its full record in Transaction History.</string>
 
@@ -596,7 +596,6 @@
 
     <string name="booking_detail_room_type">Room Type: %1$s</string>
     <string name="no_bookings_found">No recent active bookings.</string>
-    <string name="no_upcoming_stays_dashboard">No upcoming stays.</string>
     <string name="no_active_payment_status">No active payment status.</string>
     <string name="guests_label">Guests: %1$d</string>
 
@@ -641,7 +640,6 @@
     <string name="contact_info_title">Contact Information</string>
     <string name="security_section_title">Security</string>
     <string name="change_password_hint">Keep your account secure with a strong password</string>
-    <string name="logout_hint">Sign out of your account on this device</string>
     <string name="profile_management_screen_desc">Manage your personal information and account settings.</string>
     <string name="personal_info_subtitle">Your basic information</string>
     <string name="contact_info_subtitle">Your email and mobile number</string>
@@ -685,7 +683,10 @@
     <string name="limited_label">Limited availability</string>
     <string name="unavailable_label">Fully Booked</string>
     <string name="price_format_per_night">&#8369;%,.0f / night</string>
-    <string name="room_type_capacity_format">%1$s  %2$d Guests</string>
+    <plurals name="room_type_capacity_format">
+        <item quantity="one">%1$s  %2$d Guest</item>
+        <item quantity="other">%1$s  %2$d Guests</item>
+    </plurals>
     <string name="amenities_label">Amenities</string>
     <string name="room_browsing_desc">Find a room for your dates</string>
     <string name="all_categories">All types</string>
@@ -723,9 +724,15 @@
     <string name="cd_view_details_format">View %1$s details</string>
     <string name="cd_reserve_now_format">Reserve %1$s</string>
     <string name="cd_book_now_format">Book %1$s</string>
-    <string name="amenities_more_format">+%1$d more</string>
+    <plurals name="amenities_more_format">
+        <item quantity="one">+%1$d more</item>
+        <item quantity="other">+%1$d more</item>
+    </plurals>
     <string name="sorting_by_label">Sorting by: %1$s</string>
-    <string name="capacity_persons_format">%1$d Persons</string>
+    <plurals name="capacity_persons_format">
+        <item quantity="one">%1$d Person</item>
+        <item quantity="other">%1$d Persons</item>
+    </plurals>
     <string name="search_transactions_hint">Search by ID or room</string>
     <string name="more_stays_title">Other Recent &amp; Upcoming Stays</string>
     <string name="details_label_checked_in_at">Checked-In At</string>
@@ -741,13 +748,13 @@
     <string name="stay_calendar_prev_month">Previous month</string>
     <string name="stay_calendar_next_month">Next month</string>
     <string name="stay_calendar_empty">Nothing scheduled in this period.</string>
-    <string name="stay_calendar_view_full">View Full Details</string>
     <string name="stay_calendar_kind_checkin">Check-in</string>
     <string name="stay_calendar_kind_checkout">Check-out</string>
     <string name="stay_calendar_when_format">%1$s at %2$s</string>
-    <string name="stay_calendar_stay_format">Stay: %1$s to %2$s</string>
-    <string name="stay_calendar_balance_format">Balance: %1$s</string>
-    <string name="stay_calendar_day_cd_format">%1$s, %2$d transaction(s)</string>
+    <plurals name="stay_calendar_day_cd_format">
+        <item quantity="one">%1$s, %2$d transaction</item>
+        <item quantity="other">%1$s, %2$d transactions</item>
+    </plurals>
     <string name="filter_all">All</string>
     <string name="filter_unread">Unread</string>
     <string name="filter_bookings">Bookings</string>
@@ -845,7 +852,6 @@
     <string name="partial_percent_label">Choose how much of the total to pay now</string>
     <string name="partial_percent_label_with_due">Percentages are calculated from your Grand Total, not the remaining balance - %1$s still remaining</string>
     <string name="selected_payment_readonly_format">Selected Payment: %1$s%% = ₱%2$s</string>
-    <string name="selected_payment_value_format">%1$s%% = ₱%2$s</string>
     <string name="percent_20">20%</string>
     <string name="percent_30">30%</string>
     <string name="percent_40">40%</string>
@@ -856,7 +862,6 @@
     <string name="amount_to_pay_label">Amount to Pay Now</string>
     <string name="remaining_balance_label">Remaining Balance</string>
     <string name="already_paid_label">Already Paid</string>
-    <string name="selected_payment_label">Selected Payment</string>
     <string name="billing_amount_paid_label">Amount Already Paid</string>
     <string name="billing_remaining_balance_label">Remaining Balance</string>
     <string name="billing_total_to_pay_label">Total Amount to Pay</string>
@@ -896,30 +901,26 @@
     <string name="billing_summary_title">Billing Summary</string>
     <string name="room_and_stay_title">Stay Information</string>
     <string name="nights_label">Nights</string>
-    <string name="nights_count_format">%1$d night(s)</string>
-    <string name="room_rate_per_night_label">Total Room Rate per Night</string>
     <string name="discount_applied_label">Discount Applied</string>
     <string name="billing_amenities_title">Add-on Amenities</string>
     <string name="guest_information_title">Guest Information</string>
     <string name="guest_account_label">Guest Account</string>
-    <string name="not_provided_label">Not Provided</string>
     <string name="total_guests_label">Total Guests</string>
     <string name="id_type_label">ID Type</string>
     <string name="payment_breakdown_title">Billing Breakdown</string>
     <string name="payment_information_title">Payment Information</string>
-    <string name="total_amenities_amount_label">Total Amenities Amount</string>
-    <string name="total_room_stay_amount_label">Total Room Amount</string>
     <string name="room_rate_label">Room Rate</string>
     <string name="selected_room_quantity_label">Quantity</string>
-    <string name="room_subtotal_per_night_label">Subtotal Per Night</string>
     <string name="price_per_night_format">₱%1$,.2f / Night</string>
-    <string name="rooms_quantity_format">%1$d Room(s)</string>
+    <plurals name="rooms_quantity_format">
+        <item quantity="one">%1$d Room</item>
+        <item quantity="other">%1$d Rooms</item>
+    </plurals>
     <string name="price_per_room_night_label">Price per Room/Night</string>
     <string name="room_line_subtotal_label">Subtotal</string>
     <string name="room_total_label">Room Total</string>
     <string name="no_paid_amenities_message">No additional paid amenities selected.</string>
     <string name="terms_read_accepted_label">I have read and accepted the Terms &amp; Cancellation Policy</string>
-    <string name="terms_view_required_hint">Open Terms &amp; Cancellation Policy above to enable this checkbox.</string>
     <string name="pay_now_confirm_title">Proceed to Payment?</string>
     <string name="pay_now_confirm_msg">Do you want to continue with the payment process for reservation %1$s?</string>
     <string name="no_balance_label">Fully paid - no balance</string>
@@ -1034,9 +1035,15 @@
     <string name="starting_reservation_desc">You\'re about to reserve a room at Velocity Suites. Review your selection below, then continue to complete your reservation in a few quick steps.</string>
     <string name="starting_reservation_steps_preview">What\'s next:\n• Confirm your room(s) and stay dates\n• Add guest and identification details\n• Review charges and choose your payment method</string>
     <string name="start_reservation_cta">Start reservation</string>
-    <string name="room_recap_count_format">%1$d room(s) selected</string>
+    <plurals name="room_recap_count_format">
+        <item quantity="one">%1$d room selected</item>
+        <item quantity="other">%1$d rooms selected</item>
+    </plurals>
     <string name="selected_rooms_dialog_title">Selected Rooms</string>
-    <string name="selected_rooms_dialog_count_format">%1$d room(s) selected</string>
+    <plurals name="selected_rooms_dialog_count_format">
+        <item quantity="one">%1$d room selected</item>
+        <item quantity="other">%1$d rooms selected</item>
+    </plurals>
     <string name="done_label">Done</string>
     <!-- Booking List / Reservation List switcher tabs at the top of bookingandreservation.xml -
          deliberately distinct copy from tab_new_booking/tab_new_reservation above (those name
@@ -1277,9 +1284,15 @@
         <item quantity="one">Up to %1$d guest total</item>
         <item quantity="other">Up to %1$d guests total</item>
     </plurals>
-    <string name="capacity_reached_multi">Maximum combined capacity reached for your selected rooms (%1$d guests).</string>
-    <string name="summary_room_row_format">%1$s — %2$d night(s)</string>
-    <string name="summary_room_row_qty_format">%1$d× %2$s — %3$d night(s)</string>
+    <string name="capacity_reached_multi" tools:ignore="PluralsCandidate">Maximum combined capacity reached for your selected rooms (%1$d guests).</string>
+    <plurals name="summary_room_row_format">
+        <item quantity="one">%1$s — %2$d night</item>
+        <item quantity="other">%1$s — %2$d nights</item>
+    </plurals>
+    <plurals name="summary_room_row_qty_format">
+        <item quantity="one">%1$d× %2$s — %3$d night</item>
+        <item quantity="other">%1$d× %2$s — %3$d nights</item>
+    </plurals>
     <string name="summary_rooms_header_format">Selected Rooms (%1$d)</string>
     <string name="summary_amenity_row_qty_format">%1$s × %2$d</string>
 
@@ -1302,13 +1315,19 @@
     <!-- Available Room Form -->
     <string name="add_room_button_label">Add Room</string>
     <string name="available_rooms_title">Available Room List</string>
-    <string name="available_rooms_subtitle_format">%1$s – %2$s · %3$d night(s)</string>
+    <plurals name="available_rooms_subtitle_format">
+        <item quantity="one">%1$s – %2$s · %3$d night</item>
+        <item quantity="other">%1$s – %2$s · %3$d nights</item>
+    </plurals>
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
     <string name="no_more_rooms_available_toast">No more %1$s available for these dates.</string>
     <string name="error_room_no_longer_available_format">%1$s is no longer available for your chosen dates. Please select another room.</string>
-    <string name="error_room_availability_decreased_format">Room availability has changed. Only %1$d room(s) of %2$s are currently available.</string>
+    <plurals name="error_room_availability_decreased_format">
+        <item quantity="one">Room availability has changed. Only %1$d room of %2$s are currently available.</item>
+        <item quantity="other">Room availability has changed. Only %1$d rooms of %2$s are currently available.</item>
+    </plurals>
     <string name="error_booking_room_rejected">%1$s Your dates and other details were kept - please choose another room or change your dates.</string>
     <string name="rooms_unavailable_title">Room no longer available</string>
     <string name="rooms_unavailable_message">%1$s\n\nYour booking was not created. Your dates, guest details and amenities are kept - choose another room or change your dates and try again.</string>
@@ -1327,11 +1346,8 @@
     <!-- Post-Booking Additional Amenity Request -->
     <string name="back">Back</string>
     <string name="request_additional_amenities_button">Request Additional Amenities</string>
-    <string name="additional_amenities_section_title">Additional amenity requests</string>
-    <string name="additional_amenities_section_helper">Extra items you asked for during your stay. Only approved ones are added to your bill.</string>
     <string name="additional_amenities_loading">Loading…</string>
     <string name="additional_amenities_load_error">We couldn\'t load your amenity requests. Please try again.</string>
-    <string name="additional_amenities_none">You haven\'t requested any additional amenities yet.</string>
     <string name="additional_amenities_not_available">Extra amenities can\'t be requested for this booking right now.</string>
     <string name="additional_amenities_each_format">%1$s each</string>
     <string name="additional_amenities_billing_note">Approved items are added to your bill at the price shown now.</string>
@@ -1344,16 +1360,9 @@
     <string name="additional_amenities_summary_room_format">%1$s - %2$s</string>
     <string name="additional_amenities_line_format">%1$s x %2$d</string>
     <string name="additional_amenities_bullet_format">- %1$s</string>
-    <string name="amenity_request_room_format">Room %1$s</string>
     <string name="additional_amenities_submit">Send Request</string>
     <string name="additional_amenities_submit_error">Couldn\'t send your request: %1$s</string>
     <string name="amenity_quantity_zero">0</string>
-    <string name="amenity_request_status_pending">⏳ Pending</string>
-    <string name="amenity_request_status_approved">✔ Approved</string>
-    <string name="amenity_request_status_rejected">✖ Rejected</string>
-    <string name="amenity_request_name_format">%1$s × %2$d</string>
-    <string name="amenity_request_price_format">%1$s each  •  %2$s</string>
-    <string name="amenity_request_rejected_reason_format">Reason: %1$s</string>
     <string name="no_available_rooms_desc">There are no room types available for the selected dates right now. Please try different dates.</string>
     <string name="cd_decrease_quantity">Decrease quantity</string>
     <string name="cd_add_to_favorites">Add to favorites</string>
@@ -1437,13 +1446,16 @@
 
     <!-- Connectivity banner -->
     <string name="no_internet_connection_label">No Internet Connection</string>
-    <string name="group_reference_suffix_format"> · Group %1$s (%2$d of %3$d rooms)</string>
+    <string name="group_reference_suffix_format" tools:ignore="PluralsCandidate"> · Group %1$s (%2$d of %3$d rooms)</string>
     <string name="details_group_reference_label">Group Reference: %1$s</string>
     <string name="multi_room_created_title">Rooms Reserved!</string>
-    <string name="multi_room_booked_msg">Room 1 of %1$d is ready for payment now. The remaining %2$d room(s) have been reserved under group reference %3$s and can be paid individually from your Booking List.</string>
+    <plurals name="multi_room_booked_msg">
+        <item quantity="one">Room 1 of %1$d is ready for payment now. The remaining %2$d room have been reserved under group reference %3$s and can be paid individually from your Booking List.</item>
+        <item quantity="other">Room 1 of %1$d is ready for payment now. The remaining %2$d rooms have been reserved under group reference %3$s and can be paid individually from your Booking List.</item>
+    </plurals>
     <string name="multi_room_partial_failure_title">Some Rooms Couldn\'t Be Booked</string>
-    <string name="multi_room_partial_failure_msg">%1$d of %2$d rooms were successfully reserved before an error occurred (%3$s). The successful rooms have been rolled back and cancelled so you\'re not left with a partial booking. Please try again.</string>
-    <string name="multi_room_rollback_failed_msg">%1$d of %2$d rooms were reserved before an error occurred (%3$s), and automatic rollback of those rooms failed. Please check your Booking List and cancel them manually if needed, or contact the front desk for help.</string>
+    <string name="multi_room_partial_failure_msg" tools:ignore="PluralsCandidate">%1$d of %2$d rooms were successfully reserved before an error occurred (%3$s). The successful rooms have been rolled back and cancelled so you\'re not left with a partial booking. Please try again.</string>
+    <string name="multi_room_rollback_failed_msg" tools:ignore="PluralsCandidate">%1$d of %2$d rooms were reserved before an error occurred (%3$s), and automatic rollback of those rooms failed. Please check your Booking List and cancel them manually if needed, or contact the front desk for help.</string>
 
     <!-- Transaction History Refinement Strings -->
     <string name="label_pending_payment">Pending Payment</string>
@@ -1454,8 +1466,6 @@
     <string name="label_customer_request">Customer Request</string>
     <string name="empty_transactions_desc">No items match the selected filter or sorting options. Please adjust your selection.</string>
     <string name="label_current_status">Current Status: %1$s</string>
-    <string name="title_booking_info">Booking Information</string>
-    <string name="title_payment_history">Payment History</string>
     <string name="error_load_transactions_format">Couldn\'t load transactions: %1$s</string>
     <string name="no_transactions_load_error_title">Unable to Load Transactions</string>
     <string name="no_transactions_load_error_desc">Please check your internet connection and try again.</string>
@@ -1464,7 +1474,6 @@
     <string name="no_notifications_desc">You have no notifications at this time. New updates and alerts will appear here.</string>
     <string name="no_search_results_title">No notifications match</string>
     <string name="no_search_results_desc">Nothing matches your search or filter. Try another word or clear the filters.</string>
-    <string name="password_changed_success">Your password has been changed successfully. You may change it again after 30 days.</string>
     <string name="change_password_stage_verify">1 Verify</string>
     <string name="change_password_stage_new">2 New password</string>
     <string name="change_password_stage_done">3 Done</string>
@@ -1500,7 +1509,10 @@
     <string name="restore_account_declined">You\'ve been logged out. Your account remains scheduled for deletion.</string>
     <string name="locked_profile_picture">You cannot update your profile picture at this time. Please try again after the remaining waiting period has expired.</string>
     <string name="locked_password">You cannot change your password yet. Please wait until the 30-day security restriction has expired.</string>
-    <string name="days_remaining_format">You can update this section again in %1$d days.</string>
+    <plurals name="days_remaining_format">
+        <item quantity="one">You can update this section again in %1$d day.</item>
+        <item quantity="other">You can update this section again in %1$d days.</item>
+    </plurals>
     <string name="confirm_dialog_positive">Yes, Continue</string>
     <string name="save_changes">Save Changes</string>
     <string name="cancel_label">Cancel</string>
@@ -1619,8 +1631,6 @@
     <!-- Security / Account / Danger Zone are now three visually separate
          cards (previously one combined "Security &amp; Account" card) so Logout
          no longer reads as destructive next to Delete Account. -->
-    <string name="account_section_title">Account</string>
-    <string name="account_section_subtitle">Manage your session on this device</string>
 
     <!-- Deactivate Account is no longer surfaced on Profile Management (guest-facing
          entry point removed per spec); these three strings stay because
@@ -1670,7 +1680,10 @@
     <string name="landing_section_rooms">Available Rooms</string>
     <string name="landing_section_rooms_sub">Handpicked suites ready for your next getaway</string>
     <string name="landing_live_rates_badge">Live Rates</string>
-    <string name="landing_rooms_count_badge">%1$d Available</string>
+    <plurals name="landing_rooms_count_badge">
+        <item quantity="one">%1$d Available</item>
+        <item quantity="other">%1$d Available</item>
+    </plurals>
     <string name="landing_filter_by_type_label">Filter by Room Type</string>
     <string name="view_all_rooms">View All Rooms</string>
     <string name="show_less_rooms">Show Less</string>
@@ -1745,7 +1758,7 @@
     <string name="error_select_checkin_first">Please select your check-in date first</string>
     <string name="helper_checkin_window">At least 2 days from today</string>
     <string name="error_checkin_outside_window">Check-in must be at least 2 days (48 hours) from today. Earliest available check-in: %1$s.</string>
-    <string name="checkin_advance_notice">Check-in must be booked at least %1$d days (%2$d hours) in advance. Earliest available check-in: %3$s.</string>
+    <string name="checkin_advance_notice" tools:ignore="PluralsCandidate">Check-in must be booked at least %1$d days (%2$d hours) in advance. Earliest available check-in: %3$s.</string>
     <string name="helper_checkout_after_checkin">At least 1 night</string>
     <string name="title_select_checkin">Select Check-in Date</string>
     <string name="title_select_checkout">Select Check-out Date</string>
@@ -1857,7 +1870,10 @@
     <string name="notif_popup_empty">You\'re all caught up</string>
     <string name="notif_popup_close">Close notifications</string>
     <string name="notif_popup_view_all">View all notifications</string>
-    <string name="notif_popup_unread_format">%1$d unread</string>
+    <plurals name="notif_popup_unread_format">
+        <item quantity="one">%1$d unread</item>
+        <item quantity="other">%1$d unread</item>
+    </plurals>
     <string name="login_account_not_found">Account does not exist.</string>
     <string name="login_wrong_password">Incorrect password. Please try again.</string>
     <string name="signing_in">Signing in…</string>
@@ -1947,11 +1963,13 @@
         <item quantity="other">%d recent bookings</item>
     </plurals>
     <string name="summary_with_latest">%1$s · Latest: %2$s</string>
-    <string name="summary_with_next">%1$s · Next: %2$s</string>
     <string name="summary_with_first">%1$s · %2$s</string>
     <string name="summary_ref_status">%1$s (%2$s)</string>
     <string name="summary_nothing_scheduled">Nothing scheduled in this period</string>
-    <string name="summary_unread_count">%d unread</string>
+    <plurals name="summary_unread_count">
+        <item quantity="one">%d unread</item>
+        <item quantity="other">%d unread</item>
+    </plurals>
     <string name="summary_calendar_format">%1$s · %2$s</string>
 
     <string name="upcoming_status_pending">Pending</string>
@@ -1971,7 +1989,6 @@
     <string name="upcoming_group_active">Upcoming and in house</string>
     <string name="upcoming_group_closed">Completed and closed</string>
     <string name="upcoming_event_cancelled">Cancelled</string>
-    <string name="upcoming_stay_short_format">%1$s to %2$s · %3$s</string>
     <string name="upcoming_clear_filters">Clear filters</string>
     <string name="upcoming_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
     <string name="support_collapsed_summary">Contact the front desk anytime</string>
@@ -2381,6 +2398,12 @@
     <string name="error_rep_letters_only">Use letters only</string>
     <string name="error_rep_too_short">Enter at least 2 letters</string>
     <string name="error_rep_too_long">Use 40 characters or fewer</string>
+    <string name="rooms_math_format">%1$s × %2$s × %3$s</string>
+    <string name="label_colon_value_format">%1$s: %2$s</string>
+    <string name="two_part_dot_format">%1$s · %2$s</string>
+    <string name="two_word_format">%1$s %2$s</string>
+    <string name="month_year_format">%1$s %2$d</string>
+    <string name="gcash_number_prefixed_format">+63 %1$s</string>
 </resources>
 
 

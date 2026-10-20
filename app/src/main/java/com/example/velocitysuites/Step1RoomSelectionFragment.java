@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -301,6 +302,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         showAvailableRoomsDialog(browsable);
     }
 
+    @SuppressLint("InflateParams") // a dialog's content view has no parent to inflate into
     private void showAvailableRoomsDialog(List<Room> rooms) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_available_rooms, null);
         AlertDialog dialog = new SafeDialogs.Plain(requireContext(), R.style.VelocityDialogTheme)
@@ -420,6 +422,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
     }
 
     /** "View Selection Details" - the full per-room-type price breakdown (quantity × price/night × nights = subtotal) behind the compact footer summary. */
+    @SuppressLint("InflateParams") // a dialog's content view has no parent to inflate into
     private void showSelectedRoomsSummaryDialog(Map<String, Room> stagedRooms, Map<String, Integer> stagedQuantities, long nights) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_selected_rooms_summary, null);
         AlertDialog dialog = new SafeDialogs.Plain(requireContext(), R.style.VelocityDialogTheme)
@@ -478,9 +481,10 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         row.addView(tvName);
 
         TextView tvMath = new TextView(requireContext());
-        tvMath.setText(getResources().getQuantityString(R.plurals.rooms_count_plain, qty, qty)
-                + " × " + String.format(Locale.US, getString(R.string.price_format), room.getPricePerNight())
-                + " × " + getResources().getQuantityString(R.plurals.nights_count_plain, (int) nights, (int) nights));
+        tvMath.setText(getString(R.string.rooms_math_format,
+                getResources().getQuantityString(R.plurals.rooms_count_plain, qty, qty),
+                String.format(Locale.US, getString(R.string.price_format), room.getPricePerNight()),
+                getResources().getQuantityString(R.plurals.nights_count_plain, (int) nights, (int) nights)));
         tvMath.setTextColor(ContextCompat.getColor(requireContext(), R.color.velocity_text_secondary));
         tvMath.setTextSize(12f);
         LinearLayout.LayoutParams mathParams = new LinearLayout.LayoutParams(
@@ -490,8 +494,8 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         row.addView(tvMath);
 
         TextView tvSubtotal = new TextView(requireContext());
-        tvSubtotal.setText(getString(R.string.subtotal_label) + ": "
-                + String.format(Locale.US, getString(R.string.price_format), subtotal));
+        tvSubtotal.setText(getString(R.string.label_colon_value_format, getString(R.string.subtotal_label),
+                String.format(Locale.US, getString(R.string.price_format), subtotal)));
         tvSubtotal.setTextColor(ContextCompat.getColor(requireContext(), R.color.velocity_red_primary));
         tvSubtotal.setTypeface(null, android.graphics.Typeface.BOLD);
         tvSubtotal.setTextSize(13f);
@@ -519,6 +523,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
      *    RoomDetailsDialog#showForStaging(), seeded with the current staged
      *    quantity, whose own stepper calls back into the same applyQuantity.
      */
+    @SuppressLint("InflateParams") // the card is added to the dialog list by the caller
     private View buildAvailableRoomCard(Room room, Map<String, Room> stagedRooms,
                                          Map<String, Integer> stagedQuantities, Runnable updateFooter) {
         View card = LayoutInflater.from(requireContext()).inflate(R.layout.item_available_room, null, false);
@@ -545,7 +550,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         int maxQty = Math.max(1, remainingBase);
 
         tvName.setText(room.getName());
-        tvTypeAndCapacity.setText(getString(R.string.room_type_capacity_format, room.getType(), room.getCapacity()));
+        tvTypeAndCapacity.setText(getResources().getQuantityString(R.plurals.room_type_capacity_format, room.getCapacity(), room.getType(), room.getCapacity()));
         tvBedType.setText(room.getBedType() == null || room.getBedType().isEmpty()
                 ? RoomVisuals.getBedType(requireContext(), room.getType(), room.getCapacity())
                 : room.getBedType());
@@ -660,7 +665,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         int remaining = amenities.size() - shown;
         if (remaining > 0) {
             TextView more = new TextView(requireContext());
-            more.setText(getString(R.string.amenities_more_format, remaining));
+            more.setText(getResources().getQuantityString(R.plurals.amenities_more_format, remaining, remaining));
             more.setTextColor(ContextCompat.getColor(requireContext(), R.color.velocity_inactive_gray));
             more.setTextSize(12f);
             amenitiesRow.addView(more);
@@ -700,8 +705,8 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
             View btnRemove = row.findViewById(R.id.btnRemoveSelectedRoom);
 
             tvName.setText(representative.getName());
-            tvMeta.setText(getString(R.string.capacity_persons_format, representative.getCapacity())
-                    + " · " + String.format(Locale.US, getString(R.string.price_format_per_night), representative.getPricePerNight()));
+            tvMeta.setText(getString(R.string.two_part_dot_format, getResources().getQuantityString(R.plurals.capacity_persons_format, representative.getCapacity(), representative.getCapacity()),
+                    String.format(Locale.US, getString(R.string.price_format_per_night), representative.getPricePerNight())));
             tvQty.setText(String.valueOf(qty));
             // Dates are already known by this step (step 1, before this one),
             // so this can show the real nightly-adjusted subtotal instead of

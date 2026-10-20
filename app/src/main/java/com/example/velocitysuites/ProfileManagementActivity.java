@@ -436,7 +436,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     }
 
     private void showLockedMessage(int messageRes, String key) {
-        Toast.makeText(this, getString(messageRes) + " " + getString(R.string.days_remaining_format, remainingDays(key)), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(messageRes) + " " + getResources().getQuantityString(R.plurals.days_remaining_format, (int) remainingDays(key), remainingDays(key)), Toast.LENGTH_LONG).show();
     }
 
     /** Dims each section's edit control and shows/hides its lock caption based on its lock state. */
@@ -447,7 +447,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         if (changePasswordHintText != null) {
             if (isLocked(KEY_PASSWORD_UPDATED_AT)) {
-                changePasswordHintText.setText(getString(R.string.days_remaining_format, remainingDays(KEY_PASSWORD_UPDATED_AT)));
+                changePasswordHintText.setText(getResources().getQuantityString(R.plurals.days_remaining_format, (int) remainingDays(KEY_PASSWORD_UPDATED_AT), remainingDays(KEY_PASSWORD_UPDATED_AT)));
             } else {
                 changePasswordHintText.setText(R.string.change_password_hint);
             }
@@ -462,7 +462,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         boolean locked = isLocked(key);
         if (statusText != null) {
             if (locked) {
-                statusText.setText(getString(R.string.days_remaining_format, remainingDays(key)));
+                statusText.setText(getResources().getQuantityString(R.plurals.days_remaining_format, (int) remainingDays(key), remainingDays(key)));
                 statusText.setVisibility(View.VISIBLE);
             } else {
                 statusText.setVisibility(View.GONE);

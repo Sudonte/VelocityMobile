@@ -724,7 +724,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         }
         if (tvReviewGcashNumber != null) {
             String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
-            tvReviewGcashNumber.setText("+63 " + number);
+            tvReviewGcashNumber.setText(getString(R.string.gcash_number_prefixed_format, number));
         }
         if (tvReviewReferenceNumber != null) {
             // Step 3 keeps the raw 13 digits (no live formatting); Step 5 is the

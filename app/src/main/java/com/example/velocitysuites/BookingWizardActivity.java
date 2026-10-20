@@ -174,7 +174,7 @@ public class BookingWizardActivity extends SafeActivity {
             if (text.length() > 0) text.append('\n');
             text.append(shortfall.isGone()
                     ? getString(R.string.error_room_no_longer_available_format, shortfall.room.getName())
-                    : getString(R.string.error_room_availability_decreased_format, shortfall.available, shortfall.room.getName()));
+                    : getResources().getQuantityString(R.plurals.error_room_availability_decreased_format, shortfall.available, shortfall.available, shortfall.room.getName()));
         }
         return text.toString();
     }

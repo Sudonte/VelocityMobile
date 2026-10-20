@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -280,7 +281,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             int qty = group.size();
             double subtotal = representativeRoom.getPricePerNight() * nights() * qty;
             layoutSummaryRooms.addView(buildRow(
-                    getString(R.string.summary_room_row_qty_format, qty, representativeRoom.getName(), (int) nights()),
+                    getResources().getQuantityString(R.plurals.summary_room_row_qty_format, (int) nights(), qty, representativeRoom.getName(), (int) nights()),
                     String.format(Locale.US, getString(R.string.price_format), subtotal)));
         }
 
@@ -541,6 +542,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 });
     }
 
+    @SuppressLint("InflateParams") // a dialog's content view has no parent to inflate into
     private View buildLoadingView() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_loading, null);
         TextView tvMsg = dialogView.findViewById(R.id.loadingMessage);

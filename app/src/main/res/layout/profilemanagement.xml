@@ -270,7 +270,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:gravity="center"
-                        android:text="@string/days_remaining_format"
+                        tools:text="You can update this section again in 7 days."
                         android:textColor="@color/velocity_red_primary"
                         android:textSize="11sp"
                         android:visibility="gone"

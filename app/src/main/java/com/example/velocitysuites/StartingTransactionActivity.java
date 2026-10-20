@@ -97,7 +97,7 @@ public class StartingTransactionActivity extends SafeActivity {
         }
 
         TextView tvCount = findViewById(R.id.tvRoomRecapCount);
-        tvCount.setText(getString(R.string.room_recap_count_format, rooms.size()));
+        tvCount.setText(getResources().getQuantityString(R.plurals.room_recap_count_format, rooms.size(), rooms.size()));
         TextView tvNames = findViewById(R.id.tvRoomRecapNames);
         tvNames.setText(names.toString());
         TextView tvTotal = findViewById(R.id.tvRoomRecapTotal);

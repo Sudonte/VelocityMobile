@@ -616,7 +616,7 @@ public class DashboardActivity extends BaseNavigationActivity {
             int unread = 0;
             for (Notification n : notifications) if (!n.isRead()) unread++;
             String counts = getResources().getQuantityString(R.plurals.summary_notifications_count, notifications.size(), notifications.size());
-            if (unread > 0) counts = getString(R.string.summary_with_first, counts, getString(R.string.summary_unread_count, unread));
+            if (unread > 0) counts = getString(R.string.summary_with_first, counts, getResources().getQuantityString(R.plurals.summary_unread_count, unread, unread));
             notificationsSection.setSummary(getString(R.string.summary_with_latest, counts, NotificationText.of(this, notifications.get(0)).title));
         }
     }

@@ -125,7 +125,7 @@ final class DashboardStayCalendar {
     }
 
     private void render() {
-        monthLabel.setText(shown.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + shown.getYear());
+        monthLabel.setText(context.getString(R.string.month_year_format, shown.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH), shown.getYear()));
         drawGrid();
         renderSummary();
     }
@@ -212,7 +212,7 @@ final class DashboardStayCalendar {
         cell.addView(dot);
 
         int count = marked ? model.entriesBetween(date, date).size() : 0;
-        cell.setContentDescription(context.getString(R.string.stay_calendar_day_cd_format, DAY.format(date), count));
+        cell.setContentDescription(context.getResources().getQuantityString(R.plurals.stay_calendar_day_cd_format, count, DAY.format(date), count));
         cell.setOnClickListener(v -> {
             selected = date;
             render();
@@ -226,10 +226,10 @@ final class DashboardStayCalendar {
         LocalDate end = StayCalendarModel.windowEnd(mode, selected);
         switch (mode) {
             case WEEKLY:
-                rangeLabel.setText(SHORT_DAY.format(start) + " - " + DAY.format(end));
+                rangeLabel.setText(context.getString(R.string.date_range_format, SHORT_DAY.format(start), DAY.format(end)));
                 break;
             case MONTHLY:
-                rangeLabel.setText(selected.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + selected.getYear());
+                rangeLabel.setText(context.getString(R.string.month_year_format, selected.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH), selected.getYear()));
                 break;
             default:
                 rangeLabel.setText(DAY.format(selected));

@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.view.Gravity;
@@ -216,6 +217,7 @@ public final class RoomDetailsDialog {
     }
 
     /** Binds every field the two entry points above share (gallery, name, price, type, refund, overview, facts, amenities, policies) - only the sticky bar's actions differ between them. */
+    @SuppressLint("InflateParams") // a dialog's content view has no parent to inflate into
     private static View inflateAndBindCommonFields(Activity activity, Room room) {
         View dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_room_details, null);
 

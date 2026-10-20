@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -423,6 +424,7 @@ public class PaymentReceiptActivity extends SafeActivity {
      * whatever theme the app is in, and returns it measured and laid out at {@code widthPx}. The on-screen receipt is
      * untouched and keeps following the theme.
      */
+    @SuppressLint("InflateParams") // an off-screen copy of the receipt for the PDF has no parent
     public View buildReceiptForPdf(int widthPx) {
         Context previous = ui;
         ui = lightContext();
@@ -1119,7 +1121,7 @@ public class PaymentReceiptActivity extends SafeActivity {
         // Reference   Payment Reference: 235" - now just "Ref: 235".
         String paymentId = booking.getLatestPaymentId();
         ((TextView) fv(R.id.tvReceiptReference)).setText(
-                getString(R.string.receipt_reference_value_prefix) + " " + (paymentId != null ? paymentId : booking.getId()));
+                getString(R.string.two_word_format, getString(R.string.receipt_reference_value_prefix), paymentId != null ? paymentId : booking.getId()));
         // Receipt date for the header: when staff verified the payment (the moment this
         // receipt became available) if on record, else the payment's own date - a legacy
         // Booking snapshot carries no separate "issued at" the way a fetched receipt does.

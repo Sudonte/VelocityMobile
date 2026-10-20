@@ -433,7 +433,7 @@ public class BillingSummaryActivity extends SafeActivity {
             double totalRoomRatePerNight = nights > 0 ? roomTotal / nights : roomTotal;
             double perRoomRate = totalRoomRatePerNight / roomQuantity;
 
-            if (tvBillingRoomQuantity != null) tvBillingRoomQuantity.setText(getString(R.string.rooms_quantity_format, roomQuantity));
+            if (tvBillingRoomQuantity != null) tvBillingRoomQuantity.setText(getResources().getQuantityString(R.plurals.rooms_quantity_format, roomQuantity, roomQuantity));
             if (tvBillingSingleRoomRate != null) tvBillingSingleRoomRate.setText(getString(R.string.price_per_night_format, perRoomRate));
         }
 

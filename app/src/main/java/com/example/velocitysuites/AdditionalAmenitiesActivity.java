@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -243,6 +244,7 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
     }
 
     /** The picker for one room: every requestable amenity once, a compact stepper each, several can be chosen. Changes apply immediately. */
+    @SuppressLint("InflateParams") // a dialog's content view has no parent to inflate into
     private void openRoomPicker(RoomEntry room) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View content = LayoutInflater.from(this).inflate(R.layout.dialog_additional_amenity_room_picker, null, false);
