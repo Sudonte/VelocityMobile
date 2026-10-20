@@ -737,7 +737,15 @@ public class PaymentReceiptActivity extends SafeActivity {
     private void buildGuestSection(ViewGroup parent, ReceiptDetail detail) {
         LinearLayout content = newSectionCard(parent, getString(R.string.receipt_guest_information_title));
         addRowOrDash(content, getString(R.string.receipt_guest_account_name_label), detail.getGuestAccountName());
-        addRow(content, getString(R.string.details_label_representative_name), RepresentativeName.representativeOf(this, detail.getRepresentativeName()));
+        // The receipt only carries the composed "First Middle Last"; when the matching transaction is on the phone its separate name
+        // parts give the app's own order, "Last, First Middle".
+        Booking local = findLocalTransactionFor(detail);
+        String composed = RepresentativeName.clean(detail.getRepresentativeName());
+        boolean sameGuest = local != null && !composed.isEmpty()
+                && composed.equalsIgnoreCase(RepresentativeName.clean(local.getRepresentativeName()));
+        addRow(content, getString(R.string.details_label_representative_name), sameGuest
+                ? RepresentativeName.representativeOf(this, local)
+                : RepresentativeName.representativeOf(this, detail.getRepresentativeName()));
     }
 
     /**

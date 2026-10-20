@@ -631,4 +631,162 @@ public class WizardStepsScreenTest {
             for (int i = 0; i < g.getChildCount(); i++) collect(g.getChildAt(i), out);
         }
     }
+
+    // ---- repeat taps on the final confirm ----
+
+    private ActivityController<BookingWizardActivity> readyToConfirm(BookingWizardState.Mode mode, int reviewStep) {
+        ActivityController<BookingWizardActivity> controller = launch(mode);
+        BookingWizardState state = controller.get().getState();
+        state.checkIn = daysFromHotelToday(5);
+        state.checkOut = daysFromHotelToday(7);
+        state.adults = 2;
+        state.selectedRooms.add(room("1", 2));
+        state.termsViewed = true;
+        state.termsAccepted = true;
+        controller.get().goToStep(reviewStep);
+        idle();
+        return controller;
+    }
+
+    @Test
+    public void bookingWizard_finalConfirm_tripleTap_asksOnce_checksOnce_andOpensPaymentOnce() {
+        ActivityController<BookingWizardActivity> controller = readyToConfirm(BookingWizardState.Mode.BOOKING, 7);
+        BookingWizardActivity a = controller.get();
+        TapTestSupport.layOut(a);
+        View confirm = find(a, R.id.btnConfirmTransaction);
+        assertTrue("ready", confirm.isEnabled());
+        TapTestSupport.tapThreeTimes(a, confirm);
+        assertTrue("at most one confirmation dialog", TapTestSupport.alertsShowing() <= 1);
+        TapTestSupport.confirmAllThreeTimes(a);
+        assertEquals("one availability check", 1, api.count("getRoomsFresh"));
+        assertFalse("disabled while it works", confirm.isEnabled());
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>last("getRoomsFresh").succeed(roomsResponse(1, 3));
+        idle();
+        int payments = 0;
+        Intent next;
+        while ((next = shadowOf(a).getNextStartedActivity()) != null) {
+            if (next.getComponent() != null && next.getComponent().getClassName().endsWith("PaymentActivity")) payments++;
+        }
+        assertEquals("one Payment screen", 1, payments);
+    }
+
+    @Test
+    public void reservationWizard_finalConfirm_tripleTap_asksOnce_andSendsOneRequest() {
+        ActivityController<BookingWizardActivity> controller = readyToConfirm(BookingWizardState.Mode.RESERVATION, 8);
+        BookingWizardActivity a = controller.get();
+        TapTestSupport.layOut(a);
+        View confirm = find(a, R.id.btnConfirmTransaction);
+        assertTrue("ready", confirm.isEnabled());
+        TapTestSupport.tapThreeTimes(a, confirm);
+        assertTrue("at most one confirmation dialog", TapTestSupport.alertsShowing() <= 1);
+        TapTestSupport.confirmAllThreeTimes(a);
+        assertEquals("one availability check", 1, api.count("getRoomsFresh"));
+        assertFalse("disabled while it works", confirm.isEnabled());
+        api.<com.example.velocitysuites.network.dto.RoomsResponse>last("getRoomsFresh").succeed(roomsResponse(1, 3));
+        idle();
+        assertEquals("exactly one reservation request", 1, api.count("createReservation"));
+    }
+
+    // ---- inline messages instead of toasts ----
+
+    @Test
+    public void step1_withNoRoom_showsSelectAtLeastOneRoom_inline_notAToast() {
+        BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
+        activity.getState().checkIn = daysFromHotelToday(5);
+        activity.getState().checkOut = daysFromHotelToday(7);
+        activity.goToStep(2);
+        idle();
+        org.robolectric.shadows.ShadowToast.reset();
+        TextView error = find(activity, R.id.tvRoomsError);
+        assertEquals(View.GONE, error.getVisibility());
+        assertFalse(((WizardStepFragment) fragment(activity)).validateBeforeNext());
+        assertEquals(View.VISIBLE, error.getVisibility());
+        assertEquals("Select at least one room", text(error));
+        assertEquals("no toast", 0, org.robolectric.shadows.ShadowToast.shownToastCount());
+    }
+
+    private AmenityDtoBuilder amenityStep(int stock, int roomCapacity) {
+        ActivityController<BookingWizardActivity> controller = launch(BookingWizardState.Mode.BOOKING);
+        BookingWizardActivity activity = controller.get();
+        activity.getState().selectedRooms.add(room("1", roomCapacity));
+        activity.goToStep(3);
+        idle();
+        com.example.velocitysuites.network.dto.AmenityDto dto = new com.example.velocitysuites.network.dto.AmenityDto();
+        dto.id = 9;
+        dto.amenity_name = "Extra Bed";
+        dto.category = "Comfort";
+        dto.description = "A bed";
+        dto.charge = "500.00";
+        dto.quantity = stock;
+        api.<List<com.example.velocitysuites.network.dto.AmenityDto>>last("getAmenities").succeed(new ArrayList<>(Collections.singletonList(dto)));
+        idle();
+        return new AmenityDtoBuilder(activity);
+    }
+
+    private final class AmenityDtoBuilder {
+        final BookingWizardActivity activity;
+
+        AmenityDtoBuilder(BookingWizardActivity activity) {
+            this.activity = activity;
+        }
+    }
+
+    @Test
+    public void step3_atTheStockLimit_saysOnlyNLeft_onTheItem_notAToast() {
+        BookingWizardActivity activity = amenityStep(2, 6).activity;
+        org.robolectric.shadows.ShadowToast.reset();
+        find(activity, R.id.cbAmenityItem).performClick();
+        View plus = find(activity, R.id.btnAmenityQtyPlus);
+        TextView limit = find(activity, R.id.tvAmenityItemLimit);
+        plus.performClick();
+        assertEquals("2", text(find(activity, R.id.tvAmenityItemQty)));
+        assertEquals(View.GONE, limit.getVisibility());
+        plus.performClick();
+        assertEquals(View.VISIBLE, limit.getVisibility());
+        assertEquals("Only 2 left", text(limit));
+        assertEquals("no toast", 0, org.robolectric.shadows.ShadowToast.shownToastCount());
+        find(activity, R.id.btnAmenityQtyMinus).performClick();
+        assertEquals("the message goes when the quantity changes", View.GONE, limit.getVisibility());
+    }
+
+    @Test
+    public void step3_atTheRoomCapacityLimit_saysSoOnTheItem() {
+        BookingWizardActivity activity = amenityStep(9, 1).activity;
+        find(activity, R.id.cbAmenityItem).performClick();
+        View plus = find(activity, R.id.btnAmenityQtyPlus);
+        plus.performClick();
+        TextView limit = find(activity, R.id.tvAmenityItemLimit);
+        assertEquals(View.VISIBLE, limit.getVisibility());
+        assertEquals(activity.getString(R.string.error_amenity_qty_exceeds_capacity), text(limit));
+    }
+
+    @Test
+    public void step8_confirmWithTermsMissing_listsWhatIsMissing_scrollsThere_andShowsNoToast() {
+        ActivityController<BookingWizardActivity> controller = launch(BookingWizardState.Mode.BOOKING);
+        BookingWizardState state = controller.get().getState();
+        state.checkIn = daysFromHotelToday(5);
+        state.checkOut = daysFromHotelToday(7);
+        state.selectedRooms.add(room("1", 2));
+        controller.get().goToStep(7);
+        idle();
+        BookingWizardActivity a = controller.get();
+        org.robolectric.shadows.ShadowToast.reset();
+        TextView hint = find(a, R.id.tvConfirmHint);
+        assertEquals(View.VISIBLE, hint.getVisibility());
+        String list = text(hint);
+        assertTrue(list, list.startsWith("Still needed:"));
+        assertTrue(list, list.contains("• Open the Terms and Policy and scroll to the end"));
+        assertTrue(list, list.contains("• Check the box to confirm you agree"));
+        hint.performClick(); // jumps to the Terms block
+        assertEquals("no toast", 0, org.robolectric.shadows.ShadowToast.shownToastCount());
+        assertEquals(a.getColor(R.color.velocity_red_primary), hint.getCurrentTextColor());
+        assertFalse("Confirm stays disabled", find(a, R.id.btnConfirmTransaction).isEnabled());
+
+        state.termsViewed = true;
+        controller.get().goToStep(7);
+        idle();
+        String afterViewing = text(find(a, R.id.tvConfirmHint));
+        assertTrue(afterViewing, afterViewing.contains("• Check the box"));
+        assertFalse(afterViewing, afterViewing.contains("Open the Terms"));
+    }
 }

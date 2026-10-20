@@ -188,4 +188,13 @@ public class RepresentativeNameTest {
         assertTrue(RepresentativeName.fieldsFor(c, stored("Maria", null, "Santos")).isBlank());
         assertTrue(RepresentativeName.fieldsFor(c, stored(null, null, null)).isBlank());
     }
+
+    @Test
+    public void stayGuestInTheAppsOrder_forPaymentAndReceiptRows() {
+        assertEquals("Dela Cruz, Juan Santos", RepresentativeName.stayGuestFormatted(stored("Juan", "Santos", "Dela Cruz")));
+        assertEquals("Santos, Maria", RepresentativeName.stayGuestFormatted(stored("Maria", null, "Santos")));
+        assertEquals("", RepresentativeName.stayGuestFormatted(stored(null, null, null)));
+        // a receipt that only has the composed name keeps it as sent
+        assertEquals("Juan Dela Cruz", RepresentativeName.representativeOf(c, "Juan Dela Cruz"));
+    }
 }

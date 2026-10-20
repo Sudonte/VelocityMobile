@@ -172,6 +172,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         updateConfirmButtonEnabled();
 
         btnConfirm.setOnClickListener(v -> onConfirmClicked());
+        tvConfirmHint.setOnClickListener(v -> showMissingAndScroll());
 
         renderSummary();
     }
@@ -236,9 +237,25 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         if (btnConfirm == null) return;
         BookingWizardState state = getState();
         btnConfirm.setEnabled(TermsGate.isActionEnabled(state.termsViewed, state.termsAccepted) && !submitting);
-        int missing = TermsGate.missingHintRes(state.termsViewed, state.termsAccepted);
-        tvConfirmHint.setVisibility(missing == 0 ? View.GONE : View.VISIBLE);
-        if (missing != 0) tvConfirmHint.setText(missing);
+        int[] missing = TermsGate.missingItems(state.termsViewed, state.termsAccepted);
+        tvConfirmHint.setVisibility(missing.length == 0 ? View.GONE : View.VISIBLE);
+        if (missing.length != 0) {
+            StringBuilder list = new StringBuilder(getString(R.string.terms_missing_header));
+            for (int item : missing) list.append('\n').append(getString(R.string.terms_missing_item_line_format, getString(item)));
+            tvConfirmHint.setText(list);
+            tvConfirmHint.setTextColor(requireContext().getColor(R.color.velocity_text_secondary));
+        }
+    }
+
+    /** Shows what is missing in red under the button and scrolls the page to the first problem (the Terms block). */
+    private void showMissingAndScroll() {
+        updateConfirmButtonEnabled();
+        tvConfirmHint.setTextColor(requireContext().getColor(R.color.velocity_red_primary));
+        View page = getView() == null ? null : getView().findViewById(R.id.step8Scroll);
+        if (page instanceof androidx.core.widget.NestedScrollView) {
+            ((androidx.core.widget.NestedScrollView) page).smoothScrollTo(0, Math.max(0, termsConsent.getTop() - dp(12)));
+        }
+        termsConsent.requestFocus();
     }
 
     private long nights() {
@@ -369,7 +386,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         BookingWizardState state = getState();
 
         if (!state.termsViewed || !state.termsAccepted) {
-            Toast.makeText(requireContext(), R.string.wizard_step_incomplete, Toast.LENGTH_SHORT).show();
+            showMissingAndScroll(); // inline, under the button, and the page jumps to the first problem
             return;
         }
 

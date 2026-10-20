@@ -139,6 +139,12 @@ public final class RepresentativeName {
         return new Parts(last, first, middle);
     }
 
+    /** The stay guest of a transaction in the app's order, "Last, First Middle" - the account owner included ("" when no name was captured). */
+    @NonNull
+    public static String stayGuestFormatted(@NonNull Booking b) {
+        return new Parts(b.getGuestLastName(), b.getGuestFirstName(), b.getGuestMiddleName()).formatted();
+    }
+
     /** What the wizard's three fields show when a stored transaction is edited or booked again (all empty for the account owner). */
     @NonNull
     public static Parts fieldsFor(@NonNull Context c, @NonNull Booking b) {

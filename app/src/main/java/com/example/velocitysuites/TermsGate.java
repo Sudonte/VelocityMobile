@@ -34,6 +34,13 @@ public final class TermsGate {
         return viewed && accepted;
     }
 
+    /** Every thing still missing, one string per item, in the order the guest does them; empty when nothing is. */
+    public static int[] missingItems(boolean viewed, boolean accepted) {
+        if (!viewed) return new int[]{R.string.terms_missing_item_open, R.string.terms_missing_item_check};
+        if (!accepted) return new int[]{R.string.terms_missing_item_check};
+        return new int[0];
+    }
+
     /** What is still missing, as the helper line under the main action; 0 when nothing is. */
     @StringRes
     public static int missingHintRes(boolean viewed, boolean accepted) {

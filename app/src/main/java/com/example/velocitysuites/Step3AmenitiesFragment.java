@@ -157,6 +157,7 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
             MaterialButton btnPlus = row.findViewById(R.id.btnAmenityQtyPlus);
             TextView qtyLabel = row.findViewById(R.id.tvAmenityItemQty);
             TextView subtotalLabel = row.findViewById(R.id.tvAmenityItemSubtotal);
+            TextView limit = row.findViewById(R.id.tvAmenityItemLimit);
 
             boolean isFree = amenity.getPrice() <= 0.009;
             checkBox.setText(amenity.getCategory() != null && !amenity.getCategory().isEmpty()
@@ -178,6 +179,7 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
             quantityRow.setVisibility(startsSelected ? View.VISIBLE : View.GONE);
 
             btnMinus.setOnClickListener(v -> {
+                limit.setVisibility(View.GONE);
                 if (amenity.getQuantity() > 1) {
                     amenity.setQuantity(amenity.getQuantity() - 1);
                     refreshQtyUi.run();
@@ -195,10 +197,13 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
                     amenity.setQuantity(amenity.getQuantity() + 1);
                     refreshQtyUi.run();
                     updateSelectedSummary();
-                } else if (cap == amenity.getMaxQuantity()) {
-                    Toast.makeText(requireContext(), getString(R.string.no_more_amenity_stock_toast, amenity.getName()), Toast.LENGTH_SHORT).show();
+                    limit.setVisibility(View.GONE);
                 } else {
-                    Toast.makeText(requireContext(), R.string.error_amenity_qty_exceeds_capacity, Toast.LENGTH_SHORT).show();
+                    // inline, on the item itself: how many are left, or that the room capacity is the limit
+                    limit.setText(cap == amenity.getMaxQuantity()
+                            ? getResources().getQuantityString(R.plurals.amenity_only_left_format, amenity.getMaxQuantity(), amenity.getMaxQuantity())
+                            : getString(R.string.error_amenity_qty_exceeds_capacity));
+                    limit.setVisibility(View.VISIBLE);
                 }
             });
 

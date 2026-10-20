@@ -236,7 +236,12 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
     @Override
     public boolean validateBeforeNext() {
         if (getState().selectedRooms.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.error_no_rooms_selected, Toast.LENGTH_SHORT).show();
+            View error = getView() == null ? null : getView().findViewById(R.id.tvRoomsError);
+            if (error != null) {
+                error.setVisibility(View.VISIBLE); // inline, right above the empty list
+                error.getParent().requestChildFocus(error, error);
+                error.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED);
+            }
             return false;
         }
         return true;
@@ -244,6 +249,8 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
 
     /** Keeps Next literally disabled (not just toast-blocked) while zero rooms are selected - re-checked after every add/remove/quantity change below. */
     private void updateNextButtonState() {
+        View error = getView() == null ? null : getView().findViewById(R.id.tvRoomsError);
+        if (error != null && !getState().selectedRooms.isEmpty()) error.setVisibility(View.GONE); // the message goes once a room is added
         getWizardActivity().setNextEnabled(!getState().selectedRooms.isEmpty());
     }
 

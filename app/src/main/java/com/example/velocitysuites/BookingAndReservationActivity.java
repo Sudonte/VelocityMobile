@@ -3967,8 +3967,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
      * BillingSummaryActivity, which gates the actual payment behind a
      * Terms & Cancellation Policy acknowledgement before routing to Payment.
      */
+    /** The confirmation dialogs currently up: a repeat tap on the same button never stacks a second copy. */
+    private AlertDialog payNowDialog;
+    private AlertDialog deleteDialog;
+
     private void showPayNowConfirmation(Booking booking) {
-        new SafeDialogs.Material(this)
+        if (payNowDialog != null && payNowDialog.isShowing()) return;
+        payNowDialog = new SafeDialogs.Material(this)
                 .setTitle(R.string.pay_now_confirm_title)
                 .setMessage(getString(R.string.pay_now_confirm_msg, booking.getDisplayId()))
                 .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> {
@@ -4155,6 +4160,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         // - orthogonal to isDirectBooking() below, which decides which
         // backend table's endpoint the delete call itself must hit.
         if (!TransactionActions.canDelete(booking)) return; // only finished or cancelled / rejected items can ever be deleted
+        if (deleteDialog != null && deleteDialog.isShowing()) return; // a repeat tap never stacks a second dialog
         int successMsgRes = booking.isHasBooking() ? R.string.delete_booking_transaction_success : R.string.delete_reservation_transaction_success;
         String ref = getString(booking.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, booking.getDisplayId());
 
@@ -4164,6 +4170,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 .setPositiveButton(R.string.delete_permanently_button_label, null)
                 .setNegativeButton(R.string.delete_dialog_keep, null)
                 .create();
+        deleteDialog = dialog;
 
         dialog.setOnShowListener(shownDialog -> {
             android.widget.Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);

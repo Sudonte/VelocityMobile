@@ -692,12 +692,10 @@ public class PaymentActivity extends BaseNavigationActivity {
             tvReviewGuestCount.setText(getResources().getQuantityString(R.plurals.guests_count, guestCount, guestCount));
         }
         if (tvReviewRepresentativeName != null) {
-            String repName = currentBooking != null ? currentBooking.getRepresentativeName() : null;
-            if (repName == null && pendingWizardState != null) {
-                StringBuilder sb = new StringBuilder();
-                if (pendingWizardState.guestFirstName != null) sb.append(pendingWizardState.guestFirstName.trim()).append(' ');
-                if (pendingWizardState.guestLastName != null) sb.append(pendingWizardState.guestLastName.trim());
-                repName = sb.toString().trim();
+            String repName = currentBooking != null ? RepresentativeName.stayGuestFormatted(currentBooking) : null;
+            if ((repName == null || repName.isEmpty()) && pendingWizardState != null) {
+                repName = new RepresentativeName.Parts(pendingWizardState.guestLastName, pendingWizardState.guestFirstName,
+                        pendingWizardState.guestMiddleName).formatted();
             }
             tvReviewRepresentativeName.setText(repName == null || repName.isEmpty()
                     ? getString(R.string.label_not_available) : repName);
@@ -2292,7 +2290,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                     ? R.string.transaction_type_booking_payment
                     : R.string.transaction_type_reservation_payment);
         }
-        renderRepresentativeSummary(currentBooking.getRepresentativeName());
+        renderRepresentativeSummary(RepresentativeName.stayGuestFormatted(currentBooking));
         renderExistingBookingRoomsSummary(currentBooking);
         if (tvSummaryRooms != null) tvSummaryRooms.setText(existingBookingRoomsCommaSummary(currentBooking));
         if (tvCheckInSummary != null) {

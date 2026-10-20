@@ -1000,4 +1000,24 @@ public class PaymentScreenTest {
             }
         }
     }
+
+    // ---- repeat taps ----
+
+    @Test
+    public void submit_tripleTap_asksOnce_andSendsExactlyOnePayment() throws Exception {
+        PaymentActivity a = toSubmitStep();
+        layout(a);
+        MaterialButton submit = a.findViewById(R.id.completePaymentButton);
+        TapTestSupport.tapThreeTimes(a, submit);
+        assertTrue("at most one confirmation", TapTestSupport.alertsShowing() <= 1);
+        TapTestSupport.confirmAllThreeTimes(a); // even if a second copy were up, tapping Yes on each
+        idle();
+        answerBillCheck(ScreenTestSupport.reservation(588, 1800));
+        awaitSubmitCalls(1);
+        Thread.sleep(200);
+        idle();
+        assertEquals("exactly one payment request", 1, api.count("submitGcashPayment"));
+        assertFalse("disabled while it is sent", submit.isEnabled());
+        assertEquals(a.getString(R.string.submitting_payment_button), submit.getText().toString());
+    }
 }

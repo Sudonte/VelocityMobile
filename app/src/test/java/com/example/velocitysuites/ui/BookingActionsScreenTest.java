@@ -444,4 +444,54 @@ public class BookingActionsScreenTest {
     public void actionRows_393_dark() {
         everyCombinationFits(MODES[3]);
     }
+
+    // ---- repeat taps on money and booking actions
+
+    /** Three clicks in a row straight on the control (the code-level guards must hold even when no touch guard is in front of them). */
+    private static void clickThreeTimes(View v) {
+        for (int i = 0; i < 3; i++) v.performClick();
+        idle();
+    }
+
+    @Test
+    public void cancel_tripleTap_opensOneDialog_andConfirmingSendsOneRequest() {
+        BookingAndReservationActivity a = open(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(booking(571, "ACTIVE_BOOKING", 1500)));
+        TapTestSupport.layOut(a);
+        clickThreeTimes(card(a, 0).findViewById(R.id.btnCancel));
+        assertEquals("one list re-check, not three", 1, api.count("getReservations") - 1);
+        ScreenTestSupport.answerBookingLoad(api, api.count("getReservations") - 1, ScreenTestSupport.reservations(),
+                ScreenTestSupport.directBookings(booking(571, "ACTIVE_BOOKING", 1500)));
+        idle();
+        assertEquals("one confirmation dialog", 1, TapTestSupport.alertsShowing());
+        TapTestSupport.confirmAllThreeTimes(a);
+        assertEquals("one cancel request", 1, api.count("cancelDirectBooking"));
+    }
+
+    @Test
+    public void delete_tripleTap_opensOneDialog_andConfirmingSendsOneRequest() {
+        BookingAndReservationActivity a = open(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(booking(570, "CANCELLED_BOOKING", 0)));
+        TapTestSupport.layOut(a);
+        clickThreeTimes(card(a, 0).findViewById(R.id.btnDelete));
+        assertEquals("one confirmation dialog", 1, TapTestSupport.alertsShowing());
+        TapTestSupport.confirmAllThreeTimes(a);
+        assertEquals("one delete request", 1, api.count("deleteBookingPermanently"));
+    }
+
+    @Test
+    public void payNow_tripleTap_opensOneConfirmation_andConfirmingOpensTheBillOnce() {
+        BookingAndReservationActivity a = open(ScreenTestSupport.reservations(reservation(629, "GCASH")), ScreenTestSupport.directBookings());
+        tab(a, 1);
+        TapTestSupport.layOut(a);
+        View payNow = card(a, 0).findViewById(R.id.btnPayNow);
+        assertEquals(View.VISIBLE, payNow.getVisibility());
+        clickThreeTimes(payNow);
+        assertEquals("one confirmation", 1, TapTestSupport.alertsShowing());
+        TapTestSupport.confirmAllThreeTimes(a);
+        int screens = 0;
+        Intent next;
+        while ((next = shadowOf(a).getNextStartedActivity()) != null) {
+            if (next.getComponent() != null && next.getComponent().getClassName().endsWith("BillingSummaryActivity")) screens++;
+        }
+        assertEquals("one bill screen", 1, screens);
+    }
 }

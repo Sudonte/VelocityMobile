@@ -72,6 +72,16 @@
             android:alpha="0.85"
             tools:text="Complimentary or paid breakfast buffet." />
 
+        <TextView
+            android:id="@+id/tvAmenityItemLimit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_red_primary"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
         <LinearLayout
             android:id="@+id/layoutAmenityItemQuantity"
             android:layout_width="match_parent"

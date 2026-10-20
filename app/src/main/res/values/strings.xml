@@ -2404,6 +2404,15 @@
     <string name="two_word_format">%1$s %2$s</string>
     <string name="month_year_format">%1$s %2$d</string>
     <string name="gcash_number_prefixed_format">+63 %1$s</string>
+    <string name="error_select_one_room">Select at least one room</string>
+    <plurals name="amenity_only_left_format">
+        <item quantity="one">Only %1$d left</item>
+        <item quantity="other">Only %1$d left</item>
+    </plurals>
+    <string name="terms_missing_header">Still needed:</string>
+    <string name="terms_missing_item_open">Open the Terms and Policy and scroll to the end</string>
+    <string name="terms_missing_item_check">Check the box to confirm you agree</string>
+    <string name="terms_missing_item_line_format">• %1$s</string>
 </resources>
 
 
