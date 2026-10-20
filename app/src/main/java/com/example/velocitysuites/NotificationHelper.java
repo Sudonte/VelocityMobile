@@ -95,6 +95,7 @@ public final class NotificationHelper {
      */
     private static void postSingle(Context context, Notification n) {
         if (!canPost(context)) return;
+        ensureChannel(context); // idempotent: a notification is never posted to a channel that does not exist yet (Android 8+)
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_notification)
@@ -122,6 +123,7 @@ public final class NotificationHelper {
     /** Collapses several near-simultaneous alerts under one summary line instead of stacking N separate heads-up cards. */
     private static void postGroupSummary(Context context, int count) {
         if (!canPost(context)) return;
+        ensureChannel(context); // idempotent: a notification is never posted to a channel that does not exist yet (Android 8+)
 
         NotificationCompat.Builder summary = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_notification)

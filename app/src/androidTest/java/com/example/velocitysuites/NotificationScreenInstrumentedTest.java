@@ -49,7 +49,6 @@ public class NotificationScreenInstrumentedTest {
                         new NotificationAdapter.OnNotificationClickListener() {
                             @Override public void onNotificationClick(Notification notification) { }
                             @Override public void onToggleReadClick(Notification notification) { }
-                            @Override public void onViewTransactionDetailsClick(Notification notification) { }
                         });
                 recyclerView.setAdapter(adapter);
                 adapter.submitList(notifications);
