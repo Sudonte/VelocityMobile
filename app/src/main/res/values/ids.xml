@@ -3,6 +3,8 @@
     <!-- The "Show all (N)" / "Show less" button a Dashboard list section appends under its items. -->
     <item name="btnPreviewToggle" type="id" />
     <item name="sectionAnimator" type="id" />
+    <!-- Set to true on a control that is meant to be tapped quickly in a row (TapGuard leaves it alone). -->
+    <item name="tapRepeatable" type="id" />
     <item name="yourRoomsSection" type="id" />
     <item name="yourRoomsAmenitiesTotal" type="id" />
 </resources>

@@ -41,7 +41,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class LandingActivity extends AppCompatActivity implements RoomAdapter.OnRoomClickListener, OnMapReadyCallback {
+public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomClickListener, OnMapReadyCallback {
 
     private static final int COLLAPSED_ROOM_COUNT = 3;
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";

@@ -9,4 +9,9 @@ import android.app.Application;
  * anything to do with how a layout measures or a screen binds.
  */
 public class TestApplication extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        com.example.velocitysuites.RoomRepository.setMapInlineForTests(true); // lists are mapped in the same call, so a test needs no thread to wait for
+    }
 }

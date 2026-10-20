@@ -21,7 +21,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 
-public abstract class BaseNavigationActivity extends AppCompatActivity {
+public abstract class BaseNavigationActivity extends SafeActivity {
 
     protected DrawerLayout drawerLayout;
     protected NavigationView navigationView;
@@ -227,6 +227,8 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
     protected void onDestroy() {
         visiblePoller.stop();
         dismissNotificationPopup();
+        if (logoutDialog != null && logoutDialog.isShowing()) logoutDialog.dismiss(); // dialogs go away with their screen
+        logoutDialog = null;
         super.onDestroy();
     }
 
@@ -364,14 +366,18 @@ public abstract class BaseNavigationActivity extends AppCompatActivity {
         }
     }
 
+    private androidx.appcompat.app.AlertDialog logoutDialog;
+
     private void showLogoutConfirmation() {
-        new SafeDialogs.Material(this)
-                .setTitle("Log Out")
-                .setMessage("Are you sure you want to log out of your session?")
-                .setPositiveButton("Log Out", (dialog, which) -> logout())
-                .setNegativeButton("Cancel", null)
+        if (logoutDialog != null && logoutDialog.isShowing()) return; // a repeat tap never stacks a second dialog
+        logoutDialog = new SafeDialogs.Material(this)
+                .setTitle(R.string.logout_confirm_title)
+                .setMessage(R.string.logout_confirm_message)
+                .setPositiveButton(R.string.logout_confirm_action, (dialog, which) -> logout())
+                .setNegativeButton(R.string.cancel_label, null)
                 .show();
     }
+
 
     private void handleNavigation(int itemId) {
         Class<?> destination = null;

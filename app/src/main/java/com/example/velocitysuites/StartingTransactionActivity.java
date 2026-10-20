@@ -24,7 +24,7 @@ import com.google.android.material.button.MaterialButton;
  * two layouts - startingbooking.xml / startingreservation.xml - rather than
  * two near-duplicate Activity classes.
  */
-public class StartingTransactionActivity extends AppCompatActivity {
+public class StartingTransactionActivity extends SafeActivity {
 
     private static final String EXTRA_MODE = "EXTRA_MODE";
 

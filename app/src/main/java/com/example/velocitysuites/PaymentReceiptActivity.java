@@ -42,7 +42,7 @@ import java.util.List;
  * bypass it - though the real authoritative gate has to be server-side (see
  * PAYMENT_RECEIPT_BACKEND_SPEC.md), which this Android-only repo can't add.
  */
-public class PaymentReceiptActivity extends AppCompatActivity {
+public class PaymentReceiptActivity extends SafeActivity {
 
     private static final String TAG = "PaymentReceiptActivity";
     private static final String EXTRA_BOOKING = "EXTRA_BOOKING";

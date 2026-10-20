@@ -53,6 +53,12 @@ public class NotificationCardLayoutTest {
                 System.currentTimeMillis() - 24 * 60_000L);
     }
 
+    /** Created this very second, so "Today" holds even when the suite runs just after midnight. */
+    private static Notification justNow() {
+        return new Notification("9", "Amenity Request Approved", "Your request for 1 x Additional Pillow was approved.",
+                "x", Notification.TYPE_BOOKING, false, "567", null, "", null, null, System.currentTimeMillis());
+    }
+
     private static Notification promotion() {
         return new Notification("2", "New Promotion", "Enjoy 10% off your next stay with us this weekend.",
                 "x", Notification.TYPE_PROMOTION, false, null, null, "", null, null, System.currentTimeMillis() - 30 * 3600_000L);
@@ -249,7 +255,7 @@ public class NotificationCardLayoutTest {
     @Test
     public void groupHeadersAreTitleCase_notAllCaps() {
         Context context = LayoutHarness.themedContext(1.0f);
-        TextView header = bind(context, amenity(false), 360).itemView.findViewById(R.id.tvNotificationDateGroup);
+        TextView header = bind(context, justNow(), 360).itemView.findViewById(R.id.tvNotificationDateGroup);
         assertEquals("Today", header.getText().toString());
         assertFalse(header.isAllCaps());
         assertNotNull(header);

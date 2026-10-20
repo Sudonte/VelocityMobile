@@ -28,7 +28,7 @@ import java.util.List;
  * cache: when a poll/refresh elsewhere brings newer data for this transaction (say the receptionist just
  * verified the payment), it re-renders instead of showing the snapshot it was opened with.
  */
-public class TransactionDetailsActivity extends AppCompatActivity {
+public class TransactionDetailsActivity extends SafeActivity {
 
     public static final String EXTRA_TRANSACTION = "EXTRA_TRANSACTION";
 

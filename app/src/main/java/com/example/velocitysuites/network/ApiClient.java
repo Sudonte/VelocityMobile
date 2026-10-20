@@ -73,6 +73,13 @@ public final class ApiClient {
         return service;
     }
 
+    /** 401/419 on an authenticated endpoint; the sign-in, sign-up and password-recovery calls answer 401 for a wrong password, which is not an expiry. */
+    static boolean isSessionExpired(int code, String path) {
+        if (code != 401 && code != 419) return false;
+        String p = path == null ? "" : path.toLowerCase(java.util.Locale.ROOT);
+        return !(p.endsWith("/login") || p.contains("/register") || p.contains("otp") || p.contains("password") || p.contains("reactivat"));
+    }
+
     private static Response authHeaderInterceptor(Interceptor.Chain chain, Context context) throws IOException {
         Request.Builder builder = chain.request().newBuilder()
                 .addHeader("Accept", "application/json");
@@ -82,6 +89,12 @@ public final class ApiClient {
             builder.addHeader("Authorization", "Bearer " + token);
         }
 
-        return chain.proceed(builder.build());
+        Response response = chain.proceed(builder.build());
+        // A signed-in request answered 401/419 means the token is no longer valid: whichever screen (or background poll) made it,
+        // the session is cleared and the guest is sent to sign in - exactly once (see SessionManager.claimSessionExpiredHandling).
+        if (token != null && context != null && isSessionExpired(response.code(), chain.request().url().encodedPath())) {
+            com.example.velocitysuites.RoomRepository.forceSessionExpiredLogout(context);
+        }
+        return response;
     }
 }

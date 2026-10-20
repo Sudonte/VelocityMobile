@@ -42,6 +42,7 @@ final class SafeDialogs {
     /** Shows the already-created dialog if its screen is still alive; never throws for a dead window. */
     static void show(@Nullable Context context, @NonNull Dialog dialog) {
         if (!canShow(context)) return;
+        TapGuard.installOn(dialog.getWindow()); // a dialog or sheet gets the same repeat-tap guard as a screen
         try {
             dialog.show();
         } catch (WindowManager.BadTokenException ignored) {

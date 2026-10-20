@@ -32,7 +32,7 @@ import com.google.android.material.card.MaterialCardView;
  * internal role/audience routing to a guest leaks admin metadata that has
  * no guest-facing purpose.
  */
-public class NotificationDetailsActivity extends AppCompatActivity {
+public class NotificationDetailsActivity extends SafeActivity {
 
     public static final String EXTRA_NOTIFICATION = "EXTRA_NOTIFICATION";
 

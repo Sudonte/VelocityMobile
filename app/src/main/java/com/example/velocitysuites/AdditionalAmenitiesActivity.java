@@ -28,7 +28,7 @@ import java.util.Map;
  * Whether the stay may request at all (checked in, own booking) is decided by the server - this screen shows its answer, and
  * the reason when the answer is no.
  */
-public class AdditionalAmenitiesActivity extends AppCompatActivity {
+public class AdditionalAmenitiesActivity extends SafeActivity {
 
     public static final String EXTRA_DIRECT_BOOKING = "EXTRA_DIRECT_BOOKING";
     public static final String EXTRA_ID = "EXTRA_ID";

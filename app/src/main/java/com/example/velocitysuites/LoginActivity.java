@@ -32,7 +32,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends SafeActivity {
 
     private TextInputEditText emailEditText, passwordEditText;
     private TextInputEditText forgotEmailEditText, loginOtpEditText, newPasswordEditText, confirmNewPasswordEditText;

@@ -98,7 +98,7 @@ final class TransactionSummarySheet {
             onViewFull.run();
         });
         dialog.setContentView(content);
-        dialog.show();
+        SafeDialogs.show(dialog);
         return dialog;
     }
 

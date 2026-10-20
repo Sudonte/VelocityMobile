@@ -39,7 +39,7 @@ import java.util.Locale;
  * memory (RoomRepository's cache), so it's passed as a plain Serializable
  * Intent extra rather than re-fetched.
  */
-public class BookingDetailsActivity extends AppCompatActivity {
+public class BookingDetailsActivity extends SafeActivity {
 
     public static final String EXTRA_BOOKING = "EXTRA_BOOKING";
 

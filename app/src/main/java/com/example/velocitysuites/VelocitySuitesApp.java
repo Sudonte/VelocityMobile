@@ -41,7 +41,8 @@ public class VelocitySuitesApp extends Application {
                     .detectLeakedClosableObjects().detectActivityLeaks().penaltyLog().build());
         }
         registerActivityLifecycleCallbacks(new ResponsiveWindow());
-        registerActivityLifecycleCallbacks(new Feedback()); // content width limit on wide windows, bars and keyboard kept clear
+        registerActivityLifecycleCallbacks(new Feedback());
+        registerActivityLifecycleCallbacks(new TapGuard.Installer()); // content width limit on wide windows, bars and keyboard kept clear
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override public void onActivityResumed(Activity activity) {
                 CrashLogger.setCurrentActivityName(activity.getClass().getSimpleName());

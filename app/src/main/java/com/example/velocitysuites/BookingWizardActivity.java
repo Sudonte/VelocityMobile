@@ -42,7 +42,7 @@ import com.google.android.material.button.MaterialButton;
  *   for either method - GCash always defers to a later Pay Now action).</li>
  * </ul>
  */
-public class BookingWizardActivity extends AppCompatActivity {
+public class BookingWizardActivity extends SafeActivity {
 
     public static final String EXTRA_MODE = "EXTRA_MODE";
     public static final String EXTRA_EDIT_BOOKING = "EXTRA_EDIT_BOOKING";

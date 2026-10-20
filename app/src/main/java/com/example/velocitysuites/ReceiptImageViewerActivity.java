@@ -24,7 +24,7 @@ import com.bumptech.glide.request.target.Target;
  * a loading spinner, a plain message when the image is missing or fails to
  * load, and a close button. Never throws on a bad/blank source.
  */
-public class ReceiptImageViewerActivity extends AppCompatActivity {
+public class ReceiptImageViewerActivity extends SafeActivity {
 
     private static final String EXTRA_SOURCE = "receipt_image_source";
     private static final int MAX_DECODE_PX = 2048;

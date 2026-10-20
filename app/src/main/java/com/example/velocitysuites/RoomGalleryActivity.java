@@ -21,7 +21,7 @@ import java.util.ArrayList;
  * loop, and a pause/play toggle that stops/resumes the auto-advance while
  * leaving manual navigation available at all times.
  */
-public class RoomGalleryActivity extends AppCompatActivity {
+public class RoomGalleryActivity extends SafeActivity {
 
     private static final long AUTO_ADVANCE_DELAY_MS = 5000L;
 

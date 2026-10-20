@@ -8,7 +8,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class WelcomeActivity extends AppCompatActivity {
+public class WelcomeActivity extends SafeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

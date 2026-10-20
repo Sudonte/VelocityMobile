@@ -62,7 +62,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RegistrationActivity extends AppCompatActivity {
+public class RegistrationActivity extends SafeActivity {
     private TextInputEditText firstNameEdit, lastNameEdit, middleNameEdit, ageEdit, dobEdit, mobileEdit, emailEdit, passwordEdit, confirmPasswordEdit, otpEdit;
     private AutoCompleteTextView genderDropdown;
     private View step1Layout, step2Layout, step3Layout, otpLayout;

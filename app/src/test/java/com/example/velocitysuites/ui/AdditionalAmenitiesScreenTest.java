@@ -369,4 +369,19 @@ public class AdditionalAmenitiesScreenTest {
         confirmSend();
         assertEquals("one request, after Send request", 1, api.count("submitBookingAdditionalAmenities"));
     }
+
+    @Test
+    public void amenityRequest_tripleTapOnSend_asksOnce_andSendsOnce() {
+        AdditionalAmenitiesActivity a = openWithRooms(infoWithRooms(room(11, "101", "Standard")));
+        android.widget.LinearLayout list = openPicker(a, 0);
+        list.getChildAt(0).findViewById(R.id.btnAmenityOptionPlus).performClick();
+        closePicker();
+        android.view.View send = a.findViewById(R.id.additionalAmenitiesSubmit);
+        send.performClick();
+        androidx.appcompat.app.AlertDialog d = (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        for (int i = 0; i < 3; i++) d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("one request", 1, api.count("submitBookingAdditionalAmenities"));
+        assertFalse("disabled while in flight", send.isEnabled());
+    }
 }

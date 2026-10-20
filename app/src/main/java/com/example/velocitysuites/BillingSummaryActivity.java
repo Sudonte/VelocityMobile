@@ -28,7 +28,7 @@ import java.util.Locale;
  * performs the actual payment and (server-side) reservation-to-booking
  * conversion.
  */
-public class BillingSummaryActivity extends AppCompatActivity {
+public class BillingSummaryActivity extends SafeActivity {
 
     public static final String EXTRA_RESERVATION_ID = "RESERVATION_ID";
 

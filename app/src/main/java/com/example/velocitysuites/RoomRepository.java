@@ -290,6 +290,34 @@ public final class RoomRepository {
         this.api = ApiClient.getService(appContext);
     }
 
+    /**
+     * Where large lists are turned into models: a background thread, so mapping hundreds of records never blocks the main thread.
+     * The JVM tests set {@link #mapInline} so a mapped list is delivered in the same call, as before.
+     */
+    private static final java.util.concurrent.ExecutorService MAPPER = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "velocity-mapper");
+        t.setDaemon(true);
+        return t;
+    });
+    static volatile boolean mapInline = false;
+
+    /** JVM tests: deliver mapped lists in the same call. */
+    public static void setMapInlineForTests(boolean inline) {
+        mapInline = inline;
+    }
+
+    /** Runs {@code work} off the main thread, then {@code onMain} on it with the result (inline when {@link #mapInline}). */
+    private static <T> void mapThenMain(java.util.function.Supplier<T> work, java.util.function.Consumer<T> onMain) {
+        if (mapInline) {
+            onMain.accept(work.get());
+            return;
+        }
+        MAPPER.execute(() -> {
+            final T result = work.get();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> onMain.accept(result));
+        });
+    }
+
     public static synchronized RoomRepository getInstance(Context context) {
         if (instance == null) {
             Context appContext = context != null ? context.getApplicationContext() : null;
@@ -1048,8 +1076,11 @@ public final class RoomRepository {
                         "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
                                 + " recordCount=" + (response.body() != null ? response.body().items().size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
-                    lastReservationsTotal = response.body().total;
-                    for (ReservationDto dto : response.body().items()) {
+                    final PaginatedResponse<ReservationDto> page = response.body();
+                    mapThenMain(() -> {
+                        List<Booking> derived = new ArrayList<>();
+                        List<Booking> historical = new ArrayList<>();
+                    for (ReservationDto dto : page.items()) {
                         // A single malformed/unexpected record must never take down the
                         // WHOLE list - see State F (JSON/model parsing failure) in the
                         // task spec. Before this try/catch, ApiMapper#toBooking() throwing
@@ -1059,15 +1090,23 @@ public final class RoomRepository {
                         // looking to the guest exactly like "Bookings/Reservations
                         // sometimes doesn't show" depending on which record tripped it.
                         try {
-                            reservationDerived.add(ApiMapper.toBooking(dto));
+                            derived.add(ApiMapper.toBooking(dto));
                             if (dto.booking != null && (dto.snapshot_hidden_at == null || dto.snapshot_hidden_at.isEmpty())) {
-                                historicalReservations.add(ApiMapper.toHistoricalReservation(dto));
+                                historical.add(ApiMapper.toHistoricalReservation(dto));
                             }
                         } catch (RuntimeException mappingError) {
                             com.example.velocitysuites.network.DiagnosticLog.e("refreshBookings.reservations.mappingFailed",
                                     "requestId=" + requestId + " reservationId=" + dto.id, mappingError);
                         }
                     }
+                        return new List[]{derived, historical};
+                    }, mapped -> {
+                        lastReservationsTotal = page.total;
+                        reservationDerived.addAll(mapped[0]);
+                        historicalReservations.addAll(mapped[1]);
+                        if (--remaining[0] <= 0) finish.run();
+                    });
+                    return;
                 } else {
                     reservationsFailed[0] = true;
                     reservationsErrorMsg[0] = errorMessage(response);
@@ -1091,16 +1130,25 @@ public final class RoomRepository {
                         "requestId=" + requestId + " httpCode=" + response.code() + " successful=" + response.isSuccessful()
                                 + " recordCount=" + (response.body() != null ? response.body().items().size() : -1));
                 if (response.isSuccessful() && response.body() != null) {
-                    lastDirectBookingsTotal = response.body().total;
-                    for (DirectBookingResponseDto dto : response.body().items()) {
+                    final PaginatedResponse<DirectBookingResponseDto> page = response.body();
+                    mapThenMain(() -> {
+                        List<Booking> mappedDirect = new ArrayList<>();
+                    for (DirectBookingResponseDto dto : page.items()) {
                         // Same State-F protection as the reservations loop above.
                         try {
-                            direct.add(ApiMapper.toBooking(dto));
+                            mappedDirect.add(ApiMapper.toBooking(dto));
                         } catch (RuntimeException mappingError) {
                             com.example.velocitysuites.network.DiagnosticLog.e("refreshBookings.directBookings.mappingFailed",
                                     "requestId=" + requestId + " bookingId=" + dto.id, mappingError);
                         }
                     }
+                        return mappedDirect;
+                    }, mapped -> {
+                        lastDirectBookingsTotal = page.total;
+                        direct.addAll(mapped);
+                        if (--remaining[0] <= 0) finish.run();
+                    });
+                    return;
                 } else {
                     directFailed[0] = true;
                     directErrorMsg[0] = errorMessage(response);

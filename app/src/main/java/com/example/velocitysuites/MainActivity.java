@@ -43,7 +43,7 @@ import java.util.concurrent.Future;
  * connection sees the bar hold just under 100 (never fake-completing) instead
  * of the screen looking frozen or the app lying about being ready.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends SafeActivity {
     private static final String TAG = "Startup";
     private static final long LOGO_ZOOM_DURATION_MS = 3000L;
 
