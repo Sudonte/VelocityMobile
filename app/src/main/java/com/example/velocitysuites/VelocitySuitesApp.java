@@ -40,6 +40,7 @@ public class VelocitySuitesApp extends Application {
             android.os.StrictMode.setVmPolicy(new android.os.StrictMode.VmPolicy.Builder()
                     .detectLeakedClosableObjects().detectActivityLeaks().penaltyLog().build());
         }
+        registerActivityLifecycleCallbacks(new ResponsiveWindow()); // content width limit on wide windows, bars and keyboard kept clear
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override public void onActivityResumed(Activity activity) {
                 CrashLogger.setCurrentActivityName(activity.getClass().getSimpleName());

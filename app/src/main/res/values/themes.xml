@@ -11,6 +11,8 @@
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/velocity_red_primary</item>
+        <!-- The app has its own dark theme: an OEM's "force dark" (Samsung, Xiaomi, realme, vivo, Infinix) must not recolor it a second time. -->
+        <item name="android:forceDarkAllowed">false</item>
         <!-- Customize your theme here. -->
         <item name="textAppearanceHeadline1">@style/TextAppearance.Velocity.Base.Headline1</item>
         <item name="textAppearanceHeadline2">@style/TextAppearance.Velocity.Base.Headline2</item>

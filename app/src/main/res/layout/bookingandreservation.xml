@@ -206,8 +206,10 @@
 
                         <TextView
                             android:id="@+id/tvProgressStep1"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="wrap_content"
+        android:minWidth="24dp"
+                            android:layout_height="wrap_content"
+        android:minHeight="24dp"
                             android:background="@drawable/shape_step_badge"
                             android:fontFamily="sans-serif-black"
                             android:gravity="center"
@@ -243,8 +245,10 @@
 
                         <TextView
                             android:id="@+id/tvProgressStep2"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="wrap_content"
+        android:minWidth="24dp"
+                            android:layout_height="wrap_content"
+        android:minHeight="24dp"
                             android:background="@drawable/shape_step_badge_inactive"
                             android:fontFamily="sans-serif-black"
                             android:gravity="center"
@@ -280,8 +284,10 @@
 
                         <TextView
                             android:id="@+id/tvProgressStep3"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="wrap_content"
+        android:minWidth="24dp"
+                            android:layout_height="wrap_content"
+        android:minHeight="24dp"
                             android:background="@drawable/shape_step_badge_inactive"
                             android:fontFamily="sans-serif-black"
                             android:gravity="center"
@@ -1271,9 +1277,9 @@
                                 android:id="@+id/btnExpandList"
                                 style="@style/Widget.Velocity.Flat.Button.Text"
                                 android:layout_width="wrap_content"
-                                android:layout_height="28dp"
+                                android:layout_height="wrap_content"
+        android:minHeight="28dp"
                                 android:minWidth="0dp"
-                                android:minHeight="0dp"
                                 android:insetTop="0dp"
                                 android:insetBottom="0dp"
                                 android:paddingHorizontal="8dp"

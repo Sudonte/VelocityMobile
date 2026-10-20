@@ -13,6 +13,8 @@
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/velocity_red_primary</item>
+        <!-- The app has its own dark theme: an OEM's "force dark" (Samsung, Xiaomi, realme, vivo, Infinix) must not recolor it a second time. -->
+        <item name="android:forceDarkAllowed">false</item>
         <!-- Flat, square UI app-wide: every component shape is 0dp and nothing casts a shadow.
              Sections separate with 1dp hairline borders (see Widget.Velocity.Card.Flat). -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Velocity.Square</item>

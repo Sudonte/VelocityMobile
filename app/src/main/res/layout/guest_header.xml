@@ -190,7 +190,8 @@
     <TextView
         android:id="@+id/headerNotificationBadge"
         android:layout_width="wrap_content"
-        android:layout_height="16dp"
+        android:layout_height="wrap_content"
+        android:minHeight="16dp"
         android:minWidth="16dp"
         android:background="@drawable/bg_notification_badge"
         android:fontFamily="sans-serif-black"
