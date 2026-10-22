@@ -1708,8 +1708,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 addRoomsToSelection(fresh, qtyToAdd);
             }
             if (!trimmedOrDropped.isEmpty()) {
-                Toast.makeText(this, getString(R.string.no_more_rooms_available_toast,
-                        String.join(", ", trimmedOrDropped)), Toast.LENGTH_LONG).show();
+                Feedback.show(this, getString(R.string.no_more_rooms_available_toast, String.join(", ", trimmedOrDropped)));
             }
             dialog.dismiss();
         });
@@ -1890,7 +1889,10 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             tvAvailableBadge.setText(getString(R.string.available_qty_format, Math.max(0, remainingBase - qty)));
             if (qty > 0) {
                 layoutSelectedIndicator.setVisibility(View.VISIBLE);
-                tvSelectedIndicator.setText(getResources().getQuantityString(R.plurals.rooms_staged_total_count, qty, qty));
+                String selectedText = getResources().getQuantityString(R.plurals.rooms_staged_total_count, qty, qty);
+                // at the limit the message sits on the card itself, not in a toast
+                tvSelectedIndicator.setText(qty >= maxQty ? selectedText + "
+" + getString(R.string.rooms_limit_message, room.getName(), maxQty) : selectedText);
                 cardRoot.setStrokeWidth(strokeSelected);
                 cardRoot.setStrokeColor(ContextCompat.getColor(this, R.color.velocity_red_primary));
                 cardContent.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
@@ -1928,7 +1930,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             if (current < maxQty) {
                 applyQuantity.accept(current + 1);
             } else {
-                Toast.makeText(this, getString(R.string.rooms_limit_message, room.getName(), maxQty), Toast.LENGTH_SHORT).show();
+                refreshCardUi.run(); // the limit message is already on the card
             }
         });
 
@@ -2116,7 +2118,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
             int cap = fresh != null ? fresh.getAvailableCount() : currentQtyForId(roomId);
             if (currentQtyForId(roomId) >= cap) {
-                Toast.makeText(this, getString(R.string.rooms_limit_message, fresh != null ? fresh.getName() : "", cap), Toast.LENGTH_SHORT).show();
+                Feedback.show(this, getString(R.string.rooms_limit_message, fresh != null ? fresh.getName() : "", cap));
                 return;
             }
             Room toAdd = fresh;
@@ -2282,7 +2284,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             Toast.makeText(this, getString(R.string.error_room_unavailable) + " (" + String.join(", ", droppedRoomNames) + ")", Toast.LENGTH_LONG).show();
         }
         if (!trimmedRoomNames.isEmpty()) {
-            Toast.makeText(this, getString(R.string.no_more_rooms_available_toast, String.join(", ", trimmedRoomNames)), Toast.LENGTH_LONG).show();
+            Feedback.show(this, getString(R.string.no_more_rooms_available_toast, String.join(", ", trimmedRoomNames)));
         }
         if (selectedRooms.isEmpty()) {
             tilCheckIn.setEnabled(false);

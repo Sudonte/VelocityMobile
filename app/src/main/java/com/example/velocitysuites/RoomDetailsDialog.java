@@ -183,8 +183,10 @@ public final class RoomDetailsDialog {
                 tvSelectedIndicator.setText(R.string.not_selected_yet_label);
                 layoutSubtotalRow.setVisibility(View.GONE);
             } else {
-                tvSelectedIndicator.setText(activity.getResources().getQuantityString(
-                        R.plurals.rooms_staged_total_count, qty[0], qty[0]));
+                String selectedText = activity.getResources().getQuantityString(R.plurals.rooms_staged_total_count, qty[0], qty[0]);
+                // at the limit the message is right under the quantity, not in a toast
+                tvSelectedIndicator.setText(qty[0] >= maxQty ? selectedText + "
+" + activity.getString(R.string.rooms_limit_message, room.getName(), maxQty) : selectedText);
                 layoutSubtotalRow.setVisibility(View.VISIBLE);
                 tvSubtotalAmount.setText(String.format(Locale.US, activity.getString(R.string.price_format),
                         room.getPricePerNight() * nights * qty[0]));
@@ -200,7 +202,7 @@ public final class RoomDetailsDialog {
         });
         btnQtyPlus.setOnClickListener(v -> {
             if (qty[0] >= maxQty) {
-                Toast.makeText(activity, activity.getString(R.string.rooms_limit_message, room.getName(), maxQty), Toast.LENGTH_SHORT).show();
+                updateQtyUi.run(); // the limit message is already shown under the quantity
                 return;
             }
             qty[0]++;

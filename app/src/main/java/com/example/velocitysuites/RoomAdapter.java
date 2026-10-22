@@ -415,7 +415,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.btnRoomQtyPlus.setOnClickListener(v -> {
             int current = selectedQuantities.getOrDefault(room.getId(), 0);
             if (current >= maxQty) {
-                Toast.makeText(context, context.getString(R.string.rooms_limit_message, room.getName(), maxQty), Toast.LENGTH_SHORT).show();
+                notifyItemChanged(holder.getBindingAdapterPosition(), PAYLOAD_QUANTITY); // shows the inline limit message
                 return;
             }
             selectedQuantities.put(room.getId(), current + 1);
