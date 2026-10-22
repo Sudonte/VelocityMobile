@@ -238,6 +238,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         if (getState().selectedRooms.isEmpty()) {
             View error = getView() == null ? null : getView().findViewById(R.id.tvRoomsError);
             if (error != null) {
+                if (error instanceof TextView) ((TextView) error).setText(R.string.error_select_one_room);
                 error.setVisibility(View.VISIBLE); // inline, right above the empty list
                 error.getParent().requestChildFocus(error, error);
                 error.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED);
@@ -286,6 +287,18 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
                 }
             }
         });
+    }
+
+    /** The "No more Deluxe rooms available for these dates (3 available)." line, inline above the selected rooms. */
+    private void showRoomsLimit(String message) {
+        View error = getView() == null ? null : getView().findViewById(R.id.tvRoomsError);
+        if (error instanceof TextView) {
+            ((TextView) error).setText(message);
+            error.setVisibility(View.VISIBLE);
+            error.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED);
+        } else {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void openAvailableRoomsDialogOrToast() {
@@ -631,7 +644,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
             if (current < maxQty) {
                 applyQuantity.accept(current + 1);
             } else {
-                Toast.makeText(requireContext(), getString(R.string.no_more_rooms_available_toast, room.getName()), Toast.LENGTH_SHORT).show();
+                showRoomsLimit(getString(R.string.rooms_limit_message, room.getName(), maxQty)); // inline, not a toast
             }
         });
 
@@ -784,8 +797,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
 
             int cap = fresh != null ? fresh.getAvailableCount() : toAdd.getAvailableCount();
             if (currentQtyForId(roomId) >= cap) {
-                Toast.makeText(requireContext(), getString(R.string.no_more_rooms_available_toast,
-                        toAdd.getName()), Toast.LENGTH_SHORT).show();
+                showRoomsLimit(getString(R.string.rooms_limit_message, toAdd.getName(), cap));
                 return;
             }
             getState().selectedRooms.add(toAdd);

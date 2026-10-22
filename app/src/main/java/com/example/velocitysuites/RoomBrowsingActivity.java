@@ -214,13 +214,6 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         restoredCheckInUtc = restoredCheckOutUtc = -1L;
     }
 
-    /** The room-details dialog has its own heart: when it closes, redraw the card hearts from the store. */
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && adapter != null) adapter.refreshFavorites();
-    }
-
     @Override
     protected void onResume() {
         super.onResume();

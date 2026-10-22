@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -299,25 +298,24 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             // fixed dark ones too: the "available" badge used to be white text on a pale pink fill (about 1.1:1),
             // and the other two were under 4.5:1.
             case LIMITED:
-                holder.roomStatusBadge.setText(room.getAvailableCount() > 0
-                        ? context.getResources().getQuantityString(R.plurals.rooms_left, room.getAvailableCount(), room.getAvailableCount()) : context.getString(R.string.limited_label));
+                holder.roomStatusBadge.setText(context.getResources().getQuantityString(R.plurals.rooms_available_count, room.getAvailableCount(), room.getAvailableCount()));
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_warning);
                 holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_green_primary));
                 break;
             case FULLY_BOOKED:
-                holder.roomStatusBadge.setText(R.string.unavailable_label);
+                holder.roomStatusBadge.setText(R.string.rooms_fully_booked);
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_neutral);
                 holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_red_dark));
                 break;
             case AVAILABLE:
             default:
-                holder.roomStatusBadge.setText(R.string.available_label);
+                holder.roomStatusBadge.setText(context.getResources().getQuantityString(R.plurals.rooms_available_count, room.getAvailableCount(), room.getAvailableCount()));
                 holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_success);
                 holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_green_primary));
                 break;
         }
 
-        if (holder.tvRoomsLeftHint != null) holder.tvRoomsLeftHint.setVisibility(View.GONE);
+        if (holder.tvRoomsLeftHint != null) holder.tvRoomsLeftHint.setVisibility(View.GONE); // bindQuantityStepper() shows it at the limit
 
         if (detailsOnlyMode) {
             holder.layoutRoomActions.setVisibility(View.GONE);
@@ -351,7 +349,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             refund.setVisibility(HotelPolicy.NON_REFUNDABLE ? View.VISIBLE : View.GONE);
         }
         bindQuantityStepper(holder, room, available, context);
-        bindFavorite(holder, room, context);
 
         holder.btnViewDetails.setOnClickListener(v -> listener.onViewDetailsClick(room));
         holder.btnQuickBook.setOnClickListener(v -> {
@@ -376,21 +373,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     /**
-     * On-device-only favorite toggle - see RoomFavoritesStore. Purely a
-     * local UI preference (no backend concept of favorites exists), but a
-     * real, working, persisted one rather than decorative - the icon swaps
-     * between outline/filled and survives app restarts.
-     */
-    private void bindFavorite(RoomViewHolder holder, Room room, Context context) {
-        RoomFavoritesStore.bindHeart(holder.btnFavorite, context, room.getId(), room.getName());
-    }
-
-    /** Re-reads every heart from the store (e.g. after the details dialog toggled one). */
-    public void refreshFavorites() {
-        if (getItemCount() > 0) notifyItemRangeChanged(0, getItemCount());
-    }
-
-    /**
      * Multi-room cart quantity stepper: hidden entirely when no selection map
      * was given to this adapter instance, when the room is unavailable
      * (can't be carted), or in details-only mode. Reads/writes directly
@@ -411,6 +393,12 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.tvRoomQty.setText(String.valueOf(qty));
         holder.btnRoomQtyMinus.setEnabled(qty > 0);
         holder.btnRoomQtyPlus.setEnabled(qty < maxQty);
+        // At the limit: say so on the card itself, right where the guest tapped.
+        if (holder.tvRoomsLeftHint != null) {
+            boolean atLimit = qty > 0 && qty >= maxQty;
+            holder.tvRoomsLeftHint.setVisibility(atLimit ? View.VISIBLE : View.GONE);
+            if (atLimit) holder.tvRoomsLeftHint.setText(context.getString(R.string.rooms_limit_message, room.getName(), maxQty));
+        }
 
         holder.btnRoomQtyMinus.setOnClickListener(v -> {
             int current = selectedQuantities.getOrDefault(room.getId(), 0);
@@ -427,7 +415,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.btnRoomQtyPlus.setOnClickListener(v -> {
             int current = selectedQuantities.getOrDefault(room.getId(), 0);
             if (current >= maxQty) {
-                Toast.makeText(context, context.getString(R.string.no_more_rooms_available_toast, room.getName()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, context.getString(R.string.rooms_limit_message, room.getName(), maxQty), Toast.LENGTH_SHORT).show();
                 return;
             }
             selectedQuantities.put(room.getId(), current + 1);
@@ -530,7 +518,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     static class RoomViewHolder extends RecyclerView.ViewHolder {
         ImageView roomImage;
-        ImageButton btnFavorite;
         TextView roomStatusBadge, roomPrice, roomName, roomTypeText, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint, tvAmenitiesMore;
         View factSize;
         MaterialButton btnViewDetails, btnQuickBook, btnReserveNow;
@@ -545,7 +532,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (needsRoomyLayout(itemView.getResources().getConfiguration())) {
                 applyRoomyLayout(itemView);
             }
-            btnFavorite = itemView.findViewById(R.id.btnFavorite);
             cardRoomQtyStepper = itemView.findViewById(R.id.cardRoomQtyStepper);
             tvRoomQty = itemView.findViewById(R.id.tvRoomQty);
             btnRoomQtyMinus = itemView.findViewById(R.id.btnRoomQtyMinus);

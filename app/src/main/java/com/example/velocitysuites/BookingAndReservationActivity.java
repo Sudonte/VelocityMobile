@@ -1928,7 +1928,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             if (current < maxQty) {
                 applyQuantity.accept(current + 1);
             } else {
-                Toast.makeText(this, getString(R.string.no_more_rooms_available_toast, room.getName()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.rooms_limit_message, room.getName(), maxQty), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -2116,8 +2116,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             }
             int cap = fresh != null ? fresh.getAvailableCount() : currentQtyForId(roomId);
             if (currentQtyForId(roomId) >= cap) {
-                Toast.makeText(this, getString(R.string.no_more_rooms_available_toast,
-                        fresh != null ? fresh.getName() : ""), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.rooms_limit_message, fresh != null ? fresh.getName() : "", cap), Toast.LENGTH_SHORT).show();
                 return;
             }
             Room toAdd = fresh;

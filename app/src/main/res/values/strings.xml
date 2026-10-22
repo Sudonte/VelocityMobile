@@ -1336,6 +1336,12 @@
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
+    <string name="rooms_limit_message">No more %1$s rooms available for these dates (%2$d available).</string>
+    <plurals name="rooms_available_count">
+        <item quantity="one">%1$d room available</item>
+        <item quantity="other">%1$d rooms available</item>
+    </plurals>
+    <string name="rooms_fully_booked">Fully booked</string>
     <string name="no_more_rooms_available_toast">No more %1$s available for these dates.</string>
     <string name="error_room_no_longer_available_format">%1$s is no longer available for your chosen dates. Please select another room.</string>
     <plurals name="error_room_availability_decreased_format">
@@ -1379,9 +1385,6 @@
     <string name="amenity_quantity_zero">0</string>
     <string name="no_available_rooms_desc">There are no room types available for the selected dates right now. Please try different dates.</string>
     <string name="cd_decrease_quantity">Decrease quantity</string>
-    <string name="cd_add_to_favorites">Add to favorites</string>
-    <string name="cd_add_to_favorites_format">Add %1$s to favorites</string>
-    <string name="cd_remove_from_favorites_format">Remove %1$s from favorites</string>
     <string name="cd_increase_quantity">Increase quantity</string>
     <!-- Total staged room quantity (not distinct room types) - shown alongside
          rooms_staged_count when more than one room type is staged, so "2

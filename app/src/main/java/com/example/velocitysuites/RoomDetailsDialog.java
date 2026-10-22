@@ -200,7 +200,7 @@ public final class RoomDetailsDialog {
         });
         btnQtyPlus.setOnClickListener(v -> {
             if (qty[0] >= maxQty) {
-                Toast.makeText(activity, activity.getString(R.string.no_more_rooms_available_toast, room.getName()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, activity.getString(R.string.rooms_limit_message, room.getName(), maxQty), Toast.LENGTH_SHORT).show();
                 return;
             }
             qty[0]++;
@@ -229,8 +229,6 @@ public final class RoomDetailsDialog {
         ViewPager2 pagerRoomImages = dialogView.findViewById(R.id.detailRoomImagePager);
         View galleryCountCard = dialogView.findViewById(R.id.detailGalleryCountCard);
         TextView tvGalleryCount = dialogView.findViewById(R.id.detailGalleryCount);
-
-        RoomFavoritesStore.bindHeart(dialogView.findViewById(R.id.detailBtnFavorite), activity, room.getId(), room.getName());
 
         // The name once; the type is a small chip only when it says something the name does not.
         String name = room.getName() == null ? "" : room.getName().trim();

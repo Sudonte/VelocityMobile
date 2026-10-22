@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Room details, in clear sections (Title Case headers, label left / value right):
-       photo gallery (availability chip, favorite, close)
+       photo gallery (availability chip, close)
        name and price per night (bold, large), room-type and refund chips
        Overview ..... the full description
        Room Facts ... Guests / Beds / Size
@@ -103,18 +103,6 @@
                     android:textSize="12sp" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Favorite, bottom-left (the top-left is the availability chip) -->
-            <ImageButton
-                android:id="@+id/detailBtnFavorite"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="bottom|start"
-                android:layout_margin="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/cd_add_to_favorites"
-                android:padding="12dp"
-                android:src="@drawable/ic_favorite_border"
-                app:tint="@color/white" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"

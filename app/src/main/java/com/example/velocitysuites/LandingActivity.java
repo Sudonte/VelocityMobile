@@ -903,13 +903,6 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
         offlineGate.start();
     }
 
-    /** The room-details dialog has its own heart: when it closes, redraw the card hearts from the store. */
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && roomAdapter != null) roomAdapter.refreshFavorites();
-    }
-
     @Override
     protected void onResume() {
         super.onResume();

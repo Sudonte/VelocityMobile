@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- A room in Room Browsing and on the landing page: only the important details.
-       Photo (availability chip + favorite heart; tapping the photo or the name opens the details)
+       Photo (availability chip; tapping the photo or the name opens the details)
        Name (about 20sp, bold, shown once) ..... price (about 20sp, bold) - side by side when they fit, else the price under the name
        A small type chip only when the room type differs from the name
        One compact facts row with small icons: guests, beds, size   +  a "No refund" chip
@@ -76,29 +76,6 @@
                         android:textAllCaps="false"
                         android:textColor="@color/velocity_green_primary"
                         android:textSize="12sp" />
-
-                    <!-- Favorite toggle, top-right. -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="top|end"
-                        android:layout_margin="6dp"
-                        app:cardBackgroundColor="@color/velocity_surface_elevated"
-                        app:cardCornerRadius="@dimen/card_corner_radius"
-                        app:cardElevation="@dimen/card_elevation"
-                        app:strokeColor="@color/velocity_red_primary"
-                        app:strokeWidth="1dp">
-
-                        <ImageButton
-                            android:id="@+id/btnFavorite"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/cd_add_to_favorites"
-                            android:padding="9dp"
-                            android:src="@drawable/ic_favorite_border"
-                            app:tint="@color/velocity_red_primary" />
-                    </com.google.android.material.card.MaterialCardView>
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -262,11 +239,15 @@
                         app:layout_constraintTop_toTopOf="parent" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- Rarely used hint; always hidden on the compact card. -->
+                <!-- "No more Deluxe rooms available for these dates (3 available)." - shown when the + limit is reached. -->
                 <TextView
                     android:id="@+id/tvRoomsLeftHint"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="12sp"
                     android:visibility="gone" />
 
                 <!-- Refund policy, as a small chip. -->
