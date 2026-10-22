@@ -185,8 +185,7 @@ public final class RoomDetailsDialog {
             } else {
                 String selectedText = activity.getResources().getQuantityString(R.plurals.rooms_staged_total_count, qty[0], qty[0]);
                 // at the limit the message is right under the quantity, not in a toast
-                tvSelectedIndicator.setText(qty[0] >= maxQty ? selectedText + "
-" + activity.getString(R.string.rooms_limit_message, room.getName(), maxQty) : selectedText);
+                tvSelectedIndicator.setText(qty[0] >= maxQty ? selectedText + "\n" + activity.getString(R.string.rooms_limit_message, room.getName(), maxQty) : selectedText);
                 layoutSubtotalRow.setVisibility(View.VISIBLE);
                 tvSubtotalAmount.setText(String.format(Locale.US, activity.getString(R.string.price_format),
                         room.getPricePerNight() * nights * qty[0]));

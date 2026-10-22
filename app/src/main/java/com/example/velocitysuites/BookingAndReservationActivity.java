@@ -1891,8 +1891,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 layoutSelectedIndicator.setVisibility(View.VISIBLE);
                 String selectedText = getResources().getQuantityString(R.plurals.rooms_staged_total_count, qty, qty);
                 // at the limit the message sits on the card itself, not in a toast
-                tvSelectedIndicator.setText(qty >= maxQty ? selectedText + "
-" + getString(R.string.rooms_limit_message, room.getName(), maxQty) : selectedText);
+                tvSelectedIndicator.setText(qty >= maxQty ? selectedText + "\n" + getString(R.string.rooms_limit_message, room.getName(), maxQty) : selectedText);
                 cardRoot.setStrokeWidth(strokeSelected);
                 cardRoot.setStrokeColor(ContextCompat.getColor(this, R.color.velocity_red_primary));
                 cardContent.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
