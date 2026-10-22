@@ -271,7 +271,6 @@
     <string name="receipt_bd_total_paid">Total paid</string>
     <string name="receipt_bd_balance_due">Balance due</string>
     <string name="receipt_hl_total_booking">Total booking amount</string>
-    <string name="receipt_hl_previous">Previous payments</string>
     <string name="receipt_hl_paid_checkin">Paid at check-in</string>
     <string name="receipt_hl_payment_type">Payment type</string>
     <string name="receipt_hl_type_full">Full payment</string>
@@ -700,7 +699,6 @@
     <string name="find_perfect_stay">Find Your Perfect Stay</string>
     <string name="no_rooms_available">No rooms available for the selected dates and filters.</string>
     <string name="available_label">Available</string>
-    <string name="limited_label">Limited availability</string>
     <string name="unavailable_label">Fully Booked</string>
     <string name="price_format_per_night">&#8369;%,.0f / night</string>
     <plurals name="room_type_capacity_format">
@@ -1336,7 +1334,7 @@
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
-    <string name="rooms_limit_message">No more %1$s rooms available for these dates (%2$d available).</string>
+    <string name="rooms_limit_message" tools:ignore="PluralsCandidate">No more %1$s rooms available for these dates (%2$d available).</string>
     <plurals name="rooms_available_count">
         <item quantity="one">%1$d room available</item>
         <item quantity="other">%1$d rooms available</item>
@@ -2197,10 +2195,6 @@
     <plurals name="show_rooms">
         <item quantity="one">Show %1$d room</item>
         <item quantity="other">Show %1$d rooms</item>
-    </plurals>
-    <plurals name="rooms_left">
-        <item quantity="one">Only %1$d left</item>
-        <item quantity="other">Only %1$d left</item>
     </plurals>
     <string name="next_stay_period_this_week">This week</string>
     <string name="next_stay_period_next_week">Next week</string>
