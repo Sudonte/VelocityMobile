@@ -197,7 +197,7 @@ public class ReceiptDetailMappingTest {
         ReceiptDetail detail = ApiMapper.toReceiptDetail(response);
 
         assertEquals("PARTIAL_RECEIPT", detail.getReceiptType());
-        assertEquals("Partial Payment Receipt", ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType()));
+        assertEquals("Payment verified", ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType()));
     }
 
     @Test
@@ -209,7 +209,7 @@ public class ReceiptDetailMappingTest {
         ReceiptDetail detail = ApiMapper.toReceiptDetail(response);
 
         assertFalse(detail.isAnchoredOnSinglePayment());
-        assertEquals("Official Payment Receipt", ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType()));
+        assertEquals("Check-out (final)", ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType()));
     }
 
     @Test

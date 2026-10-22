@@ -24,27 +24,25 @@ public final class ReceiptTypeMapper {
     }
 
     /**
-     * PARTIAL_RECEIPT -> "Partial Payment Receipt", FULL_PAYMENT_RECEIPT ->
-     * "Payment Receipt", OFFICIAL_RECEIPT -> "Official Payment Receipt".
-     * An unrecognized/future receipt_type falls back to the generic
-     * "Payment Receipt" rather than crashing or showing a raw enum string -
-     * a 20/30/40/50% deposit must never render as "Official", and this
-     * fallback deliberately can't produce that label either.
+     * The stay's three receipts by their names: PARTIAL_RECEIPT / FULL_PAYMENT_RECEIPT -> "Payment verified" (the receptionist verified
+     * the booking's payment), CHECKIN_SETTLEMENT_RECEIPT -> "Check-in", OFFICIAL_RECEIPT -> "Check-out (final)". An unrecognized or
+     * future receipt_type falls back to the generic "Payment receipt" rather than crashing or showing a raw enum string - and it can
+     * never read as the final one.
      */
     public static String labelForReceiptType(String receiptType) {
         if (receiptType == null) {
-            return "Payment Receipt";
+            return "Payment receipt";
         }
         switch (receiptType) {
             case PARTIAL_RECEIPT:
-                return "Partial Payment Receipt";
-            case OFFICIAL_RECEIPT:
-                return "Official Payment Receipt";
-            case CHECKIN_SETTLEMENT_RECEIPT:
-                return "Check-In Settlement Receipt";
             case FULL_PAYMENT_RECEIPT:
+                return "Payment verified";
+            case OFFICIAL_RECEIPT:
+                return "Check-out (final)";
+            case CHECKIN_SETTLEMENT_RECEIPT:
+                return "Check-in";
             default:
-                return "Payment Receipt";
+                return "Payment receipt";
         }
     }
 
@@ -67,7 +65,7 @@ public final class ReceiptTypeMapper {
         }
     }
 
-    /** "Receipt 2 - Check-In Settlement Receipt": the label with its place in the stay's three receipts. */
+    /** "Receipt 2 - Check-in": the label with its place in the stay's three receipts. */
     public static String labelWithStage(String receiptType) {
         int stage = stageOf(receiptType);
         String label = labelForReceiptType(receiptType);

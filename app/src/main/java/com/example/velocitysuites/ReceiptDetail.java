@@ -117,6 +117,62 @@ public class ReceiptDetail implements Serializable {
         @Nullable public final String amountToPayNote;
         public final java.util.Map<String, Double> amounts = new java.util.LinkedHashMap<>();
 
+        /** True when the final receipt carries its own lines (amenities by room, desk charges, payments); older ones do not. */
+        public boolean finalLines;
+        public final java.util.List<AmenityGroup> amenityGroups = new java.util.ArrayList<>();
+        public final java.util.List<ChargeLine> otherCharges = new java.util.ArrayList<>();
+        public final java.util.List<PaymentLine> payments = new java.util.ArrayList<>();
+        @Nullable public String noRefundNote;
+
+        public static class AmenityItem implements Serializable {
+            public final String name;
+            public final int quantity;
+            public final double unitPrice;
+            public final double subtotal;
+
+            public AmenityItem(String name, int quantity, double unitPrice, double subtotal) {
+                this.name = name != null ? name : "";
+                this.quantity = Math.max(1, quantity);
+                this.unitPrice = unitPrice;
+                this.subtotal = subtotal;
+            }
+        }
+
+        /** The approved amenities of one room (null room: for the whole stay). */
+        public static class AmenityGroup implements Serializable {
+            @Nullable public final String room;
+            public final java.util.List<AmenityItem> items = new java.util.ArrayList<>();
+            public double subtotal;
+
+            public AmenityGroup(@Nullable String room) {
+                this.room = room;
+            }
+        }
+
+        public static class ChargeLine implements Serializable {
+            public final String name;
+            public final double amount;
+
+            public ChargeLine(String name, double amount) {
+                this.name = name != null ? name : "";
+                this.amount = amount;
+            }
+        }
+
+        public static class PaymentLine implements Serializable {
+            public final String label;
+            public final double amount;
+            @Nullable public final String method;
+            @Nullable public final String date;
+
+            public PaymentLine(String label, double amount, @Nullable String method, @Nullable String date) {
+                this.label = label != null ? label : "";
+                this.amount = amount;
+                this.method = method;
+                this.date = date;
+            }
+        }
+
         public Highlight(String kind, @Nullable String paymentType, @Nullable String paymentMethod, @Nullable String amountToPayNote) {
             this.kind = kind;
             this.paymentType = paymentType;

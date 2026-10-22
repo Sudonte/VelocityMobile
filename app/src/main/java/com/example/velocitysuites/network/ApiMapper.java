@@ -844,6 +844,33 @@ public final class ApiMapper {
             hl.amounts.put("paid_receipt_1", h.paid_receipt_1);
             hl.amounts.put("paid_receipt_2", h.paid_receipt_2);
             hl.amounts.put("paid_at_checkout", h.paid_at_checkout);
+            if (h.amenities_by_room != null || h.payments != null || h.other_charges != null) {
+                hl.finalLines = true;
+                hl.noRefundNote = h.no_refund_note;
+                if (h.amenities_by_room != null) {
+                    for (ReceiptDetailDto.AmenityGroupDto g : h.amenities_by_room) {
+                        if (g == null) continue;
+                        ReceiptDetail.Highlight.AmenityGroup group = new ReceiptDetail.Highlight.AmenityGroup(g.room);
+                        group.subtotal = g.subtotal != null ? g.subtotal : 0;
+                        if (g.items != null) {
+                            for (com.example.velocitysuites.network.dto.StayBillDto.Line l : g.items) {
+                                if (l != null) group.items.add(new ReceiptDetail.Highlight.AmenityItem(l.name, l.quantity, l.unit_price, l.subtotal));
+                            }
+                        }
+                        hl.amenityGroups.add(group);
+                    }
+                }
+                if (h.other_charges != null) {
+                    for (ReceiptDetailDto.ChargeDto c : h.other_charges) {
+                        if (c != null) hl.otherCharges.add(new ReceiptDetail.Highlight.ChargeLine(c.name, c.amount != null ? c.amount : 0));
+                    }
+                }
+                if (h.payments != null) {
+                    for (ReceiptDetailDto.PaymentLineDto p : h.payments) {
+                        if (p != null) hl.payments.add(new ReceiptDetail.Highlight.PaymentLine(p.label, p.amount != null ? p.amount : 0, p.method, p.date));
+                    }
+                }
+            }
             receiptDetail.setHighlight(hl);
         }
         if (dto.checkin_settlement != null) {

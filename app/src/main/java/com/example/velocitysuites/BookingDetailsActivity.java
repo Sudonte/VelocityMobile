@@ -348,7 +348,7 @@ public class BookingDetailsActivity extends SafeActivity {
         container.addView(plain, plainParams);
 
         addInfoRow(container, getString(R.string.receipt_hl_remaining), MoneyFormat.format(balance));
-        addInfoRow(container, getString(R.string.receipt_hl_amount_to_pay), MoneyFormat.format(balance));
+        addInfoRow(container, getString(R.string.receipt_hl_remaining_balance_due), MoneyFormat.format(balance));
         addInfoRow(container, getString(R.string.receipt_hl_total_paid), MoneyFormat.format(paid));
         addInfoRow(container, getString(R.string.receipt_hl_grand_total), MoneyFormat.format(grand));
 

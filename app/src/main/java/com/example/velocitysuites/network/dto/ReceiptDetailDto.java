@@ -96,6 +96,30 @@ public class ReceiptDetailDto {
         public Double paid_receipt_1;
         public Double paid_receipt_2;
         public Double paid_at_checkout;
+        /** The final receipt's lines (absent on receipts issued before they were frozen): amenities by room, desk charges, every payment. */
+        public java.util.List<AmenityGroupDto> amenities_by_room;
+        public java.util.List<ChargeDto> other_charges;
+        public java.util.List<PaymentLineDto> payments;
+        public String no_refund_note;
+    }
+
+    public static class AmenityGroupDto {
+        /** The room number, or null for amenities booked for the whole stay. */
+        public String room;
+        public java.util.List<StayBillDto.Line> items;
+        public Double subtotal;
+    }
+
+    public static class ChargeDto {
+        public String name;
+        public Double amount;
+    }
+
+    public static class PaymentLineDto {
+        public String label;
+        public Double amount;
+        public String method;
+        public String date;
     }
 
     /** The discount ID result at check-in. */

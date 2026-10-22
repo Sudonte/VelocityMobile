@@ -216,7 +216,7 @@ public class NotificationDetailsActivity extends SafeActivity {
 
         if (notification.hasStructuredReceipt()) {
             btnReceipt.setVisibility(View.VISIBLE);
-            btnReceipt.setText(ReceiptTypeMapper.labelForReceiptType(notification.getReceiptType()));
+            btnReceipt.setText(ReceiptTypeMapper.labelWithStage(notification.getReceiptType()));
             btnReceipt.setOnClickListener(v -> startActivity(
                     PaymentReceiptActivity.newIntentForReceipt(this, notification.getReceiptNumber())));
             return;

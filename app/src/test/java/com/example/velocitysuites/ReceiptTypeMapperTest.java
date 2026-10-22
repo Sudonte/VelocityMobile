@@ -14,29 +14,29 @@ public class ReceiptTypeMapperTest {
 
     @Test
     public void partialReceipt_labelsAsPartialPaymentReceipt() {
-        assertEquals("Partial Payment Receipt", ReceiptTypeMapper.labelForReceiptType("PARTIAL_RECEIPT"));
+        assertEquals("Payment verified", ReceiptTypeMapper.labelForReceiptType("PARTIAL_RECEIPT"));
     }
 
     @Test
     public void fullPaymentReceipt_labelsAsPaymentReceipt_neverOfficial() {
         // The exact case the spec calls out: a verified 100% pre-checkout
-        // payment must render as "Payment Receipt", never "Official Payment
+        // payment must render as "Payment receipt", never "Official Payment
         // Receipt" - that label is checkout-only.
         String label = ReceiptTypeMapper.labelForReceiptType("FULL_PAYMENT_RECEIPT");
-        assertEquals("Payment Receipt", label);
+        assertEquals("Payment verified", label);
         assertNotEqualsOfficial(label);
     }
 
     @Test
     public void officialReceipt_labelsAsOfficialPaymentReceipt() {
-        assertEquals("Official Payment Receipt", ReceiptTypeMapper.labelForReceiptType("OFFICIAL_RECEIPT"));
+        assertEquals("Check-out (final)", ReceiptTypeMapper.labelForReceiptType("OFFICIAL_RECEIPT"));
     }
 
     @Test
     public void checkinSettlementReceipt_isReceipt2() {
-        assertEquals("Check-In Settlement Receipt", ReceiptTypeMapper.labelForReceiptType("CHECKIN_SETTLEMENT_RECEIPT"));
+        assertEquals("Check-in", ReceiptTypeMapper.labelForReceiptType("CHECKIN_SETTLEMENT_RECEIPT"));
         assertEquals(2, ReceiptTypeMapper.stageOf("CHECKIN_SETTLEMENT_RECEIPT"));
-        assertEquals("Receipt 2 - Check-In Settlement Receipt", ReceiptTypeMapper.labelWithStage("CHECKIN_SETTLEMENT_RECEIPT"));
+        assertEquals("Receipt 2 - Check-in", ReceiptTypeMapper.labelWithStage("CHECKIN_SETTLEMENT_RECEIPT"));
     }
 
     @Test
@@ -45,17 +45,17 @@ public class ReceiptTypeMapperTest {
         assertEquals(1, ReceiptTypeMapper.stageOf("FULL_PAYMENT_RECEIPT"));
         assertEquals(3, ReceiptTypeMapper.stageOf("OFFICIAL_RECEIPT"));
         assertEquals(0, ReceiptTypeMapper.stageOf("SOMETHING_NEW"));
-        assertEquals("a future type keeps its plain label", "Payment Receipt", ReceiptTypeMapper.labelWithStage("SOMETHING_NEW"));
+        assertEquals("a future type keeps its plain label", "Payment receipt", ReceiptTypeMapper.labelWithStage("SOMETHING_NEW"));
     }
 
     @Test
     public void unknownFutureReceiptType_fallsBackToGenericPaymentReceipt_neverCrashes() {
-        assertEquals("Payment Receipt", ReceiptTypeMapper.labelForReceiptType("SOME_NEW_RECEIPT_TYPE_FROM_A_FUTURE_BACKEND"));
+        assertEquals("Payment receipt", ReceiptTypeMapper.labelForReceiptType("SOME_NEW_RECEIPT_TYPE_FROM_A_FUTURE_BACKEND"));
     }
 
     @Test
     public void nullReceiptType_fallsBackToGenericPaymentReceipt() {
-        assertEquals("Payment Receipt", ReceiptTypeMapper.labelForReceiptType(null));
+        assertEquals("Payment receipt", ReceiptTypeMapper.labelForReceiptType(null));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class ReceiptTypeMapperTest {
     }
 
     private static void assertNotEqualsOfficial(String label) {
-        if ("Official Payment Receipt".equals(label)) {
+        if ("Check-out (final)".equals(label)) {
             throw new AssertionError("FULL_PAYMENT_RECEIPT must never render as Official Payment Receipt");
         }
     }

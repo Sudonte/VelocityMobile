@@ -31,7 +31,7 @@ public class NotificationReceiptNavigationTest {
 
         assertTrue(n.hasStructuredReceipt());
         assertEquals("PR-20260925-000501", n.getReceiptNumber());
-        assertEquals("Partial Payment Receipt", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
+        assertEquals("Payment verified", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
     }
 
     @Test
@@ -40,7 +40,7 @@ public class NotificationReceiptNavigationTest {
 
         assertTrue(n.hasStructuredReceipt());
         assertEquals("FR-20260925-000502", n.getReceiptNumber());
-        assertEquals("Payment Receipt", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
+        assertEquals("Payment verified", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
     }
 
     @Test
@@ -49,7 +49,7 @@ public class NotificationReceiptNavigationTest {
 
         assertTrue(n.hasStructuredReceipt());
         assertEquals("OR-20260925-000044", n.getReceiptNumber());
-        assertEquals("Official Payment Receipt", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
+        assertEquals("Check-out (final)", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class NotificationReceiptNavigationTest {
 
         assertTrue(n.hasStructuredReceipt());
         assertEquals("XX-20260925-000001", n.getReceiptNumber());
-        assertEquals("Payment Receipt", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
+        assertEquals("Payment receipt", ReceiptTypeMapper.labelForReceiptType(n.getReceiptType()));
     }
 
     @Test

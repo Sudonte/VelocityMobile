@@ -199,10 +199,9 @@ public class ReceiptsAndHeaderScreensTest {
         ReceiptDetail partial = all.values().stream().filter(d -> "PARTIAL_RECEIPT".equals(d.getReceiptType())).findFirst().get();
         partial.setHighlight(highlight("booking_verification", "total_amount", 2000, "amount_paid_now", 500, "total_paid", 500, "remaining_balance", 1500, "amount_to_pay", 1500));
         String text = all(open(partial).findViewById(R.id.layoutDynamicReceiptContent));
-        assertTrue(text, text.contains("Remaining balance"));
-        assertTrue(text, text.contains("Amount to pay"));
+        assertTrue(text, text.contains("Remaining balance due at the hotel"));
         assertTrue(text, text.contains("₱1,500.00"));
-        assertTrue(text, text.contains("Due at check-in"));
+        assertTrue(text, text.contains("Total paid so far"));
         assertTrue(text, text.contains("Partial payment"));
     }
 
@@ -211,8 +210,9 @@ public class ReceiptsAndHeaderScreensTest {
         ReceiptDetail any = DebugReceiptFixtures.allReceiptDetails().values().iterator().next();
         any.setHighlight(highlight("checkin_payment", "total_amount", 2000, "previous_payments", 500, "amount_paid_now", 1500, "total_paid", 2000, "remaining_balance", 0, "amount_to_pay", 0));
         String text = all(open(any).findViewById(R.id.layoutDynamicReceiptContent));
-        assertTrue(text, text.contains("Previous payments"));
+        assertTrue(text, text.contains("Paid before check-in"));
         assertTrue(text, text.contains("Paid at check-in"));
+        assertTrue(text, text.contains("Fully paid"));
         assertTrue(text, text.contains("₱0.00"));
     }
 

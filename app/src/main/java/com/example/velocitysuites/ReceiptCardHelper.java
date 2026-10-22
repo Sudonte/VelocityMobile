@@ -130,10 +130,12 @@ final class ReceiptCardHelper {
      * in that case (see hasLegacyReceiptCandidate above).
      */
     static void buildReceiptsSection(Activity activity, LinearLayout container, Booking booking) {
-        List<Booking.ReceiptSummary> receipts = booking.getReceipts();
+        List<Booking.ReceiptSummary> receipts = new java.util.ArrayList<>(booking.getReceipts());
         if (receipts.isEmpty()) {
             return;
         }
+        // Payment verified, then Check-in, then Check-out (final): always in the order they happen.
+        java.util.Collections.sort(receipts, (a, b) -> Integer.compare(ReceiptTypeMapper.stageOf(a.receiptType), ReceiptTypeMapper.stageOf(b.receiptType)));
         LayoutInflater inflater = LayoutInflater.from(activity);
         for (Booking.ReceiptSummary receipt : receipts) {
             View card = inflater.inflate(R.layout.item_receipt_summary_card, container, false);
