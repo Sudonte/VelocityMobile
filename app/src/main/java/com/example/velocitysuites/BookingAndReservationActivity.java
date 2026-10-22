@@ -3810,7 +3810,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             if (holder.tvGroupLabel != null) {
                 holder.tvGroupLabel.setVisibility(groupLabel == null ? View.GONE : View.VISIBLE);
                 if (groupLabel != null) {
-                    holder.tvGroupLabel.setText(groupLabel + "  ·  " + getString(R.string.group_stay_link));
+                    holder.tvGroupLabel.setText(getString(R.string.group_two_parts_format, groupLabel, getString(R.string.group_stay_link)));
                     holder.tvGroupLabel.setOnClickListener(v -> {
                         if (!isFinishing()) GroupStays.showOtherStays(BookingAndReservationActivity.this, b);
                     });

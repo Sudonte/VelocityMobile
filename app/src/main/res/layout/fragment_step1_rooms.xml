@@ -4,13 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="22dp">
+    android:orientation="vertical"
+    android:padding="22dp">
 
         <!-- Shown only while the initial date-aware availability fetch for this step is in flight - see Step1RoomSelectionFragment#onViewCreated(). -->
         <LinearLayout
@@ -290,5 +285,4 @@
 
         </LinearLayout>
 
-    </LinearLayout>
 </LinearLayout>

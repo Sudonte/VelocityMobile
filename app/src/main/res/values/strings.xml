@@ -1334,15 +1334,16 @@
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
-    <string name="wizard_summary_group_format">%1$d stays   %2$s   %3$s   %4$s</string>
+    <string name="wizard_summary_group_format" tools:ignore="PluralsCandidate">%1$d stays   %2$s   %3$s   %4$s</string>
     <string name="amenities_for_stay_label">Amenities for</string>
     <string name="stay_chip_format">Stay %1$d · %2$s - %3$s</string>
-    <string name="review_group_dates_format">%1$d stays (listed below)</string>
+    <string name="review_group_dates_format" tools:ignore="PluralsCandidate">%1$d stays (listed below)</string>
     <string name="review_stay_header_format">Stay %1$d: %2$s - %3$s (%4$s)</string>
     <string name="review_stay_amenity_format">Stay %1$d: %2$s x%3$d</string>
     <string name="review_stay_room_format">Stay %1$d: %2$s</string>
     <string name="discount_group_note">A discount can\'t be claimed when several stays are booked together here. Ask the front desk about a discount at check-in.</string>
     <string name="group_stay_label_format">Group · Stay %1$d of %2$d</string>
+    <string name="group_two_parts_format">%1$s  ·  %2$s</string>
     <string name="group_stay_link">Other stays</string>
     <string name="group_stay_line_format">Stay %1$d · %2$s · %3$s - %4$s</string>
     <string name="group_stays_title">Stays in this group</string>
@@ -1365,9 +1366,9 @@
     <string name="stay_summary_dates_format">%1$s - %2$s</string>
     <string name="stay_summary_line_format">%1$s · %2$s · %3$s · %4$s</string>
     <string name="stays_group_total_format">Group total: %1$s</string>
-    <string name="stays_max_format">You can book up to %1$d stays together.</string>
+    <string name="stays_max_format" tools:ignore="PluralsCandidate">You can book up to %1$d stays together.</string>
     <string name="stay_incomplete_dates">Choose valid check-in and check-out dates for this stay first.</string>
-    <string name="stay_incomplete_format">Stay %1$d needs its dates and at least one room.</string>
+    <string name="stay_incomplete_format" tools:ignore="PluralsCandidate">Stay %1$d needs its dates and at least one room.</string>
     <string name="rooms_limit_message" tools:ignore="PluralsCandidate">No more %1$s rooms available for these dates (%2$d available).</string>
     <plurals name="rooms_available_count">
         <item quantity="one">%1$d room available</item>

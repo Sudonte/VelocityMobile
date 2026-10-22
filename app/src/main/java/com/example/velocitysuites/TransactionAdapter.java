@@ -71,7 +71,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         String idText = holder.itemView.getContext().getString(
                 booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId());
         String groupLabel = GroupStays.label(holder.itemView.getContext(), booking);
-        holder.tvBookingId.setText(groupLabel == null ? idText : idText + "  ·  " + groupLabel); // "Booking #12 · Group · Stay 1 of 2"
+        holder.tvBookingId.setText(groupLabel == null ? idText
+                : holder.itemView.getContext().getString(R.string.group_two_parts_format, idText, groupLabel)); // "Booking #12 · Group · Stay 1 of 2"
         holder.tvStatusBadge.setText(noShow ? holder.itemView.getContext().getString(R.string.status_no_show) : BookingStatusPresenter.statusWord(holder.itemView.getContext(), booking));
         holder.tvRoomName.setText(booking.getRoomName());
         
