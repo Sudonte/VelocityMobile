@@ -173,6 +173,7 @@ public class Step2DatesFragment extends WizardStepFragment {
                 }
             }
             updateNightsSummary();
+            if (getParentFragment() instanceof StepStaysFragment) ((StepStaysFragment) getParentFragment()).onDatesChanged();
         }, activeCalFinal.get(Calendar.YEAR), activeCalFinal.get(Calendar.MONTH), activeCalFinal.get(Calendar.DAY_OF_MONTH));
 
         if (isCheckIn) {

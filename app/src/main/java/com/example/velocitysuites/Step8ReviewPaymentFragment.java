@@ -198,7 +198,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         Runnable goBack = () -> {
             if (!isAdded()) return;
             Toast.makeText(requireContext(), getString(R.string.error_booking_room_rejected, serverMessage), Toast.LENGTH_LONG).show();
-            getWizardActivity().goToStep(2);
+            getWizardActivity().goToStep(1);
         };
         if (state.checkIn == null || state.checkOut == null) {
             goBack.run();
@@ -273,6 +273,10 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private void renderSummary() {
         BookingWizardState state = getState();
 
+        if (state.isGroup()) {
+            renderGroupSummary(state);
+            return;
+        }
         if (state.checkIn != null && state.checkOut != null) {
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
             int nights = (int) nights();
@@ -318,6 +322,44 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         tvSummaryTotal.setText(String.format(Locale.US, getString(R.string.price_format), roomsTotal() + amenitiesTotal()));
         renderDiscountEstimate(state);
         renderEditTotals();
+    }
+
+    /** Several stays: every stay with its dates, nights, rooms and amenities, then the group total (one payment for all of them). */
+    private void renderGroupSummary(BookingWizardState state) {
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        tvSummaryDates.setText(getString(R.string.review_group_dates_format, state.stayCount()));
+        int guestCount = state.adults + state.children;
+        tvSummaryGuests.setText(getResources().getQuantityString(R.plurals.summary_guest_count, guestCount, guestCount));
+        tvSummaryAdultsChildren.setText(getString(R.string.summary_adults_children_format,
+                getResources().getQuantityString(R.plurals.adults_count, state.adults, state.adults),
+                getResources().getQuantityString(R.plurals.children_count, state.children, state.children)));
+        tvSummaryRepresentative.setVisibility(View.VISIBLE);
+        tvSummaryRepresentative.setText(RepresentativeName.summaryLine(requireContext(), state.representative()));
+
+        layoutSummaryRooms.removeAllViews();
+        layoutSummaryAmenitiesRows.removeAllViews();
+        boolean anyAmenities = false;
+        List<BookingWizardState.Stay> stays = state.allStays();
+        for (int i = 0; i < stays.size(); i++) {
+            BookingWizardState.Stay stay = stays.get(i);
+            int nights = (int) stay.nights();
+            layoutSummaryRooms.addView(buildRow(getString(R.string.review_stay_header_format, i + 1, fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime()),
+                    getResources().getQuantityString(R.plurals.nights_count_plain, nights, nights)), money(stay.total())));
+            for (List<Room> group : stay.roomsGroupedByType().values()) {
+                Room room = group.get(0);
+                layoutSummaryRooms.addView(buildRow("   " + getResources().getQuantityString(R.plurals.summary_room_row_qty_format, nights, group.size(), room.getName(), nights),
+                        money(room.getPricePerNight() * nights * group.size())));
+            }
+            for (AddOnAmenity a : stay.amenities) {
+                anyAmenities = true;
+                layoutSummaryAmenitiesRows.addView(buildRow(getString(R.string.review_stay_amenity_format, i + 1, a.getName(), a.getQuantity()), money(a.getSubtotal())));
+            }
+        }
+        layoutSummaryAmenities.setVisibility(anyAmenities ? View.VISIBLE : View.GONE);
+        if (anyAmenities) tvSummaryAmenitiesSubtotal.setText(money(amenitiesTotal()));
+        tvSummaryTotal.setText(money(state.groupTotal()));
+        tvSummaryDiscountNote.setVisibility(View.GONE);
+        layoutEditTotals.setVisibility(View.GONE);
     }
 
     /** Shows the claimed discount's estimated value on the WHOLE bill (rooms + add-ons) - read from the Discount module values the app loaded on Step 6, never a number of its own; the backend's BillDiscount uses the same basis. */
@@ -444,8 +486,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
      */
     private void recheckAvailabilityThenProceed() {
         BookingWizardState state = getState();
-        if (state.selectedRooms.isEmpty() || state.checkIn == null || state.checkOut == null) {
-            proceedAfterConfirm();
+        if (state.isGroup() || state.selectedRooms.isEmpty() || state.checkIn == null || state.checkOut == null) {
+            proceedAfterConfirm(); // several stays: the server checks each one (all or nothing) and names the stay that does not fit
             return;
         }
 
@@ -463,7 +505,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                     // armed in onConfirmClicked() so btnConfirm is usable again once the
                     // guest comes back through Step 8 after adjusting their room selection.
                     setSubmitting(false);
-                    getWizardActivity().goToStep(2);
+                    getWizardActivity().goToStep(1);
                     return;
                 }
 
@@ -531,6 +573,10 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         // (submitReservationGroups()), which produced one separate
         // Reservation per distinct room type instead of a single combined
         // transaction.
+        if (state.isGroup()) {
+            createReservationGroup(dialog);
+            return;
+        }
         List<List<Room>> groups = new ArrayList<>(state.selectedRoomsGroupedByType().values());
         // One id per Confirm-button tap (never per room/line) - lets a
         // double-tap or client/network retry of this same submission
@@ -555,6 +601,31 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                     public void onError(String message) {
                         dismissSafely(dialog);
                         onReservationCreationFailed(message);
+                    }
+                });
+    }
+
+    /** Several stays, one request: a reservation per stay, all or nothing (the error names the stay that failed). */
+    private void createReservationGroup(AlertDialog dialog) {
+        BookingWizardState state = getState();
+        repository.createBookingGroup(true, state.allStays(), state.adults, state.children,
+                state.guestFirstName, state.guestMiddleName, state.guestLastName, state.additionalGuests,
+                state.paymentMethod, null, null, null, 0, null, UUID.randomUUID().toString(),
+                new RoomRepository.RepositoryCallback<List<Booking>>() {
+                    @Override
+                    public void onSuccess(List<Booking> created) {
+                        dismissSafely(dialog);
+                        if (!created.isEmpty()) onReservationCreated(created.get(0));
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        dismissSafely(dialog);
+                        setSubmitting(false);
+                        showSubmitFailedDialog(message, () -> {
+                            setSubmitting(true);
+                            createReservationsThenShowSuccess();
+                        });
                     }
                 });
     }
@@ -621,7 +692,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 .setTitle(R.string.submit_failed_title)
                 .setMessage(message)
                 .setPositiveButton(R.string.retry_label, (d, w) -> retry.run())
-                .setNeutralButton(R.string.submit_failed_change, (d, w) -> getWizardActivity().goToStep(2))
+                .setNeutralButton(R.string.submit_failed_change, (d, w) -> getWizardActivity().goToStep(1))
                 .setNegativeButton(R.string.close_label, null)
                 .show();
     }

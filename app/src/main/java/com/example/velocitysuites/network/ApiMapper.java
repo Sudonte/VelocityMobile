@@ -292,6 +292,7 @@ public final class ApiMapper {
                     dto.edit_summary.amount_paid, dto.edit_summary.balance_due, dto.edit_summary.excess));
         }
         booking.setHasBooking(dto.booking != null);
+        booking.setGroup(dto.group_id, dto.group_reservation_ids);
         booking.setRoomImageUrl(dto.room_type != null ? dto.room_type.image_url : null);
         booking.setRoomTypeId(String.valueOf(dto.room_type_id));
         booking.setRoomsRequested(Math.max(1, dto.rooms_requested));
@@ -651,6 +652,7 @@ public final class ApiMapper {
         booking.setRoomImageUrl(dto.room_type != null ? dto.room_type.image_url : null);
         booking.setHasBooking(true);
         booking.setDirectBooking(true);
+        booking.setGroup(dto.group_id, dto.group_booking_ids);
         booking.setPaymentPendingVerification(pendingVerification);
         booking.setStaffVerified(dto.verified_at != null && !dto.verified_at.isEmpty());
         booking.setHiddenAt(dto.hidden_at);

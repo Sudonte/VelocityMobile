@@ -2528,28 +2528,32 @@ public class PaymentActivity extends BaseNavigationActivity {
         return pendingWizardState.nights();
     }
 
+    /** Every stay's rooms (one stay: exactly what it always was). */
     private double pendingWizardRoomsTotal() {
-        double total = 0;
-        for (List<Room> group : pendingWizardState.selectedRoomsGroupedByType().values()) {
-            total += group.get(0).getPricePerNight() * pendingWizardNights() * group.size();
-        }
-        return total;
+        return pendingWizardState.roomsTotal();
     }
 
     private double pendingWizardAmenitiesTotal() {
-        double total = 0;
-        for (AddOnAmenity a : pendingWizardState.selectedAmenities) {
-            total += a.getSubtotal();
-        }
-        return total;
+        return pendingWizardState.amenitiesTotal();
     }
 
     /** Compact single-line "2× Deluxe Room, 1× Executive Room" summary - only used by the GCash step's own read-only Order Review card (tvReviewRoomSummary), which has room for one line, not the itemized Payment Summary card above (see renderPendingWizardRoomsSummary()). */
     private String pendingWizardRoomTypeCommaSummary() {
         StringBuilder sb = new StringBuilder();
-        for (List<Room> group : pendingWizardState.selectedRoomsGroupedByType().values()) {
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(group.size()).append("× ").append(group.get(0).getName());
+        boolean several = pendingWizardState.isGroup();
+        int n = 0;
+        for (BookingWizardState.Stay stay : pendingWizardState.allStays()) {
+            n++;
+            if (several) {
+                if (sb.length() > 0) sb.append("; ");
+                sb.append(getString(R.string.stay_label_format, n)).append(": ");
+            }
+            boolean first = true;
+            for (List<Room> group : stay.roomsGroupedByType().values()) {
+                if (!first || (!several && sb.length() > 0)) sb.append(", ");
+                first = false;
+                sb.append(group.size()).append("× ").append(group.get(0).getName());
+            }
         }
         return sb.toString();
     }
@@ -2557,20 +2561,30 @@ public class PaymentActivity extends BaseNavigationActivity {
     private void renderPendingWizardRoomsSummary() {
         if (layoutSelectedRoomsSummary == null) return;
         layoutSelectedRoomsSummary.removeAllViews();
-        for (List<Room> group : pendingWizardState.selectedRoomsGroupedByType().values()) {
-            Room representative = group.get(0);
-            double subtotal = representative.getPricePerNight() * pendingWizardNights() * group.size();
-            layoutSelectedRoomsSummary.addView(buildRoomSummaryRow(representative.getName(), group.size(), subtotal));
+        boolean several = pendingWizardState.isGroup();
+        int n = 0;
+        for (BookingWizardState.Stay stay : pendingWizardState.allStays()) {
+            n++;
+            for (List<Room> group : stay.roomsGroupedByType().values()) {
+                Room representative = group.get(0);
+                double subtotal = representative.getPricePerNight() * stay.nights() * group.size();
+                String name = several ? getString(R.string.review_stay_room_format, n, representative.getName()) : representative.getName();
+                layoutSelectedRoomsSummary.addView(buildRoomSummaryRow(name, group.size(), subtotal));
+            }
         }
     }
 
     private void renderPendingWizardAmenitiesSummary() {
         if (layoutSelectedAmenitiesSummary == null) return;
         layoutSelectedAmenitiesSummary.removeAllViews();
-        boolean hasAmenities = !pendingWizardState.selectedAmenities.isEmpty();
-        if (hasAmenities) {
-            for (AddOnAmenity a : pendingWizardState.selectedAmenities) {
-                layoutSelectedAmenitiesSummary.addView(buildAmenitySummaryRow(a.getName(), a.getQuantity(), a.getSubtotal()));
+        boolean hasAmenities = false;
+        int n = 0;
+        for (BookingWizardState.Stay stay : pendingWizardState.allStays()) {
+            n++;
+            for (AddOnAmenity a : stay.amenities) {
+                hasAmenities = true;
+                String name = pendingWizardState.isGroup() ? getString(R.string.review_stay_room_format, n, a.getName()) : a.getName();
+                layoutSelectedAmenitiesSummary.addView(buildAmenitySummaryRow(name, a.getQuantity(), a.getSubtotal()));
             }
         }
         if (tvNoAmenitiesSummary != null) {
@@ -2613,15 +2627,24 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (tvSummaryRooms != null) tvSummaryRooms.setText(pendingWizardRoomTypeCommaSummary());
         if (pendingWizardState.checkIn != null && pendingWizardState.checkOut != null) {
             SimpleDateFormat fmt = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+            List<BookingWizardState.Stay> allStays = pendingWizardState.allStays();
+            // Several stays: the earliest check-in and the latest check-out of the group
+            java.util.Calendar firstIn = allStays.get(0).checkIn;
+            java.util.Calendar lastOut = allStays.get(0).checkOut;
+            for (BookingWizardState.Stay s : allStays) {
+                if (s.checkIn.before(firstIn)) firstIn = s.checkIn;
+                if (s.checkOut.after(lastOut)) lastOut = s.checkOut;
+            }
             if (tvCheckInSummary != null) {
-                tvCheckInSummary.setText(fmt.format(pendingWizardState.checkIn.getTime()));
+                tvCheckInSummary.setText(fmt.format(firstIn.getTime()));
             }
             if (tvCheckOutSummary != null) {
-                tvCheckOutSummary.setText(fmt.format(pendingWizardState.checkOut.getTime()));
+                tvCheckOutSummary.setText(fmt.format(lastOut.getTime()));
             }
         }
         if (tvNightsSummary != null) {
-            int nights = (int) pendingWizardNights();
+            int nights = 0;
+            for (BookingWizardState.Stay s : pendingWizardState.allStays()) nights += (int) s.nights(); // every stay's nights
             tvNightsSummary.setText(getResources().getQuantityString(R.plurals.payment_summary_nights_value, nights, nights));
         }
         if (tvSummaryGuests != null) {
@@ -2965,6 +2988,10 @@ public class PaymentActivity extends BaseNavigationActivity {
      * record for the entire Booking.
      */
     private void submitPendingBookingGroups(AlertDialog dialog, String gcashNumber, String referenceNumber, List<List<Room>> groups) {
+        if (pendingWizardState.isGroup()) {
+            submitPendingStayGroup(dialog, gcashNumber, referenceNumber);
+            return;
+        }
         Uri idCardForThisCall = "None".equals(pendingWizardState.idCardType) ? null : pendingWizardState.idCardImageUri;
 
         repository.createDirectBooking(groups, pendingWizardState.checkIn, pendingWizardState.checkOut,
@@ -3016,6 +3043,31 @@ public class PaymentActivity extends BaseNavigationActivity {
                         isSubmittingPayment = false;
                         restoreSubmitButtonAfterError();
                         showSubmitError(message);
+                    }
+                });
+    }
+
+    /** Several stays, one GCash payment: the server splits it across the bookings in proportion to their totals. All or nothing. */
+    private void submitPendingStayGroup(AlertDialog dialog, String gcashNumber, String referenceNumber) {
+        repository.createBookingGroup(false, pendingWizardState.allStays(), pendingWizardState.adults, pendingWizardState.children,
+                pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
+                pendingWizardState.additionalGuests, "gcash", referenceNumber, gcashNumber, receiptUri,
+                payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(),
+                new RoomRepository.RepositoryCallback<List<Booking>>() {
+                    @Override
+                    public void onSuccess(List<Booking> created) {
+                        if (isFinishing() || isDestroyed()) return;
+                        dismissSafely(dialog);
+                        if (!created.isEmpty()) onPendingBookingCreated(created.get(0), referenceNumber);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (isFinishing() || isDestroyed()) return;
+                        dismissSafely(dialog);
+                        isSubmittingPayment = false;
+                        restoreSubmitButtonAfterError();
+                        showSubmitError(message); // names the stay that failed ("Stay 2: ...")
                     }
                 });
     }

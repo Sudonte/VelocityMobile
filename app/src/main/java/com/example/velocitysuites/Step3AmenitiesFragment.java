@@ -60,6 +60,8 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
         tvSelectedAmenitiesCount = view.findViewById(R.id.tvSelectedAmenitiesCount);
         tvSelectedAmenitiesSubtotal = view.findViewById(R.id.tvSelectedAmenitiesSubtotal);
 
+        addStayPicker(view);
+
         view.findViewById(R.id.btnSkipAmenities).setOnClickListener(v -> {
             getState().selectedAmenities.clear();
             getWizardActivity().goToNextStepSkippingValidation();
@@ -67,6 +69,50 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
         });
 
         loadAmenityCatalog();
+    }
+
+    /**
+     * With several stays the amenities are chosen per stay: a row of "Stay 1 / Stay 2" chips at the top switches which stay this
+     * step edits (each keeps its own selection). Nothing is shown for a single stay.
+     */
+    private void addStayPicker(View view) {
+        BookingWizardState state = getState();
+        if (!state.isGroup() || !(view instanceof ViewGroup)) return;
+        ViewGroup scroll = (ViewGroup) view;
+        if (scroll.getChildCount() == 0 || !(scroll.getChildAt(0) instanceof LinearLayout)) return;
+        LinearLayout content = (LinearLayout) scroll.getChildAt(0);
+
+        TextView label = new TextView(requireContext());
+        label.setText(R.string.amenities_for_stay_label);
+        label.setTextSize(12);
+        label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
+        label.setTextColor(requireContext().getColor(R.color.velocity_text_primary));
+        label.setPadding(0, 0, 0, Math.round(6 * getResources().getDisplayMetrics().density));
+        content.addView(label, 0);
+
+        com.google.android.material.chip.ChipGroup group = new com.google.android.material.chip.ChipGroup(requireContext());
+        group.setSingleSelection(true);
+        group.setSelectionRequired(true);
+        group.setPadding(0, 0, 0, Math.round(10 * getResources().getDisplayMetrics().density));
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("MMM dd", java.util.Locale.US);
+        List<BookingWizardState.Stay> stays = state.allStays();
+        for (int i = 0; i < stays.size(); i++) {
+            BookingWizardState.Stay stay = stays.get(i);
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext(), null,
+                    com.google.android.material.R.attr.chipStyle);
+            chip.setCheckable(true);
+            chip.setText(getString(R.string.stay_chip_format, i + 1, fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime())));
+            chip.setId(View.generateViewId());
+            chip.setChecked(i == state.activeStayIndex());
+            final int index = i;
+            chip.setOnClickListener(v -> {
+                if (index == state.activeStayIndex()) return;
+                state.activate(index);
+                getWizardActivity().goToStep(2); // reopens this step on the chosen stay
+            });
+            group.addView(chip);
+        }
+        content.addView(group, 1);
     }
 
     @Override

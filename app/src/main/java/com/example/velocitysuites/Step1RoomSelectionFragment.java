@@ -78,14 +78,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         // rather than showing/computing availability against missing dates.
         BookingWizardState guardState = getState();
         if (guardState.checkIn == null || guardState.checkOut == null || !guardState.checkOut.after(guardState.checkIn)) {
-            Toast.makeText(requireContext(), R.string.select_date_hint, Toast.LENGTH_SHORT).show();
-            // Deferred: this onViewCreated() call is itself running inside the
-            // host's showStep()/commitNow() for THIS step - starting another
-            // FragmentTransaction synchronously here would hit "FragmentManager
-            // is already executing transactions". Posting runs it right after
-            // the current transaction finishes instead.
-            view.post(() -> getWizardActivity().goToStep(1));
-            return;
+            return; // the Dates and rooms step only shows this part once both dates are valid
         }
 
         layoutSelectedRooms = view.findViewById(R.id.layoutSelectedRooms);
@@ -99,7 +92,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         layoutRoomLoadError = view.findViewById(R.id.layoutRoomLoadError);
 
         view.findViewById(R.id.btnAddRoom).setOnClickListener(v -> onAddRoomClicked());
-        view.findViewById(R.id.btnChangeDates).setOnClickListener(v -> getWizardActivity().goToStep(1));
+        view.findViewById(R.id.btnChangeDates).setVisibility(View.GONE); // the dates are right above, in the same step
         view.findViewById(R.id.btnRetryRoomLoad).setOnClickListener(v -> loadAvailableRooms());
 
         renderSelectedRooms();

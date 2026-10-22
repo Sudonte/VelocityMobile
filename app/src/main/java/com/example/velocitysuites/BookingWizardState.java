@@ -22,6 +22,153 @@ public class BookingWizardState {
 
     public final Mode mode;
 
+    /** The most stays one booking or reservation may hold (each is its own booking/reservation, tied together as a group). */
+    public static final int MAX_STAYS = 4;
+
+    /**
+     * One stay: its own dates, rooms and paid amenities. The fields below ({@link #checkIn}, {@link #checkOut}, {@link #selectedRooms},
+     * {@link #selectedAmenities}) are the WORKING COPY of the stay being edited right now ("Stay 1" until the guest adds or opens another
+     * one); {@link #commitActive()} saves it into {@link #stays} and {@link #activate(int)} loads another. With a single stay nothing
+     * else changes, so one stay works exactly as it always did.
+     */
+    public static final class Stay {
+        public Calendar checkIn;
+        public Calendar checkOut;
+        public final List<Room> rooms = new ArrayList<>();
+        public final List<AddOnAmenity> amenities = new ArrayList<>();
+
+        public long nights() {
+            return StayDateCalculator.nightsBetween(checkIn, checkOut);
+        }
+
+        public boolean isComplete() {
+            return checkIn != null && checkOut != null && checkOut.after(checkIn) && !rooms.isEmpty();
+        }
+
+        /** Rooms grouped by room type, in selection order: duplicates in {@link #rooms} are the quantity. */
+        public Map<String, List<Room>> roomsGroupedByType() {
+            Map<String, List<Room>> grouped = new LinkedHashMap<>();
+            for (Room r : rooms) grouped.computeIfAbsent(r.getId(), k -> new ArrayList<>()).add(r);
+            return grouped;
+        }
+
+        public double roomsTotal() {
+            double total = 0;
+            for (List<Room> group : roomsGroupedByType().values()) total += group.get(0).getPricePerNight() * nights() * group.size();
+            return total;
+        }
+
+        public double amenitiesTotal() {
+            double total = 0;
+            for (AddOnAmenity a : amenities) total += a.getSubtotal();
+            return total;
+        }
+
+        public double total() {
+            return roomsTotal() + amenitiesTotal();
+        }
+
+        public int capacity() {
+            int total = 0;
+            for (Room r : rooms) total += r.getCapacity();
+            return total;
+        }
+    }
+
+    /** Every stay saved so far; the one at {@link #activeStay} is stale until {@link #commitActive()} (its live data is in the working-copy fields). */
+    private final List<Stay> stays = new ArrayList<>();
+    private int activeStay = 0;
+
+    /** Saves the working copy into the active stay's slot. */
+    public void commitActive() {
+        while (stays.size() <= activeStay) stays.add(new Stay());
+        Stay s = stays.get(activeStay);
+        s.checkIn = checkIn;
+        s.checkOut = checkOut;
+        s.rooms.clear();
+        s.rooms.addAll(selectedRooms);
+        s.amenities.clear();
+        s.amenities.addAll(selectedAmenities);
+    }
+
+    /** Makes stay {@code index} the one being edited (saving the current one first). */
+    public void activate(int index) {
+        commitActive();
+        if (index < 0 || index >= stays.size()) return;
+        activeStay = index;
+        Stay s = stays.get(index);
+        checkIn = s.checkIn;
+        checkOut = s.checkOut;
+        selectedRooms.clear();
+        selectedRooms.addAll(s.rooms);
+        selectedAmenities.clear();
+        selectedAmenities.addAll(s.amenities);
+    }
+
+    /** Adds an empty "Stay N+1" and opens it. Returns false at the {@link #MAX_STAYS} limit. */
+    public boolean addStay() {
+        commitActive();
+        if (stays.size() >= MAX_STAYS) return false;
+        stays.add(new Stay());
+        activate(stays.size() - 1);
+        return true;
+    }
+
+    /** Removes stay {@code index} (never the last one) and opens a neighbour. */
+    public void removeStay(int index) {
+        commitActive();
+        if (stays.size() <= 1 || index < 0 || index >= stays.size()) return;
+        boolean removedActive = index == activeStay;
+        stays.remove(index);
+        if (removedActive) activeStay = Math.min(index, stays.size() - 1);
+        else if (index < activeStay) activeStay--;
+        Stay s = stays.get(activeStay);
+        checkIn = s.checkIn;
+        checkOut = s.checkOut;
+        selectedRooms.clear();
+        selectedRooms.addAll(s.rooms);
+        selectedAmenities.clear();
+        selectedAmenities.addAll(s.amenities);
+    }
+
+    public int stayCount() {
+        return Math.max(1, stays.size());
+    }
+
+    public int activeStayIndex() {
+        return activeStay;
+    }
+
+    /** All stays, with the one being edited taken from its live working copy (a snapshot: nothing is modified). */
+    public List<Stay> allStays() {
+        List<Stay> out = new ArrayList<>();
+        int n = Math.max(1, stays.size());
+        for (int i = 0; i < n; i++) {
+            if (i == activeStay) {
+                Stay live = new Stay();
+                live.checkIn = checkIn;
+                live.checkOut = checkOut;
+                live.rooms.addAll(selectedRooms);
+                live.amenities.addAll(selectedAmenities);
+                out.add(live);
+            } else {
+                out.add(stays.get(i));
+            }
+        }
+        return out;
+    }
+
+    public boolean isGroup() {
+        return stayCount() > 1;
+    }
+
+    /** The whole transaction's price: every stay's rooms and paid amenities. */
+    public double groupTotal() {
+        double total = 0;
+        for (Stay s : allStays()) total += s.total();
+        return total;
+    }
+
     /** Flat list, duplicates ARE the per-type quantity - same convention as BookingAndReservationActivity#selectedRooms. */
     public final List<Room> selectedRooms = new ArrayList<>();
 
@@ -136,13 +283,16 @@ public class BookingWizardState {
         return StayDateCalculator.nightsBetween(checkIn, checkOut);
     }
 
-    /** Sum of each selected room's capacity - the hard ceiling step 5's declared adults+children can't exceed. */
+    /**
+     * Sum of each selected room's capacity - the hard ceiling step 5's declared adults+children can't exceed. With several stays the guests
+     * stay the same, so the ceiling is the smallest stay's capacity.
+     */
     public int totalSelectedCapacity() {
-        int total = 0;
-        for (Room r : selectedRooms) {
-            total += r.getCapacity();
+        int min = Integer.MAX_VALUE;
+        for (Stay s : allStays()) {
+            if (!s.rooms.isEmpty()) min = Math.min(min, s.capacity());
         }
-        return total;
+        return min == Integer.MAX_VALUE ? 0 : min;
     }
 
     /** Max adults + children for the current room selection (see {@link GuestCapacity}). */
@@ -190,18 +340,14 @@ public class BookingWizardState {
      */
     public double roomsTotal() {
         double total = 0;
-        for (List<Room> group : selectedRoomsGroupedByType().values()) {
-            total += group.get(0).getPricePerNight() * nights() * group.size();
-        }
+        for (Stay s : allStays()) total += s.roomsTotal();
         return total;
     }
 
     /** Sum of every selected amenity's subtotal - see roomsTotal()'s docblock for why this is shared here. */
     public double amenitiesTotal() {
         double total = 0;
-        for (AddOnAmenity a : selectedAmenities) {
-            total += a.getSubtotal();
-        }
+        for (Stay s : allStays()) total += s.amenitiesTotal();
         return total;
     }
 }

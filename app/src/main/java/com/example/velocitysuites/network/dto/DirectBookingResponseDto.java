@@ -10,6 +10,9 @@ import java.util.List;
  */
 public class DirectBookingResponseDto {
     public long id;
+    /** The group of stays this booking was booked with (null for a single stay), and the other bookings in it. */
+    public Long group_id;
+    public java.util.List<Long> group_booking_ids;
     public Long reservation_id;
     public long guest_id;
     public String guest_first_name;

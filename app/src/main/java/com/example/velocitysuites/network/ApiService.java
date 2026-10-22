@@ -277,6 +277,16 @@ public interface ApiService {
                                                          @Part MultipartBody.Part idCardImage,
                                                          @Part MultipartBody.Part receipt);
 
+    /** Several stays in one request (each its own booking or reservation, tied by a group). Fields: stays[i][check_in], stays[i][rooms][j][room_type_id], ...; receipt for a booking's payment. */
+    @Multipart
+    @POST("guest/booking-groups")
+    Call<com.example.velocitysuites.network.dto.GroupResponseDto> createBookingGroup(@PartMap Map<String, okhttp3.RequestBody> fields,
+                                                                                      @Part MultipartBody.Part receipt);
+
+    /** Cancel every stay of a group that the front desk has not verified yet. */
+    @PUT("guest/booking-groups/{id}/cancel")
+    Call<com.example.velocitysuites.network.dto.GroupResponseDto> cancelBookingGroup(@Path("id") long id);
+
     /** A direct Booking has no parent Reservation row, so it needs its own cancel endpoint - cancelReservation() below only ever resolves against the reservations table. */
     @PUT("guest/bookings/{id}/cancel")
     Call<DirectBookingResponseDto> cancelDirectBooking(@Path("id") String id);

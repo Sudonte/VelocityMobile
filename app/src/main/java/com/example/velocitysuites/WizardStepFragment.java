@@ -24,6 +24,10 @@ public abstract class WizardStepFragment extends Fragment {
     /** Human-readable label shown in the step-progress header, e.g. "Room Selection". */
     public abstract String stepTitle();
 
+    /** The host calls this whenever the selection on screen changed (rooms added or removed) - a step that shows a summary refreshes it. */
+    public void onSelectionChanged() {
+    }
+
     /** Called by the host right before this step becomes visible - use to refresh UI derived from state set by an earlier step. */
     public void onWizardStepShown() {
     }

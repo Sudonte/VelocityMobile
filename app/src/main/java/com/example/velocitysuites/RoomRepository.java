@@ -1885,6 +1885,140 @@ public final class RoomRepository {
         });
     }
 
+    /**
+     * Books several stays in one request (see Api\BookingGroupController): one booking (or reservation) per stay, all or nothing, with one
+     * combined payment of {@code amountPaid} for a booking group (the server splits it across the stays in proportion to their totals).
+     * Reservations take no payment. {@code onSuccess} receives the created stays in order.
+     */
+    public void createBookingGroup(boolean reservation, List<BookingWizardState.Stay> stays, int adults, int children,
+                                   String guestFirstName, String guestMiddleName, String guestLastName,
+                                   List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
+                                   String paymentMethod, String referenceNumber, String gcashNumber, Uri receiptUri,
+                                   double amountPaid, Integer selectedPaymentPercentage, @Nullable String idempotencyKey,
+                                   RepositoryCallback<List<Booking>> callback) {
+        fileIoExecutor.execute(() -> {
+            File receiptFile = null;
+            try {
+                if (receiptUri != null && !reservation) receiptFile = copyUriToTempFile(receiptUri, "gcash_receipt_");
+            } catch (IOException e) {
+                if (callback != null) mainHandler().post(() -> callback.onError("Couldn't read the selected image."));
+                return;
+            }
+            Map<String, RequestBody> fields = new LinkedHashMap<>(); // insertion order = index order (see createDirectBooking())
+            putText(fields, "type", reservation ? "reservation" : "booking");
+            for (int s = 0; s < stays.size(); s++) {
+                BookingWizardState.Stay stay = stays.get(s);
+                putText(fields, "stays[" + s + "][check_in]", ApiMapper.toApiDate(stay.checkIn));
+                putText(fields, "stays[" + s + "][check_out]", ApiMapper.toApiDate(stay.checkOut));
+                int r = 0;
+                for (List<Room> group : stay.roomsGroupedByType().values()) {
+                    putText(fields, "stays[" + s + "][rooms][" + r + "][room_type_id]", group.get(0).getId());
+                    putText(fields, "stays[" + s + "][rooms][" + r + "][quantity]", String.valueOf(group.size()));
+                    r++;
+                }
+                for (int a = 0; a < stay.amenities.size(); a++) {
+                    putText(fields, "stays[" + s + "][amenities][" + a + "][amenity_id]", stay.amenities.get(a).getId());
+                    putText(fields, "stays[" + s + "][amenities][" + a + "][quantity]", String.valueOf(stay.amenities.get(a).getQuantity()));
+                }
+            }
+            putText(fields, "adults", String.valueOf(adults));
+            putText(fields, "children", String.valueOf(children));
+            putText(fields, "guest_first_name", guestFirstName);
+            if (guestMiddleName != null && !guestMiddleName.trim().isEmpty()) putText(fields, "guest_middle_name", guestMiddleName.trim());
+            putText(fields, "guest_last_name", guestLastName);
+            putText(fields, "payment_method", paymentMethod);
+            if (!reservation) {
+                putText(fields, "amount_paid", String.valueOf(amountPaid));
+                if (selectedPaymentPercentage != null) putText(fields, "selected_payment_percentage", String.valueOf(selectedPaymentPercentage));
+                if ("gcash".equalsIgnoreCase(paymentMethod)) {
+                    putText(fields, "reference_number", referenceNumber != null ? referenceNumber : "");
+                    putText(fields, "gcash_number", gcashNumber != null ? gcashNumber : "");
+                }
+            }
+            if (idempotencyKey != null) putText(fields, "idempotency_key", idempotencyKey);
+            if (additionalGuests != null) {
+                for (int i = 0; i < additionalGuests.size(); i++) {
+                    BookingAndReservationActivity.AdditionalGuest g = additionalGuests.get(i);
+                    putText(fields, "additional_guests[" + i + "][name]", g.name);
+                    putText(fields, "additional_guests[" + i + "][age]", String.valueOf(g.age));
+                    if (g.gender != null) putText(fields, "additional_guests[" + i + "][gender]", g.gender);
+                    if (g.relationship != null) putText(fields, "additional_guests[" + i + "][relationship]", g.relationship);
+                }
+            }
+            MultipartBody.Part receiptPart = null;
+            final File finalReceiptFile = receiptFile;
+            if (finalReceiptFile != null) {
+                receiptPart = MultipartBody.Part.createFormData("receipt", finalReceiptFile.getName(), RequestBody.create(finalReceiptFile, MediaType.parse("image/*")));
+            }
+            api.createBookingGroup(fields, receiptPart).enqueue(new Callback<com.example.velocitysuites.network.dto.GroupResponseDto>() {
+                @Override
+                public void onResponse(Call<com.example.velocitysuites.network.dto.GroupResponseDto> call, Response<com.example.velocitysuites.network.dto.GroupResponseDto> response) {
+                    if (finalReceiptFile != null) finalReceiptFile.delete();
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<Booking> created = new ArrayList<>();
+                        if (response.body().bookings != null) for (DirectBookingResponseDto d : response.body().bookings) created.add(ApiMapper.toBooking(d));
+                        if (response.body().reservations != null) for (ReservationDto d : response.body().reservations) created.add(ApiMapper.toBooking(d));
+                        bookings.addAll(0, created);
+                        notifyBookingsChanged();
+                        if (callback != null) callback.onSuccess(created);
+                    } else if (callback != null) {
+                        callback.onError(errorMessage(response.code(), readErrorBody(response)));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<com.example.velocitysuites.network.dto.GroupResponseDto> call, Throwable t) {
+                    if (finalReceiptFile != null) finalReceiptFile.delete();
+                    if (callback == null) return;
+                    if (!reservation && "gcash".equalsIgnoreCase(paymentMethod)) {
+                        reconcileAfterFailure(referenceNumber, t, new RepositoryCallback<Booking>() {
+                            @Override
+                            public void onSuccess(Booking result) {
+                                callback.onSuccess(java.util.Collections.singletonList(result));
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                callback.onError(message);
+                            }
+                        });
+                    } else {
+                        callback.onError(networkErrorMessage(t));
+                    }
+                }
+            });
+        });
+    }
+
+    /** Cancels every stay of a group that is not verified yet; refreshes the lists afterwards. */
+    public void cancelBookingGroup(long groupId, RepositoryCallback<Void> callback) {
+        api.cancelBookingGroup(groupId).enqueue(new Callback<com.example.velocitysuites.network.dto.GroupResponseDto>() {
+            @Override
+            public void onResponse(Call<com.example.velocitysuites.network.dto.GroupResponseDto> call, Response<com.example.velocitysuites.network.dto.GroupResponseDto> response) {
+                if (response.isSuccessful()) {
+                    refreshBookings(new RepositoryCallback<List<Booking>>() {
+                        @Override
+                        public void onSuccess(List<Booking> result) {
+                            if (callback != null) callback.onSuccess(null);
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            if (callback != null) callback.onSuccess(null); // it was cancelled; the list refreshes on its next beat
+                        }
+                    });
+                } else if (callback != null) {
+                    callback.onError(errorMessage(response.code(), readErrorBody(response)));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.velocitysuites.network.dto.GroupResponseDto> call, Throwable t) {
+                if (callback != null) callback.onError(networkErrorMessage(t));
+            }
+        });
+    }
+
     private static void putText(Map<String, RequestBody> fields, String key, String value) {
         fields.put(key, RequestBody.create(value != null ? value : "", MediaType.parse("text/plain")));
     }

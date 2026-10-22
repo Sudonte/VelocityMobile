@@ -326,10 +326,10 @@ public class ReservationEditScreenTest {
         BookingWizardState s = activity.getState();
         String before = snapshot(s);
 
-        for (int step = 1; step <= 7; step++) {
+        for (int step = 1; step <= 6; step++) {
             activity.goToStep(step);
             idle();
-            if (step == 6) {
+            if (step == 5) {
                 // the discount list loads; the guest's own discount is bound to it and the ID stays on file
                 api.<List<DiscountDto>>last("getDiscounts").succeed(Arrays.asList(
                         discount(3, "Senior Citizen"), discount(7, "VIP")));
@@ -337,7 +337,7 @@ public class ReservationEditScreenTest {
                 assertTrue(allText(fragment(activity).getView()).contains("ID is on file"));
             }
         }
-        for (int step = 6; step >= 1; step--) {
+        for (int step = 5; step >= 1; step--) {
             activity.goToStep(step);
             idle();
         }
@@ -372,7 +372,7 @@ public class ReservationEditScreenTest {
         cacheRooms();
         BookingWizardActivity activity = openEdit(pendingReservation());
         BookingWizardState s = activity.getState();
-        activity.goToStep(7);
+        activity.goToStep(6);
         idle();
         LinearLayout panel = fragment(activity).getView().findViewById(R.id.layoutEditTotals);
         assertEquals(View.VISIBLE, panel.getVisibility());
@@ -388,7 +388,7 @@ public class ReservationEditScreenTest {
         // dropping the Suite lowers the new total below what was paid -> an excess is shown
         s.selectedRooms.remove(1);
         s.selectedAmenities.clear();
-        activity.goToStep(7);
+        activity.goToStep(6);
         idle();
         EditTotals lower = s.editTotals();
         assertEquals(2000.0, lower.newTotal, 0.001);

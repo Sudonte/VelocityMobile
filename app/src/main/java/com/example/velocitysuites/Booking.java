@@ -85,6 +85,9 @@ public class Booking implements Serializable {
      * on the real Booking side would just restate getId() - not added.
      */
     private String convertedBookingId;
+    /** The group of stays this transaction was booked with (null: a single stay) and the ids of the other stays in it. */
+    private Long groupId;
+    private java.util.List<Long> groupSiblingIds = new java.util.ArrayList<>();
     private String displayId;
     /**
      * Legacy field, defensive/for completeness only - kept in case an older
@@ -488,6 +491,13 @@ public class Booking implements Serializable {
     public boolean isStaffVerified() { return staffVerified; }
     public boolean isHistoricalReservation() { return historicalReservation; }
     public String getConvertedBookingId() { return convertedBookingId; }
+    @Nullable public Long getGroupId() { return groupId; }
+    public java.util.List<Long> getGroupSiblingIds() { return groupSiblingIds; }
+    public boolean isInGroup() { return groupId != null; }
+    public void setGroup(@Nullable Long groupId, @Nullable java.util.List<Long> siblingIds) {
+        this.groupId = groupId;
+        this.groupSiblingIds = siblingIds != null ? new java.util.ArrayList<>(siblingIds) : new java.util.ArrayList<>();
+    }
 
     /**
      * Which id (and implicitly, which endpoint) Delete Permanently must use.

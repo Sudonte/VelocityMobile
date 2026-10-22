@@ -107,6 +107,13 @@ public class BookingWizardActivity extends SafeActivity {
         }
         // Called whenever the room selection changes - keep the running summary in step with it.
         updateSummaryBar();
+        WizardStepFragment current = currentFragment();
+        if (current != null) current.onSelectionChanged();
+    }
+
+    /** Redraws the one-line summary under the step (stays, rooms, guests, running group total). */
+    public void refreshSummaryBar() {
+        updateSummaryBar();
     }
 
     /** Advances past the current step without re-running its own validateBeforeNext() - for a step's own "Skip" affordance (e.g. amenities). */
@@ -140,7 +147,7 @@ public class BookingWizardActivity extends SafeActivity {
      * changed or the check fails - Confirm re-checks again before anything is sent.
      */
     private void recheckAvailabilityOnReturn() {
-        if (state == null || state.checkIn == null || state.checkOut == null || currentStepIndex < 2) return;
+        if (state == null || state.checkIn == null || state.checkOut == null || currentStepIndex < 1) return;
         // Coming back from a refused booking: the review step handles that itself, with the server's own words.
         if (PendingBookingPayload.hasRoomsUnavailable()) return;
         RoomRepository.getInstance(this).refreshRoomsFresh(state.checkIn, state.checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
@@ -150,12 +157,8 @@ public class BookingWizardActivity extends SafeActivity {
                 List<RoomAvailabilityReconciler.Shortfall> lost = RoomAvailabilityReconciler.reconcile(state.selectedRooms, fresh);
                 if (!lost.isEmpty()) {
                     Toast.makeText(BookingWizardActivity.this, describeShortfalls(lost), Toast.LENGTH_LONG).show();
-                    goToStep(2);
+                    goToStep(1);
                     return;
-                }
-                WizardStepFragment current = currentFragment();
-                if (current instanceof Step1RoomSelectionFragment) {
-                    ((Step1RoomSelectionFragment) current).onFreshRoomsAfterReturn(fresh);
                 }
             }
 
@@ -224,10 +227,9 @@ public class BookingWizardActivity extends SafeActivity {
             }
         }
 
-        // Only a fresh (non-edit) Reservation gains the new Payment Method
-        // step - see this class's docblock. Booking mode and Reservation
-        // Modify both stay at 7 steps, completely unchanged.
-        stepCount = (mode == BookingWizardState.Mode.RESERVATION && !isEditMode()) ? 8 : 7;
+        // Dates and rooms are one step now (Step 1), so a Booking and a Reservation Modify have 6 steps; only a fresh (non-edit)
+        // Reservation gains the Payment Method step and has 7.
+        stepCount = (mode == BookingWizardState.Mode.RESERVATION && !isEditMode()) ? 7 : 6;
 
         // Header color mirrors startingbooking.xml (velocity_red_primary) vs
         // startingreservation.xml (velocity_red_dark) - the only visual
@@ -517,6 +519,8 @@ public class BookingWizardActivity extends SafeActivity {
 
     private void showStep(int stepIndex) {
         currentStepIndex = stepIndex;
+        // Only the first two steps (stays, amenities) work on one stay at a time; from the guest steps on everything reads all stays.
+        if (stepIndex >= 3) state.activate(0);
         Fragment fragment = createFragmentForStep(stepIndex);
         FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
         tx.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
@@ -531,19 +535,16 @@ public class BookingWizardActivity extends SafeActivity {
         // Payment Method chooser, and the review fragment moves to step 8.
         // Every other run (Booking mode, or Reservation Modify) stays at 7
         // steps with the review fragment still occupying step 7, unchanged.
-        boolean hasPaymentMethodStep = stepCount == 8;
+        boolean hasPaymentMethodStep = stepCount == 7;
         switch (stepIndex) {
-            // Dates first, then Room Selection - availability shown in step 2
-            // is date-range-aware (see Step1RoomSelectionFragment) instead of
-            // the plain undated count it used to show back when it was step 1.
-            case 1: return new Step2DatesFragment();
-            case 2: return new Step1RoomSelectionFragment();
-            case 3: return new Step3AmenitiesFragment();
-            case 4: return new Step4GuestIdentificationFragment();
-            case 5: return new Step5AdditionalGuestsFragment();
-            case 6: return new Step6IdVerificationFragment();
-            case 7: return hasPaymentMethodStep ? new Step7PaymentMethodFragment() : new Step8ReviewPaymentFragment();
-            case 8: return new Step8ReviewPaymentFragment();
+            // Dates and the rooms available for them, together (and "Add another stay").
+            case 1: return new StepStaysFragment();
+            case 2: return new Step3AmenitiesFragment();
+            case 3: return new Step4GuestIdentificationFragment();
+            case 4: return new Step5AdditionalGuestsFragment();
+            case 5: return new Step6IdVerificationFragment();
+            case 6: return hasPaymentMethodStep ? new Step7PaymentMethodFragment() : new Step8ReviewPaymentFragment();
+            case 7: return new Step8ReviewPaymentFragment();
             default: throw new IllegalStateException("Unknown wizard step: " + stepIndex);
         }
     }
@@ -590,6 +591,17 @@ public class BookingWizardActivity extends SafeActivity {
         // The final review step shows the same facts in its own summary card.
         if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount) {
             bar.setVisibility(View.GONE);
+            return;
+        }
+        if (state.isGroup()) {
+            int allRooms = 0;
+            for (BookingWizardState.Stay s : state.allStays()) allRooms += s.rooms.size();
+            int guestCount = state.adults + state.children;
+            bar.setText(getString(R.string.wizard_summary_group_format, state.stayCount(),
+                    getResources().getQuantityString(R.plurals.wizard_summary_rooms, allRooms, allRooms),
+                    getResources().getQuantityString(R.plurals.guests_count, guestCount, guestCount),
+                    String.format(Locale.US, getString(R.string.price_format), state.groupTotal())));
+            bar.setVisibility(View.VISIBLE);
             return;
         }
         SimpleDateFormat fmt = new SimpleDateFormat("MMM dd", Locale.US);
