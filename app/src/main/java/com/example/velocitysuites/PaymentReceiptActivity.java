@@ -533,9 +533,6 @@ public class PaymentReceiptActivity extends SafeActivity {
         if (!b.hasAdditionalCharges()) addNoteText(content, getString(R.string.receipt_bd_none));
         addRow(content, getString(R.string.receipt_bd_amenity_requests), formatPrice(b.amenitiesTotal));
         addRow(content, getString(R.string.receipt_bd_additional_charges), formatPrice(b.chargesTotal));
-        if (Math.abs(b.stayAdjustment) >= 0.005) {
-            addRow(content, getString(R.string.receipt_bd_stay_adjustment), (b.stayAdjustment < 0 ? "-" : "") + formatPrice(Math.abs(b.stayAdjustment)));
-        }
         addRow(content, getString(R.string.receipt_bd_additional_subtotal), formatPrice(b.additionalSubtotal));
         addProminentTotal(content, getString(R.string.receipt_bd_remaining_balance), formatPrice(b.remainingBalance));
 

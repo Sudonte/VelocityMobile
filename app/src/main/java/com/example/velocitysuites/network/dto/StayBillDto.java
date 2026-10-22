@@ -14,10 +14,9 @@ public class StayBillDto {
     public String scheduled_check_out;
     public String actual_check_out;
     public int scheduled_nights;
+    /** The nights billed: always the BOOKED nights (no refunds, no stay-length adjustment) - older settled bills may differ. */
     public int actual_nights;
-    public int extra_nights;
     public double room_charge;
-    public double extra_nights_charge;
     public double amenity_charge;
     public double additional_charges_total;
     public double subtotal;
@@ -63,7 +62,6 @@ public class StayBillDto {
         public double amenities_total;
         public List<Line> charges;
         public double charges_total;
-        public double stay_adjustment;
         public double subtotal;
     }
 
@@ -100,7 +98,6 @@ public class StayBillDto {
         public String room_type_id;
         public double rate;
         public int nights;
-        public int extra_nights;
         public double subtotal;
         /** "active" or "checked_out". */
         public String status;

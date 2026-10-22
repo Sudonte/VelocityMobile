@@ -513,8 +513,7 @@ public class BookingDetailsActivity extends SafeActivity {
                 HotelPolicy.CHECK_OUT_TIME));
         StayInfo stay = booking.getStay();
         if (stay != null) {
-            // In house or finished: the dates and nights the front desk actually billed - scheduled, actual, nights
-            // (booked vs actual when they differ), the extra nights' charge and the updated total.
+            // In house or finished: the booked dates, the nights billed (always the booked nights), approved amenities and the total.
             for (StayInfo.Row row : stay.rows(this)) {
                 if (row.label.equals(getString(R.string.stay_scheduled_check_in))
                         || row.label.equals(getString(R.string.stay_scheduled_check_out))) continue; // already shown just above
@@ -936,7 +935,7 @@ public class BookingDetailsActivity extends SafeActivity {
         addInfoRow(container, getString(R.string.receipt_bd_paid_at_checkin), formatPrice(b.amountPaidAtCheckin));
 
         addSectionDivider(container, getString(R.string.details_group_amenities_charges));
-        if (b.amenities.isEmpty() && b.charges.isEmpty() && Math.abs(b.stayAdjustment) < 0.005) {
+        if (b.amenities.isEmpty() && b.charges.isEmpty()) {
             addInfoRow(container, getString(R.string.details_none_added), formatPrice(0));
         }
         for (BalanceBreakdown.Item item : b.amenities) {
@@ -947,9 +946,6 @@ public class BookingDetailsActivity extends SafeActivity {
             addInfoRow(container, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
         }
         if (!b.charges.isEmpty()) addTotalRow(container, getString(R.string.receipt_bd_additional_charges), formatPrice(b.chargesTotal));
-        if (Math.abs(b.stayAdjustment) >= 0.005) {
-            addInfoRow(container, getString(R.string.receipt_bd_stay_adjustment), (b.stayAdjustment < 0 ? "-" : "") + formatPrice(Math.abs(b.stayAdjustment)));
-        }
         addGrandTotalRow(container, getString(R.string.remaining_balance_payable_at_checkout), formatPrice(b.remainingBalance));
         // Requests the front desk has not approved: shown apart so the guest knows their status, never in a total.
         for (StayInfo.RequestedAmenity r : stay.requestedAmenities) {

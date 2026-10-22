@@ -44,7 +44,6 @@ public final class BalanceBreakdown implements Serializable {
     public final double amenitiesTotal;
     public final List<Item> charges;
     public final double chargesTotal;
-    public final double stayAdjustment;
     public final double additionalSubtotal;
     public final double remainingBalance;
     public final double finalGrandTotal;
@@ -66,7 +65,6 @@ public final class BalanceBreakdown implements Serializable {
         this.amenitiesTotal = a.amenities_total;
         this.charges = items(a.charges);
         this.chargesTotal = a.charges_total;
-        this.stayAdjustment = a.stay_adjustment;
         this.additionalSubtotal = a.subtotal;
         this.remainingBalance = d.remaining_balance;
         this.finalGrandTotal = d.final_grand_total;
@@ -82,7 +80,7 @@ public final class BalanceBreakdown implements Serializable {
     }
 
     public boolean hasAdditionalCharges() {
-        return !amenities.isEmpty() || !charges.isEmpty() || Math.abs(stayAdjustment) >= 0.005;
+        return !amenities.isEmpty() || !charges.isEmpty();
     }
 
     /** Check-in grand total + what was added since == final grand total, and the check-in lines sum to its grand total. */

@@ -265,7 +265,6 @@
     <string name="receipt_bd_item_format">%1$s × %2$d @ %3$s</string>
     <string name="receipt_bd_amenity_requests">Amenity requests</string>
     <string name="receipt_bd_additional_charges">Additional charges</string>
-    <string name="receipt_bd_stay_adjustment">Stay length adjustment</string>
     <string name="receipt_bd_additional_subtotal">Subtotal of Additional</string>
     <string name="receipt_bd_remaining_balance">REMAINING BALANCE</string>
     <string name="receipt_bd_final_grand_total">Final grand total</string>
@@ -1180,11 +1179,8 @@
     <!-- Itemized stay (server StayBill): booked vs actual check-out, nights and the extra nights' charge. -->
     <string name="stay_scheduled_check_in">Scheduled Check-In</string>
     <string name="stay_scheduled_check_out">Scheduled Check-Out</string>
-    <string name="stay_actual_check_out">Actual Check-Out</string>
-    <string name="stay_nights_booked_format">%1$s (booked: %2$d)</string>
-    <string name="stay_extra_nights_charge">Extra Nights Charge (%1$d)</string>
     <string name="stay_additional_amenity_label">Additional amenities: %1$s</string>
-    <string name="stay_updated_total">Updated Total</string>
+    <string name="stay_total">Total</string>
     <string name="deleting_in_progress_label">Deleting…</string>
     <string name="cancelling_in_progress_label">Cancelling…</string>
     <string name="wizard_progress_lost_restart">Your booking session was interrupted, so we\'ve restarted it from the beginning. Please re-enter your details.</string>
@@ -2201,7 +2197,6 @@
     <string name="next_stay_detail_booked_amenities">Booked amenities</string>
     <string name="next_stay_detail_discount">Discount</string>
     <string name="next_stay_detail_additional_charges">Additional charges</string>
-    <string name="next_stay_detail_adjustment">Adjustment</string>
     <string name="next_stay_detail_total">Total</string>
     <string name="next_stay_detail_payable_at_checkout">Payable at check-out</string>
     <string name="next_stay_detail_item_format">%1$s × %2$d</string>

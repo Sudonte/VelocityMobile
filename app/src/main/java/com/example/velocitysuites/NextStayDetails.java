@@ -130,9 +130,6 @@ final class NextStayDetails {
             rows.add(new Row(Kind.HEADER, c.getString(R.string.next_stay_detail_additional_charges), "", false, Tone.NORMAL));
             for (BalanceBreakdown.Item item : charges) rows.add(itemLine(c, item));
         }
-        if (Math.abs(b.stayAdjustment) >= 0.005) {
-            rows.add(line(c.getString(R.string.next_stay_detail_adjustment), b.stayAdjustment, false, Tone.NORMAL));
-        }
         rows.add(new Row(Kind.DIVIDER, "", "", false, Tone.NORMAL));
         rows.add(line(c.getString(R.string.next_stay_detail_total), b.finalGrandTotal, true, Tone.NORMAL));
         rows.add(line(c.getString(R.string.next_stay_paid), b.totalPaid, false, Tone.NORMAL));
