@@ -89,7 +89,7 @@ public final class PaymentBillingCheck {
      * @param shown       what the guest last saw / confirmed
      * @param latest      the fresh read, or null if it could not be fetched
      * @param typedAmount the amount about to be sent
-     * @param fullPayment true for Full Payment, false for one of the partial options
+     * @param fullPayment true for a full payment (never accepted online: online payment is partial only), false for one of the partial options
      */
     public static SubmitVerdict beforeSubmit(Bill shown, @Nullable Bill latest, double typedAmount, boolean fullPayment) {
         if (latest == null) return SubmitVerdict.CHECK_FAILED;

@@ -1286,15 +1286,6 @@
                                         android:fontFamily="sans-serif-medium"
                                         android:text="@string/percent_50"
                                         android:textSize="13sp" />
-
-                                    <com.google.android.material.chip.Chip
-                                        android:id="@+id/chipPercentFull"
-                                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:fontFamily="sans-serif-medium"
-                                        android:text="@string/payment_type_full"
-                                        android:textSize="13sp" />
                                 </com.google.android.material.chip.ChipGroup>
 
                                 <TextView
@@ -1336,7 +1327,7 @@
                                     android:layout_marginTop="4dp"
                                     android:accessibilityLiveRegion="polite"
                                     android:fontFamily="sans-serif-medium"
-                                    android:text="@string/error_full_amount_mismatch"
+                                    android:text="@string/error_partial_only"
                                     android:textColor="@color/velocity_action_text"
                                     android:textSize="13sp"
                                     android:visibility="gone"

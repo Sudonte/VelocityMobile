@@ -128,11 +128,9 @@ public class PaymentActivity extends BaseNavigationActivity {
     private RoomRepository repository;
     private String bookingId;
 
-    // Payment amount: either a Partial Payment (exactly 20/30/40/50% of the
-    // booking total - no custom percentages allowed) or a Full Payment
-    // (must exactly match the total booking amount, validated live).
+    // Payment amount: a Partial (down) Payment of exactly 20/30/40/50% of the booking total - no custom percentages. Online
+    // payment is partial only; the rest is paid at the hotel.
     private static final double[] PARTIAL_PERCENTAGES = {0.20, 0.30, 0.40, 0.50};
-    private boolean isFullPaymentMode = false;
     private double selectedPartialPercent = PARTIAL_PERCENTAGES[0];
     private double roomTotalValue = 0;
     private double grandTotalValue = 0;
@@ -701,13 +699,9 @@ public class PaymentActivity extends BaseNavigationActivity {
                     ? getString(R.string.label_not_available) : repName);
         }
         if (tvReviewPaymentMethod != null) tvReviewPaymentMethod.setText(R.string.payment_method_gcash);
-        // isFullPaymentMode already IS this payment's PARTIAL/FULL type (see
-        // onPaymentPercentChipChecked()) - 100% chip selected = Full Payment,
-        // any of 20/30/40/50% is Partial Payment. Same rule PaymentStateUtil#
-        // isFullyPaid() applies after the fact from amounts once this
-        // payment is recorded, so the two can never disagree.
+        // Online payment is always a Partial Payment (20/30/40/50% of the total); the rest is paid at the hotel.
         if (tvReviewPaymentType != null) {
-            tvReviewPaymentType.setText(isFullPaymentMode ? R.string.review_payment_type_full : R.string.review_payment_type_partial);
+            tvReviewPaymentType.setText(R.string.review_payment_type_partial);
         }
         if (tvReviewPaymentPercentage != null) {
             tvReviewPaymentPercentage.setText(getString(R.string.payment_percentage_format, selectedGcashPercentageForRequest()));
@@ -811,30 +805,11 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Cash reservations can only be paid in full - the balance is settled
-     * walk-in at checkout, so there's no partial/deposit concept to offer.
-     * Selecting Cash hides the 20/30/40/50% chips and forces Full Payment;
-     * selecting GCash restores all five options.
+     * Cash or GCash, the payment is a partial (down) payment: 20/30/40/50% of the total, and the rest is paid at the hotel. Switching
+     * the method only re-applies the selected amount.
      */
     private void applyCashPartialInterlock() {
-        if (cgPaymentAmount == null) return;
-        int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
-        // A guest whose discount is still being verified may choose Cash as a DEPOSIT (the same 20-50% options as GCash);
-        // otherwise Cash is paid in full.
-        boolean cashIsFull = isCashSelected && !isDiscountPending();
-        for (int id : partialChipIds) {
-            com.google.android.material.chip.Chip chip = findViewById(id);
-            if (chip != null) chip.setVisibility(cashIsFull ? View.GONE : View.VISIBLE);
-        }
-        if (cashIsFull) {
-            if (cgPaymentAmount.getCheckedChipId() != R.id.chipPercentFull) {
-                cgPaymentAmount.check(R.id.chipPercentFull);
-            } else {
-                applyPaymentAmountSelection();
-            }
-        } else {
-            applyPaymentAmountSelection();
-        }
+        applyPaymentAmountSelection();
     }
 
     private void setupAmountInput() {
@@ -856,10 +831,7 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     /**
-     * A single unified 5-option selector (20% / 30% / 40% / 50% / Full
-     * Payment) replaces the old separate Payment Type (Partial/Full) toggle
-     * nested with its own percent chips + free-typed Custom percentage -
-     * one flat ChipGroup, one listener.
+     * A single selector (20% / 30% / 40% / 50%) - one flat ChipGroup, one listener. Online payment is a partial payment only.
      */
     private void setupPaymentAmountChips() {
         if (cgPaymentAmount == null) return;
@@ -867,74 +839,48 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Reads whichever chip is checked, updates isFullPaymentMode/
-     * selectedPartialPercent accordingly, and either auto-fills the amount
-     * field with what's still owed (Full Payment, field stays editable in
-     * case the guest needs to adjust it) or computes the fixed percentage
-     * of the remaining due amount (20/30/40/50%, read-only field).
+     * Reads whichever chip is checked and computes the fixed percentage of the original total (20/30/40/50%, read-only field),
+     * capped by what is left to pay. When no down payment fits any more (what is left is below the minimum, or a payment would
+     * pay it all off) the chips are hidden and the guest is told the rest is paid at the front desk.
      */
     private void applyPaymentAmountSelection() {
         if (cgPaymentAmount == null) return;
         if (renderStoredPaymentPercentageIfPresent()) {
             return;
         }
-        if (enforcePartialAvailability()) return;
+        enforcePartialAvailability();
         int checkedId = cgPaymentAmount.getCheckedChipId();
-        isFullPaymentMode = checkedId == R.id.chipPercentFull;
         if (checkedId == R.id.chipPercent20) selectedPartialPercent = PARTIAL_PERCENTAGES[0];
         else if (checkedId == R.id.chipPercent30) selectedPartialPercent = PARTIAL_PERCENTAGES[1];
         else if (checkedId == R.id.chipPercent40) selectedPartialPercent = PARTIAL_PERCENTAGES[2];
         else if (checkedId == R.id.chipPercent50) selectedPartialPercent = PARTIAL_PERCENTAGES[3];
 
         if (etAmountToPay != null) {
-            etAmountToPay.setFocusable(isFullPaymentMode);
-            etAmountToPay.setFocusableInTouchMode(isFullPaymentMode);
-            etAmountToPay.setCursorVisible(isFullPaymentMode);
-            etAmountToPay.setClickable(isFullPaymentMode);
+            etAmountToPay.setFocusable(false);
+            etAmountToPay.setFocusableInTouchMode(false);
+            etAmountToPay.setCursorVisible(false);
+            etAmountToPay.setClickable(false);
         }
         if (tvPaymentModeSub != null) {
-            // Once a prior payment already exists, spell out the actual
-            // remaining amount alongside the hint - Full Payment always pays
-            // exactly what's still owed, while the 20/30/40/50% chips are
-            // always a percentage of the original Grand Total (see
-            // applySelectedPartialPercent()), only ever capped by the
-            // remaining balance to prevent overpayment - never recalculated
-            // against a shrinking base.
+            // Once a prior payment already exists, spell out the actual remaining amount alongside the hint - the
+            // 20/30/40/50% chips are always a percentage of the original Grand Total (see applySelectedPartialPercent()),
+            // only ever capped by the remaining balance - never recalculated against a shrinking base.
             boolean hasPriorPayment = alreadyPaidValue > 0.009;
             String dueFormatted = MoneyFormat.format(remainingDueValue());
             PaymentRules.Range rulesRange = rulesRange();
             if (rulesRange.discountPending && grandTotalValue > 0 && !rulesRange.isSettled()) {
                 tvPaymentModeSub.setText(rulesRange.capReached() ? R.string.max_deposit_reached
                         : isCashSelected ? R.string.discount_pending_cash_line : R.string.discount_pending_line);
-            } else if (isFullPaymentMode && grandTotalValue > 0 && !isCashSelected && !rulesRange.isSettled() && !rulesRange.canPartial()) {
-                // The 20% minimum no longer fits inside what is left: only Full is possible, and the guest is told why.
-                tvPaymentModeSub.setText(getString(R.string.partial_unavailable_hint, dueFormatted, MoneyFormat.format(rulesRange.min)));
-            } else if (isFullPaymentMode) {
-                tvPaymentModeSub.setText(hasPriorPayment
-                        ? getString(R.string.full_payment_hint_with_due, dueFormatted)
-                        : getString(R.string.full_payment_hint));
+            } else if (grandTotalValue > 0 && !rulesRange.isSettled() && !rulesRange.canPartial()) {
+                // No down payment fits any more: what is left is paid at the front desk, and the guest is told why.
+                tvPaymentModeSub.setText(getString(R.string.pay_rest_at_hotel_hint, dueFormatted));
             } else {
                 tvPaymentModeSub.setText(hasPriorPayment
                         ? getString(R.string.partial_percent_label_with_due, dueFormatted)
                         : getString(R.string.partial_percent_label));
             }
         }
-        if (isFullPaymentMode) {
-            // Auto-fill with the amount still owed (not the original total -
-            // a booking with an existing partial payment must only need the
-            // remainder) so the guest can proceed straight to GCash without
-            // having to type it in manually - the field stays editable in
-            // case they need to adjust it.
-            double due = remainingDueValue();
-            payNowValue = due;
-            if (etAmountToPay != null) {
-                etAmountToPay.setText(due > 0 ? String.format(Locale.US, "%.2f", due) : "");
-            }
-            updateAmountToPay();
-            validateAmount();
-        } else {
-            applySelectedPartialPercent();
-        }
+        applySelectedPartialPercent();
     }
 
     /**
@@ -992,8 +938,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             return false;
         }
 
-        isFullPaymentMode = storedPercentage >= 100;
-        if (!isFullPaymentMode) selectedPartialPercent = PaymentPercentageUtil.apiPercentageToFraction(storedPercentage);
+        if (storedPercentage < 100) selectedPartialPercent = PaymentPercentageUtil.apiPercentageToFraction(storedPercentage);
         payNowValue = storedAmount;
 
         if (etAmountToPay != null) {
@@ -1026,7 +971,7 @@ public class PaymentActivity extends BaseNavigationActivity {
      * later Pay Now visit (see loadBookingData()'s read-only rendering).
      */
     private int selectedGcashPercentageForRequest() {
-        return isFullPaymentMode ? 100 : PaymentPercentageUtil.fractionToApiPercentage(selectedPartialPercent);
+        return PaymentPercentageUtil.fractionToApiPercentage(selectedPartialPercent);
     }
 
     /**
@@ -1036,7 +981,7 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     private boolean validateAmount() {
         PaymentRules.Range range = rulesRange();
-        PaymentRules.Verdict verdict = PaymentRules.check(range, isFullPaymentMode, payNowValue);
+        PaymentRules.Verdict verdict = PaymentRules.check(range, false, payNowValue);
         boolean valid = verdict == PaymentRules.Verdict.OK;
         if (tvAmountError != null) {
             tvAmountError.setText(valid ? "" : ruleMessage(verdict, range));
@@ -1051,55 +996,34 @@ public class PaymentActivity extends BaseNavigationActivity {
         switch (verdict) {
             case SETTLED:
                 return getString(R.string.error_payment_settled);
-            case DISCOUNT_PENDING_FULL:
-                return getString(isCashSelected ? R.string.discount_pending_cash_line : R.string.discount_pending_line);
+            case PARTIAL_ONLY:
+                return getString(R.string.error_partial_only);
             case MAX_DEPOSIT_REACHED:
                 return getString(R.string.max_deposit_reached);
             case DISCOUNT_ON_HOLD:
                 return getString(R.string.discount_on_hold, MoneyFormat.format(range.remaining), MoneyFormat.format(range.min));
-            case FULL_REQUIRED:
-                return getString(R.string.error_partial_unavailable,
-                        MoneyFormat.format(range.remaining), MoneyFormat.format(range.min));
+            case PAY_AT_FRONT_DESK:
+                return getString(R.string.error_pay_rest_at_hotel, MoneyFormat.format(range.remaining));
             case OUT_OF_RANGE:
+            default:
                 return getString(R.string.error_partial_out_of_range,
                         MoneyFormat.format(range.min), MoneyFormat.format(range.max));
-            case FULL_MUST_EQUAL_BALANCE:
-            default:
-                return getString(R.string.error_full_amount_mismatch, MoneyFormat.format(range.remaining));
         }
     }
 
     /**
-     * Partial payment only exists while the 20% minimum still fits inside what is left to pay (and never for
-     * Cash, which is always paid in full). Otherwise the 20/30/40/50% options are hidden and Full Payment is
-     * selected, with a short explanation under the selector. Returns true if it just switched to Full - the chip
-     * listener then re-enters applyPaymentAmountSelection().
+     * A down payment only exists while the 20% minimum still fits inside what may be paid online (what is left to pay, never the
+     * whole of it). Otherwise the 20/30/40/50% options are hidden and the guest is told, under the selector, that the rest is
+     * paid at the front desk.
      */
-    private boolean enforcePartialAvailability() {
-        if (cgPaymentAmount == null || grandTotalValue <= 0) return false;
-        PaymentRules.Range range = rulesRange();
-        // Cash is paid in full - except as a deposit while the discount is being verified.
-        boolean partialAllowed = (!isCashSelected || range.discountPending) && range.canPartial();
-        // While a discount waits for the ID check only a deposit may be paid, so Full Payment is not offered.
-        boolean fullAllowed = !range.discountPending;
+    private void enforcePartialAvailability() {
+        if (cgPaymentAmount == null || grandTotalValue <= 0) return;
+        boolean partialAllowed = rulesRange().canPartial();
         int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
         for (int id : partialChipIds) {
             com.google.android.material.chip.Chip chip = findViewById(id);
             if (chip != null) chip.setVisibility(partialAllowed ? View.VISIBLE : View.GONE);
         }
-        View fullChip = findViewById(R.id.chipPercentFull);
-        if (fullChip != null) fullChip.setVisibility(fullAllowed ? View.VISIBLE : View.GONE);
-
-        int checked = cgPaymentAmount.getCheckedChipId();
-        if (!partialAllowed && fullAllowed && checked != R.id.chipPercentFull) {
-            cgPaymentAmount.check(R.id.chipPercentFull);
-            return true;
-        }
-        if (!fullAllowed && partialAllowed && checked == R.id.chipPercentFull) {
-            cgPaymentAmount.check(R.id.chipPercent20);
-            return true;
-        }
-        return false;
     }
 
     /** The server's payment rule for what is on screen right now - including a discount still waiting for its ID check. */
@@ -1877,7 +1801,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
         if (isPendingReservationMode) {
             List<List<Room>> groups = new ArrayList<>(pendingWizardState.selectedRoomsGroupedByType().values());
-            String paymentType = isFullPaymentMode ? "full" : "partial";
+            String paymentType = "partial";
             // One single call sends every selected room type/quantity and
             // every selected amenity as one atomic request (see
             // RoomRepository#createReservation(List, ...)'s own doc) -
@@ -1922,7 +1846,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
         // Cash has no reference number - the backend only requires one for
         // GCash (see Api\PaymentController).
-        String paymentType = isFullPaymentMode ? "full" : "partial";
+        String paymentType = "partial";
         repository.submitPayment(bookingId, "cash", paymentType, null, payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(), new RoomRepository.RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void result) {
@@ -2221,11 +2145,11 @@ public class PaymentActivity extends BaseNavigationActivity {
                 updateSubmitButtonState();
                 if (isFinishing() || isDestroyed()) return;
                 PaymentBillingCheck.SubmitVerdict verdict = PaymentBillingCheck.beforeSubmit(
-                        shownBill, PaymentBillingCheck.Bill.of(fresh), payNowValue, isFullPaymentMode);
+                        shownBill, PaymentBillingCheck.Bill.of(fresh), payNowValue, false);
                 switch (verdict) {
                     case AMOUNT_NOT_ALLOWED:
                         showSubmitError(ruleMessage(PaymentRules.check(
-                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending, shownBill.depositCap), isFullPaymentMode, payNowValue),
+                                PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending, shownBill.depositCap), false, payNowValue),
                                 PaymentRules.of(shownBill.total, shownBill.paid, shownBill.discountPending, shownBill.depositCap)));
                         break;
                     case PROCEED:
@@ -2883,7 +2807,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         AlertDialog dialog = builder.create();
         SafeDialogs.show(dialog);
 
-        String paymentType = isFullPaymentMode ? "full" : "partial";
+        String paymentType = "partial";
 
         if (isPendingBookingMode) {
             List<List<Room>> groups = new ArrayList<>(pendingWizardState.selectedRoomsGroupedByType().values());

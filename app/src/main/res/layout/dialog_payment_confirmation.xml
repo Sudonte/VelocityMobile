@@ -19,7 +19,7 @@
         android:id="@+id/confirmPaymentType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/payment_type_full"
+        android:text="@string/review_payment_type_partial"
         android:textColor="@color/velocity_text_primary"
         android:fontFamily="sans-serif-black"
         android:textSize="16sp"

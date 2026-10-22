@@ -180,7 +180,7 @@ public class BookingActionsScreenTest {
     public void bookingTab_everyStateShowsExactlyItsActions() {
         BookingAndReservationActivity a = open(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(
                 booking(571, "ACTIVE_BOOKING", 1500),     // pending, partly paid: can cancel
-                booking(572, "ACTIVE_BOOKING", 3000),     // fully paid: cannot
+                booking(572, "ACTIVE_BOOKING", 3000),     // fully paid but not verified yet: can cancel
                 booking(573, "CHECKED_IN", 1500),         // staying
                 booking(574, "COMPLETED_BOOKING", 3000),  // done
                 booking(575, "CANCELLED_BOOKING", 0)));
@@ -195,7 +195,7 @@ public class BookingActionsScreenTest {
         }
         String all = String.join("\n", byId);
         assertTrue(all, all.contains("Booking #571 -> View details|Cancel|"));
-        assertTrue(all, all.contains("Booking #572 -> View details|\n"));
+        assertTrue(all, all.contains("Booking #572 -> View details|Cancel|"));
         assertTrue(all, all.contains("Booking #573 -> View details|\n"));
         assertTrue(all, all.contains("Booking #574 -> Book again|View details|Delete|"));
         assertTrue(all, all.contains("Booking #575 -> Book again|View details|Delete|"));

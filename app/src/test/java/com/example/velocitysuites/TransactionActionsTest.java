@@ -28,12 +28,13 @@ public class TransactionActionsTest {
     public void booking_cancel_table() {
         assertTrue("pending, unpaid", TransactionActions.canCancel(item("B", "Pending", 0, false)));
         assertTrue("pending, partly paid", TransactionActions.canCancel(item("B", "Pending", 1500, false)));
-        assertFalse("pending, fully paid", TransactionActions.canCancel(item("B", "Pending", TOTAL, false)));
+        assertTrue("pending, fully paid (an older booking): still cancellable until the front desk verifies it", TransactionActions.canCancel(item("B", "Pending", TOTAL, false)));
         assertFalse("pending but verified", TransactionActions.canCancel(item("B", "Pending", 0, true)));
         assertTrue("a new booking is stored as ACTIVE_BOOKING (shown 'Confirmed') until the front desk verifies it",
                 TransactionActions.canCancel(item("B", "Confirmed", 1500, false)));
         assertFalse("confirmed and verified by the front desk", TransactionActions.canCancel(item("B", "Confirmed", 1500, true)));
-        assertFalse("confirmed and fully paid", TransactionActions.canCancel(item("B", "Confirmed", TOTAL, false)));
+        assertTrue("awaiting verification and fully paid (an older booking): still cancellable until verified", TransactionActions.canCancel(item("B", "Confirmed", TOTAL, false)));
+        assertFalse("verified by the front desk", TransactionActions.canCancel(item("B", "Confirmed", TOTAL, true)));
         assertFalse("checked in", TransactionActions.canCancel(item("B", "Checked-In", 1500, false)));
         assertFalse("checked out", TransactionActions.canCancel(item("B", "Checked-Out", TOTAL, true)));
         for (String s : new String[]{"Cancelled", "Rejected", "Completed"}) {
@@ -55,10 +56,10 @@ public class TransactionActionsTest {
 
     @Test
     public void whyCancelIsNotOffered_isOneSmallReason() {
-        assertEquals(R.string.cancel_blocked_fully_paid, TransactionActions.cancelBlockedReason(item("B", "Pending", TOTAL, false)));
+        assertEquals("a fully paid, unverified booking can still be cancelled: nothing to explain", 0, TransactionActions.cancelBlockedReason(item("B", "Pending", TOTAL, false)));
         assertEquals(R.string.cancel_blocked_verified, TransactionActions.cancelBlockedReason(item("B", "Pending", 0, true)));
         assertEquals(R.string.cancel_blocked_verified, TransactionActions.cancelBlockedReason(item("R", "Confirmed", 0, false)));
-        assertEquals(R.string.cancel_blocked_fully_paid, TransactionActions.cancelBlockedReason(item("B", "Confirmed", TOTAL, false)));
+        assertEquals("an unverified Confirmed booking can be cancelled, paid or not", 0, TransactionActions.cancelBlockedReason(item("B", "Confirmed", TOTAL, false)));
         assertEquals(R.string.cancel_blocked_stay_started, TransactionActions.cancelBlockedReason(item("B", "Checked-In", 0, false)));
         assertEquals(R.string.cancel_blocked_stay_started, TransactionActions.cancelBlockedReason(item("B", "Checked-Out", TOTAL, true)));
         assertEquals("nothing to explain when it can be cancelled", 0, TransactionActions.cancelBlockedReason(item("B", "Pending", 0, false)));
@@ -116,7 +117,7 @@ public class TransactionActionsTest {
 
     @Test
     public void plan_activeBookingThatCannotBeCancelled_hasOnlyViewDetails() {
-        for (Booking b : new Booking[]{item("B", "Pending", TOTAL, false), item("B", "Confirmed", 1500, true), item("B", "Confirmed", TOTAL, false), item("B", "Checked-In", 1500, false)}) {
+        for (Booking b : new Booking[]{item("B", "Pending", TOTAL, true), item("B", "Confirmed", 1500, true), item("B", "Confirmed", TOTAL, true), item("B", "Checked-In", 1500, false)}) {
             TransactionActions.Plan p = TransactionActions.plan(b, true, false);
             assertTrue(b.getStatus(), p.viewDetailsOutlined);
             assertFalse(b.getStatus(), p.cancel || p.edit || p.delete || p.payNow || p.bookAgain);

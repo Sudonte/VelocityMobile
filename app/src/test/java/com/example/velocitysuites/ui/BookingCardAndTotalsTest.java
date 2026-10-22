@@ -206,7 +206,7 @@ public class BookingCardAndTotalsTest {
     @Test
     public void headerAndFilters_haveTheirLabels_oneLineDescription_andTheCompactNewButton() {
         BookingAndReservationActivity a = launchWith(ScreenTestSupport.reservations(), ScreenTestSupport.directBookings(discounted()));
-        assertEquals("Pay now to confirm your stay.", text(a.findViewById(android.R.id.content), R.id.screenDescription));
+        assertEquals("Pay a partial payment now; pay the rest at the hotel.", text(a.findViewById(android.R.id.content), R.id.screenDescription));
         assertEquals("New booking", text(a.findViewById(android.R.id.content), R.id.btnNewBooking));
         com.google.android.material.textfield.TextInputLayout status = a.findViewById(R.id.tilTransactionStatus);
         assertEquals("Status", status.getHint().toString());
@@ -225,6 +225,8 @@ public class BookingCardAndTotalsTest {
         assertEquals(View.GONE, full.getVisibility());
         policy.performClick();
         assertEquals(View.VISIBLE, full.getVisibility());
-        assertTrue(((TextView) full).getText().toString().startsWith("Cancellation Policy:"));
+        assertEquals("You can cancel your booking any time before the front desk verifies it. Your partial payment is non-refundable. "
+                + "Once the front desk verifies your booking, it can no longer be cancelled.", ((TextView) full).getText().toString());
+        assertFalse("no more 'fully paid bookings can't be cancelled'", ((TextView) full).getText().toString().toLowerCase().contains("fully paid"));
     }
 }

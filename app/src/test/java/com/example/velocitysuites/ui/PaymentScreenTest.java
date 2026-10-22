@@ -244,7 +244,7 @@ public class PaymentScreenTest {
     // ---- paying the rest of a partly paid reservation (same examples as the server's GuestPayRemainingBalanceTest) ----
 
     @Test
-    public void partlyPaid_offersTheRestAsFullPayment_andKeepsTheInRangePartialOptions() {
+    public void partlyPaid_keepsTheInRangePartialOptions_andThereIsNoFullPayment() {
         // P2,000, P600 verified: P1,400 left, the 20% minimum (P400) still fits
         PaymentActivity a = launch(ScreenTestSupport.reservation(588, 2000,
                 ScreenTestSupport.payment(1, "600.00", "completed", "gcash")));
@@ -252,26 +252,24 @@ public class PaymentScreenTest {
 
         assertTrue("partial options stay", isVisible(a, R.id.chipPercent20));
         assertEquals("the 20% option is 20% of the original price", "₱400.00", text(a, R.id.tvAmountToPay));
-        a.findViewById(R.id.chipPercentFull).performClick();
+        a.findViewById(R.id.chipPercent50).performClick();
         idle();
-        assertEquals("Full Payment sends the balance, not the price", "₱1,400.00", text(a, R.id.tvAmountToPay));
+        assertEquals("50% is half of the original price, not of what is left", "₱1,000.00", text(a, R.id.tvAmountToPay));
         assertFalse("no error for an allowed amount", isVisible(a, R.id.tvAmountError));
     }
 
     @Test
     public void nearlyPaid_hidesPartialOptions_andExplainsWhy() {
-        // P2,000, P1,700 verified: P300 left is under the P400 minimum, so only Full is possible
+        // P2,000, P1,700 verified: P300 left is under the P400 minimum, so nothing more can be paid online
         PaymentActivity a = launch(ScreenTestSupport.reservation(588, 2000,
                 ScreenTestSupport.payment(1, "1700.00", "completed", "gcash")));
         proceedToGcashPrerequisites(a);
 
         assertFalse("partial options are hidden", isVisible(a, R.id.chipPercent20));
         assertFalse(isVisible(a, R.id.chipPercent50));
-        assertTrue(isVisible(a, R.id.chipPercentFull));
-        assertEquals("Full is selected and sends the balance", "₱300.00", text(a, R.id.tvAmountToPay));
-        assertEquals(a.getString(R.string.partial_unavailable_hint, "₱300.00", "₱400.00"), text(a, R.id.tvPaymentModeSub));
-        assertFalse(isVisible(a, R.id.tvAmountError));
-        assertTrue("and the guest can continue", a.findViewById(R.id.proceedToGcashButton).isEnabled());
+        assertEquals(a.getString(R.string.pay_rest_at_hotel_hint, "₱300.00"), text(a, R.id.tvPaymentModeSub));
+        assertEquals(a.getString(R.string.error_pay_rest_at_hotel, "₱300.00"), text(a, R.id.tvAmountError));
+        assertFalse("the rest is paid at the front desk, so the guest cannot continue online", a.findViewById(R.id.proceedToGcashButton).isEnabled());
     }
 
     @Test
@@ -298,11 +296,10 @@ public class PaymentScreenTest {
     }
 
     @Test
-    public void discountPending_hidesFullPayment_explainsWhy_andSelectsADeposit() {
+    public void discountPending_explainsWhy_andSelectsADeposit() {
         PaymentActivity a = launch(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending"));
         proceedToGcashPrerequisites(a);
 
-        assertFalse("Full Payment is not offered", isVisible(a, R.id.chipPercentFull));
         assertTrue("deposit options are", isVisible(a, R.id.chipPercent20));
         assertEquals(a.getString(R.string.discount_pending_line), text(a, R.id.tvPaymentModeSub));
         assertEquals("a deposit is selected", "₱400.00", text(a, R.id.tvAmountToPay));
@@ -310,11 +307,11 @@ public class PaymentScreenTest {
     }
 
     @Test
-    public void discountApprovedOrRejectedOrNotRequested_offersFullPaymentAsUsual() {
+    public void discountApprovedOrRejectedOrNotRequested_offersThePartialOptionsAsUsual() {
         for (String status : new String[]{"approved", "rejected", "not_requested"}) {
             PaymentActivity a = launch(withDiscount(ScreenTestSupport.reservation(588, 2000), status));
             proceedToGcashPrerequisites(a);
-            assertTrue(status, isVisible(a, R.id.chipPercentFull));
+            assertTrue(status, isVisible(a, R.id.chipPercent20));
         }
     }
 
@@ -324,7 +321,6 @@ public class PaymentScreenTest {
                 ScreenTestSupport.payment(1, "1700.00", "completed", "gcash")), "pending"));
         proceedToGcashPrerequisites(a);
 
-        assertFalse(isVisible(a, R.id.chipPercentFull));
         assertFalse(isVisible(a, R.id.chipPercent20));
         assertFalse(a.findViewById(R.id.proceedToGcashButton).isEnabled());
         assertTrue(isVisible(a, R.id.tvAmountError));
@@ -333,14 +329,14 @@ public class PaymentScreenTest {
     @Test
     public void whenTheDiscountIsDecidedWhileAway_optionsUpdate_andWhatWasTypedIsKept() {
         PaymentActivity a = toSubmitStep(withDiscount(ScreenTestSupport.reservation(588, 2000), "pending"));
-        assertFalse(isVisible(a, R.id.chipPercentFull));
+        assertTrue(isVisible(a, R.id.chipPercent20));
 
         leaveAndComeBack();
         // approved meanwhile: the server's total now includes the discount
         answerBillCheck(withDiscount(ScreenTestSupport.reservation(588, 1600), "approved"));
 
         assertEquals(a.getString(R.string.bill_changed_title), latestDialogTitle());
-        assertTrue("Full Payment is back", isVisible(a, R.id.chipPercentFull));
+        assertTrue("the options follow the discounted total", isVisible(a, R.id.chipPercent20));
         assertEquals("typed reference kept", REFERENCE, ((EditText) a.findViewById(R.id.etGcashReferenceNumber)).getText().toString());
         assertEquals("receipt kept", a.getString(R.string.receipt_attached_success), text(a, R.id.tvReceiptStatus));
     }
@@ -369,18 +365,18 @@ public class PaymentScreenTest {
         proceedToGcashPrerequisites(a);
 
         assertTrue("the deposit options are offered for Cash too", isVisible(a, R.id.chipPercent20));
-        assertFalse("Full Payment is not", isVisible(a, R.id.chipPercentFull));
         assertEquals(a.getString(R.string.discount_pending_cash_line), text(a, R.id.tvPaymentModeSub));
         assertEquals("a deposit amount is selected", "₱400.00", text(a, R.id.tvAmountToPay));
         assertTrue(a.findViewById(R.id.proceedToGcashButton).isEnabled());
     }
 
     @Test
-    public void withoutAPendingDiscount_cashStaysFullOnly() {
+    public void withoutAPendingDiscount_cashOffersTheSamePartialOptions() {
         PaymentActivity a = launch(cashReservation(ScreenTestSupport.reservation(588, 2000)));
         proceedToGcashPrerequisites(a);
 
-        assertTrue(isVisible(a, R.id.chipPercentFull));
+        assertTrue(isVisible(a, R.id.chipPercent20));
+        assertEquals("a down payment is selected", "₱400.00", text(a, R.id.tvAmountToPay));
     }
 
     @Test
@@ -394,7 +390,6 @@ public class PaymentScreenTest {
         assertFalse(a.findViewById(R.id.proceedToGcashButton).isEnabled());
         assertEquals(a.getString(R.string.max_deposit_reached), text(a, R.id.tvAmountError));
         assertEquals(a.getString(R.string.max_deposit_reached), text(a, R.id.tvPaymentModeSub));
-        assertFalse(isVisible(a, R.id.chipPercentFull));
         assertFalse(isVisible(a, R.id.chipPercent20));
     }
 

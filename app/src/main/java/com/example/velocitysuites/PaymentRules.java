@@ -1,19 +1,20 @@
 package com.example.velocitysuites;
 
 /**
- * Which payments the server accepts for a reservation, as plain code (no Android) so it is unit tested with the same
+ * Which payments the server accepts for a reservation or booking, as plain code (no Android) so it is unit tested with the same
  * examples as the server's GuestPayRemainingBalanceTest. It must stay identical to the backend's
- * ReservationWorkflowService::payableRange() and Api\PaymentController::amountError():
+ * ReservationWorkflowService::payableRange() and ::amountError():
  * <ul>
+ *   <li><b>Online payment is a PARTIAL (down) payment only.</b> A full payment is never accepted online and a payment may never
+ *       pay off everything still owed: the rest is paid at the hotel (check-in and/or check-out);</li>
  *   <li>remaining = total due - already paid (verified payments only - the caller passes what the server reports);</li>
- *   <li>Full payment = exactly the remaining balance;</li>
  *   <li>Partial = 20% to 50% of the ORIGINAL total (config hotel.minimum/maximum_payment_ratio), never more than the
- *       remaining balance;</li>
- *   <li>remaining below the 20% minimum: no partial payment is possible, only Full;</li>
+ *       remaining balance, and never the whole remaining balance: when the most that could be paid equals what is still
+ *       owed, nothing more can be paid online ("paid at the front desk");</li>
  *   <li>remaining zero: nothing can be paid;</li>
- *   <li>while a Senior/PWD discount waits for the receptionist's ID check, only a deposit: Full payment is refused
- *       (and with too little left for a deposit, payment is on hold until the discount is decided). Once the discount
- *       is approved the server's total already includes it; rejected or not requested: the normal rules;</li>
+ *   <li>while a Senior/PWD discount waits for the receptionist's ID check, with too little left for a deposit, payment is on
+ *       hold until the discount is decided. Once the discount is approved the server's total already includes it; rejected or
+ *       not requested: the normal rules;</li>
  *   <li>while it is pending, ALL payments together (already paid + this one) stay within the deposit cap the server
  *       reports (the smaller of 50% of the undiscounted total and the total after the requested discount) - several
  *       deposits can never add up past what the bill becomes.</li>
@@ -34,14 +35,12 @@ public final class PaymentRules {
         OK,
         /** Nothing is owed any more. */
         SETTLED,
-        /** Full payment must be exactly the remaining balance. */
-        FULL_MUST_EQUAL_BALANCE,
-        /** The balance is under the minimum, so only a Full payment of it is possible. */
-        FULL_REQUIRED,
+        /** A full payment was asked for: online payment is a partial payment only. */
+        PARTIAL_ONLY,
+        /** The balance is below the minimum, or a payment would pay it all off: it is paid at the front desk. */
+        PAY_AT_FRONT_DESK,
         /** A partial payment outside min..max. */
         OUT_OF_RANGE,
-        /** Full payment while the discount is still being verified - a deposit only. */
-        DISCOUNT_PENDING_FULL,
         /** Discount being verified and too little left for the minimum deposit: nothing can be paid yet. */
         DISCOUNT_ON_HOLD,
         /** Discount being verified and the deposit cap is used up: the rest is settled at the front desk. */
@@ -68,7 +67,9 @@ public final class PaymentRules {
             this.remaining = Math.max(0, round2(this.total - this.paid));
             this.min = round2(this.total * MIN_RATIO);
             double capLeft = this.depositCap == null ? Double.MAX_VALUE : Math.max(0, round2(this.depositCap - this.paid));
-            this.max = Math.min(Math.min(round2(this.total * MAX_RATIO), remaining), capLeft);
+            double most = Math.min(Math.min(round2(this.total * MAX_RATIO), remaining), capLeft);
+            // Online payment may never settle the whole bill: what is left is paid at the hotel.
+            this.max = most >= remaining - 0.009 ? 0 : most;
             this.capLeft = capLeft;
         }
 
@@ -84,7 +85,7 @@ public final class PaymentRules {
             return remaining <= 0.009;
         }
 
-        /** True while the 20% minimum still fits inside what is left to pay. */
+        /** True while a down payment still fits: the 20% minimum fits inside what may be paid and it leaves a balance. */
         public boolean canPartial() {
             return !isSettled() && min <= max + 0.009;
         }
@@ -108,18 +109,12 @@ public final class PaymentRules {
         return Math.min(round2(range.total * fraction), Math.min(range.remaining, range.capLeft));
     }
 
-    /** Whether the server will accept {@code amount} as a Full (or Partial) payment against {@code range}. */
+    /** Whether the server will accept {@code amount} as an online payment against {@code range} ({@code fullPayment} is never accepted). */
     public static Verdict check(Range range, boolean fullPayment, double amount) {
         if (range.isSettled()) return Verdict.SETTLED;
-        if (range.discountPending) {
-            if (!range.canPartial() && range.capReached()) return Verdict.MAX_DEPOSIT_REACHED;
-            if (fullPayment) return Verdict.DISCOUNT_PENDING_FULL;
-            if (!range.canPartial()) return Verdict.DISCOUNT_ON_HOLD;
-        }
-        if (fullPayment) {
-            return Math.abs(amount - range.remaining) > 0.01 ? Verdict.FULL_MUST_EQUAL_BALANCE : Verdict.OK;
-        }
-        if (!range.canPartial()) return Verdict.FULL_REQUIRED;
+        if (range.discountPending && !range.canPartial() && range.capReached()) return Verdict.MAX_DEPOSIT_REACHED;
+        if (fullPayment) return Verdict.PARTIAL_ONLY;
+        if (!range.canPartial()) return range.discountPending ? Verdict.DISCOUNT_ON_HOLD : Verdict.PAY_AT_FRONT_DESK;
         return amount < range.min - EPSILON || amount > range.max + EPSILON ? Verdict.OUT_OF_RANGE : Verdict.OK;
     }
 

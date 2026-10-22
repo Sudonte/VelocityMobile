@@ -8,8 +8,8 @@ package com.example.velocitysuites;
  * <p>The backend enforces the same gate (ReservationWorkflowService::cancel()
  * and Api\BookingController::cancel()), so a hand-sent request is refused too.
  *
- * <p>The rule itself now lives in {@link TransactionActions} (cancel only while Pending, not verified, not converted, and for a
- * booking not fully paid); this class stays as the long-standing entry point.
+ * <p>The rule itself now lives in {@link TransactionActions} (cancel only while Pending, not verified, not converted; a booking can be
+ * cancelled any time until the front desk verifies it, whatever has been paid); this class stays as the long-standing entry point.
  */
 public final class BookingActionPolicy {
 

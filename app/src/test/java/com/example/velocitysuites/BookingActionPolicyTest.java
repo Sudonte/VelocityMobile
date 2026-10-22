@@ -52,9 +52,11 @@ public class BookingActionPolicyTest {
     }
 
     @Test
-    public void fullyPaidBooking_cancelHidden() {
+    public void fullyPaidButUnverifiedBooking_stillCancellable_untilTheFrontDeskVerifiesIt() {
         Booking b = booking("Pending", true, true, false);
         b.setBillingStatus("paid");
+        assertTrue(BookingActionPolicy.canCancel(b));
+        b.setStaffVerified(true);
         assertFalse(BookingActionPolicy.canCancel(b));
     }
 

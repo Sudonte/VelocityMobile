@@ -9,7 +9,10 @@ import com.example.velocitysuites.PaymentRules.Verdict;
 
 import org.junit.Test;
 
-/** The same examples as the server's GuestPayRemainingBalanceTest: a P2,000 reservation (20% = 400, 50% = 1,000). */
+/**
+ * The same examples as the server's GuestPayRemainingBalanceTest: a P2,000 reservation (20% = 400, 50% = 1,000). Online payment is a
+ * partial payment only: never the whole bill, never a payment that pays off everything still owed.
+ */
 public class PaymentRulesTest {
 
     private static Range afterPaying(double paid) {
@@ -17,23 +20,19 @@ public class PaymentRulesTest {
     }
 
     @Test
-    public void fullPaymentOfTheRemainingBalanceIsAcceptedAfterADeposit() {
-        assertEquals(Verdict.OK, PaymentRules.check(afterPaying(600), true, 1400));
+    public void aFullPaymentIsNeverAcceptedOnline() {
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(afterPaying(600), true, 1400));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(afterPaying(600), true, 2000));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(afterPaying(0), true, 2000));
     }
 
     @Test
-    public void fullPaymentOfTheOriginalTotalIsRefusedOnceSomethingIsPaid() {
-        assertEquals(Verdict.FULL_MUST_EQUAL_BALANCE, PaymentRules.check(afterPaying(600), true, 2000));
-    }
-
-    @Test
-    public void firstPaymentIsUnchanged() {
+    public void firstPaymentIsAPartialOne_twentyToFiftyPercent() {
         Range fresh = afterPaying(0);
-        assertEquals(Verdict.FULL_MUST_EQUAL_BALANCE, PaymentRules.check(fresh, true, 1999));
-        assertEquals(Verdict.OK, PaymentRules.check(fresh, true, 2000));
         assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(fresh, false, 399));
         assertEquals(Verdict.OK, PaymentRules.check(fresh, false, 400));
         assertEquals(Verdict.OK, PaymentRules.check(fresh, false, 1000));
+        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(fresh, false, 2000)); // the whole total is not a down payment
     }
 
     @Test
@@ -42,11 +41,19 @@ public class PaymentRulesTest {
     }
 
     @Test
-    public void aPartialPaymentIsCappedByTheRemainingBalanceNotOnlyByFiftyPercent() {
-        Range range = afterPaying(1200); // 800 left; 50% of the total (1,000) would overshoot
-        assertEquals(800, range.max, 0);
-        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(range, false, 900));
-        assertEquals(Verdict.OK, PaymentRules.check(range, false, 800));
+    public void aPartialPaymentThatWouldPayOffTheBalanceIsNotAvailable() {
+        Range range = afterPaying(1200); // 800 left: paying it all would settle the bill online
+        assertEquals(0, range.max, 0);
+        assertFalse(range.canPartial());
+        assertEquals(Verdict.PAY_AT_FRONT_DESK, PaymentRules.check(range, false, 800));
+        assertEquals(Verdict.PAY_AT_FRONT_DESK, PaymentRules.check(range, false, 500));
+    }
+
+    @Test
+    public void whenWhatIsLeftEqualsTheFiftyPercentMaximumItIsPaidAtTheFrontDesk() {
+        Range range = afterPaying(1000);
+        assertFalse(range.canPartial());
+        assertEquals(Verdict.PAY_AT_FRONT_DESK, PaymentRules.check(range, false, 1000));
     }
 
     @Test
@@ -58,11 +65,11 @@ public class PaymentRulesTest {
     }
 
     @Test
-    public void belowTheMinimumOnlyAFullPaymentOfTheBalanceIsAllowed() {
+    public void belowTheMinimumTheRestIsPaidAtTheFrontDesk() {
         Range range = afterPaying(1700); // 300 left, minimum is 400
         assertFalse(range.canPartial());
-        assertEquals(Verdict.FULL_REQUIRED, PaymentRules.check(range, false, 300));
-        assertEquals(Verdict.OK, PaymentRules.check(range, true, 300));
+        assertEquals(Verdict.PAY_AT_FRONT_DESK, PaymentRules.check(range, false, 300));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(range, true, 300));
     }
 
     @Test
@@ -76,22 +83,22 @@ public class PaymentRulesTest {
     }
 
     @Test
-    public void percentageOptionsAreAShareOfTheOriginalTotalCappedAtTheBalance() {
-        Range range = afterPaying(1200); // 800 left
+    public void percentageOptionsAreAShareOfTheOriginalTotalAndAreAcceptedWhenPossible() {
+        Range range = afterPaying(600); // 1,400 left
         assertEquals(400, PaymentRules.partialAmount(range, 0.20), 0);
         assertEquals(600, PaymentRules.partialAmount(range, 0.30), 0);
-        assertEquals(800, PaymentRules.partialAmount(range, 0.50), 0); // 1,000 capped to what is left
-        // and when it is possible at all, every option the app offers is accepted by the server
+        assertEquals(1000, PaymentRules.partialAmount(range, 0.50), 0);
+        // when a down payment is possible at all, every option the app offers is accepted by the server
         for (double fraction : new double[]{0.20, 0.30, 0.40, 0.50}) {
             assertEquals(Verdict.OK, PaymentRules.check(range, false, PaymentRules.partialAmount(range, fraction)));
         }
     }
 
     @Test
-    public void whenTheMinimumDoesNotFitNoPercentageOptionIsAccepted() {
+    public void whenNoDownPaymentFitsNoPercentageOptionIsAccepted() {
         Range range = afterPaying(1700);
         for (double fraction : new double[]{0.20, 0.30, 0.40, 0.50}) {
-            assertEquals(Verdict.FULL_REQUIRED, PaymentRules.check(range, false, PaymentRules.partialAmount(range, fraction)));
+            assertEquals(Verdict.PAY_AT_FRONT_DESK, PaymentRules.check(range, false, PaymentRules.partialAmount(range, fraction)));
         }
     }
 
@@ -105,10 +112,10 @@ public class PaymentRulesTest {
     // ---- a discount waiting for the receptionist's ID check: deposits only ----
 
     @Test
-    public void whileTheDiscountIsPending_fullPaymentIsRefused_evenForTheExactBalance() {
+    public void whileTheDiscountIsPending_aFullPaymentIsRefused_likeEverywhere() {
         Range range = PaymentRules.of(2000, 600, true);
-        assertEquals(Verdict.DISCOUNT_PENDING_FULL, PaymentRules.check(range, true, 1400));
-        assertEquals(Verdict.DISCOUNT_PENDING_FULL, PaymentRules.check(PaymentRules.of(2000, 0, true), true, 2000));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(range, true, 1400));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(PaymentRules.of(2000, 0, true), true, 2000));
     }
 
     @Test
@@ -123,26 +130,26 @@ public class PaymentRulesTest {
     public void whileTheDiscountIsPending_withTooLittleLeftForADeposit_paymentIsOnHold() {
         Range range = PaymentRules.of(2000, 1700, true); // 300 left, minimum 400
         assertEquals(Verdict.DISCOUNT_ON_HOLD, PaymentRules.check(range, false, 300));
-        assertEquals(Verdict.DISCOUNT_PENDING_FULL, PaymentRules.check(range, true, 300));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(range, true, 300));
     }
 
     @Test
-    public void onceApproved_theServersTotalIncludesTheDiscount_andFullEqualsTheDiscountedBalance() {
+    public void onceApproved_theServersTotalIncludesTheDiscount_andDepositsFollowTheDiscountedTotal() {
         // the server reports total_amount_due 1,600 (2,000 less the 20% Senior discount) - nothing is calculated here
         Range fresh = PaymentRules.of(1600, 0, false);
-        assertEquals(Verdict.FULL_MUST_EQUAL_BALANCE, PaymentRules.check(fresh, true, 2000));
-        assertEquals(Verdict.OK, PaymentRules.check(fresh, true, 1600));
-        Range afterDeposit = PaymentRules.of(1600, 600, false);
-        assertEquals(Verdict.FULL_MUST_EQUAL_BALANCE, PaymentRules.check(afterDeposit, true, 1400));
-        assertEquals(Verdict.OK, PaymentRules.check(afterDeposit, true, 1000));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(fresh, true, 1600));
         assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(fresh, false, 319.99));
         assertEquals(Verdict.OK, PaymentRules.check(fresh, false, 320));
+        assertEquals(Verdict.OK, PaymentRules.check(fresh, false, 800));
+        assertEquals(Verdict.OUT_OF_RANGE, PaymentRules.check(fresh, false, 801));
+        Range afterDeposit = PaymentRules.of(1600, 600, false); // 1,000 left
+        assertEquals(Verdict.OK, PaymentRules.check(afterDeposit, false, 500));
     }
 
     @Test
     public void whenRejectedOrNotRequested_theNormalRulesApply() {
-        assertEquals(Verdict.OK, PaymentRules.check(PaymentRules.of(2000, 0, false), true, 2000));
-        assertEquals(Verdict.OK, PaymentRules.check(PaymentRules.of(2000, 600, false), true, 1400));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(PaymentRules.of(2000, 0, false), true, 2000));
+        assertEquals(Verdict.OK, PaymentRules.check(PaymentRules.of(2000, 600, false), false, 500));
     }
 
     @Test
@@ -202,13 +209,13 @@ public class PaymentRulesTest {
     public void withNoCapReportedTheOrdinaryDepositRuleApplies() {
         Range range = PaymentRules.of(2000, 600, true, null);
         assertEquals(Verdict.OK, PaymentRules.check(range, false, 500));
-        assertEquals(Verdict.DISCOUNT_PENDING_FULL, PaymentRules.check(range, true, 1400));
+        assertEquals(Verdict.PARTIAL_ONLY, PaymentRules.check(range, true, 1400));
     }
 
     @Test
     public void theCapOnlyAppliesWhileTheDiscountIsPending() {
         Range approved = PaymentRules.of(1600, 0, false, 1000.0);
-        assertEquals(Verdict.OK, PaymentRules.check(approved, true, 1600));
+        assertEquals(Verdict.OK, PaymentRules.check(approved, false, 800));
         assertEquals(Double.MAX_VALUE, approved.capLeft, 0);
     }
 }

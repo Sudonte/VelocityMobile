@@ -10,8 +10,8 @@ import androidx.annotation.StringRes;
  * Transactions, so no screen can drift from the rule. (The server enforces the same gates, so a hand-sent request is refused too.)
  *
  * <p><b>Cancel</b> - a RESERVATION while it is Pending, not verified or confirmed by the front desk and not converted to a booking;
- * a BOOKING while it is Pending, not verified, and not fully paid (unpaid or partially paid). Never a fully paid booking, a verified or
- * confirmed one, or one that is checked in or out.
+ * a BOOKING any time until the front desk verifies it, whatever has been paid (the partial payment is non-refundable). Never a
+ * verified or confirmed booking, or one that is checked in or out.
  * <p><b>Delete</b> - only a finished item (Completed / Checked out / converted reservation) or a Cancelled / Rejected one (which
  * includes "Transaction failed" and no-shows). Pending, confirmed, verified and checked-in items can never be deleted.
  */
@@ -88,8 +88,7 @@ public final class TransactionActions {
     public static boolean canCancel(@Nullable Booking b) {
         if (b == null || isConverted(b)) return false;
         if (!isPending(b)) return false;      // confirmed, checked in / out, cancelled, rejected, completed
-        if (b.isStaffVerified()) return false;
-        return !(b.isHasBooking() && isFullyPaid(b));
+        return !b.isStaffVerified();
     }
 
     /**
@@ -103,7 +102,6 @@ public final class TransactionActions {
         if ("Cancelled".equalsIgnoreCase(s) || "Rejected".equalsIgnoreCase(s) || "Completed".equalsIgnoreCase(s) || b.isHistoricalReservation()) return 0;
         if ("Checked-In".equalsIgnoreCase(s) || "Checked-Out".equalsIgnoreCase(s)) return R.string.cancel_blocked_stay_started;
         if (b.isStaffVerified() || isConverted(b) || (!b.isHasBooking() && !"Pending".equalsIgnoreCase(s))) return R.string.cancel_blocked_verified;
-        if (b.isHasBooking() && isFullyPaid(b)) return R.string.cancel_blocked_fully_paid;
         return R.string.cancel_blocked_verified;
     }
 
