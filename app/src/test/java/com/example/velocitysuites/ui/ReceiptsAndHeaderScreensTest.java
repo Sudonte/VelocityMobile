@@ -282,10 +282,17 @@ public class ReceiptsAndHeaderScreensTest {
     @Test
     public void thePdfIsAWhitePageWithDarkText_evenWhenTheAppIsInDarkMode() {
         ThemePreferences.setMode(app, ThemePreferences.MODE_DARK);
+        // Dark mode is forced on the resources themselves (not only through AppCompat), so the result never depends on which tests ran before.
+        org.robolectric.RuntimeEnvironment.setQualifiers("+night");
         Map<String, ReceiptDetail> all = DebugReceiptFixtures.allReceiptDetails();
         ReceiptDetail partial = all.values().stream().filter(d -> "PARTIAL_RECEIPT".equals(d.getReceiptType())).findFirst().get();
         partial.setHighlight(highlight("booking_verification", "total_amount", 2000, "amount_paid_now", 500, "total_paid", 500, "remaining_balance", 1500, "amount_to_pay", 1500));
-        PaymentReceiptActivity screen = open(partial);
+        PaymentReceiptActivity screen;
+        try {
+            screen = open(partial);
+        } finally {
+            org.robolectric.RuntimeEnvironment.setQualifiers("+notnight");
+        }
 
         View page = screen.buildReceiptForPdf(1080);
 
