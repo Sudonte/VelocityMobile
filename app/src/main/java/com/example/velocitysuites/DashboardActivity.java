@@ -1393,7 +1393,7 @@ public class DashboardActivity extends BaseNavigationActivity {
 
         View amenities = item.findViewById(R.id.btnNextStayRequestAmenities);
         amenities.setVisibility(stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
-        amenities.setOnClickListener(NavUtils.debounce(v -> startActivity(AdditionalAmenitiesEntry.intent(this, stay.booking))));
+        amenities.setOnClickListener(NavUtils.debounce(v -> GroupStays.requestAmenities(this, stay.booking)));
         item.setOnClickListener(openInUpcoming);
         TextView open = item.findViewById(R.id.tvNextStayViewDetails);
         open.setText(stay.booking.isHasBooking() ? R.string.next_stay_open_booking : R.string.next_stay_open_reservation);

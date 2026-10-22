@@ -68,8 +68,10 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Booking booking = bookings.get(position);
         boolean noShow = booking.isNoShow();
-        holder.tvBookingId.setText(holder.itemView.getContext().getString(
-                booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId()));
+        String idText = holder.itemView.getContext().getString(
+                booking.isHasBooking() ? R.string.booking_id_format : R.string.reservation_id_format, booking.getDisplayId());
+        String groupLabel = GroupStays.label(holder.itemView.getContext(), booking);
+        holder.tvBookingId.setText(groupLabel == null ? idText : idText + "  ·  " + groupLabel); // "Booking #12 · Group · Stay 1 of 2"
         holder.tvStatusBadge.setText(noShow ? holder.itemView.getContext().getString(R.string.status_no_show) : BookingStatusPresenter.statusWord(holder.itemView.getContext(), booking));
         holder.tvRoomName.setText(booking.getRoomName());
         

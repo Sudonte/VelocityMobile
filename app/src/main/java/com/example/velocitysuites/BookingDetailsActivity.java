@@ -432,7 +432,7 @@ public class BookingDetailsActivity extends SafeActivity {
             return;
         }
         AdditionalAmenitiesEntry.bindWithEligibility(this, button, reason, booking, () -> {
-            if (clickGuard.tryAcquire()) startActivity(AdditionalAmenitiesEntry.intent(this, booking));
+            if (clickGuard.tryAcquire()) GroupStays.requestAmenities(this, booking); // several checked-in stays: pick the stay first
         });
     }
 
@@ -522,6 +522,7 @@ public class BookingDetailsActivity extends SafeActivity {
         } else {
             addInfoRow(container, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
         }
+        addGroupStaysSection(container);
         // Cross-reference for a historical (converted) reservation record -
         // see Booking.convertedBookingId's own doc for why this is the one
         // new identifier this feature surfaces, rather than restating the
@@ -1421,6 +1422,31 @@ public class BookingDetailsActivity extends SafeActivity {
         column.addView(tvLabel);
         column.addView(tvValue);
         container.addView(column);
+    }
+
+    /** "Stays in this group": every other stay booked together with this one, each a link to its own details. Nothing for a single stay. */
+    private void addGroupStaysSection(LinearLayout container) {
+        if (!booking.isInGroup() || GroupStays.size(booking) < 2) return;
+        addSectionDivider(container, getString(R.string.group_stays_section_title));
+        addInfoRow(container, getString(R.string.group_stay_this_one), GroupStays.label(this, booking));
+        java.util.List<Booking> all = GroupStays.members(this, booking);
+        for (int i = 0; i < all.size(); i++) {
+            Booking stay = all.get(i);
+            if (stay.getId().equals(booking.getId())) continue;
+            TextView link = new TextView(this);
+            link.setText(GroupStays.describe(this, stay, i + 1));
+            link.setTextSize(13);
+            link.setTextColor(getColor(R.color.velocity_action_text));
+            link.setMinHeight((int) (44 * getResources().getDisplayMetrics().density));
+            link.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            link.setOnClickListener(v -> {
+                if (clickGuard.tryAcquire()) startActivity(BookingDetailsActivity.newIntent(this, stay));
+            });
+            container.addView(link);
+        }
+        if (all.size() < GroupStays.size(booking)) {
+            addInfoRow(container, getString(R.string.group_stays_section_title), getString(R.string.group_stays_not_loaded));
+        }
     }
 
     private void addSectionDivider(LinearLayout container, String title) {

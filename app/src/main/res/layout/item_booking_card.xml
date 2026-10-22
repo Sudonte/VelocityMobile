@@ -81,6 +81,22 @@
                 app:tint="@color/velocity_text_secondary" />
         </LinearLayout>
 
+        <!-- Booked together with other stays: "Group · Stay 1 of 2", tap for the other stays. Each stay is still its own card. -->
+        <TextView
+            android:id="@+id/tvGroupLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center_vertical"
+            android:minHeight="40dp"
+            android:textColor="@color/velocity_action_text"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="Group · Stay 1 of 2  ·  Other stays"
+            tools:visibility="visible" />
+
         <!-- Row 2: hidden (never an empty gap) when no room type is known. -->
         <TextView
             android:id="@+id/tvBookingRoomName"

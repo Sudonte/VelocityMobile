@@ -3805,6 +3805,19 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 groupMembers = resolveGroupMembers(memberIds);
             }
             holder.tvBookingId.setText(refText);
+            // Booked together with other stays: a small label and a link to the others (each stay keeps its own card and actions).
+            String groupLabel = GroupStays.label(BookingAndReservationActivity.this, b);
+            if (holder.tvGroupLabel != null) {
+                holder.tvGroupLabel.setVisibility(groupLabel == null ? View.GONE : View.VISIBLE);
+                if (groupLabel != null) {
+                    holder.tvGroupLabel.setText(groupLabel + "  ·  " + getString(R.string.group_stay_link));
+                    holder.tvGroupLabel.setOnClickListener(v -> {
+                        if (!isFinishing()) GroupStays.showOtherStays(BookingAndReservationActivity.this, b);
+                    });
+                } else {
+                    holder.tvGroupLabel.setOnClickListener(null);
+                }
+            }
             holder.tvBookingStatus.setText(computeStatusLabel(b));
             styleStatusBadge(holder.tvBookingStatus, b);
             if (holder.tvModifiedBadge != null) {
@@ -3892,7 +3905,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingPrice;
+            TextView tvBookingId, tvBookingStatus, tvModifiedBadge, tvBookingRoomName, tvBookingDates, tvBookingPrice, tvGroupLabel;
             TextView tvBookingPaymentMethod, tvBookingPaidLine, tvFrontDeskNote, tvActionDot;
             LinearLayout layoutActionButtons, layoutActionsRight;
             MaterialButton btnModify, btnCancel, btnViewDetails, btnViewDetailsText, btnViewBooking, btnPayNow, btnDelete, btnBookAgain;
@@ -3900,6 +3913,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             ViewHolder(View itemView) {
                 super(itemView);
                 tvBookingId = itemView.findViewById(R.id.tvBookingId);
+                tvGroupLabel = itemView.findViewById(R.id.tvGroupLabel);
                 tvBookingStatus = itemView.findViewById(R.id.tvBookingStatus);
                 tvModifiedBadge = itemView.findViewById(R.id.tvModifiedBadge);
                 tvBookingRoomName = itemView.findViewById(R.id.tvBookingRoomName);
@@ -4079,11 +4093,42 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
                 .setPositiveButton(isBooking ? R.string.cancel_dialog_confirm_booking : R.string.cancel_dialog_confirm_reservation, null)
                 .setNegativeButton(isBooking ? R.string.cancel_dialog_keep_booking : R.string.cancel_dialog_keep_reservation, null)
                 .create();
+        if (booking.isInGroup() && GroupStays.size(booking) > 1) {
+            dialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(R.string.cancel_all_stays_button), (android.content.DialogInterface.OnClickListener) null);
+        }
 
         dialog.setOnShowListener(shownDialog -> {
             android.widget.Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             android.widget.Button negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
             positive.setTextColor(getColor(R.color.velocity_red_primary));
+            android.widget.Button all = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            if (all != null && booking.isInGroup()) {
+                all.setTextColor(getColor(R.color.velocity_red_primary));
+                all.setOnClickListener(v -> {
+                    // Every unverified stay of the group; verified ones are kept by the server.
+                    all.setEnabled(false);
+                    positive.setEnabled(false);
+                    negative.setEnabled(false);
+                    repository.cancelBookingGroup(booking.getGroupId(), new RoomRepository.RepositoryCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            dismissSafely(dialog);
+                            if (isFinishing() || isDestroyed()) return;
+                            Snackbar.make(findViewById(android.R.id.content), R.string.cancel_all_stays_done, Snackbar.LENGTH_LONG).show();
+                            refreshMyBookings();
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            dismissSafely(dialog);
+                            if (isFinishing() || isDestroyed()) return;
+                            Snackbar.make(findViewById(android.R.id.content), message != null && !message.trim().isEmpty()
+                                    ? message : getString(R.string.cancel_blocked_verified), Snackbar.LENGTH_LONG).show();
+                            refreshMyBookings();
+                        }
+                    });
+                });
+            }
             positive.setOnClickListener(v -> {
                 // Disable both buttons and swap in a "Cancelling..." label so a
                 // repeated tap while the request is in flight can't fire it twice -
