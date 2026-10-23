@@ -5,18 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="22dp">
-
-        <!-- Text set programmatically in Step2DatesFragment#onViewCreated() - "Booking Details" for a Booking transaction, "Reservation Details" for a Reservation (same strings/convention as BookingAndReservationActivity's own step-1 label). -->
-        <TextView
-            android:id="@+id/tvDatesStepDetailsLabel"
-            style="@style/TextAppearance.Velocity.Label.Section"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="12sp"
-            tools:text="@string/step_booking_details_title" />
+    android:paddingHorizontal="22dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="10dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -25,21 +16,6 @@
             android:text="@string/wizard_dates_subtitle"
             android:textColor="@color/velocity_text_secondary"
             android:textSize="12sp" />
-
-        <!-- 48-hour advance check-in policy; text is computed in Step2DatesFragment (CheckInNotice) so the earliest date is never hard-coded. -->
-        <TextView
-            android:id="@+id/tvCheckInAdvanceNotice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
-            android:background="@color/velocity_red_bg_end"
-            android:drawablePadding="8dp"
-            android:padding="11dp"
-            android:textColor="@color/velocity_text_primary"
-            android:textSize="12sp"
-            app:drawableStartCompat="@drawable/ic_info"
-            app:drawableTint="@color/velocity_red_primary"
-            tools:text="Check-in must be booked at least 2 days (48 hours) in advance. Earliest available check-in: Sat, Oct 10, 2026." />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -69,7 +45,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColorHint="@color/velocity_text_secondary"
-                    app:helperText="@string/helper_checkin_window"
+                    app:helperText="@string/helper_checkin_earliest_placeholder"
                     app:helperTextTextColor="@color/velocity_text_secondary"
                     app:hintTextColor="@color/velocity_text_secondary"
                     app:startIconDrawable="@drawable/ic_calendar"

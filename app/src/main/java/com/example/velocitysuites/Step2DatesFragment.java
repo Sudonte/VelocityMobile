@@ -54,9 +54,6 @@ public class Step2DatesFragment extends WizardStepFragment {
         super.onViewCreated(view, savedInstanceState);
         repository = RoomRepository.getInstance(requireContext());
 
-        android.widget.TextView tvDetailsLabel = view.findViewById(R.id.tvDatesStepDetailsLabel);
-        tvDetailsLabel.setText(getState().isBookingMode() ? R.string.step_booking_details_title : R.string.step_details_title);
-
         tilCheckIn = view.findViewById(R.id.tilCheckIn);
         tilCheckOut = view.findViewById(R.id.tilCheckOut);
         etCheckIn = view.findViewById(R.id.etCheckIn);
@@ -64,7 +61,8 @@ public class Step2DatesFragment extends WizardStepFragment {
         cardNightsSummary = view.findViewById(R.id.cardNightsSummary);
         tvNightsSummary = view.findViewById(R.id.tvNightsSummary);
 
-        ((android.widget.TextView) view.findViewById(R.id.tvCheckInAdvanceNotice)).setText(CheckInNotice.notice(requireContext()));
+        // The 48-hour rule is one helper line under Check-in ("Earliest: Sun, Oct 25"), computed from the hotel's date.
+        tilCheckIn.setHelperText(getString(R.string.helper_checkin_earliest, CheckInWindow.earliestShort()));
 
         etCheckIn.setOnClickListener(v -> showDatePicker(true));
         etCheckOut.setOnClickListener(v -> showDatePicker(false));

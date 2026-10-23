@@ -111,6 +111,13 @@ public class BookingWizardActivity extends SafeActivity {
         if (current != null) current.onSelectionChanged();
     }
 
+    /** Enables or disables Next without telling the step it changed (a step that decides for itself, e.g. Dates and rooms, uses this to avoid a loop). */
+    public void setNextEnabledQuietly(boolean enabled) {
+        if (currentStepIndex < stepCount) {
+            btnNext.setEnabled(enabled);
+        }
+    }
+
     /** Redraws the one-line summary under the step (stays, rooms, guests, running group total). */
     public void refreshSummaryBar() {
         updateSummaryBar();
@@ -584,34 +591,42 @@ public class BookingWizardActivity extends SafeActivity {
         updateSummaryBar();
     }
 
-    /** One line under the step content with what is picked so far - dates, rooms, guests, running total - hidden until there is something to show. */
+    /**
+     * The bar under the step content: what is picked so far on the left ("2 stays · 4 rooms · 1 guest", or the dates for one stay) and
+     * the total on the right. When add-ons are part of the total, a second line says how it adds up ("Rooms ₱18,600.00 + Amenities
+     * ₱300.00 = ₱18,900.00"), so a total that changed between steps is never a surprise. Hidden until there is something to show.
+     */
     private void updateSummaryBar() {
-        TextView bar = findViewById(R.id.wizardSummaryBar);
+        View bar = findViewById(R.id.wizardSummaryBar);
         if (bar == null) return;
         // The final review step shows the same facts in its own summary card.
         if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount) {
             bar.setVisibility(View.GONE);
             return;
         }
-        if (state.isGroup()) {
-            int allRooms = 0;
-            for (BookingWizardState.Stay s : state.allStays()) allRooms += s.rooms.size();
-            int guestCount = state.adults + state.children;
-            bar.setText(getString(R.string.wizard_summary_group_format, state.stayCount(),
-                    getResources().getQuantityString(R.plurals.wizard_summary_rooms, allRooms, allRooms),
-                    getResources().getQuantityString(R.plurals.guests_count, guestCount, guestCount),
-                    String.format(Locale.US, getString(R.string.price_format), state.groupTotal())));
-            bar.setVisibility(View.VISIBLE);
-            return;
-        }
-        SimpleDateFormat fmt = new SimpleDateFormat("MMM dd", Locale.US);
-        String dates = getString(R.string.wizard_summary_dates_format, fmt.format(state.checkIn.getTime()), fmt.format(state.checkOut.getTime()));
-        int rooms = state.selectedRooms.size();
+        int rooms = 0;
+        for (BookingWizardState.Stay s : state.allStays()) rooms += s.rooms.size();
         String roomsText = rooms > 0 ? getResources().getQuantityString(R.plurals.wizard_summary_rooms, rooms, rooms) : getString(R.string.wizard_summary_no_rooms);
         int guests = state.adults + state.children;
-        String guestsText = getResources().getQuantityString(R.plurals.guests_count, guests, guests);
-        String total = String.format(Locale.US, getString(R.string.price_format), state.roomsTotal() + state.amenitiesTotal());
-        bar.setText(getString(R.string.wizard_summary_format, dates, roomsText, guestsText, total));
+        String guestsText = getResources().getQuantityString(R.plurals.wizard_summary_guests, guests, guests);
+        String first;
+        if (state.isGroup()) {
+            first = getResources().getQuantityString(R.plurals.stays_count, state.stayCount(), state.stayCount());
+        } else {
+            SimpleDateFormat fmt = new SimpleDateFormat("MMM dd", Locale.US);
+            first = getString(R.string.wizard_summary_dates_format, fmt.format(state.checkIn.getTime()), fmt.format(state.checkOut.getTime()));
+        }
+        ((TextView) findViewById(R.id.wizardSummaryLeft)).setText(getString(R.string.wizard_summary_left_format, first, roomsText, guestsText));
+        double roomsTotal = state.roomsTotal();
+        double amenities = state.amenitiesTotal();
+        ((TextView) findViewById(R.id.wizardSummaryTotal)).setText(MoneyFormat.format(roomsTotal + amenities));
+        TextView breakdown = findViewById(R.id.wizardSummaryBreakdown);
+        if (amenities > 0.004) {
+            breakdown.setText(getString(R.string.wizard_summary_breakdown_format, MoneyFormat.format(roomsTotal), MoneyFormat.format(amenities), MoneyFormat.format(roomsTotal + amenities)));
+            breakdown.setVisibility(View.VISIBLE);
+        } else {
+            breakdown.setVisibility(View.GONE);
+        }
         bar.setVisibility(View.VISIBLE);
     }
 

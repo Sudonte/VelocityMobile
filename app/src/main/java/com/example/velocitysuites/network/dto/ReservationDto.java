@@ -14,6 +14,8 @@ public class ReservationDto {
     /** The group of stays this reservation was made with (null for a single stay), and the other reservations in it. */
     public Long group_id;
     public java.util.List<Long> group_reservation_ids;
+    /** The stays of this transaction (see StayDto); null on a server without stays. */
+    public java.util.List<StayDto> stays;
     public long room_type_id;
     public RoomTypeDto room_type;
     /** dto.room is always null under the current backend - room assignment lives on the Booking once one exists (kept only for old/unconverted records). */

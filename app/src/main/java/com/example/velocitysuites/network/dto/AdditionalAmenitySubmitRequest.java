@@ -29,6 +29,8 @@ public class AdditionalAmenitySubmitRequest {
         }
     }
 
+    /** Which stay of the booking this request is for (the server needs it when several stays are in house). */
+    public Long stay_id;
     /** Per-room form. Null (so omitted from the JSON) when only the flat form is used. */
     public List<RoomLine> rooms;
     /** Flat form - amenities for "the room", used only when there is no real room id (room_id 0). */

@@ -1,15 +1,20 @@
 package com.example.velocitysuites;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -20,25 +25,33 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Steps 1 and 2 in one: the guest picks the check-in and check-out dates and, right under them, the rooms available for those dates
- * (the existing {@link Step2DatesFragment} and {@link Step1RoomSelectionFragment} run as children of this step). "Add another stay"
- * saves the stay and opens an empty "Stay 2" with its own dates and rooms; a summary of every stay (dates, nights, rooms, price) with
- * edit and remove is shown from the second stay on, with the group total. One stay behaves exactly as it always did.
+ * Dates and rooms in one step. ONE booking (or reservation) holds one or more stays, each with its own dates and rooms: the guest picks the
+ * check-in and check-out dates and, right under them, the rooms available for those dates (the existing {@link Step2DatesFragment} and
+ * {@link Step1RoomSelectionFragment} run as children of this step). "Add another stay" saves the stay and opens an empty next one.
+ *
+ * From the second stay on, a "Your stays" card lists every stay (dates, nights, rooms, price) with the same Edit and Remove for each, the stay
+ * being edited highlighted, and the total of all of them. Two stays may overlap or touch but never have identical dates (inline error, Next
+ * disabled), and Next also waits for every stay to have a room. One stay behaves exactly as it always did.
  */
 public class StepStaysFragment extends WizardStepFragment {
 
     private static final String TAG_DATES = "stay_dates";
     private static final String TAG_ROOMS = "stay_rooms";
 
-    private final SimpleDateFormat shortDate = new SimpleDateFormat("MMM dd", Locale.US);
+    private final SimpleDateFormat shortDate = new SimpleDateFormat("MMM d", Locale.US);
     private final ClickGuard guard = new ClickGuard();
 
+    private NestedScrollView scroll;
+    private View content;
     private View layoutStaysSummary;
     private LinearLayout layoutStayRows;
-    private TextView tvGroupTotal;
+    private TextView tvStaysTotal;
     private TextView tvActiveHeading;
     private TextView tvIncomplete;
+    private TextView tvDuplicate;
     private MaterialButton btnAddStay;
+    /** Set when a valid range was just picked: once the room list is ready, the page scrolls down to "Add room". */
+    private boolean scrollToAddRoomWhenReady;
 
     @Nullable
     @Override
@@ -49,16 +62,16 @@ public class StepStaysFragment extends WizardStepFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        scroll = view.findViewById(R.id.staysScroll);
+        content = view.findViewById(R.id.staysContent);
         layoutStaysSummary = view.findViewById(R.id.layoutStaysSummary);
         layoutStayRows = view.findViewById(R.id.layoutStayRows);
-        tvGroupTotal = view.findViewById(R.id.tvStaysGroupTotal);
+        tvStaysTotal = view.findViewById(R.id.tvStaysTotal);
         tvActiveHeading = view.findViewById(R.id.tvActiveStayHeading);
         tvIncomplete = view.findViewById(R.id.tvStayIncomplete);
+        tvDuplicate = view.findViewById(R.id.tvStayDuplicate);
         btnAddStay = view.findViewById(R.id.btnAddAnotherStay);
 
-        // Several stays belong to a NEW booking or reservation only - a Modify edits the one reservation it opened.
-        boolean editing = getWizardActivity().isEditMode();
-        btnAddStay.setVisibility(editing ? View.GONE : View.VISIBLE);
         btnAddStay.setOnClickListener(v -> {
             if (guard.tryAcquire()) onAddStay();
         });
@@ -86,8 +99,38 @@ public class StepStaysFragment extends WizardStepFragment {
     /** Called by the dates child once a date was picked: the room list is rebuilt for the new range (or hidden until both dates are valid). */
     void onDatesChanged() {
         if (!isAdded()) return;
+        scrollToAddRoomWhenReady = datesValid();
         showRooms();
         refreshSummary();
+    }
+
+    /** Called by the room list once the availability for the dates is on screen - the moment "Add room" is where it will stay. */
+    void onRoomsListReady() {
+        if (!isAdded() || !scrollToAddRoomWhenReady) return;
+        scrollToAddRoomWhenReady = false;
+        Fragment rooms = getChildFragmentManager().findFragmentByTag(TAG_ROOMS);
+        View add = rooms != null && rooms.getView() != null ? rooms.getView().findViewById(R.id.btnAddRoom) : null;
+        if (add == null || add.getVisibility() != View.VISIBLE) return;
+        scroll.post(() -> scrollTo(topInContent(add) - dp(24)));
+    }
+
+    /** Smooth scroll, or a plain jump when the guest turned animations off. */
+    private void scrollTo(int y) {
+        if (scroll == null) return;
+        int target = Math.max(0, y);
+        if (Motion.enabled(requireContext())) scroll.smoothScrollTo(0, target);
+        else scroll.scrollTo(0, target);
+    }
+
+    private int topInContent(View v) {
+        int y = 0;
+        View cur = v;
+        while (cur != null && cur != content) {
+            y += cur.getTop();
+            ViewParent parent = cur.getParent();
+            cur = parent instanceof View ? (View) parent : null;
+        }
+        return y;
     }
 
     private boolean datesValid() {
@@ -110,7 +153,7 @@ public class StepStaysFragment extends WizardStepFragment {
             fm.beginTransaction().replace(R.id.stayRoomsContainer, new Step1RoomSelectionFragment(), TAG_ROOMS).commitNowAllowingStateLoss();
         } else {
             if (old != null) fm.beginTransaction().remove(old).commitNowAllowingStateLoss();
-            getWizardActivity().setNextEnabled(false); // no dates, no rooms: nothing to continue with yet
+            getWizardActivity().setNextEnabledQuietly(false); // no dates, no rooms: nothing to continue with yet
         }
     }
 
@@ -118,97 +161,109 @@ public class StepStaysFragment extends WizardStepFragment {
         if (!isAdded() || getView() == null) return;
         BookingWizardState state = getState();
         int count = state.stayCount();
-        boolean group = count > 1;
-        layoutStaysSummary.setVisibility(group ? View.VISIBLE : View.GONE);
-        tvActiveHeading.setVisibility(group ? View.VISIBLE : View.GONE);
-        if (group) tvActiveHeading.setText(getString(R.string.stay_active_heading_format, state.activeStayIndex() + 1, count));
+        boolean several = count > 1;
+        int active = state.activeStayIndex();
+        layoutStaysSummary.setVisibility(several ? View.VISIBLE : View.GONE);
+        tvActiveHeading.setText(several ? getString(R.string.stay_heading_format, active + 1) : getString(R.string.stay_heading_single));
 
         layoutStayRows.removeAllViews();
         List<BookingWizardState.Stay> stays = state.allStays();
-        for (int i = 0; i < stays.size(); i++) {
-            layoutStayRows.addView(buildRow(i, stays.get(i), i == state.activeStayIndex(), stays.size()));
+        if (several) {
+            for (int i = 0; i < stays.size(); i++) {
+                layoutStayRows.addView(buildRow(i, stays.get(i), i == active));
+            }
+            tvStaysTotal.setText(MoneyFormat.format(state.groupTotal()));
         }
-        tvGroupTotal.setText(getString(R.string.stays_group_total_format, MoneyFormat.format(state.groupTotal())));
 
-        BookingWizardState.Stay active = stays.get(state.activeStayIndex());
-        btnAddStay.setEnabled(active.isComplete() && count < BookingWizardState.MAX_STAYS);
-        if (tvIncomplete != null && active.isComplete()) tvIncomplete.setVisibility(View.GONE);
+        // Identical dates in two stays: said right here, under the dates, and Next waits.
+        int duplicate = state.duplicateOf(active);
+        BookingWizardState.Stay activeStay = stays.get(active);
+        if (duplicate >= 0 && activeStay.checkIn != null && activeStay.checkOut != null) {
+            tvDuplicate.setText(getString(R.string.stay_duplicate_error_format, shortDate.format(activeStay.checkIn.getTime()), shortDate.format(activeStay.checkOut.getTime())));
+            tvDuplicate.setVisibility(View.VISIBLE);
+        } else {
+            tvDuplicate.setVisibility(View.GONE);
+        }
+
+        btnAddStay.setEnabled(activeStay.isComplete() && duplicate < 0 && count < BookingWizardState.MAX_STAYS);
+        if (tvIncomplete != null && activeStay.isComplete()) tvIncomplete.setVisibility(View.GONE);
+        // Next needs valid dates and a room in EVERY stay, and no two stays with the same dates.
+        getWizardActivity().setNextEnabledQuietly(state.staysReadyToContinue());
+        getWizardActivity().refreshSummaryBar();
     }
 
-    private View buildRow(int index, BookingWizardState.Stay stay, boolean active, int total) {
-        LinearLayout row = new LinearLayout(requireContext());
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(dp(48));
-        row.setPadding(0, dp(4), 0, dp(4));
+    private View buildRow(int index, BookingWizardState.Stay stay, boolean active) {
+        View row = LayoutInflater.from(requireContext()).inflate(R.layout.item_stay_row, layoutStayRows, false);
+        row.setTag(index);
+        if (active) row.setBackgroundColor(requireContext().getColor(R.color.velocity_red_soft));
 
-        LinearLayout text = new LinearLayout(requireContext());
-        text.setOrientation(LinearLayout.VERTICAL);
-        row.addView(text, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ((TextView) row.findViewById(R.id.tvStayRowTitle)).setText(titleOf(index, stay));
+        ((TextView) row.findViewById(R.id.tvStayRowRooms)).setText(roomsLineOf(stay));
+        row.findViewById(R.id.tvStayRowEditing).setVisibility(active ? View.VISIBLE : View.GONE);
 
-        TextView title = new TextView(requireContext());
-        title.setText(getString(R.string.stay_label_format, index + 1));
-        title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
-        title.setTextSize(13);
-        title.setTextColor(requireContext().getColor(active ? R.color.velocity_red_primary : R.color.velocity_text_primary));
-        text.addView(title);
-
-        TextView detail = new TextView(requireContext());
-        detail.setText(describe(stay));
-        detail.setTextSize(12);
-        detail.setTextColor(requireContext().getColor(R.color.velocity_text_secondary));
-        text.addView(detail);
-
-        if (!active) {
-            MaterialButton edit = new MaterialButton(requireContext(), null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-            edit.setText(R.string.stay_edit);
-            edit.setAllCaps(false);
-            edit.setTextSize(12);
-            edit.setMinHeight(dp(44));
-            edit.setOnClickListener(v -> {
-                if (guard.tryAcquire()) onOpenStay(index);
-            });
-            row.addView(edit);
-        }
-        if (total > 1) {
-            MaterialButton remove = new MaterialButton(requireContext(), null, android.R.attr.borderlessButtonStyle);
-            remove.setText(R.string.stay_remove);
-            remove.setAllCaps(false);
-            remove.setTextSize(12);
-            remove.setMinHeight(dp(44));
-            remove.setOnClickListener(v -> {
-                if (guard.tryAcquire()) confirmRemove(index);
-            });
-            row.addView(remove);
-        }
+        MaterialButton edit = row.findViewById(R.id.btnStayRowEdit);
+        edit.setContentDescription(getString(R.string.stay_edit_cd_format, index + 1));
+        edit.setOnClickListener(v -> {
+            if (guard.tryAcquire()) onOpenStay(index);
+        });
+        MaterialButton remove = row.findViewById(R.id.btnStayRowRemove);
+        remove.setContentDescription(getString(R.string.stay_remove_cd_format, index + 1));
+        remove.setOnClickListener(v -> {
+            if (guard.tryAcquire()) confirmRemove(index);
+        });
         return row;
     }
 
-    /** "Nov 01 - Nov 03 · 2 nights · 2 rooms · ₱10,000.00" - or what is still missing. */
-    private String describe(BookingWizardState.Stay stay) {
-        if (stay.checkIn == null || stay.checkOut == null) return getString(R.string.stay_summary_no_dates);
-        String dates = getString(R.string.stay_summary_dates_format, shortDate.format(stay.checkIn.getTime()), shortDate.format(stay.checkOut.getTime()));
-        long nights = stay.nights();
-        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights);
-        String roomsText = stay.rooms.isEmpty() ? getString(R.string.wizard_summary_no_rooms)
-                : getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size());
-        return getString(R.string.stay_summary_line_format, dates, nightsText, roomsText, MoneyFormat.format(stay.total()));
+    /** "Stay 1" in bold, then "Oct 25 → Oct 26 · 1 night" (or what is still missing). */
+    private CharSequence titleOf(int index, BookingWizardState.Stay stay) {
+        String name = getString(R.string.stay_label_format, index + 1);
+        String rest;
+        if (stay.checkIn == null || stay.checkOut == null) {
+            rest = getString(R.string.stay_summary_no_dates);
+        } else {
+            long nights = stay.nights();
+            // no-break spaces keep "Oct 28 → Oct 29" and "1 night" whole when the line wraps beside the Edit / Remove buttons
+            rest = getString(R.string.stay_row_dates_format, shortDate.format(stay.checkIn.getTime()).replace(' ', ' '), shortDate.format(stay.checkOut.getTime()).replace(' ', ' '),
+                    getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights).replace(' ', ' '));
+        }
+        SpannableStringBuilder sb = new SpannableStringBuilder(name).append("  ").append(rest);
+        sb.setSpan(new StyleSpan(Typeface.BOLD), 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return sb;
+    }
+
+    /** "2 rooms · ₱9,300.00" */
+    private String roomsLineOf(BookingWizardState.Stay stay) {
+        if (stay.rooms.isEmpty()) return getString(R.string.wizard_summary_no_rooms);
+        return getString(R.string.stay_row_rooms_format,
+                getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size()), MoneyFormat.format(stay.total()));
     }
 
     private void onAddStay() {
         BookingWizardState state = getState();
         if (!validateActive()) return;
+        if (state.hasDuplicateStay()) {
+            showIncomplete(tvDuplicate.getText().toString());
+            return;
+        }
         if (state.stayCount() >= BookingWizardState.MAX_STAYS) {
             showIncomplete(getString(R.string.stays_max_format, BookingWizardState.MAX_STAYS));
             return;
         }
-        if (state.addStay()) showStay();
+        if (state.addStay()) {
+            showStay();
+            scrollTo(topInContent(tvActiveHeading) - dp(12)); // the new, empty stay's editor
+        }
     }
 
     private void onOpenStay(int index) {
+        if (index == getState().activeStayIndex()) {
+            scrollTo(topInContent(tvActiveHeading) - dp(12));
+            return;
+        }
         if (!validateActive()) return; // finish (or fix) the stay being edited before leaving it
         getState().activate(index);
         showStay();
+        scrollTo(topInContent(tvActiveHeading) - dp(12));
     }
 
     private void confirmRemove(int index) {
@@ -252,6 +307,12 @@ public class StepStaysFragment extends WizardStepFragment {
         BookingWizardState state = getState();
         if (!validateActive()) return false;
         state.commitActive();
+        // Two stays with the same dates: the inline message says which, and nothing moves on.
+        if (state.hasDuplicateStay()) {
+            refreshSummary();
+            showIncomplete(tvDuplicate.getVisibility() == View.VISIBLE ? tvDuplicate.getText().toString() : getString(R.string.stay_duplicate_generic));
+            return false;
+        }
         // Every other stay must be complete too: open the first one that is not, with the reason shown.
         List<BookingWizardState.Stay> stays = state.allStays();
         for (int i = 0; i < stays.size(); i++) {

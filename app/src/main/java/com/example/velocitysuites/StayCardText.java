@@ -50,7 +50,10 @@ final class StayCardText {
         LocalDate in = PaymentDates.parseDate(b.getCheckInDate());
         LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
         String nights = "";
-        if (in != null && out != null) {
+        if (b.hasSeveralStays()) {
+            // one transaction, several stays: the span is the card's dates, so say how many stays it holds instead of a night count
+            nights = context.getResources().getQuantityString(R.plurals.stays_count, b.getStayCount(), b.getStayCount());
+        } else if (in != null && out != null) {
             int n = (int) Math.max(1, ChronoUnit.DAYS.between(in, out));
             nights = context.getResources().getQuantityString(R.plurals.receipt_nights_count, n, n);
         }
@@ -69,7 +72,9 @@ final class StayCardText {
         LocalDate out = PaymentDates.parseDate(b.getCheckOutDate());
         if (in == null || out == null) return dates;
         int n = (int) Math.max(1, ChronoUnit.DAYS.between(in, out));
-        String nights = context.getResources().getQuantityString(R.plurals.receipt_nights_count, n, n);
+        String nights = b.hasSeveralStays()
+                ? context.getResources().getQuantityString(R.plurals.stays_count, b.getStayCount(), b.getStayCount())
+                : context.getResources().getQuantityString(R.plurals.receipt_nights_count, n, n);
         return dates.isEmpty() ? nights : context.getString(R.string.recent_booking_dates_format, dates, nights);
     }
 

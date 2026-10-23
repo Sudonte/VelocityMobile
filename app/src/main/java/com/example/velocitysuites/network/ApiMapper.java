@@ -136,6 +136,26 @@ public final class ApiMapper {
      * single room_type_id) and fall back to the existing single
      * roomType/roomName fields in that case.
      */
+    /** The stays the server lists under `stays` (an older server sends none: the list stays empty and the transaction reads as one stay). */
+    private static List<Booking.StayRecord> toStays(List<com.example.velocitysuites.network.dto.StayDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Booking.StayRecord> out = new ArrayList<>(dtos.size());
+        for (com.example.velocitysuites.network.dto.StayDto d : dtos) {
+            if (d == null) continue;
+            List<BookingAmenity> amenities = new ArrayList<>();
+            if (d.amenities != null) {
+                for (com.example.velocitysuites.network.dto.StayDto.StayAmenityDto a : d.amenities) {
+                    if (a != null) amenities.add(new BookingAmenity(a.amenity_id, a.amenity_name, a.quantity, a.unit_price, a.subtotal));
+                }
+            }
+            out.add(new Booking.StayRecord(d.id != null ? d.id : d.position, d.position, d.check_in, d.check_out, d.nights, d.state,
+                    toBookingRooms(d.rooms), amenities, d.rooms_subtotal, d.amenities_subtotal, d.subtotal));
+        }
+        return out;
+    }
+
     private static List<BookingRoom> toBookingRooms(List<BookingRoomDto> dtos) {
         if (dtos == null || dtos.isEmpty()) {
             return Collections.emptyList();
@@ -293,6 +313,8 @@ public final class ApiMapper {
         }
         booking.setHasBooking(dto.booking != null);
         booking.setGroup(dto.group_id, dto.group_reservation_ids);
+        // Once converted, the stays are the booking's own (its rooms are assigned per stay); before that, the reservation's.
+        booking.setStays(toStays(dto.booking != null && dto.booking.stays != null && !dto.booking.stays.isEmpty() ? dto.booking.stays : dto.stays));
         booking.setRoomImageUrl(dto.room_type != null ? dto.room_type.image_url : null);
         booking.setRoomTypeId(String.valueOf(dto.room_type_id));
         booking.setRoomsRequested(Math.max(1, dto.rooms_requested));
@@ -653,6 +675,7 @@ public final class ApiMapper {
         booking.setHasBooking(true);
         booking.setDirectBooking(true);
         booking.setGroup(dto.group_id, dto.group_booking_ids);
+        booking.setStays(toStays(dto.stays));
         booking.setPaymentPendingVerification(pendingVerification);
         booking.setStaffVerified(dto.verified_at != null && !dto.verified_at.isEmpty());
         booking.setHiddenAt(dto.hidden_at);
@@ -829,6 +852,7 @@ public final class ApiMapper {
         );
         receiptDetail.setIssuedAtRaw(dto.issued_at);
         receiptDetail.setStay(StayInfo.from(dto.stay_bill));
+        receiptDetail.setStays(toStays(dto.stays));
         if (dto.highlight != null) {
             ReceiptDetailDto.HighlightDto h = dto.highlight;
             ReceiptDetail.Highlight hl = new ReceiptDetail.Highlight(h.kind, h.payment_type, h.payment_method, h.amount_to_pay_note);

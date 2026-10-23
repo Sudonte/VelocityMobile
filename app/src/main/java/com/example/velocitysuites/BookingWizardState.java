@@ -158,8 +158,74 @@ public class BookingWizardState {
         return out;
     }
 
+    /** More than one stay in this booking or reservation. */
     public boolean isGroup() {
         return stayCount() > 1;
+    }
+
+    private static boolean sameDay(Calendar a, Calendar b) {
+        return a.get(Calendar.YEAR) == b.get(Calendar.YEAR) && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
+    }
+
+    /**
+     * The index of ANOTHER stay with the very same check-in AND check-out day as stay {@code index}, or -1. Two stays of one booking
+     * may overlap or touch, but not be identical (the guest adds rooms to that stay instead) - the server refuses it too.
+     */
+    public int duplicateOf(int index) {
+        List<Stay> all = allStays();
+        if (index < 0 || index >= all.size()) return -1;
+        Stay me = all.get(index);
+        if (me.checkIn == null || me.checkOut == null) return -1;
+        for (int j = 0; j < all.size(); j++) {
+            Stay other = all.get(j);
+            if (j == index || other.checkIn == null || other.checkOut == null) continue;
+            if (sameDay(me.checkIn, other.checkIn) && sameDay(me.checkOut, other.checkOut)) return j;
+        }
+        return -1;
+    }
+
+    /** True when any stay repeats another stay's exact dates. */
+    public boolean hasDuplicateStay() {
+        int n = stayCount();
+        for (int i = 0; i < n; i++) if (duplicateOf(i) >= 0) return true;
+        return false;
+    }
+
+    /** True when every stay has valid dates and at least one room, and no two stays have identical dates - what lets the guest move on from Step 1. */
+    public boolean staysReadyToContinue() {
+        for (Stay s : allStays()) if (!s.isComplete()) return false;
+        return !hasDuplicateStay();
+    }
+
+    /**
+     * Rooms of one type the OTHER stays already use on the busiest night of the stay being edited: stays may overlap, so their rooms add up
+     * on the nights they share, and the server's availability for these dates does not know about them yet.
+     */
+    public int otherStaysPeak(String roomTypeId) {
+        if (checkIn == null || checkOut == null || roomTypeId == null) return 0;
+        List<Stay> all = allStays();
+        int peak = 0;
+        Calendar night = (Calendar) checkIn.clone();
+        while (night.before(checkOut)) {
+            int used = 0;
+            for (int i = 0; i < all.size(); i++) {
+                if (i == activeStay) continue;
+                Stay other = all.get(i);
+                if (other.checkIn == null || other.checkOut == null) continue;
+                if (night.before(other.checkIn) || !night.before(other.checkOut)) continue; // not one of that stay's nights
+                for (Room r : other.rooms) if (roomTypeId.equals(r.getId())) used++;
+            }
+            peak = Math.max(peak, used);
+            night.add(Calendar.DAY_OF_YEAR, 1);
+        }
+        return peak;
+    }
+
+    /** Guests the rooms of the stay being edited can hold. */
+    public int activeStayCapacity() {
+        int total = 0;
+        for (Room r : selectedRooms) total += r.getCapacity();
+        return total;
     }
 
     /** The whole transaction's price: every stay's rooms and paid amenities. */

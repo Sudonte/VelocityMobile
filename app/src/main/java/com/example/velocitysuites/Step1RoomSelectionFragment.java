@@ -130,6 +130,8 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
                 roomsLoadedSuccessfullyOnce = true;
                 reconcileSelectedRoomsWithAvailability();
                 showRoomAvailabilityResult();
+                // the room list is on screen now: Dates and rooms scrolls down to "Add room" after a fresh date range
+                if (getParentFragment() instanceof StepStaysFragment) ((StepStaysFragment) getParentFragment()).onRoomsListReady();
             }
 
             @Override
@@ -166,7 +168,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         layoutCheckingAvailability.setVisibility(View.GONE);
         boolean anyAvailable = false;
         for (Room r : allRooms) {
-            if (r.getAvailableCount() > 0) {
+            if (availableFor(r) > 0) {
                 anyAvailable = true;
                 break;
             }
@@ -199,7 +201,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
                     break;
                 }
             }
-            int available = fresh != null ? fresh.getAvailableCount() : 0;
+            int available = fresh != null ? availableFor(fresh) : 0;
             if (available >= group.size()) continue;
 
             changed = true;
@@ -246,6 +248,14 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         View error = getView() == null ? null : getView().findViewById(R.id.tvRoomsError);
         if (error != null && !getState().selectedRooms.isEmpty()) error.setVisibility(View.GONE); // the message goes once a room is added
         getWizardActivity().setNextEnabled(!getState().selectedRooms.isEmpty());
+    }
+
+    /**
+     * Rooms of this type the guest can still take for the stay being edited: what is free for these dates, less what this booking's OTHER stays
+     * already use on the busiest night they share with it (stays may overlap, so their rooms add up).
+     */
+    private int availableFor(Room room) {
+        return Math.max(0, room.getAvailableCount() - getState().otherStaysPeak(room.getId()));
     }
 
     private int currentQtyForId(String id) {
@@ -297,7 +307,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
     private void openAvailableRoomsDialogOrToast() {
         List<Room> browsable = new ArrayList<>();
         for (Room r : allRooms) {
-            if (r.getAvailableCount() - currentQtyForId(r.getId()) <= 0) continue;
+            if (availableFor(r) - currentQtyForId(r.getId()) <= 0) continue;
             browsable.add(r);
         }
 
@@ -399,7 +409,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
                         break;
                     }
                 }
-                int remaining = fresh.getAvailableCount() - currentQtyForId(roomId);
+                int remaining = availableFor(fresh) - currentQtyForId(roomId);
                 int qtyToAdd = Math.min(requestedQty, Math.max(0, remaining));
                 if (qtyToAdd <= 0) {
                     trimmedOrDropped.add(fresh.getName());
@@ -559,7 +569,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
                 (com.google.android.material.card.MaterialCardView) card;
         View cardContent = card.findViewById(R.id.availableRoomCardContent);
 
-        int remainingBase = Math.max(0, room.getAvailableCount() - currentQtyForId(room.getId()));
+        int remainingBase = Math.max(0, availableFor(room) - currentQtyForId(room.getId()));
         int maxQty = Math.max(1, remainingBase);
 
         tvName.setText(room.getName());
@@ -788,7 +798,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
             }
             if (toAdd == null) return;
 
-            int cap = fresh != null ? fresh.getAvailableCount() : toAdd.getAvailableCount();
+            int cap = availableFor(fresh != null ? fresh : toAdd);
             if (currentQtyForId(roomId) >= cap) {
                 showRoomsLimit(getString(R.string.rooms_limit_message, toAdd.getName(), cap));
                 return;
@@ -814,7 +824,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
             tvCapacityIndicator.setText(R.string.add_room_hint);
         } else {
             tvCapacityIndicator.setText(getResources().getQuantityString(
-                    R.plurals.total_capacity_format, state.totalSelectedCapacity(), state.totalSelectedCapacity()));
+                    R.plurals.total_capacity_format, state.activeStayCapacity(), state.activeStayCapacity()));
         }
         if (state.selectedRooms.isEmpty()) {
             tvRoomsSelectedCount.setText(R.string.no_rooms_selected_yet);

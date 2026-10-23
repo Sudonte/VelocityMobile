@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Steps 1 and 2 in one: the stays summary (when there is more than one), then the dates and rooms of the stay being edited. -->
+<!-- Dates and rooms in one step: "Your stays" (from the second stay on), then the editor of the stay being edited. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/staysScroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:clipToPadding="false">
 
     <LinearLayout
+        android:id="@+id/staysContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Every stay so far (dates, nights, rooms, price) with edit and remove; shown from the second stay on. -->
+        <!-- Every stay so far: its dates and nights, rooms and price, the same Edit / Remove for each, and the total of all of them. -->
         <LinearLayout
             android:id="@+id/layoutStaysSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="22dp"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_glass_card_white"
             android:orientation="vertical"
             android:padding="14dp"
@@ -41,17 +43,43 @@
                 android:layout_marginTop="6dp"
                 android:orientation="vertical" />
 
-            <TextView
-                android:id="@+id/tvStaysGroupTotal"
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="6dp"
+                android:background="@color/velocity_divider_hairline" />
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="sans-serif-black"
-                android:textColor="@color/velocity_action_text"
-                android:textSize="15sp"
-                tools:text="Group total: ₱17,500.00" />
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/stays_total_label"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvStaysTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="end"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="15sp"
+                    tools:text="₱18,600.00" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- "Stay 2 · Choose dates and rooms": which stay is being edited, and what to do. -->
         <TextView
             android:id="@+id/tvActiveStayHeading"
             style="@style/TextAppearance.Velocity.Label.Section"
@@ -59,16 +87,28 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="22dp"
             android:layout_marginTop="18dp"
-            android:textColor="@color/velocity_red_primary"
-            android:textSize="14sp"
-            android:visibility="gone"
-            tools:text="Stay 2 of 2"
-            tools:visibility="visible" />
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="15sp"
+            tools:text="Stay 2 · Choose dates and rooms" />
 
         <FrameLayout
             android:id="@+id/stayDatesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <!-- Two stays with the very same check-in and check-out: the guest adds rooms to that stay instead. -->
+        <TextView
+            android:id="@+id/tvStayDuplicate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="22dp"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_action_text"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="You already added a stay for Oct 25 – Oct 26. Pick different dates or add rooms to that stay."
+            tools:visibility="visible" />
 
         <FrameLayout
             android:id="@+id/stayRoomsContainer"
@@ -82,7 +122,7 @@
             android:layout_marginHorizontal="22dp"
             android:layout_marginTop="8dp"
             android:fontFamily="sans-serif-medium"
-            android:textColor="@color/velocity_red_primary"
+            android:textColor="@color/velocity_action_text"
             android:textSize="13sp"
             android:visibility="gone" />
 

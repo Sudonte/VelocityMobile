@@ -854,8 +854,9 @@
     <string name="transaction_created_datetime_label">Date &amp; Time</string>
     <string name="transaction_type_booking_label">Booking</string>
     <string name="transaction_type_reservation_label">Reservation</string>
-    <string name="view_my_booking_button">View My Booking</string>
-    <string name="view_my_reservation_button">View My Reservation</string>
+    <string name="view_my_booking_button">View booking</string>
+    <string name="created_type_stays_format">%1$s · %2$s</string>
+    <string name="view_my_reservation_button">View reservation</string>
     <string name="transaction_ref_label">Transaction Ref: %1$s</string>
     <string name="view_receipt">View Receipt</string>
     <string name="download_receipt">Download Receipt</string>
@@ -1083,6 +1084,7 @@
     <string name="guest_last_name_hint">Last Name *</string>
     <string name="id_verification_title">ID Verification</string>
     <string name="id_question">Do you have a Senior Citizen or PWD ID?</string>
+    <string name="discount_step_intro_stays">Pick a discount you are eligible for and upload one valid ID. It applies to all your stays. You can also continue without one.</string>
     <string name="discount_step_intro">Pick a discount you are eligible for. You will need to upload a valid ID. You can also continue without one.</string>
     <string name="discount_none_title">No discount</string>
     <string name="discount_none_desc">Continue without claiming a discount.</string>
@@ -1231,7 +1233,6 @@
     <string name="reservation_details_screen_title">Reservation Details</string>
     <string name="date_range_format">%1$s - %2$s</string>
     <string name="modify_reservation_label">Edit Reservation</string>
-    <string name="wizard_summary_format">%1$s • %2$s • %3$s • %4$s</string>
     <string name="wizard_summary_no_rooms">No rooms yet</string>
     <string name="wizard_summary_dates_format">%1$s - %2$s</string>
     <plurals name="wizard_summary_rooms">
@@ -1334,14 +1335,12 @@
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
-    <string name="wizard_summary_group_format" tools:ignore="PluralsCandidate">%1$d stays   %2$s   %3$s   %4$s</string>
     <string name="amenities_for_stay_label">Amenities for</string>
     <string name="stay_chip_format">Stay %1$d · %2$s - %3$s</string>
     <string name="review_group_dates_format" tools:ignore="PluralsCandidate">%1$d stays (listed below)</string>
     <string name="review_stay_header_format">Stay %1$d: %2$s - %3$s (%4$s)</string>
     <string name="review_stay_amenity_format">Stay %1$d: %2$s x%3$d</string>
     <string name="review_stay_room_format">Stay %1$d: %2$s</string>
-    <string name="discount_group_note">A discount can\'t be claimed when several stays are booked together here. Ask the front desk about a discount at check-in.</string>
     <string name="group_stay_label_format">Group · Stay %1$d of %2$d</string>
     <string name="group_two_parts_format">%1$s  ·  %2$s</string>
     <string name="group_stay_link">Other stays</string>
@@ -1354,18 +1353,46 @@
     <string name="cancel_all_stays_button">Cancel all stays</string>
     <string name="cancel_all_stays_done">The unverified stays of this group were cancelled. Stays the front desk already verified were kept.</string>
     <string name="stays_title">Your stays</string>
+    <string name="details_stays_title">Stays</string>
+    <string name="stay_state_in_house">In house</string>
+    <string name="stay_state_checked_out">Checked out</string>
+    <string name="stay_details_line_format">%1$s · %2$s</string>
+    <string name="stay_room_numbers_format">Room %1$s</string>
+    <string name="stay_room_line_format">%1$d × %2$s %3$s</string>
+    <string name="stay_subtotal_format" tools:ignore="PluralsCandidate">Stay %1$d Subtotal</string>
+    <string name="total_explainer_stays">Total for all stays after discount and extras.</string>
+    <string name="total_explainer_single">Total for your stay after discount and extras.</string>
+    <string name="amenity_stay_pick_line_format">Stay %1$d · %2$s → %3$s</string>
+    <string name="stays_total_label">Total for all stays</string>
+    <string name="stay_editing_badge">Editing</string>
+    <string name="stay_heading_format">Stay %1$d · Choose dates and rooms</string>
+    <string name="stay_heading_single">Choose dates and rooms</string>
+    <string name="stay_row_dates_format">%1$s&#160;→&#160;%2$s&#160;·&#160;%3$s</string>
+    <string name="stay_row_rooms_format">%1$s · %2$s</string>
+    <string name="stay_edit_cd_format">Edit stay %1$d</string>
+    <string name="stay_remove_cd_format">Remove stay %1$d</string>
+    <string name="stay_duplicate_error_format">You already added a stay for %1$s – %2$s. Pick different dates or add rooms to that stay.</string>
+    <string name="stay_duplicate_generic">Two of your stays have the same dates. Pick different dates or add rooms to one of them.</string>
+    <string name="helper_checkin_earliest">Earliest: %1$s</string>
+    <string name="helper_checkin_earliest_placeholder" translatable="false">Earliest: Mon, Jan 1</string>
+    <plurals name="wizard_summary_guests">
+        <item quantity="one">%1$d guest</item>
+        <item quantity="other">%1$d guests</item>
+    </plurals>
+    <plurals name="stays_count">
+        <item quantity="one">%1$d stay</item>
+        <item quantity="other">%1$d stays</item>
+    </plurals>
+    <string name="wizard_summary_left_format">%1$s · %2$s · %3$s</string>
+    <string name="wizard_summary_breakdown_format">Rooms %1$s + Amenities %2$s = %3$s</string>
     <string name="step_title_stays">Dates and rooms</string>
     <string name="stay_label_format">Stay %1$d</string>
-    <string name="stay_active_heading_format">Stay %1$d of %2$d</string>
     <string name="add_another_stay">Add another stay</string>
     <string name="stay_edit">Edit</string>
     <string name="stay_remove">Remove</string>
     <string name="stay_remove_title_format">Remove stay %1$d?</string>
     <string name="stay_remove_message">Its dates, rooms and amenities are removed from this booking.</string>
     <string name="stay_summary_no_dates">Dates not chosen yet</string>
-    <string name="stay_summary_dates_format">%1$s - %2$s</string>
-    <string name="stay_summary_line_format">%1$s · %2$s · %3$s · %4$s</string>
-    <string name="stays_group_total_format">Group total: %1$s</string>
     <string name="stays_max_format" tools:ignore="PluralsCandidate">You can book up to %1$d stays together.</string>
     <string name="stay_incomplete_dates">Choose valid check-in and check-out dates for this stay first.</string>
     <string name="stay_incomplete_format" tools:ignore="PluralsCandidate">Stay %1$d needs its dates and at least one room.</string>
@@ -1476,6 +1503,7 @@
     <string name="error_pay_rest_at_hotel">The remaining balance (%1$s) is paid at the Velocity Suites front desk. Online payment is a partial payment only.</string>
     <string name="error_partial_out_of_range">The payment must be between %1$s and %2$s.</string>
     <string name="pay_rest_at_hotel_hint">Online payment is a partial payment only. The remaining %1$s is paid at the front desk.</string>
+    <string name="payment_under_review_note">Payment under review</string>
     <string name="front_desk_balance_message">Remaining balance: %1$s. Please pay at the Velocity Suites front desk.</string>
     <string name="front_desk_title">Pay at the front desk</string>
     <string name="discount_pending_line">Your discount is being verified. You can pay a deposit now and the rest after it\'s applied.</string>

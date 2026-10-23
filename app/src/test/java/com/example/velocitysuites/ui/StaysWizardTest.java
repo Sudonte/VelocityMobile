@@ -3,6 +3,7 @@ package com.example.velocitysuites.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -15,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.example.velocitysuites.AddOnAmenity;
 import com.example.velocitysuites.BookingWizardActivity;
 import com.example.velocitysuites.BookingWizardState;
 import com.example.velocitysuites.CheckInWindow;
@@ -133,7 +135,7 @@ public class StaysWizardTest {
 
         assertEquals(2, state.stayCount());
         assertEquals(1, state.activeStayIndex());
-        assertEquals("Stay 2 of 2", text(find(activity, R.id.tvActiveStayHeading)));
+        assertEquals("Stay 2 · Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
         assertEquals("the new stay starts empty", 0, state.selectedRooms.size());
         assertEquals(View.VISIBLE, find(activity, R.id.layoutStaysSummary).getVisibility());
 
@@ -144,12 +146,144 @@ public class StaysWizardTest {
         assertEquals(2, state.stayCount());
         android.widget.LinearLayout rows = find(activity, R.id.layoutStayRows);
         assertEquals("one row per stay", 2, rows.getChildCount());
-        assertEquals("Group total: ₱10,000.00", text(find(activity, R.id.tvStaysGroupTotal)));
+        assertEquals("₱10,000.00", text(find(activity, R.id.tvStaysTotal)));
         assertTrue(text(find(activity, R.id.tvStayIncomplete)).isEmpty());
 
         assertTrue("every stay is complete: Next is allowed", valid(activity));
         assertEquals("the next steps start from the first stay", 0, state.activeStayIndex());
         assertEquals(10000.0, state.groupTotal(), 0.001);
+    }
+
+    @Test
+    public void theYourStaysCard_listsEveryStay_withNightsRoomsPriceAndTheSameEditAndRemove() {
+        BookingWizardActivity activity = wizardOnStay(5, 1, room("1", 9300), 1); // 9,300
+        BookingWizardState state = activity.getState();
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        fill(state, 7, 2, room("2", 2000), 2); // 8,000
+        activity.goToStep(1);
+        idle();
+
+        android.widget.LinearLayout rows = find(activity, R.id.layoutStayRows);
+        assertEquals(2, rows.getChildCount());
+        View first = rows.getChildAt(0);
+        View second = rows.getChildAt(1);
+        String title1 = text(first.findViewById(R.id.tvStayRowTitle)).replace((char) 160, ' ');
+        assertTrue(title1, title1.startsWith("Stay 1") && title1.contains("→") && title1.contains("1 night"));
+        assertEquals("1 room · ₱9,300.00", text(first.findViewById(R.id.tvStayRowRooms)));
+        assertEquals("2 rooms · ₱8,000.00", text(second.findViewById(R.id.tvStayRowRooms)));
+        assertTrue(text(second.findViewById(R.id.tvStayRowTitle)).replace((char) 160, ' ').contains("2 nights"));
+        for (View row : new View[]{first, second}) {
+            assertEquals("Edit", text(row.findViewById(R.id.btnStayRowEdit)));
+            assertEquals("Remove", text(row.findViewById(R.id.btnStayRowRemove)));
+            assertEquals(View.VISIBLE, row.findViewById(R.id.btnStayRowEdit).getVisibility());
+            assertEquals(View.VISIBLE, row.findViewById(R.id.btnStayRowRemove).getVisibility());
+        }
+        // the stay being edited (the second) is the highlighted one
+        assertEquals(View.GONE, first.findViewById(R.id.tvStayRowEditing).getVisibility());
+        assertEquals(View.VISIBLE, second.findViewById(R.id.tvStayRowEditing).getVisibility());
+        assertEquals("₱17,300.00", text(find(activity, R.id.tvStaysTotal)));
+        assertTrue(collect(find(activity, R.id.layoutStaysSummary)).contains("Total for all stays"));
+
+        // Edit on the other stay opens it; Remove asks first and then drops it
+        first.findViewById(R.id.btnStayRowEdit).performClick();
+        idle();
+        assertEquals(0, state.activeStayIndex());
+        assertEquals("Stay 1 · Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
+    }
+
+    @Test
+    public void twoStaysWithTheSameCheckInAndCheckOut_areRefusedInline_andNextIsDisabled() {
+        BookingWizardActivity activity = wizardOnStay(5, 1, room("1", 1000), 1);
+        BookingWizardState state = activity.getState();
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        fill(state, 5, 1, room("2", 2000), 1); // exactly the same dates as stay 1
+        activity.goToStep(1);
+        idle();
+
+        android.view.View error = find(activity, R.id.tvStayDuplicate);
+        assertEquals(View.VISIBLE, error.getVisibility());
+        assertTrue(text(error), text(error).startsWith("You already added a stay for"));
+        assertTrue(text(error), text(error).contains("Pick different dates or add rooms to that stay."));
+        assertTrue("it names the dates", text(error).contains("–"));
+        assertFalse("Next is disabled", ((BookingWizardActivity) activity).findViewById(R.id.btnWizardNext).isEnabled());
+        assertFalse("and so is Add another stay", find(activity, R.id.btnAddAnotherStay).isEnabled());
+        assertFalse(valid(activity));
+        assertEquals(1, state.activeStayIndex());
+
+        // different dates: fixed
+        fill(state, 6, 1, room("2", 2000), 1);
+        activity.goToStep(1);
+        idle();
+        assertEquals(View.GONE, find(activity, R.id.tvStayDuplicate).getVisibility());
+        assertTrue(activity.findViewById(R.id.btnWizardNext).isEnabled());
+        assertTrue(valid(activity));
+    }
+
+    @Test
+    public void overlappingAndTouchingStaysAreAllowed() {
+        BookingWizardActivity activity = wizardOnStay(5, 3, room("1", 1000), 1); // nights 5, 6, 7
+        BookingWizardState state = activity.getState();
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        fill(state, 6, 3, room("2", 2000), 1); // nights 6, 7, 8 - overlaps
+        activity.goToStep(1);
+        idle();
+        assertFalse(state.hasDuplicateStay());
+        assertEquals(View.GONE, find(activity, R.id.tvStayDuplicate).getVisibility());
+        assertTrue(valid(activity));
+
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        fill(state, 8, 2, room("3", 1000), 1); // checks in on stay 2's check-out day - touching
+        activity.goToStep(1);
+        idle();
+        assertFalse(state.hasDuplicateStay());
+        assertTrue(valid(activity));
+    }
+
+    @Test
+    public void nextIsDisabledWhileAnyStayHasNoRooms() {
+        BookingWizardActivity activity = wizardOnStay(5, 1, room("1", 1000), 1);
+        BookingWizardState state = activity.getState();
+        assertTrue("one stay with a room: Next is on", activity.findViewById(R.id.btnWizardNext).isEnabled());
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        assertFalse("stay 2 has no rooms yet", activity.findViewById(R.id.btnWizardNext).isEnabled());
+        fill(state, 9, 1, room("2", 1000), 1);
+        activity.goToStep(1);
+        idle();
+        assertTrue(activity.findViewById(R.id.btnWizardNext).isEnabled());
+    }
+
+    @Test
+    public void theTwoDayRuleIsOneHelperLineUnderCheckIn_notASecondInfoBox() {
+        BookingWizardActivity activity = wizardOnStay(5, 1, room("1", 1000), 1);
+        com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilCheckIn);
+        assertEquals("Earliest: " + CheckInWindow.earliestShort(), String.valueOf(til.getHelperText()));
+        assertNull("no duplicate 48-hour info box", step(activity).getView().findViewById(app.getResources().getIdentifier("tvCheckInAdvanceNotice", "id", app.getPackageName())));
+    }
+
+    @Test
+    public void theSummaryBarShowsStaysRoomsGuestsOnTheLeftAndTheTotalOnTheRight_andHowAmenitiesAddUp() {
+        BookingWizardActivity activity = wizardOnStay(5, 2, room("1", 1000), 2); // 4,000
+        BookingWizardState state = activity.getState();
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        fill(state, 12, 1, room("2", 2000), 2); // 4,000
+        activity.goToStep(1);
+        idle();
+
+        assertEquals("2 stays · 4 rooms · 1 guest", text(activity.findViewById(R.id.wizardSummaryLeft)));
+        assertEquals("₱8,000.00", text(activity.findViewById(R.id.wizardSummaryTotal)));
+        assertEquals(View.GONE, activity.findViewById(R.id.wizardSummaryBreakdown).getVisibility());
+
+        state.selectedAmenities.add(new AddOnAmenity("9", "Extra bed", "Room", "d", 300, 5));
+        activity.refreshSummaryBar();
+        assertEquals("₱8,300.00", text(activity.findViewById(R.id.wizardSummaryTotal)));
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.wizardSummaryBreakdown).getVisibility());
+        assertEquals("Rooms ₱8,000.00 + Amenities ₱300.00 = ₱8,300.00", text(activity.findViewById(R.id.wizardSummaryBreakdown)));
     }
 
     @Test
@@ -189,7 +323,7 @@ public class StaysWizardTest {
         state.activate(0);
         activity.goToStep(1);
         idle();
-        assertEquals("Stay 1 of 2", text(find(activity, R.id.tvActiveStayHeading)));
+        assertEquals("Stay 1 · Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
         assertEquals(2L, state.nights());
 
         state.removeStay(1);

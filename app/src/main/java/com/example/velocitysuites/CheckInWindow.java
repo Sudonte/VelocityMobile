@@ -31,6 +31,11 @@ public final class CheckInWindow {
         return formatForDisplay(earliest());
     }
 
+    /** "Sun, Oct 25" - the earliest allowed check-in in the short form used by the helper line under the Check-in field. */
+    public static String earliestShort() {
+        return earliest().format(DateTimeFormatter.ofPattern("EEE, MMM d", Locale.US));
+    }
+
     private CheckInWindow() {
     }
 

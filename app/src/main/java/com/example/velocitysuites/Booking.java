@@ -89,6 +89,8 @@ public class Booking implements Serializable {
     private Long groupId;
     private java.util.List<Long> groupSiblingIds = new java.util.ArrayList<>();
     private String displayId;
+    /** The stays of this one transaction, in order (always at least one once the server sends them; empty from an older server). */
+    private java.util.List<StayRecord> stays = new java.util.ArrayList<>();
     /**
      * Legacy field, defensive/for completeness only - kept in case an older
      * server build still returns a soft-hide marker on some rows. The
@@ -491,6 +493,45 @@ public class Booking implements Serializable {
     public boolean isStaffVerified() { return staffVerified; }
     public boolean isHistoricalReservation() { return historicalReservation; }
     public String getConvertedBookingId() { return convertedBookingId; }
+    /** One stay of this transaction: its dates, where it stands, its rooms and amenities, and its own subtotal (all from the server). */
+    public static class StayRecord implements Serializable {
+        public final long id;
+        public final int position;
+        public final String checkIn;
+        public final String checkOut;
+        public final int nights;
+        /** upcoming | in_house | checked_out */
+        public final String state;
+        public final List<BookingRoom> rooms;
+        public final List<BookingAmenity> amenities;
+        public final double roomsSubtotal;
+        public final double amenitiesSubtotal;
+        public final double subtotal;
+
+        public StayRecord(long id, int position, String checkIn, String checkOut, int nights, String state, List<BookingRoom> rooms,
+                          List<BookingAmenity> amenities, double roomsSubtotal, double amenitiesSubtotal, double subtotal) {
+            this.id = id;
+            this.position = position;
+            this.checkIn = checkIn;
+            this.checkOut = checkOut;
+            this.nights = nights;
+            this.state = state != null ? state : "upcoming";
+            this.rooms = rooms != null ? rooms : new ArrayList<>();
+            this.amenities = amenities != null ? amenities : new ArrayList<>();
+            this.roomsSubtotal = roomsSubtotal;
+            this.amenitiesSubtotal = amenitiesSubtotal;
+            this.subtotal = subtotal;
+        }
+
+        public boolean isInHouse() { return "in_house".equals(state); }
+        public boolean isCheckedOut() { return "checked_out".equals(state); }
+    }
+
+    public List<StayRecord> getStays() { return stays; }
+    public void setStays(@Nullable List<StayRecord> stays) { this.stays = stays != null ? new ArrayList<>(stays) : new ArrayList<>(); }
+    /** More than one stay in this one transaction. */
+    public boolean hasSeveralStays() { return stays.size() > 1; }
+    public int getStayCount() { return Math.max(1, stays.size()); }
     @Nullable public Long getGroupId() { return groupId; }
     public java.util.List<Long> getGroupSiblingIds() { return groupSiblingIds; }
     public boolean isInGroup() { return groupId != null; }

@@ -128,19 +128,57 @@
     </FrameLayout>
 
     <!-- What the guest has picked so far: dates, rooms, guests and the running total. -->
-    <TextView
+    <LinearLayout
         android:id="@+id/wizardSummaryBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/velocity_red_soft"
+        android:orientation="vertical"
         android:paddingHorizontal="22dp"
         android:paddingVertical="8dp"
-        android:textColor="@color/velocity_text_primary"
-        android:textSize="12sp"
-        android:fontFamily="sans-serif-medium"
         android:visibility="gone"
-        tools:text="Oct 08 - Oct 10 • 2 rooms • 3 guests • ₱6,000.00"
-        tools:visibility="visible" />
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/wizardSummaryLeft"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="12sp"
+                tools:text="2 stays · 4 rooms · 1 guest" />
+
+            <TextView
+                android:id="@+id/wizardSummaryTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:fontFamily="sans-serif-black"
+                android:gravity="end"
+                android:textColor="@color/velocity_text_primary"
+                android:textSize="14sp"
+                tools:text="₱18,600.00" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/wizardSummaryBreakdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="end"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="Rooms ₱18,600.00 + Amenities ₱300.00 = ₱18,900.00"
+            tools:visibility="visible" />
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"

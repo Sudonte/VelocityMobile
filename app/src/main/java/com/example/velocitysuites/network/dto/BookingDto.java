@@ -2,6 +2,8 @@ package com.example.velocitysuites.network.dto;
 
 public class BookingDto {
     public long id;
+    /** The stays of this transaction (see StayDto); null on a server without stays. */
+    public java.util.List<StayDto> stays;
     public long reservation_id;
     // Renamed from booking_date when the Booking table was restructured -
     // a Booking now only ever exists once staff have converted the

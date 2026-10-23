@@ -38,6 +38,8 @@ public class ReceiptDetailDto {
     public String representative_name;
     public String room_type;
     public List<BookingRoomDto> room_lines;
+    /** Every stay of the transaction as it was when this receipt was issued (see StayDto); absent on a receipt issued before stays. */
+    public List<StayDto> stays;
     public String check_in;
     public String check_out;
     public int number_of_nights;

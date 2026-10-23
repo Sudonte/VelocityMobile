@@ -13,6 +13,8 @@ public class DirectBookingResponseDto {
     /** The group of stays this booking was booked with (null for a single stay), and the other bookings in it. */
     public Long group_id;
     public java.util.List<Long> group_booking_ids;
+    /** The stays of this transaction (see StayDto); null on a server without stays. */
+    public java.util.List<StayDto> stays;
     public Long reservation_id;
     public long guest_id;
     public String guest_first_name;

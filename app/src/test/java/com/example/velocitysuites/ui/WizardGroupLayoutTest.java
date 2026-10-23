@@ -1,6 +1,7 @@
 package com.example.velocitysuites.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -190,34 +191,27 @@ public class WizardGroupLayoutTest {
         inEachConfig(() -> {
             BookingWizardActivity activity = wizard(3);
             activity.refreshSummaryBar();
-            TextView bar = activity.findViewById(R.id.wizardSummaryBar);
+            View bar = activity.findViewById(R.id.wizardSummaryBar);
             assertNotNull(bar);
             assertEquals(View.VISIBLE, bar.getVisibility());
-            assertTrue(bar.getText().toString(), bar.getText().toString().contains("3 stays"));
-            int w = activity.getResources().getDisplayMetrics().widthPixels;
-            // the bar has the full width minus its parent's padding at most: measure it at the narrowest it can get
-            View parent = (View) bar.getParent();
-            int avail = w - parent.getPaddingLeft() - parent.getPaddingRight();
-            bar.measure(View.MeasureSpec.makeMeasureSpec(avail, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            bar.layout(0, 0, bar.getMeasuredWidth(), bar.getMeasuredHeight());
-            Layout layout = bar.getLayout();
-            assertNotNull(layout);
-            for (int line = 0; line < layout.getLineCount(); line++) {
-                assertEquals("summary bar is cut off: '" + bar.getText() + "'", 0, layout.getEllipsisCount(line));
-            }
-            assertTrue("summary bar is at most 3 lines: " + layout.getLineCount(), layout.getLineCount() <= 3);
+            TextView left = activity.findViewById(R.id.wizardSummaryLeft);
+            assertTrue(left.getText().toString(), left.getText().toString().contains("3 stays"));
+            assertFits("summary bar", bar, activity.getResources().getDisplayMetrics().widthPixels);
         });
     }
 
     @Test
-    public void discountNote_forAGroupOnTheIdStep() {
+    public void idStep_isOneIdForAllStays_withNoDuplicateTitle() {
         inEachConfig(() -> {
             BookingWizardActivity activity = wizard(2);
             activity.goToStep(5);
             idle();
             View root = step(activity).getView();
             String all = collect(root);
-            assertTrue(all, all.contains(app.getString(R.string.discount_group_note)));
+            assertTrue(all, all.contains(app.getString(R.string.discount_step_intro_stays)));
+            assertFalse("the discount list is not hidden any more", all.contains("can't be claimed"));
+            // the step name is the header's job: the section title is not repeated inside the step
+            assertEquals("ID Verification appears once in the step body", 0, countOccurrences(all, app.getString(R.string.id_verification_title)));
             assertFits("ID step with a group", root, activity.getResources().getDisplayMetrics().widthPixels);
         });
     }
@@ -236,6 +230,12 @@ public class WizardGroupLayoutTest {
             assertTrue(all, all.contains("Stay 3:"));
             assertFits("review with 3 stays", root, activity.getResources().getDisplayMetrics().widthPixels);
         });
+    }
+
+    private static int countOccurrences(String text, String needle) {
+        int n = 0;
+        for (int i = text.indexOf(needle); i >= 0; i = text.indexOf(needle, i + 1)) n++;
+        return n;
     }
 
     private static String collect(View v) {
