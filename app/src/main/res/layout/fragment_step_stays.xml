@@ -79,6 +79,12 @@
             </LinearLayout>
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/layoutStayEditor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
         <!-- "Stay 2 · Choose dates and rooms": which stay is being edited, and what to do. -->
         <TextView
             android:id="@+id/tvActiveStayHeading"
@@ -126,6 +132,22 @@
             android:textSize="13sp"
             android:visibility="gone" />
 
+
+        <!-- Only with at least one room: the stay is final once the guest confirms it (and then collapses into "Your stays"). -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirmStay"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginHorizontal="22dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="22dp"
+            android:text="@string/confirm_this_stay"
+            android:textSize="13sp"
+            android:visibility="gone"
+            app:backgroundTint="@color/velocity_red_primary"
+            tools:visibility="visible" />
+        </LinearLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddAnotherStay"
             style="@style/Widget.Velocity.Flat.Button.Outlined"
@@ -135,6 +157,8 @@
             android:layout_marginTop="12dp"
             android:layout_marginBottom="22dp"
             android:text="@string/add_another_stay"
+            android:visibility="gone"
+            tools:visibility="visible"
             android:textColor="@color/velocity_text_primary"
             android:textSize="12sp"
             app:icon="@drawable/ic_add"

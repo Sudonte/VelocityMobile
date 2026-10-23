@@ -49,6 +49,8 @@ public class BookingWizardActivity extends SafeActivity {
 
     private int stepCount = 7;
     private final ClickGuard navGuard = new ClickGuard();
+    /** The confirmation or review sheet on screen: while one is up, a repeat tap cannot open a second. */
+    private android.app.Dialog modalDialog;
 
     private BookingWizardState state;
     private int currentStepIndex = 1;
@@ -98,6 +100,36 @@ public class BookingWizardActivity extends SafeActivity {
 
     public String getOriginalPaymentMethod() {
         return originalPaymentMethod;
+    }
+
+    /** False while a confirmation or review sheet is showing: a fast second tap must not open another. */
+    public boolean canOpenModal() {
+        return modalDialog == null || !modalDialog.isShowing();
+    }
+
+    /** Remembers the dialog or sheet just shown, for {@link #canOpenModal()}. */
+    public void trackModal(android.app.Dialog dialog) {
+        modalDialog = dialog;
+    }
+
+    /**
+     * The one confirmation every step uses: a short title, ONE summary line, "Yes, continue" (or the given label) and Cancel. Nothing
+     * opens while another is showing.
+     */
+    public void confirmStep(String title, @Nullable String summary, String yesLabel, Runnable onYes) {
+        confirmStep(title, summary, yesLabel, getString(R.string.cancel_label), onYes);
+    }
+
+    public void confirmStep(String title, @Nullable String summary, String yesLabel, String noLabel, Runnable onYes) {
+        if (!canOpenModal() || isFinishing() || isDestroyed()) return;
+        com.google.android.material.dialog.MaterialAlertDialogBuilder builder = new SafeDialogs.Material(this)
+                .setTitle(title)
+                .setPositiveButton(yesLabel, (d, w) -> onYes.run())
+                .setNegativeButton(noLabel, null);
+        if (summary != null && !summary.isEmpty()) builder.setMessage(summary);
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        trackModal(dialog);
+        SafeDialogs.show(dialog);
     }
 
     /** Lets a step (currently only Step 2's room selection) dynamically gate Next - e.g. disabled until at least one room is selected. */
@@ -304,8 +336,14 @@ public class BookingWizardActivity extends SafeActivity {
             // just above, from the same Intent extra Android redelivers on
             // recreation) - only reset for a fresh, in-progress run.
             if (!isEditMode() && currentStepIndex > 1) {
-                currentStepIndex = 1;
-                Toast.makeText(this, R.string.wizard_progress_lost_restart, Toast.LENGTH_LONG).show();
+                // The wizard saved its state to a private cache file when it went to the background (see onSaveInstanceState()).
+                BookingWizardState restored = WizardStateStore.load(this, mode);
+                if (restored != null) {
+                    state = restored;
+                } else {
+                    currentStepIndex = 1;
+                    Toast.makeText(this, R.string.wizard_progress_lost_restart, Toast.LENGTH_LONG).show();
+                }
             }
         }
         if (isEditMode() && state.selectedRooms.isEmpty()) {
@@ -329,6 +367,8 @@ public class BookingWizardActivity extends SafeActivity {
         state.repLast = p.last;
         state.repFirst = p.first;
         state.repMiddle = p.middle;
+        // A transaction made before this choice existed: no representative = the owner, otherwise someone else.
+        state.who = p.isBlank() ? BookingWizardState.Who.OWNER : BookingWizardState.Who.OTHER;
     }
 
     private void seedStateForEdit(Booking booking) {
@@ -371,6 +411,7 @@ public class BookingWizardActivity extends SafeActivity {
         }
 
         seedRoomsForEdit(booking, RoomRepository.getInstance(this).getAllRooms());
+        state.activeConfirmed = !state.selectedRooms.isEmpty() && state.checkIn != null && state.checkOut != null;
 
         // Seed already-selected paid amenities too - Step3AmenitiesFragment
         // reconciles this by id against its own freshly-fetched live catalog
@@ -501,13 +542,25 @@ public class BookingWizardActivity extends SafeActivity {
         if (currentStepIndex > 1) {
             goToPreviousStep();
         } else {
-            finish();
+            leaveWizard();
         }
+    }
+
+    /** Back on the first step leaves the wizard: with choices made, ask first ("Discard this booking?"). Back between steps never asks. */
+    private void leaveWizard() {
+        if (!isEditMode() && !state.hasUnsavedChoices()) {
+            finish();
+            return;
+        }
+        int title = isEditMode() ? R.string.wizard_discard_changes_title
+                : (state.isBookingMode() ? R.string.wizard_discard_booking_title : R.string.wizard_discard_reservation_title);
+        confirmStep(getString(title), getString(R.string.wizard_discard_message), getString(R.string.wizard_discard_yes),
+                getString(R.string.wizard_discard_keep), this::finish);
     }
 
     private void goToPreviousStep() {
         if (currentStepIndex <= 1) {
-            finish();
+            leaveWizard();
             return;
         }
         showStep(currentStepIndex - 1);
@@ -516,21 +569,38 @@ public class BookingWizardActivity extends SafeActivity {
     private void attemptGoToNextStep() {
         WizardStepFragment current = currentFragment();
         if (current != null && !current.validateBeforeNext()) {
-            Toast.makeText(this, current.validationMessageRes(), Toast.LENGTH_SHORT).show();
+            int message = current.validationMessageRes();
+            if (message != 0) Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             return;
         }
-        if (currentStepIndex < stepCount) {
-            showStep(currentStepIndex + 1);
-        }
+        if (currentStepIndex >= stepCount || !canOpenModal()) return;
+        final int from = currentStepIndex;
+        Runnable advance = () -> {
+            if (from != currentStepIndex) return; // already moved on
+            String title = current != null ? current.nextConfirmTitle() : null;
+            if (title == null) {
+                showStep(from + 1);
+                return;
+            }
+            confirmStep(title, current.nextConfirmSummary(), getString(R.string.wizard_confirm_yes), () -> {
+                if (from == currentStepIndex) showStep(from + 1);
+            });
+        };
+        if (current != null && current.interceptNext(advance)) return;
+        advance.run();
     }
 
     private void showStep(int stepIndex) {
+        boolean forward = stepIndex >= currentStepIndex;
         currentStepIndex = stepIndex;
         // Only the first two steps (stays, amenities) work on one stay at a time; from the guest steps on everything reads all stays.
         if (stepIndex >= 3) state.activate(0);
         Fragment fragment = createFragmentForStep(stepIndex);
         FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
-        tx.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+        if (Motion.enabled(this)) {
+            if (forward) tx.setCustomAnimations(R.anim.wizard_enter_forward, R.anim.wizard_exit);
+            else tx.setCustomAnimations(R.anim.wizard_enter_back, R.anim.wizard_exit);
+        }
         tx.replace(R.id.wizardFragmentContainer, fragment, "wizard_step_" + stepIndex);
         tx.commitNow();
         updateChrome();
@@ -600,8 +670,8 @@ public class BookingWizardActivity extends SafeActivity {
         View bar = findViewById(R.id.wizardSummaryBar);
         if (bar == null) return;
         // The final review step shows the same facts in its own summary card.
-        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount) {
-            bar.setVisibility(View.GONE);
+        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount || currentFragment() instanceof Step3AmenitiesFragment) {
+            bar.setVisibility(View.GONE); // the amenities step has its own live total at the bottom
             return;
         }
         int rooms = 0;
@@ -634,5 +704,16 @@ public class BookingWizardActivity extends SafeActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("currentStepIndex", currentStepIndex);
+        // Rooms, amenities, names, ages and the rest can be larger than a Bundle may carry, so they go to a private cache file.
+        if (!isEditMode() && state != null) {
+            state.commitActive();
+            WizardStateStore.save(this, state);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (isFinishing()) WizardStateStore.clear(this);
+        super.onDestroy();
     }
 }

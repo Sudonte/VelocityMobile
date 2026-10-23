@@ -51,7 +51,27 @@ public abstract class WizardStepFragment extends Fragment {
         return true;
     }
 
-    /** The message shown when {@link #validateBeforeNext()} blocks Next; steps override it with a specific reason. */
+    /**
+     * Lets a step show something of its own (a review sheet) between a valid Next and the "Proceed to ...?" confirmation. Return true
+     * when the step took over: it then calls {@code proceed} itself once the guest chooses Continue. False = carry on as normal.
+     */
+    public boolean interceptNext(Runnable proceed) {
+        return false;
+    }
+
+    /** The shared confirmation asked after a valid Next ("Proceed to amenities?"); null means move on without asking. */
+    @Nullable
+    public String nextConfirmTitle() {
+        return null;
+    }
+
+    /** The one summary line under {@link #nextConfirmTitle()}; null shows the title alone. */
+    @Nullable
+    public String nextConfirmSummary() {
+        return null;
+    }
+
+    /** The message shown when {@link #validateBeforeNext()} blocks Next; 0 = the step already shows its own inline message. */
     public int validationMessageRes() {
         return R.string.wizard_step_incomplete;
     }

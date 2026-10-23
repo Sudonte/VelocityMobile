@@ -50,6 +50,8 @@ public class StepStaysFragment extends WizardStepFragment {
     private TextView tvIncomplete;
     private TextView tvDuplicate;
     private MaterialButton btnAddStay;
+    private MaterialButton btnConfirmStay;
+    private View layoutStayEditor;
     /** Set when a valid range was just picked: once the room list is ready, the page scrolls down to "Add room". */
     private boolean scrollToAddRoomWhenReady;
 
@@ -71,10 +73,13 @@ public class StepStaysFragment extends WizardStepFragment {
         tvIncomplete = view.findViewById(R.id.tvStayIncomplete);
         tvDuplicate = view.findViewById(R.id.tvStayDuplicate);
         btnAddStay = view.findViewById(R.id.btnAddAnotherStay);
+        btnConfirmStay = view.findViewById(R.id.btnConfirmStay);
+        layoutStayEditor = view.findViewById(R.id.layoutStayEditor);
 
         btnAddStay.setOnClickListener(v -> {
             if (guard.tryAcquire()) onAddStay();
         });
+        btnConfirmStay.setOnClickListener(v -> onConfirmStay()); // one question at a time is enforced by the wizard itself
 
         // Children are rebuilt from the state, so coming back to this step (or switching stay) always shows the stay as saved.
         showStay();
@@ -141,8 +146,19 @@ public class StepStaysFragment extends WizardStepFragment {
 
     /** (Re)builds both children for the stay being edited. */
     private void showStay() {
-        getChildFragmentManager().beginTransaction().replace(R.id.stayDatesContainer, new Step2DatesFragment(), TAG_DATES).commitNowAllowingStateLoss();
-        showRooms();
+        FragmentManager fm = getChildFragmentManager();
+        if (getState().activeConfirmed) {
+            // A confirmed stay lives in the "Your stays" card; its editor is gone until the guest taps Edit.
+            Fragment dates = fm.findFragmentByTag(TAG_DATES);
+            Fragment rooms = fm.findFragmentByTag(TAG_ROOMS);
+            androidx.fragment.app.FragmentTransaction tx = fm.beginTransaction();
+            if (dates != null) tx.remove(dates);
+            if (rooms != null) tx.remove(rooms);
+            tx.commitNowAllowingStateLoss();
+        } else {
+            fm.beginTransaction().replace(R.id.stayDatesContainer, new Step2DatesFragment(), TAG_DATES).commitNowAllowingStateLoss();
+            showRooms();
+        }
         refreshSummary();
     }
 
@@ -163,14 +179,20 @@ public class StepStaysFragment extends WizardStepFragment {
         int count = state.stayCount();
         boolean several = count > 1;
         int active = state.activeStayIndex();
-        layoutStaysSummary.setVisibility(several ? View.VISIBLE : View.GONE);
+        List<BookingWizardState.Stay> stays = state.allStays();
+        boolean anyConfirmed = false;
+        for (BookingWizardState.Stay s : stays) anyConfirmed |= s.confirmed;
+        boolean confirmedActive = state.activeConfirmed;
+        // The card lists every stay as soon as one is confirmed (or there are several); a stay still being edited shows its editor instead.
+        boolean showCard = several || anyConfirmed;
+        layoutStaysSummary.setVisibility(showCard ? View.VISIBLE : View.GONE);
+        layoutStayEditor.setVisibility(confirmedActive ? View.GONE : View.VISIBLE);
         tvActiveHeading.setText(several ? getString(R.string.stay_heading_format, active + 1) : getString(R.string.stay_heading_single));
 
         layoutStayRows.removeAllViews();
-        List<BookingWizardState.Stay> stays = state.allStays();
-        if (several) {
+        if (showCard) {
             for (int i = 0; i < stays.size(); i++) {
-                layoutStayRows.addView(buildRow(i, stays.get(i), i == active));
+                layoutStayRows.addView(buildRow(i, stays.get(i), i == active && !confirmedActive));
             }
             tvStaysTotal.setText(MoneyFormat.format(state.groupTotal()));
         }
@@ -185,8 +207,13 @@ public class StepStaysFragment extends WizardStepFragment {
             tvDuplicate.setVisibility(View.GONE);
         }
 
-        btnAddStay.setEnabled(activeStay.isComplete() && duplicate < 0 && count < BookingWizardState.MAX_STAYS);
-        if (tvIncomplete != null && activeStay.isComplete()) tvIncomplete.setVisibility(View.GONE);
+        // "Confirm this stay" only exists once the stay has a room; "Add another stay" only once it is confirmed.
+        btnConfirmStay.setVisibility(!confirmedActive && activeStay.isComplete() && duplicate < 0 ? View.VISIBLE : View.GONE);
+        // (a Modify saves one stay, so it never offers another)
+        btnAddStay.setVisibility(confirmedActive && !getWizardActivity().isEditMode() && duplicate < 0 && count < BookingWizardState.MAX_STAYS ? View.VISIBLE : View.GONE);
+        btnAddStay.setEnabled(true);
+        if (tvIncomplete != null && activeStay.isComplete()
+                && (confirmedActive || !getString(R.string.confirm_stay_first).contentEquals(tvIncomplete.getText()))) tvIncomplete.setVisibility(View.GONE);
         // Next needs valid dates and a room in EVERY stay, and no two stays with the same dates.
         getWizardActivity().setNextEnabledQuietly(state.staysReadyToContinue());
         getWizardActivity().refreshSummaryBar();
@@ -234,13 +261,14 @@ public class StepStaysFragment extends WizardStepFragment {
     /** "2 rooms · ₱9,300.00" */
     private String roomsLineOf(BookingWizardState.Stay stay) {
         if (stay.rooms.isEmpty()) return getString(R.string.wizard_summary_no_rooms);
-        return getString(R.string.stay_row_rooms_format,
+        String line = getString(R.string.stay_row_rooms_format,
                 getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size()), MoneyFormat.format(stay.total()));
+        return stay.confirmed ? line : getString(R.string.stay_row_not_confirmed_format, line);
     }
 
     private void onAddStay() {
         BookingWizardState state = getState();
-        if (!validateActive()) return;
+        if (!state.activeConfirmed) return; // the button is only there for a confirmed stay
         if (state.hasDuplicateStay()) {
             showIncomplete(tvDuplicate.getText().toString());
             return;
@@ -256,12 +284,13 @@ public class StepStaysFragment extends WizardStepFragment {
     }
 
     private void onOpenStay(int index) {
-        if (index == getState().activeStayIndex()) {
+        BookingWizardState state = getState();
+        if (index == state.activeStayIndex() && !state.activeConfirmed) {
             scrollTo(topInContent(tvActiveHeading) - dp(12));
             return;
         }
-        if (!validateActive()) return; // finish (or fix) the stay being edited before leaving it
-        getState().activate(index);
+        state.activate(index);
+        state.reopenActive(); // an edited stay has to be confirmed again
         showStay();
         scrollTo(topInContent(tvActiveHeading) - dp(12));
     }
@@ -280,6 +309,7 @@ public class StepStaysFragment extends WizardStepFragment {
 
     /** The stay being edited needs valid dates and at least one room before the guest can leave it. */
     private boolean validateActive() {
+        if (getState().activeConfirmed) return true; // confirmed = it was valid when the guest confirmed it
         Fragment dates = getChildFragmentManager().findFragmentByTag(TAG_DATES);
         Fragment rooms = getChildFragmentManager().findFragmentByTag(TAG_ROOMS);
         boolean datesOk = !(dates instanceof WizardStepFragment) || ((WizardStepFragment) dates).validateBeforeNext();
@@ -295,6 +325,36 @@ public class StepStaysFragment extends WizardStepFragment {
         return true;
     }
 
+    /** "Confirm this stay? Oct 25 -> Oct 26 - 1 night - 2 rooms - P9,300.00": Yes collapses the stay into the Your stays card. */
+    private void onConfirmStay() {
+        BookingWizardState state = getState();
+        if (!validateActive()) return;
+        if (state.hasDuplicateStay()) {
+            showIncomplete(tvDuplicate.getVisibility() == View.VISIBLE ? tvDuplicate.getText().toString() : getString(R.string.stay_duplicate_generic));
+            return;
+        }
+        BookingWizardState.Stay stay = state.allStays().get(state.activeStayIndex());
+        String summary = getString(R.string.confirm_stay_summary_format, summaryDates(stay),
+                getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size()), MoneyFormat.format(stay.total()));
+        getWizardActivity().confirmStep(getString(R.string.confirm_stay_title), summary, getString(R.string.confirm_stay_yes), () -> {
+            if (!isAdded()) return;
+            if (getView() instanceof ViewGroup && Motion.enabled(requireContext())) {
+                androidx.transition.TransitionManager.beginDelayedTransition((ViewGroup) content);
+            }
+            state.confirmActive();
+            tvIncomplete.setVisibility(View.GONE);
+            showStay();
+            scrollTo(0);
+        });
+    }
+
+    /** "Oct 25 -> Oct 26 - 1 night" */
+    private String summaryDates(BookingWizardState.Stay stay) {
+        long nights = stay.nights();
+        return getString(R.string.stay_row_dates_format, shortDate.format(stay.checkIn.getTime()), shortDate.format(stay.checkOut.getTime()),
+                getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights));
+    }
+
     private void showIncomplete(String message) {
         if (tvIncomplete == null) return;
         tvIncomplete.setText(message);
@@ -306,6 +366,10 @@ public class StepStaysFragment extends WizardStepFragment {
     public boolean validateBeforeNext() {
         BookingWizardState state = getState();
         if (!validateActive()) return false;
+        if (!state.activeConfirmed) {
+            showIncomplete(getString(R.string.confirm_stay_first));
+            return false;
+        }
         state.commitActive();
         // Two stays with the same dates: the inline message says which, and nothing moves on.
         if (state.hasDuplicateStay()) {
@@ -316,16 +380,47 @@ public class StepStaysFragment extends WizardStepFragment {
         // Every other stay must be complete too: open the first one that is not, with the reason shown.
         List<BookingWizardState.Stay> stays = state.allStays();
         for (int i = 0; i < stays.size(); i++) {
-            if (!stays.get(i).isComplete()) {
+            if (!stays.get(i).isComplete() || !stays.get(i).confirmed) {
                 state.activate(i);
                 showStay();
-                showIncomplete(getString(R.string.stay_incomplete_format, i + 1));
+                showIncomplete(getString(stays.get(i).isComplete() ? R.string.stay_unconfirmed_format : R.string.stay_incomplete_format, i + 1));
                 return false;
             }
         }
         // The next steps start from the first stay; the others stay saved.
         state.activate(0);
         return true;
+    }
+
+    /** Next opens "Review your stays" first: each stay's dates, rooms with their price per night and nights, subtotals, and the total. */
+    @Override
+    public boolean interceptNext(Runnable proceed) {
+        BookingWizardState state = getState();
+        List<ReviewSheet.Section> sections = WizardReview.stays(requireContext(), state);
+        List<ReviewSheet.Row> totals = new java.util.ArrayList<>();
+        totals.add(ReviewSheet.Row.bold(getString(R.string.stays_total_label), MoneyFormat.format(state.roomsTotal())));
+        ReviewSheet.show(getWizardActivity(), getString(R.string.review_stays_title), null, sections, totals,
+                getString(R.string.review_edit_stays), getString(R.string.review_continue), null, proceed);
+        return true; // Next is handled either way (a second tap while the sheet is up does nothing)
+    }
+
+    @Override
+    public String nextConfirmTitle() {
+        return getString(R.string.proceed_to_amenities);
+    }
+
+    @Override
+    public String nextConfirmSummary() {
+        BookingWizardState state = getState();
+        int rooms = 0;
+        for (BookingWizardState.Stay s : state.allStays()) rooms += s.rooms.size();
+        return getString(R.string.proceed_stays_summary_format, getResources().getQuantityString(R.plurals.stays_count, state.stayCount(), state.stayCount()),
+                getResources().getQuantityString(R.plurals.wizard_summary_rooms, rooms, rooms), MoneyFormat.format(state.roomsTotal()));
+    }
+
+    @Override
+    public int validationMessageRes() {
+        return 0; // the step shows its own inline message
     }
 
     private int dp(int v) {

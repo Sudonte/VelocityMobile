@@ -80,7 +80,7 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
     private static final String STATE_TAB_POSITION = "state_tab_position";
 
     /** Guest payload consumed by RoomRepository when creating/updating reservations. */
-    public static class AdditionalGuest {
+    public static class AdditionalGuest implements java.io.Serializable {
         public String name;
         public int age;
         public String gender;

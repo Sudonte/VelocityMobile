@@ -2,6 +2,10 @@ package com.example.velocitysuites;
 
 import android.net.Uri;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
@@ -16,9 +20,14 @@ import java.util.Map;
  * not an AndroidX ViewModel - the wizard never needs to survive process
  * death/recreation beyond the normal Activity instance-state mechanisms.
  */
-public class BookingWizardState {
+public class BookingWizardState implements Serializable {
+
+    private static final long serialVersionUID = 2L;
 
     public enum Mode { BOOKING, RESERVATION }
+
+    /** Who checks in: nothing chosen yet (Next stays blocked), the account owner, or someone else. */
+    public enum Who { NONE, OWNER, OTHER }
 
     public final Mode mode;
 
@@ -31,11 +40,119 @@ public class BookingWizardState {
      * one); {@link #commitActive()} saves it into {@link #stays} and {@link #activate(int)} loads another. With a single stay nothing
      * else changes, so one stay works exactly as it always did.
      */
-    public static final class Stay {
+    public static final class Stay implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         public Calendar checkIn;
         public Calendar checkOut;
         public final List<Room> rooms = new ArrayList<>();
+        /** What this stay's paid amenities add up to per amenity (quantities summed over its rooms): what is priced and sent to the server. */
         public final List<AddOnAmenity> amenities = new ArrayList<>();
+        /** The guest tapped "Confirm this stay" for exactly these dates and rooms. Any change reopens the stay and clears this. */
+        public boolean confirmed;
+        /** Amenities chosen per room of this stay: room key ("typeId#n") to (amenity id to quantity). {@link #amenities} is always derived from it. */
+        public final Map<String, Map<String, Integer>> roomAmenityQty = new LinkedHashMap<>();
+        /** The catalog entries behind {@link #roomAmenityQty}, by id (price, name and limits as the guest saw them). */
+        public final Map<String, AddOnAmenity> amenityCatalog = new LinkedHashMap<>();
+
+        /** One room of the stay with its key and label: "Deluxe (room 1)", "Deluxe (room 2)", "Executive (room 1)". */
+        public static final class Slot implements Serializable {
+            public final String key;
+            public final Room room;
+            public final int number;
+
+            Slot(String key, Room room, int number) {
+                this.key = key;
+                this.room = room;
+                this.number = number;
+            }
+        }
+
+        /** The rooms one by one, in selection order, numbered within their type. */
+        public List<Slot> roomSlots() {
+            List<Slot> slots = new ArrayList<>();
+            Map<String, Integer> seen = new LinkedHashMap<>();
+            for (Room r : rooms) {
+                int n = seen.containsKey(r.getId()) ? seen.get(r.getId()) + 1 : 1;
+                seen.put(r.getId(), n);
+                slots.add(new Slot(r.getId() + "#" + n, r, n));
+            }
+            return slots;
+        }
+
+        public int amenityQty(String roomKey, String amenityId) {
+            Map<String, Integer> forRoom = roomAmenityQty.get(roomKey);
+            Integer q = forRoom != null ? forRoom.get(amenityId) : null;
+            return q != null ? q : 0;
+        }
+
+        /** Sets one room's quantity of one amenity (0 removes it) and re-derives {@link #amenities}. */
+        public void setAmenityQty(String roomKey, AddOnAmenity amenity, int qty) {
+            amenityCatalog.put(amenity.getId(), amenity);
+            Map<String, Integer> forRoom = roomAmenityQty.get(roomKey);
+            if (qty <= 0) {
+                if (forRoom != null) {
+                    forRoom.remove(amenity.getId());
+                    if (forRoom.isEmpty()) roomAmenityQty.remove(roomKey);
+                }
+            } else {
+                if (forRoom == null) {
+                    forRoom = new LinkedHashMap<>();
+                    roomAmenityQty.put(roomKey, forRoom);
+                }
+                forRoom.put(amenity.getId(), qty);
+            }
+            rebuildAmenities();
+        }
+
+        /** Drops choices for rooms that are no longer part of the stay (the rooms changed after amenities were picked). */
+        public void dropAmenitiesOfMissingRooms() {
+            List<String> keys = new ArrayList<>();
+            for (Slot s : roomSlots()) keys.add(s.key);
+            if (roomAmenityQty.keySet().retainAll(keys)) rebuildAmenities();
+        }
+
+        /** Total of one amenity over the rooms of this stay. */
+        public int amenityTotalQty(String amenityId) {
+            int total = 0;
+            for (Map<String, Integer> forRoom : roomAmenityQty.values()) {
+                Integer q = forRoom.get(amenityId);
+                if (q != null) total += q;
+            }
+            return total;
+        }
+
+        /** What one room's amenities cost. */
+        public double roomAmenitiesTotal(String roomKey) {
+            double total = 0;
+            Map<String, Integer> forRoom = roomAmenityQty.get(roomKey);
+            if (forRoom == null) return 0;
+            for (Map.Entry<String, Integer> e : forRoom.entrySet()) {
+                AddOnAmenity a = amenityCatalog.get(e.getKey());
+                if (a != null) total += a.getPrice() * e.getValue();
+            }
+            return total;
+        }
+
+        private void rebuildAmenities() {
+            amenities.clear();
+            for (AddOnAmenity proto : amenityCatalog.values()) {
+                int qty = amenityTotalQty(proto.getId());
+                if (qty <= 0) continue;
+                AddOnAmenity sum = new AddOnAmenity(proto.getId(), proto.getName(), proto.getCategory(), proto.getDescription(), proto.getPrice(), proto.getMaxQuantity());
+                sum.setQuantity(qty);
+                amenities.add(sum);
+            }
+        }
+
+        /** Seeds the per-room choices from a plain per-stay list (a Modify): everything goes to the first room. */
+        public void seedFromAggregate(List<AddOnAmenity> list) {
+            roomAmenityQty.clear();
+            amenityCatalog.clear();
+            List<Slot> slots = roomSlots();
+            if (slots.isEmpty()) return;
+            for (AddOnAmenity a : list) setAmenityQty(slots.get(0).key, a, a.getQuantity());
+        }
 
         public long nights() {
             return StayDateCalculator.nightsBetween(checkIn, checkOut);
@@ -78,6 +195,8 @@ public class BookingWizardState {
     /** Every stay saved so far; the one at {@link #activeStay} is stale until {@link #commitActive()} (its live data is in the working-copy fields). */
     private final List<Stay> stays = new ArrayList<>();
     private int activeStay = 0;
+    /** The working copy's "confirmed" flag (see {@link Stay#confirmed}). */
+    public boolean activeConfirmed;
 
     /** Saves the working copy into the active stay's slot. */
     public void commitActive() {
@@ -89,6 +208,38 @@ public class BookingWizardState {
         s.rooms.addAll(selectedRooms);
         s.amenities.clear();
         s.amenities.addAll(selectedAmenities);
+        s.confirmed = activeConfirmed;
+    }
+
+    /** The stays themselves (not copies), after saving the working copy: what the amenities step edits per room. */
+    public List<Stay> committedStays() {
+        commitActive();
+        return stays;
+    }
+
+    /** After the amenities step changed a stay: refresh the working copy of the active stay from it. */
+    public void reloadActiveAmenities() {
+        if (activeStay >= stays.size()) return;
+        selectedAmenities.clear();
+        selectedAmenities.addAll(stays.get(activeStay).amenities);
+    }
+
+    /** "Confirm this stay": the dates and rooms on screen are final until the guest reopens the stay. */
+    public void confirmActive() {
+        activeConfirmed = true;
+        commitActive();
+    }
+
+    /** Edit on a stay: it is open again and must be confirmed again. */
+    public void reopenActive() {
+        activeConfirmed = false;
+        commitActive();
+    }
+
+    /** Every stay confirmed (and complete) - what lets the guest leave Dates and rooms. */
+    public boolean allStaysConfirmed() {
+        for (Stay s : allStays()) if (!s.confirmed || !s.isComplete()) return false;
+        return true;
     }
 
     /** Makes stay {@code index} the one being edited (saving the current one first). */
@@ -103,6 +254,7 @@ public class BookingWizardState {
         selectedRooms.addAll(s.rooms);
         selectedAmenities.clear();
         selectedAmenities.addAll(s.amenities);
+        activeConfirmed = s.confirmed;
     }
 
     /** Adds an empty "Stay N+1" and opens it. Returns false at the {@link #MAX_STAYS} limit. */
@@ -129,6 +281,7 @@ public class BookingWizardState {
         selectedRooms.addAll(s.rooms);
         selectedAmenities.clear();
         selectedAmenities.addAll(s.amenities);
+        activeConfirmed = s.confirmed;
     }
 
     public int stayCount() {
@@ -150,6 +303,11 @@ public class BookingWizardState {
                 live.checkOut = checkOut;
                 live.rooms.addAll(selectedRooms);
                 live.amenities.addAll(selectedAmenities);
+                live.confirmed = activeConfirmed;
+                if (i < stays.size()) {
+                    live.roomAmenityQty.putAll(stays.get(i).roomAmenityQty);
+                    live.amenityCatalog.putAll(stays.get(i).amenityCatalog);
+                }
                 out.add(live);
             } else {
                 out.add(stays.get(i));
@@ -193,7 +351,7 @@ public class BookingWizardState {
 
     /** True when every stay has valid dates and at least one room, and no two stays have identical dates - what lets the guest move on from Step 1. */
     public boolean staysReadyToContinue() {
-        for (Stay s : allStays()) if (!s.isComplete()) return false;
+        for (Stay s : allStays()) if (!s.isComplete() || !s.confirmed) return false;
         return !hasDuplicateStay();
     }
 
@@ -248,8 +406,15 @@ public class BookingWizardState {
 
     public final List<AddOnAmenity> selectedAmenities = new ArrayList<>();
 
-    /** The optional representative the guest typed on Step 4 (all three "" = the account owner checks in). */
+    /** Step 3's choice: neither is selected until the guest picks (so Next is blocked with "Choose who will check in"). */
+    public Who who = Who.NONE;
+
+    /** The representative the guest typed when {@link #who} is OTHER (all three "" with OWNER = the account owner checks in). */
     public String repLast = "";
+    /** What the guest typed for "Someone else" while Owner (me) is chosen: kept so switching back does not lose it. */
+    public String otherLast = "";
+    public String otherFirst = "";
+    public String otherMiddle = "";
     public String repFirst = "";
     public String repMiddle = "";
 
@@ -269,7 +434,7 @@ public class BookingWizardState {
     public String idCardType = "None";
     /** The admin-created discount the guest picked on the ID-verification step; null = no discount. */
     public Discount discount;
-    public Uri idCardImageUri;
+    public transient Uri idCardImageUri;
     /** Edit mode only: an ID image is already stored on the server for this reservation. It stays untouched unless the guest replaces it ({@link #idCardImageUri}) or removes it ({@link #removeIdCard}). */
     public boolean idCardOnFile;
     /** Edit mode only: the guest asked to delete the stored ID (only honored server-side after the update itself succeeds). */
@@ -281,7 +446,30 @@ public class BookingWizardState {
     public boolean paymentMethodChosen = false;
     public String gcashNumber;
     public String referenceNumber;
-    public Uri receiptUri;
+    public transient Uri receiptUri;
+
+    /** Uris are not serializable: they travel as text. */
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(idCardImageUri != null ? idCardImageUri.toString() : null);
+        out.writeObject(receiptUri != null ? receiptUri.toString() : null);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        String id = (String) in.readObject();
+        String receipt = (String) in.readObject();
+        idCardImageUri = id != null ? Uri.parse(id) : null;
+        receiptUri = receipt != null ? Uri.parse(receipt) : null;
+    }
+
+    /** Whether the guest has chosen anything yet - what "Discard this booking?" protects. */
+    public boolean hasUnsavedChoices() {
+        if (checkIn != null || checkOut != null || !selectedRooms.isEmpty() || !selectedAmenities.isEmpty()) return true;
+        if (stays.size() > 1 || who != Who.NONE || discount != null || paymentMethodChosen) return true;
+        for (Stay s : stays) if (s.checkIn != null || !s.rooms.isEmpty()) return true;
+        return !repLast.isEmpty() || !repFirst.isEmpty() || !repMiddle.isEmpty() || !additionalGuests.isEmpty();
+    }
 
     /**
      * True when the chosen check-in is inside the advance-booking window (see {@link CheckInWindow}). A Modify keeps
