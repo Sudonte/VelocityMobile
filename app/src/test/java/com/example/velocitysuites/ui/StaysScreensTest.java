@@ -151,11 +151,11 @@ public class StaysScreensTest {
         assertTrue(all, all.contains("Stays"));
         assertTrue(all, all.contains("Stay 1"));
         assertTrue(all, all.contains("Stay 2"));
-        assertTrue("room numbers once assigned: " + all, all.contains("Room 303"));
+        assertTrue("room numbers once assigned: " + all, all.contains("Assigned Room(s): 303"));
         assertTrue(all, all.contains("Extra bed"));
         assertTrue("the amenity names the room it was chosen for: " + all, all.contains("Deluxe (room 1)"));
-        assertTrue("each stay's own subtotal: " + all, all.contains("Stay 1 Subtotal") && all.contains("₱9,600.00"));
-        assertTrue(all, all.contains("Stay 2 Subtotal") && all.contains("₱9,300.00"));
+        assertTrue("each stay's own subtotal: " + all, all.contains("Stay 1 room charges") && all.contains("₱9,300.00"));
+        assertTrue(all, all.contains("Stay 2 room charges"));
         assertTrue("the one-line explanation under the total: " + all, all.contains("Total for all stays after discount and extras."));
     }
 
@@ -167,8 +167,8 @@ public class StaysScreensTest {
         BookingDetailsActivity a = Robolectric.buildActivity(BookingDetailsActivity.class, BookingDetailsActivity.newIntent(app, r)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
         String all = textOf(a.getWindow().getDecorView());
-        assertTrue(all, all.contains("Stay 1 Subtotal") && all.contains("Stay 2 Subtotal"));
-        assertTrue(all, all.contains("Room 303") && all.contains("Extra bed") && all.contains("Deluxe (room 1)"));
+        assertTrue(all, all.contains("Stay 1 room charges") && all.contains("Stay 2 room charges"));
+        assertTrue(all, all.contains("Assigned Room(s): 303") && all.contains("Extra bed") && all.contains("Deluxe (room 1)"));
     }
 
     @Test

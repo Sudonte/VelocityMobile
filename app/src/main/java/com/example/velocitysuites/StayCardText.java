@@ -23,13 +23,37 @@ final class StayCardText {
     private StayCardText() {
     }
 
-    /** "Oct 20 → Oct 21, 2026" within one year, "Dec 30, 2026 → Jan 2, 2027" across two. */
-    @NonNull
     /** An amenity line with the room it was chosen for ("Extra bed × 2 @ ₱300.00 · Deluxe (room 2)"); unchanged when it was booked for the whole stay. */
     static String withRoom(@NonNull Context context, @NonNull String line, @Nullable String roomLabel) {
         return roomLabel == null || roomLabel.isEmpty() ? line : context.getString(R.string.amenity_row_room_format, line, roomLabel);
     }
 
+    /** A date the server sent as yyyy-MM-dd (or a full timestamp), or as the app's own "Oct 26, 2026"; null when it cannot be read. */
+    @Nullable
+    static LocalDate readDate(@Nullable String raw) {
+        if (raw == null || raw.trim().isEmpty()) return null;
+        String s = raw.trim();
+        if (s.length() >= 10 && Character.isDigit(s.charAt(0)) && s.charAt(4) == '-') {
+            try {
+                return LocalDate.parse(s.substring(0, 10));
+            } catch (java.time.format.DateTimeParseException ignored) {
+                // fall through
+            }
+        }
+        return PaymentDates.parseDate(s);
+    }
+
+    /** The stay's dates as "Oct 26 → Oct 27, 2026"; the raw text when they cannot be read; "" when there are none. */
+    @NonNull
+    static String stayDates(@Nullable String checkIn, @Nullable String checkOut) {
+        LocalDate in = readDate(checkIn);
+        LocalDate out = readDate(checkOut);
+        if (in != null && out != null) return compactDates(in, out);
+        return clean(checkIn) + (clean(checkOut).isEmpty() ? "" : " → " + clean(checkOut));
+    }
+
+    /** "Oct 20 → Oct 21, 2026" within one year, "Dec 30, 2026 → Jan 2, 2027" across two. */
+    @NonNull
     static String compactDates(@NonNull LocalDate in, @NonNull LocalDate out) {
         if (in.getYear() == out.getYear()) return MONTH_DAY.format(in) + " → " + FULL.format(out);
         return FULL.format(in) + " → " + FULL.format(out);

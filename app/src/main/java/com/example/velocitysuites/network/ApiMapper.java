@@ -162,7 +162,9 @@ public final class ApiMapper {
         }
         List<BookingRoom> rooms = new ArrayList<>(dtos.size());
         for (BookingRoomDto dto : dtos) {
-            rooms.add(new BookingRoom(dto.room_type_id, dto.room_type, dto.quantity, dto.price_per_night, dto.nights, dto.subtotal, dto.assigned_room_numbers));
+            String typeName = dto.room_type != null && !dto.room_type.trim().isEmpty() ? dto.room_type : dto.room_type_name;
+            long lineNights = dto.nights > 0 ? dto.nights : (dto.number_of_nights != null ? dto.number_of_nights : 0);
+            rooms.add(new BookingRoom(dto.room_type_id, typeName, dto.quantity, dto.price_per_night, lineNights, dto.subtotal, dto.assigned_room_numbers));
         }
         return rooms;
     }

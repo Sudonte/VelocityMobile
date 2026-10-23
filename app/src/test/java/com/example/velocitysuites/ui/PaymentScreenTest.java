@@ -301,7 +301,7 @@ public class PaymentScreenTest {
         proceedToGcashPrerequisites(a);
 
         assertTrue("deposit options are", isVisible(a, R.id.chipPercent20));
-        assertEquals(a.getString(R.string.discount_pending_line), text(a, R.id.tvPaymentModeSub));
+        assertTrue(text(a, R.id.tvPaymentModeSub), text(a, R.id.tvPaymentModeSub).endsWith(a.getString(R.string.discount_pending_line)) && text(a, R.id.tvPaymentModeSub).startsWith("Pay now (20%–50%)"));
         assertEquals("a deposit is selected", "₱400.00", text(a, R.id.tvAmountToPay));
         assertTrue(a.findViewById(R.id.proceedToGcashButton).isEnabled());
     }
@@ -365,7 +365,7 @@ public class PaymentScreenTest {
         proceedToGcashPrerequisites(a);
 
         assertTrue("the deposit options are offered for Cash too", isVisible(a, R.id.chipPercent20));
-        assertEquals(a.getString(R.string.discount_pending_cash_line), text(a, R.id.tvPaymentModeSub));
+        assertTrue(text(a, R.id.tvPaymentModeSub), text(a, R.id.tvPaymentModeSub).endsWith(a.getString(R.string.discount_pending_cash_line)));
         assertEquals("a deposit amount is selected", "₱400.00", text(a, R.id.tvAmountToPay));
         assertTrue(a.findViewById(R.id.proceedToGcashButton).isEnabled());
     }
@@ -447,6 +447,8 @@ public class PaymentScreenTest {
         ReservationDto.DiscountPreviewDto discount = new ReservationDto.DiscountPreviewDto();
         discount.discount = 200;
         reservation.discount_preview = discount;
+        reservation.discount_verification_status = "approved"; // the ID was checked: the discount is part of the bill
+        reservation.total_amount_due = 1600; // what the server sends once it is applied
         PaymentActivity a = launch(reservation);
         layout(a);
 
@@ -454,8 +456,8 @@ public class PaymentScreenTest {
         assertTrue(isVisible(a, R.id.layoutDiscountSummary));
         assertEquals("-₱200.00", text(a, R.id.tvDiscountSummary));
         assertEquals("₱500.00", text(a, R.id.tvAlreadyPaidSummary));
-        assertEquals("₱1,300.00", text(a, R.id.tvOutstandingBalanceSummary));
-        assertEquals("27% paid", text(a, R.id.tvPaidPercent));
+        assertEquals("₱1,100.00", text(a, R.id.tvOutstandingBalanceSummary));
+        assertEquals("31% paid", text(a, R.id.tvPaidPercent));
     }
 
     @Test
@@ -1086,5 +1088,60 @@ public class PaymentScreenTest {
             for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) sb.append(collectText(((ViewGroup) v).getChildAt(i)));
         }
         return sb.toString().replace((char) 160, ' ');
+    }
+
+    // ---- two stays: rooms with names, each stay on its own nights, the discount as a note ----
+
+    @Test
+    public void reviewBilling_ofATwoStayReservation_namesTheRoomsAndListsEveryStay() {
+        PaymentActivity a = launch(com.example.velocitysuites.MultiStayFixtures.reservationDto("pending"));
+        String all = collectText(a.findViewById(R.id.checkoutSummarySection));
+        assertFalse("no null anywhere: " + all, all.contains("null"));
+        assertTrue(all, all.contains("2× Deluxe, 2× Executive") && all.contains("2 stays"));
+        assertTrue(all, all.contains("Stay 1") && all.contains("Stay 2") && all.contains("1 night"));
+        assertTrue(all, all.contains("Deluxe × 1, Executive × 1") && all.contains("₱9,300.00"));
+        assertTrue("room charges, amenities, total: " + all, all.contains("₱18,600.00") && all.contains("₱415.00") && all.contains("₱19,015.00"));
+        assertEquals("the discount is not a subtraction yet", View.GONE, a.findViewById(R.id.layoutDiscountSummary).getVisibility());
+        TextView note = a.findViewById(R.id.tvDiscountExpectedNote);
+        assertEquals(View.VISIBLE, note.getVisibility());
+        assertTrue(note.getText().toString(), note.getText().toString().contains("Expected discount (PWD)") && note.getText().toString().contains("₱3,803.00")
+                && note.getText().toString().contains("₱15,212.00"));
+        assertEquals("₱19,015.00", text(a, R.id.tvGrandTotal));
+        String pay = text(a, R.id.tvPaymentModeSub);
+        assertTrue(pay, pay.contains("Pay now (20%–50%)") && pay.contains("₱3,803.00") && pay.contains("₱9,507.50") && pay.contains("not a discount"));
+    }
+
+    @Test
+    public void reviewBilling_afterTheIdIsChecked_subtractsTheDiscountInTheBreakdown() {
+        ReservationDto dto = com.example.velocitysuites.MultiStayFixtures.reservationDto("approved");
+        dto.total_amount_due = 15212.0;
+        PaymentActivity a = launch(dto);
+        assertEquals(View.VISIBLE, a.findViewById(R.id.layoutDiscountSummary).getVisibility());
+        assertEquals("-₱3,803.00", text(a, R.id.tvDiscountSummary));
+        assertEquals("₱15,212.00", text(a, R.id.tvGrandTotal));
+        assertEquals(View.GONE, a.findViewById(R.id.tvDiscountExpectedNote).getVisibility());
+    }
+
+    @Test
+    public void everyGcashStep_showsTheStays_andNeverNull() {
+        PaymentActivity a = launch(com.example.velocitysuites.MultiStayFixtures.reservationDto("pending"));
+        proceedToGcash(a);
+        int[] nexts = {R.id.btnGcashStep1Next, R.id.btnGcashStep2Next, 0, 0};
+        for (int step = 1; step <= 5; step++) {
+            String strip = collectText(a.findViewById(R.id.layoutGcashStays));
+            assertTrue("step " + step + ": " + strip, strip.contains("Stay 1") && strip.contains("Stay 2") && strip.contains("₱9,300.00") && strip.contains("Deluxe × 1, Executive × 1"));
+            assertEquals(View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
+            assertFalse(collectText(a.findViewById(R.id.cardGcashSubmissionForm)).contains("null"));
+            if (step == 1) a.findViewById(R.id.btnGcashStep1Next).performClick();
+            else if (step == 2) a.findViewById(R.id.btnGcashStep2Next).performClick();
+            else if (step == 3) {
+                type(a, R.id.etGcashNumber, NUMBER);
+                type(a, R.id.etGcashReferenceNumber, REFERENCE);
+                a.findViewById(R.id.btnGcashStep3Next).performClick();
+            } else if (step == 4) {
+                attachReceipt(a);
+                a.findViewById(R.id.btnGcashStep4Next).performClick();
+            }
+        }
     }
 }

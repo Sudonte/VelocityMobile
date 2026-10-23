@@ -218,7 +218,6 @@
     <string name="receipt_guest_information_title">Guest Information</string>
     <string name="receipt_booking_information_title">Booking Information</string>
     <string name="receipt_billing_breakdown_title">Payment Summary</string>
-    <string name="section_title_room_information">Room Information</string>
     <string name="section_title_booking_information">Stay &amp; Dates</string>
     <string name="section_title_discount_id">Discount ID</string>
     <string name="receipt_information_title">Receipt Information</string>
@@ -885,7 +884,7 @@
     <string name="billing_confirm_hint_read">Read the Terms and tick the box to continue.</string>
     <string name="billing_confirm_hint_tick">Tick the box to continue.</string>
     <string name="billing_terms_notice">Please read the Terms and Policy first. You must open and read them before you can check the box below and continue to payment.</string>
-    <string name="room_type_summary_label">Room Type</string>
+    <string name="room_type_summary_label">Rooms</string>
     <string name="stay_dates_summary_label">Stay Dates</string>
 
     <!-- Payment Summary card (payment.xml) - vertical redesign so dynamic/long content
@@ -2575,6 +2574,32 @@
     <string name="gcash_success_transaction_id_format">Transaction ID: %1$s</string>
     <string name="amenity_row_room_format">%1$s · %2$s</string>
     <string name="amenity_any_room_heading">Any room</string>
+    <string name="section_title_stays">Stays</string>
+    <string name="details_stay_heading_format">Stay %1$d · %2$s · %3$s</string>
+    <string name="details_single_stay_heading_format">%1$s · %2$s</string>
+    <string name="details_room_line_format">%1$s × %2$d · %3$s × %4$s</string>
+    <string name="details_stay_room_charges_format" tools:ignore="PluralsCandidate">Stay %1$d room charges</string>
+    <string name="details_room_charges_all_stays">Room charges (all stays)</string>
+    <string name="details_room_charges">Room charges</string>
+    <string name="details_amenities_selected">Selected amenities</string>
+    <string name="details_amenities_approved">Approved amenities</string>
+    <string name="details_amenities_no_room">Amenities for this stay (no room chosen)</string>
+    <string name="details_expected_discount_format">Expected discount (%1$s): −%2$s — applied after your ID is checked at check-in.</string>
+    <string name="details_estimated_after_discount">Estimated total after discount</string>
+    <string name="details_discount_applied_format">Discount (%1$s)</string>
+    <string name="details_minor_line_format">Minor %1$d · age %2$s</string>
+    <string name="details_minor_age_unknown">not given</string>
+    <string name="verification_waiting">Waiting for verification</string>
+    <string name="verification_verified">Verified</string>
+    <string name="verification_rejected">Rejected</string>
+    <string name="billing_stays_nights_format">%1$s · %2$s</string>
+    <string name="billing_rooms_stays_format">%1$s · %2$s</string>
+    <string name="billing_stay_room_format">%1$s × %2$d</string>
+    <string name="billing_pay_now_range_format">Pay now (20%%–50%%): %1$s – %2$s. This is your payment now, not a discount; the rest is paid at the hotel.</string>
+    <string name="continue_to_payment_label">Continue to payment</string>
+    <string name="pay_now_range_label_format">Pay now (20%%–50%%): %1$s – %2$s. Pick a share below; it is your payment now, not a discount.</string>
+    <string name="details_expected_discount_note_format">Expected discount (%1$s): −%2$s — applied after your ID is checked at check-in.
+Estimated total after discount: %3$s</string>
 </resources>
 
 

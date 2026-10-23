@@ -15,6 +15,9 @@ package com.example.velocitysuites.network.dto;
 public class BookingRoomDto {
     public String room_type_id;
     public String room_type;
+    /** The raw table column name some responses carry instead of room_type (an older list shape); read as a fallback so a room never has no name. */
+    public String room_type_name;
+    public Integer number_of_nights;
     public int quantity;
     public double price_per_night;
     public int nights;

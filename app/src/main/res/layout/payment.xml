@@ -1020,6 +1020,18 @@
                                         tools:text="-₱500.00" />
                                 </LinearLayout>
 
+                                <!-- The discount before the ID is checked: a note, never a subtraction. -->
+                                <TextView
+                                    android:id="@+id/tvDiscountExpectedNote"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:textColor="@color/velocity_text_secondary"
+                                    android:textSize="12sp"
+                                    android:visibility="gone"
+                                    tools:text="Expected discount (PWD 20%): -P3,803.00 - applied after your ID is checked at check-in."
+                                    tools:visibility="visible" />
+
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="1dp"
@@ -1657,6 +1669,17 @@
                                     android:layout_height="wrap_content"
                                     android:orientation="vertical"
                                     android:padding="14dp">
+
+                                    <!-- The stays being paid for, on every GCash step. -->
+                                    <LinearLayout
+                                        android:id="@+id/layoutGcashStays"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="14dp"
+                                        android:background="@drawable/bg_flat_box"
+                                        android:orientation="vertical"
+                                        android:padding="12dp"
+                                        android:visibility="gone" />
 
                                     <!-- ============ STEP 1 of 5: Check amount ============ -->
                                     <LinearLayout

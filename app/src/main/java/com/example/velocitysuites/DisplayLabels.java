@@ -29,6 +29,17 @@ public final class DisplayLabels {
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
+    /** "pending_verification" -> "Waiting for verification", "verified" -> "Verified", "rejected" -> "Rejected"; anything else in sentence case. */
+    @NonNull
+    public static String verification(@NonNull Context context, @Nullable String raw) {
+        if (raw == null || raw.trim().isEmpty()) return "";
+        String s = raw.trim().toLowerCase(Locale.ROOT);
+        if (s.equals("pending_verification") || s.equals("pending")) return context.getString(R.string.verification_waiting);
+        if (s.equals("verified") || s.equals("completed")) return context.getString(R.string.verification_verified);
+        if (s.equals("rejected")) return context.getString(R.string.verification_rejected);
+        return status(raw);
+    }
+
     /** "GCASH" / "gcash" -> "GCash", "CASH" -> "Cash", anything else in sentence case; "" for null or blank. */
     @NonNull
     public static String paymentMethod(@NonNull Context context, @Nullable String raw) {

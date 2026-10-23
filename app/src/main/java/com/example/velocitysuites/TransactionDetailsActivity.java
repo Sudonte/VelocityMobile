@@ -239,7 +239,28 @@ public class TransactionDetailsActivity extends SafeActivity {
 
         LinearLayout money = findViewById(R.id.sectionTxDetailMoney);
         money.removeAllViews();
+        if (!booking.getStays().isEmpty()) {
+            // Room charges + Amenities (- Discount once applied) = Grand total, every room on its own stay's nights
+            addMoneyRow(money, getString(booking.hasSeveralStays() ? R.string.details_room_charges_all_stays : R.string.details_room_charges),
+                    MoneyFormat.format(BookingTotals.roomCharges(booking)));
+            addMoneyRow(money, getString(R.string.details_amenities_total_label), MoneyFormat.format(BookingTotals.amenities(booking)));
+            double applied = BookingTotals.discountAppliedAmount(booking);
+            String name = BookingTotals.discountLabel(booking);
+            if (applied > 0.009) {
+                addMoneyRow(money, getString(R.string.details_discount_applied_format, name.isEmpty() ? getString(R.string.details_label_discount) : name), "−" + MoneyFormat.format(applied));
+            }
+        }
         addGrandTotal(money, summary.grandTotal);
+        double expected = BookingTotals.expectedDiscount(booking);
+        if (expected > 0.009) {
+            TextView note = new TextView(this);
+            note.setText(getString(R.string.details_expected_discount_note_format,
+                    BookingTotals.discountLabel(booking).isEmpty() ? getString(R.string.details_label_discount) : BookingTotals.discountLabel(booking), MoneyFormat.format(expected), MoneyFormat.format(BookingTotals.estimatedAfterDiscount(booking))));
+            note.setTextSize(12);
+            note.setTextColor(getColor(R.color.velocity_text_secondary));
+            note.setPadding(0, dp(6), 0, dp(6));
+            money.addView(note);
+        }
         addMoneyRow(money, getString(R.string.txn_amount_paid_verified_label), MoneyFormat.format(summary.verifiedPaid));
         if (summary.status != TransactionStatusHelper.Status.CANCELLED && summary.status != TransactionStatusHelper.Status.REJECTED) {
             addMoneyRow(money, getString(R.string.details_label_remaining_balance), MoneyFormat.format(summary.balance));
@@ -276,9 +297,8 @@ public class TransactionDetailsActivity extends SafeActivity {
         addSectionDivider(container, getString(R.string.details_stays_title));
         for (Booking.StayRecord stay : booking.getStays()) {
             if (stay == null) continue;
-            java.time.LocalDate in = PaymentDates.parseDate(stay.checkIn);
-            java.time.LocalDate out = PaymentDates.parseDate(stay.checkOut);
-            String dates = in != null && out != null ? StayCardText.compactDates(in, out) : "";
+            
+            String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
             String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
             String state = stay.isInHouse() ? getString(R.string.stay_state_in_house)
                     : stay.isCheckedOut() ? getString(R.string.stay_state_checked_out) : "";

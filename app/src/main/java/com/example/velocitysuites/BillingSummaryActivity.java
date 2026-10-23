@@ -170,6 +170,9 @@ public class BillingSummaryActivity extends SafeActivity {
         });
     }
 
+    private TextView tvBillingDiscountLabel;
+    private TextView tvBillingExpectedDiscount;
+
     private void initViews() {
         findViewById(R.id.btnBillingBack).setOnClickListener(v -> finish());
 
@@ -183,6 +186,8 @@ public class BillingSummaryActivity extends SafeActivity {
         tvBillingNights = findViewById(R.id.tvBillingNights);
         tvBillingRate = findViewById(R.id.tvBillingRate);
         layoutBillingDiscount = findViewById(R.id.layoutBillingDiscount);
+        tvBillingDiscountLabel = findViewById(R.id.tvBillingDiscountLabel);
+        tvBillingExpectedDiscount = findViewById(R.id.tvBillingExpectedDiscount);
         tvBillingDiscount = findViewById(R.id.tvBillingDiscount);
         cardBillingAmenities = findViewById(R.id.cardBillingAmenities);
         layoutBillingAmenitiesRows = findViewById(R.id.layoutBillingAmenitiesRows);
@@ -287,21 +292,20 @@ public class BillingSummaryActivity extends SafeActivity {
         tvBillingRef.setText(getString(booking.isHasBooking() ? R.string.booking_ref_label : R.string.reservation_ref_label, booking.getDisplayId()));
         tvBillingStatus.setText(hasText(booking.getStatus()) ? BookingStatusPresenter.statusWord(this, booking) : getString(R.string.status_pending));
         logRawReservationForDebug();
-        setRow(tvBillingRoomType, roomHeadline());
+        boolean byStays = !booking.getStays().isEmpty();
+        setRow(tvBillingRoomType, byStays ? staysRoomsLine() : roomHeadline());
         setRow(tvBillingDates, hasText(booking.getCheckInDate()) && hasText(booking.getCheckOutDate())
                 ? getString(R.string.date_range_format, booking.getCheckInDate(), booking.getCheckOutDate()) : null);
         nights = nightsBetween(booking.getCheckInDate(), booking.getCheckOutDate());
-        tvBillingNights.setText(getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights));
-        if (layoutBillingDiscount != null && tvBillingDiscount != null) {
-            // Hidden rather than shown as ₱0.00 - only a genuine discount
-            // (active promotion or Senior/PWD statutory 20%, see backend
-            // Reservation::discount_preview) is worth surfacing here.
-            boolean hasDiscount = booking.getDiscountAmount() > 0.009;
-            layoutBillingDiscount.setVisibility(hasDiscount ? View.VISIBLE : View.GONE);
-            if (hasDiscount) {
-                tvBillingDiscount.setText(MoneyFormat.format(-booking.getDiscountAmount()));
-            }
+        if (booking.hasSeveralStays()) {
+            long total = 0;
+            for (Booking.StayRecord stay : booking.getStays()) total += BookingTotals.nightsOf(stay);
+            tvBillingNights.setText(getString(R.string.billing_stays_nights_format, getResources().getQuantityString(R.plurals.stays_count, booking.getStayCount(), booking.getStayCount()),
+                    getResources().getQuantityString(R.plurals.receipt_nights_count, (int) total, (int) total)));
+        } else {
+            tvBillingNights.setText(getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights));
         }
+        bindDiscountRows();
 
         setRow(tvBillingPrimaryGuest, guestAccountName());
         // Transaction-specific: the name captured on THIS booking at creation time, never the signed-in account's own
@@ -317,9 +321,13 @@ public class BillingSummaryActivity extends SafeActivity {
         layoutBillingAdditionalGuestsSection.setVisibility(hasAdditionalGuests ? View.VISIBLE : View.GONE);
         layoutBillingAdditionalGuests.removeAllViews();
         if (hasAdditionalGuests) {
+            int minor = 0;
             for (Booking.AdditionalGuest guest : additionalGuests) {
                 TextView row = new TextView(this);
-                row.setText(hasText(guest.relationship)
+                if ("Child".equalsIgnoreCase(guest.relationship) || "Minor".equalsIgnoreCase(guest.relationship)) {
+                    minor++;
+                    row.setText(getString(R.string.details_minor_line_format, minor, guest.age >= 0 ? String.valueOf(guest.age) : getString(R.string.details_minor_age_unknown)));
+                } else row.setText(hasText(guest.relationship)
                         ? getString(R.string.details_guest_entry, guest.name, guest.relationship) : String.valueOf(guest.name));
                 row.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
                 row.setTextSize(13f);
@@ -348,6 +356,69 @@ public class BillingSummaryActivity extends SafeActivity {
         }
         tvBillingPaymentStatus.setText(BookingStatusPresenter.paymentStatusPillText(this, booking));
         cardBillingPaymentInfo.setVisibility(View.VISIBLE);
+        // A reservation is continuing to pay; only a booking is being confirmed.
+        btnConfirmBilling.setText(booking.isHasBooking() ? R.string.confirm_booking_label : R.string.continue_to_payment_label);
+    }
+
+    /** "2 Deluxe, 2 Executive · 2 stays": every type once with its count, then how many stays. */
+    private String staysRoomsLine() {
+        List<String> parts = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<String, Integer> e : BookingTotals.roomCountsByType(booking).entrySet()) {
+            parts.add(getString(R.string.payment_summary_room_count_name_format, e.getValue(), e.getKey()).replace("× ", " ").replace("×", " "));
+        }
+        String rooms = android.text.TextUtils.join(", ", parts);
+        return booking.hasSeveralStays()
+                ? getString(R.string.billing_rooms_stays_format, rooms, getResources().getQuantityString(R.plurals.stays_count, booking.getStayCount(), booking.getStayCount()))
+                : rooms;
+    }
+
+    /** The discount is subtracted only once the front desk has applied it; before that it is a note and the Grand total stays whole. */
+    private void bindDiscountRows() {
+        double applied = BookingTotals.discountAppliedAmount(booking);
+        double expected = BookingTotals.expectedDiscount(booking);
+        String name = BookingTotals.discountLabel(booking);
+        if (layoutBillingDiscount != null && tvBillingDiscount != null) {
+            layoutBillingDiscount.setVisibility(applied > 0.009 ? View.VISIBLE : View.GONE);
+            if (applied > 0.009) {
+                tvBillingDiscount.setText(MoneyFormat.format(-applied));
+                if (tvBillingDiscountLabel != null) {
+                    tvBillingDiscountLabel.setText(getString(R.string.details_discount_applied_format, name.isEmpty() ? getString(R.string.details_label_discount) : name));
+                }
+            }
+        }
+        if (tvBillingExpectedDiscount != null) {
+            tvBillingExpectedDiscount.setVisibility(expected > 0.009 ? View.VISIBLE : View.GONE);
+            if (expected > 0.009) {
+                tvBillingExpectedDiscount.setText(getString(R.string.details_expected_discount_note_format, name.isEmpty() ? getString(R.string.details_label_discount) : name,
+                        MoneyFormat.format(expected), MoneyFormat.format(BookingTotals.estimatedAfterDiscount(booking))));
+            }
+        }
+    }
+
+    /** One stay of the Billing Summary: "Stay 1 · Oct 26 → 27 · 1 night", its rooms, then what it costs. */
+    private View buildStayBlock(Booking.StayRecord stay) {
+        LinearLayout block = new LinearLayout(this);
+        block.setOrientation(LinearLayout.VERTICAL);
+        block.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        long n = BookingTotals.nightsOf(stay);
+        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
+        String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
+        java.util.List<String> rooms = new java.util.ArrayList<>();
+        for (BookingRoom room : stay.rooms) {
+            if (room == null) continue;
+            rooms.add(getString(R.string.billing_stay_room_format, room.getRoomTypeName() != null ? room.getRoomTypeName() : getString(R.string.label_not_available), Math.max(1, room.getQuantity())));
+        }
+        String heading = booking.hasSeveralStays() ? getString(R.string.details_stay_heading_format, stay.position, dates, nightsText)
+                : getString(R.string.details_single_stay_heading_format, dates, nightsText);
+        TextView title = new TextView(this);
+        title.setText(heading);
+        title.setTextSize(13f);
+        title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
+        title.setTextColor(getColor(R.color.velocity_text_primary));
+        title.setPadding(0, 0, 0, (int) (4 * getResources().getDisplayMetrics().density));
+        block.addView(title);
+        block.addView(buildAmenityRow(android.text.TextUtils.join(", ", rooms), MoneyFormat.format(BookingTotals.stayRoomCharges(stay))));
+        return block;
     }
 
     /**
@@ -384,7 +455,10 @@ public class BillingSummaryActivity extends SafeActivity {
         boolean hasItemizedRooms = roomLines != null && !roomLines.isEmpty();
 
         double roomTotal;
-        if (hasItemizedRooms) {
+        boolean byStays = !booking.getStays().isEmpty();
+        if (byStays) {
+            roomTotal = BookingTotals.roomCharges(booking); // every room on ITS OWN stay's nights
+        } else if (hasItemizedRooms) {
             // Real, saved per-room-type records (Reservation/Booking room lines) - each
             // selected room type keeps its own rate, never averaged/collapsed into another
             // type's price. This is the authoritative figure; it is NEVER reconstructed from
@@ -413,9 +487,15 @@ public class BillingSummaryActivity extends SafeActivity {
                 ? booking.getTotalAmount() : roomTotal + totalAmenitiesAmount;
 
         if (layoutBillingSingleRoomInfo != null) {
-            layoutBillingSingleRoomInfo.setVisibility(hasItemizedRooms ? View.GONE : View.VISIBLE);
+            layoutBillingSingleRoomInfo.setVisibility(hasItemizedRooms || byStays ? View.GONE : View.VISIBLE);
         }
-        if (hasItemizedRooms) {
+        if (byStays) {
+            if (layoutBillingRoomsRows != null) {
+                layoutBillingRoomsRows.setVisibility(View.VISIBLE);
+                layoutBillingRoomsRows.removeAllViews();
+                for (Booking.StayRecord stay : booking.getStays()) if (stay != null) layoutBillingRoomsRows.addView(buildStayBlock(stay));
+            }
+        } else if (hasItemizedRooms) {
             if (layoutBillingRoomsRows != null) {
                 layoutBillingRoomsRows.setVisibility(View.VISIBLE);
                 layoutBillingRoomsRows.removeAllViews();
@@ -454,6 +534,10 @@ public class BillingSummaryActivity extends SafeActivity {
      */
     private void bindPayNow(double grandTotal) {
         amounts = BillingAmounts.compute(grandTotal, booking.getEffectiveTotalAmountPaid(), submittedAmountAwaitingVerification());
+        if (!amounts.paymentMade && grandTotal > 0.009) {
+            // The partial payment is a share of the total - say so, so it is never mistaken for the discount
+            tvBillingPayNowNote.setText(getString(R.string.billing_pay_now_range_format, MoneyFormat.format(grandTotal * 0.20), MoneyFormat.format(grandTotal * 0.50)));
+        }
         tvBillingAlreadyPaid.setText(MoneyFormat.format(amounts.alreadyPaid));
         tvBillingRemaining.setText(MoneyFormat.format(amounts.remaining));
         tvBillingPayNowAmount.setText(MoneyFormat.format(amounts.amountToPay));

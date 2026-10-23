@@ -801,9 +801,8 @@ public class PaymentReceiptActivity extends SafeActivity {
         LinearLayout content = newSectionCard(parent, getString(R.string.details_stays_title));
         for (Booking.StayRecord stay : stays) {
             if (stay == null) continue;
-            java.time.LocalDate in = PaymentDates.parseDate(stay.checkIn);
-            java.time.LocalDate out = PaymentDates.parseDate(stay.checkOut);
-            String dates = in != null && out != null ? StayCardText.compactDates(in, out) : "";
+            
+            String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
             String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
             addRow(content, getString(R.string.stay_label_format, stay.position), dates.isEmpty() ? nights : getString(R.string.stay_details_line_format, dates, nights));
             for (BookingRoom room : stay.rooms) {

@@ -626,7 +626,7 @@
                         android:gravity="top"
                         android:orientation="horizontal"
                         android:visibility="gone">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/discount_applied_label"/>
+                        <TextView android:id="@+id/tvBillingDiscountLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="2" android:textColor="@color/velocity_text_secondary" android:textSize="13sp" android:fontFamily="sans-serif-medium" android:text="@string/discount_applied_label"/>
                         <TextView android:id="@+id/tvBillingDiscount"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -639,6 +639,16 @@
                             android:fontFamily="sans-serif-medium"
                             tools:text="-₱500.00" />
                     </LinearLayout>
+                    <!-- The discount before the ID is checked: a note, not a subtraction. -->
+                    <TextView
+                        android:id="@+id/tvBillingExpectedDiscount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:textColor="@color/velocity_text_secondary"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="Expected discount (PWD 20%): -₱3,803.00 - applied after your ID is checked at check-in." />
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"

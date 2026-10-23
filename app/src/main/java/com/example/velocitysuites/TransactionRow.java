@@ -190,6 +190,11 @@ public final class TransactionRow {
 
     /** "Deluxe" / "Deluxe ×2 • Suite" for a transaction, or "" when it names no room type - null-safe. */
     static String roomTextOf(Booking b) {
+        if (!b.getStays().isEmpty()) {
+            // every type once with its total count across the stays: "Deluxe ×2, Executive ×2", never one type times all the rooms
+            java.util.Map<String, Integer> counts = BookingTotals.roomCountsByType(b);
+            if (!counts.isEmpty()) return Booking.formatRoomSelectionSummary(new LinkedHashMap<>(counts));
+        }
         List<BookingRoom> rooms = b.getRooms();
         if (rooms != null && !rooms.isEmpty()) {
             LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
