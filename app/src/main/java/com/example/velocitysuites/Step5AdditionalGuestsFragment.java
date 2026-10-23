@@ -50,6 +50,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
     private TextView tvAdultsCount;
     private TextView tvChildrenCount;
     private TextView tvChildAgeNotice;
+    private TextView tvGuestError;
     private LinearLayout layoutChildAgeFields;
     private final List<TextInputLayout> childAgeInputLayouts = new ArrayList<>();
     private final List<TextInputEditText> childAgeInputs = new ArrayList<>();
@@ -68,6 +69,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         tvAdultsCount = view.findViewById(R.id.tvAdultsCount);
         tvChildrenCount = view.findViewById(R.id.tvChildrenCount);
         tvChildAgeNotice = view.findViewById(R.id.tvChildAgeNotice);
+        tvGuestError = view.findViewById(R.id.tvGuestError);
         layoutChildAgeFields = view.findViewById(R.id.layoutChildAgeFields);
 
         tvGuestCounter = view.findViewById(R.id.tvGuestCounter);
@@ -93,7 +95,12 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
 
     @Override
     public String stepTitle() {
-        return "Additional Guest Information";
+        return getString(R.string.step_title_guests);
+    }
+
+    private void showGuestError(int message) {
+        tvGuestError.setText(message);
+        tvGuestError.setVisibility(View.VISIBLE);
     }
 
     private void changeAdults(int delta) {
@@ -101,9 +108,10 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         int next = state.adults + delta;
         if (next < 1) return;
         if (delta > 0 && !GuestCapacity.canAddGuest(state.adults, state.children, state.totalSelectedCapacity())) {
-            Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
+            showGuestError(R.string.error_guests_exceed_capacity);
             return;
         }
+        tvGuestError.setVisibility(View.GONE);
         state.adults = next;
         refreshCounts();
     }
@@ -113,9 +121,10 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         int next = state.children + delta;
         if (next < 0) return;
         if (delta > 0 && !GuestCapacity.canAddGuest(state.adults, state.children, state.totalSelectedCapacity())) {
-            Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
+            showGuestError(R.string.error_guests_exceed_capacity);
             return;
         }
+        tvGuestError.setVisibility(View.GONE);
         state.children = next;
         refreshCounts();
         rebuildChildAgeFields();
@@ -233,7 +242,7 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
     public boolean validateBeforeNext() {
         BookingWizardState state = getState();
         if (!GuestCapacity.isValid(state.adults, state.children, state.totalSelectedCapacity())) {
-            Toast.makeText(requireContext(), R.string.error_guests_exceed_capacity, Toast.LENGTH_SHORT).show();
+            showGuestError(R.string.error_guests_exceed_capacity);
             return false;
         }
 
@@ -272,30 +281,23 @@ public class Step5AdditionalGuestsFragment extends WizardStepFragment {
         state.additionalGuests.addAll(kept);
         state.additionalGuests.addAll(childGuests);
 
-        clampAmenityQuantitiesToGuestCount();
         return true;
     }
 
-    /**
-     * Amenities (Step 3) are picked before adults/children are known (this
-     * step), so their quantity is only capped by room capacity at
-     * selection time (see Step3AmenitiesFragment). Now that the real
-     * adults+children total is known, silently trim any amenity whose
-     * quantity exceeds it - a guest picking amenities for a family of 3
-     * shouldn't end up with, say, 6 breakfasts selected just because the
-     * room capacity was higher.
-     */
-    private void clampAmenityQuantitiesToGuestCount() {
-        int totalGuests = Math.max(1, getState().adults + getState().children);
-        boolean anyClamped = false;
-        for (AddOnAmenity amenity : getState().selectedAmenities) {
-            if (amenity.getQuantity() > totalGuests) {
-                amenity.setQuantity(totalGuests);
-                anyClamped = true;
-            }
-        }
-        if (anyClamped) {
-            Toast.makeText(requireContext(), R.string.amenity_quantity_clamped_to_guests, Toast.LENGTH_LONG).show();
-        }
+    @Override
+    public int validationMessageRes() {
+        return 0; // inline messages under the fields
+    }
+
+    @Override
+    public String nextConfirmTitle() {
+        return getString(R.string.proceed_to_id_verification);
+    }
+
+    @Override
+    public String nextConfirmSummary() {
+        BookingWizardState state = getState();
+        return getString(R.string.guests_summary_format, getResources().getQuantityString(R.plurals.adults_count, state.adults, state.adults),
+                getResources().getQuantityString(R.plurals.children_count, state.children, state.children));
     }
 }
