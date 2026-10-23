@@ -778,4 +778,32 @@ public class WizardFlowTest {
             org.robolectric.RuntimeEnvironment.setQualifiers("+w360dp-h800dp-notnight");
         }
     }
+
+    @Test
+    public void amenities_withNoRoom_showInAnyRoomGroup_andCanBeMovedToARoom() {
+        BookingWizardActivity a = onConfirmedStay(app, 5, 2, room("1", 1000, 2), 1);
+        a.getState().committedStays().get(0).setAmenityQty(com.example.velocitysuites.BookingWizardState.Stay.ANY_ROOM,
+                new com.example.velocitysuites.AddOnAmenity("9", "Extra bed", "Comfort", "A bed", 300, 5), 1);
+        a.getState().reloadActiveAmenities();
+        a.goToStep(2);
+        idle();
+        api.<List<AmenityDto>>last("getAmenities").succeed(new ArrayList<>(java.util.Collections.singletonList(amenityDto(9, "Extra bed", "A bed", "300.00", 5))));
+        idle();
+
+        String shown = plain(collect(step(a).getView()));
+        assertTrue(shown, shown.contains("Any room") && shown.contains("Room 1 (room 1)"));
+        // the Any room row comes first: its quantity is 1; the real room's is 0
+        List<View> qty = all(step(a).getView(), R.id.tvAmenityRowQty);
+        assertEquals("1", text(qty.get(0)));
+        assertEquals("0", text(qty.get(1)));
+        assertEquals("Amenities ₱300.00 · Grand total ₱2,300.00", liveTotal(a));
+
+        // moving it: one less in Any room, one more in the room - the total does not change
+        minusButtons(a).get(0).performClick();
+        plusButtons(a).get(1).performClick();
+        com.example.velocitysuites.BookingWizardState.Stay stay = a.getState().committedStays().get(0);
+        assertFalse(stay.hasAnyRoomAmenities());
+        assertEquals(1, stay.amenityQty("1#1", "9"));
+        assertEquals("Amenities ₱300.00 · Grand total ₱2,300.00", liveTotal(a));
+    }
 }

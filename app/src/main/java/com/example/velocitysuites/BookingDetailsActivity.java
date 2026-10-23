@@ -1452,8 +1452,8 @@ public class BookingDetailsActivity extends SafeActivity {
             }
             for (BookingAmenity amenity : stay.amenities) {
                 if (amenity == null) continue;
-                addInfoRow(container, getString(R.string.receipt_bd_item_format, amenity.getAmenityName(), amenity.getQuantity(),
-                        formatPrice(amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal())), formatPrice(amenity.getSubtotal()));
+                addInfoRow(container, StayCardText.withRoom(this, getString(R.string.receipt_bd_item_format, amenity.getAmenityName(), amenity.getQuantity(),
+                        formatPrice(amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal())), amenity.getRoomLabel()), formatPrice(amenity.getSubtotal()));
             }
             addTotalRow(container, getString(R.string.stay_subtotal_format, stay.position), formatPrice(stay.subtotal));
         }

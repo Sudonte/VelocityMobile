@@ -25,6 +25,11 @@ final class StayCardText {
 
     /** "Oct 20 → Oct 21, 2026" within one year, "Dec 30, 2026 → Jan 2, 2027" across two. */
     @NonNull
+    /** An amenity line with the room it was chosen for ("Extra bed × 2 @ ₱300.00 · Deluxe (room 2)"); unchanged when it was booked for the whole stay. */
+    static String withRoom(@NonNull Context context, @NonNull String line, @Nullable String roomLabel) {
+        return roomLabel == null || roomLabel.isEmpty() ? line : context.getString(R.string.amenity_row_room_format, line, roomLabel);
+    }
+
     static String compactDates(@NonNull LocalDate in, @NonNull LocalDate out) {
         if (in.getYear() == out.getYear()) return MONTH_DAY.format(in) + " → " + FULL.format(out);
         return FULL.format(in) + " → " + FULL.format(out);

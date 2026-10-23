@@ -11,6 +11,9 @@ package com.example.velocitysuites.network.dto;
 public class AmenitySelectionDto {
     public long amenity_id;
     public int quantity;
+    /** Optional: the booked room this amenity is for - its room type and which room of that type (1-based). Omitted when null. */
+    public Long room_type_id;
+    public Integer room_slot;
 
     public AmenitySelectionDto(long amenityId, int quantity) {
         this.amenity_id = amenityId;

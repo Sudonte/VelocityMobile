@@ -144,6 +144,13 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
             if (stay.checkIn == null || stay.checkOut == null) continue;
             layoutAmenitiesItemsContainer.addView(stayHeading(getString(R.string.amenity_stay_heading_format, i + 1,
                     fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime())), i == 0));
+            // amenities that have no room yet (older rows) wait in "Any room" until the guest moves them to one
+            if (stay.hasAnyRoomAmenities()) {
+                layoutAmenitiesItemsContainer.addView(roomHeading(getString(R.string.amenity_any_room_heading)));
+                for (AddOnAmenity amenity : addOnCatalog) {
+                    layoutAmenitiesItemsContainer.addView(buildRow(inflater, stay, stay.anyRoomSlot(), amenity));
+                }
+            }
             for (BookingWizardState.Stay.Slot slot : stay.roomSlots()) {
                 layoutAmenitiesItemsContainer.addView(roomHeading(getString(R.string.amenity_room_heading_format, slot.room.getName(), slot.number)));
                 for (AddOnAmenity amenity : addOnCatalog) {
@@ -242,7 +249,7 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
         });
         plus.setOnClickListener(v -> {
             int qty = stay.amenityQty(slot.key, amenity.getId());
-            int roomCap = Math.max(1, slot.room.getCapacity());
+            int roomCap = slot.room != null ? Math.max(1, slot.room.getCapacity()) : Math.max(1, stay.capacity());
             if (qty >= roomCap) {
                 limit.setText(getString(R.string.error_amenity_qty_exceeds_capacity));
                 limit.setVisibility(View.VISIBLE);

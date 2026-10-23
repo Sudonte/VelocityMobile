@@ -74,6 +74,14 @@ final class WizardReview {
                     section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), a.getQuantity()), MoneyFormat.format(a.getSubtotal())));
                 }
             }
+            Map<String, Integer> anyRoom = stay.roomAmenityQty.get(BookingWizardState.Stay.ANY_ROOM);
+            if (anyRoom != null && !anyRoom.isEmpty()) {
+                section.add(ReviewSheet.Row.bold(c.getString(R.string.amenity_any_room_heading), null));
+                for (Map.Entry<String, Integer> e : anyRoom.entrySet()) {
+                    AddOnAmenity a = stay.amenityCatalog.get(e.getKey());
+                    if (a != null) section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), e.getValue()), MoneyFormat.format(a.getPrice() * e.getValue())));
+                }
+            }
             for (BookingWizardState.Stay.Slot slot : stay.roomSlots()) {
                 Map<String, Integer> forRoom = stay.roomAmenityQty.get(slot.key);
                 if (forRoom == null || forRoom.isEmpty()) continue;

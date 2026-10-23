@@ -108,6 +108,8 @@ public class ReceiptDetailDto {
     public static class AmenityGroupDto {
         /** The room number, or null for amenities booked for the whole stay. */
         public String room;
+        /** The booked room ("Deluxe (room 2)") when the amenity was chosen for one at booking time and no room number is assigned yet. */
+        public String label;
         public java.util.List<StayBillDto.Line> items;
         public Double subtotal;
     }

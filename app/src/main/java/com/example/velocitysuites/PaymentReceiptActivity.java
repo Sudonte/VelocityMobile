@@ -529,8 +529,9 @@ public class PaymentReceiptActivity extends SafeActivity {
         addSubheadingText(content, getString(R.string.receipt_final_amenities_title));
         if (h.amenityGroups.isEmpty()) addNoteText(content, getString(R.string.receipt_bd_none));
         for (ReceiptDetail.Highlight.AmenityGroup group : h.amenityGroups) {
-            addSubheadingText(content, group.room == null || group.room.isEmpty() ? getString(R.string.receipt_final_all_rooms)
-                    : getString(R.string.receipt_final_room_format, group.room));
+            boolean hasNumber = group.room != null && !group.room.isEmpty();
+            addSubheadingText(content, hasNumber ? getString(R.string.receipt_final_room_format, group.room)
+                    : (group.label != null && !group.label.isEmpty() ? group.label : getString(R.string.receipt_final_all_rooms)));
             for (ReceiptDetail.Highlight.AmenityItem item : group.items) {
                 addRow(content, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
             }
@@ -813,7 +814,7 @@ public class PaymentReceiptActivity extends SafeActivity {
             }
             for (BookingAmenity amenity : stay.amenities) {
                 if (amenity == null) continue;
-                addRow(content, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), formatPrice(amenity.getSubtotal()));
+                addRow(content, StayCardText.withRoom(this, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), amenity.getRoomLabel()), formatPrice(amenity.getSubtotal()));
             }
             addRow(content, getString(R.string.stay_subtotal_format, stay.position), formatPrice(stay.subtotal));
         }

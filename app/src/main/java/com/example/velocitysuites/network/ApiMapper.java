@@ -147,7 +147,7 @@ public final class ApiMapper {
             List<BookingAmenity> amenities = new ArrayList<>();
             if (d.amenities != null) {
                 for (com.example.velocitysuites.network.dto.StayDto.StayAmenityDto a : d.amenities) {
-                    if (a != null) amenities.add(new BookingAmenity(a.amenity_id, a.amenity_name, a.quantity, a.unit_price, a.subtotal));
+                    if (a != null) amenities.add(new BookingAmenity(a.amenity_id, a.amenity_name, a.quantity, a.unit_price, a.subtotal, a.room_label, a.room_type_id, a.room_slot != null ? a.room_slot : 0));
                 }
             }
             out.add(new Booking.StayRecord(d.id != null ? d.id : d.position, d.position, d.check_in, d.check_out, d.nights, d.state,
@@ -174,7 +174,7 @@ public final class ApiMapper {
         }
         List<BookingAmenity> amenities = new ArrayList<>(dtos.size());
         for (BookingAmenityDto dto : dtos) {
-            amenities.add(new BookingAmenity(dto.amenity_id, dto.amenity_name, dto.quantity, dto.unit_price, dto.subtotal));
+            amenities.add(new BookingAmenity(dto.amenity_id, dto.amenity_name, dto.quantity, dto.unit_price, dto.subtotal, dto.room_label, dto.room_type_id, dto.room_slot != null ? dto.room_slot : 0));
         }
         return amenities;
     }
@@ -877,6 +877,7 @@ public final class ApiMapper {
                     for (ReceiptDetailDto.AmenityGroupDto g : h.amenities_by_room) {
                         if (g == null) continue;
                         ReceiptDetail.Highlight.AmenityGroup group = new ReceiptDetail.Highlight.AmenityGroup(g.room);
+                        group.label = g.label;
                         group.subtotal = g.subtotal != null ? g.subtotal : 0;
                         if (g.items != null) {
                             for (com.example.velocitysuites.network.dto.StayBillDto.Line l : g.items) {

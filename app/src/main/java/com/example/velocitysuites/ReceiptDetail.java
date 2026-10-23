@@ -145,6 +145,8 @@ public class ReceiptDetail implements Serializable {
         /** The approved amenities of one room (null room: for the whole stay). */
         public static class AmenityGroup implements Serializable {
             @Nullable public final String room;
+            /** "Deluxe (room 2)": the booked room, when there is no room number to name it by. */
+            @Nullable public String label;
             public final java.util.List<AmenityItem> items = new java.util.ArrayList<>();
             public double subtotal;
 

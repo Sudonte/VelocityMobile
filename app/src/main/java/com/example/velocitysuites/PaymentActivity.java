@@ -3035,7 +3035,7 @@ public class PaymentActivity extends BaseNavigationActivity {
      * record for the entire Booking.
      */
     private void submitPendingBookingGroups(AlertDialog dialog, String gcashNumber, String referenceNumber, List<List<Room>> groups) {
-        if (pendingWizardState.isGroup()) {
+        if (pendingWizardState.sendsAsStays()) {
             submitPendingStayGroup(dialog, gcashNumber, referenceNumber);
             return;
         }

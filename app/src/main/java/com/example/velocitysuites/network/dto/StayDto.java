@@ -29,5 +29,9 @@ public class StayDto {
         public double unit_price;
         public double subtotal;
         public String status;
+        /** The booked room the amenity was chosen for ("Deluxe (room 2)"); null for the whole stay or an older row. */
+        public String room_label;
+        public String room_type_id;
+        public Integer room_slot;
     }
 }

@@ -422,12 +422,22 @@ public class BookingWizardActivity extends SafeActivity {
         // empty amenities[] on Save, silently deleting every amenity the guest
         // never touched during this Modify.
         List<BookingAmenity> itemizedAmenities = booking.getAmenities();
-        if (itemizedAmenities != null) {
+        if (itemizedAmenities != null && !itemizedAmenities.isEmpty()) {
+            // Each amenity goes back to the room it was chosen for (room type + which room of it); one with no room recorded (an older
+            // row) goes to the "Any room" group and stays without a room unless the guest moves it to one.
+            BookingWizardState.Stay stay = state.committedStays().get(0);
+            String firstKey = BookingWizardState.Stay.ANY_ROOM;
             for (BookingAmenity a : itemizedAmenities) {
                 AddOnAmenity seeded = new AddOnAmenity(a.getAmenityId(), a.getAmenityName(), "", "", a.getUnitPrice(), a.getQuantity());
-                seeded.setQuantity(a.getQuantity());
-                state.selectedAmenities.add(seeded);
+                String key = a.getRoomTypeId() != null && a.getRoomSlot() > 0 ? a.getRoomTypeId() + "#" + a.getRoomSlot() : firstKey;
+                if (key != null) {
+                    stay.setAmenityQty(key, seeded, stay.amenityQty(key, a.getAmenityId()) + a.getQuantity());
+                } else {
+                    seeded.setQuantity(a.getQuantity());
+                    state.selectedAmenities.add(seeded);
+                }
             }
+            if (!stay.roomAmenityQty.isEmpty()) state.reloadActiveAmenities();
         }
     }
 

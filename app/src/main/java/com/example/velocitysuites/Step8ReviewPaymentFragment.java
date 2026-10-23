@@ -660,7 +660,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         // (submitReservationGroups()), which produced one separate
         // Reservation per distinct room type instead of a single combined
         // transaction.
-        if (state.isGroup()) {
+        if (state.sendsAsStays()) {
             createReservationGroup(dialog);
             return;
         }
@@ -857,7 +857,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
         repository.updateReservationFull(reservationId, roomGroups, state.checkIn, state.checkOut,
                 state.adults, state.children, state.idCardType, state.discountIdOrNull(), state.removeIdCard,
-                state.additionalGuests, state.selectedAmenities,
+                state.additionalGuests, state.selectedAmenities, state.allStays().get(0),
                 new RoomRepository.RepositoryCallback<Booking>() {
                     @Override
                     public void onSuccess(Booking saved) {

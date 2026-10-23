@@ -292,7 +292,7 @@ public class TransactionDetailsActivity extends SafeActivity {
             }
             for (BookingAmenity amenity : stay.amenities) {
                 if (amenity == null) continue;
-                addRow(container, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), MoneyFormat.format(amenity.getSubtotal()));
+                addRow(container, StayCardText.withRoom(this, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), amenity.getRoomLabel()), MoneyFormat.format(amenity.getSubtotal()));
             }
             addRow(container, getString(R.string.stay_subtotal_format, stay.position), MoneyFormat.format(stay.subtotal));
         }

@@ -2573,6 +2573,8 @@
     <string name="confirm_submit_payment_message">Double-check your reference number and receipt. This can\'t be undone.</string>
     <string name="confirm_submit_payment_yes">Yes, submit</string>
     <string name="gcash_success_transaction_id_format">Transaction ID: %1$s</string>
+    <string name="amenity_row_room_format">%1$s · %2$s</string>
+    <string name="amenity_any_room_heading">Any room</string>
 </resources>
 
 

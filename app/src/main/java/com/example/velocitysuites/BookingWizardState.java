@@ -55,6 +55,20 @@ public class BookingWizardState implements Serializable {
         /** The catalog entries behind {@link #roomAmenityQty}, by id (price, name and limits as the guest saw them). */
         public final Map<String, AddOnAmenity> amenityCatalog = new LinkedHashMap<>();
 
+        /** The key of the "Any room" group: amenities that belong to the stay as a whole (older rows with no room recorded). */
+        public static final String ANY_ROOM = "*";
+
+        /** True when some amenity of this stay is still in the "Any room" group. */
+        public boolean hasAnyRoomAmenities() {
+            Map<String, Integer> any = roomAmenityQty.get(ANY_ROOM);
+            return any != null && !any.isEmpty();
+        }
+
+        /** The "Any room" group as a slot (no room, number 0), for screens that list it beside the real rooms. */
+        public Slot anyRoomSlot() {
+            return new Slot(ANY_ROOM, null, 0);
+        }
+
         /** One room of the stay with its key and label: "Deluxe (room 1)", "Deluxe (room 2)", "Executive (room 1)". */
         public static final class Slot implements Serializable {
             public final String key;
@@ -108,6 +122,7 @@ public class BookingWizardState implements Serializable {
         /** Drops choices for rooms that are no longer part of the stay (the rooms changed after amenities were picked). */
         public void dropAmenitiesOfMissingRooms() {
             List<String> keys = new ArrayList<>();
+            keys.add(ANY_ROOM);
             for (Slot s : roomSlots()) keys.add(s.key);
             if (roomAmenityQty.keySet().retainAll(keys)) rebuildAmenities();
         }
@@ -149,9 +164,8 @@ public class BookingWizardState implements Serializable {
         public void seedFromAggregate(List<AddOnAmenity> list) {
             roomAmenityQty.clear();
             amenityCatalog.clear();
-            List<Slot> slots = roomSlots();
-            if (slots.isEmpty()) return;
-            for (AddOnAmenity a : list) setAmenityQty(slots.get(0).key, a, a.getQuantity());
+            // a plain per-stay list has no room: it stays in the "Any room" group until the guest moves it to one
+            for (AddOnAmenity a : list) setAmenityQty(ANY_ROOM, a, a.getQuantity());
         }
 
         public long nights() {
@@ -314,6 +328,16 @@ public class BookingWizardState implements Serializable {
             }
         }
         return out;
+    }
+
+    /**
+     * The booking or reservation goes out as stays[] (one request per transaction, amenities named by room) rather than the flat
+     * single-stay form: whenever there are several stays, or any amenity was chosen for a particular room.
+     */
+    public boolean sendsAsStays() {
+        if (isGroup()) return true;
+        for (Stay s : allStays()) if (!s.roomAmenityQty.isEmpty()) return true;
+        return false;
     }
 
     /** More than one stay in this booking or reservation. */

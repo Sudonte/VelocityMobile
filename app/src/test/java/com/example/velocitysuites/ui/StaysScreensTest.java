@@ -3,6 +3,7 @@ package com.example.velocitysuites.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -62,7 +63,7 @@ public class StaysScreensTest {
             + "{\"id\":10,\"position\":1,\"check_in\":\"2026-10-25\",\"check_out\":\"2026-10-26\",\"nights\":1,\"state\":\"in_house\","
             + "\"rooms\":[{\"room_type_id\":\"1\",\"room_type\":\"Deluxe\",\"quantity\":1,\"price_per_night\":3500,\"nights\":1,\"subtotal\":3500,\"assigned_room_numbers\":[\"303\"]},"
             + "{\"room_type_id\":\"8\",\"room_type\":\"Executive\",\"quantity\":1,\"price_per_night\":5800,\"nights\":1,\"subtotal\":5800,\"assigned_room_numbers\":[\"601\"]}],"
-            + "\"amenities\":[{\"amenity_id\":\"4\",\"amenity_name\":\"Extra bed\",\"quantity\":1,\"unit_price\":300,\"subtotal\":300}],"
+            + "\"amenities\":[{\"amenity_id\":\"4\",\"amenity_name\":\"Extra bed\",\"quantity\":1,\"unit_price\":300,\"subtotal\":300,\"room_label\":\"Deluxe (room 1)\"}],"
             + "\"rooms_subtotal\":9300,\"amenities_subtotal\":300,\"subtotal\":9600},"
             + "{\"id\":11,\"position\":2,\"check_in\":\"2026-10-27\",\"check_out\":\"2026-10-28\",\"nights\":1,\"state\":\"upcoming\","
             + "\"rooms\":[{\"room_type_id\":\"1\",\"room_type\":\"Deluxe\",\"quantity\":1,\"price_per_night\":3500,\"nights\":1,\"subtotal\":3500,\"assigned_room_numbers\":[]},"
@@ -113,6 +114,8 @@ public class StaysScreensTest {
     @Test
     public void thePayloadMapsToStays_andAnOlderServerWithoutThemIsOneStay() {
         Booking b = twoStayBooking();
+        assertEquals("Deluxe (room 1)", b.getStays().get(0).amenities.get(0).getRoomLabel());
+        assertNull("an amenity row without a room has no label", new com.example.velocitysuites.BookingAmenity("1", "Spa", 1, 10, 10).getRoomLabel());
         assertEquals(2, b.getStays().size());
         assertTrue(b.hasSeveralStays());
         assertEquals(2, b.getStayCount());
@@ -150,6 +153,7 @@ public class StaysScreensTest {
         assertTrue(all, all.contains("Stay 2"));
         assertTrue("room numbers once assigned: " + all, all.contains("Room 303"));
         assertTrue(all, all.contains("Extra bed"));
+        assertTrue("the amenity names the room it was chosen for: " + all, all.contains("Deluxe (room 1)"));
         assertTrue("each stay's own subtotal: " + all, all.contains("Stay 1 Subtotal") && all.contains("₱9,600.00"));
         assertTrue(all, all.contains("Stay 2 Subtotal") && all.contains("₱9,300.00"));
         assertTrue("the one-line explanation under the total: " + all, all.contains("Total for all stays after discount and extras."));
@@ -164,7 +168,7 @@ public class StaysScreensTest {
         shadowOf(Looper.getMainLooper()).idle();
         String all = textOf(a.getWindow().getDecorView());
         assertTrue(all, all.contains("Stay 1 Subtotal") && all.contains("Stay 2 Subtotal"));
-        assertTrue(all, all.contains("Room 303") && all.contains("Extra bed"));
+        assertTrue(all, all.contains("Room 303") && all.contains("Extra bed") && all.contains("Deluxe (room 1)"));
     }
 
     @Test
@@ -180,7 +184,7 @@ public class StaysScreensTest {
         assertTrue(all, all.contains("Stay 1") && all.contains("Stay 2"));
         assertTrue(all, all.contains("Stay 1 Subtotal") && all.contains("₱9,600.00"));
         assertTrue(all, all.contains("Stay 2 Subtotal") && all.contains("₱9,300.00"));
-        assertTrue(all, all.contains("Room 303"));
+        assertTrue(all, all.contains("Room 303") && all.contains("Deluxe (room 1)"));
     }
 
     @Test
@@ -218,6 +222,7 @@ public class StaysScreensTest {
             assertTrue(all, all.contains("Stay 1") && all.contains("Stay 2"));
             assertTrue(all, all.contains("Room 303"));
             assertTrue(all, all.contains("Stay 2 Subtotal"));
+            assertTrue("the receipt names the room too: " + all, all.contains("Deluxe (room 1)"));
         } finally {
             PaymentReceiptActivity.debugPreviewFixtures.clear();
         }

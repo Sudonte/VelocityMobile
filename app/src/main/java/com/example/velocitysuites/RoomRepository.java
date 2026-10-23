@@ -1921,9 +1921,38 @@ public final class RoomRepository {
                     putText(fields, "stays[" + s + "][rooms][" + r + "][quantity]", String.valueOf(group.size()));
                     r++;
                 }
-                for (int a = 0; a < stay.amenities.size(); a++) {
-                    putText(fields, "stays[" + s + "][amenities][" + a + "][amenity_id]", stay.amenities.get(a).getId());
-                    putText(fields, "stays[" + s + "][amenities][" + a + "][quantity]", String.valueOf(stay.amenities.get(a).getQuantity()));
+                int a = 0;
+                if (stay.roomAmenityQty.isEmpty()) {
+                    // no per-room choice (an older state): the stay's amenities as a whole, as before
+                    for (AddOnAmenity amenity : stay.amenities) {
+                        putText(fields, "stays[" + s + "][amenities][" + a + "][amenity_id]", amenity.getId());
+                        putText(fields, "stays[" + s + "][amenities][" + a + "][quantity]", String.valueOf(amenity.getQuantity()));
+                        a++;
+                    }
+                } else {
+                    // one entry per room and amenity, naming the room (type + which room of that type) so the server keeps it;
+                    // the "Any room" group goes without a room
+                    java.util.Map<String, Integer> anyRoom = stay.roomAmenityQty.get(BookingWizardState.Stay.ANY_ROOM);
+                    if (anyRoom != null) {
+                        for (java.util.Map.Entry<String, Integer> e : anyRoom.entrySet()) {
+                            if (e.getValue() == null || e.getValue() <= 0) continue;
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][amenity_id]", e.getKey());
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][quantity]", String.valueOf(e.getValue()));
+                            a++;
+                        }
+                    }
+                    for (BookingWizardState.Stay.Slot slot : stay.roomSlots()) {
+                        java.util.Map<String, Integer> forRoom = stay.roomAmenityQty.get(slot.key);
+                        if (forRoom == null) continue;
+                        for (java.util.Map.Entry<String, Integer> e : forRoom.entrySet()) {
+                            if (e.getValue() == null || e.getValue() <= 0) continue;
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][amenity_id]", e.getKey());
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][quantity]", String.valueOf(e.getValue()));
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][room_type_id]", slot.room.getId());
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][room_slot]", String.valueOf(slot.number));
+                            a++;
+                        }
+                    }
                 }
             }
             putText(fields, "adults", String.valueOf(adults));
@@ -2198,6 +2227,20 @@ public final class RoomRepository {
                                        List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
                                        List<AddOnAmenity> amenities,
                                        RepositoryCallback<Booking> callback) {
+        updateReservationFull(reservationId, roomGroups, checkIn, checkOut, adults, children, idCardType, discountId, removeIdCard,
+                additionalGuests, amenities, null, callback);
+    }
+
+    /**
+     * Same Modify save, with the amenities named by room: when {@code perRoomSource} (the stay being edited) holds a per-room choice,
+     * every amenity goes out with its room type and which room of that type, so the choice survives the edit. Without one, the plain
+     * per-stay {@code amenities} list is sent, as before.
+     */
+    public void updateReservationFull(String reservationId, List<List<Room>> roomGroups, Calendar checkIn, Calendar checkOut,
+                                       int adults, int children, String idCardType, @Nullable Long discountId, boolean removeIdCard,
+                                       List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
+                                       List<AddOnAmenity> amenities, @Nullable BookingWizardState.Stay perRoomSource,
+                                       RepositoryCallback<Booking> callback) {
         ReservationUpdateRequest request = new ReservationUpdateRequest(
                 ApiMapper.toApiDate(checkIn),
                 ApiMapper.toApiDate(checkOut),
@@ -2239,8 +2282,28 @@ public final class RoomRepository {
         }
         if (amenities != null) {
             List<AmenitySelectionDto> amenityDtos = new ArrayList<>();
-            for (AddOnAmenity a : amenities) {
-                amenityDtos.add(new AmenitySelectionDto(Long.parseLong(a.getId()), a.getQuantity()));
+            if (perRoomSource != null && !perRoomSource.roomAmenityQty.isEmpty()) {
+                java.util.Map<String, Integer> anyRoom = perRoomSource.roomAmenityQty.get(BookingWizardState.Stay.ANY_ROOM);
+                if (anyRoom != null) {
+                    for (java.util.Map.Entry<String, Integer> e : anyRoom.entrySet()) {
+                        if (e.getValue() != null && e.getValue() > 0) amenityDtos.add(new AmenitySelectionDto(Long.parseLong(e.getKey()), e.getValue()));
+                    }
+                }
+                for (BookingWizardState.Stay.Slot slot : perRoomSource.roomSlots()) {
+                    java.util.Map<String, Integer> forRoom = perRoomSource.roomAmenityQty.get(slot.key);
+                    if (forRoom == null) continue;
+                    for (java.util.Map.Entry<String, Integer> e : forRoom.entrySet()) {
+                        if (e.getValue() == null || e.getValue() <= 0) continue;
+                        AmenitySelectionDto dto = new AmenitySelectionDto(Long.parseLong(e.getKey()), e.getValue());
+                        dto.room_type_id = Long.parseLong(slot.room.getId());
+                        dto.room_slot = slot.number;
+                        amenityDtos.add(dto);
+                    }
+                }
+            } else {
+                for (AddOnAmenity a : amenities) {
+                    amenityDtos.add(new AmenitySelectionDto(Long.parseLong(a.getId()), a.getQuantity()));
+                }
             }
             request.amenities = amenityDtos;
         }

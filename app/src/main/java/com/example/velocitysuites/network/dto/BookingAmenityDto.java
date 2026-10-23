@@ -13,4 +13,8 @@ public class BookingAmenityDto {
     public int quantity;
     public double unit_price;
     public double subtotal;
+    /** The booked room the amenity was chosen for ("Deluxe (room 2)"); null for the whole stay or an older row. */
+    public String room_label;
+    public String room_type_id;
+    public Integer room_slot;
 }
