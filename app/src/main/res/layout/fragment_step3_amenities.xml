@@ -1,177 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Amenities, optional: by stay, then by room, one row per amenity with a quantity stepper; the live total stays pinned at the bottom. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:clipToPadding="false">
+    android:orientation="vertical">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/amenitiesScroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="8dp"
-        android:paddingBottom="22dp"
-        android:paddingStart="22dp"
-        android:paddingEnd="22dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
 
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Velocity.Card.Flat"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clickable="false"
-            android:focusable="false">
+            android:orientation="vertical"
+            android:paddingStart="22dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="22dp"
+            android:paddingBottom="22dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_flat_box"
-                android:orientation="vertical"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp">
+                android:layout_marginBottom="12dp"
+                android:gravity="top"
+                android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:gravity="top"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        app:cardBackgroundColor="@color/velocity_red_soft">
-                        <ImageView
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
-                            android:layout_gravity="center"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_services"
-                            app:tint="@color/velocity_red_primary" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/TextAppearance.Velocity.Label.Section"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/addon_amenities_label"
-                            android:textColor="@color/velocity_text_primary"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:lineSpacingExtra="2dp"
-                            android:text="@string/addon_amenities_notice"
-                            android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSkipAmenities"
-                        style="@style/Widget.Velocity.Flat.Button.Text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                        android:layout_gravity="top"
-                        android:maxWidth="90dp"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:text="@string/skip_amenities_button"
-                        android:textAllCaps="false"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/layoutAmenitiesItemsContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-
-                <!-- Running count/subtotal of selected amenities - only
-                     shown once at least one is selected, kept in sync from
-                     Step3AmenitiesFragment#updateSelectedSummary(). -->
-                <LinearLayout
-                    android:id="@+id/layoutAmenitiesSummary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/shape_flat_notice"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="8dp"
-                    android:visibility="gone"
-                    tools:visibility="visible">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tvSelectedAmenitiesCount"
-                        android:layout_width="0dp"
+                        style="@style/TextAppearance.Velocity.Label.Section"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:text="@string/addon_amenities_label"
                         android:textColor="@color/velocity_text_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="sans-serif-medium"
-                        tools:text="Selected Amenities: 2" />
+                        android:textSize="14sp" />
 
                     <TextView
-                        android:id="@+id/tvSelectedAmenitiesSubtotal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/velocity_red_primary"
-                        android:textSize="12sp"
-                        android:fontFamily="sans-serif-black"
-                        tools:text="₱1,200.00" />
-                </LinearLayout>
-
-                <!-- Shown for either a genuinely empty catalog or a failed
-                     load - Step3AmenitiesFragment swaps the text and the
-                     retry button's visibility depending on which. -->
-                <LinearLayout
-                    android:id="@+id/layoutAmenitiesEmptyState"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="14dp"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/tvAmenitiesEmptyState"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="@string/addon_amenities_empty"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingExtra="2dp"
+                        android:text="@string/addon_amenities_notice"
                         android:textColor="@color/velocity_text_secondary"
                         android:textSize="12sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnRetryAmenities"
-                        style="@style/Widget.Velocity.Flat.Button.Outlined"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/retry_label"
-                        android:textAllCaps="false"
-                        app:strokeColor="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
-                        android:visibility="gone" />
                 </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSkipAmenities"
+                    style="@style/Widget.Velocity.Flat.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:minHeight="48dp"
+                    android:text="@string/skip_amenities_button"
+                    android:textAllCaps="false"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutAmenitiesItemsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Shown for either a genuinely empty catalog or a failed load. -->
+            <LinearLayout
+                android:id="@+id/layoutAmenitiesEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvAmenitiesEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/addon_amenities_empty"
+                    android:textColor="@color/velocity_text_secondary"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRetryAmenities"
+                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="48dp"
+                    android:text="@string/retry_label"
+                    android:textAllCaps="false"
+                    android:textColor="@color/velocity_red_primary"
+                    android:visibility="gone"
+                    app:strokeColor="@color/velocity_red_primary" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Sticky: updates on every change. -->
+    <LinearLayout
+        android:id="@+id/layoutAmenitiesTotalBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/velocity_surface_elevated"
+        android:orientation="vertical"
+        android:paddingHorizontal="22dp"
+        android:paddingVertical="10dp">
+
+        <TextView
+            android:id="@+id/tvAmenitiesLiveTotal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Amenities ₱300.00 · Grand total ₱18,900.00" />
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>
