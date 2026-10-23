@@ -472,12 +472,24 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
 
     @Override
     public String stepTitle() {
-        return "ID Verification";
+        return getString(R.string.step_title_id_verification);
     }
 
     @Override
     public int validationMessageRes() {
-        return R.string.error_id_required;
+        return 0; // shown inline next to the ID field
+    }
+
+    /** Booking: on to the bill summary and review. Reservation: on to the payment method. */
+    @Override
+    public String nextConfirmTitle() {
+        return getString(getState().isBookingMode() || getWizardActivity().isEditMode() ? R.string.proceed_to_bill_review : R.string.proceed_to_payment_method);
+    }
+
+    @Override
+    public String nextConfirmSummary() {
+        BookingWizardState state = getState();
+        return state.discount != null ? getString(R.string.id_summary_discount_format, state.discount.getName()) : getString(R.string.id_summary_none);
     }
 
     @Override

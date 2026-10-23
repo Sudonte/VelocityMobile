@@ -194,6 +194,17 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <TextView
+                    android:id="@+id/tvPaymentMethodError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/error_payment_method_required"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

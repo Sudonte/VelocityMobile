@@ -83,23 +83,11 @@ public class WizardGroupLayoutTest {
         return a.getSupportFragmentManager().findFragmentById(R.id.wizardFragmentContainer);
     }
 
-    /** A wizard with {@code stays} stays (one room each), sitting on the merged Step 1. */
+    /** A wizard with {@code stays} confirmed stays (one room each), sitting on the merged Step 1. */
     private BookingWizardActivity wizard(int stays) {
-        BookingWizardActivity activity = Robolectric.buildActivity(BookingWizardActivity.class,
-                BookingWizardActivity.newIntent(app, BookingWizardState.Mode.BOOKING)).setup().get();
-        idle();
-        BookingWizardState state = activity.getState();
-        fill(state, 5, 2, room(1, 12500));
-        activity.goToStep(1);
-        idle();
+        BookingWizardActivity activity = WizardDriver.onConfirmedStay(app, 5, 2, WizardDriver.room("1", 12500), 1);
         for (int i = 2; i <= stays; i++) {
-            View add = step(activity).getView().findViewById(R.id.btnAddAnotherStay);
-            assertNotNull(add);
-            add.performClick();
-            idle();
-            fill(state, 5 + (i - 1) * 5, 2, room(i, 12500));
-            activity.goToStep(1);
-            idle();
+            WizardDriver.addConfirmedStay(activity, 5 + (i - 1) * 5, 2, WizardDriver.room(String.valueOf(i), 12500), 1);
         }
         return activity;
     }
@@ -227,7 +215,7 @@ public class WizardGroupLayoutTest {
             idle();
             View root = step(activity).getView();
             String all = collect(root);
-            assertTrue(all, all.contains("Stay 3:"));
+            assertTrue(all, all.contains("Stay 3"));
             assertFits("review with 3 stays", root, activity.getResources().getDisplayMetrics().widthPixels);
         });
     }

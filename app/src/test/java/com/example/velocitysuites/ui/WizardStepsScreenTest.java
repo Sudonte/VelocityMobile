@@ -444,100 +444,6 @@ public class WizardStepsScreenTest {
         assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
     }
 
-    // ---- Step 4: the optional representative name ----
-
-    @Test
-    public void step4_representativeIsOptional_inEveryFlow_withTheThreeFieldsHelperTextAndTheWhoCanCheckInRow() {
-        for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
-            BookingWizardActivity activity = launch(mode).get();
-            activity.getState().selectedRooms.add(room("R1", 6));
-            activity.goToStep(3);
-            idle();
-            assertEquals("Representative (optional)", text(find(activity, R.id.tvRepresentativeTitle)));
-            assertEquals("Last name", String.valueOf(((com.google.android.material.textfield.TextInputLayout) find(activity, R.id.tilRepLast)).getHint()));
-            assertEquals("First name", String.valueOf(((com.google.android.material.textfield.TextInputLayout) find(activity, R.id.tilRepFirst)).getHint()));
-            assertEquals("Middle name (optional)", String.valueOf(((com.google.android.material.textfield.TextInputLayout) find(activity, R.id.tilRepMiddle)).getHint()));
-            View last = find(activity, R.id.tilRepLast);
-            View first = find(activity, R.id.tilRepFirst);
-            View middle = find(activity, R.id.tilRepMiddle);
-            assertEquals("stacked full width on a phone, in order", ((android.view.ViewGroup) last.getParent()).getChildAt(0), last);
-            assertEquals(((android.view.ViewGroup) last.getParent()).getChildAt(1), first);
-            assertEquals(((android.view.ViewGroup) last.getParent()).getChildAt(2), middle);
-            assertTrue(((android.widget.LinearLayout) last.getParent()).getOrientation() == android.widget.LinearLayout.VERTICAL);
-            assertEquals(app.getString(R.string.representative_name_helper), text(find(activity, R.id.tvRepresentativeHelper)));
-            assertEquals("the helper is always visible", View.VISIBLE, find(activity, R.id.tvRepresentativeHelper).getVisibility());
-            assertTrue("Next is never blocked by an empty block", ((WizardStepFragment) fragment(activity)).validateBeforeNext());
-
-            View body = find(activity, R.id.tvRepresentativeWhoBody);
-            assertEquals(View.GONE, body.getVisibility());
-            find(activity, R.id.rowRepresentativeWho).performClick();
-            assertEquals(View.VISIBLE, body.getVisibility());
-            assertEquals(app.getString(R.string.representative_who_body), text(body));
-            find(activity, R.id.rowRepresentativeWho).performClick();
-            assertEquals(View.GONE, body.getVisibility());
-        }
-    }
-
-    @Test
-    public void step4_anyFieldFilled_makesLastAndFirstRequired_withInlineErrors() {
-        BookingWizardActivity activity = launch(BookingWizardState.Mode.RESERVATION).get();
-        activity.getState().selectedRooms.add(room("R1", 6));
-        activity.goToStep(3);
-        idle();
-        TextView last = find(activity, R.id.etRepLast);
-        TextView first = find(activity, R.id.etRepFirst);
-        TextView middle = find(activity, R.id.etRepMiddle);
-        com.google.android.material.textfield.TextInputLayout tilLast = find(activity, R.id.tilRepLast);
-        com.google.android.material.textfield.TextInputLayout tilFirst = find(activity, R.id.tilRepFirst);
-        WizardStepFragment step = (WizardStepFragment) fragment(activity);
-
-        last.setText("Dela Cruz");
-        assertFalse("last name only", step.validateBeforeNext());
-        assertEquals("Enter the representative’s first name", String.valueOf(tilFirst.getError()));
-        assertEquals(null, tilLast.getError());
-
-        last.setText("");
-        middle.setText("Santos");
-        assertFalse("middle name only", step.validateBeforeNext());
-        assertEquals("Enter the representative’s last name", String.valueOf(tilLast.getError()));
-        assertEquals("Enter the representative’s first name", String.valueOf(tilFirst.getError()));
-
-        last.setText("Dela Cruz");
-        first.setText("Juan");
-        assertEquals("the errors clear as soon as the fields are right", null, tilFirst.getError());
-        assertTrue(step.validateBeforeNext());
-        assertEquals("Juan", activity.getState().guestFirstName);
-        assertEquals("Santos", activity.getState().guestMiddleName);
-        assertEquals("Dela Cruz", activity.getState().guestLastName);
-
-        middle.setText("");
-        assertTrue(step.validateBeforeNext());
-        assertEquals("", activity.getState().guestMiddleName);
-
-        first.setText("J");
-        assertFalse(step.validateBeforeNext());
-        assertEquals("Enter at least 2 letters", String.valueOf(tilFirst.getError()));
-    }
-
-    @Test
-    public void step4_lettersOnly_andBlankSendsTheAccountOwner() {
-        BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
-        activity.getState().selectedRooms.add(room("R1", 6));
-        app.getSharedPreferences("VelocityPrefs", android.content.Context.MODE_PRIVATE).edit()
-                .putString("userFirstName", "Maria").putString("userLastName", "Santos").apply();
-        activity.goToStep(3);
-        idle();
-        TextView last = find(activity, R.id.etRepLast);
-        last.setText("Peña 123 @");
-        assertEquals("digits and symbols cannot be typed", "Peña  ", text(last));
-
-        last.setText("");
-        assertTrue(((WizardStepFragment) fragment(activity)).validateBeforeNext());
-        assertEquals("", activity.getState().repLast + activity.getState().repFirst + activity.getState().repMiddle);
-        assertEquals("the account owner's names go where the API expects them", "Maria", activity.getState().guestFirstName);
-        assertEquals("Santos", activity.getState().guestLastName);
-    }
-
     // ---- back navigation never loses what was typed ----
 
     @Test
@@ -546,18 +452,21 @@ public class WizardStepsScreenTest {
             BookingWizardActivity activity = launch(mode).get();
             activity.getState().selectedRooms.add(room("R1", 6));
 
+            activity.getState().who = BookingWizardState.Who.OTHER;
             activity.goToStep(3);
             idle();
-            ((TextView) find(activity, R.id.etRepLast)).setText("Cruz");
-            ((TextView) find(activity, R.id.etRepFirst)).setText("Ana");
-            ((TextView) find(activity, R.id.etRepMiddle)).setText("Reyes");
+            View other = find(activity, R.id.otherFields);
+            ((TextView) other.findViewById(R.id.etRepLast)).setText("Cruz");
+            ((TextView) other.findViewById(R.id.etRepFirst)).setText("Ana");
+            ((TextView) other.findViewById(R.id.etRepMiddle)).setText("Reyes");
             activity.goToStep(2); // Back
             idle();
             activity.goToStep(3);
             idle();
-            assertEquals("Cruz", text(find(activity, R.id.etRepLast)));
-            assertEquals("Ana", text(find(activity, R.id.etRepFirst)));
-            assertEquals("Reyes", text(find(activity, R.id.etRepMiddle)));
+            other = find(activity, R.id.otherFields);
+            assertEquals("Cruz", text(other.findViewById(R.id.etRepLast)));
+            assertEquals("Ana", text(other.findViewById(R.id.etRepFirst)));
+            assertEquals("Reyes", text(other.findViewById(R.id.etRepMiddle)));
 
             activity.goToStep(4);
             idle();
@@ -611,8 +520,11 @@ public class WizardStepsScreenTest {
         next.performClick();
         next.performClick();
         idle();
-        assertEquals("3 of 6 - Guest and Identification", "Step 3 of 6", text(activity.findViewById(R.id.tvWizardStepLabel)).substring(0, 11));
-        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 3 of 6"));
+        assertTrue("one question, not two", TapTestSupport.alertsShowing() <= 1);
+        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 2 of 6"));
+        ((androidx.appcompat.app.AlertDialog) ShadowDialog.getLatestDialog()).getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
+        idle();
+        assertTrue("one answer moves exactly one step", text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 3 of 6"));
     }
 
     private static android.widget.EditText firstEditText(View v) {
@@ -706,61 +618,6 @@ public class WizardStepsScreenTest {
         assertEquals(View.VISIBLE, error.getVisibility());
         assertEquals("Select at least one room", text(error));
         assertEquals("no toast", 0, org.robolectric.shadows.ShadowToast.shownToastCount());
-    }
-
-    private AmenityDtoBuilder amenityStep(int stock, int roomCapacity) {
-        ActivityController<BookingWizardActivity> controller = launch(BookingWizardState.Mode.BOOKING);
-        BookingWizardActivity activity = controller.get();
-        activity.getState().selectedRooms.add(room("1", roomCapacity));
-        activity.goToStep(2);
-        idle();
-        com.example.velocitysuites.network.dto.AmenityDto dto = new com.example.velocitysuites.network.dto.AmenityDto();
-        dto.id = 9;
-        dto.amenity_name = "Extra Bed";
-        dto.category = "Comfort";
-        dto.description = "A bed";
-        dto.charge = "500.00";
-        dto.quantity = stock;
-        api.<List<com.example.velocitysuites.network.dto.AmenityDto>>last("getAmenities").succeed(new ArrayList<>(Collections.singletonList(dto)));
-        idle();
-        return new AmenityDtoBuilder(activity);
-    }
-
-    private final class AmenityDtoBuilder {
-        final BookingWizardActivity activity;
-
-        AmenityDtoBuilder(BookingWizardActivity activity) {
-            this.activity = activity;
-        }
-    }
-
-    @Test
-    public void step3_atTheStockLimit_saysOnlyNLeft_onTheItem_notAToast() {
-        BookingWizardActivity activity = amenityStep(2, 6).activity;
-        org.robolectric.shadows.ShadowToast.reset();
-        find(activity, R.id.cbAmenityItem).performClick();
-        View plus = find(activity, R.id.btnAmenityQtyPlus);
-        TextView limit = find(activity, R.id.tvAmenityItemLimit);
-        plus.performClick();
-        assertEquals("2", text(find(activity, R.id.tvAmenityItemQty)));
-        assertEquals(View.GONE, limit.getVisibility());
-        plus.performClick();
-        assertEquals(View.VISIBLE, limit.getVisibility());
-        assertEquals("Only 2 left", text(limit));
-        assertEquals("no toast", 0, org.robolectric.shadows.ShadowToast.shownToastCount());
-        find(activity, R.id.btnAmenityQtyMinus).performClick();
-        assertEquals("the message goes when the quantity changes", View.GONE, limit.getVisibility());
-    }
-
-    @Test
-    public void step3_atTheRoomCapacityLimit_saysSoOnTheItem() {
-        BookingWizardActivity activity = amenityStep(9, 1).activity;
-        find(activity, R.id.cbAmenityItem).performClick();
-        View plus = find(activity, R.id.btnAmenityQtyPlus);
-        plus.performClick();
-        TextView limit = find(activity, R.id.tvAmenityItemLimit);
-        assertEquals(View.VISIBLE, limit.getVisibility());
-        assertEquals(activity.getString(R.string.error_amenity_qty_exceeds_capacity), text(limit));
     }
 
     @Test

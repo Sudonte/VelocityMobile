@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,14 +62,9 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
 
     private RoomRepository repository;
 
-    private TextView tvSummaryDates;
-    private TextView tvSummaryGuests;
-    private TextView tvSummaryAdultsChildren;
-    private TextView tvSummaryRepresentative;
-    private LinearLayout layoutSummaryRooms;
-    private LinearLayout layoutSummaryAmenities;
-    private LinearLayout layoutSummaryAmenitiesRows;
-    private TextView tvSummaryAmenitiesSubtotal;
+    private LinearLayout layoutReviewSections;
+    private LinearLayout layoutBillRows;
+    private LinearLayout layoutPayNow;
     private TextView tvSummaryTotal;
     private View layoutEditTotals;
     private TextView tvSummaryDiscountNote;
@@ -102,14 +98,9 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         super.onViewCreated(view, savedInstanceState);
         repository = RoomRepository.getInstance(requireContext());
 
-        tvSummaryDates = view.findViewById(R.id.tvSummaryDates);
-        tvSummaryGuests = view.findViewById(R.id.tvSummaryGuests);
-        tvSummaryAdultsChildren = view.findViewById(R.id.tvSummaryAdultsChildren);
-        tvSummaryRepresentative = view.findViewById(R.id.tvSummaryRepresentative);
-        layoutSummaryRooms = view.findViewById(R.id.layoutSummaryRooms);
-        layoutSummaryAmenities = view.findViewById(R.id.layoutSummaryAmenities);
-        layoutSummaryAmenitiesRows = view.findViewById(R.id.layoutSummaryAmenitiesRows);
-        tvSummaryAmenitiesSubtotal = view.findViewById(R.id.tvSummaryAmenitiesSubtotal);
+        layoutReviewSections = view.findViewById(R.id.layoutReviewSections);
+        layoutBillRows = view.findViewById(R.id.layoutBillRows);
+        layoutPayNow = view.findViewById(R.id.layoutPayNow);
         tvSummaryTotal = view.findViewById(R.id.tvSummaryTotal);
         layoutEditTotals = view.findViewById(R.id.layoutEditTotals);
         tvSummaryDiscountNote = view.findViewById(R.id.tvSummaryDiscountNote);
@@ -224,7 +215,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     public String stepTitle() {
         BookingWizardState state = getState();
         boolean freshReservation = !getWizardActivity().isEditMode() && !state.isBookingMode();
-        return freshReservation ? getString(R.string.wizard_step_title_total_review) : "Bill Summary and Review";
+        return getString(R.string.step_title_review);
     }
 
     @Override
@@ -258,10 +249,6 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         termsConsent.requestFocus();
     }
 
-    private long nights() {
-        return getState().nights();
-    }
-
     private double roomsTotal() {
         return getState().roomsTotal();
     }
@@ -270,97 +257,197 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         return getState().amenitiesTotal();
     }
 
+    /** The collapsible sections, each with an Edit link to its step, then the bill. */
     private void renderSummary() {
         BookingWizardState state = getState();
+        android.content.Context c = requireContext();
+        boolean editMode = getWizardActivity().isEditMode();
+        boolean freshReservation = !editMode && !state.isBookingMode();
+        layoutReviewSections.removeAllViews();
 
-        if (state.isGroup()) {
-            renderGroupSummary(state);
-            return;
+        // 1. Stays: dates, nights, every room type x quantity x price x nights, subtotals
+        List<View> stayRows = new ArrayList<>();
+        for (ReviewSheet.Section section : WizardReview.stays(c, state)) {
+            stayRows.add(ReviewSheet.heading(c, section.heading, stayRows.isEmpty()));
+            for (ReviewSheet.Row row : section.rows) stayRows.add(ReviewSheet.row(c, row));
         }
-        if (state.checkIn != null && state.checkOut != null) {
-            java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
-            int nights = (int) nights();
-            tvSummaryDates.setText(getString(R.string.summary_dates_nights_format,
-                    fmt.format(state.checkIn.getTime()), fmt.format(state.checkOut.getTime()),
-                    getResources().getQuantityString(R.plurals.nights_count_plain, nights, nights)));
+        layoutReviewSections.addView(buildSection(R.string.review_section_stays, 1, stayRows));
+
+        // 2. Amenities: per stay and room
+        List<View> amenityRows = new ArrayList<>();
+        for (ReviewSheet.Section section : WizardReview.amenities(c, state)) {
+            amenityRows.add(ReviewSheet.heading(c, section.heading, amenityRows.isEmpty()));
+            for (ReviewSheet.Row row : section.rows) amenityRows.add(ReviewSheet.row(c, row));
+        }
+        if (amenityRows.isEmpty()) amenityRows.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_no_amenities), null)));
+        layoutReviewSections.addView(buildSection(R.string.review_section_amenities, 2, amenityRows));
+
+        // 3. Representative
+        List<View> who = new ArrayList<>();
+        RepresentativeName.Parts rep = state.who == BookingWizardState.Who.OWNER
+                ? ownerParts(c) : state.representative();
+        who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_check_in_by),
+                getString(state.who == BookingWizardState.Who.OTHER ? R.string.who_someone_else : R.string.who_owner_me))));
+        if (!rep.formatted().isEmpty()) who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_name_label), rep.formatted())));
+        who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_present_id_note), null)));
+        layoutReviewSections.addView(buildSection(R.string.review_section_representative, 3, who));
+
+        // 4. Guests: adults, minors and their ages
+        List<View> guests = new ArrayList<>();
+        guests.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.adults_label), String.valueOf(state.adults))));
+        guests.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.children_label), String.valueOf(state.children))));
+        int minor = 0;
+        for (BookingAndReservationActivity.AdditionalGuest g : state.additionalGuests) {
+            if (!"Child".equalsIgnoreCase(g.relationship)) continue;
+            minor++;
+            guests.add(ReviewSheet.row(c, ReviewSheet.Row.indented(getString(R.string.child_age_field_format, minor), g.age >= 0 ? String.valueOf(g.age) : "-")));
+        }
+        layoutReviewSections.addView(buildSection(R.string.review_section_guests, 4, guests));
+
+        // 5. ID / discount
+        List<View> id = new ArrayList<>();
+        if (state.discount == null) {
+            id.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_discount_label), getString(R.string.review_discount_none))));
         } else {
-            tvSummaryDates.setText(R.string.summary_dates_placeholder);
+            id.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_discount_label),
+                    state.discount.getName() + " (" + state.discount.getValueLabel() + ")")));
+            id.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_id_photo_label),
+                    getString(state.idCardImageUri != null || state.idCardOnFile ? R.string.review_id_photo_attached : R.string.review_id_photo_missing))));
+        }
+        layoutReviewSections.addView(buildSection(R.string.review_section_id, 5, id));
+
+        // 6. Payment method (a new reservation chooses it in its own step)
+        if (freshReservation) {
+            List<View> pay = new ArrayList<>();
+            boolean gcash = "gcash".equalsIgnoreCase(state.paymentMethod);
+            pay.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.payment_method_section_label),
+                    getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash))));
+            layoutReviewSections.addView(buildSection(R.string.review_section_payment_method, 6, pay));
         }
 
-        int guestCount = state.adults + state.children;
-        tvSummaryGuests.setText(getResources().getQuantityString(R.plurals.summary_guest_count, guestCount, guestCount));
-        tvSummaryAdultsChildren.setText(getString(R.string.summary_adults_children_format,
-                getResources().getQuantityString(R.plurals.adults_count, state.adults, state.adults),
-                getResources().getQuantityString(R.plurals.children_count, state.children, state.children)));
-
-        tvSummaryRepresentative.setVisibility(View.VISIBLE);
-        tvSummaryRepresentative.setText(RepresentativeName.summaryLine(requireContext(), state.representative()));
-
-        layoutSummaryRooms.removeAllViews();
-        for (List<Room> group : state.selectedRoomsGroupedByType().values()) {
-            Room representativeRoom = group.get(0);
-            int qty = group.size();
-            double subtotal = representativeRoom.getPricePerNight() * nights() * qty;
-            layoutSummaryRooms.addView(buildRow(
-                    getResources().getQuantityString(R.plurals.summary_room_row_qty_format, (int) nights(), qty, representativeRoom.getName(), (int) nights()),
-                    String.format(Locale.US, getString(R.string.price_format), subtotal)));
-        }
-
-        layoutSummaryAmenitiesRows.removeAllViews();
-        if (state.selectedAmenities.isEmpty()) {
-            layoutSummaryAmenities.setVisibility(View.GONE);
-        } else {
-            layoutSummaryAmenities.setVisibility(View.VISIBLE);
-            for (AddOnAmenity a : state.selectedAmenities) {
-                layoutSummaryAmenitiesRows.addView(buildRow(
-                        getString(R.string.summary_amenity_row_qty_format, a.getName(), a.getQuantity()),
-                        String.format(Locale.US, getString(R.string.price_format), a.getSubtotal())));
-            }
-            tvSummaryAmenitiesSubtotal.setText(String.format(Locale.US, getString(R.string.price_format), amenitiesTotal()));
-        }
-
-        tvSummaryTotal.setText(String.format(Locale.US, getString(R.string.price_format), roomsTotal() + amenitiesTotal()));
-        renderDiscountEstimate(state);
+        renderBill(state, freshReservation);
         renderEditTotals();
     }
 
-    /** Several stays: every stay with its dates, nights, rooms and amenities, then the group total (one payment for all of them). */
-    private void renderGroupSummary(BookingWizardState state) {
-        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("MMM dd, yyyy", Locale.US);
-        tvSummaryDates.setText(getString(R.string.review_group_dates_format, state.stayCount()));
-        int guestCount = state.adults + state.children;
-        tvSummaryGuests.setText(getResources().getQuantityString(R.plurals.summary_guest_count, guestCount, guestCount));
-        tvSummaryAdultsChildren.setText(getString(R.string.summary_adults_children_format,
-                getResources().getQuantityString(R.plurals.adults_count, state.adults, state.adults),
-                getResources().getQuantityString(R.plurals.children_count, state.children, state.children)));
-        tvSummaryRepresentative.setVisibility(View.VISIBLE);
-        tvSummaryRepresentative.setText(RepresentativeName.summaryLine(requireContext(), state.representative()));
-
-        layoutSummaryRooms.removeAllViews();
-        layoutSummaryAmenitiesRows.removeAllViews();
-        boolean anyAmenities = false;
-        List<BookingWizardState.Stay> stays = state.allStays();
-        for (int i = 0; i < stays.size(); i++) {
-            BookingWizardState.Stay stay = stays.get(i);
-            int nights = (int) stay.nights();
-            layoutSummaryRooms.addView(buildRow(getString(R.string.review_stay_header_format, i + 1, fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime()),
-                    getResources().getQuantityString(R.plurals.nights_count_plain, nights, nights)), money(stay.total())));
-            for (List<Room> group : stay.roomsGroupedByType().values()) {
-                Room room = group.get(0);
-                layoutSummaryRooms.addView(buildRow("   " + getResources().getQuantityString(R.plurals.summary_room_row_qty_format, nights, group.size(), room.getName(), nights),
-                        money(room.getPricePerNight() * nights * group.size())));
-            }
-            for (AddOnAmenity a : stay.amenities) {
-                anyAmenities = true;
-                layoutSummaryAmenitiesRows.addView(buildRow(getString(R.string.review_stay_amenity_format, i + 1, a.getName(), a.getQuantity()), money(a.getSubtotal())));
-            }
-        }
-        layoutSummaryAmenities.setVisibility(anyAmenities ? View.VISIBLE : View.GONE);
-        if (anyAmenities) tvSummaryAmenitiesSubtotal.setText(money(amenitiesTotal()));
-        tvSummaryTotal.setText(money(state.groupTotal()));
-        renderDiscountEstimate(state);
-        layoutEditTotals.setVisibility(View.GONE);
+    private RepresentativeName.Parts ownerParts(android.content.Context c) {
+        String[] n = Step4GuestIdentificationFragment.ownerNames(c);
+        return new RepresentativeName.Parts(n[0], n[1], n[2]);
     }
+
+    /** A card with a title, an Edit link that jumps back to {@code editStep}, and a body the guest can collapse. */
+    private View buildSection(int titleRes, int editStep, List<View> rows) {
+        android.content.Context c = requireContext();
+        LinearLayout card = new LinearLayout(c);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_flat_box);
+        card.setPadding(dp(14), dp(4), dp(14), dp(10));
+        LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cardLp.bottomMargin = dp(10);
+        card.setLayoutParams(cardLp);
+
+        LinearLayout header = new LinearLayout(c);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        header.setMinimumHeight(dp(48));
+        header.setClickable(true);
+        header.setFocusable(true);
+
+        TextView title = new TextView(c);
+        title.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        title.setText(titleRes);
+        title.setTextSize(13);
+        title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
+        title.setTextColor(ContextCompat.getColor(c, R.color.velocity_text_primary));
+        header.addView(title);
+
+        TextView edit = new TextView(c);
+        edit.setText(R.string.review_edit);
+        edit.setTextSize(13);
+        edit.setTextColor(ContextCompat.getColor(c, R.color.velocity_action_text));
+        edit.setGravity(android.view.Gravity.CENTER);
+        edit.setMinimumHeight(dp(48));
+        edit.setMinimumWidth(dp(48));
+        edit.setPadding(dp(8), 0, dp(8), 0);
+        edit.setContentDescription(getString(R.string.review_edit_cd_format, getString(titleRes)));
+        edit.setTag("edit");
+        edit.setOnClickListener(v -> {
+            if (!editGuard.tryAcquire()) return;
+            getWizardActivity().goToStep(editStep);
+        });
+        header.addView(edit);
+
+        ImageView chevron = new ImageView(c);
+        chevron.setLayoutParams(new LinearLayout.LayoutParams(dp(20), dp(20)));
+        chevron.setImageResource(R.drawable.ic_expand_more);
+        chevron.setColorFilter(ContextCompat.getColor(c, R.color.velocity_text_secondary));
+        chevron.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        chevron.setRotation(180f); // expanded
+        header.addView(chevron);
+        card.addView(header);
+
+        LinearLayout body = new LinearLayout(c);
+        body.setOrientation(LinearLayout.VERTICAL);
+        for (View row : rows) body.addView(row);
+        card.addView(body);
+
+        header.setOnClickListener(v -> {
+            boolean open = body.getVisibility() == View.VISIBLE;
+            body.setVisibility(open ? View.GONE : View.VISIBLE);
+            chevron.setRotation(open ? 0f : 180f);
+            header.setContentDescription(getString(open ? R.string.review_section_collapsed_format : R.string.review_section_expanded_format, getString(titleRes)));
+        });
+        return card;
+    }
+
+    private final ClickGuard editGuard = new ClickGuard();
+
+    /** Room charges per stay, amenities, the total (bold), the discount estimate, and for a booking what is paid now and at the hotel. */
+    private void renderBill(BookingWizardState state, boolean freshReservation) {
+        android.content.Context c = requireContext();
+        layoutBillRows.removeAllViews();
+        List<BookingWizardState.Stay> stays = state.allStays();
+        boolean several = stays.size() > 1;
+        for (int i = 0; i < stays.size(); i++) {
+            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(several ? getString(R.string.review_bill_rooms_stay_format, i + 1) : getString(R.string.review_rooms_total_label),
+                    money(stays.get(i).roomsTotal()))));
+        }
+        for (int i = 0; i < stays.size(); i++) {
+            double amenities = stays.get(i).amenitiesTotal();
+            if (several && amenities <= 0.004) continue;
+            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(several ? getString(R.string.review_bill_amenities_stay_format, i + 1) : getString(R.string.review_amenities_total_label),
+                    money(amenities))));
+        }
+        if (several && amenitiesTotal() <= 0.004) {
+            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_amenities_total_label), money(0))));
+        }
+        double total = roomsTotal() + amenitiesTotal();
+        tvSummaryTotal.setText(money(total));
+        renderDiscountEstimate(state);
+
+        layoutPayNow.removeAllViews();
+        boolean showPayNow = state.isBookingMode() && !getWizardActivity().isEditMode();
+        layoutPayNow.setVisibility(showPayNow ? View.VISIBLE : View.GONE);
+        if (showPayNow) {
+            // The guest picks 20, 30, 40 or 50 percent on the payment screen; the rest is paid at the hotel.
+            double min = total * PAY_NOW_MIN;
+            double max = total * PAY_NOW_MAX;
+            layoutPayNow.addView(ReviewSheet.row(c, ReviewSheet.Row.bold(getString(R.string.review_pay_now_label), null)));
+            layoutPayNow.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_pay_now_range_label),
+                    getString(R.string.review_range_format, money(min), money(max)))));
+            layoutPayNow.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_balance_hotel_label),
+                    getString(R.string.review_range_format, money(total - max), money(total - min)))));
+            TextView note = new TextView(c);
+            note.setText(R.string.review_pay_now_note);
+            note.setTextSize(12);
+            note.setTextColor(ContextCompat.getColor(c, R.color.velocity_text_secondary));
+            note.setPadding(0, dp(4), 0, 0);
+            layoutPayNow.addView(note);
+        }
+    }
+
+    /** A booking's online payment is a partial one: 20% up to 50% of the total (see PaymentActivity). */
+    private static final double PAY_NOW_MIN = 0.20;
+    private static final double PAY_NOW_MAX = 0.50;
 
     /** Shows the claimed discount's estimated value on the WHOLE bill (rooms + add-ons) - read from the Discount module values the app loaded on Step 6, never a number of its own; the backend's BillDiscount uses the same basis. */
     private void renderDiscountEstimate(BookingWizardState state) {

@@ -31,6 +31,7 @@ public class Step7PaymentMethodFragment extends WizardStepFragment {
     private MaterialCardView cardGcash;
     private RadioButton radioCash;
     private RadioButton radioGcash;
+    private android.widget.TextView tvError;
 
     @Nullable
     @Override
@@ -46,6 +47,7 @@ public class Step7PaymentMethodFragment extends WizardStepFragment {
         cardGcash = view.findViewById(R.id.cardPaymentGcash);
         radioCash = view.findViewById(R.id.radioPaymentCash);
         radioGcash = view.findViewById(R.id.radioPaymentGcash);
+        tvError = view.findViewById(R.id.tvPaymentMethodError);
 
         cardCash.setOnClickListener(v -> selectMethod("cash"));
         cardGcash.setOnClickListener(v -> selectMethod("gcash"));
@@ -60,6 +62,7 @@ public class Step7PaymentMethodFragment extends WizardStepFragment {
         BookingWizardState state = getState();
         state.paymentMethod = method;
         state.paymentMethodChosen = true;
+        tvError.setVisibility(View.GONE);
         applySelection("gcash".equals(method));
     }
 
@@ -82,16 +85,28 @@ public class Step7PaymentMethodFragment extends WizardStepFragment {
 
     @Override
     public String stepTitle() {
-        return "Payment Method";
+        return getString(R.string.step_title_payment_method);
     }
 
     @Override
     public int validationMessageRes() {
-        return R.string.error_payment_method_required;
+        return 0; // the message is inline, under the two choices
     }
 
     @Override
     public boolean validateBeforeNext() {
-        return getState().paymentMethodChosen;
+        boolean chosen = getState().paymentMethodChosen;
+        tvError.setVisibility(chosen ? View.GONE : View.VISIBLE);
+        return chosen;
+    }
+
+    @Override
+    public String nextConfirmTitle() {
+        return getString(R.string.proceed_to_review_total);
+    }
+
+    @Override
+    public String nextConfirmSummary() {
+        return getString("gcash".equalsIgnoreCase(getState().paymentMethod) ? R.string.payment_method_gcash : R.string.payment_method_cash);
     }
 }
