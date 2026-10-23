@@ -148,6 +148,7 @@ public class PaymentActivity extends BaseNavigationActivity {
     private LinearLayout layoutGcashStays;
     private View cardGcashPayingFor;
     private ImageView ivGcashPayingForChevron;
+    private TextView tvGcashPayingForTotal;
     private TextView tvGcashShareLine, tvGcashTxLine, tvSendAmount;
     /** The "What you're paying for" breakdown is open on Step 1; on the other steps it starts closed (one line) and opens on a tap. */
     private Boolean payingForOpen;
@@ -299,6 +300,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         layoutGcashStays = findViewById(R.id.layoutGcashStays);
         cardGcashPayingFor = findViewById(R.id.cardGcashPayingFor);
         ivGcashPayingForChevron = findViewById(R.id.ivGcashPayingForChevron);
+        tvGcashPayingForTotal = findViewById(R.id.tvGcashPayingForTotal);
         tvGcashShareLine = findViewById(R.id.tvGcashShareLine);
         tvGcashTxLine = findViewById(R.id.tvGcashTxLine);
         tvSendAmount = findViewById(R.id.tvSendAmount);
@@ -2432,110 +2434,24 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     /**
-     * "What you're paying for": per stay its heading, its rooms (name x count . price) and the stay's subtotal; then the amenities, a
-     * discount note when one is expected, and the Total. Label left, amount right. Open on Step 1, one line on the others (tap to open).
+     * "What you're paying for": per stay its heading, rooms, that stay's amenities (under their room) and, with several stays, its subtotal;
+     * then Room charges, Amenities, the Grand total and the expected-discount note - see {@link PayingForBreakdown}. Open on Step 1, a
+     * one-line header with the Grand total on the others (tap to open).
      */
     private void renderGcashStaysStrip() {
         if (layoutGcashStays == null) return;
-        layoutGcashStays.removeAllViews();
-        List<BookingWizardState.Stay> pending = currentBooking == null && pendingWizardState != null ? pendingWizardState.allStays() : null;
-        if (currentBooking != null && !currentBooking.getStays().isEmpty()) {
-            boolean several = currentBooking.hasSeveralStays();
-            for (Booking.StayRecord stay : currentBooking.getStays()) {
-                if (stay == null) continue;
-                long n = BookingTotals.nightsOf(stay);
-                String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
-                String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
-                addStayHeading(several ? getString(R.string.details_stay_heading_format, stay.position, dates, nightsText)
-                        : getString(R.string.details_single_stay_heading_format, dates, nightsText));
-                for (BookingRoom room : stay.rooms) {
-                    if (room == null) continue;
-                    addBreakdownRow(getString(R.string.gcash_room_line_format, room.getRoomTypeName() != null ? room.getRoomTypeName() : getString(R.string.label_not_available),
-                            Math.max(1, room.getQuantity())), BookingTotals.lineTotal(room, stay), false, false);
-                }
-                if (several) addBreakdownRow(getString(R.string.details_stay_room_charges_format, stay.position), BookingTotals.stayRoomCharges(stay), true, false);
-            }
-            for (BookingAmenity a : currentBooking.getAmenities()) {
-                if (a != null) addBreakdownRow(StayCardText.withRoom(this, getString(R.string.summary_amenity_row_qty_format, a.getAmenityName(), a.getQuantity()), a.getRoomLabel()), a.getSubtotal(), false, false);
-            }
-            double expected = BookingTotals.expectedDiscount(currentBooking);
-            if (expected > 0.009) addDiscountNote(BookingTotals.discountLabel(currentBooking), expected);
-        } else if (currentBooking != null) {
-            // an older response without stays: one stay built from the transaction's own dates and rooms
-            String dates = StayCardText.stayDates(currentBooking.getCheckInDate(), currentBooking.getCheckOutDate());
-            long n = Math.max(1, nightsBetweenDates(currentBooking.getCheckInDate(), currentBooking.getCheckOutDate()));
-            String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
-            addStayHeading(getString(R.string.details_single_stay_heading_format, dates, nightsText));
-            if (!currentBooking.getRooms().isEmpty()) {
-                for (BookingRoom room : currentBooking.getRooms()) {
-                    if (room == null) continue;
-                    addBreakdownRow(getString(R.string.gcash_room_line_format, room.getRoomTypeName() != null ? room.getRoomTypeName() : getString(R.string.label_not_available),
-                            Math.max(1, room.getQuantity())), room.getSubtotal() > 0.009 ? room.getSubtotal() : room.getPricePerNight() * n * Math.max(1, room.getQuantity()), false, false);
-                }
-            } else {
-                String name = currentBooking.getRoomType() != null && !currentBooking.getRoomType().trim().isEmpty() ? currentBooking.getRoomType() : currentBooking.getRoomName();
-                addBreakdownRow(getString(R.string.gcash_room_line_format, name != null ? name : getString(R.string.label_not_available), Math.max(1, currentBooking.getRoomsRequested())),
-                        Math.max(0, currentBooking.getTotalAmount() - currentBooking.getAmenityCharge()), false, false);
-            }
-            for (BookingAmenity a : currentBooking.getAmenities()) {
-                if (a != null) addBreakdownRow(getString(R.string.summary_amenity_row_qty_format, a.getAmenityName(), a.getQuantity()), a.getSubtotal(), false, false);
-            }
-            double expected = BookingTotals.expectedDiscount(currentBooking);
-            if (expected > 0.009) addDiscountNote(BookingTotals.discountLabel(currentBooking), expected);
-        } else if (pending != null) {
-            SimpleDateFormat fmt = new SimpleDateFormat("MMM d", Locale.US);
-            boolean several = pending.size() > 1;
-            for (int i = 0; i < pending.size(); i++) {
-                BookingWizardState.Stay stay = pending.get(i);
-                if (stay.checkIn == null || stay.checkOut == null) continue;
-                long n = stay.nights();
-                String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
-                String dates = fmt.format(stay.checkIn.getTime()) + " → " + fmt.format(stay.checkOut.getTime());
-                addStayHeading(several ? getString(R.string.details_stay_heading_format, i + 1, dates, nightsText)
-                        : getString(R.string.details_single_stay_heading_format, dates, nightsText));
-                for (List<Room> group : stay.roomsGroupedByType().values()) {
-                    Room room = group.get(0);
-                    addBreakdownRow(getString(R.string.gcash_room_line_format, room.getName(), group.size()), room.getPricePerNight() * n * group.size(), false, false);
-                }
-                if (several) addBreakdownRow(getString(R.string.details_stay_room_charges_format, i + 1), stay.roomsTotal(), true, false);
-                for (AddOnAmenity a : stay.amenities) {
-                    addBreakdownRow(getString(R.string.summary_amenity_row_qty_format, a.getName(), a.getQuantity()), a.getSubtotal(), false, false);
-                }
-            }
-            if (pendingWizardState.discount != null) {
-                double off = pendingWizardState.discount.estimateOff(pendingWizardState.roomsTotal() + pendingWizardState.amenitiesTotal());
-                if (off > 0.009) addDiscountNote(pendingWizardState.discount.getName(), off);
-            }
+        PayingForBreakdown breakdown = null;
+        if (currentBooking != null) {
+            breakdown = PayingForBreakdown.of(this, currentBooking, grandTotalValue);
+        } else if (pendingWizardState != null) {
+            breakdown = PayingForBreakdown.of(this, pendingWizardState);
         }
-        if (layoutGcashStays.getChildCount() > 0) addBreakdownRow(getString(R.string.total_label), grandTotalValue, true, true);
-        if (cardGcashPayingFor != null) cardGcashPayingFor.setVisibility(layoutGcashStays.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+        layoutGcashStays.removeAllViews();
+        if (breakdown != null && !breakdown.isEmpty()) breakdown.render(this, layoutGcashStays);
+        boolean has = layoutGcashStays.getChildCount() > 0;
+        if (cardGcashPayingFor != null) cardGcashPayingFor.setVisibility(has ? View.VISIBLE : View.GONE);
+        if (tvGcashPayingForTotal != null) tvGcashPayingForTotal.setText(getString(R.string.gcash_paying_for_total_format, MoneyFormat.format(grandTotalValue)));
         applyPayingForState();
-    }
-
-    private void addStayHeading(String text) {
-        TextView tv = new TextView(this);
-        tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        tv.setText(text);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
-        tv.setTypeface(Typeface.DEFAULT_BOLD);
-        tv.setTextColor(getResources().getColor(R.color.velocity_text_primary, getTheme()));
-        tv.setPadding(0, convertDpToPx(8), 0, convertDpToPx(2));
-        layoutGcashStays.addView(tv);
-    }
-
-    /** Label left (wraps), amount right. */
-    private void addBreakdownRow(String label, double amount, boolean strong, boolean total) {
-        layoutGcashStays.addView(ReviewSheet.row(this, strong ? ReviewSheet.Row.bold(label, MoneyFormat.format(amount)) : ReviewSheet.Row.of(label, MoneyFormat.format(amount))));
-    }
-
-    private void addDiscountNote(String name, double expected) {
-        TextView note = new TextView(this);
-        note.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        note.setText(getString(R.string.details_expected_discount_format, name == null || name.isEmpty() ? getString(R.string.details_label_discount) : name, MoneyFormat.format(expected)));
-        note.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
-        note.setTextColor(getResources().getColor(R.color.velocity_text_secondary, getTheme()));
-        note.setPadding(0, convertDpToPx(6), 0, convertDpToPx(2));
-        layoutGcashStays.addView(note);
     }
 
     /** Open on Step 1; a one-line header on the others, unless the guest tapped it. */
@@ -2544,6 +2460,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         boolean open = payingForOpen != null ? payingForOpen : currentGcashStep == 1;
         layoutGcashStays.setVisibility(open ? View.VISIBLE : View.GONE);
         if (ivGcashPayingForChevron != null) ivGcashPayingForChevron.setRotation(open ? 180f : 0f);
+        if (tvGcashPayingForTotal != null) tvGcashPayingForTotal.setVisibility(open ? View.GONE : View.VISIBLE);
     }
 
     /** One stay of the bill: its heading, "Deluxe × 1, Executive × 1", and the room charges of that stay. */

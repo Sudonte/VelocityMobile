@@ -127,6 +127,10 @@ public class GcashStepsLayoutTest {
 
     /** A new booking not yet made: the reviewed wizard state, with {@code stays} stays (Deluxe + Executive in each), paid at 50%. */
     private PaymentActivity openPendingBooking(int stays) {
+        return openPending(pendingState(stays, true));
+    }
+
+    private BookingWizardState pendingState(int stays, boolean withExtraBed) {
         BookingWizardState state = new BookingWizardState(BookingWizardState.Mode.BOOKING);
         state.checkIn = WizardDriver.day(5);
         state.checkOut = WizardDriver.day(6);
@@ -141,11 +145,17 @@ public class GcashStepsLayoutTest {
             state.selectedRooms.add(named("8", "Executive", 5800));
             state.confirmActive();
         }
-        state.committedStays().get(0).setAmenityQty("1#1", new com.example.velocitysuites.AddOnAmenity("9", "Extra bed", "Comfort", "d", 300, 5), 1);
-        state.reloadActiveAmenities();
+        if (withExtraBed) {
+            state.committedStays().get(0).setAmenityQty("1#1", new com.example.velocitysuites.AddOnAmenity("9", "Extra bed", "Comfort", "d", 300, 5), 1);
+            state.reloadActiveAmenities();
+        }
         state.guestFirstName = "Ana";
         state.guestLastName = "Cruz";
         state.setDiscount(new com.example.velocitysuites.Discount("3", "PWD", "percentage", 20, "d", "active", null, null));
+        return state;
+    }
+
+    private PaymentActivity openPending(BookingWizardState state) {
         PendingAccess.set(state);
         Intent intent = new Intent(app, PaymentActivity.class).putExtra(PaymentActivity.EXTRA_PENDING_BOOKING, true).putExtra("ALLOW_CASH", false);
         controller = Robolectric.buildActivity(PaymentActivity.class, intent);
@@ -333,7 +343,7 @@ public class GcashStepsLayoutTest {
                 assertTrue(t + ": " + text(a, R.id.tvGcashTxLine), text(a, R.id.tvGcashTxLine).contains("·"));
                 assertEquals(t + ": the breakdown is open", View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
                 String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
-                assertTrue(t + ": " + breakdown, breakdown.contains("Stay 1") == twoStays && breakdown.contains("Deluxe × 1") && (!twoStays || breakdown.contains("Executive × 1")) && breakdown.contains("Total"));
+                assertTrue(t + ": " + breakdown, breakdown.contains("Stay 1") == twoStays && breakdown.contains("Deluxe × 1") && (!twoStays || breakdown.contains("Executive × 1")) && breakdown.contains("Room charges") && breakdown.contains("Amenities total") && breakdown.contains("Grand total"));
                 assertNoDeadSpace(t, a.findViewById(R.id.gcashStep1Amount));
                 assertNoDeadSpace(t, a.findViewById(R.id.cardGcashPayingFor));
                 assertNoDeadSpace(t, a.findViewById(R.id.cardGcashSubmissionForm));
@@ -404,13 +414,134 @@ public class GcashStepsLayoutTest {
         assertEquals("Amount to pay now", ((TextView) ((ViewGroup) ((ViewGroup) a.findViewById(R.id.tvPortalAmount).getParent())).getChildAt(0)).getText().toString());
         assertTrue("large", ((TextView) a.findViewById(R.id.tvPortalAmount)).getTextSize() / a.getResources().getDisplayMetrics().scaledDensity >= 36f);
         String share = text(a, R.id.tvGcashShareLine);
-        assertTrue(share, share.matches("\\d+% of ₱[\\d,]+\\.\\d\\d · the rest \\(₱[\\d,]+\\.\\d\\d\\) is paid at the hotel"));
+        assertTrue(share, share.matches("\\d+% of ₱[\\d,]+\\.\\d\\d \\(grand total\\) · the rest \\(₱[\\d,]+\\.\\d\\d\\) is paid at the hotel"));
         assertTrue(text(a, R.id.tvGcashTxLine), text(a, R.id.tvGcashTxLine).startsWith("New booking · 2 stays · "));
         View header = a.findViewById(R.id.headerGcashPayingFor);
         header.performClick();
         assertEquals(View.GONE, a.findViewById(R.id.layoutGcashStays).getVisibility());
         header.performClick();
         assertEquals(View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
+    }
+
+    // ---- the breakdown: amenities, the grand total, and the pay-now share of it ----
+
+    private static final com.example.velocitysuites.AddOnAmenity TOWEL = new com.example.velocitysuites.AddOnAmenity("5", "Additional Towel", "Bath", "d", 50, 9);
+    private static final com.example.velocitysuites.AddOnAmenity BED = new com.example.velocitysuites.AddOnAmenity("9", "Extra bed", "Comfort", "d", 300, 5);
+
+    /** Rooms 3,500 + 5,800 = 9,300; amenities 50 + 300 + 50 = 400; grand total 9,700. */
+    private BookingWizardState roomsAndAmenities() {
+        BookingWizardState state = pendingState(1, false);
+        BookingWizardState.Stay stay = state.committedStays().get(0);
+        stay.setAmenityQty("1#1", TOWEL, 1);
+        stay.setAmenityQty("8#1", BED, 1);
+        stay.setAmenityQty("8#1", TOWEL, 1);
+        state.reloadActiveAmenities();
+        state.setDiscount(null);
+        return state;
+    }
+
+    @Test
+    public void step1_listsTheAmenitiesUnderTheirRoom_andTheGrandTotalIsRoomsPlusAmenities() {
+        PaymentActivity a = openPending(roomsAndAmenities());
+        intoGcash(a);
+        String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
+        for (String needed : new String[]{"Deluxe × 1\n₱3,500.00", "Executive × 1\n₱5,800.00",
+                "Deluxe (room 1): Additional Towel × 1\n₱50.00", "Executive (room 1): Extra bed × 1\n₱300.00", "Executive (room 1): Additional Towel × 1\n₱50.00",
+                "Room charges\n₱9,300.00", "Amenities total\n₱400.00", "Grand total\n₱9,700.00"}) {
+            assertTrue("missing '" + needed + "' in:\n" + breakdown, breakdown.contains(needed));
+        }
+        assertFalse(breakdown, breakdown.contains("No amenities added"));
+    }
+
+    @Test
+    public void payNow_isHalfOfTheGrandTotal_theLineSaysSo_andTheBarMatches() {
+        PaymentActivity a = openPending(roomsAndAmenities());
+        a.findViewById(R.id.chipPercent50).performClick();
+        idle();
+        intoGcash(a);
+        assertEquals("₱4,850.00", text(a, R.id.tvPortalAmount));
+        assertEquals("₱4,850.00", text(a, R.id.tvBarAmount));
+        assertEquals("50% of ₱9,700.00 (grand total) · the rest (₱4,850.00) is paid at the hotel", text(a, R.id.tvGcashShareLine));
+    }
+
+    @Test
+    public void payNow_atTwentyPercent_isOfTheGrandTotal_notTheRoomCharges() {
+        PaymentActivity a = openPending(roomsAndAmenities());
+        a.findViewById(R.id.chipPercent20).performClick();
+        idle();
+        intoGcash(a);
+        assertEquals("20% of 9,700 = 1,940 (of the rooms alone it would be 1,860)", "₱1,940.00", text(a, R.id.tvPortalAmount));
+        assertEquals("₱1,940.00", text(a, R.id.tvBarAmount));
+        assertTrue(text(a, R.id.tvGcashShareLine), text(a, R.id.tvGcashShareLine).startsWith("20% of ₱9,700.00 (grand total)"));
+    }
+
+    @Test
+    public void theRangeTheAppAllowsIsTheRangeTheServerAccepts() {
+        // the server's PayNowGrandTotalTest accepts exactly 1,940.00 to 4,850.00 for this bill
+        com.example.velocitysuites.PaymentRules.Range range = com.example.velocitysuites.PaymentRules.of(9300 + 400, 0, false, null);
+        assertEquals(1940.00, range.min, 0.001);
+        assertEquals(4850.00, range.max, 0.001);
+    }
+
+    @Test
+    public void withoutAmenities_theBreakdownSaysSo() {
+        PaymentActivity a = openPending(pendingState(1, false));
+        intoGcash(a);
+        String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
+        assertTrue(breakdown, breakdown.contains("No amenities added") && breakdown.contains("Amenities total\n₱0.00") && breakdown.contains("Grand total\n₱9,300.00"));
+        TextView none = null;
+        for (TextView t : texts(a.findViewById(R.id.layoutGcashStays))) if (t.getText().toString().equals("No amenities added")) none = t;
+        assertNotNull(none);
+        assertEquals("in the secondary colour", a.getColor(R.color.velocity_text_secondary), none.getCurrentTextColor());
+    }
+
+    @Test
+    public void twoStays_eachStayShowsItsOwnAmenitiesAndSubtotal_andTheGrandTotalIsTheSum() {
+        BookingWizardState state = pendingState(2, false);
+        state.committedStays().get(0).setAmenityQty("1#1", TOWEL, 2);
+        state.committedStays().get(1).setAmenityQty(BookingWizardState.Stay.ANY_ROOM, BED, 1);
+        state.reloadActiveAmenities();
+        PaymentActivity a = openPending(state);
+        intoGcash(a);
+        String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
+        for (String needed : new String[]{"Stay 1 ·", "Stay 2 ·", "Deluxe (room 1): Additional Towel × 2\n₱100.00", "Amenities for this stay", "Extra bed × 1\n₱300.00",
+                "Stay 1 subtotal\n₱9,400.00", "Stay 2 subtotal\n₱9,600.00", "Room charges\n₱18,600.00", "Amenities total\n₱400.00", "Grand total\n₱19,000.00"}) {
+            assertTrue("missing '" + needed + "' in:\n" + breakdown, breakdown.contains(needed));
+        }
+        assertTrue("the first stay's amenities come before the second stay", breakdown.indexOf("Additional Towel") < breakdown.indexOf("Stay 2 ·"));
+    }
+
+    @Test
+    public void onTheLaterSteps_theOneLineSummaryHasTheGrandTotal() {
+        PaymentActivity a = openPending(roomsAndAmenities());
+        intoGcash(a);
+        assertEquals("open on Step 1: no summary beside the title", View.GONE, a.findViewById(R.id.tvGcashPayingForTotal).getVisibility());
+        next(a, 1);
+        assertEquals(View.VISIBLE, a.findViewById(R.id.tvGcashPayingForTotal).getVisibility());
+        assertEquals("Grand total ₱9,700.00", text(a, R.id.tvGcashPayingForTotal));
+    }
+
+    @Test
+    public void theSecurityLineClaimsOnlyWhatIsTrue_andNoEndToEndWordingExists() throws Exception {
+        PaymentActivity a = openPending(roomsAndAmenities());
+        String screen = ReviewTexts.of(a.getWindow().getDecorView());
+        assertTrue(screen, screen.contains("Your payment details are sent over a secure connection."));
+        assertFalse(screen, screen.toLowerCase(java.util.Locale.ROOT).contains("end-to-end") || screen.toLowerCase(java.util.Locale.ROOT).contains("encrypt"));
+        java.io.File res = new java.io.File("src/main/res");
+        java.util.List<String> offenders = new ArrayList<>();
+        try (java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.walk(res.toPath())) {
+            for (java.nio.file.Path p : (Iterable<java.nio.file.Path>) files.filter(f -> f.toString().endsWith(".xml"))::iterator) {
+                String content = new String(java.nio.file.Files.readAllBytes(p), java.nio.charset.StandardCharsets.UTF_8).toLowerCase(java.util.Locale.ROOT);
+                if (content.contains("end-to-end") || content.contains("end to end encrypt")) offenders.add(p.toString());
+            }
+        }
+        assertTrue("claims of end-to-end encryption in: " + offenders, offenders.isEmpty());
+    }
+
+    private static List<TextView> texts(View root) {
+        List<TextView> out = new ArrayList<>();
+        collectTexts(root, out);
+        return out;
     }
 
     /** Joins every visible text under a view. */

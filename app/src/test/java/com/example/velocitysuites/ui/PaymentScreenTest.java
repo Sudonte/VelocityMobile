@@ -1056,7 +1056,7 @@ public class PaymentScreenTest {
         TextView amount = a.findViewById(R.id.tvPortalAmount);
         assertEquals("₱360.00", amount.getText().toString());
         assertTrue("large", amount.getTextSize() / a.getResources().getDisplayMetrics().scaledDensity >= 36f);
-        assertEquals("20% of ₱1,800.00 · the rest (₱1,440.00) is paid at the hotel", text(a, R.id.tvGcashShareLine));
+        assertEquals("20% of ₱1,800.00 (grand total) · the rest (₱1,440.00) is paid at the hotel", text(a, R.id.tvGcashShareLine));
     }
 
 @Test

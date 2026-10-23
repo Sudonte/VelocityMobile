@@ -801,7 +801,7 @@
     <string name="landing_amenities_empty_desc">Check back soon for our full list of amenities, facilities, and services.</string>
     <string name="landing_amenities_error_title">Couldn\'t Load Amenities</string>
     <string name="landing_amenities_error_desc">Something went wrong while fetching amenities. Pull down to try again.</string>
-    <string name="transaction_secured_msg">Your transaction is secured with end-to-end encryption.</string>
+    <string name="transaction_secured_msg">Your payment details are sent over a secure connection.</string>
     <string name="placeholder_amount">&#8369;0.00</string>
     <string name="placeholder_booking_ref">Booking Ref: ---</string>
     <string name="total_amount_due">Total Amount Due</string>
@@ -2598,11 +2598,17 @@ Estimated total after discount: %3$s</string>
     <string name="gcash_paying_for_title">What you\'re paying for</string>
     <string name="gcash_amount_to_send_label">Amount to send</string>
     <string name="gcash_room_line_format">%1$s × %2$d</string>
-    <string name="gcash_share_line_format" tools:ignore="PluralsCandidate">%1$d%% of %2$s · the rest (%3$s) is paid at the hotel</string>
+    <string name="gcash_share_line_format" tools:ignore="PluralsCandidate">%1$d%% of %2$s (grand total) · the rest (%3$s) is paid at the hotel</string>
     <string name="gcash_share_line_remaining_format">%1$s still to pay · the rest (%2$s) is paid at the hotel</string>
     <string name="gcash_share_line_full_format">The full amount of %1$s</string>
     <string name="gcash_new_booking">New booking</string>
     <string name="gcash_new_reservation">New reservation</string>
+    <string name="breakdown_stay_amenities_heading">Amenities for this stay</string>
+    <string name="breakdown_no_amenities">No amenities added</string>
+    <string name="breakdown_amenities_total_label">Amenities total</string>
+    <string name="breakdown_room_amenity_format">%1$s: %2$s</string>
+    <string name="breakdown_stay_subtotal_format" tools:ignore="PluralsCandidate">Stay %1$d subtotal</string>
+    <string name="gcash_paying_for_total_format">Grand total %1$s</string>
 </resources>
 
 

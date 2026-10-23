@@ -395,32 +395,6 @@ public class BillingSummaryActivity extends SafeActivity {
         }
     }
 
-    /** One stay of the Billing Summary: "Stay 1 · Oct 26 → 27 · 1 night", its rooms, then what it costs. */
-    private View buildStayBlock(Booking.StayRecord stay) {
-        LinearLayout block = new LinearLayout(this);
-        block.setOrientation(LinearLayout.VERTICAL);
-        block.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        long n = BookingTotals.nightsOf(stay);
-        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
-        String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
-        java.util.List<String> rooms = new java.util.ArrayList<>();
-        for (BookingRoom room : stay.rooms) {
-            if (room == null) continue;
-            rooms.add(getString(R.string.billing_stay_room_format, room.getRoomTypeName() != null ? room.getRoomTypeName() : getString(R.string.label_not_available), Math.max(1, room.getQuantity())));
-        }
-        String heading = booking.hasSeveralStays() ? getString(R.string.details_stay_heading_format, stay.position, dates, nightsText)
-                : getString(R.string.details_single_stay_heading_format, dates, nightsText);
-        TextView title = new TextView(this);
-        title.setText(heading);
-        title.setTextSize(13f);
-        title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
-        title.setTextColor(getColor(R.color.velocity_text_primary));
-        title.setPadding(0, 0, 0, (int) (4 * getResources().getDisplayMetrics().density));
-        block.addView(title);
-        block.addView(buildAmenityRow(android.text.TextUtils.join(", ", rooms), MoneyFormat.format(BookingTotals.stayRoomCharges(stay))));
-        return block;
-    }
-
     /**
      * The room (type) name for this reservation, taken from the first source that has one: the itemized room lines
      * (room_lines[].room_type), then the reservation's room type (room_type.name), then its room name. A generic
@@ -456,6 +430,8 @@ public class BillingSummaryActivity extends SafeActivity {
 
         double roomTotal;
         boolean byStays = !booking.getStays().isEmpty();
+        double totalAmenitiesAmount = byStays ? BookingTotals.amenities(booking) : this.totalAmenitiesAmount;
+        if (cardBillingAmenities != null && byStays) cardBillingAmenities.setVisibility(View.GONE);
         if (byStays) {
             roomTotal = BookingTotals.roomCharges(booking); // every room on ITS OWN stay's nights
         } else if (hasItemizedRooms) {
@@ -493,7 +469,10 @@ public class BillingSummaryActivity extends SafeActivity {
             if (layoutBillingRoomsRows != null) {
                 layoutBillingRoomsRows.setVisibility(View.VISIBLE);
                 layoutBillingRoomsRows.removeAllViews();
-                for (Booking.StayRecord stay : booking.getStays()) if (stay != null) layoutBillingRoomsRows.addView(buildStayBlock(stay));
+                // each stay with its rooms, its amenities under their room, and (several stays) its subtotal - the one breakdown the payment steps use
+                PayingForBreakdown breakdown = PayingForBreakdown.of(this, booking, grandTotal);
+                for (PayingForBreakdown.StayBlock stay : breakdown.stays) PayingForBreakdown.renderStay(this, layoutBillingRoomsRows, stay, booking.hasSeveralStays());
+                if (!breakdown.hasAmenities()) layoutBillingRoomsRows.addView(PayingForBreakdown.noAmenities(this));
             }
         } else if (hasItemizedRooms) {
             if (layoutBillingRoomsRows != null) {

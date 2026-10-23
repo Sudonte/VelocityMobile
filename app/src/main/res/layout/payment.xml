@@ -1714,7 +1714,7 @@
                                                 <com.google.android.material.button.MaterialButton
                                                     android:id="@+id/btnCopyAmount"
                                                     style="@style/Widget.Velocity.Flat.Button.Outlined"
-                                                    android:layout_width="wrap_content"
+                                                    android:layout_width="match_parent"
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginTop="8dp"
                                                     android:minHeight="48dp"
@@ -1779,6 +1779,18 @@
                                                 android:textColor="@color/velocity_text_primary"
                                                 android:textSize="14sp" />
 
+                                            <TextView
+                                                android:id="@+id/tvGcashPayingForTotal"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginStart="8dp"
+                                                android:layout_marginEnd="6dp"
+                                                android:textColor="@color/velocity_text_primary"
+                                                android:fontFamily="sans-serif-medium"
+                                                android:textSize="13sp"
+                                                android:visibility="gone"
+                                                tools:text="Grand total ₱9,700.00" />
+
                                             <ImageView
                                                 android:id="@+id/ivGcashPayingForChevron"
                                                 android:layout_width="20dp"
@@ -1841,7 +1853,7 @@
                                                 <com.google.android.material.button.MaterialButton
                                                     android:id="@+id/btnCopySendAmount"
                                                     style="@style/Widget.Velocity.Flat.Button.Outlined"
-                                                    android:layout_width="wrap_content"
+                                                    android:layout_width="match_parent"
                                                     android:layout_height="wrap_content"
                                                     android:layout_marginTop="8dp"
                                                     android:minHeight="48dp"
