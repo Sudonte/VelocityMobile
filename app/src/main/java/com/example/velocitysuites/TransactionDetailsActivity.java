@@ -270,12 +270,41 @@ public class TransactionDetailsActivity extends SafeActivity {
         container.addView(row);
     }
 
+    /** Same "Stays" section as Booking Details: each stay's dates, rooms (with room numbers), amenities and its own subtotal. Nothing for a one-stay transaction. */
+    private void addStaysSection(LinearLayout container) {
+        if (!booking.hasSeveralStays()) return;
+        addSectionDivider(container, getString(R.string.details_stays_title));
+        for (Booking.StayRecord stay : booking.getStays()) {
+            if (stay == null) continue;
+            java.time.LocalDate in = PaymentDates.parseDate(stay.checkIn);
+            java.time.LocalDate out = PaymentDates.parseDate(stay.checkOut);
+            String dates = in != null && out != null ? StayCardText.compactDates(in, out) : "";
+            String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
+            String state = stay.isInHouse() ? getString(R.string.stay_state_in_house)
+                    : stay.isCheckedOut() ? getString(R.string.stay_state_checked_out) : "";
+            String when = dates.isEmpty() ? nights : getString(R.string.stay_details_line_format, dates, nights);
+            addRow(container, getString(R.string.stay_label_format, stay.position), when + (state.isEmpty() ? "" : " · " + state));
+            for (BookingRoom room : stay.rooms) {
+                if (room == null) continue;
+                String numbers = room.getAssignedRoomNumbers().isEmpty() ? ""
+                        : getString(R.string.stay_room_numbers_format, android.text.TextUtils.join(", ", room.getAssignedRoomNumbers()));
+                addRow(container, getString(R.string.stay_room_line_format, room.getQuantity(), room.getRoomTypeName(), numbers).trim(), MoneyFormat.format(room.getSubtotal()));
+            }
+            for (BookingAmenity amenity : stay.amenities) {
+                if (amenity == null) continue;
+                addRow(container, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), MoneyFormat.format(amenity.getSubtotal()));
+            }
+            addRow(container, getString(R.string.stay_subtotal_format, stay.position), MoneyFormat.format(stay.subtotal));
+        }
+    }
+
     private void buildInfoSection(LinearLayout container) {
         // Stay Details, Room Details, Payment Details: the shared grouping; a fact the app does not have is left out.
         TransactionDetailSections model = TransactionDetailSections.of(this, booking, transaction.getMethod());
         addGroup(container, getString(R.string.upcoming_section_stay), model.stay);
         addGroup(container, getString(R.string.upcoming_section_room), model.room);
         TransactionRoomsView.addLive(this, container, booking);
+        addStaysSection(container);
 
         // Who checks in: the representative, or the account owner.
         addSectionDivider(container, getString(R.string.guest_information_title));

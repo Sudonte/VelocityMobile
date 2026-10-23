@@ -89,6 +89,10 @@ public class ReceiptDetail implements Serializable {
     @Nullable public CheckinSettlement getCheckinSettlement() { return checkinSettlement; }
     public void setCheckinSettlement(@Nullable CheckinSettlement checkinSettlement) { this.checkinSettlement = checkinSettlement; }
     private CheckinSettlement checkinSettlement;
+    /** Every stay of the transaction as the receipt froze it; a one-stay receipt has one entry (or none from an older server). */
+    public List<Booking.StayRecord> getStays() { return stays; }
+    public void setStays(@Nullable List<Booking.StayRecord> stays) { this.stays = stays != null ? stays : new ArrayList<>(); }
+    private List<Booking.StayRecord> stays = new ArrayList<>();
     @Nullable public StayInfo getStay() { return stay; }
     public void setStay(@Nullable StayInfo stay) { this.stay = stay; }
     private StayInfo stay;

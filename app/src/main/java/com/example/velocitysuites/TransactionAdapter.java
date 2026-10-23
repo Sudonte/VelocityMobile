@@ -77,6 +77,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.tvRoomName.setText(booking.getRoomName());
         
         String dateInfo = booking.getCheckInDate() + " – " + booking.getCheckOutDate();
+        if (booking.hasSeveralStays()) {
+            dateInfo += " · " + holder.itemView.getResources().getQuantityString(R.plurals.stays_count, booking.getStayCount(), booking.getStayCount());
+        }
         holder.tvStayDates.setText(dateInfo);
 
         holder.tvTotalAmount.setText(CURRENCY_FORMAT.format(booking.getTotalAmount()));

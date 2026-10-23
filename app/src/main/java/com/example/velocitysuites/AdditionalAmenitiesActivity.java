@@ -33,6 +33,8 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
 
     public static final String EXTRA_DIRECT_BOOKING = "EXTRA_DIRECT_BOOKING";
     public static final String EXTRA_ID = "EXTRA_ID";
+    /** Optional: the stay (of a booking with several) the request is for. Without it the guest picks one when several are in house. */
+    public static final String EXTRA_STAY_ID = "EXTRA_STAY_ID";
 
     /** Sane stepper bound so a stray tap-and-hold can't ask for hundreds; the server enforces real stock. */
     private static final int MAX_QTY = 20;
@@ -76,6 +78,8 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
 
     private final List<AddOnAmenity> catalog = new ArrayList<>();
     private final List<RoomEntry> rooms = new ArrayList<>();
+    /** The stay this request is for; 0 until known (a booking with one stay needs none). */
+    private long stayId;
     /** room id -> quantity per catalog index. A room with all zeros simply has nothing chosen. */
     private final Map<Long, int[]> selections = new LinkedHashMap<>();
     private final Map<Long, TextView> roomSummaryLabels = new LinkedHashMap<>();
@@ -88,6 +92,7 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
 
         hasBooking = getIntent().getBooleanExtra(EXTRA_DIRECT_BOOKING, false);
         id = getIntent().getStringExtra(EXTRA_ID);
+        stayId = getIntent().getLongExtra(EXTRA_STAY_ID, 0L);
         repository = RoomRepository.getInstance(this);
 
         findViewById(R.id.btnAdditionalAmenitiesBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
@@ -134,6 +139,12 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
                     showState(info.reason != null ? info.reason : getString(R.string.additional_amenities_not_available), false);
                     return;
                 }
+                // Several stays in a room right now: the guest says which one first (dates), then the room, then the amenities.
+                if (stayId == 0L && info.stays != null && info.stays.size() > 1) {
+                    askWhichStay(info);
+                    return;
+                }
+                if (stayId == 0L && info.stays != null && info.stays.size() == 1) stayId = info.stays.get(0).stay_id;
                 readRooms(info);
                 bindStaySummary();
                 loadCatalog();
@@ -147,11 +158,33 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
         });
     }
 
+    /** "Which stay is this for?": each stay in house, with its dates; the guest picks one and the form continues for it. */
+    private void askWhichStay(AdditionalAmenityInfoDto info) {
+        String[] lines = new String[info.stays.size()];
+        for (int i = 0; i < lines.length; i++) {
+            AdditionalAmenityInfoDto.Stay s = info.stays.get(i);
+            lines[i] = getString(R.string.amenity_stay_pick_line_format, s.position, s.check_in, s.check_out);
+        }
+        showState(getString(R.string.group_pick_stay_title), false);
+        new SafeDialogs.Material(this)
+                .setTitle(R.string.group_pick_stay_title)
+                .setItems(lines, (d, which) -> {
+                    stayId = info.stays.get(which).stay_id;
+                    readRooms(info);
+                    bindStaySummary();
+                    loadCatalog();
+                })
+                .setNegativeButton(R.string.cancel_label, (d, w) -> finish())
+                .setOnCancelListener(d -> finish())
+                .show();
+    }
+
     /** The rooms of the stay, from the server. An older server without the list gets one generic "Your room" entry. */
     private void readRooms(AdditionalAmenityInfoDto info) {
         rooms.clear();
         if (info.rooms != null) {
             for (AdditionalAmenityInfoDto.Room r : info.rooms) {
+                if (stayId != 0L && r.stay_id != null && r.stay_id != stayId) continue; // a room of another stay
                 String title = r.room_number != null && !r.room_number.isEmpty()
                         ? getString(R.string.additional_amenities_room_title_format, r.room_number)
                         : (r.room_name != null ? r.room_name : getString(R.string.additional_amenities_your_room));
@@ -422,6 +455,7 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
     private void submit() {
         if (submitting) return;
         AdditionalAmenitySubmitRequest request = new AdditionalAmenitySubmitRequest();
+        if (stayId != 0L) request.stay_id = stayId;
         List<AmenityRecord> submitted = new ArrayList<>();
         for (RoomEntry room : rooms) {
             int[] quantities = selections.get(room.id);

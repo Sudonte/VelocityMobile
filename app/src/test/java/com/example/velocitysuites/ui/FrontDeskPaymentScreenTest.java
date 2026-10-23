@@ -87,10 +87,19 @@ public class FrontDeskPaymentScreenTest {
     public void onlyVerifiedPaymentsReduceTheBalanceQuoted() {
         DirectBookingResponseDto booking = ScreenTestSupport.directBooking(588, 2000);
         booking.payments.add(ScreenTestSupport.payment(1, "800.00", "completed", "gcash"));
-        booking.payments.add(ScreenTestSupport.payment(2, "500.00", "pending", "gcash"));
         PaymentActivity a = open(booking);
 
         assertEquals(a.getString(R.string.front_desk_balance_message, "₱1,200.00"),
+                ((TextView) a.findViewById(R.id.tvFrontDeskMessage)).getText().toString());
+    }
+
+    @Test
+    public void aPaymentStillUnderReview_saysSo_insteadOfSendingTheGuestToTheDesk() {
+        DirectBookingResponseDto booking = ScreenTestSupport.directBooking(588, 2000);
+        booking.payments.add(ScreenTestSupport.payment(2, "500.00", "pending", "gcash"));
+        PaymentActivity a = open(booking);
+
+        assertEquals(a.getString(R.string.payment_under_review_note),
                 ((TextView) a.findViewById(R.id.tvFrontDeskMessage)).getText().toString());
     }
 

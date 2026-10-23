@@ -522,6 +522,7 @@ public class BookingDetailsActivity extends SafeActivity {
         } else {
             addInfoRow(container, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
         }
+        addStaysSection(container);
         addGroupStaysSection(container);
         // Cross-reference for a historical (converted) reservation record -
         // see Booking.convertedBookingId's own doc for why this is the one
@@ -963,6 +964,7 @@ public class BookingDetailsActivity extends SafeActivity {
         addTotalRow(container, getString(R.string.receipt_bd_final_grand_total), formatPrice(b.finalGrandTotal));
         addInfoRow(container, getString(R.string.receipt_bd_total_paid), formatPrice(b.totalPaid));
         addGrandTotalRow(container, getString(R.string.receipt_bd_balance_due), formatPrice(b.balanceDue));
+        addTotalExplainer(container);
     }
 
     private void buildPaymentSummarySection(LinearLayout container) {
@@ -1077,6 +1079,7 @@ public class BookingDetailsActivity extends SafeActivity {
                 addInfoRow(container, getString(R.string.details_label_discount), "−" + formatPrice(booking.getDiscountAmount()));
             }
             addGrandTotalRow(container, getString(R.string.details_grand_total_label), formatPrice(totalAmount));
+            addTotalExplainer(container);
         }
 
         buildReceiptActionCard(container);
@@ -1422,6 +1425,58 @@ public class BookingDetailsActivity extends SafeActivity {
         column.addView(tvLabel);
         column.addView(tvValue);
         container.addView(column);
+    }
+
+    /**
+     * "Stays": ONE booking or reservation with several stays - each stay's dates and nights, its rooms (Room number once assigned) and
+     * each room's amenities, then that stay's own subtotal. Every figure is the server's; the transaction's money breakdown follows below.
+     * Nothing for a single-stay transaction (its rooms and amenities are shown in the sections that always existed).
+     */
+    private void addStaysSection(LinearLayout container) {
+        if (!booking.hasSeveralStays()) return;
+        addSectionDivider(container, getString(R.string.details_stays_title));
+        for (Booking.StayRecord stay : booking.getStays()) {
+            if (stay == null) continue;
+            String dates = formatStayDates(stay.checkIn, stay.checkOut);
+            String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
+            String state = stay.isInHouse() ? getString(R.string.stay_state_in_house)
+                    : stay.isCheckedOut() ? getString(R.string.stay_state_checked_out) : "";
+            addInfoRowVertical(container, getString(R.string.stay_label_format, stay.position),
+                    getString(R.string.stay_details_line_format, dates, nights) + (state.isEmpty() ? "" : " · " + state));
+            for (BookingRoom room : stay.rooms) {
+                if (room == null) continue;
+                String numbers = room.getAssignedRoomNumbers().isEmpty() ? ""
+                        : getString(R.string.stay_room_numbers_format, android.text.TextUtils.join(", ", room.getAssignedRoomNumbers()));
+                addInfoRow(container, getString(R.string.stay_room_line_format, room.getQuantity(), room.getRoomTypeName(), numbers),
+                        formatPrice(room.getSubtotal()));
+            }
+            for (BookingAmenity amenity : stay.amenities) {
+                if (amenity == null) continue;
+                addInfoRow(container, getString(R.string.receipt_bd_item_format, amenity.getAmenityName(), amenity.getQuantity(),
+                        formatPrice(amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal())), formatPrice(amenity.getSubtotal()));
+            }
+            addTotalRow(container, getString(R.string.stay_subtotal_format, stay.position), formatPrice(stay.subtotal));
+        }
+    }
+
+    /** "Oct 25 → Oct 26, 2026" from the server's yyyy-MM-dd dates; the raw text when it cannot be read. */
+    private String formatStayDates(@Nullable String in, @Nullable String out) {
+        java.time.LocalDate a = PaymentDates.parseDate(in);
+        java.time.LocalDate b = PaymentDates.parseDate(out);
+        if (a != null && b != null) return StayCardText.compactDates(a, b);
+        return (in == null ? "" : in) + (out == null ? "" : " → " + out);
+    }
+
+    /** The one-line "what is this total" for a beginner, right under the Grand Total. */
+    private void addTotalExplainer(LinearLayout container) {
+        TextView note = new TextView(this);
+        note.setText(booking.hasSeveralStays() ? R.string.total_explainer_stays : R.string.total_explainer_single);
+        note.setTextSize(12);
+        note.setTextColor(getColor(R.color.velocity_text_secondary));
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        p.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        note.setLayoutParams(p);
+        container.addView(note);
     }
 
     /** "Stays in this group": every other stay booked together with this one, each a link to its own details. Nothing for a single stay. */

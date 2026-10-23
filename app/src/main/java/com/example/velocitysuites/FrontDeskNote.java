@@ -13,6 +13,10 @@ public final class FrontDeskNote {
     }
 
     public static String messageFor(Context context, Booking booking) {
+        // A GCash payment the front desk has not checked yet: say so, instead of sending the guest to the desk to pay a balance
+        if (booking.isPaymentPendingVerification() && !booking.isStaffVerified()) {
+            return context.getString(R.string.payment_under_review_note);
+        }
         return context.getString(R.string.front_desk_balance_message,
                 MoneyFormat.format(PaymentEligibility.frontDeskBalance(booking)));
     }

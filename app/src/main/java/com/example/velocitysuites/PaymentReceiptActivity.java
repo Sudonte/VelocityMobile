@@ -405,6 +405,7 @@ public class PaymentReceiptActivity extends SafeActivity {
         String stageLabel = ReceiptTypeMapper.labelWithStage(detail.getReceiptType());
         buildHeaderSection(content, detail, stageLabel);
         buildStaySection(content, detail);
+        buildStaysSection(content, detail);
         buildGuestSection(content, detail);
         // Receipt 3 of a stay settled at check-in reads: booking details, check-in billing, remaining balance, final
         // summary - the server's breakdown IS the money part, so the generic payment summary (which would repeat the same
@@ -787,6 +788,35 @@ public class PaymentReceiptActivity extends SafeActivity {
             if (sb.length() > 0) return sb.toString();
         }
         return detail.getRoomType();
+    }
+
+    /**
+     * Every stay of a multi-stay transaction, on screen and in the PDF alike (this body is built once for both): each stay's dates and
+     * nights, its rooms with room numbers, its amenities and its own subtotal. A one-stay receipt keeps the sections it always had.
+     */
+    private void buildStaysSection(ViewGroup parent, ReceiptDetail detail) {
+        List<Booking.StayRecord> stays = detail.getStays();
+        if (stays == null || stays.size() < 2) return;
+        LinearLayout content = newSectionCard(parent, getString(R.string.details_stays_title));
+        for (Booking.StayRecord stay : stays) {
+            if (stay == null) continue;
+            java.time.LocalDate in = PaymentDates.parseDate(stay.checkIn);
+            java.time.LocalDate out = PaymentDates.parseDate(stay.checkOut);
+            String dates = in != null && out != null ? StayCardText.compactDates(in, out) : "";
+            String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
+            addRow(content, getString(R.string.stay_label_format, stay.position), dates.isEmpty() ? nights : getString(R.string.stay_details_line_format, dates, nights));
+            for (BookingRoom room : stay.rooms) {
+                if (room == null) continue;
+                String numbers = room.getAssignedRoomNumbers().isEmpty() ? ""
+                        : getString(R.string.stay_room_numbers_format, android.text.TextUtils.join(", ", room.getAssignedRoomNumbers()));
+                addRow(content, getString(R.string.stay_room_line_format, room.getQuantity(), room.getRoomTypeName(), numbers).trim(), formatPrice(room.getSubtotal()));
+            }
+            for (BookingAmenity amenity : stay.amenities) {
+                if (amenity == null) continue;
+                addRow(content, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), formatPrice(amenity.getSubtotal()));
+            }
+            addRow(content, getString(R.string.stay_subtotal_format, stay.position), formatPrice(stay.subtotal));
+        }
     }
 
     /** Guest Information - item 6. */
