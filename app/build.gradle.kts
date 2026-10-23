@@ -141,7 +141,7 @@ android {
             // the end of a full run: the JVM then sits in garbage collection for minutes (one test "taking" 5-6
             // minutes) and dies with an OutOfMemoryError, failing the task although no test failed. Individual test
             // classes pass fine alone, which is what hid it.
-            all { it.maxHeapSize = "3072m" }
+            all { it.maxHeapSize = "3072m"; it.setForkEvery(40) } // a fresh JVM every 40 test classes: Robolectric activities pile up
         }
     }
     lint {

@@ -134,7 +134,7 @@
     <string name="details_label_check_in">Check-in</string>
     <string name="details_label_check_out">Check-out</string>
     <string name="details_label_adults">Adults</string>
-    <string name="details_label_children">Children</string>
+    <string name="details_label_children">Minors</string>
     <string name="details_label_total_guests">Total Guests</string>
     <string name="details_label_discount">Discount</string>
     <string name="details_label_total_amount">Total Amount</string>
@@ -384,7 +384,6 @@
     </plurals>
     <string name="wizard_step_incomplete">Please complete this step before continuing.</string>
     <string name="wizard_step_title_payment_method">Payment Method</string>
-    <string name="wizard_step_title_total_review">Total Amount to Pay and Review</string>
     <string name="payment_method_step_subtitle">Choose how you\'d like to pay for this reservation</string>
     <string name="payment_option_cash_description">Pay at the hotel through walk-in payment. No online payment is required at this time.</string>
     <string name="payment_option_gcash_description">Reserve now and pay later using GCash. You can complete your payment from your reservation details.</string>
@@ -393,19 +392,18 @@
     <string name="payment_method_cash_note">Pay at the hotel through walk-in payment. No online payment is required at this time.</string>
     <string name="payment_method_gcash_note">You can complete your GCash payment later by selecting Pay Now from your reservation.</string>
 
-    <string name="summary_amenities_subtotal_label">Amenities Subtotal</string>
     <string name="reservation_created_cash_title">Reservation Created</string>
     <string name="reservation_created_cash_msg">Your reservation has been submitted successfully. You selected Cash as your payment method. Payment can be completed through walk-in payment at the hotel.</string>
     <string name="reservation_created_gcash_title">Reservation Created</string>
     <string name="reservation_created_gcash_msg">Your reservation has been submitted successfully. You selected GCash. You can pay later by selecting Pay Now from your reservation.</string>
     <string name="submitting_reservation_msg">Submitting your reservation…</string>
     <string name="wizard_dates_subtitle">Choose your Check-in and Check-out dates to see available rooms.</string>
-    <string name="skip_amenities_button">Skip</string>
-    <string name="additional_guest_info_title">Additional Guest Information</string>
+    <string name="skip_amenities_button">Skip for now</string>
+    <string name="additional_guest_info_title">Guests</string>
     <string name="adults_label">Adults</string>
-    <string name="children_label">Children</string>
-    <string name="child_age_notice">Each child\'s age must be 7 years old or below.</string>
-    <string name="child_age_field_format" tools:ignore="PluralsCandidate">Child %1$d Age</string>
+    <string name="children_label">Minors</string>
+    <string name="child_age_notice">Each minor\'s age must be 7 years old or below.</string>
+    <string name="child_age_field_format" tools:ignore="PluralsCandidate">Minor %1$d age</string>
     <string name="stepper_decrement_symbol">—</string>
     <string name="stepper_increment_symbol">+</string>
     <string name="default_adults_count_display">1</string>
@@ -431,14 +429,13 @@
         <item quantity="other">%1$d Adults</item>
     </plurals>
     <plurals name="children_count">
-        <item quantity="one">%1$d Child</item>
-        <item quantity="other">%1$d Children</item>
+        <item quantity="one">%1$d Minor</item>
+        <item quantity="other">%1$d Minors</item>
     </plurals>
-    <string name="error_guests_exceed_capacity">Adults + children can\'t exceed the room capacity.</string>
+    <string name="error_guests_exceed_capacity">Adults + minors can\'t exceed the room capacity.</string>
     <string name="error_child_age_too_young">Please enter a valid age.</string>
-    <string name="error_child_age_too_old">Every child\'s age must be 7 years old or younger.</string>
-    <string name="error_child_age_required">Please enter every child\'s age.</string>
-    <string name="amenity_quantity_clamped_to_guests">Some amenity quantities were adjusted to match your total number of guests.</string>
+    <string name="error_child_age_too_old">Every minor\'s age must be 7 years old or younger.</string>
+    <string name="error_child_age_required">Please enter every minor\'s age.</string>
     <string name="error_amenity_qty_exceeds_capacity">Quantity can\'t exceed the room capacity you selected.</string>
     <string name="payment_due_in_days_hours_format" tools:ignore="PluralsCandidate">Payment Due In: %1$d Day%2$s %3$02d Hr%4$s</string>
     <string name="payment_due_in_hours_format">Payment Due In: %1$02d Hr%2$s</string>
@@ -1015,7 +1012,6 @@
     <string name="error_server_error">Something went wrong on our side. Please try again later.</string>
     <string name="error_session_expired">Your session has expired. Please log in again to continue.</string>
     <string name="error_unexpected_response">Something went wrong on our side. Please try again later.</string>
-    <string name="confirm_submit_gcash_payment_msg">Submit this GCash payment of %1$s for verification? Double-check your reference number and receipt — this can\'t be undone.</string>
     <string name="book_now_cta_title">Ready to book a room?</string>
     <string name="book_now_cta_desc">Select your rooms and dates, then come back here to complete payment.</string>
     <string name="empty_payment_balance_msg">You do not have any selected rooms for booking. Tap the Book Now button to select one or more rooms.</string>
@@ -1070,10 +1066,10 @@
     <string name="check_in_hint">Check-in</string>
     <string name="check_out_hint">Check-out</string>
     <string name="who_is_staying_label">Check-in details</string>
-    <string name="who_is_staying_hint">Tell us if someone else will check in for you.</string>
-    <string name="representative_name_helper">Optional. Fill this in only if someone else will check in on your behalf. Your representative must present 1 valid ID at the front desk. If left blank, the account owner must present the booking or reservation transaction and 1 valid ID.</string>
+    <string name="who_is_staying_hint">Choose who will check in at the hotel.</string>
+    <string name="representative_name_helper">Whoever checks in must present 1 valid ID at the front desk. With Owner (me), you (the account owner) present the booking or reservation transaction and 1 valid ID. With Someone else, that person presents 1 valid ID.</string>
     <string name="representative_who_title">Who can check in?</string>
-    <string name="representative_who_body">You may skip this field if you, the account owner, will personally handle the transaction at the hotel. Fill it in only if another person will represent your booking or reservation at the hotel. Your representative must present one (1) valid ID at the front desk. If you leave this blank, you (the account owner) must personally present the booking or reservation at the hotel, together with one (1) valid ID.</string>
+    <string name="representative_who_body">Choose Owner (me) if you, the account owner, will personally handle the transaction at the hotel. Choose Someone else if another person will represent your booking or reservation at the hotel. Whoever checks in must present one (1) valid ID at the front desk, together with the booking or reservation transaction.</string>
     <string name="representative_line_format">Representative: %1$s — must present 1 valid ID</string>
     <string name="check_in_by_owner_line">Check-in by: account owner — present 1 valid ID</string>
     <string name="representative_label">Representative</string>
@@ -1092,7 +1088,6 @@
     <string name="discount_load_error">Couldn\'t load the available discounts. Check your connection and try again. You can still continue without a discount.</string>
     <string name="discount_empty">No discounts available right now</string>
     <string name="discount_select_this">Select this discount</string>
-    <string name="summary_adults_children_format">%1$s   %2$s</string>
     <string name="discount_no_longer_available">No longer available</string>
     <string name="discount_checkin_note">Please note: the ID you upload here is verified by the receptionist during check-in. Your discount is applied to your bill once the ID is validated, so please bring the same original ID with you.</string>
     <string name="discount_upload_title">Upload your ID</string>
@@ -1335,11 +1330,6 @@
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
-    <string name="amenities_for_stay_label">Amenities for</string>
-    <string name="stay_chip_format">Stay %1$d · %2$s - %3$s</string>
-    <string name="review_group_dates_format" tools:ignore="PluralsCandidate">%1$d stays (listed below)</string>
-    <string name="review_stay_header_format">Stay %1$d: %2$s - %3$s (%4$s)</string>
-    <string name="review_stay_amenity_format">Stay %1$d: %2$s x%3$d</string>
     <string name="review_stay_room_format">Stay %1$d: %2$s</string>
     <string name="group_stay_label_format">Group · Stay %1$d of %2$d</string>
     <string name="group_two_parts_format">%1$s  ·  %2$s</string>
@@ -1496,7 +1486,6 @@
     <string name="addon_amenity_price_format">+ &#8369;%,.0f</string>
     <string name="addon_amenity_subtotal_format">= &#8369;%,.0f</string>
     <string name="addon_amenity_free_label">Free</string>
-    <string name="selected_amenities_count_format">Selected Amenities: %1$d</string>
     <string name="addon_amenities_empty">No additional amenities are currently available.</string>
     <string name="addon_amenities_load_error">Unable to load additional amenities. Please try again.</string>
     <string name="error_payment_settled">This reservation is already fully paid. There is nothing left to pay.</string>
@@ -1851,7 +1840,6 @@
     <string name="step_label_confirm">Confirm</string>
     <string name="step_done_mark">✓</string>
     <string name="summary_dates_format">%1$s – %2$s</string>
-    <string name="summary_dates_nights_format">Check-in: %1$s\nCheck-out: %2$s\n%3$s</string>
     <string name="summary_dates_placeholder">Select your stay dates</string>
     <string name="summary_guests_default">1 Guest</string>
     <plurals name="summary_guest_count">
@@ -2461,7 +2449,6 @@
     <string name="form_discard_message">What you entered on this screen will be lost.</string>
     <string name="form_discard_yes">Discard</string>
     <string name="keep_editing">Keep editing</string>
-    <string name="rep_group_title">Representative (optional)</string>
     <string name="rep_last_name_label">Last name</string>
     <string name="rep_first_name_label">First name</string>
     <string name="rep_middle_name_label">Middle name (optional)</string>
@@ -2485,6 +2472,107 @@
     <string name="terms_missing_item_open">Open the Terms and Policy and scroll to the end</string>
     <string name="terms_missing_item_check">Check the box to confirm you agree</string>
     <string name="terms_missing_item_line_format">• %1$s</string>
+    <string name="step_title_amenities">Amenities</string>
+    <string name="step_title_representative">Representative</string>
+    <string name="step_title_guests">Guests</string>
+    <string name="step_title_id_verification">ID verification</string>
+    <string name="step_title_payment_method">Payment method</string>
+    <string name="step_title_review">Review and bill summary</string>
+    <string name="wizard_confirm_yes">Yes, continue</string>
+    <string name="wizard_discard_booking_title">Discard this booking?</string>
+    <string name="wizard_discard_reservation_title">Discard this reservation?</string>
+    <string name="wizard_discard_changes_title">Discard your changes?</string>
+    <string name="wizard_discard_message">Everything you chose so far will be lost.</string>
+    <string name="wizard_discard_yes">Yes, discard</string>
+    <string name="wizard_discard_keep">Keep editing</string>
+    <string name="confirm_this_stay">Confirm this stay</string>
+    <string name="confirm_stay_title">Confirm this stay?</string>
+    <string name="confirm_stay_yes">Yes, confirm</string>
+    <string name="confirm_stay_first">Confirm this stay to continue.</string>
+    <string name="stay_unconfirmed_format" tools:ignore="PluralsCandidate">Stay %1$d needs to be confirmed.</string>
+    <string name="confirm_stay_summary_format">%1$s · %2$s · %3$s</string>
+    <string name="stay_row_not_confirmed_format">%1$s · Not confirmed yet</string>
+    <string name="review_stays_title">Review your stays</string>
+    <string name="review_edit_stays">Edit stays</string>
+    <string name="review_continue">Continue</string>
+    <string name="review_edit">Edit</string>
+    <string name="review_stay_heading_format" tools:ignore="PluralsCandidate">Stay %1$d · %2$s → %3$s · %4$s</string>
+    <string name="review_room_line_format">%1$d × %2$s × %3$s × %4$s</string>
+    <string name="review_stay_subtotal_format" tools:ignore="PluralsCandidate">Stay %1$d subtotal</string>
+    <string name="proceed_to_amenities">Proceed to amenities?</string>
+    <string name="proceed_stays_summary_format">%1$s · %2$s · %3$s</string>
+    <string name="amenity_stay_heading_format" tools:ignore="PluralsCandidate">Stay %1$d · %2$s → %3$s</string>
+    <string name="amenity_room_heading_format" tools:ignore="PluralsCandidate">%1$s (room %2$d)</string>
+    <string name="amenity_price_each_format">%1$s each</string>
+    <string name="amenity_line_format">%1$d × %2$s = %3$s</string>
+    <string name="amenities_live_total_format">Amenities %1$s · Grand total %2$s</string>
+    <string name="amenities_none_title">Continue without additional amenities?</string>
+    <string name="amenities_none_summary_format">No amenities · Total %1$s</string>
+    <string name="proceed_with_amenities">Proceed with these amenities?</string>
+    <string name="review_amenities_title">Review your amenities</string>
+    <string name="review_rooms_total_label">Room charges</string>
+    <string name="review_amenities_total_label">Amenities</string>
+    <string name="review_grand_total_label">Grand total</string>
+    <string name="who_owner_me">Owner (me)</string>
+    <string name="who_someone_else">Someone else</string>
+    <string name="who_choose_error">Choose who will check in</string>
+    <string name="who_not_you">Not you? Choose Someone else</string>
+    <string name="who_owner_profile_missing">Your profile has no first or last name yet. Choose Someone else, or add your name in your profile.</string>
+    <string name="who_owner_middle_hint">Middle name</string>
+    <string name="proceed_to_guest_details">Proceed to guest details?</string>
+    <string name="who_summary_owner_format">Owner (me) · %1$s</string>
+    <string name="who_summary_other_format">Someone else · %1$s</string>
+    <string name="proceed_to_id_verification">Proceed to ID verification?</string>
+    <string name="guests_summary_format">%1$s · %2$s</string>
+    <string name="proceed_to_bill_review">Proceed to your bill summary and review?</string>
+    <string name="proceed_to_payment_method">Proceed to payment method?</string>
+    <string name="proceed_to_review_total">Proceed to view your total amount to pay and review?</string>
+    <string name="id_summary_discount_format">Discount: %1$s</string>
+    <string name="id_summary_none">No discount</string>
+    <string name="review_section_stays">Stays</string>
+    <string name="review_section_amenities">Amenities</string>
+    <string name="review_section_representative">Representative</string>
+    <string name="review_section_guests">Guests</string>
+    <string name="review_section_id">ID / discount</string>
+    <string name="review_section_payment_method">Payment method</string>
+    <string name="review_no_amenities">No additional amenities</string>
+    <string name="review_check_in_by">Check-in by</string>
+    <string name="review_name_label">Name</string>
+    <string name="review_present_id_note">The person checking in must present 1 valid ID at the front desk.</string>
+    <string name="review_discount_label">Discount</string>
+    <string name="review_discount_none">None</string>
+    <string name="review_id_photo_label">ID photo</string>
+    <string name="review_id_photo_attached">Attached</string>
+    <string name="review_id_photo_missing">Not added yet</string>
+    <string name="review_edit_cd_format">Edit %1$s</string>
+    <string name="review_section_collapsed_format">%1$s, collapsed</string>
+    <string name="review_section_expanded_format">%1$s, expanded</string>
+    <string name="review_bill_rooms_stay_format" tools:ignore="PluralsCandidate">Room charges · Stay %1$d</string>
+    <string name="review_bill_amenities_stay_format" tools:ignore="PluralsCandidate">Amenities · Stay %1$d</string>
+    <string name="review_pay_now_label">Payment</string>
+    <string name="review_pay_now_range_label">Pay now (20% to 50%)</string>
+    <string name="review_balance_hotel_label">Balance to pay at the hotel</string>
+    <string name="review_range_format">%1$s – %2$s</string>
+    <string name="review_pay_now_note">You choose 20%, 30%, 40% or 50% on the payment screen. The rest is paid at the hotel.</string>
+    <string name="gcash_check_amount_title">Check the amount</string>
+    <string name="gcash_check_amount_desc">This is exactly what you send through GCash now. You can copy it to paste into GCash.</string>
+    <string name="gcash_step_label_format">Step %1$d of %2$d · %3$s</string>
+    <string name="gcash_step_name_1">Check amount</string>
+    <string name="gcash_step_name_2">Send via GCash</string>
+    <string name="gcash_step_name_3">Enter reference</string>
+    <string name="gcash_step_name_4">Upload receipt</string>
+    <string name="gcash_step_name_5">Submit</string>
+    <string name="gcash_fact_total">Total of your booking</string>
+    <string name="gcash_fact_paid_before">Already paid</string>
+    <string name="gcash_fact_pay_now">Pay now</string>
+    <string name="gcash_fact_balance_hotel">Balance to pay at the hotel</string>
+    <string name="hotel_gcash_number_label">Hotel GCash number</string>
+    <string name="hotel_gcash_number_copied">GCash number copied</string>
+    <string name="copy_label">Copy</string>
+    <string name="confirm_submit_payment_title_format">Submit payment of %1$s?</string>
+    <string name="confirm_submit_payment_message">Double-check your reference number and receipt. This can\'t be undone.</string>
+    <string name="confirm_submit_payment_yes">Yes, submit</string>
+    <string name="gcash_success_transaction_id_format">Transaction ID: %1$s</string>
 </resources>
 
 

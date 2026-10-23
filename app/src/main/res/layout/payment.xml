@@ -1658,12 +1658,97 @@
                                     android:orientation="vertical"
                                     android:padding="14dp">
 
+                                    <!-- ============ STEP 1 of 5: Check amount ============ -->
+                                    <LinearLayout
+                                        android:id="@+id/gcashStep1Amount"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:accessibilityHeading="true"
+                                            android:fontFamily="sans-serif-black"
+                                            android:text="@string/gcash_check_amount_title"
+                                            android:textColor="@color/velocity_text_primary"
+                                            android:textSize="18sp" />
+
+                                        <TextView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="8dp"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:lineSpacingExtra="2dp"
+                                            android:text="@string/gcash_check_amount_desc"
+                                            android:textColor="@color/velocity_text_secondary"
+                                            android:textSize="13sp" />
+
+                                        <!-- The exact amount to pay, with a copy button -->
+                                        <com.google.android.material.card.MaterialCardView
+                                            style="@style/Widget.Velocity.Card.Flat"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="14dp"
+                                            app:cardBackgroundColor="@color/gcash_blue_soft"
+                                            app:strokeColor="@color/velocity_red_subtle">
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:orientation="vertical"
+                                                android:padding="14dp">
+
+                                                <TextView
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:fontFamily="sans-serif-bold"
+                                                    android:letterSpacing="0"
+                                                    android:text="@string/amount_to_pay_label"
+                                                    android:textAllCaps="false"
+                                                    android:textColor="@color/velocity_text_secondary"
+                                                    android:textSize="12sp" />
+
+                                                <TextView
+                                                    android:id="@+id/tvPortalAmount"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="4dp"
+                                                    android:fontFamily="sans-serif-black"
+                                                    android:text="@string/placeholder_amount"
+                                                    android:textColor="@color/velocity_action_text"
+                                                    android:textSize="38sp" />
+
+                                                <com.google.android.material.button.MaterialButton
+                                                    android:id="@+id/btnCopyAmount"
+                                                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="8dp"
+                                                    android:minHeight="48dp"
+                                                    android:text="@string/copy_amount_button"
+                                                    android:textColor="@color/velocity_action_text"
+                                                    app:icon="@drawable/ic_copy"
+                                                    app:iconGravity="textStart"
+                                                    app:iconTint="@color/velocity_action_text" />
+                                            </LinearLayout>
+                                        </com.google.android.material.card.MaterialCardView>
+
+                                        <LinearLayout
+                                            android:id="@+id/layoutAmountFacts"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="14dp"
+                                            android:orientation="vertical" />
+                                    </LinearLayout>
+
                                     <!-- ============ STEP 1 of 5: Scan QR Code ============ -->
                                     <LinearLayout
                                         android:id="@+id/gcashStep1Qr"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:orientation="vertical">
+                                        android:orientation="vertical"
+                                        android:visibility="gone">
 
                                         <TextView
                                             android:layout_width="match_parent"
@@ -1800,55 +1885,56 @@
                                                 android:textSize="13sp" />
                                         </LinearLayout>
 
-                                        <!-- The exact amount to pay, with a copy button -->
-                                        <com.google.android.material.card.MaterialCardView
-                                            style="@style/Widget.Velocity.Card.Flat"
+
+
+                                        <!-- The hotel's GCash number, with a copy button (shown only when the hotel's number is configured). -->
+                                        <LinearLayout
+                                            android:id="@+id/layoutHotelGcashNumber"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="14dp"
-                                            app:cardBackgroundColor="@color/gcash_blue_soft"
-                                            app:strokeColor="@color/velocity_red_subtle">
+                                            android:background="@drawable/bg_flat_box"
+                                            android:gravity="center_vertical"
+                                            android:orientation="horizontal"
+                                            android:padding="12dp"
+                                            android:visibility="gone">
 
                                             <LinearLayout
-                                                android:layout_width="match_parent"
+                                                android:layout_width="0dp"
                                                 android:layout_height="wrap_content"
-                                                android:orientation="vertical"
-                                                android:padding="14dp">
+                                                android:layout_weight="1"
+                                                android:orientation="vertical">
 
                                                 <TextView
                                                     android:layout_width="wrap_content"
                                                     android:layout_height="wrap_content"
                                                     android:fontFamily="sans-serif-bold"
-                                                    android:letterSpacing="0"
-                                                    android:text="@string/amount_to_pay_label"
-                                                    android:textAllCaps="false"
+                                                    android:text="@string/hotel_gcash_number_label"
                                                     android:textColor="@color/velocity_text_secondary"
                                                     android:textSize="12sp" />
 
                                                 <TextView
-                                                    android:id="@+id/tvPortalAmount"
+                                                    android:id="@+id/tvHotelGcashNumber"
                                                     android:layout_width="wrap_content"
                                                     android:layout_height="wrap_content"
-                                                    android:layout_marginTop="4dp"
+                                                    android:layout_marginTop="2dp"
                                                     android:fontFamily="sans-serif-black"
-                                                    android:text="@string/placeholder_amount"
-                                                    android:textColor="@color/velocity_action_text"
-                                                    android:textSize="29sp" />
-
-                                                <com.google.android.material.button.MaterialButton
-                                                    android:id="@+id/btnCopyAmount"
-                                                    style="@style/Widget.Velocity.Flat.Button.Outlined"
-                                                    android:layout_width="wrap_content"
-                                                    android:layout_height="wrap_content"
-                                                    android:layout_marginTop="8dp"
-                                                    android:minHeight="48dp"
-                                                    android:text="@string/copy_amount_button"
-                                                    android:textColor="@color/velocity_action_text"
-                                                    app:icon="@drawable/ic_copy"
-                                                    app:iconGravity="textStart"
-                                                    app:iconTint="@color/velocity_action_text" />
+                                                    android:textColor="@color/velocity_text_primary"
+                                                    android:textSize="18sp" />
                                             </LinearLayout>
-                                        </com.google.android.material.card.MaterialCardView>
+
+                                            <com.google.android.material.button.MaterialButton
+                                                android:id="@+id/btnCopyHotelNumber"
+                                                style="@style/Widget.Velocity.Flat.Button.Outlined"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:minHeight="48dp"
+                                                android:text="@string/copy_label"
+                                                android:textColor="@color/velocity_action_text"
+                                                app:icon="@drawable/ic_copy"
+                                                app:iconGravity="textStart"
+                                                app:iconTint="@color/velocity_action_text" />
+                                        </LinearLayout>
 
                                         <TextView
                                             android:layout_width="wrap_content"

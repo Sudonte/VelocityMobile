@@ -541,7 +541,7 @@ public class PaymentScreenTest {
 
         a.findViewById(R.id.btnGcashStep1Next).performClick();
         assertOnlyRow(a, rows[1]);
-        assertEquals("Step 2 of 5", text(a, R.id.tvGcashStepLabel));
+        assertEquals("Step 2 of 5 · Send via GCash", text(a, R.id.tvGcashStepLabel));
         type(a, R.id.etGcashNumber, NUMBER);
         a.findViewById(R.id.btnGcashStep2Next).performClick();
         assertOnlyRow(a, rows[2]);
@@ -684,7 +684,9 @@ public class PaymentScreenTest {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
         a.findViewById(R.id.btnGcashStep1Next).performClick();
-        MaterialButton next = a.findViewById(R.id.btnGcashStep2Next);
+        a.findViewById(R.id.btnGcashStep2Next).performClick();
+        type(a, R.id.etGcashReferenceNumber, REFERENCE); // "Enter reference" needs the number and the reference
+        MaterialButton next = a.findViewById(R.id.btnGcashStep3Next);
 
         assertFalse("Next waits for a valid number", next.isEnabled());
         assertNull("an untouched field shows no error", inlineError(a, R.id.tilGcashNumber));
@@ -1017,5 +1019,72 @@ public class PaymentScreenTest {
         assertEquals("exactly one payment request", 1, api.count("submitGcashPayment"));
         assertFalse("disabled while it is sent", submit.isEnabled());
         assertEquals(a.getString(R.string.submitting_payment_button), submit.getText().toString());
+    }
+
+    // ---- the five GCash steps, as the guest reads them ----
+
+    @Test
+    public void gcashSteps_areNamed_checkAmount_sendViaGcash_enterReference_uploadReceipt_submit() {
+        PaymentActivity a = launchUnpaid();
+        proceedToGcash(a);
+        assertEquals("Step 1 of 5 · Check amount", text(a, R.id.tvGcashStepLabel));
+        a.findViewById(R.id.btnGcashStep1Next).performClick();
+        assertEquals("Step 2 of 5 · Send via GCash", text(a, R.id.tvGcashStepLabel));
+        assertTrue("the QR is on the send step", isVisible(a, R.id.gcashStep1Qr));
+        assertTrue("and 'Next' is usable without typing anything there", a.findViewById(R.id.btnGcashStep2Next).isEnabled());
+        a.findViewById(R.id.btnGcashStep2Next).performClick();
+        assertEquals("Step 3 of 5 · Enter reference", text(a, R.id.tvGcashStepLabel));
+        assertTrue("the GCash number and the reference are together", isVisible(a, R.id.gcashStep2Number) && isVisible(a, R.id.gcashStep3Reference));
+        type(a, R.id.etGcashNumber, NUMBER);
+        type(a, R.id.etGcashReferenceNumber, REFERENCE);
+        a.findViewById(R.id.btnGcashStep3Next).performClick();
+        assertEquals("Step 4 of 5 · Upload receipt", text(a, R.id.tvGcashStepLabel));
+        attachReceipt(a);
+        a.findViewById(R.id.btnGcashStep4Next).performClick();
+        assertEquals("Step 5 of 5 · Submit", text(a, R.id.tvGcashStepLabel));
+    }
+
+    @Test
+    public void checkAmount_showsTheAmountLargeAndBold_withTheTotalAndWhatIsLeftForTheHotel() {
+        PaymentActivity a = launchUnpaid(); // P1,800, 20% = P360
+        proceedToGcash(a);
+        layout(a);
+        assertTrue(isVisible(a, R.id.gcashStep1Amount));
+        assertFalse("the QR waits for step 2", isVisible(a, R.id.gcashStep1Qr));
+        TextView amount = a.findViewById(R.id.tvPortalAmount);
+        assertEquals("₱360.00", amount.getText().toString());
+        assertTrue("large", amount.getTextSize() / a.getResources().getDisplayMetrics().scaledDensity >= 36f);
+        String facts = collectText(a.findViewById(R.id.layoutAmountFacts));
+        assertTrue(facts, facts.contains("Total of your booking") && facts.contains("₱1,800.00"));
+        assertTrue(facts, facts.contains("Pay now") && facts.contains("₱360.00"));
+        assertTrue(facts, facts.contains("Balance to pay at the hotel") && facts.contains("₱1,440.00"));
+    }
+
+    @Test
+    public void thePaymentStepsHaveNoHotelNumberRowUntilTheNumberIsConfigured() {
+        PaymentActivity a = launchUnpaid();
+        proceedToGcash(a);
+        // res/values/hotel_payment.xml ships empty: the QR is always there, the number only when the hotel sets it
+        assertEquals(a.getString(R.string.hotel_gcash_number).trim().isEmpty(), !isVisible(a, R.id.layoutHotelGcashNumber));
+    }
+
+    @Test
+    public void finalConfirmation_asksSubmitPaymentOfTheAmount() {
+        PaymentActivity a = toSubmitStep();
+        a.findViewById(R.id.completePaymentButton).performClick();
+        idle();
+        AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
+        String shown = collectText(dialog.getWindow().getDecorView());
+        assertTrue(shown, shown.contains("Submit payment of ₱360.00?"));
+        assertEquals("Yes, submit", dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString());
+    }
+
+    private static String collectText(View v) {
+        StringBuilder sb = new StringBuilder();
+        if (v instanceof TextView && v.getVisibility() == View.VISIBLE) sb.append(((TextView) v).getText()).append((char) 10);
+        if (v instanceof ViewGroup && v.getVisibility() == View.VISIBLE) {
+            for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) sb.append(collectText(((ViewGroup) v).getChildAt(i)));
+        }
+        return sb.toString().replace((char) 160, ' ');
     }
 }

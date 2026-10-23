@@ -172,6 +172,8 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     // GCash 5-step wizard (Scan QR / Mobile Number / Reference Number / Receipt / Review & Submit)
     private int currentGcashStep = 1;
+    private View gcashStep1Amount;
+    private LinearLayout layoutAmountFacts;
     private TextView tvGcashStepLabel;
     private WizardStepIndicatorView gcashStepIndicator;
     private View gcashStep1Qr, gcashStep2Number, gcashStep3Reference, gcashStep4Receipt, gcashStep5Review;
@@ -374,6 +376,9 @@ public class PaymentActivity extends BaseNavigationActivity {
         gcashStepIndicator = findViewById(R.id.gcashStepIndicator);
         if (gcashStepIndicator != null) gcashStepIndicator.setStepCount(5);
         gcashStep1Qr = findViewById(R.id.gcashStep1Qr);
+        gcashStep1Amount = findViewById(R.id.gcashStep1Amount);
+        layoutAmountFacts = findViewById(R.id.layoutAmountFacts);
+        bindHotelGcashNumber();
         gcashStep2Number = findViewById(R.id.gcashStep2Number);
         gcashStep3Reference = findViewById(R.id.gcashStep3Reference);
         gcashStep4Receipt = findViewById(R.id.gcashStep4Receipt);
@@ -471,21 +476,21 @@ public class PaymentActivity extends BaseNavigationActivity {
             btnGcashStep2Back.setOnClickListener(v -> showGcashStep(1));
         }
         if (btnGcashStep2Next != null) {
-            btnGcashStep2Next.setOnClickListener(v -> {
-                String numberError = gcashNumberErrorMessage(true);
-                if (numberError != null) {
-                    setGcashNumberError(numberError);
-                    return;
-                }
-                setGcashNumberError(null);
-                showGcashStep(3);
-            });
+            btnGcashStep2Next.setOnClickListener(v -> showGcashStep(3)); // "Send via GCash" has nothing to validate
         }
         if (btnGcashStep3Back != null) {
             btnGcashStep3Back.setOnClickListener(v -> showGcashStep(2));
         }
         if (btnGcashStep3Next != null) {
             btnGcashStep3Next.setOnClickListener(v -> {
+                // "Enter reference": the GCash number the guest paid from, then the reference number - both inline
+                String numberError = gcashNumberErrorMessage(true);
+                if (numberError != null) {
+                    setGcashNumberError(numberError);
+                    if (etGcashNumber != null) etGcashNumber.requestFocus();
+                    return;
+                }
+                setGcashNumberError(null);
                 String referenceError = gcashReferenceErrorMessage();
                 if (referenceError != null) {
                     setGcashReferenceError(referenceError);
@@ -547,14 +552,20 @@ public class PaymentActivity extends BaseNavigationActivity {
     /** Shows only the current step's view, updates the "Step X of 5" label + WizardStepIndicatorView, and (on Step 5) refreshes the review summary. */
     private void renderGcashStep() {
         if (gcashStep1Qr == null) return;
-        gcashStep1Qr.setVisibility(currentGcashStep == 1 ? View.VISIBLE : View.GONE);
-        if (gcashStep2Number != null) gcashStep2Number.setVisibility(currentGcashStep == 2 ? View.VISIBLE : View.GONE);
+        // 1 Check amount, 2 Send via GCash, 3 Enter reference (the number paid from and the reference), 4 Upload receipt, 5 Submit
+        if (gcashStep1Amount != null) gcashStep1Amount.setVisibility(currentGcashStep == 1 ? View.VISIBLE : View.GONE);
+        gcashStep1Qr.setVisibility(currentGcashStep == 2 ? View.VISIBLE : View.GONE);
+        if (gcashStep2Number != null) gcashStep2Number.setVisibility(currentGcashStep == 3 ? View.VISIBLE : View.GONE);
         if (gcashStep3Reference != null) gcashStep3Reference.setVisibility(currentGcashStep == 3 ? View.VISIBLE : View.GONE);
         if (gcashStep4Receipt != null) gcashStep4Receipt.setVisibility(currentGcashStep == 4 ? View.VISIBLE : View.GONE);
         if (gcashStep5Review != null) gcashStep5Review.setVisibility(currentGcashStep == 5 ? View.VISIBLE : View.GONE);
-        if (tvGcashStepLabel != null) tvGcashStepLabel.setText(getString(R.string.registration_step_format, currentGcashStep, 5));
+        if (tvGcashStepLabel != null) {
+            int[] names = {R.string.gcash_step_name_1, R.string.gcash_step_name_2, R.string.gcash_step_name_3, R.string.gcash_step_name_4, R.string.gcash_step_name_5};
+            tvGcashStepLabel.setText(getString(R.string.gcash_step_label_format, currentGcashStep, 5, getString(names[currentGcashStep - 1])));
+        }
         if (gcashStepIndicator != null) gcashStepIndicator.setCurrentStep(currentGcashStep);
         if (currentGcashStep == 5) populateGcashReviewStep(); else clearSubmitError();
+        setButtonEnabled(btnGcashStep2Next, true); // "Send via GCash": nothing to fill in, so Next is always usable
         renderActionBar();
     }
 
@@ -1079,11 +1090,46 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (tvPortalAmount != null) {
             tvPortalAmount.setText(formattedPayNow);
         }
+        renderAmountFacts(balance);
         // The pinned bar and the "how to pay" step 3 always quote the same amount as everywhere else.
         if (tvBarAmount != null) tvBarAmount.setText(formattedPayNow);
         if (tvHowToPayAmountStep != null) {
             tvHowToPayAmountStep.setText(getString(R.string.gcash_how_to_step_3, formattedPayNow));
         }
+    }
+
+    /** "Check amount": what the booking costs, what is paid now and what is left for the hotel - label left, amount right. */
+    private void renderAmountFacts(double balance) {
+        if (layoutAmountFacts == null) return;
+        layoutAmountFacts.removeAllViews();
+        layoutAmountFacts.addView(ReviewSheet.row(this, ReviewSheet.Row.of(getString(R.string.gcash_fact_total), MoneyFormat.format(grandTotalValue))));
+        if (alreadyPaidValue > 0.009) {
+            layoutAmountFacts.addView(ReviewSheet.row(this, ReviewSheet.Row.of(getString(R.string.gcash_fact_paid_before), MoneyFormat.format(alreadyPaidValue))));
+        }
+        layoutAmountFacts.addView(ReviewSheet.row(this, ReviewSheet.Row.bold(getString(R.string.gcash_fact_pay_now), MoneyFormat.format(payNowValue))));
+        layoutAmountFacts.addView(ReviewSheet.row(this, ReviewSheet.Row.of(getString(R.string.gcash_fact_balance_hotel),
+                balance <= 0.009 ? getString(R.string.no_balance_label) : MoneyFormat.format(balance))));
+    }
+
+    /** The hotel's GCash number with a copy button - shown only when the hotel's number is configured (res/values/hotel_payment.xml). */
+    private void bindHotelGcashNumber() {
+        View box = findViewById(R.id.layoutHotelGcashNumber);
+        if (box == null) return;
+        String number = getString(R.string.hotel_gcash_number).trim();
+        if (number.isEmpty()) {
+            box.setVisibility(View.GONE);
+            return;
+        }
+        box.setVisibility(View.VISIBLE);
+        ((TextView) findViewById(R.id.tvHotelGcashNumber)).setText(number);
+        findViewById(R.id.btnCopyHotelNumber).setOnClickListener(v -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clipboard == null) return;
+            clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.hotel_gcash_number_label), number.replace(" ", "")));
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                Snackbar.make(findViewById(R.id.paymentRoot), getString(R.string.hotel_gcash_number_copied), Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private static final long MAX_RECEIPT_SIZE_BYTES = 50L * 1024 * 1024;
@@ -1387,15 +1433,16 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     /**
      * Keeps every step's own Next button (plus the final Submit on Step 5) in sync as the
-     * guest types/attaches a receipt - each Next only needs its own step's field(s) valid,
+     * guest types/attaches a receipt - each Next only needs its own step's field(s) valid (Send via GCash has none; Enter reference needs
+     * both the GCash number and the 13-digit reference),
      * while Submit still requires all three (defense-in-depth, mirrors the pre-wizard
      * single-form behavior this replaces).
      */
     private void updateSubmitButtonState() {
         String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
         boolean referenceValid = gcashReferenceDigitsOnly().length() == 13;
-        setButtonEnabled(btnGcashStep2Next, isValidGcashNumber(number));
-        setButtonEnabled(btnGcashStep3Next, referenceValid);
+        setButtonEnabled(btnGcashStep2Next, true); // "Send via GCash" has nothing to fill in
+        setButtonEnabled(btnGcashStep3Next, isValidGcashNumber(number) && referenceValid); // "Enter reference": the number paid from and the reference
         setButtonEnabled(btnGcashStep4Next, receiptUri != null);
         boolean valid = isValidGcashNumber(number) && referenceValid && receiptUri != null;
         setButtonEnabled(completePaymentButton, valid);
@@ -2745,7 +2792,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         String numberError = gcashNumberErrorMessage(true);
         if (numberError != null) {
             setGcashNumberError(numberError);
-            showGcashStep(2);
+            showGcashStep(3);
             etGcashNumber.requestFocus();
             return;
         }
@@ -2794,9 +2841,9 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     private void showFinalGcashConfirmationDialog(String number, String referenceNumber) {
         new SafeDialogs.Material(this)
-                .setTitle(R.string.confirm_payment_title)
-                .setMessage(getString(R.string.confirm_submit_gcash_payment_msg, MoneyFormat.format(payNowValue)))
-                .setPositiveButton(R.string.confirm_dialog_positive, (dialog, which) -> verifyBillThenSubmit(number, referenceNumber))
+                .setTitle(getString(R.string.confirm_submit_payment_title_format, MoneyFormat.format(payNowValue)))
+                .setMessage(R.string.confirm_submit_payment_message)
+                .setPositiveButton(R.string.confirm_submit_payment_yes, (dialog, which) -> verifyBillThenSubmit(number, referenceNumber))
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
     }
@@ -3197,7 +3244,8 @@ public class PaymentActivity extends BaseNavigationActivity {
         new SafeDialogs.Material(this)
                 .setTitle(R.string.payment_success_title)
                 .setMessage(getString(R.string.gcash_payment_success_message_format,
-                        MoneyFormat.format(amountPaid), GcashReferenceFormatter.format(transactionRef)))
+                        MoneyFormat.format(amountPaid), GcashReferenceFormatter.format(transactionRef))
+                        + (currentBooking != null ? "\n\n" + getString(R.string.gcash_success_transaction_id_format, currentBooking.getDisplayId()) : ""))
                 .setPositiveButton(R.string.close_label, (dialog, which) -> finalizePayment())
                 .setCancelable(false)
                 .show();
