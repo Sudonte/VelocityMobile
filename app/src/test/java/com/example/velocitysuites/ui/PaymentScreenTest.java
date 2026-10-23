@@ -1047,7 +1047,7 @@ public class PaymentScreenTest {
     }
 
     @Test
-    public void checkAmount_showsTheAmountLargeAndBold_withTheTotalAndWhatIsLeftForTheHotel() {
+    public void checkAmount_showsTheAmountLargeAndBold_withTheShareAndTheRestForTheHotel() {
         PaymentActivity a = launchUnpaid(); // P1,800, 20% = P360
         proceedToGcash(a);
         layout(a);
@@ -1056,13 +1056,10 @@ public class PaymentScreenTest {
         TextView amount = a.findViewById(R.id.tvPortalAmount);
         assertEquals("₱360.00", amount.getText().toString());
         assertTrue("large", amount.getTextSize() / a.getResources().getDisplayMetrics().scaledDensity >= 36f);
-        String facts = collectText(a.findViewById(R.id.layoutAmountFacts));
-        assertTrue(facts, facts.contains("Total of your booking") && facts.contains("₱1,800.00"));
-        assertTrue(facts, facts.contains("Pay now") && facts.contains("₱360.00"));
-        assertTrue(facts, facts.contains("Balance to pay at the hotel") && facts.contains("₱1,440.00"));
+        assertEquals("20% of ₱1,800.00 · the rest (₱1,440.00) is paid at the hotel", text(a, R.id.tvGcashShareLine));
     }
 
-    @Test
+@Test
     public void thePaymentStepsHaveNoHotelNumberRowUntilTheNumberIsConfigured() {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
@@ -1128,8 +1125,9 @@ public class PaymentScreenTest {
         proceedToGcash(a);
         int[] nexts = {R.id.btnGcashStep1Next, R.id.btnGcashStep2Next, 0, 0};
         for (int step = 1; step <= 5; step++) {
+            if (step > 1) a.findViewById(R.id.headerGcashPayingFor).performClick(); // one line until opened
             String strip = collectText(a.findViewById(R.id.layoutGcashStays));
-            assertTrue("step " + step + ": " + strip, strip.contains("Stay 1") && strip.contains("Stay 2") && strip.contains("₱9,300.00") && strip.contains("Deluxe × 1, Executive × 1"));
+            assertTrue("step " + step + ": " + strip, strip.contains("Stay 1") && strip.contains("Stay 2") && strip.contains("₱9,300.00") && strip.contains("Deluxe × 1") && strip.contains("Executive × 1"));
             assertEquals(View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
             assertFalse(collectText(a.findViewById(R.id.cardGcashSubmissionForm)).contains("null"));
             if (step == 1) a.findViewById(R.id.btnGcashStep1Next).performClick();

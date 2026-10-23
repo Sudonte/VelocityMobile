@@ -680,6 +680,7 @@
     <string name="payment_cash_note">Pay in cash at check-in - no receipt needed now. The amount below is optional and just lets our staff know what to expect; it isn\'t verified online.</string>
     <string name="confirm_cash_payment">Confirm Cash Reservation</string>
     <string name="cash_payment_submitted_msg">Your reservation is noted for cash payment. Our staff will confirm it with you at check-in.</string>
+    <string name="payment_greeting_booking">Hello, %1$s! Complete your payment securely using GCash to confirm your booking. Please upload the official GCash receipt for verification.</string>
     <string name="payment_greeting">Hello, %1$s! Complete your payment securely using GCash to confirm your reservation. Please upload the official GCash receipt for verification.</string>
     <string name="check_in_label">Check-in</string>
     <string name="check_out_label">Check-out</string>
@@ -871,7 +872,7 @@
     <string name="percent_40">40%</string>
     <string name="percent_50">50%</string>
     <string name="error_partial_only">Online payment is a partial payment only. Pay a down payment now and the rest at the hotel.</string>
-    <string name="amount_to_pay_label">Amount to Pay Now</string>
+    <string name="amount_to_pay_label">Amount to pay now</string>
     <string name="remaining_balance_label">Remaining Balance</string>
     <string name="already_paid_label">Already Paid</string>
     <string name="billing_amount_paid_label">Amount Already Paid</string>
@@ -2553,18 +2554,12 @@
     <string name="review_balance_hotel_label">Balance to pay at the hotel</string>
     <string name="review_range_format">%1$s – %2$s</string>
     <string name="review_pay_now_note">You choose 20%, 30%, 40% or 50% on the payment screen. The rest is paid at the hotel.</string>
-    <string name="gcash_check_amount_title">Check the amount</string>
-    <string name="gcash_check_amount_desc">This is exactly what you send through GCash now. You can copy it to paste into GCash.</string>
     <string name="gcash_step_label_format">Step %1$d of %2$d · %3$s</string>
     <string name="gcash_step_name_1">Check amount</string>
     <string name="gcash_step_name_2">Send via GCash</string>
     <string name="gcash_step_name_3">Enter reference</string>
     <string name="gcash_step_name_4">Upload receipt</string>
     <string name="gcash_step_name_5">Submit</string>
-    <string name="gcash_fact_total">Total of your booking</string>
-    <string name="gcash_fact_paid_before">Already paid</string>
-    <string name="gcash_fact_pay_now">Pay now</string>
-    <string name="gcash_fact_balance_hotel">Balance to pay at the hotel</string>
     <string name="hotel_gcash_number_label">Hotel GCash number</string>
     <string name="hotel_gcash_number_copied">GCash number copied</string>
     <string name="copy_label">Copy</string>
@@ -2600,6 +2595,14 @@
     <string name="pay_now_range_label_format">Pay now (20%%–50%%): %1$s – %2$s. Pick a share below; it is your payment now, not a discount.</string>
     <string name="details_expected_discount_note_format">Expected discount (%1$s): −%2$s — applied after your ID is checked at check-in.
 Estimated total after discount: %3$s</string>
+    <string name="gcash_paying_for_title">What you\'re paying for</string>
+    <string name="gcash_amount_to_send_label">Amount to send</string>
+    <string name="gcash_room_line_format">%1$s × %2$d</string>
+    <string name="gcash_share_line_format" tools:ignore="PluralsCandidate">%1$d%% of %2$s · the rest (%3$s) is paid at the hotel</string>
+    <string name="gcash_share_line_remaining_format">%1$s still to pay · the rest (%2$s) is paid at the hotel</string>
+    <string name="gcash_share_line_full_format">The full amount of %1$s</string>
+    <string name="gcash_new_booking">New booking</string>
+    <string name="gcash_new_reservation">New reservation</string>
 </resources>
 
 

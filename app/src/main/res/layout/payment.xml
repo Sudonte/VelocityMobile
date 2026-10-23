@@ -1670,17 +1670,6 @@
                                     android:orientation="vertical"
                                     android:padding="14dp">
 
-                                    <!-- The stays being paid for, on every GCash step. -->
-                                    <LinearLayout
-                                        android:id="@+id/layoutGcashStays"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginBottom="14dp"
-                                        android:background="@drawable/bg_flat_box"
-                                        android:orientation="vertical"
-                                        android:padding="12dp"
-                                        android:visibility="gone" />
-
                                     <!-- ============ STEP 1 of 5: Check amount ============ -->
                                     <LinearLayout
                                         android:id="@+id/gcashStep1Amount"
@@ -1688,31 +1677,11 @@
                                         android:layout_height="wrap_content"
                                         android:orientation="vertical">
 
-                                        <TextView
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:accessibilityHeading="true"
-                                            android:fontFamily="sans-serif-black"
-                                            android:text="@string/gcash_check_amount_title"
-                                            android:textColor="@color/velocity_text_primary"
-                                            android:textSize="18sp" />
-
-                                        <TextView
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="8dp"
-                                            android:fontFamily="sans-serif-medium"
-                                            android:lineSpacingExtra="2dp"
-                                            android:text="@string/gcash_check_amount_desc"
-                                            android:textColor="@color/velocity_text_secondary"
-                                            android:textSize="13sp" />
-
                                         <!-- The exact amount to pay, with a copy button -->
                                         <com.google.android.material.card.MaterialCardView
                                             style="@style/Widget.Velocity.Card.Flat"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="14dp"
                                             app:cardBackgroundColor="@color/gcash_blue_soft"
                                             app:strokeColor="@color/velocity_red_subtle">
 
@@ -1757,12 +1726,76 @@
                                             </LinearLayout>
                                         </com.google.android.material.card.MaterialCardView>
 
-                                        <LinearLayout
-                                            android:id="@+id/layoutAmountFacts"
+                                        <!-- 50% of the total - the rest is paid at the hotel -->
+                                        <TextView
+                                            android:id="@+id/tvGcashShareLine"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="14dp"
-                                            android:orientation="vertical" />
+                                            android:layout_marginTop="10dp"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:textColor="@color/velocity_text_primary"
+                                            android:textSize="13sp"
+                                            tools:text="50% of ₱18,900.00 · the rest (₱9,450.00) is paid at the hotel" />
+
+                                        <TextView
+                                            android:id="@+id/tvGcashTxLine"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="6dp"
+                                            android:textColor="@color/velocity_text_secondary"
+                                            android:textSize="13sp"
+                                            tools:text="Booking #583 · 2 stays · Oct 26 → Oct 28" />
+                                    </LinearLayout>
+
+                                    <!-- What you're paying for: expanded on Step 1, one line (tap to open) on the other steps. -->
+                                    <LinearLayout
+                                        android:id="@+id/cardGcashPayingFor"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="14dp"
+                                        android:layout_marginBottom="14dp"
+                                        android:background="@drawable/bg_flat_box"
+                                        android:orientation="vertical"
+                                        android:visibility="gone">
+
+                                        <LinearLayout
+                                            android:id="@+id/headerGcashPayingFor"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:background="?attr/selectableItemBackground"
+                                            android:clickable="true"
+                                            android:focusable="true"
+                                            android:gravity="center_vertical"
+                                            android:minHeight="48dp"
+                                            android:orientation="horizontal"
+                                            android:paddingHorizontal="12dp">
+
+                                            <TextView
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_weight="1"
+                                                android:fontFamily="sans-serif-black"
+                                                android:text="@string/gcash_paying_for_title"
+                                                android:textColor="@color/velocity_text_primary"
+                                                android:textSize="14sp" />
+
+                                            <ImageView
+                                                android:id="@+id/ivGcashPayingForChevron"
+                                                android:layout_width="20dp"
+                                                android:layout_height="20dp"
+                                                android:importantForAccessibility="no"
+                                                android:rotation="180"
+                                                android:src="@drawable/ic_expand_more"
+                                                app:tint="@color/velocity_text_secondary" />
+                                        </LinearLayout>
+
+                                        <LinearLayout
+                                            android:id="@+id/layoutGcashStays"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="vertical"
+                                            android:paddingHorizontal="12dp"
+                                            android:paddingBottom="10dp" />
                                     </LinearLayout>
 
                                     <!-- ============ STEP 1 of 5: Scan QR Code ============ -->
@@ -1772,6 +1805,53 @@
                                         android:layout_height="wrap_content"
                                         android:orientation="vertical"
                                         android:visibility="gone">
+
+                                        <com.google.android.material.card.MaterialCardView
+                                            style="@style/Widget.Velocity.Card.Flat"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginBottom="14dp"
+                                            app:cardBackgroundColor="@color/gcash_blue_soft"
+                                            app:strokeColor="@color/velocity_red_subtle">
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:orientation="vertical"
+                                                android:padding="14dp">
+
+                                                <TextView
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:fontFamily="sans-serif-bold"
+                                                    android:text="@string/gcash_amount_to_send_label"
+                                                    android:textColor="@color/velocity_text_secondary"
+                                                    android:textSize="12sp" />
+
+                                                <TextView
+                                                    android:id="@+id/tvSendAmount"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="4dp"
+                                                    android:fontFamily="sans-serif-black"
+                                                    android:textColor="@color/velocity_action_text"
+                                                    android:textSize="32sp"
+                                                    tools:text="₱9,450.00" />
+
+                                                <com.google.android.material.button.MaterialButton
+                                                    android:id="@+id/btnCopySendAmount"
+                                                    style="@style/Widget.Velocity.Flat.Button.Outlined"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="8dp"
+                                                    android:minHeight="48dp"
+                                                    android:text="@string/copy_amount_button"
+                                                    android:textColor="@color/velocity_action_text"
+                                                    app:icon="@drawable/ic_copy"
+                                                    app:iconGravity="textStart"
+                                                    app:iconTint="@color/velocity_action_text" />
+                                            </LinearLayout>
+                                        </com.google.android.material.card.MaterialCardView>
 
                                         <TextView
                                             android:layout_width="match_parent"

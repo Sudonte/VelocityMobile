@@ -202,6 +202,8 @@
         <item name="endIconTint">@color/velocity_red_primary</item>
         <item name="passwordToggleTint">@color/velocity_red_primary</item>
         <item name="hintEnabled">false</item>
+        <!-- the helper line under a field reads in both themes (the Material default was near-black in the dark theme) -->
+        <item name="helperTextTextColor">@color/velocity_text_secondary</item>
     </style>
 
     <!-- Modern exposed dropdown (combo box) used for Sort By / Room Type filter -->

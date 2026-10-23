@@ -171,7 +171,7 @@ final class ReviewSheet {
             amount.setText(r.amount);
             amount.setGravity(android.view.Gravity.END);
             amount.setTextSize(r.bold ? 14 : 12);
-            amount.setTextColor(ContextCompat.getColor(c, r.bold ? R.color.velocity_red_primary : R.color.velocity_text_primary));
+            amount.setTextColor(ContextCompat.getColor(c, r.bold ? R.color.velocity_action_text : R.color.velocity_text_primary));
             if (r.bold) amount.setTypeface(amount.getTypeface(), Typeface.BOLD);
             row.addView(amount);
         }
