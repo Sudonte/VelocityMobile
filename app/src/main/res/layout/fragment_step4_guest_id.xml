@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Who checks in: two large choices (neither chosen at first). "Owner (me)" shows the account's own names, read-only; "Someone else" shows editable fields. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -37,6 +39,7 @@
                         android:layout_width="36dp"
                         android:layout_height="36dp"
                         app:cardBackgroundColor="@color/velocity_red_soft">
+
                         <ImageView
                             android:layout_width="18dp"
                             android:layout_height="18dp"
@@ -72,28 +75,107 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvRepresentativeTitle"
+                <!-- Two large segments; neither is selected until the guest chooses. -->
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleWho"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="@string/rep_group_title"
-                    android:textColor="@color/velocity_text_primary"
-                    android:textSize="14sp" />
+                    app:selectionRequired="false"
+                    app:singleSelection="true">
 
-                <include
-                    android:id="@+id/repFields"
-                    layout="@layout/view_representative_fields"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnWhoOwner"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_height="64dp"
+                        android:layout_weight="1"
+                        android:text="@string/who_owner_me"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnWhoOther"
+                        style="@style/Widget.Velocity.Flat.Button.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_height="64dp"
+                        android:layout_weight="1"
+                        android:text="@string/who_someone_else"
+                        android:textColor="@color/velocity_text_primary"
+                        android:textSize="14sp" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <TextView
+                    android:id="@+id/tvWhoError"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/who_choose_error"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <!-- Owner (me): the account's own names, shown read-only. -->
+                <LinearLayout
+                    android:id="@+id/layoutWhoOwner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <include
+                        android:id="@+id/ownerFields"
+                        layout="@layout/view_representative_fields"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/tvOwnerNotYou"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:minHeight="48dp"
+                        android:gravity="center_vertical"
+                        android:text="@string/who_not_you"
+                        android:textColor="@color/velocity_action_text"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvOwnerProfileMissing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/who_owner_profile_missing"
+                        android:textColor="@color/velocity_action_text"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Someone else: empty, editable. -->
+                <LinearLayout
+                    android:id="@+id/layoutWhoOther"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <include
+                        android:id="@+id/otherFields"
+                        layout="@layout/view_representative_fields"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
 
                 <!-- Always visible (an error replaces a TextInputLayout's helper, so it is a plain TextView). -->
                 <TextView
                     android:id="@+id/tvRepresentativeHelper"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="12dp"
                     android:text="@string/representative_name_helper"
                     android:textColor="@color/velocity_text_secondary"
                     android:textSize="12sp" />

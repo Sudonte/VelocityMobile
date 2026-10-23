@@ -1,5 +1,7 @@
 package com.example.velocitysuites;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -14,15 +16,31 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 /**
- * Step 4: the OPTIONAL representative - the person who will check in on the guest's behalf - as Last name, First name and Middle name
- * (optional). All three empty is valid and never blocks Next (the account owner checks in); if any is filled, last and first name are
- * required. How it is sent is in {@link RepresentativeName}.
+ * Representative: who will check in. Two large choices, neither selected at first:
+ * <ul>
+ *   <li><b>Owner (me)</b> - Last, First and Middle name come from the account profile and are shown read-only. A profile without a middle
+ *   name leaves it empty (it is optional). The booking is sent exactly as before for "no separate representative": the owner's first and
+ *   last name (see {@link RepresentativeName#namesToSend}).</li>
+ *   <li><b>Someone else</b> - three empty, editable fields: last and first name required, middle name optional, the same character rules
+ *   as ever.</li>
+ * </ul>
+ * Next stays blocked, with an inline message, until a choice is made (and, for Someone else, the names are valid).
  */
 public class Step4GuestIdentificationFragment extends WizardStepFragment {
+
+    private MaterialButtonToggleGroup toggle;
+    private MaterialButton btnOwner;
+    private MaterialButton btnOther;
+    private TextView tvWhoError;
+    private View layoutOwner;
+    private View layoutOther;
+    private TextView tvOwnerMissing;
 
     private TextInputLayout tilLast;
     private TextInputLayout tilFirst;
@@ -30,6 +48,7 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
     private TextInputEditText etLast;
     private TextInputEditText etFirst;
     private TextInputEditText etMiddle;
+
     private View rowWho;
     private TextView whoBody;
     private ImageView whoChevron;
@@ -43,12 +62,22 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        tilLast = view.findViewById(R.id.tilRepLast);
-        tilFirst = view.findViewById(R.id.tilRepFirst);
-        tilMiddle = view.findViewById(R.id.tilRepMiddle);
-        etLast = view.findViewById(R.id.etRepLast);
-        etFirst = view.findViewById(R.id.etRepFirst);
-        etMiddle = view.findViewById(R.id.etRepMiddle);
+        toggle = view.findViewById(R.id.toggleWho);
+        btnOwner = view.findViewById(R.id.btnWhoOwner);
+        btnOther = view.findViewById(R.id.btnWhoOther);
+        tvWhoError = view.findViewById(R.id.tvWhoError);
+        layoutOwner = view.findViewById(R.id.layoutWhoOwner);
+        layoutOther = view.findViewById(R.id.layoutWhoOther);
+        tvOwnerMissing = view.findViewById(R.id.tvOwnerProfileMissing);
+
+        // The two copies of the three name fields live under their own parent, so look each up inside it.
+        View other = view.findViewById(R.id.otherFields);
+        tilLast = other.findViewById(R.id.tilRepLast);
+        tilFirst = other.findViewById(R.id.tilRepFirst);
+        tilMiddle = other.findViewById(R.id.tilRepMiddle);
+        etLast = other.findViewById(R.id.etRepLast);
+        etFirst = other.findViewById(R.id.etRepFirst);
+        etMiddle = other.findViewById(R.id.etRepMiddle);
         rowWho = view.findViewById(R.id.rowRepresentativeWho);
         whoBody = view.findViewById(R.id.tvRepresentativeWhoBody);
         whoChevron = view.findViewById(R.id.ivRepresentativeWhoChevron);
@@ -77,13 +106,70 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
             });
         }
         BookingWizardState state = getState();
-        etLast.setText(state.repLast);
-        etFirst.setText(state.repFirst);
-        etMiddle.setText(state.repMiddle);
+        boolean typedByGuest = state.who == BookingWizardState.Who.OTHER;
+        etLast.setText(typedByGuest ? state.repLast : state.otherLast);
+        etFirst.setText(typedByGuest ? state.repFirst : state.otherFirst);
+        etMiddle.setText(typedByGuest ? state.repMiddle : state.otherMiddle);
+
+        bindOwnerFields(view.findViewById(R.id.ownerFields));
+
+        // Restore the choice without triggering the listener's side effects, then listen.
+        if (state.who == BookingWizardState.Who.OWNER) toggle.check(R.id.btnWhoOwner);
+        else if (state.who == BookingWizardState.Who.OTHER) toggle.check(R.id.btnWhoOther);
+        applyChoice(state.who);
+        toggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) {
+                if (group.getCheckedButtonId() == View.NO_ID) { // the guest tapped the selected one again: back to "nothing chosen"
+                    getState().who = BookingWizardState.Who.NONE;
+                    applyChoice(BookingWizardState.Who.NONE);
+                }
+                return;
+            }
+            getState().who = checkedId == R.id.btnWhoOwner ? BookingWizardState.Who.OWNER : BookingWizardState.Who.OTHER;
+            applyChoice(getState().who);
+        });
+        view.findViewById(R.id.tvOwnerNotYou).setOnClickListener(v -> toggle.check(R.id.btnWhoOther));
 
         boolean open = savedInstanceState != null && savedInstanceState.getBoolean("whoOpen");
         showWho(open);
         rowWho.setOnClickListener(v -> showWho(whoBody.getVisibility() != View.VISIBLE));
+    }
+
+    /** The owner's three names from the account profile, read-only. */
+    private void bindOwnerFields(View ownerFields) {
+        String[] names = ownerNames(requireContext());
+        TextInputEditText last = ownerFields.findViewById(R.id.etRepLast);
+        TextInputEditText first = ownerFields.findViewById(R.id.etRepFirst);
+        TextInputEditText middle = ownerFields.findViewById(R.id.etRepMiddle);
+        last.setText(names[0]);
+        first.setText(names[1]);
+        middle.setText(names[2]);
+        for (TextInputEditText f : new TextInputEditText[]{last, first, middle}) {
+            f.setEnabled(false);
+            f.setFocusable(false);
+            f.setTextColor(requireContext().getColor(R.color.velocity_text_primary));
+        }
+        ((TextInputLayout) ownerFields.findViewById(R.id.tilRepMiddle)).setHint(getString(R.string.who_owner_middle_hint));
+    }
+
+    /** {last, first, middle} of the signed-in account; empty strings for what the profile does not have. */
+    static String[] ownerNames(Context c) {
+        SharedPreferences p = c.getApplicationContext().getSharedPreferences("VelocityPrefs", Context.MODE_PRIVATE);
+        return new String[]{RepresentativeName.clean(p.getString("userLastName", "")),
+                RepresentativeName.clean(p.getString("userFirstName", "")),
+                RepresentativeName.clean(p.getString("userMiddleName", ""))};
+    }
+
+    private boolean ownerProfileComplete() {
+        String[] n = ownerNames(requireContext());
+        return !n[0].isEmpty() && !n[1].isEmpty();
+    }
+
+    private void applyChoice(BookingWizardState.Who who) {
+        layoutOwner.setVisibility(who == BookingWizardState.Who.OWNER ? View.VISIBLE : View.GONE);
+        layoutOther.setVisibility(who == BookingWizardState.Who.OTHER ? View.VISIBLE : View.GONE);
+        tvOwnerMissing.setVisibility(who == BookingWizardState.Who.OWNER && !ownerProfileComplete() ? View.VISIBLE : View.GONE);
+        if (who != BookingWizardState.Who.NONE) tvWhoError.setVisibility(View.GONE);
     }
 
     private boolean hasAnyError() {
@@ -111,14 +197,25 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
         return f.getText() != null ? f.getText().toString() : "";
     }
 
+    /** Copies the choice into the wizard state: what the API sends and what the review shows. */
     private void store() {
-        RepresentativeName.Parts p = typed();
         BookingWizardState state = getState();
-        state.repLast = p.last;
-        state.repFirst = p.first;
-        state.repMiddle = p.middle;
-        // The API's fields: the representative's names, or the account owner's when the block is empty.
-        String[] names = RepresentativeName.namesToSend(requireContext(), p);
+        RepresentativeName.Parts typed = typed();
+        if (state.who == BookingWizardState.Who.OTHER) {
+            state.repLast = typed.last;
+            state.repFirst = typed.first;
+            state.repMiddle = typed.middle;
+        } else {
+            // The owner checks in (or nothing is chosen yet): no separate representative.
+            state.repLast = "";
+            state.repFirst = "";
+            state.repMiddle = "";
+            // Keep what was typed for "Someone else" in case the guest switches back.
+            state.otherLast = typed.last;
+            state.otherFirst = typed.first;
+            state.otherMiddle = typed.middle;
+        }
+        String[] names = RepresentativeName.namesToSend(requireContext(), state.representative());
         state.guestFirstName = names[0];
         state.guestMiddleName = names[1];
         state.guestLastName = names[2];
@@ -132,7 +229,7 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
 
     @Override
     public String stepTitle() {
-        return "Guest and Identification";
+        return getString(R.string.step_title_representative);
     }
 
     @StringRes
@@ -149,12 +246,16 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
     /** Shows the current problem under each field (none when it is fine). Returns the first field with a problem, or null. */
     @Nullable
     private View showErrors() {
-        RepresentativeName.Result r = RepresentativeName.validate(typed());
-        set(tilLast, messageFor(r.last, R.string.error_rep_last_required));
-        set(tilFirst, messageFor(r.first, R.string.error_rep_first_required));
+        RepresentativeName.Parts p = typed();
+        RepresentativeName.Result r = RepresentativeName.validate(p);
+        // "Someone else" with nothing typed is not "no representative" - the names are required.
+        RepresentativeName.Problem last = p.isBlank() ? RepresentativeName.Problem.REQUIRED : r.last;
+        RepresentativeName.Problem first = p.isBlank() ? RepresentativeName.Problem.REQUIRED : r.first;
+        set(tilLast, messageFor(last, R.string.error_rep_last_required));
+        set(tilFirst, messageFor(first, R.string.error_rep_first_required));
         set(tilMiddle, messageFor(r.middle, 0));
-        if (r.last != RepresentativeName.Problem.NONE) return etLast;
-        if (r.first != RepresentativeName.Problem.NONE) return etFirst;
+        if (last != RepresentativeName.Problem.NONE) return etLast;
+        if (first != RepresentativeName.Problem.NONE) return etFirst;
         if (r.middle != RepresentativeName.Problem.NONE) return etMiddle;
         return null;
     }
@@ -164,15 +265,48 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
         if (!java.util.Objects.equals(String.valueOf(til.getError()), String.valueOf(error))) til.setError(error);
     }
 
-    /** All empty is valid and never blocks Next; any field filled makes last and first name required. */
     @Override
     public boolean validateBeforeNext() {
-        store();
+        BookingWizardState state = getState();
+        if (state.who == BookingWizardState.Who.NONE) {
+            tvWhoError.setVisibility(View.VISIBLE);
+            tvWhoError.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED);
+            return false;
+        }
+        if (state.who == BookingWizardState.Who.OWNER) {
+            if (!ownerProfileComplete()) {
+                tvOwnerMissing.setVisibility(View.VISIBLE);
+                return false;
+            }
+            store();
+            return true;
+        }
         View firstProblem = showErrors();
         if (firstProblem != null) {
             firstProblem.requestFocus();
             return false;
         }
+        store();
         return true;
+    }
+
+    @Override
+    public int validationMessageRes() {
+        return 0; // inline messages
+    }
+
+    @Override
+    public String nextConfirmTitle() {
+        return getString(R.string.proceed_to_guest_details);
+    }
+
+    @Override
+    public String nextConfirmSummary() {
+        BookingWizardState state = getState();
+        if (state.who == BookingWizardState.Who.OWNER) {
+            String[] n = ownerNames(requireContext());
+            return getString(R.string.who_summary_owner_format, new RepresentativeName.Parts(n[0], n[1], n[2]).formatted());
+        }
+        return getString(R.string.who_summary_other_format, state.representative().formatted());
     }
 }
