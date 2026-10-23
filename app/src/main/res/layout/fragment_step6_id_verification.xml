@@ -15,16 +15,9 @@
         android:padding="22dp">
 
         <TextView
-            style="@style/TextAppearance.Velocity.Label.Section"
+            android:id="@+id/tvDiscountIntro"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/id_verification_title"
-            android:textColor="@color/velocity_text_primary" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:layout_marginBottom="14dp"
             android:text="@string/discount_step_intro"
             android:textColor="@color/velocity_text_secondary"

@@ -1886,26 +1886,31 @@ public final class RoomRepository {
     }
 
     /**
-     * Books several stays in one request (see Api\BookingGroupController): one booking (or reservation) per stay, all or nothing, with one
-     * combined payment of {@code amountPaid} for a booking group (the server splits it across the stays in proportion to their totals).
-     * Reservations take no payment. {@code onSuccess} receives the created stays in order.
+     * Creates ONE booking (or reservation) that holds every stay of the wizard - one transaction, one ID, each stay with its own dates,
+     * rooms and amenities (see Api\BookingController::store() and Api\ReservationController::store(), "stays[]"). A booking carries the
+     * guest's single payment of {@code amountPaid} (20-50% of the TRANSACTION total) and the ONE discount ID that applies to all stays;
+     * a reservation takes no payment (its ID, if any, is uploaded afterwards by the caller). {@code onSuccess} receives a one-element
+     * list: the created transaction.
      */
-    public void createBookingGroup(boolean reservation, List<BookingWizardState.Stay> stays, int adults, int children,
-                                   String guestFirstName, String guestMiddleName, String guestLastName,
-                                   List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
-                                   String paymentMethod, String referenceNumber, String gcashNumber, Uri receiptUri,
-                                   double amountPaid, Integer selectedPaymentPercentage, @Nullable String idempotencyKey,
-                                   RepositoryCallback<List<Booking>> callback) {
+    public void createWithStays(boolean reservation, List<BookingWizardState.Stay> stays, int adults, int children,
+                                String guestFirstName, String guestMiddleName, String guestLastName,
+                                String idCardType, @Nullable Long discountId, Uri idCardImageUri,
+                                List<BookingAndReservationActivity.AdditionalGuest> additionalGuests,
+                                String paymentMethod, String referenceNumber, String gcashNumber, Uri receiptUri,
+                                double amountPaid, Integer selectedPaymentPercentage, @Nullable String idempotencyKey,
+                                RepositoryCallback<List<Booking>> callback) {
         fileIoExecutor.execute(() -> {
             File receiptFile = null;
+            File idCardFile = null;
             try {
                 if (receiptUri != null && !reservation) receiptFile = copyUriToTempFile(receiptUri, "gcash_receipt_");
+                if (idCardImageUri != null && !reservation) idCardFile = copyUriToTempFile(idCardImageUri, "id_card_");
             } catch (IOException e) {
+                if (receiptFile != null) receiptFile.delete();
                 if (callback != null) mainHandler().post(() -> callback.onError("Couldn't read the selected image."));
                 return;
             }
             Map<String, RequestBody> fields = new LinkedHashMap<>(); // insertion order = index order (see createDirectBooking())
-            putText(fields, "type", reservation ? "reservation" : "booking");
             for (int s = 0; s < stays.size(); s++) {
                 BookingWizardState.Stay stay = stays.get(s);
                 putText(fields, "stays[" + s + "][check_in]", ApiMapper.toApiDate(stay.checkIn));
@@ -1927,6 +1932,8 @@ public final class RoomRepository {
             if (guestMiddleName != null && !guestMiddleName.trim().isEmpty()) putText(fields, "guest_middle_name", guestMiddleName.trim());
             putText(fields, "guest_last_name", guestLastName);
             putText(fields, "payment_method", paymentMethod);
+            if (idCardType != null && !"None".equals(idCardType)) putText(fields, "id_card_type", idCardType);
+            if (discountId != null) putText(fields, "discount_id", String.valueOf(discountId));
             if (!reservation) {
                 putText(fields, "amount_paid", String.valueOf(amountPaid));
                 if (selectedPaymentPercentage != null) putText(fields, "selected_payment_percentage", String.valueOf(selectedPaymentPercentage));
@@ -1950,27 +1957,54 @@ public final class RoomRepository {
             if (finalReceiptFile != null) {
                 receiptPart = MultipartBody.Part.createFormData("receipt", finalReceiptFile.getName(), RequestBody.create(finalReceiptFile, MediaType.parse("image/*")));
             }
-            api.createBookingGroup(fields, receiptPart).enqueue(new Callback<com.example.velocitysuites.network.dto.GroupResponseDto>() {
+            MultipartBody.Part idCardPart = null;
+            final File finalIdCardFile = idCardFile;
+            if (finalIdCardFile != null) {
+                idCardPart = MultipartBody.Part.createFormData("id_card_image", finalIdCardFile.getName(), RequestBody.create(finalIdCardFile, MediaType.parse("image/*")));
+            }
+
+            if (reservation) {
+                api.createReservationWithPayment(fields, null).enqueue(new Callback<ReservationDto>() {
+                    @Override
+                    public void onResponse(Call<ReservationDto> call, Response<ReservationDto> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            Booking created = ApiMapper.toBooking(response.body());
+                            bookings.add(0, created);
+                            notifyBookingsChanged();
+                            if (callback != null) callback.onSuccess(java.util.Collections.singletonList(created));
+                        } else if (callback != null) {
+                            callback.onError(errorMessage(response));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ReservationDto> call, Throwable t) {
+                        if (callback != null) callback.onError(networkErrorMessage(t));
+                    }
+                });
+                return;
+            }
+            api.createDirectBooking(fields, idCardPart, receiptPart).enqueue(new Callback<DirectBookingResponseDto>() {
                 @Override
-                public void onResponse(Call<com.example.velocitysuites.network.dto.GroupResponseDto> call, Response<com.example.velocitysuites.network.dto.GroupResponseDto> response) {
+                public void onResponse(Call<DirectBookingResponseDto> call, Response<DirectBookingResponseDto> response) {
                     if (finalReceiptFile != null) finalReceiptFile.delete();
+                    if (finalIdCardFile != null) finalIdCardFile.delete();
                     if (response.isSuccessful() && response.body() != null) {
-                        List<Booking> created = new ArrayList<>();
-                        if (response.body().bookings != null) for (DirectBookingResponseDto d : response.body().bookings) created.add(ApiMapper.toBooking(d));
-                        if (response.body().reservations != null) for (ReservationDto d : response.body().reservations) created.add(ApiMapper.toBooking(d));
-                        bookings.addAll(0, created);
+                        Booking created = ApiMapper.toBooking(response.body());
+                        bookings.add(0, created);
                         notifyBookingsChanged();
-                        if (callback != null) callback.onSuccess(created);
+                        if (callback != null) callback.onSuccess(java.util.Collections.singletonList(created));
                     } else if (callback != null) {
                         callback.onError(errorMessage(response.code(), readErrorBody(response)));
                     }
                 }
 
                 @Override
-                public void onFailure(Call<com.example.velocitysuites.network.dto.GroupResponseDto> call, Throwable t) {
+                public void onFailure(Call<DirectBookingResponseDto> call, Throwable t) {
                     if (finalReceiptFile != null) finalReceiptFile.delete();
+                    if (finalIdCardFile != null) finalIdCardFile.delete();
                     if (callback == null) return;
-                    if (!reservation && "gcash".equalsIgnoreCase(paymentMethod)) {
+                    if ("gcash".equalsIgnoreCase(paymentMethod)) {
                         reconcileAfterFailure(referenceNumber, t, new RepositoryCallback<Booking>() {
                             @Override
                             public void onSuccess(Booking result) {

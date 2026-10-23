@@ -76,7 +76,12 @@ final class TransactionCreatedDialogHelper {
 
         layoutDetails.setVisibility(transaction != null ? View.VISIBLE : View.GONE);
         if (transaction != null) {
-            tvType.setText(isBooking ? R.string.transaction_type_booking_label : R.string.transaction_type_reservation_label);
+            String type = context.getString(isBooking ? R.string.transaction_type_booking_label : R.string.transaction_type_reservation_label);
+            // ONE ID for the whole transaction; a multi-stay one says how many stays it covers
+            tvType.setText(transaction.hasSeveralStays()
+                    ? context.getString(R.string.created_type_stays_format, type,
+                            context.getResources().getQuantityString(R.plurals.stays_count, transaction.getStayCount(), transaction.getStayCount()))
+                    : type);
             boolean gcash = "gcash".equalsIgnoreCase(transaction.getPaymentMethod());
             tvPaymentMethod.setText(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash);
             // Same status computation the Bookings/Reservations list and Details

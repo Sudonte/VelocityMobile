@@ -3047,10 +3047,11 @@ public class PaymentActivity extends BaseNavigationActivity {
                 });
     }
 
-    /** Several stays, one GCash payment: the server splits it across the bookings in proportion to their totals. All or nothing. */
+    /** Several stays, ONE booking: one GCash payment of 20-50% of the whole transaction and the one discount ID. All or nothing. */
     private void submitPendingStayGroup(AlertDialog dialog, String gcashNumber, String referenceNumber) {
-        repository.createBookingGroup(false, pendingWizardState.allStays(), pendingWizardState.adults, pendingWizardState.children,
+        repository.createWithStays(false, pendingWizardState.allStays(), pendingWizardState.adults, pendingWizardState.children,
                 pendingWizardState.guestFirstName, pendingWizardState.guestMiddleName, pendingWizardState.guestLastName,
+                pendingWizardState.idCardType, pendingWizardState.discountIdOrNull(), pendingWizardState.idCardImageUri,
                 pendingWizardState.additionalGuests, "gcash", referenceNumber, gcashNumber, receiptUri,
                 payNowValue, selectedGcashPercentageForRequest(), UUID.randomUUID().toString(),
                 new RoomRepository.RepositoryCallback<List<Booking>>() {

@@ -143,17 +143,9 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
             refreshUploadSection();
         });
 
-        // Several stays booked together: a discount ID is checked by the front desk per stay at check-in, so none is claimed here.
+        // One ID per transaction: with several stays the same discount applies to all of them.
         if (getState().isGroup()) {
-            getState().setDiscount(null);
-            rowNoDiscount.setVisibility(View.GONE);
-            layoutList.setVisibility(View.GONE);
-            layoutLoading.setVisibility(View.GONE);
-            layoutError.setVisibility(View.GONE);
-            layoutIdUpload.setVisibility(View.GONE);
-            tvEmpty.setText(R.string.discount_group_note);
-            tvEmpty.setVisibility(View.VISIBLE);
-            return;
+            ((TextView) view.findViewById(R.id.tvDiscountIntro)).setText(R.string.discount_step_intro_stays);
         }
 
         renderList();

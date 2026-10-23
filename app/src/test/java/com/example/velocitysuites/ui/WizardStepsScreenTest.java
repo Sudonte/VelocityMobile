@@ -119,14 +119,13 @@ public class WizardStepsScreenTest {
     // ---- Step 1 (dates) ----
 
     @Test
-    public void step1_opensWithTheTwoDayWindowHint_forBothFlows() {
+    public void step1_opensWithTheEarliestCheckInHelperLine_forBothFlows() {
         for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
             BookingWizardActivity activity = launch(mode).get();
             View checkIn = find(activity, R.id.etCheckIn);
             assertTrue(checkIn.isShown() || checkIn.getVisibility() == View.VISIBLE);
             com.google.android.material.textfield.TextInputLayout til = find(activity, R.id.tilCheckIn);
-            assertEquals(app.getString(R.string.helper_checkin_window), String.valueOf(til.getHelperText()));
-            assertTrue(app.getString(R.string.helper_checkin_window).contains("2 days from today"));
+            assertEquals("Earliest: " + CheckInWindow.earliestShort(), String.valueOf(til.getHelperText()));
         }
     }
 

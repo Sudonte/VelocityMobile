@@ -358,7 +358,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         layoutSummaryAmenities.setVisibility(anyAmenities ? View.VISIBLE : View.GONE);
         if (anyAmenities) tvSummaryAmenitiesSubtotal.setText(money(amenitiesTotal()));
         tvSummaryTotal.setText(money(state.groupTotal()));
-        tvSummaryDiscountNote.setVisibility(View.GONE);
+        renderDiscountEstimate(state);
         layoutEditTotals.setVisibility(View.GONE);
     }
 
@@ -608,14 +608,21 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     /** Several stays, one request: a reservation per stay, all or nothing (the error names the stay that failed). */
     private void createReservationGroup(AlertDialog dialog) {
         BookingWizardState state = getState();
-        repository.createBookingGroup(true, state.allStays(), state.adults, state.children,
-                state.guestFirstName, state.guestMiddleName, state.guestLastName, state.additionalGuests,
+        repository.createWithStays(true, state.allStays(), state.adults, state.children,
+                state.guestFirstName, state.guestMiddleName, state.guestLastName,
+                state.idCardType, state.discountIdOrNull(), null, state.additionalGuests,
                 state.paymentMethod, null, null, null, 0, null, UUID.randomUUID().toString(),
                 new RoomRepository.RepositoryCallback<List<Booking>>() {
                     @Override
                     public void onSuccess(List<Booking> created) {
-                        dismissSafely(dialog);
-                        if (!created.isEmpty()) onReservationCreated(created.get(0));
+                        if (created.isEmpty()) {
+                            dismissSafely(dialog);
+                            return;
+                        }
+                        uploadIdCardIfNeeded(created.get(0), () -> {
+                            dismissSafely(dialog);
+                            onReservationCreated(created.get(0));
+                        });
                     }
 
                     @Override
