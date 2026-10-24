@@ -23,7 +23,8 @@ import java.util.Locale;
  * <p>Per date range, headed by its dates ("Oct 26 → Oct 27, 2026 · 1 night", never "Stay N"): its rooms, then its amenities (under the
  * room they were chosen for, else under "Amenities for this stay") and, with several date ranges, the range's subtotal. After the date
  * ranges: Room charges, Amenities, Other charges (front desk), the Discount (only once applied; otherwise a note), the Grand total and,
- * on the details screens and receipts, Paid so far and Balance due. Label left, amount right.
+ * on the details screens and receipts, Paid so far (the Grand total, Remaining balance and Amount to pay are the summary at the bottom, see
+ * {@link MoneySummary}). Label left, amount right.
  */
 final class PayingForBreakdown {
 
@@ -105,8 +106,6 @@ final class PayingForBreakdown {
     boolean cancelled;
     /** Amenity requests the front desk has not approved (waiting or refused): listed apart with their status, never counted in a total. */
     final List<Line> requests = new ArrayList<>();
-    /** One short plain-language line under the bill ("You pay the balance at the hotel."). */
-    @Nullable String plainLine;
 
     double roomCharges() {
         if (roomsOverride != null) return roomsOverride;
@@ -188,7 +187,6 @@ final class PayingForBreakdown {
             out.balance = summary.balance;
         }
         out.waiting = TransactionStatusHelper.summarize(booking).pendingSubmitted;
-        out.plainLine = out.plainLine(c);
         return out;
     }
 
@@ -410,18 +408,7 @@ final class PayingForBreakdown {
                 out.balance = rb.grandTotal;
             }
         }
-        int stage = ReceiptTypeMapper.stageOf(detail.getReceiptType());
-        if (stage == 1 && out.balance > 0.009) out.plainLine = c.getString(R.string.receipt_balance_at_hotel_format, MoneyFormat.format(out.balance));
-        else if (stage == 2 && out.balance > 0.009) out.plainLine = c.getString(R.string.receipt_balance_at_checkout_format, MoneyFormat.format(out.balance));
-        else out.plainLine = out.plainLine(c);
         return out;
-    }
-
-    @Nullable
-    private String plainLine(Context c) {
-        if (cancelled) return c.getString(R.string.balance_plain_cancelled);
-        // settled: the green "Fully paid" on the Balance due row already says it
-        return balance > 0.009 ? c.getString(R.string.bill_plain_balance_at_hotel) : null;
     }
 
     private static String roomName(Context c, @Nullable String name, int count) {
@@ -448,7 +435,7 @@ final class PayingForBreakdown {
         }
     }
 
-    /** The bill: Room charges, Amenities, Other charges, Discount, Grand total, then (details and receipts) Paid so far and Balance due. */
+    /** The bill: Room charges, Amenities, Other charges, Discount, then the Grand total (payment steps) or Paid so far and Waiting for verification (details and receipts). */
     void renderBill(Context c, ViewGroup into) {
         if (stays.isEmpty()) return;
         View rule = new View(c);
@@ -472,7 +459,9 @@ final class PayingForBreakdown {
             into.addView(row(c, discountName == null || discountName.isEmpty() ? c.getString(R.string.details_label_discount)
                     : c.getString(R.string.details_discount_applied_format, discountName), -appliedDiscount, false));
         }
-        into.addView(row(c, c.getString(R.string.review_grand_total_label), grandTotal, true));
+        // the payment steps end the bill with the Grand total; on the details screens and receipts the Grand total, the Remaining balance
+        // and the Amount to pay are shown once, in the summary at the bottom (MoneySummary), not repeated here
+        if (!settlement) into.addView(row(c, c.getString(R.string.review_grand_total_label), grandTotal, true));
         if (expectedDiscount > 0.009) {
             into.addView(small(c, c.getString(R.string.details_expected_discount_format,
                     discountName == null || discountName.isEmpty() ? c.getString(R.string.details_label_discount) : discountName, MoneyFormat.format(expectedDiscount)), 6));
@@ -480,17 +469,10 @@ final class PayingForBreakdown {
         if (settlement && !cancelled) {
             into.addView(row(c, c.getString(R.string.bill_paid_so_far), paid, false));
             if (waiting > 0.009) into.addView(row(c, c.getString(R.string.bill_waiting_for_verification), waiting, false));
-            if (balance > 0.009) {
-                into.addView(row(c, c.getString(R.string.bill_balance_due), balance, true));
-            } else {
-                into.addView(ReviewSheet.row(c, ReviewSheet.Row.boldColored(c.getString(R.string.bill_balance_due),
-                        c.getString(R.string.bill_fully_paid_format, MoneyFormat.format(0)), R.color.velocity_green_dark)));
-            }
         }
         if (settlement && !cancelled && waiting > 0.009) {
             into.addView(small(c, c.getString(R.string.bill_waiting_note, MoneyFormat.format(waiting)), 8));
         }
-        if (plainLine != null && !plainLine.isEmpty()) into.addView(small(c, plainLine, 8));
     }
 
     /** "No amenities added", in the secondary colour. */

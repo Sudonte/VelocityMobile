@@ -235,7 +235,8 @@ public class ReceiptFromApiPayloadTest {
         assertEquals("2", r.get("Adults"));
         assertEquals("₱5,000.00", r.get("Grand total"));
         assertEquals("₱1,000.00", r.get("Paid so far"));
-        assertEquals("₱4,000.00", r.get("Balance due"));
+        assertEquals("₱4,000.00", r.get("Remaining balance"));
+        assertEquals("₱4,000.00 · at check-in", r.get("Amount to pay"));
         assertEquals("₱1,000.00", r.get("GCash · Paid online"));
         assertTrue(all.toString(), all.contains("Sep 20, 2026 • 02:10:00 PM · Ref. 1234 567 890123 · Verified"));
     }
@@ -250,7 +251,7 @@ public class ReceiptFromApiPayloadTest {
         assertTrue(all.toString(), all.contains("Receipt 2 of 3 · Check-in") && all.contains("Paid"));
         assertEquals("₱5,000.00", r.get("Grand total"));
         assertEquals("₱5,000.00", r.get("Paid so far"));
-        assertEquals("the settled balance reads green and plain", "₱0.00 · Fully paid", r.get("Balance due"));
+        assertEquals("nothing is left to pay, said plainly", "₱0.00 · Nothing to pay", r.get("Amount to pay"));
         assertEquals("₱4,000.00", r.get("Cash · Paid at check-in"));
         assertEquals("₱1,000.00", r.get("GCash · Paid online"));
         assertTrue(all.toString(), all.contains("Sep 25, 2026 • 12:30:00 PM · Verified"));
@@ -264,7 +265,8 @@ public class ReceiptFromApiPayloadTest {
         List<String> all = allTexts(a.findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("OR-20260927-000310", r.get("Receipt number"));
         assertTrue(all.toString(), all.contains("Receipt 3 of 3 · Check-out (final)") && all.contains("Sep 25 → Sep 27, 2026 · 2 nights"));
-        assertEquals("₱0.00 · Fully paid", r.get("Balance due"));
+        assertEquals("₱0.00 · Fully paid", r.get("Amount to pay"));
+        assertEquals("₱0.00", r.get("Remaining balance"));
         assertEquals("₱4,000.00", r.get("Cash · Paid at check-out"));
         assertTrue("what was handed over and the change", all.toString().contains("Cash received ₱5,000.00 · Change ₱1,000.00"));
         assertTrue("the no-refund note ends the final receipt", all.contains("No refunds for early check-out (hotel policy)."));

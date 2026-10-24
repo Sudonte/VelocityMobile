@@ -124,8 +124,8 @@ public class BalanceBreakdownReceiptTest {
     public void receipt3_printsTheBillInTheAgreedOrderWithTheServersFigures() {
         List<String> t = texts(receipt(BREAKDOWN, HIGHLIGHT));
         String[] order = {"Receipt 3 of 3 · Check-out (final)", "Your Stay", "Deluxe Room × 1 · ₱2,500.00 × 2 nights", "Bill", "Room charges", "₱5,000.00", "Amenities", "₱100.00",
-                "Other charges: Broken lamp", "₱300.00", "Discount (Senior Citizen)", "−₱1,000.00", "Grand total", "₱4,400.00", "Paid so far", "₱4,400.00",
-                "Balance due", "₱0.00 · Fully paid"};
+                "Other charges: Broken lamp", "₱300.00", "Discount (Senior Citizen)", "−₱1,000.00", "Paid so far", "₱4,400.00",
+                "Payments", "Grand total", "₱4,400.00", "Remaining balance", "₱0.00", "Amount to pay", "₱0.00 · Fully paid"};
         int last = -1;
         for (String needle : order) {
             int at = indexOf(t.subList(Math.max(0, last), t.size()), needle);
@@ -144,7 +144,7 @@ public class BalanceBreakdownReceiptTest {
                 + "\"remaining_balance\":0,\"final_grand_total\":5000.0,\"total_paid\":5000.0,\"balance_due\":0}";
         List<String> t = texts(receipt(none, HIGHLIGHT));
         assertTrue(t.toString(), indexOf(t, "No amenities added") >= 0);
-        assertTrue(indexOf(t, "Balance due") >= 0);
+        assertEquals("₱0.00", t.get(indexOf(t, "Remaining balance") + 1));
         assertEquals("no discount row when there is no discount", -1, indexOf(t, "Discount ("));
         assertEquals("no other-charges row when there are none", -1, indexOf(t, "Other charges"));
     }

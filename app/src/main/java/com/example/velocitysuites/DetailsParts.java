@@ -146,7 +146,7 @@ final class DetailsParts {
         return steps;
     }
 
-    /** "₱9,800.00 of ₱19,600.00 paid · ₱9,800.00 left", the bar, and the steps with their check marks. */
+    /** "50% paid", the bar, and the steps with their check marks. */
     static void paymentProgress(@NonNull Context c, @NonNull ViewGroup into, @NonNull Booking b) {
         into.removeAllViews();
         List<Step> steps = progressSteps(c, b);
@@ -158,14 +158,13 @@ final class DetailsParts {
         TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(b);
         double total = summary.grandTotal;
         double paid = Math.min(summary.verifiedPaid, total > 0 ? total : summary.verifiedPaid);
-        double left = Math.max(0, total - paid);
+        // a percentage: the Grand total and the Remaining balance are the summary at the bottom, each shown once
+        int percent = total > MoneyFormat.EPSILON ? (int) Math.floor(Math.min(1.0, paid / total) * 100 + 1e-9) : 0;
 
         TextView title = text(c, c.getString(R.string.progress_title), 12, true, R.color.velocity_action_text);
         title.setPadding(0, 0, 0, dp(c, 8));
         into.addView(title);
-        TextView head = text(c, left > MoneyFormat.EPSILON
-                ? c.getString(R.string.progress_line_left, MoneyFormat.format(paid), MoneyFormat.format(total), MoneyFormat.format(left))
-                : c.getString(R.string.progress_line_paid, MoneyFormat.format(paid), MoneyFormat.format(total)), 14, true, R.color.velocity_text_primary);
+        TextView head = text(c, c.getString(R.string.progress_percent_paid, percent), 14, true, R.color.velocity_text_primary);
         head.setPadding(0, 0, 0, dp(c, 8));
         into.addView(head);
         if (summary.pendingSubmitted > MoneyFormat.EPSILON) {

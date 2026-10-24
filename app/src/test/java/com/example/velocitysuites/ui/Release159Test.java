@@ -220,7 +220,7 @@ public class Release159Test {
         b.setPaymentSummary(new Booking.PaymentSummary(19600, 9800, 9800, "PARTIALLY_PAID", 50, false, 0));
         List<String> t = details(b);
         String all = String.join("\n", t);
-        assertTrue(all, all.contains("₱9,800.00 of ₱19,600.00 paid · ₱9,800.00 left"));
+        assertTrue(all, all.contains("50% paid"));
         assertTrue(all, all.contains("✓ Paid online (GCash)") && all.contains("✓ Verified by the front desk"));
         assertTrue("check-out is the step still to come: " + all, all.contains("○ Paid at check-out") && all.contains("○ Fully paid"));
         assertFalse("check-in step is not shown when nothing was paid there and the guest is already in", all.contains("Paid at check-in"));
@@ -276,7 +276,7 @@ public class Release159Test {
         assertFalse(t.toString(), t.contains("Payment verified"));
         assertTrue(t.toString(), t.contains("Receipt number") && t.contains("Date issued") && t.contains("Transaction ID"));
         assertFalse(t.toString(), t.contains("Payment Reference") || t.contains("Receipt Date"));
-        assertTrue("the balance at the hotel is said plainly: " + t, t.stream().anyMatch(x -> x.startsWith("Balance due at the hotel: ₱")));
+        assertTrue("the balance at the hotel is said plainly: " + t, after(t, "Amount to pay").endsWith("· at check-in"));
     }
 
     @Test
@@ -300,7 +300,7 @@ public class Release159Test {
         assertTrue(t.toString(), t.contains("Transaction History") && t.contains("Checked in (Oct 27 → Oct 28)"));
         assertEquals("PWD · applied", after(t, "ID / discount"));
         assertTrue(t.toString(), t.contains("No refunds for early check-out (hotel policy)."));
-        assertEquals("₱0.00 · Fully paid", after(t, "Balance due"));
+        assertEquals("₱0.00 · Fully paid", after(t, "Amount to pay"));
     }
 
     // ---- Part 4: Step 3 labels ----

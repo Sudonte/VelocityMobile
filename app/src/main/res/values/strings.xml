@@ -217,7 +217,6 @@
     <string name="receipt_transaction_id_label">Transaction ID</string>
     <string name="receipt_transaction_id_reservation">Reservation #%1$s</string>
     <string name="receipt_transaction_id_booking">Booking #%1$s</string>
-    <string name="balance_plain_cancelled">This booking was cancelled</string>
     <string name="receipt_verification_title">Payment Verification Information</string>
     <string name="receipt_total_amount_paid_label">Total Amount Paid</string>
     <string name="receipt_verified_by_label">Verified by</string>
@@ -2459,9 +2458,6 @@ Estimated total after discount: %3$s</string>
     <string name="bill_other_charge_format">Other charges: %1$s</string>
     <string name="bill_amenities">Amenities</string>
     <string name="bill_paid_so_far">Paid so far</string>
-    <string name="bill_balance_due">Balance due</string>
-    <string name="bill_fully_paid_format">%1$s · Fully paid</string>
-    <string name="bill_plain_balance_at_hotel">You pay the balance at the hotel.</string>
     <string name="details_title_stay">Your Stay</string>
     <string name="details_title_guests">Guests</string>
     <string name="details_title_bill">Bill</string>
@@ -2493,8 +2489,7 @@ Estimated total after discount: %3$s</string>
     <string name="progress_paid_checkin">Paid at check-in</string>
     <string name="progress_paid_checkout">Paid at check-out</string>
     <string name="progress_fully_paid">Fully paid</string>
-    <string name="progress_line_left">%1$s of %2$s paid · %3$s left</string>
-    <string name="progress_line_paid">%1$s of %2$s paid</string>
+    <string name="progress_percent_paid">%1$d%% paid</string>
     <string name="receipt_row_1">Receipt 1 · Payment verified</string>
     <string name="receipt_row_2">Receipt 2 · Check-in</string>
     <string name="receipt_row_3">Receipt 3 · Check-out (final)</string>
@@ -2507,8 +2502,6 @@ Estimated total after discount: %3$s</string>
     <string name="status_chip_converted">Converted</string>
     <string name="details_title_receipts">Receipts</string>
     <string name="receipt_of_three_format">Receipt %1$d of 3 · %2$s</string>
-    <string name="receipt_balance_at_hotel_format">Balance due at the hotel: %1$s</string>
-    <string name="receipt_balance_at_checkout_format">Balance due at check-out: %1$s</string>
     <string name="receipt_title_earlier">Earlier Receipts</string>
     <string name="receipt_title_history">Transaction History</string>
     <string name="receipt_earlier_format">Receipt %1$d</string>
@@ -2523,6 +2516,18 @@ Estimated total after discount: %3$s</string>
     <string name="progress_waiting_line">%1$s waiting for verification</string>
     <string name="booking_card_waiting_format">Waiting for verification: %1$s</string>
     <string name="stay_heading_no_show_format">%1$s · No-show</string>
+    <string name="money_remaining_balance">Remaining balance</string>
+    <string name="money_amount_to_pay">Amount to pay</string>
+    <string name="money_pay_now_range_format">Pay now: %1$s – %2$s (20%%–50%%)</string>
+    <string name="money_pay_at_hotel">Pay at the hotel</string>
+    <string name="money_waiting_format">%1$s now · %2$s waiting for verification</string>
+    <string name="money_at_check_in_format">%1$s · at check-in</string>
+    <string name="money_at_check_out_format">%1$s · at check-out</string>
+    <string name="money_at_front_desk_format">%1$s · at the front desk</string>
+    <string name="money_nothing_to_pay_format">%1$s · Nothing to pay</string>
+    <string name="money_fully_paid_format">%1$s · Fully paid</string>
+    <string name="money_cancelled">This transaction was cancelled</string>
+    <string name="money_summary_hint">Tap to see the full bill</string>
 </resources>
 
 

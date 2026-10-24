@@ -317,6 +317,16 @@ public class BookingDetailsActivity extends SafeActivity {
         buildReceiptsCard();
         buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
+        bindMoneySummary();
+    }
+
+    /** Grand total, Remaining balance and Amount to pay, pinned under the page; a tap scrolls to the Bill. */
+    private void bindMoneySummary() {
+        android.widget.FrameLayout host = findViewById(R.id.moneySummaryHost);
+        if (host == null || booking == null) return;
+        View billCard = (View) findViewById(R.id.sectionPaymentSummaryContent).getParent().getParent();
+        MoneySummaryPanel.bindPinned(this, host, MoneySummary.of(this, booking),
+                () -> MoneySummaryPanel.scrollTo(DetailsLive.scrollerOf(findViewById(R.id.swipeRefreshDetails)), billCard));
     }
 
     // ---- Balance summary + progress tracker ----

@@ -41,7 +41,8 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshDetails"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -486,4 +487,11 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- The three amounts, pinned under the page (MoneySummaryPanel): always visible while scrolling, above the navigation bar. -->
+    <FrameLayout
+        android:id="@+id/moneySummaryHost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 </LinearLayout>

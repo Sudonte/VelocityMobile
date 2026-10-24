@@ -179,6 +179,7 @@ final class ReviewSheet {
             amount.setLayoutParams(lp);
             amount.setText(r.amount);
             amount.setGravity(android.view.Gravity.END);
+            amount.setFontFeatureSettings("tnum"); // tabular figures: the digits of every amount line up
             amount.setTextSize(r.bold ? 14 : 12);
             amount.setTextColor(ContextCompat.getColor(c, r.amountColor != 0 ? r.amountColor : R.color.velocity_text_primary));
             if (r.bold) amount.setTypeface(amount.getTypeface(), Typeface.BOLD);

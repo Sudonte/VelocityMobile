@@ -119,9 +119,11 @@ public class OneStructureNoDuplicatesTest {
         assertFalse(name + ": no \"Stay N\" label: " + all, STAY_N.matcher(all).find());
         assertFalse(name + ": no null: " + all, all.contains("null"));
         assertEquals(name + ": the Grand total appears once", 1, count(texts, "Grand total"));
-        assertEquals(name + ": the Balance due appears once", 1, count(texts, "Balance due"));
+        assertEquals(name + ": the Remaining balance appears once", 1, count(texts, "Remaining balance"));
+        assertEquals(name + ": the Amount to pay appears once", 1, count(texts, "Amount to pay"));
+        assertEquals(name + ": no Balance due row in the Bill", 0, count(texts, "Balance due"));
         assertEquals(name + ": Room charges appears once", 1, Math.max(count(texts, "Room charges"), count(texts, "Room charges (all stays)")));
-        assertFalse(name + ": no second balance line", all.contains("Remaining Balance") || all.contains("Balance Due") || all.contains("Amount to pay"));
+        assertFalse(name + ": no second balance line", all.contains("Remaining Balance") || all.contains("Balance Due"));
         assertEquals(name + ": the bill is one section", 1, count(texts, "Bill"));
         int stay = texts.indexOf("Your Stay");
         int guests = texts.indexOf("Guests");
@@ -192,7 +194,8 @@ public class OneStructureNoDuplicatesTest {
             List<String> pdf = textsOf(screen.buildReceiptForPdf(1080));
             assertOneStructure(detail.getReceiptNumber() + " (PDF)", pdf);
             assertEquals("the PDF shows the same bill as the screen", after(t, "Grand total"), after(pdf, "Grand total"));
-            assertEquals(after(t, "Balance due"), after(pdf, "Balance due"));
+            assertEquals(after(t, "Remaining balance"), after(pdf, "Remaining balance"));
+            assertEquals(after(t, "Amount to pay"), after(pdf, "Amount to pay"));
         }
     }
 
@@ -201,7 +204,7 @@ public class OneStructureNoDuplicatesTest {
         for (ReceiptDetail detail : DebugReceiptFixtures.allReceiptDetails().values()) {
             if (!"OFFICIAL_RECEIPT".equals(detail.getReceiptType())) continue;
             List<String> t = textsOf(receipt(detail).findViewById(R.id.layoutDynamicReceiptContent));
-            assertEquals(detail.getReceiptNumber(), "₱0.00 · Fully paid", after(t, "Balance due"));
+            assertEquals(detail.getReceiptNumber(), "₱0.00 · Fully paid", after(t, "Amount to pay"));
             assertTrue(detail.getReceiptNumber(), t.contains("Receipt 3 of 3 · Check-out (final)"));
             assertTrue(detail.getReceiptNumber(), t.contains("No refunds for early check-out (hotel policy)."));
         }

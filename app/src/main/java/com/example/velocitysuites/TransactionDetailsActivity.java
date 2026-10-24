@@ -47,6 +47,8 @@ public class TransactionDetailsActivity extends SafeActivity {
     private boolean pollInFlight = false;
     private DetailsLive live;
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
+    /** The "Bill" heading: where a tap on the money summary scrolls to. */
+    private TextView billTitle;
     private LinearLayout timelineBox;
     private final java.util.Set<String> seenTimeline = new java.util.HashSet<>();
     private final Runnable amenityRequestsListener = this::renderTimeline;
@@ -175,6 +177,7 @@ public class TransactionDetailsActivity extends SafeActivity {
         buildInfoSection(sectionInfo);
 
         buildReceiptActionCard();
+        bindMoneySummary();
         if (keepScroll > 0) scroller.post(() -> scroller.scrollTo(0, keepScroll)); // a quiet refresh never jumps the page
     }
 
@@ -228,6 +231,14 @@ public class TransactionDetailsActivity extends SafeActivity {
         DetailsParts.paymentProgress(this, findViewById(R.id.sectionTxDetailMoney), booking);
     }
 
+    /** Grand total, Remaining balance and Amount to pay, pinned under the page; a tap scrolls to the Bill. */
+    private void bindMoneySummary() {
+        android.widget.FrameLayout host = findViewById(R.id.moneySummaryHost);
+        if (host == null || booking == null) return;
+        MoneySummaryPanel.bindPinned(this, host, MoneySummary.of(this, booking),
+                () -> MoneySummaryPanel.scrollTo(DetailsLive.scrollerOf(swipeRefresh), billTitle != null ? billTitle : host));
+    }
+
     private void buildInfoSection(LinearLayout container) {
         PayingForBreakdown breakdown = PayingForBreakdown.forDetails(this, booking);
         addSectionDivider(container, getString(R.string.details_title_stay));
@@ -236,7 +247,7 @@ public class TransactionDetailsActivity extends SafeActivity {
         addSectionDivider(container, getString(R.string.details_title_guests));
         TransactionSections.guests(this, container, booking);
 
-        addSectionDivider(container, getString(R.string.details_title_bill));
+        billTitle = addSectionDivider(container, getString(R.string.details_title_bill));
         breakdown.renderBill(this, container);
 
         addSectionDivider(container, getString(R.string.details_title_payments));
@@ -323,7 +334,7 @@ public class TransactionDetailsActivity extends SafeActivity {
         container.addView(row);
     }
 
-    private void addSectionDivider(LinearLayout container, String title) {
+    private TextView addSectionDivider(LinearLayout container, String title) {
         View divider = new View(this);
         LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
         dividerParams.topMargin = dp(4);
@@ -342,6 +353,7 @@ public class TransactionDetailsActivity extends SafeActivity {
         titleParams.bottomMargin = dp(8);
         tvTitle.setLayoutParams(titleParams);
         container.addView(tvTitle);
+        return tvTitle;
     }
 
     private int dp(int value) {

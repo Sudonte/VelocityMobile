@@ -72,7 +72,9 @@ public class FlatStyleTest {
         // Controls stay flat; only cards carry the app-wide subtle elevation (checked below).
         // The shared guest header carries a soft shadow that separates it from the content (guest_header.xml, 4dp).
         boolean sharedHeader = v instanceof androidx.constraintlayout.widget.ConstraintLayout && (name.endsWith("#header") || name.endsWith("#guestHeaderRoot"));
-        if (!(v instanceof MaterialCardView) && !sharedHeader && v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
+        // The money summary panel pinned under the details screens carries a soft shadow that lifts it off the scrolling page (MoneySummaryPanel).
+        boolean moneyPanel = v.getParent() instanceof View && ((View) v.getParent()).getId() == R.id.moneySummaryHost;
+        if (!(v instanceof MaterialCardView) && !sharedHeader && !moneyPanel && v.getElevation() != 0f) problems.add(where + " " + name + " elevation=" + v.getElevation());
         if (v instanceof MaterialButton) {
             MaterialButton b = (MaterialButton) v;
             // The landing page's two hero actions (Sign In / Sign Up and Explore Now) are the one place controls are rounded: 12dp.

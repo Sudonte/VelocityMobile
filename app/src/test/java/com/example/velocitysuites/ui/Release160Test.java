@@ -141,7 +141,8 @@ public class Release160Test {
         List<String> t = textsOf(open(withPayment("pending")).getWindow().getDecorView());
         assertEquals(t.toString(), "₱0.00", after(t, "Paid so far"));
         assertEquals(t.toString(), "₱3,500.00", after(t, "Waiting for verification"));
-        assertEquals("the balance ignores the waiting payment", "₱18,900.00", after(t, "Balance due"));
+        assertEquals("the balance ignores the waiting payment", "₱18,900.00", after(t, "Remaining balance"));
+        assertEquals("₱0.00 now · ₱3,500.00 waiting for verification", after(t, "Amount to pay"));
         assertTrue(t.toString(), t.contains("₱3,500.00 will be deducted once the front desk verifies your payment."));
         assertFalse("not verified yet", String.join(String.valueOf((char) 10), t).contains("✓ Verified by the front desk") || t.contains("Fully paid"));
     }
@@ -150,7 +151,8 @@ public class Release160Test {
     public void verified_isPaid_andThereIsNoWaitingLine() {
         List<String> t = textsOf(open(withPayment("verified")).getWindow().getDecorView());
         assertEquals(t.toString(), "₱3,500.00", after(t, "Paid so far"));
-        assertEquals("₱15,400.00", after(t, "Balance due"));
+        assertEquals("₱15,400.00", after(t, "Remaining balance"));
+        assertEquals("₱15,400.00 · at check-in", after(t, "Amount to pay"));
         assertFalse(t.toString(), t.contains("Waiting for verification") && !t.contains("Waiting for front desk verification"));
         assertFalse(t.toString(), String.join("\n", t).contains("will be deducted"));
     }
@@ -170,7 +172,7 @@ public class Release160Test {
     @Test
     public void progress_pending_says_submitted_notPaidOnline_andVerificationIsTheStepToCome() {
         String all = String.join("\n", textsOf(open(withPayment("pending")).getWindow().getDecorView()));
-        assertTrue(all, all.contains("₱0.00 of ₱18,900.00 paid · ₱18,900.00 left"));
+        assertTrue(all, all.contains("0% paid"));
         assertTrue(all, all.contains("₱3,500.00 waiting for verification"));
         assertTrue(all, all.contains("✓ Payment submitted (GCash)") && all.contains("○ Verified by the front desk"));
         assertFalse(all, all.contains("✓ Paid online (GCash)"));
@@ -179,7 +181,7 @@ public class Release160Test {
     @Test
     public void progress_verified_and_rejected() {
         String verified = String.join("\n", textsOf(open(withPayment("verified")).getWindow().getDecorView()));
-        assertTrue(verified, verified.contains("₱3,500.00 of ₱18,900.00 paid · ₱15,400.00 left") && verified.contains("✓ Paid online (GCash)") && verified.contains("✓ Verified by the front desk"));
+        assertTrue(verified, verified.contains("18% paid") && verified.contains("✓ Paid online (GCash)") && verified.contains("✓ Verified by the front desk"));
         String rejected = String.join("\n", textsOf(open(withPayment("rejected")).getWindow().getDecorView()));
         assertTrue(rejected, rejected.contains("○ Payment rejected: The reference number does not match."));
         assertFalse(rejected, rejected.contains("waiting for verification"));

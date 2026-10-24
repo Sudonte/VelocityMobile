@@ -207,8 +207,8 @@ public class ReceiptsAndHeaderScreensTest {
         partial.setHighlight(highlight("booking_verification", "total_amount", 2000, "amount_paid_now", 500, "total_paid", 500, "remaining_balance", 1500, "amount_to_pay", 1500));
         String text = all(open(partial).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals(text, "₱500.00", after(text, "Paid so far"));
-        assertEquals(text, "₱1,500.00", after(text, "Balance due"));
-        assertTrue(text, text.contains("Balance due at the hotel: ₱1,500.00"));
+        assertEquals(text, "₱1,500.00", after(text, "Remaining balance"));
+        assertEquals(text, "₱1,500.00 · at check-in", after(text, "Amount to pay"));
         assertTrue(text, text.contains("Receipt 1 of 3 · Payment verified"));
     }
 
@@ -218,7 +218,8 @@ public class ReceiptsAndHeaderScreensTest {
         any.setHighlight(highlight("checkin_payment", "total_amount", 2000, "previous_payments", 500, "amount_paid_now", 1500, "total_paid", 2000, "remaining_balance", 0, "amount_to_pay", 0));
         String text = all(open(any).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals(text, "₱2,000.00", after(text, "Paid so far"));
-        assertEquals(text, "₱0.00 · Fully paid", after(text, "Balance due"));
+        assertEquals(text, "₱0.00 · Nothing to pay", after(text, "Amount to pay"));
+        assertEquals(text, "₱0.00", after(text, "Remaining balance"));
         assertTrue(text, text.contains("Receipt 1 of 3"));
     }
 
@@ -233,7 +234,7 @@ public class ReceiptsAndHeaderScreensTest {
         assertEquals(text, "₱400.00", after(text, "Other charges (front desk)"));
         assertEquals(text, "₱2,700.00", after(text, "Grand total"));
         assertEquals(text, "₱2,700.00", after(text, "Paid so far"));
-        assertEquals(text, "₱0.00 · Fully paid", after(text, "Balance due"));
+        assertEquals(text, "₱0.00 · Fully paid", after(text, "Amount to pay"));
         assertEquals("the grand total is printed once", text.indexOf("Grand total"), text.lastIndexOf("Grand total"));
     }
 
@@ -241,7 +242,7 @@ public class ReceiptsAndHeaderScreensTest {
     public void aReceiptWithoutAStoredHighlightStillOpens() {
         ReceiptDetail any = DebugReceiptFixtures.allReceiptDetails().values().iterator().next();
         any.setHighlight(null);
-        assertFalse(all(open(any).findViewById(R.id.layoutDynamicReceiptContent)).contains("Amount to pay"));
+        assertTrue(all(open(any).findViewById(R.id.layoutDynamicReceiptContent)).contains("Amount to pay"));
     }
 
     // ---- Booking Details: one bill, no second balance card
@@ -257,10 +258,10 @@ public class ReceiptsAndHeaderScreensTest {
         Booking b = new Booking("77", "1", "Deluxe", "Deluxe", "Oct 20, 2026", "Oct 22, 2026", 2, 5000.0, "Pending", "Oct 10, 2026");
         b.setHasBooking(true);
         String text = all(details(b).getWindow().getDecorView());
-        assertEquals(text, "₱5,000.00", after(text, "Balance due"));
-        assertEquals("Balance due appears once", text.indexOf("Balance due"), text.lastIndexOf("Balance due"));
+        assertEquals(text, "₱5,000.00", after(text, "Remaining balance"));
+        assertEquals("Remaining balance appears once", text.indexOf("Remaining balance"), text.lastIndexOf("Remaining balance"));
         assertEquals(text, "₱0.00", after(text, "Paid so far"));
-        assertTrue(text, text.contains("You pay the balance at the hotel."));
+        assertEquals(text, "₱5,000.00 · at check-in", after(text, "Amount to pay"));
         assertFalse("the old balance card is gone", text.contains("You still need to pay") || text.contains("Your balance"));
     }
 
@@ -270,7 +271,8 @@ public class ReceiptsAndHeaderScreensTest {
         b.setHasBooking(true);
         b.setStaffVerified(true);
         String text = all(details(b).getWindow().getDecorView());
-        assertTrue(text, text.contains("Balance due"));
+        assertEquals(text, "₱0.00 · Nothing to pay", after(text, "Amount to pay"));
+        assertEquals(text, "₱0.00", after(text, "Remaining balance"));
     }
 
     // ---- the receipt PDF is paper: white page, dark text, in either theme
@@ -309,7 +311,7 @@ public class ReceiptsAndHeaderScreensTest {
         collectTextColors(page, dark, light);
         assertTrue("there is text on the page", dark.size() > 10);
         assertTrue("no light-coloured text on the white page: " + light, light.isEmpty());
-        assertTrue("the bill is in the PDF", all(page).contains("Balance due"));
+        assertTrue("the bill is in the PDF", all(page).contains("Remaining balance"));
         assertTrue("laid out with a real height", page.getMeasuredHeight() > 600);
 
         // the on-screen receipt is unchanged: still the dark theme's own light text

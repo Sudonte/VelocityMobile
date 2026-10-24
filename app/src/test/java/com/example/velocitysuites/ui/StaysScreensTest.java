@@ -155,7 +155,7 @@ public class StaysScreensTest {
         assertTrue(all, all.contains("Extra bed"));
         assertTrue("the amenity names the room it was chosen for: " + all, all.contains("Deluxe (room 1)"));
         assertTrue("each range's own subtotal: " + all, all.contains("Subtotal") && all.contains("₱9,600.00") && all.contains("₱9,300.00"));
-        assertTrue("one short line under the bill: " + all, all.contains("You pay the balance at the hotel."));
+        assertTrue("the Amount to pay says when: " + all, all.contains("Amount to pay"));
     }
 
     @Test

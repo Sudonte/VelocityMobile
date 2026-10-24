@@ -441,6 +441,9 @@ public class PaymentReceiptActivity extends SafeActivity {
                 }
             }
         }
+
+        // the three amounts, as of this receipt, highlighted at the very bottom (screen and PDF alike: this body is built once for both)
+        content.addView(MoneySummaryPanel.box(ui, MoneySummary.ofReceipt(ui, stage, breakdown.grandTotal, breakdown.balance)));
     }
 
     private static int stageOfReceipt(ReceiptDetail detail) {

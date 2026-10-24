@@ -155,8 +155,8 @@ public class ReceiptScreenTest {
         List<String> texts = texts(open(DebugReceiptFixtures.partialReceipt()));
         assertTrue(texts.toString(), texts.contains("Partially Paid"));
         assertEquals("₱5,000.00", after(texts, "Paid so far"));
-        assertEquals("₱5,000.00", after(texts, "Balance due"));
-        assertTrue("the plain line under the bill", texts.contains("Balance due at the hotel: ₱5,000.00"));
+        assertEquals("₱5,000.00", after(texts, "Remaining balance"));
+        assertEquals("₱5,000.00 · at check-in", after(texts, "Amount to pay"));
     }
 
     @Test
@@ -193,7 +193,7 @@ public class ReceiptScreenTest {
         assertEquals("Juan Dela Cruz", texts.get(guests + 2));
         assertEquals("₱10,000.00", after(texts, "Grand total"));
         assertEquals("each value once: the grand total is not repeated", 1, java.util.Collections.frequency(texts, "Grand total"));
-        assertEquals(1, java.util.Collections.frequency(texts, "Balance due"));
+        assertEquals(1, java.util.Collections.frequency(texts, "Remaining balance"));
     }
 
     @Test
@@ -209,7 +209,7 @@ public class ReceiptScreenTest {
     @Test
     public void anOfficialReceiptEndsWithAZeroBalance_theNoRefundNote_andEveryPayment() {
         List<String> texts = texts(open(DebugReceiptFixtures.officialReceipt()));
-        assertEquals("₱0.00 · Fully paid", after(texts, "Balance due"));
+        assertEquals("₱0.00 · Fully paid", after(texts, "Amount to pay"));
         assertTrue(texts.toString(), texts.contains("Cash · Paid at check-out") && texts.contains("GCash · Paid online"));
         assertTrue("the no-refund note", texts.contains("No refunds for early check-out (hotel policy)."));
         assertTrue(texts.contains("Receipt 3 of 3 · Check-out (final)"));
