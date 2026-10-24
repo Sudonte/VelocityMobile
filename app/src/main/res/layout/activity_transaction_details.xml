@@ -173,7 +173,7 @@
                 app:iconGravity="textEnd"
                 app:strokeColor="@color/velocity_red_primary"
                 app:rippleColor="@color/velocity_red_subtle"
-                android:textColor="@color/velocity_red_primary"
+                android:textColor="@color/velocity_action_text"
                 app:iconTint="@color/velocity_red_primary"
                 tools:text="View Booking Details" />
 

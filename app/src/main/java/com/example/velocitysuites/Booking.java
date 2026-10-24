@@ -529,6 +529,8 @@ public class Booking implements Serializable {
 
         public boolean isInHouse() { return "in_house".equals(state); }
         public boolean isCheckedOut() { return "checked_out".equals(state); }
+        /** The guest never arrived for this date range: marked by the front desk, still charged in full. */
+        public boolean isNoShow() { return "no_show".equals(state); }
     }
 
     public List<StayRecord> getStays() { return stays; }

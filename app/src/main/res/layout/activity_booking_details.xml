@@ -171,7 +171,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_booking"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -204,7 +204,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_bed"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -237,7 +237,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_person"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -272,7 +272,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_shield_check"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -305,7 +305,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_payment"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -338,7 +338,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_payment_card"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -371,7 +371,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_transaction_history"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -405,7 +405,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_transaction_history"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout
@@ -438,7 +438,7 @@
                         android:drawablePadding="8dp"
                         app:drawableStartCompat="@drawable/ic_clock"
                         app:drawableTint="@color/velocity_red_primary"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="12sp" />
 
                     <LinearLayout

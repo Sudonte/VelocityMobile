@@ -274,7 +274,7 @@ public class Release160Test {
         View cur = v.getParent() instanceof View ? (View) v.getParent() : null;
         while (cur != null) {
             Drawable d = cur.getBackground();
-            if (cur instanceof MaterialCardView) return ((MaterialCardView) cur).getCardBackgroundColor().getDefaultColor();
+            if (cur instanceof MaterialCardView && Color.alpha(((MaterialCardView) cur).getCardBackgroundColor().getDefaultColor()) == 255) return ((MaterialCardView) cur).getCardBackgroundColor().getDefaultColor();
             if (d instanceof ColorDrawable && Color.alpha(((ColorDrawable) d).getColor()) == 255) return ((ColorDrawable) d).getColor();
             if (d instanceof GradientDrawable) {
                 android.content.res.ColorStateList fill = ((GradientDrawable) d).getColor();
@@ -312,7 +312,7 @@ public class Release160Test {
     }
 
     /** Every visible text under {@code scope}: shown, not empty, inside the screen's width, and at least 4.5:1 against what is behind it. */
-    private void assertReadable(String tag, android.app.Activity a, View scope) {
+    static void assertReadable(String tag, android.app.Activity a, View scope) {
         layout(a);
         View root = a.getWindow().getDecorView();
         int windowBg = com.google.android.material.color.MaterialColors.getColor(a, android.R.attr.colorBackground, Color.WHITE);
@@ -330,7 +330,7 @@ public class Release160Test {
             assertTrue(tag + " " + name + " inside the screen (" + x + ".." + (x + t.getWidth()) + " of " + screen + ")", x >= 0 && x + t.getWidth() <= screen);
             int bg = backgroundBehind(t, windowBg);
             double ratio = contrast(over(t.getCurrentTextColor(), bg), bg);
-            assertTrue(tag + " " + name + " contrast " + String.format(java.util.Locale.US, "%.2f", ratio), ratio >= 4.5);
+            assertTrue(tag + " " + name + " contrast " + String.format(java.util.Locale.US, "%.2f", ratio) + " (text " + Integer.toHexString(t.getCurrentTextColor()) + " on " + Integer.toHexString(bg) + ")", ratio >= 4.5);
         }
     }
 

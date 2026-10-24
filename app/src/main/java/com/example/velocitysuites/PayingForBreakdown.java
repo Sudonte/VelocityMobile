@@ -225,6 +225,8 @@ final class PayingForBreakdown {
         String nights = c.getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
         String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
         block.heading = dates.isEmpty() ? nights : c.getString(R.string.details_single_stay_heading_format, dates, nights);
+        // the guest never arrived for these dates: still charged in full, and it says so
+        if (stay.isNoShow()) block.heading = c.getString(R.string.stay_heading_no_show_format, block.heading);
         for (BookingRoom room : stay.rooms) {
             if (room != null) block.rooms.add(roomLine(c, room, n, nights, BookingTotals.lineTotal(room, stay), detailed));
         }

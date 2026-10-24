@@ -2522,6 +2522,7 @@ Estimated total after discount: %3$s</string>
     <string name="progress_submitted">Payment submitted (GCash)</string>
     <string name="progress_waiting_line">%1$s waiting for verification</string>
     <string name="booking_card_waiting_format">Waiting for verification: %1$s</string>
+    <string name="stay_heading_no_show_format">%1$s · No-show</string>
 </resources>
 
 

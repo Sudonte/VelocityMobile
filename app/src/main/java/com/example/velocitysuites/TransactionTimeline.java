@@ -235,6 +235,7 @@ final class TransactionTimeline {
         if (t.contains("checked in") || t.contains("check in")) return Kind.CHECKED_IN;
         if (t.contains("checked out") || t.contains("check out")) return Kind.CHECKED_OUT;
         if (t.contains("complet")) return Kind.SETTLED;
+        if (t.contains("no show") || t.contains("no-show")) return Kind.CANCELLED;
         if (t.contains("cancel")) return Kind.CANCELLED;
         if (t.contains("payment") && t.contains("reject")) return Kind.PAYMENT_REJECTED;
         if (t.contains("payment") && t.contains("verif")) return Kind.PAYMENT_VERIFIED;
