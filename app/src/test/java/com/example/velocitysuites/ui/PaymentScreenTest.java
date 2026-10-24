@@ -1095,7 +1095,8 @@ public class PaymentScreenTest {
         String all = collectText(a.findViewById(R.id.checkoutSummarySection));
         assertFalse("no null anywhere: " + all, all.contains("null"));
         assertTrue(all, all.contains("2× Deluxe, 2× Executive") && all.contains("2 stays"));
-        assertTrue(all, all.contains("Stay 1") && all.contains("Stay 2") && all.contains("1 night"));
+        assertTrue(all, all.contains("Oct 26 → Oct 27, 2026") && all.contains("Oct 27 → Oct 28, 2026") && all.contains("1 night"));
+        assertFalse(all, all.contains("Stay 1") || all.contains("Stay 2"));
         assertTrue(all, all.contains("Deluxe × 1, Executive × 1") && all.contains("₱9,300.00"));
         assertTrue("room charges, amenities, total: " + all, all.contains("₱18,600.00") && all.contains("₱415.00") && all.contains("₱19,015.00"));
         assertEquals("the discount is not a subtraction yet", View.GONE, a.findViewById(R.id.layoutDiscountSummary).getVisibility());
@@ -1127,7 +1128,7 @@ public class PaymentScreenTest {
         for (int step = 1; step <= 5; step++) {
             if (step > 1) a.findViewById(R.id.headerGcashPayingFor).performClick(); // one line until opened
             String strip = collectText(a.findViewById(R.id.layoutGcashStays));
-            assertTrue("step " + step + ": " + strip, strip.contains("Stay 1") && strip.contains("Stay 2") && strip.contains("₱9,300.00") && strip.contains("Deluxe × 1") && strip.contains("Executive × 1"));
+            assertTrue("step " + step + ": " + strip, strip.contains("Oct 26 → Oct 27, 2026") && strip.contains("Oct 27 → Oct 28, 2026") && !strip.contains("Stay 1") && strip.contains("₱9,300.00") && strip.contains("Deluxe × 1") && strip.contains("Executive × 1"));
             assertEquals(View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
             assertFalse(collectText(a.findViewById(R.id.cardGcashSubmissionForm)).contains("null"));
             if (step == 1) a.findViewById(R.id.btnGcashStep1Next).performClick();

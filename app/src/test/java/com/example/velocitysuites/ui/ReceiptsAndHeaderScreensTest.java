@@ -193,39 +193,48 @@ public class ReceiptsAndHeaderScreensTest {
         assertTrue(text, text.contains("10:01:09 AM"));
     }
 
+    /** The text right after {@code label}: rows are a label then an amount. */
+    private static String after(String text, String label) {
+        String[] lines = text.split("\n");
+        for (int i = 0; i + 1 < lines.length; i++) if (lines[i].equals(label)) return lines[i + 1];
+        return null;
+    }
+
     @Test
-    public void receipt1_endsWithTheRemainingBalanceAndAmountToPay() {
+    public void receipt1_endsWithWhatIsPaidSoFarAndTheBalanceDue() {
         Map<String, ReceiptDetail> all = DebugReceiptFixtures.allReceiptDetails();
         ReceiptDetail partial = all.values().stream().filter(d -> "PARTIAL_RECEIPT".equals(d.getReceiptType())).findFirst().get();
         partial.setHighlight(highlight("booking_verification", "total_amount", 2000, "amount_paid_now", 500, "total_paid", 500, "remaining_balance", 1500, "amount_to_pay", 1500));
         String text = all(open(partial).findViewById(R.id.layoutDynamicReceiptContent));
-        assertTrue(text, text.contains("Remaining balance due at the hotel"));
-        assertTrue(text, text.contains("₱1,500.00"));
-        assertTrue(text, text.contains("Total paid so far"));
-        assertTrue(text, text.contains("Partial payment"));
+        assertEquals(text, "₱500.00", after(text, "Paid so far"));
+        assertEquals(text, "₱1,500.00", after(text, "Balance due"));
+        assertTrue(text, text.contains("You pay the balance at the hotel."));
+        assertTrue(text, text.contains("Payment verified"));
     }
 
     @Test
-    public void receipt2_showsPreviousPaymentsThePaymentNowAndZeroStillToPay() {
+    public void receipt2_showsEverythingPaidAndZeroStillToPay() {
         ReceiptDetail any = DebugReceiptFixtures.allReceiptDetails().values().iterator().next();
         any.setHighlight(highlight("checkin_payment", "total_amount", 2000, "previous_payments", 500, "amount_paid_now", 1500, "total_paid", 2000, "remaining_balance", 0, "amount_to_pay", 0));
         String text = all(open(any).findViewById(R.id.layoutDynamicReceiptContent));
-        assertTrue(text, text.contains("Paid before check-in"));
-        assertTrue(text, text.contains("Paid at check-in"));
-        assertTrue(text, text.contains("Fully paid"));
-        assertTrue(text, text.contains("₱0.00"));
+        assertEquals(text, "₱2,000.00", after(text, "Paid so far"));
+        assertEquals(text, "₱0.00 · Fully paid", after(text, "Balance due"));
+        assertTrue(text, text.contains("Check-in"));
     }
 
     @Test
-    public void receipt3_showsTheFullBreakdownAndGrandTotal() {
+    public void receipt3_showsTheFullBillAndGrandTotal_once() {
         ReceiptDetail official = DebugReceiptFixtures.allReceiptDetails().values().stream().filter(d -> "OFFICIAL_RECEIPT".equals(d.getReceiptType())).findFirst().get();
         official.setHighlight(highlight("checkout_final", "room_charges", 2000, "amenities_total", 300, "additional_charges_total", 400, "discount", 0,
                 "grand_total", 2700, "paid_receipt_1", 500, "paid_receipt_2", 1500, "paid_at_checkout", 700, "total_paid", 2700, "remaining_balance", 0));
         String text = all(open(official).findViewById(R.id.layoutDynamicReceiptContent));
-        for (String needle : new String[]{"Room charges", "Amenities", "Additional / other charges", "Paid - Receipt 1 (booking)", "Paid - Receipt 2 (check-in)",
-                "Paid at check-out", "Grand total", "Total paid", "Final balance", "₱2,700.00"}) {
-            assertTrue(needle + " in: " + text, text.contains(needle));
-        }
+        assertEquals(text, "₱2,000.00", after(text, "Room charges"));
+        assertEquals(text, "₱300.00", after(text, "Amenities"));
+        assertEquals(text, "₱400.00", after(text, "Other charges (front desk)"));
+        assertEquals(text, "₱2,700.00", after(text, "Grand total"));
+        assertEquals(text, "₱2,700.00", after(text, "Paid so far"));
+        assertEquals(text, "₱0.00 · Fully paid", after(text, "Balance due"));
+        assertEquals("the grand total is printed once", text.indexOf("Grand total"), text.lastIndexOf("Grand total"));
     }
 
     @Test
@@ -235,7 +244,7 @@ public class ReceiptsAndHeaderScreensTest {
         assertFalse(all(open(any).findViewById(R.id.layoutDynamicReceiptContent)).contains("Amount to pay"));
     }
 
-    // ---- Booking Details: balance card + tracker
+    // ---- Booking Details: one bill, no second balance card
 
     private BookingDetailsActivity details(Booking b) {
         BookingDetailsActivity a = Robolectric.buildActivity(BookingDetailsActivity.class, BookingDetailsActivity.newIntent(app, b)).setup().get();
@@ -244,17 +253,15 @@ public class ReceiptsAndHeaderScreensTest {
     }
 
     @Test
-    public void bookingDetailsLeadsWithWhatTheGuestStillOwes_andTheProgressTracker() {
+    public void bookingDetailsShowsWhatTheGuestStillOwes_exactlyOnce() {
         Booking b = new Booking("77", "1", "Deluxe", "Deluxe", "Oct 20, 2026", "Oct 22, 2026", 2, 5000.0, "Pending", "Oct 10, 2026");
         b.setHasBooking(true);
-        String text = all(details(b).findViewById(R.id.sectionBalanceContent));
-        assertTrue(text, text.contains("You still need to pay ₱5,000.00"));
-        assertTrue(text, text.contains("Amount to pay"));
-        assertTrue(text, text.contains("Total paid"));
-        assertTrue(text, text.contains("Grand total"));
-        for (String step : new String[]{"Booked", "Verified by the front desk", "Checked in", "Checked out"}) assertTrue(step, text.contains(step));
-        assertTrue("friendly placeholders until the receipts exist", text.contains("Receipt 2 - available after check-in"));
-        assertTrue(text, text.contains("Receipt 3 - available after check-out"));
+        String text = all(details(b).getWindow().getDecorView());
+        assertEquals(text, "₱5,000.00", after(text, "Balance due"));
+        assertEquals("Balance due appears once", text.indexOf("Balance due"), text.lastIndexOf("Balance due"));
+        assertEquals(text, "₱0.00", after(text, "Paid so far"));
+        assertTrue(text, text.contains("You pay the balance at the hotel."));
+        assertFalse("the old balance card is gone", text.contains("You still need to pay") || text.contains("Your balance"));
     }
 
     @Test
@@ -262,8 +269,8 @@ public class ReceiptsAndHeaderScreensTest {
         Booking b = new Booking("78", "1", "Deluxe", "Deluxe", "Oct 20, 2026", "Oct 22, 2026", 2, 5000.0, "Confirmed", "Oct 10, 2026");
         b.setHasBooking(true);
         b.setStaffVerified(true);
-        String text = all(details(b).findViewById(R.id.sectionBalanceContent));
-        assertTrue(text, text.contains("Fully paid - you owe nothing") || text.contains("You still need to pay"));
+        String text = all(details(b).getWindow().getDecorView());
+        assertTrue(text, text.contains("Balance due"));
     }
 
     // ---- the receipt PDF is paper: white page, dark text, in either theme
@@ -302,7 +309,7 @@ public class ReceiptsAndHeaderScreensTest {
         collectTextColors(page, dark, light);
         assertTrue("there is text on the page", dark.size() > 10);
         assertTrue("no light-coloured text on the white page: " + light, light.isEmpty());
-        assertTrue("the highlighted totals are in the PDF", all(page).contains("Remaining balance"));
+        assertTrue("the bill is in the PDF", all(page).contains("Balance due"));
         assertTrue("laid out with a real height", page.getMeasuredHeight() > 600);
 
         // the on-screen receipt is unchanged: still the dark theme's own light text

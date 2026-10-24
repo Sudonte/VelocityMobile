@@ -187,7 +187,8 @@ public class StepStaysFragment extends WizardStepFragment {
         boolean showCard = several || anyConfirmed;
         layoutStaysSummary.setVisibility(showCard ? View.VISIBLE : View.GONE);
         layoutStayEditor.setVisibility(confirmedActive ? View.GONE : View.VISIBLE);
-        tvActiveHeading.setText(several ? getString(R.string.stay_heading_format, active + 1) : getString(R.string.stay_heading_single));
+        tvActiveHeading.setText(editingIndex == active && !confirmedActive && stays.get(active).checkIn != null && stays.get(active).checkOut != null
+                ? getString(R.string.stay_heading_format, rangeOf(stays.get(active))) : getString(R.string.stay_heading_single));
 
         layoutStayRows.removeAllViews();
         if (showCard) {
@@ -229,34 +230,42 @@ public class StepStaysFragment extends WizardStepFragment {
         row.findViewById(R.id.tvStayRowEditing).setVisibility(active ? View.VISIBLE : View.GONE);
 
         MaterialButton edit = row.findViewById(R.id.btnStayRowEdit);
-        edit.setContentDescription(getString(R.string.stay_edit_cd_format, index + 1));
+        edit.setContentDescription(getString(R.string.stay_edit_cd_format, rangeOf(stay)));
         edit.setOnClickListener(v -> {
             if (guard.tryAcquire()) onOpenStay(index);
         });
         MaterialButton remove = row.findViewById(R.id.btnStayRowRemove);
-        remove.setContentDescription(getString(R.string.stay_remove_cd_format, index + 1));
+        remove.setContentDescription(getString(R.string.stay_remove_cd_format, rangeOf(stay)));
         remove.setOnClickListener(v -> {
             if (guard.tryAcquire()) confirmRemove(index);
         });
         return row;
     }
 
-    /** "Stay 1" in bold, then "Oct 25 → Oct 26 · 1 night" (or what is still missing). */
+    /** "Oct 25 → Oct 26 · 1 night" in bold (or what is still missing): the dates head every date range. */
     private CharSequence titleOf(int index, BookingWizardState.Stay stay) {
-        String name = getString(R.string.stay_label_format, index + 1);
-        String rest;
+        String text;
         if (stay.checkIn == null || stay.checkOut == null) {
-            rest = getString(R.string.stay_summary_no_dates);
+            text = getString(R.string.stay_summary_no_dates);
         } else {
             long nights = stay.nights();
             // no-break spaces keep "Oct 28 → Oct 29" and "1 night" whole when the line wraps beside the Edit / Remove buttons
-            rest = getString(R.string.stay_row_dates_format, shortDate.format(stay.checkIn.getTime()).replace(' ', ' '), shortDate.format(stay.checkOut.getTime()).replace(' ', ' '),
+            text = getString(R.string.stay_row_dates_format, shortDate.format(stay.checkIn.getTime()).replace(' ', ' '), shortDate.format(stay.checkOut.getTime()).replace(' ', ' '),
                     getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights).replace(' ', ' '));
         }
-        SpannableStringBuilder sb = new SpannableStringBuilder(name).append("  ").append(rest);
-        sb.setSpan(new StyleSpan(Typeface.BOLD), 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        SpannableStringBuilder sb = new SpannableStringBuilder(text);
+        sb.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return sb;
     }
+
+    /** "Oct 26 → Oct 27" for messages about one date range ("these dates" while they are not chosen yet). */
+    private String rangeOf(BookingWizardState.Stay stay) {
+        if (stay.checkIn == null || stay.checkOut == null) return getString(R.string.stay_these_dates);
+        return shortDate.format(stay.checkIn.getTime()) + " → " + shortDate.format(stay.checkOut.getTime());
+    }
+
+    /** The date range the guest tapped Edit on (its editor is titled "Edit Oct 26 → Oct 27"); -1 otherwise. */
+    private int editingIndex = -1;
 
     /** "2 rooms · ₱9,300.00" */
     private String roomsLineOf(BookingWizardState.Stay stay) {
@@ -264,6 +273,10 @@ public class StepStaysFragment extends WizardStepFragment {
         String line = getString(R.string.stay_row_rooms_format,
                 getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size()), MoneyFormat.format(stay.total()));
         return stay.confirmed ? line : getString(R.string.stay_row_not_confirmed_format, line);
+    }
+
+    private static String capitalized(String s) {
+        return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     private void onAddStay() {
@@ -278,6 +291,7 @@ public class StepStaysFragment extends WizardStepFragment {
             return;
         }
         if (state.addStay()) {
+            editingIndex = -1;
             showStay();
             scrollTo(topInContent(tvActiveHeading) - dp(12)); // the new, empty stay's editor
         }
@@ -290,6 +304,7 @@ public class StepStaysFragment extends WizardStepFragment {
             return;
         }
         state.activate(index);
+        editingIndex = index;
         state.reopenActive(); // an edited stay has to be confirmed again
         showStay();
         scrollTo(topInContent(tvActiveHeading) - dp(12));
@@ -297,7 +312,7 @@ public class StepStaysFragment extends WizardStepFragment {
 
     private void confirmRemove(int index) {
         new SafeDialogs.Material(requireContext())
-                .setTitle(getString(R.string.stay_remove_title_format, index + 1))
+                .setTitle(getString(R.string.stay_remove_title_format, rangeOf(getState().allStays().get(index))))
                 .setMessage(R.string.stay_remove_message)
                 .setNegativeButton(R.string.cancel_label, null)
                 .setPositiveButton(R.string.stay_remove, (d, w) -> {
@@ -342,6 +357,7 @@ public class StepStaysFragment extends WizardStepFragment {
                 androidx.transition.TransitionManager.beginDelayedTransition((ViewGroup) content);
             }
             state.confirmActive();
+            editingIndex = -1;
             tvIncomplete.setVisibility(View.GONE);
             showStay();
             scrollTo(0);
@@ -383,7 +399,7 @@ public class StepStaysFragment extends WizardStepFragment {
             if (!stays.get(i).isComplete() || !stays.get(i).confirmed) {
                 state.activate(i);
                 showStay();
-                showIncomplete(getString(stays.get(i).isComplete() ? R.string.stay_unconfirmed_format : R.string.stay_incomplete_format, i + 1));
+                showIncomplete(getString(stays.get(i).isComplete() ? R.string.stay_unconfirmed_format : R.string.stay_incomplete_format, capitalized(rangeOf(stays.get(i)))));
                 return false;
             }
         }

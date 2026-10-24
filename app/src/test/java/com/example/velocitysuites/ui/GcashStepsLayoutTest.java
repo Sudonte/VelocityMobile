@@ -343,7 +343,7 @@ public class GcashStepsLayoutTest {
                 assertTrue(t + ": " + text(a, R.id.tvGcashTxLine), text(a, R.id.tvGcashTxLine).contains("·"));
                 assertEquals(t + ": the breakdown is open", View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
                 String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
-                assertTrue(t + ": " + breakdown, breakdown.contains("Stay 1") == twoStays && breakdown.contains("Deluxe × 1") && (!twoStays || breakdown.contains("Executive × 1")) && breakdown.contains("Room charges") && breakdown.contains("Amenities total") && breakdown.contains("Grand total"));
+                assertTrue(t + ": " + breakdown, breakdown.contains("Subtotal") == twoStays && !breakdown.contains("Stay 1") && breakdown.contains("Deluxe × 1") && (!twoStays || breakdown.contains("Executive × 1")) && breakdown.contains("Room charges") && breakdown.contains("Amenities total") && breakdown.contains("Grand total"));
                 assertNoDeadSpace(t, a.findViewById(R.id.gcashStep1Amount));
                 assertNoDeadSpace(t, a.findViewById(R.id.cardGcashPayingFor));
                 assertNoDeadSpace(t, a.findViewById(R.id.cardGcashSubmissionForm));
@@ -504,11 +504,13 @@ public class GcashStepsLayoutTest {
         PaymentActivity a = openPending(state);
         intoGcash(a);
         String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
-        for (String needed : new String[]{"Stay 1 ·", "Stay 2 ·", "Deluxe (room 1): Additional Towel × 2\n₱100.00", "Amenities for this stay", "Extra bed × 1\n₱300.00",
-                "Stay 1 subtotal\n₱9,400.00", "Stay 2 subtotal\n₱9,600.00", "Room charges\n₱18,600.00", "Amenities total\n₱400.00", "Grand total\n₱19,000.00"}) {
+        for (String needed : new String[]{"Deluxe (room 1): Additional Towel × 2\n₱100.00", "Amenities for this stay", "Extra bed × 1\n₱300.00",
+                "Subtotal\n₱9,400.00", "Subtotal\n₱9,600.00", "Room charges (all stays)\n₱18,600.00", "Amenities total\n₱400.00", "Grand total\n₱19,000.00"}) {
             assertTrue("missing '" + needed + "' in:\n" + breakdown, breakdown.contains(needed));
         }
-        assertTrue("the first stay's amenities come before the second stay", breakdown.indexOf("Additional Towel") < breakdown.indexOf("Stay 2 ·"));
+        String firstSubtotal = "Subtotal" + (char) 10 + "₱9,400.00";
+        assertTrue("the first range's amenities come before its subtotal, and the second range after", breakdown.indexOf("Additional Towel") < breakdown.indexOf(firstSubtotal)
+                && breakdown.indexOf(firstSubtotal) < breakdown.indexOf("Extra bed"));
     }
 
     @Test

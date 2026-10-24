@@ -402,25 +402,36 @@ public class PaymentReceiptActivity extends SafeActivity {
     }
 
     private void buildReceiptBody(ViewGroup content, ReceiptDetail detail, @Nullable List<BookingAmenity> amenities, double aggregateAmenityCharge) {
+        // The same structure as the details screens, on screen and in the PDF alike (this body is built once for both): the header with
+        // the receipt's own line, Your Stay (date ranges with rooms and amenities), Guests, Bill, Payments - every value once.
         String stageLabel = ReceiptTypeMapper.labelWithStage(detail.getReceiptType());
         buildHeaderSection(content, detail, stageLabel);
-        buildStaySection(content, detail);
-        buildStaysSection(content, detail);
-        buildGuestSection(content, detail);
-        // Receipt 3 of a stay settled at check-in reads: booking details, check-in billing, remaining balance, final
-        // summary - the server's breakdown IS the money part, so the generic payment summary (which would repeat the same
-        // figures in another order) is left out and the payment history closes the receipt.
-        ReceiptDetail.Highlight finalHighlight = detail.getHighlight();
-        // The check-out (final) receipt carries its own money lines (booked nights, amenities by room, desk charges, every payment).
-        boolean finalLines = finalHighlight != null && ReceiptDetail.Highlight.CHECKOUT_FINAL.equals(finalHighlight.kind) && finalHighlight.finalLines;
-        boolean breakdownReceipt = finalLines || ("OFFICIAL_RECEIPT".equals(detail.getReceiptType())
-                && detail.getStay() != null && detail.getStay().balanceBreakdown != null);
-        if (!breakdownReceipt) {
-            buildPaymentSummarySection(content, detail, amenities, aggregateAmenityCharge);
-            buildTransactionHistorySection(content, detail);
+        PayingForBreakdown breakdown = PayingForBreakdown.forReceipt(ui, detail, amenities, aggregateAmenityCharge);
+
+        LinearLayout stay = newSectionCard(content, getString(R.string.details_title_stay));
+        breakdown.renderRanges(ui, stay);
+
+        LinearLayout guests = newSectionCard(content, getString(R.string.details_title_guests));
+        TransactionSections.guests(ui, guests, detail, findLocalTransactionFor(detail));
+
+        LinearLayout bill = newSectionCard(content, getString(R.string.details_title_bill));
+        breakdown.renderBill(ui, bill);
+        ReceiptDetail.Highlight h = detail.getHighlight();
+        if ((h != null && ReceiptDetail.Highlight.CHECKOUT_FINAL.equals(h.kind)) || ReceiptTypeMapper.stageOf(detail.getReceiptType()) == 3) {
+            addNoteText(bill, h != null && h.noRefundNote != null && !h.noRefundNote.isEmpty() ? h.noRefundNote : getString(R.string.no_refund_note));
         }
-        buildHighlightSection(content, detail);
-        if (breakdownReceipt) buildTransactionHistorySection(content, detail);
+
+        LinearLayout payments = newSectionCard(content, getString(R.string.details_title_payments));
+        TransactionSections.payments(ui, payments, detail.getPaymentTransactions(), null);
+    }
+
+    /** What this receipt is for, in a few plain words: "Payment verified", "Check-in", "Check-out (final)". */
+    private String receiptLine(ReceiptDetail detail) {
+        ReceiptDetail.Highlight h = detail.getHighlight();
+        int stage = ReceiptTypeMapper.stageOf(detail.getReceiptType());
+        if (h != null && ReceiptDetail.Highlight.CHECKOUT_FINAL.equals(h.kind) || stage == 3) return getString(R.string.receipt_line_checkout);
+        if (h != null && ReceiptDetail.Highlight.CHECKIN_PAYMENT.equals(h.kind) || stage == 2) return getString(R.string.receipt_line_checkin);
+        return getString(R.string.receipt_line_verified);
     }
 
     /**
@@ -464,159 +475,16 @@ public class PaymentReceiptActivity extends SafeActivity {
      * The bottom of the receipt, highlighted: what the guest still owes (Receipts 1 and 2) or the grand total with
      * everything that was paid (Receipt 3). Every figure is the stored snapshot - nothing is recomputed here.
      */
-    private void buildHighlightSection(ViewGroup parent, ReceiptDetail detail) {
-        ReceiptDetail.Highlight h = detail.getHighlight();
-        BalanceBreakdown breakdown = detail.getStay() != null ? detail.getStay().balanceBreakdown : null;
-        if (h != null && ReceiptDetail.Highlight.CHECKOUT_FINAL.equals(h.kind) && h.finalLines) {
-            buildCheckoutFinalSection(parent, detail, h);
-            return;
-        }
-        if (breakdown != null && "OFFICIAL_RECEIPT".equals(detail.getReceiptType())) {
-            // Receipt 3 of a stay paid in full at check-in: the server's own breakdown, identical to the front desk's.
-            buildBalanceBreakdownSection(parent, breakdown, detail.getStay().scheduledNights);
-            return;
-        }
-        if (h == null) return;
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_summary_title));
-
-        if (ReceiptDetail.Highlight.CHECKOUT_FINAL.equals(h.kind)) {
-            addRow(content, getString(R.string.receipt_hl_room_charges), formatPrice(h.amount("room_charges")));
-            addRow(content, getString(R.string.receipt_hl_amenities), formatPrice(h.amount("amenities_total")));
-            addRow(content, getString(R.string.receipt_hl_additional), formatPrice(h.amount("additional_charges_total")));
-            if (h.amount("discount") > 0.004) addRow(content, getString(R.string.receipt_hl_discount), "-" + formatPrice(h.amount("discount")));
-            addDivider(content, dp(8));
-            addRow(content, getString(R.string.receipt_hl_paid_r1), formatPrice(h.amount("paid_receipt_1")));
-            addRow(content, getString(R.string.receipt_hl_paid_r2), formatPrice(h.amount("paid_receipt_2")));
-            addRow(content, getString(R.string.receipt_hl_paid_checkout), formatPrice(h.amount("paid_at_checkout")));
-            addHighlightPanel(content, new String[]{getString(R.string.receipt_hl_grand_total), getString(R.string.receipt_hl_total_paid), getString(R.string.receipt_hl_final_balance)},
-                    new double[]{h.amount("grand_total"), h.amount("total_paid"), h.amount("remaining_balance")}, null);
-            return;
-        }
-
-        // Receipts 1 and 2: a short money table - the total, what was paid (now / before / so far) - closed by the one figure that
-        // matters: what is still to pay, and where (at the hotel, or at check-out).
-        boolean checkin = ReceiptDetail.Highlight.CHECKIN_PAYMENT.equals(h.kind);
-        addRow(content, getString(R.string.receipt_hl_total_booking), formatPrice(h.amount("total_amount")));
-        if (checkin) {
-            addRow(content, getString(R.string.receipt_hl_paid_before_checkin), formatPrice(h.amount("previous_payments")));
-            addRow(content, getString(R.string.receipt_hl_paid_checkin), formatPrice(h.amount("amount_paid_now")));
-        } else {
-            String type = "full".equals(h.paymentType) ? getString(R.string.receipt_hl_type_full) : getString(R.string.receipt_hl_type_partial);
-            addRow(content, getString(R.string.receipt_hl_payment_type), type);
-            addRow(content, getString(R.string.receipt_hl_paid_now), formatPrice(h.amount("amount_paid_now")));
-        }
-        addRow(content, getString(R.string.receipt_hl_total_paid_so_far), formatPrice(h.amount("total_paid")));
-        double remaining = h.amount("remaining_balance");
-        boolean owing = remaining > 0.004;
-        addHighlightPanel(content, new String[]{getString(owing ? (checkin ? R.string.receipt_hl_due_at_checkout : R.string.receipt_hl_due_at_hotel)
-                        : R.string.receipt_hl_nothing_due)},
-                new double[]{remaining}, owing ? null : getString(R.string.receipt_hl_fully_paid));
-    }
-
     /**
      * Receipt 3, check-out (final): room charges for the BOOKED nights, the discount, the approved amenities grouped by room, the
      * other charges the front desk added, the total, every payment made (and what was paid at check-out), and the final balance.
      * There is no stay-length adjustment: the hotel has no refunds, and says so under the figures.
      */
-    private void buildCheckoutFinalSection(ViewGroup parent, ReceiptDetail detail, ReceiptDetail.Highlight h) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_summary_title));
-        int nights = detail.getStay() != null ? detail.getStay().actualNights : Math.max(1, detail.getNumberOfNights());
-        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, nights, nights);
-        addRow(content, getString(R.string.receipt_final_room_charges, nightsText), formatPrice(h.amount("room_charges")));
-        if (h.amount("discount") > 0.004) addRow(content, getString(R.string.receipt_hl_discount), "-" + formatPrice(h.amount("discount")));
-
-        addDivider(content, dp(8));
-        addSubheadingText(content, getString(R.string.receipt_final_amenities_title));
-        if (h.amenityGroups.isEmpty()) addNoteText(content, getString(R.string.receipt_bd_none));
-        for (ReceiptDetail.Highlight.AmenityGroup group : h.amenityGroups) {
-            boolean hasNumber = group.room != null && !group.room.isEmpty();
-            addSubheadingText(content, hasNumber ? getString(R.string.receipt_final_room_format, group.room)
-                    : (group.label != null && !group.label.isEmpty() ? group.label : getString(R.string.receipt_final_all_rooms)));
-            for (ReceiptDetail.Highlight.AmenityItem item : group.items) {
-                addRow(content, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
-            }
-        }
-        addRow(content, getString(R.string.receipt_final_amenities_total), formatPrice(h.amount("amenities_total")));
-
-        addDivider(content, dp(8));
-        addSubheadingText(content, getString(R.string.receipt_final_other_charges_title));
-        if (h.otherCharges.isEmpty()) addNoteText(content, getString(R.string.receipt_bd_none));
-        for (ReceiptDetail.Highlight.ChargeLine charge : h.otherCharges) addRow(content, charge.name, formatPrice(charge.amount));
-        addRow(content, getString(R.string.receipt_final_other_charges_total), formatPrice(h.amount("additional_charges_total")));
-
-        addDivider(content, dp(8));
-        addProminentTotal(content, getString(R.string.receipt_final_total), formatPrice(h.amount("grand_total")));
-
-        addSubheadingText(content, getString(R.string.receipt_final_payments_title));
-        if (h.payments.isEmpty()) addNoteText(content, getString(R.string.receipt_final_no_payments));
-        for (ReceiptDetail.Highlight.PaymentLine payment : h.payments) addRow(content, payment.label, formatPrice(payment.amount));
-        addRow(content, getString(R.string.receipt_hl_paid_checkout), formatPrice(h.amount("paid_at_checkout")));
-        addHighlightPanel(content, new String[]{getString(R.string.receipt_hl_total_paid), getString(R.string.receipt_final_balance)},
-                new double[]{h.amount("total_paid"), h.amount("remaining_balance")}, null);
-        addNoteText(content, h.noRefundNote != null && !h.noRefundNote.isEmpty() ? h.noRefundNote : getString(R.string.no_refund_note));
-    }
-
     /**
      * Receipt 3 for a stay settled at check-in, in the agreed order: CHECK-IN SUMMARY (discount taken once, paid in
      * full), ADDITIONAL CHARGES (amenities + the desk's charges, itemized), REMAINING BALANCE, then the highlighted
      * FINAL GRAND TOTAL / TOTAL PAID / BALANCE DUE. Every figure is the server's (StayBill), shown as it sent it.
      */
-    private void buildBalanceBreakdownSection(ViewGroup parent, BalanceBreakdown b, int nights) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_bd_title));
-        addSubheadingText(content, getString(R.string.receipt_bd_checkin_title,
-                getString(b.paidInFull ? R.string.receipt_bd_fully_paid : R.string.receipt_bd_not_fully_paid)));
-        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, nights, nights);
-        addRow(content, getString(R.string.receipt_bd_room_rate_nights, nightsText), formatPrice(b.roomCharge));
-        if (b.bookedAmenities > 0.004) addRow(content, getString(R.string.receipt_bd_booked_amenities), formatPrice(b.bookedAmenities));
-        if (b.discount > 0.004) {
-            String label = b.discountName == null ? getString(R.string.details_label_discount)
-                    : b.discountPercent == null ? getString(R.string.receipt_bd_discount_named, b.discountName)
-                    : getString(R.string.receipt_bd_discount_named_percent, b.discountName, trimPercent(b.discountPercent));
-            addRow(content, label, "-" + formatPrice(b.discount));
-        }
-        addRow(content, getString(R.string.receipt_bd_checkin_grand_total), formatPrice(b.checkinGrandTotal));
-        addRow(content, getString(R.string.receipt_bd_paid_at_checkin), "-" + formatPrice(b.amountPaidAtCheckin));
-        addRow(content, getString(R.string.receipt_bd_status), getString(b.paidInFull ? R.string.receipt_bd_status_paid : R.string.receipt_bd_status_partial));
-
-        addDivider(content, dp(8));
-        addSubheadingText(content, getString(R.string.receipt_bd_additional_title));
-        for (BalanceBreakdown.Item item : b.amenities) {
-            addRow(content, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
-        }
-        for (BalanceBreakdown.Item item : b.charges) {
-            addRow(content, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
-        }
-        if (!b.hasAdditionalCharges()) addNoteText(content, getString(R.string.receipt_bd_none));
-        addRow(content, getString(R.string.receipt_bd_amenity_requests), formatPrice(b.amenitiesTotal));
-        addRow(content, getString(R.string.receipt_bd_additional_charges), formatPrice(b.chargesTotal));
-        addRow(content, getString(R.string.receipt_bd_additional_subtotal), formatPrice(b.additionalSubtotal));
-        addProminentTotal(content, getString(R.string.receipt_bd_remaining_balance), formatPrice(b.remainingBalance));
-
-        addDivider(content, dp(8));
-        // Final summary: how the final amount was reached, line by line.
-        addRow(content, getString(R.string.receipt_bd_final_checkin_total), formatPrice(b.checkinGrandTotal));
-        addRow(content, getString(R.string.receipt_bd_final_plus_remaining), "+" + formatPrice(b.remainingBalance));
-        addHighlightPanel(content,
-                new String[]{getString(R.string.receipt_bd_final_grand_total), getString(R.string.receipt_bd_total_paid), getString(R.string.receipt_bd_balance_due)},
-                new String[]{formatPrice(b.finalGrandTotal), "-" + formatPrice(b.totalPaid), formatPrice(b.balanceDue)}, null);
-    }
-
-    private static String trimPercent(double percent) {
-        return percent == Math.rint(percent) ? String.valueOf((long) percent) : String.valueOf(percent);
-    }
-
-    private void addSubheadingText(ViewGroup parent, String text) {
-        TextView view = new TextView(ui);
-        view.setText(text);
-        view.setAllCaps(false);
-        view.setTypeface(view.getTypeface(), android.graphics.Typeface.BOLD);
-        view.setLetterSpacing(0f);
-        view.setTextSize(12);
-        view.setTextColor(ui.getColor(R.color.velocity_text_secondary));
-        view.setPadding(0, dp(4), 0, dp(4));
-        parent.addView(view);
-    }
-
     private void addNoteText(ViewGroup parent, String text) {
         TextView view = new TextView(ui);
         view.setText(text);
@@ -624,51 +492,6 @@ public class PaymentReceiptActivity extends SafeActivity {
         view.setTextColor(ui.getColor(R.color.velocity_text_secondary));
         view.setPadding(0, dp(2), 0, dp(6));
         parent.addView(view);
-    }
-
-    /** Big, tinted rows for the figures a receipt highlights; the last row carries an optional note ("Due at check-in"). */
-    private void addHighlightPanel(ViewGroup parent, String[] labels, double[] values, @Nullable String note) {
-        String[] formatted = new String[values.length];
-        for (int i = 0; i < values.length; i++) formatted[i] = formatPrice(values[i]);
-        addHighlightPanel(parent, labels, formatted, note);
-    }
-
-    private void addHighlightPanel(ViewGroup parent, String[] labels, String[] values, @Nullable String note) {
-        LinearLayout panel = new LinearLayout(ui);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
-        panel.setPadding(dp(14), dp(12), dp(14), dp(12));
-        for (int i = 0; i < labels.length; i++) {
-            LinearLayout row = new LinearLayout(ui);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            row.setPadding(0, dp(4), 0, dp(4));
-            TextView label = new TextView(ui);
-            label.setText(labels[i]);
-            label.setAllCaps(false);
-            label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
-            label.setLetterSpacing(0f);
-            label.setTextColor(ui.getColor(R.color.velocity_text_primary));
-            label.setTextSize(12);
-            row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            TextView value = new TextView(ui);
-            value.setText(values[i]);
-            value.setGravity(android.view.Gravity.END);
-            value.setTypeface(value.getTypeface(), android.graphics.Typeface.BOLD);
-            value.setTextColor(ui.getColor(R.color.velocity_action_text)); // the red that stays readable in Dark too
-            value.setTextSize(i == labels.length - 1 ? 20 : 16);
-            row.addView(value, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            panel.addView(row);
-        }
-        if (note != null && !note.isEmpty()) {
-            TextView noteView = new TextView(ui);
-            noteView.setText(note);
-            noteView.setGravity(android.view.Gravity.END);
-            noteView.setTextColor(ui.getColor(R.color.velocity_text_secondary));
-            noteView.setTextSize(12);
-            panel.addView(noteView);
-        }
-        parent.addView(panel);
     }
 
     /** Receipt Header + Receipt Status - see item 5 of the Phase 4 checklist. */
@@ -693,6 +516,7 @@ public class PaymentReceiptActivity extends SafeActivity {
         // balance, a Full/Official Receipt reads "Paid" - never a fixed "Verified".
         TransactionStatusHelper.Summary statusSummary = TransactionStatusHelper.summarize(detail);
         content.addView(newStatusBadge(statusSummary.status));
+        content.addView(centeredText(receiptLine(detail), 13, true, R.color.velocity_text_primary, dp(8)));
 
         addDivider(content, dp(16));
         addRowOrDash(content, getString(R.string.receipt_reference_label), detail.getReceiptNumber());
@@ -710,7 +534,8 @@ public class PaymentReceiptActivity extends SafeActivity {
         // literal "N/A" on every single receipt, real date or not. addRow()
         // already hides the row for a null/empty value, so no ternary is
         // needed here.
-        addRowOrDash(content, getString(R.string.receipt_issued_date_label), detail.getIssuedAt());
+        addRowOrDash(content, getString(R.string.receipt_issued_date_label),
+                detail.getIssuedAtRaw() != null && !detail.getIssuedAtRaw().isEmpty() ? TimeUtils.formatDateTimeSeconds(detail.getIssuedAtRaw()) : detail.getIssuedAt());
     }
 
     /** The centered status pill of the receipt header - text, colors and icon all from the shared status style. */
@@ -738,102 +563,10 @@ public class PaymentReceiptActivity extends SafeActivity {
      * a value the payload didn't carry reads "—", never a blank or "null". Rows that simply don't apply (the
      * original reservation of a direct booking, an unassigned room number) are omitted.
      */
-    private void buildStaySection(ViewGroup parent, ReceiptDetail detail) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_booking_information_title));
-        // Reservation-derived receipts name the original reservation (the id guests know the transaction by);
-        // a direct booking has none.
-        addRow(content, getString(R.string.receipt_original_reservation_id_label), detail.getReservationId());
-        addRowOrDash(content, getString(R.string.receipt_label_booking_id), detail.getBookingId());
-        addRowOrDash(content, getString(R.string.details_label_room_type), formatRoomLinesValue(detail));
-        addRowOrDash(content, getString(R.string.receipt_room_rate_label), formatRateValue(detail));
-        addRowOrDash(content, getString(R.string.details_label_check_in), detail.getCheckIn());
-        addRowOrDash(content, getString(R.string.details_label_check_out), detail.getCheckOut());
-        if (detail.getStay() != null) {
-            for (StayInfo.Row row : detail.getStay().rows(this)) {
-                // The booked dates are already the Check-In / Check-Out rows just above.
-                if (row.label.equals(getString(R.string.stay_scheduled_check_in))
-                        || row.label.equals(getString(R.string.stay_scheduled_check_out))) continue;
-                addRowOrDash(content, row.label, row.value);
-            }
-        } else {
-            addRowOrDash(content, getString(R.string.receipt_number_of_nights_label),
-                    detail.getNumberOfNights() > 0 ? String.valueOf(detail.getNumberOfNights()) : null);
-        }
-        if (!detail.getAssignedRoomNumbers().isEmpty()) {
-            addRow(content, getString(R.string.details_label_room_number),
-                    android.text.TextUtils.join(", ", detail.getAssignedRoomNumbers()));
-        }
-        int totalGuests = detail.getAdults() + detail.getChildren();
-        addRow(content, getString(R.string.details_label_total_guests), totalGuests > 0 ? String.valueOf(totalGuests) : null);
-    }
-
-    /** "₱2,500.00 / night" for one room type; "Varies by room type" for several; null (shown as "—") when the payload has no room lines to read a rate from. */
-    @Nullable
-    private String formatRateValue(ReceiptDetail detail) {
-        List<BookingRoom> lines = detail.getRoomLines();
-        if (lines.isEmpty()) return null;
-        if (lines.size() > 1) return getString(R.string.receipt_rate_varies);
-        ReceiptBreakdown.RoomLine line = ReceiptBreakdown.roomLineOf(lines.get(0), Math.max(1, detail.getNumberOfNights()));
-        return getString(R.string.receipt_rate_per_night_format, formatPrice(line.ratePerNight));
-    }
-
-    private String formatRoomLinesValue(ReceiptDetail detail) {
-        List<BookingRoom> lines = detail.getRoomLines();
-        if (!lines.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (BookingRoom room : lines) {
-                if (room == null || room.getRoomTypeName() == null || room.getRoomTypeName().trim().isEmpty()) continue;
-                if (sb.length() > 0) sb.append('\n');
-                sb.append(room.getRoomTypeName().trim()).append(" ×").append(Math.max(1, room.getQuantity()));
-            }
-            if (sb.length() > 0) return sb.toString();
-        }
-        return detail.getRoomType();
-    }
-
     /**
      * Every stay of a multi-stay transaction, on screen and in the PDF alike (this body is built once for both): each stay's dates and
      * nights, its rooms with room numbers, its amenities and its own subtotal. A one-stay receipt keeps the sections it always had.
      */
-    private void buildStaysSection(ViewGroup parent, ReceiptDetail detail) {
-        List<Booking.StayRecord> stays = detail.getStays();
-        if (stays == null || stays.size() < 2) return;
-        LinearLayout content = newSectionCard(parent, getString(R.string.details_stays_title));
-        for (Booking.StayRecord stay : stays) {
-            if (stay == null) continue;
-            
-            String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
-            String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
-            addRow(content, getString(R.string.stay_label_format, stay.position), dates.isEmpty() ? nights : getString(R.string.stay_details_line_format, dates, nights));
-            for (BookingRoom room : stay.rooms) {
-                if (room == null) continue;
-                String numbers = room.getAssignedRoomNumbers().isEmpty() ? ""
-                        : getString(R.string.stay_room_numbers_format, android.text.TextUtils.join(", ", room.getAssignedRoomNumbers()));
-                addRow(content, getString(R.string.stay_room_line_format, room.getQuantity(), room.getRoomTypeName(), numbers).trim(), formatPrice(room.getSubtotal()));
-            }
-            for (BookingAmenity amenity : stay.amenities) {
-                if (amenity == null) continue;
-                addRow(content, StayCardText.withRoom(this, getString(R.string.summary_amenity_row_qty_format, amenity.getAmenityName(), amenity.getQuantity()), amenity.getRoomLabel()), formatPrice(amenity.getSubtotal()));
-            }
-            addRow(content, getString(R.string.stay_subtotal_format, stay.position), formatPrice(stay.subtotal));
-        }
-    }
-
-    /** Guest Information - item 6. */
-    private void buildGuestSection(ViewGroup parent, ReceiptDetail detail) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_guest_information_title));
-        addRowOrDash(content, getString(R.string.receipt_guest_account_name_label), detail.getGuestAccountName());
-        // The receipt only carries the composed "First Middle Last"; when the matching transaction is on the phone its separate name
-        // parts give the app's own order, "Last, First Middle".
-        Booking local = findLocalTransactionFor(detail);
-        String composed = RepresentativeName.clean(detail.getRepresentativeName());
-        boolean sameGuest = local != null && !composed.isEmpty()
-                && composed.equalsIgnoreCase(RepresentativeName.clean(local.getRepresentativeName()));
-        addRow(content, getString(R.string.details_label_representative_name), sameGuest
-                ? RepresentativeName.representativeOf(this, local)
-                : RepresentativeName.representativeOf(this, detail.getRepresentativeName()));
-    }
-
     /**
      * Payment Summary - items 8/9/10, now itemized: every selected room (rate per
      * night, nights, subtotal) with the Rooms Total, every selected amenity (quantity,
@@ -853,22 +586,6 @@ public class PaymentReceiptActivity extends SafeActivity {
      * has been paid against the Grand Total, not how it is made up, and keeping them out
      * lets the Grand Total genuinely close the summary.
      */
-    private void buildPaymentSummarySection(ViewGroup parent, ReceiptDetail detail, @Nullable List<BookingAmenity> amenities,
-                                            double aggregateAmenityCharge) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_summary_title));
-        Booking.PaymentSummary summary = detail.getPaymentSummary();
-        if (summary == null) {
-            // The payload carried no payment summary: say so field by field ("—") instead of leaving an empty card.
-            addRowOrDash(content, getString(R.string.receipt_grand_total_label), null);
-            addRowOrDash(content, getString(R.string.details_label_amount_paid), null);
-            addRowOrDash(content, getString(R.string.details_label_remaining_balance), null);
-            return;
-        }
-
-        ReceiptSummaryRenderer.render(ui, content, ReceiptBreakdown.forReceiptDetail(detail, amenities, aggregateAmenityCharge));
-        buildPaymentDetailsSection(parent, detail, summary);
-    }
-
     /**
      * Payment progress - detail.isAnchoredOnSinglePayment() distinguishes a
      * PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT (a frozen point-in-time snapshot, anchored on one
@@ -876,110 +593,10 @@ public class PaymentReceiptActivity extends SafeActivity {
      * cases read exclusively from detail.getPaymentSummary(), never a separately
      * fetched/cached Booking.
      */
-    private void buildPaymentDetailsSection(ViewGroup parent, ReceiptDetail detail, Booking.PaymentSummary summary) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_information_title));
-        TransactionStatusHelper.Summary statusSummary = TransactionStatusHelper.summarize(detail);
-        String statusLabel = getString(TransactionStatusHelper.styleFor(statusSummary.status).labelRes);
-        Booking.PaymentTransactionRecord paymentRecord = anchorTransactionOf(detail);
-
-        ReceiptDetail.CheckinSettlement settlement = detail.getCheckinSettlement();
-        if (settlement != null) {
-            buildCheckinSettlementRows(content, settlement, statusLabel, detail);
-            return;
-        }
-
-        if (summary.paymentPercentage != null) {
-            addRow(content, getString(R.string.receipt_payment_percentage_label),
-                    PaymentPercentageUtil.formatApiPercentageForDisplay(summary.paymentPercentage));
-        }
-
-        if (detail.isAnchoredOnSinglePayment() && detail.getAnchorPayment() != null) {
-            // PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - the frozen snapshot.
-            ReceiptDetail.AnchorPayment anchor = detail.getAnchorPayment();
-            addRowOrDash(content, getString(R.string.receipt_amount_paid_this_transaction_label), formatPrice(anchor.amountPaid));
-            // Cash only: what was handed over and the change returned (the amount above is what was applied).
-            if ("cash".equalsIgnoreCase(anchor.paymentMethod) && anchor.cashReceived != null) {
-                addRowOrDash(content, getString(R.string.receipt_cash_received_label), formatPrice(anchor.cashReceived));
-                addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(anchor.changeGiven != null ? anchor.changeGiven : 0));
-            }
-            addRowOrDash(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(summary.totalAmountPaid));
-            addRowOrDash(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(summary.remainingBalance));
-            addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
-            addPaymentMethodDateTime(content, anchor.paymentMethod, paymentRecord, detail.getIssuedAtRaw());
-            // Only ever present for a PARTIAL_RECEIPT/FULL_PAYMENT_RECEIPT - an OFFICIAL_RECEIPT's
-            // checkout-recorded payment has no separate staff-verification step at all (backend's own
-            // transactionType() doc), so anchor_payment (and therefore this field) is genuinely null there.
-            addRow(content, getString(R.string.receipt_verified_by_label), anchor.verifiedBy);
-            addRow(content, getString(R.string.receipt_verified_at_label),
-                    anchor.verifiedAt != null ? TimeUtils.formatDateTime(anchor.verifiedAt) : null);
-        } else {
-            // OFFICIAL_RECEIPT - final settlement; Total Amount Paid made prominent below.
-            addRowOrDash(content, getString(R.string.details_label_remaining_balance), formatPrice(summary.remainingBalance));
-            addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
-            addPaymentMethodDateTime(content, paymentRecord != null ? paymentRecord.paymentMethod : null, paymentRecord, detail.getIssuedAtRaw());
-            if (paymentRecord != null && "cash".equalsIgnoreCase(paymentRecord.paymentMethod) && paymentRecord.cashReceived != null) {
-                addRowOrDash(content, getString(R.string.receipt_cash_received_label), formatPrice(paymentRecord.cashReceived));
-                addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(paymentRecord.changeGiven != null ? paymentRecord.changeGiven : 0));
-            }
-            addDivider(content, dp(12));
-            addProminentTotal(content, getString(R.string.receipt_total_amount_paid_label), formatPrice(summary.totalAmountPaid));
-        }
-    }
-
     /**
      * Receipt 2 - the balance settled in the Check-In module: how it was settled, the amount settled, the total paid, the
      * balance (always 0 here) and the result of the discount ID validation. Every figure is the server's frozen snapshot.
      */
-    private void buildCheckinSettlementRows(LinearLayout content, ReceiptDetail.CheckinSettlement c, String statusLabel, ReceiptDetail detail) {
-        int typeRes = ReceiptDetail.CheckinSettlement.PARTIAL_TO_FULL.equals(c.settlementType) ? R.string.receipt_settlement_partial_to_full
-                : ReceiptDetail.CheckinSettlement.FULL_CONFIRMATION.equals(c.settlementType) ? R.string.receipt_settlement_full_confirmation
-                : R.string.receipt_settlement_full_payment;
-        addRowOrDash(content, getString(R.string.receipt_settlement_type_label), getString(typeRes));
-        addRowOrDash(content, getString(R.string.receipt_total_amount_label), formatPrice(c.totalAmount));
-        addRowOrDash(content, getString(R.string.receipt_amount_settled_label), formatPrice(c.amountSettled));
-        if (c.amountSettled > 0.004) {
-            addPaymentMethodDateTime(content, c.paymentMethod, null, detail.getIssuedAtRaw());
-        }
-        if (c.changeReturned > 0.004) {
-            addRowOrDash(content, getString(R.string.receipt_change_label), formatPrice(c.changeReturned));
-        }
-        addRowOrDash(content, getString(R.string.receipt_total_paid_at_this_point_label), formatPrice(c.totalPaid));
-        addRowOrDash(content, getString(R.string.receipt_remaining_balance_at_this_point_label), formatPrice(c.balance));
-        addRowOrDash(content, getString(R.string.receipt_payment_status_label), statusLabel);
-
-        String idResult;
-        switch (c.discountStatus) {
-            case "approved":
-                idResult = c.discountName != null && !c.discountName.isEmpty()
-                        ? getString(R.string.receipt_id_validated_named_format, c.discountName, formatPrice(c.discountAmount))
-                        : getString(R.string.discount_chip_approved);
-                break;
-            case "rejected":
-                idResult = c.discountRejectionReason != null && !c.discountRejectionReason.isEmpty()
-                        ? getString(R.string.receipt_id_not_validated_reason_format, c.discountRejectionReason)
-                        : getString(R.string.discount_chip_rejected);
-                break;
-            default:
-                idResult = getString(R.string.receipt_id_no_discount);
-        }
-        addRowOrDash(content, getString(R.string.receipt_id_validation_label), idResult);
-        addRow(content, getString(R.string.receipt_verified_by_label), c.verifiedBy);
-    }
-
-    /** The payment transaction this receipt is about: the one that carries its own receipt number, else the most recent. */
-    @Nullable
-    private Booking.PaymentTransactionRecord anchorTransactionOf(ReceiptDetail detail) {
-        List<Booking.PaymentTransactionRecord> transactions = detail.getPaymentTransactions();
-        if (transactions.isEmpty()) return null;
-        String number = detail.getReceiptNumber();
-        if (number != null) {
-            for (Booking.PaymentTransactionRecord tx : transactions) {
-                if (number.equals(tx.receiptNumber)) return tx;
-            }
-        }
-        return transactions.get(transactions.size() - 1);
-    }
-
     /**
      * Payment Method, Payment Date and Payment Time. The payment's own timestamp when it has one; otherwise the receipt's
      * issue time (the check-in receipt has no payment row of its own, and a legacy payment can have no timestamp) - "—"
@@ -1012,25 +629,6 @@ public class PaymentReceiptActivity extends SafeActivity {
      * viewed, exactly the bug PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md §12
      * warns against.
      */
-    private void buildTransactionHistorySection(ViewGroup parent, ReceiptDetail detail) {
-        LinearLayout content = newSectionCard(parent, getString(R.string.receipt_payment_transaction_history_title));
-        List<Booking.PaymentTransactionRecord> transactions = detail.getPaymentTransactions();
-
-        if (transactions.isEmpty()) {
-            TextView empty = new TextView(ui);
-            empty.setText(R.string.receipt_no_transactions_desc);
-            empty.setTextColor(ui.getColor(R.color.velocity_text_secondary));
-            empty.setTextSize(12);
-            content.addView(empty);
-            return;
-        }
-
-        for (int i = 0; i < transactions.size(); i++) {
-            View row = ReceiptCardHelper.buildTransactionRow(ui, content, transactions.get(i), i == transactions.size() - 1);
-            content.addView(row);
-        }
-    }
-
     // ---- Small dynamic-UI builder helpers (receipt-number mode only) ----
 
     /** New rounded card appended to parent; returns its inner content LinearLayout for callers to add rows into. Null title omits the section-title TextView (used for the header card, which has its own bespoke title treatment). */
@@ -1089,40 +687,6 @@ public class PaymentReceiptActivity extends SafeActivity {
         divider.setLayoutParams(params);
         divider.setBackgroundColor(ui.getColor(R.color.velocity_divider_hairline));
         parent.addView(divider);
-    }
-
-    /** The visually prominent "TOTAL AMOUNT PAID" panel for an Official Receipt - item 10. */
-    private void addProminentTotal(ViewGroup parent, String label, String value) {
-        LinearLayout panel = new LinearLayout(ui);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setGravity(android.view.Gravity.CENTER);
-        panel.setBackgroundResource(R.drawable.bg_receipt_total_panel);
-        panel.setPadding(0, dp(16), 0, dp(16));
-
-        TextView labelView = new TextView(ui);
-        labelView.setText(label);
-        labelView.setAllCaps(false);
-        labelView.setGravity(android.view.Gravity.CENTER);
-        labelView.setTextColor(ui.getColor(R.color.velocity_text_secondary));
-        labelView.setTextSize(11);
-        labelView.setLetterSpacing(0f);
-        panel.addView(labelView);
-
-        TextView valueView = new TextView(ui);
-        valueView.setText(value);
-        valueView.setGravity(android.view.Gravity.CENTER);
-        valueView.setTypeface(valueView.getTypeface(), android.graphics.Typeface.BOLD);
-        valueView.setTextColor(ui.getColor(R.color.velocity_red_primary));
-        // One step below the Grand Total's 22sp panel (item_receipt_grand_total.xml) - this is
-        // what was PAID, the Grand Total is what is OWED, and the outlined Grand Total panel
-        // should read as the primary figure on the page.
-        valueView.setTextSize(20);
-        LinearLayout.LayoutParams valueParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        valueParams.topMargin = dp(4);
-        valueView.setLayoutParams(valueParams);
-        panel.addView(valueView);
-
-        parent.addView(panel);
     }
 
     private TextView centeredText(String text, float sizeSp, boolean bold, int colorRes, int topMarginPx) {

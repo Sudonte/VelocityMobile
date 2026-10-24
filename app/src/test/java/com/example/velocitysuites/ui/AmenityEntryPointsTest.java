@@ -179,6 +179,6 @@ public class AmenityEntryPointsTest {
     public void bookingDetails_forACheckedOutStay_hidesTheButton() {
         BookingDetailsActivity a = details(ApiMapper.toBooking(booking(341, "COMPLETED_BOOKING", -3, -1)));
         assertEquals(View.GONE, a.findViewById(R.id.btnRequestAmenitiesDetails).getVisibility());
-        assertEquals("only \"Your rooms\" asks (for the room of each request), not a button check", 1, api.count("getBookingAdditionalAmenities"));
+        assertEquals("a checked-out stay asks nothing: no button, no request list", 0, api.count("getBookingAdditionalAmenities"));
     }
 }

@@ -33,6 +33,8 @@ final class ReviewSheet {
         @Nullable final String amount;
         final boolean bold;
         final boolean indent;
+        /** A colour for the amount (0 = the usual one): "₱0.00 · Fully paid" in green. */
+        @androidx.annotation.ColorRes int amountColor;
 
         Row(@NonNull String label, @Nullable String amount, boolean bold, boolean indent) {
             this.label = label;
@@ -51,6 +53,13 @@ final class ReviewSheet {
 
         static Row bold(String label, String amount) {
             return new Row(label, amount, true, false);
+        }
+
+        /** A bold row whose amount is drawn in {@code colorRes}. */
+        static Row boldColored(String label, String amount, @androidx.annotation.ColorRes int colorRes) {
+            Row r = new Row(label, amount, true, false);
+            r.amountColor = colorRes;
+            return r;
         }
     }
 
@@ -171,7 +180,7 @@ final class ReviewSheet {
             amount.setText(r.amount);
             amount.setGravity(android.view.Gravity.END);
             amount.setTextSize(r.bold ? 14 : 12);
-            amount.setTextColor(ContextCompat.getColor(c, R.color.velocity_text_primary));
+            amount.setTextColor(ContextCompat.getColor(c, r.amountColor != 0 ? r.amountColor : R.color.velocity_text_primary));
             if (r.bold) amount.setTypeface(amount.getTypeface(), Typeface.BOLD);
             row.addView(amount);
         }

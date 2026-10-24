@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config;
 import java.util.Arrays;
 import java.util.Collections;
 
-/** The "Group · Stay 1 of 2" label: a single stay has none, and each stay of a group knows its place whatever order the list shows. */
+/** The "Group · 1 of 2" label: a single stay has none, and each stay of a group knows its place whatever order the list shows. */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, application = com.example.velocitysuites.ui.TestApplication.class)
 public class GroupStaysTest {
@@ -37,9 +37,9 @@ public class GroupStaysTest {
     @Test
     public void stagesAreNumberedByTheirOrderInTheGroup() {
         Context c = ApplicationProvider.getApplicationContext();
-        assertEquals("Group · Stay 1 of 2", GroupStays.label(c, stay("10", 3L, 11L)));
-        assertEquals("Group · Stay 2 of 2", GroupStays.label(c, stay("11", 3L, 10L)));
-        assertEquals("Group · Stay 3 of 3", GroupStays.label(c, stay("12", 3L, 10L, 11L)));
+        assertEquals("Group · 1 of 2", GroupStays.label(c, stay("10", 3L, 11L)));
+        assertEquals("Group · 2 of 2", GroupStays.label(c, stay("11", 3L, 10L)));
+        assertEquals("Group · 3 of 3", GroupStays.label(c, stay("12", 3L, 10L, 11L)));
     }
 
     @Test

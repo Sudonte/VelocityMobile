@@ -163,7 +163,7 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
         String[] lines = new String[info.stays.size()];
         for (int i = 0; i < lines.length; i++) {
             AdditionalAmenityInfoDto.Stay s = info.stays.get(i);
-            lines[i] = getString(R.string.amenity_stay_pick_line_format, s.position, s.check_in, s.check_out);
+            lines[i] = getString(R.string.amenity_stay_pick_line_format, s.check_in, s.check_out);
         }
         showState(getString(R.string.group_pick_stay_title), false);
         new SafeDialogs.Material(this)

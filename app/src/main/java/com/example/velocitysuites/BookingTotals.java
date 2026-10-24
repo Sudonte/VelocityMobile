@@ -71,6 +71,13 @@ public final class BookingTotals {
 
     /** Booked amenities: the itemized rows, else the single amenity charge. */
     public static double amenities(@NonNull Booking b) {
+        // amenities live in their date range when the server sends ranges: those are what the bill adds up
+        double inRanges = 0;
+        for (Booking.StayRecord stay : b.getStays()) {
+            if (stay == null) continue;
+            for (BookingAmenity a : stay.amenities) if (a != null) inRanges += a.getSubtotal();
+        }
+        if (inRanges > 0.009) return round(inRanges);
         if (!b.getAmenities().isEmpty()) {
             double sum = 0;
             for (BookingAmenity a : b.getAmenities()) if (a != null) sum += a.getSubtotal();

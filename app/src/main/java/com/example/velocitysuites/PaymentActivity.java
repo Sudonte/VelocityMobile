@@ -2469,8 +2469,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) n, (int) n);
         
         String dates = StayCardText.stayDates(stay.checkIn, stay.checkOut);
-        String heading = booking.hasSeveralStays() ? getString(R.string.details_stay_heading_format, stay.position, dates, nightsText)
-                : getString(R.string.details_single_stay_heading_format, dates, nightsText);
+        String heading = getString(R.string.details_single_stay_heading_format, dates, nightsText);
         List<String> rooms = new ArrayList<>();
         for (BookingRoom room : stay.rooms) {
             if (room == null) continue;
@@ -2750,7 +2749,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             n++;
             if (several) {
                 if (sb.length() > 0) sb.append("; ");
-                sb.append(getString(R.string.stay_label_format, n)).append(": ");
+                sb.append(rangeText(stay)).append(": ");
             }
             boolean first = true;
             for (List<Room> group : stay.roomsGroupedByType().values()) {
@@ -2760,6 +2759,13 @@ public class PaymentActivity extends BaseNavigationActivity {
             }
         }
         return sb.toString();
+    }
+
+    /** "Oct 26 → Oct 27, 2026": the dates that head a date range of the booking being paid for. */
+    private String rangeText(BookingWizardState.Stay stay) {
+        if (stay.checkIn == null || stay.checkOut == null) return getString(R.string.stay_these_dates);
+        SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        return StayCardText.stayDates(iso.format(stay.checkIn.getTime()), iso.format(stay.checkOut.getTime()));
     }
 
     private void renderPendingWizardRoomsSummary() {
@@ -2772,7 +2778,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             for (List<Room> group : stay.roomsGroupedByType().values()) {
                 Room representative = group.get(0);
                 double subtotal = representative.getPricePerNight() * stay.nights() * group.size();
-                String name = several ? getString(R.string.review_stay_room_format, n, representative.getName()) : representative.getName();
+                String name = several ? getString(R.string.review_room_range_format, representative.getName(), rangeText(stay)) : representative.getName();
                 layoutSelectedRoomsSummary.addView(buildRoomSummaryRow(name, group.size(), subtotal));
             }
         }
@@ -2787,7 +2793,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             n++;
             for (AddOnAmenity a : stay.amenities) {
                 hasAmenities = true;
-                String name = pendingWizardState.isGroup() ? getString(R.string.review_stay_room_format, n, a.getName()) : a.getName();
+                String name = pendingWizardState.isGroup() ? getString(R.string.review_room_range_format, a.getName(), rangeText(stay)) : a.getName();
                 layoutSelectedAmenitiesSummary.addView(buildAmenitySummaryRow(name, a.getQuantity(), a.getSubtotal()));
             }
         }

@@ -215,7 +215,7 @@ public class WizardGroupLayoutTest {
             idle();
             View root = step(activity).getView();
             String all = collect(root);
-            assertTrue(all, all.contains("Stay 3"));
+            assertTrue(all, countOccurrences(all, "→") >= 3 && !all.contains("Stay 3"));
             assertFits("review with 3 stays", root, activity.getResources().getDisplayMetrics().widthPixels);
         });
     }

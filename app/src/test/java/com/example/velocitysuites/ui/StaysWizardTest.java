@@ -174,7 +174,7 @@ public class StaysWizardTest {
 
         assertEquals(2, state.stayCount());
         assertEquals(1, state.activeStayIndex());
-        assertEquals("Stay 2 · Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
+        assertEquals("Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
         assertEquals("the new stay starts empty", 0, state.selectedRooms.size());
         assertEquals(View.GONE, find(activity, R.id.btnAddAnotherStay).getVisibility());
         assertFalse("stay 2 has no rooms: Next waits", nextEnabled(activity));
@@ -199,7 +199,7 @@ public class StaysWizardTest {
         View first = rows.getChildAt(0);
         View second = rows.getChildAt(1);
         String title1 = plain(text(first.findViewById(R.id.tvStayRowTitle)));
-        assertTrue(title1, title1.startsWith("Stay 1") && title1.contains("→") && title1.contains("1 night"));
+        assertTrue(title1, !title1.contains("Stay") && title1.contains("→") && title1.contains("1 night"));
         assertEquals("1 room · ₱9,300.00", text(first.findViewById(R.id.tvStayRowRooms)));
         assertEquals("2 rooms · ₱8,000.00", text(second.findViewById(R.id.tvStayRowRooms)));
         assertTrue(plain(text(second.findViewById(R.id.tvStayRowTitle))).contains("2 nights"));
@@ -217,7 +217,7 @@ public class StaysWizardTest {
         first.findViewById(R.id.btnStayRowEdit).performClick();
         idle();
         assertEquals(0, state.activeStayIndex());
-        assertEquals("Stay 1 · Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
+        assertTrue(text(find(activity, R.id.tvActiveStayHeading)), text(find(activity, R.id.tvActiveStayHeading)).startsWith("Edit ") && text(find(activity, R.id.tvActiveStayHeading)).contains("→"));
         assertEquals(View.VISIBLE, ((android.widget.LinearLayout) find(activity, R.id.layoutStayRows)).getChildAt(0).findViewById(R.id.tvStayRowEditing).getVisibility());
         assertTrue("stay 1 reads 'not confirmed yet' while open",
                 text(((android.widget.LinearLayout) find(activity, R.id.layoutStayRows)).getChildAt(0).findViewById(R.id.tvStayRowRooms)).contains("Not confirmed yet"));
@@ -324,7 +324,7 @@ public class StaysWizardTest {
         advance();
         ((android.widget.LinearLayout) find(activity, R.id.layoutStayRows)).getChildAt(0).findViewById(R.id.btnStayRowEdit).performClick();
         idle();
-        assertEquals("Stay 1 · Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
+        assertTrue(text(find(activity, R.id.tvActiveStayHeading)), text(find(activity, R.id.tvActiveStayHeading)).startsWith("Edit ") && text(find(activity, R.id.tvActiveStayHeading)).contains("→"));
         assertEquals(2L, state.nights());
 
         advance();
@@ -381,10 +381,10 @@ public class StaysWizardTest {
         assertTrue(sheet.isShowing());
         String shown = dialogText(sheet);
         assertTrue(shown, shown.contains("Review your stays"));
-        assertTrue(shown, shown.contains("Stay 1") && shown.contains("2 nights") && shown.contains("Stay 2") && shown.contains("1 night"));
+        assertTrue(shown, !shown.contains("Stay 1") && shown.contains("2 nights") && shown.contains("1 night"));
         assertTrue(shown, shown.contains("2 × Room 1 × ₱1,000.00 × 2 nights") && shown.contains("₱4,000.00"));
         assertTrue(shown, shown.contains("1 × Room 2 × ₱3,000.00 × 1 night") && shown.contains("₱3,000.00"));
-        assertTrue(shown, shown.contains("Stay 1 subtotal") && shown.contains("Stay 2 subtotal"));
+        assertTrue(shown, shown.contains("Subtotal"));
         assertTrue(shown, shown.contains("Total for all stays") && shown.contains("₱7,000.00"));
         assertEquals("Edit stays", text(sheet.findViewById(R.id.btnReviewEdit)));
         assertEquals("Continue", text(sheet.findViewById(R.id.btnReviewContinue)));
@@ -439,5 +439,23 @@ public class StaysWizardTest {
             assertEquals(qualifiers, qualifiers.endsWith("-night") && !qualifiers.endsWith("notnight"), night);
         }
         RuntimeEnvironment.setQualifiers("+w360dp-h800dp-notnight");
+    }
+
+    @Test
+    public void stepOne_neverSaysStayN_theDatesHeadEachRange_andTheButtonsSayDate() {
+        BookingWizardActivity activity = onConfirmedStay(app, 5, 2, room("1", 1000), 2);
+        advance();
+        String confirmed = collect(find(activity, R.id.layoutStaysSummary)) + " " + text(find(activity, R.id.tvActiveStayHeading));
+        assertFalse(confirmed, java.util.regex.Pattern.compile("(^|[^A-Za-z])Stay [0-9]").matcher(confirmed).find());
+        assertEquals("Add another date", text(find(activity, R.id.btnAddAnotherStay)));
+        find(activity, R.id.btnAddAnotherStay).performClick();
+        idle();
+        assertEquals("Choose dates and rooms", text(find(activity, R.id.tvActiveStayHeading)));
+        String second = collect(find(activity, R.id.layoutStaysSummary)) + " " + text(find(activity, R.id.tvActiveStayHeading));
+        assertFalse(second, java.util.regex.Pattern.compile("(^|[^A-Za-z])Stay [0-9]").matcher(second).find());
+        android.widget.LinearLayout rows = find(activity, R.id.layoutStayRows);
+        String title = plain(text(rows.getChildAt(0).findViewById(R.id.tvStayRowTitle)));
+        assertTrue(title, title.contains("→") && title.contains("2 nights"));
+        assertEquals("the rooms line is its own text, not part of a Stay label", "2 rooms · ₱4,000.00", text(rows.getChildAt(0).findViewById(R.id.tvStayRowRooms)));
     }
 }

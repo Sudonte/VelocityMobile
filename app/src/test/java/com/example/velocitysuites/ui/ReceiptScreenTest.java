@@ -142,15 +142,21 @@ public class ReceiptScreenTest {
         }
     }
 
+    /** The text right after {@code label} in the receipt (its amount or value): rows are a label then a value. */
+    private static String after(List<String> texts, String label) {
+        int i = texts.indexOf(label);
+        return i >= 0 && i + 1 < texts.size() ? texts.get(i + 1) : null;
+    }
+
     // ---- the status badge ----
 
     @Test
     public void aPartialReceiptReadsPartiallyPaid_nextToItsRemainingBalance() {
-        PaymentReceiptActivity activity = open(DebugReceiptFixtures.partialReceipt());
-        List<String> texts = texts(activity);
+        List<String> texts = texts(open(DebugReceiptFixtures.partialReceipt()));
         assertTrue(texts.toString(), texts.contains("Partially Paid"));
-        assertEquals("₱5,000.00", valueOf(activity, "Remaining Balance At This Point"));
-        assertEquals("Partially Paid", valueOf(activity, "Payment Status"));
+        assertEquals("₱5,000.00", after(texts, "Paid so far"));
+        assertEquals("₱5,000.00", after(texts, "Balance due"));
+        assertTrue("the plain line under the bill", texts.contains("You pay the balance at the hotel."));
     }
 
     @Test
@@ -168,91 +174,85 @@ public class ReceiptScreenTest {
         }
     }
 
-    // ---- required fields ----
+    // ---- the one structure: header, Your Stay, Guests, Bill, Payments ----
 
     @Test
-    public void showsEveryRequiredField() {
-        PaymentReceiptActivity activity = open(DebugReceiptFixtures.partialReceipt());
-        assertEquals("PR-20260920-000501", valueOf(activity, "Payment Reference"));
-        assertEquals("250", valueOf(activity, "Booking ID"));
-        assertEquals("Juan Dela Cruz", valueOf(activity, "Guest Account Name"));
-        assertTrue(valueOf(activity, "Room Type").contains("Deluxe Room"));
-        assertTrue(valueOf(activity, "Room Rate").contains("/ night"));
-        assertEquals("Sep 25, 2026", valueOf(activity, "Check-in"));
-        assertEquals("Sep 27, 2026", valueOf(activity, "Check-out"));
-        assertEquals("2", valueOf(activity, "Number of Nights"));
-        assertEquals("₱5,000.00", valueOf(activity, "Amount Paid This Transaction"));
-        assertEquals("₱5,000.00", valueOf(activity, "Total Amount Paid At This Point"));
-        List<String> texts = texts(activity);
-        assertTrue(texts.toString(), texts.contains("Grand Total"));
-        assertTrue(texts.toString(), texts.contains("₱10,000.00") || texts.stream().anyMatch(t -> t.contains("10,000.00")));
+    public void showsEveryRequiredField_inTheSharedStructure() {
+        List<String> texts = texts(open(DebugReceiptFixtures.partialReceipt()));
+        assertEquals("PR-20260920-000501", after(texts, "Payment Reference"));
+        assertEquals("Booking #250", after(texts, "Transaction ID"));
+        int stay = texts.indexOf("Your Stay");
+        int guests = texts.indexOf("Guests");
+        int bill = texts.indexOf("Bill");
+        int payments = texts.indexOf("Payments");
+        assertTrue(texts.toString(), stay > 0 && guests > stay && bill > guests && payments > bill);
+        assertTrue("the dates head the range", texts.get(stay + 1).startsWith("Sep 25 → Sep 27, 2026") && texts.get(stay + 1).endsWith("2 nights"));
+        assertEquals("Deluxe Room × 2 · ₱2,000.00 × 2 nights", texts.get(stay + 2));
+        assertEquals("₱8,000.00", texts.get(stay + 3));
+        assertEquals("Representative", texts.get(guests + 1));
+        assertEquals("Juan Dela Cruz", texts.get(guests + 2));
+        assertEquals("₱10,000.00", after(texts, "Grand total"));
+        assertEquals("each value once: the grand total is not repeated", 1, java.util.Collections.frequency(texts, "Grand total"));
+        assertEquals(1, java.util.Collections.frequency(texts, "Balance due"));
     }
 
     @Test
-    public void showsThePaymentMethod_date_andTime() {
-        PaymentReceiptActivity activity = open(DebugReceiptFixtures.partialReceipt());
-        assertEquals("GCash", valueOf(activity, "Payment Method"));
-        assertEquals("Sep 20, 2026", valueOf(activity, "Payment Date"));
-        assertEquals("02:15:00 PM", valueOf(activity, "Payment Time"));
+    public void showsThePaymentMethod_date_amountReferenceAndStatus_once() {
+        List<String> texts = texts(open(DebugReceiptFixtures.partialReceipt()));
+        int payments = texts.indexOf("Payments");
+        assertEquals("GCash · Deposit", texts.get(payments + 1));
+        assertEquals("₱5,000.00", texts.get(payments + 2));
+        String line = texts.get(payments + 3);
+        assertTrue(line, line.contains("Sep 20, 2026") && line.contains("Ref. 4136 202 609205") && line.endsWith("Verified"));
     }
 
     @Test
-    public void anOfficialReceiptShowsTheFinalPaymentsMethodAndDate() {
-        PaymentReceiptActivity activity = open(DebugReceiptFixtures.officialReceipt());
-        // The last payment of the official receipt fixture was cash at checkout.
-        assertEquals("Cash", valueOf(activity, "Payment Method"));
-        assertEquals("Sep 23, 2026", valueOf(activity, "Payment Date"));
-        assertEquals("₱0.00", valueOf(activity, "Remaining Balance"));
+    public void anOfficialReceiptEndsWithAZeroBalance_theNoRefundNote_andEveryPayment() {
+        List<String> texts = texts(open(DebugReceiptFixtures.officialReceipt()));
+        assertEquals("₱0.00 · Fully paid", after(texts, "Balance due"));
+        assertTrue(texts.toString(), texts.contains("Cash · Balance") && texts.contains("GCash · Deposit"));
+        assertTrue("the no-refund note", texts.contains("No refunds for early check-out (hotel policy)."));
+        assertTrue(texts.contains("Check-out (final)"));
     }
 
     @Test
-    public void feesAndDiscounts_areShown_orExplicitlyNone() {
+    public void feesAndDiscounts_areShown_onlyWhenThereAreSome() {
         PaymentReceiptActivity.debugPreviewAmenities.putAll(DebugReceiptFixtures.allReceiptAmenities());
         List<String> withDiscount = texts(open(DebugReceiptFixtures.officialReceiptWithDiscountAndLongNames()));
-        assertTrue(withDiscount.toString(), withDiscount.contains("Discount"));
+        assertTrue(withDiscount.toString(), withDiscount.contains("Discount") && "−₱5,380.00".equals(after(withDiscount, "Discount")));
 
         List<String> none = texts(open(DebugReceiptFixtures.fullPaymentReceipt()));
-        assertTrue(none.toString(), none.contains("No additional fees or discounts"));
+        assertFalse(none.toString(), none.contains("Discount") || none.contains("Other charges (front desk)"));
+        assertTrue("no amenities says so", none.contains("No amenities added"));
     }
 
     // ---- missing data ----
 
     @Test
-    public void aReceiptMissingMostFields_showsDashes_neverNullOrACrash() {
+    public void aReceiptMissingMostFields_neverShowsNullOrCrashes() {
         ReceiptDetail sparse = new ReceiptDetail("FULL_PAYMENT_RECEIPT", "FR-SPARSE-1", null, null,
                 null, null, null, null, null, null, 0, null, 0, 0, null, null, null, null);
         PaymentReceiptActivity activity = open(sparse);
 
         assertEquals(View.VISIBLE, activity.findViewById(R.id.receiptScrollView).getVisibility());
-        assertEquals("FR-SPARSE-1", valueOf(activity, "Payment Reference"));
-        assertEquals("N/A", valueOf(activity, "Booking ID"));
-        assertEquals("N/A", valueOf(activity, "Guest Account Name"));
-        assertEquals("N/A", valueOf(activity, "Room Type"));
-        assertEquals("N/A", valueOf(activity, "Room Rate"));
-        assertEquals("N/A", valueOf(activity, "Check-in"));
-        assertEquals("N/A", valueOf(activity, "Check-out"));
-        assertEquals("N/A", valueOf(activity, "Number of Nights"));
-        assertEquals("N/A", valueOf(activity, "Receipt Date"));
-        assertEquals("N/A", valueOf(activity, "Grand Total"));
-        assertEquals("N/A", valueOf(activity, "Amount Paid"));
-        assertEquals("N/A", valueOf(activity, "Remaining Balance"));
-        assertFalse(texts(activity).toString().contains("null"));
+        List<String> texts = texts(activity);
+        assertEquals("FR-SPARSE-1", after(texts, "Payment Reference"));
+        assertFalse(texts.toString(), texts.toString().contains("null"));
     }
 
     @Test
-    public void aReceiptWhoseTransactionsHaveNoMethodOrDate_showsDashesForThose() {
+    public void aReceiptWhoseTransactionsHaveNoMethodOrDate_stillListsThePaymentOnce() {
         Booking.PaymentSummary summary = new Booking.PaymentSummary(1800, 900, 900, "PARTIALLY_PAID", 50, false, 0);
         Booking.PaymentTransactionRecord bare = new Booking.PaymentTransactionRecord(1, null, null, null, 900, "completed", null,
                 null, null, null, null, null, null, null, null, 900, 900, "PARTIAL_RECEIPT", "PR-BARE-1");
         ReceiptDetail.AnchorPayment anchor = new ReceiptDetail.AnchorPayment(900, null, 50, null, null, null, null);
         ReceiptDetail detail = new ReceiptDetail("PARTIAL_RECEIPT", "PR-BARE-1", "5", null, "Guest", null, "Deluxe", null,
                 "Oct 01, 2026", "Oct 02, 2026", 1, null, 2, 0, summary, Collections.singletonList(bare), anchor, "2026-09-30T14:09:00Z");
-        PaymentReceiptActivity activity = open(detail);
+        List<String> texts = texts(open(detail));
 
-        assertEquals("N/A", valueOf(activity, "Payment Method"));
-        assertEquals("N/A", valueOf(activity, "Payment Date"));
-        assertEquals("N/A", valueOf(activity, "Payment Time"));
-        assertEquals("Partially Paid", valueOf(activity, "Payment Status"));
+        assertFalse(texts.toString(), texts.toString().contains("null"));
+        assertEquals("₱900.00", after(texts, "Cash · Payment"));
+        assertTrue(texts.toString(), texts.contains("Partially Paid"));
     }
 
     // ---- download ----

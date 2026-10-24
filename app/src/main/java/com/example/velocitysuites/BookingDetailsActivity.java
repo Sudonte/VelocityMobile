@@ -282,16 +282,18 @@ public class BookingDetailsActivity extends SafeActivity {
         resolveGroupMembers();
         bindHeader();
 
-        // Card/section-based layout - every section renders and stays visible
-        // together (see activity_booking_details.xml), replacing the old
-        // 4-tab toggle switcher that hid all but one section at a time.
-        buildBalanceSummary(findViewById(R.id.sectionBalanceContent));
-        buildBookingInfoSection(findViewById(R.id.sectionBookingInfoContent));
+        // One structure for every details screen and receipt (see PayingForBreakdown): header, your stay (date ranges with rooms and
+        // amenities), guests, bill, payments, receipts, timeline. Each value appears once; the old balance card, booking-information
+        // card and payment-information rows repeated the dates, the status, the totals and the balance, so they are gone.
+        hideCardOf(R.id.sectionBookingInfoContent);
+        findViewById(R.id.cardBalanceSummary).setVisibility(View.GONE);
+        hideCardOf(R.id.sectionPaymentInfoContent);
+        PayingForBreakdown breakdown = PayingForBreakdown.forDetails(this, booking);
+        breakdown.renderRanges(this, findViewById(R.id.sectionRoomInfoContent));
         buildGuestInfoSection(findViewById(R.id.sectionGuestInfoContent));
-        buildRoomInfoSection(findViewById(R.id.sectionRoomInfoContent));
-        buildPaymentInfoSection(findViewById(R.id.sectionPaymentInfoContent));
-        buildPaymentHistoryCard(findViewById(R.id.sectionPaymentHistoryContent));
-        buildPaymentSummarySection(findViewById(R.id.sectionPaymentSummaryContent));
+        breakdown.renderBill(this, findViewById(R.id.sectionPaymentSummaryContent));
+        addReceiptImage(findViewById(R.id.sectionPaymentSummaryContent));
+        TransactionSections.payments(this, findViewById(R.id.sectionPaymentHistoryContent), booking.getPaymentTransactions(), booking.getPaymentHistory());
         buildReceiptsCard();
         buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
@@ -308,114 +310,6 @@ public class BookingDetailsActivity extends SafeActivity {
      * total (all the server's figures - nothing is added up here), then a four-step tracker
      * Booked -> Verified -> Checked in -> Checked out, each with its receipt once issued or a friendly placeholder.
      */
-    private void buildBalanceSummary(LinearLayout container) {
-        TransactionStatusHelper.Summary summary = TransactionStatusHelper.summarize(booking);
-        double grand = TransactionStatusHelper.grandTotalOf(booking);
-        double paid = TransactionStatusHelper.verifiedPaidOf(booking);
-        double balance = Math.max(0, grand - paid);
-        boolean cancelled = "Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus());
-
-        TextView title = new TextView(this);
-        title.setText(R.string.balance_summary_title);
-        title.setAllCaps(false);
-        title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
-        title.setTextColor(getColor(R.color.velocity_red_primary));
-        title.setTextSize(12);
-        container.addView(title);
-
-        PaymentStatusResolver.Result status = PaymentStatusResolver.resolve(this, booking);
-        TextView badge = new TextView(this);
-        badge.setText(status.label);
-        badge.setBackgroundResource(R.drawable.shape_intro_pill);
-        badge.setBackgroundTintList(getColorStateList(status.bgColorRes));
-        badge.setTextColor(getColor(status.fgColorRes));
-        badge.setTypeface(badge.getTypeface(), android.graphics.Typeface.BOLD);
-        badge.setTextSize(12);
-        badge.setPadding(dpPx(10), dpPx(4), dpPx(10), dpPx(4));
-        LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        badgeParams.topMargin = dpPx(8);
-        container.addView(badge, badgeParams);
-
-        // The sentence that answers "do I owe anything?"
-        TextView plain = new TextView(this);
-        plain.setText(cancelled ? getString(R.string.balance_plain_cancelled)
-                : balance > 0.004 ? getString(R.string.balance_plain_owe, MoneyFormat.format(balance))
-                : getString(R.string.balance_plain_paid));
-        plain.setTextColor(getColor(R.color.velocity_text_primary));
-        plain.setTypeface(plain.getTypeface(), android.graphics.Typeface.BOLD);
-        plain.setTextSize(15);
-        LinearLayout.LayoutParams plainParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        plainParams.topMargin = dpPx(10);
-        container.addView(plain, plainParams);
-
-        addInfoRow(container, getString(R.string.receipt_hl_remaining), MoneyFormat.format(balance));
-        addInfoRow(container, getString(R.string.receipt_hl_remaining_balance_due), MoneyFormat.format(balance));
-        addInfoRow(container, getString(R.string.receipt_hl_total_paid), MoneyFormat.format(paid));
-        addInfoRow(container, getString(R.string.receipt_hl_grand_total), MoneyFormat.format(grand));
-
-        if (cancelled) return;
-        addSectionDivider(container, getString(R.string.tracker_title));
-
-        String st = booking.getStatus() == null ? "" : booking.getStatus();
-        boolean checkedOut = "Checked-Out".equalsIgnoreCase(st) || "Completed".equalsIgnoreCase(st);
-        boolean checkedIn = checkedOut || "Checked-In".equalsIgnoreCase(st);
-        boolean verified = booking.isStaffVerified() || checkedIn;
-        java.util.Map<Integer, Booking.ReceiptSummary> byStage = new java.util.HashMap<>();
-        for (Booking.ReceiptSummary r : booking.getReceipts()) {
-            int stage = ReceiptTypeMapper.stageOf(r.receiptType);
-            if (stage > 0 && !byStage.containsKey(stage)) byStage.put(stage, r);
-        }
-
-        addTrackerStep(container, getString(R.string.tracker_booked), true, null, getString(R.string.tracker_booked_note));
-        addTrackerStep(container, getString(R.string.tracker_verified), verified, byStage.get(1), getString(R.string.tracker_receipt1_placeholder));
-        addTrackerStep(container, getString(R.string.tracker_checked_in), checkedIn, byStage.get(2), getString(R.string.tracker_receipt2_placeholder));
-        addTrackerStep(container, getString(R.string.tracker_checked_out), checkedOut, byStage.get(3), getString(R.string.tracker_receipt3_placeholder));
-    }
-
-    /** One tracker row: a filled or empty dot, the step, and - when it has one - its receipt (tap to open) or why it is not there yet. */
-    private void addTrackerStep(LinearLayout container, String label, boolean reached, @Nullable Booking.ReceiptSummary receipt, String placeholder) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(dpPx(44));
-
-        View dot = new View(this);
-        dot.setBackgroundResource(reached ? R.drawable.shape_status_dot_green : R.drawable.shape_timeline_dot);
-        dot.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        row.addView(dot, new LinearLayout.LayoutParams(dpPx(12), dpPx(12)));
-
-        LinearLayout text = new LinearLayout(this);
-        text.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        textParams.setMarginStart(dpPx(12));
-        row.addView(text, textParams);
-
-        TextView name = new TextView(this);
-        name.setText(label);
-        name.setTextSize(13);
-        name.setTypeface(name.getTypeface(), reached ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
-        name.setTextColor(getColor(reached ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
-        text.addView(name);
-
-        TextView note = new TextView(this);
-        note.setTextSize(12);
-        if (receipt != null) {
-            note.setText(getString(R.string.tracker_receipt_ready_format, receipt.receiptNumber));
-            note.setTextColor(getColor(R.color.velocity_red_primary));
-            note.setTypeface(note.getTypeface(), android.graphics.Typeface.BOLD);
-            row.setClickable(true);
-            row.setFocusable(true);
-            row.setOnClickListener(v -> {
-                if (clickGuard.tryAcquire()) startActivity(PaymentReceiptActivity.newIntentForReceipt(this, booking, receipt.receiptNumber));
-            });
-        } else {
-            note.setText(placeholder);
-            note.setTextColor(getColor(R.color.velocity_text_secondary));
-        }
-        text.addView(note);
-        container.addView(row);
-    }
-
     private boolean offersAmenityRequests() {
         String status = booking.getStatus();
         return booking.isHasBooking() && !"Cancelled".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)
@@ -467,90 +361,16 @@ public class BookingDetailsActivity extends SafeActivity {
         tvStatus.setText(BookingStatusPresenter.computeStatusLabel(this, booking));
         BookingStatusPresenter.styleStatusBadge(this, tvStatus, booking);
 
+        // created date and the kind of transaction (the dates of the stay are in "Your Stay")
         TextView tvDates = findViewById(R.id.tvDetailsDates);
-        tvDates.setText(getString(R.string.date_range_format, booking.getCheckInDate(), booking.getCheckOutDate()));
-
-        // Every selected room type and its quantity, directly below the stay
-        // dates and directly above the status pill - same three-tier source
-        // buildRoomInfoSection() below already uses (itemized backend line
-        // items, then legacy client-side-grouped siblings, then a single
-        // legacy room x quantity), via the same shared formatter the
-        // Booking/Reservation list cards use, so this can never disagree
-        // with either of those.
-        TextView tvRoomGuestCounts = findViewById(R.id.tvDetailsRoomGuestCounts);
-        tvRoomGuestCounts.setText(buildHeaderRoomSelectionSummary());
-    }
-
-    private String actualOrExpected(String actualDisplay, java.time.LocalTime posted) {
-        if (actualDisplay != null && !actualDisplay.isEmpty()) return actualDisplay;
-        return getString(R.string.details_expected_time_format, StayCalendarModel.formatTime(posted));
-    }
-
-    private String buildHeaderRoomSelectionSummary() {
-        return Booking.buildRoomSelectionSummaryText(booking, groupMembers);
+        String created = booking.getCreatedAtDisplay();
+        tvDates.setText(created == null || created.trim().isEmpty() ? "" : getString(R.string.details_created_format, created));
+        tvDates.setVisibility(created == null || created.trim().isEmpty() ? View.GONE : View.VISIBLE);
+        TextView tvType = findViewById(R.id.tvDetailsRoomGuestCounts);
+        tvType.setText(booking.isHasBooking() ? R.string.details_type_booking : R.string.details_type_reservation);
     }
 
     // ---- Booking Information section ----
-
-    private void buildBookingInfoSection(LinearLayout container) {
-        addInfoRow(container, getString(booking.isHasBooking() ? R.string.receipt_label_booking_id : R.string.receipt_label_reservation_id),
-                booking.getId());
-        // Status sits directly below the identifier, ahead of the date rows.
-        addInfoRow(container, getString(R.string.details_label_status), BookingStatusPresenter.computeStatusLabel(this, booking));
-        int cancelReason = TransactionActions.cancelBlockedReason(booking);
-        if (cancelReason != 0) addHelperText(container, getString(cancelReason));
-        addInfoRow(container, getString(R.string.timeline_created), booking.getCreatedAtDisplay());
-        // Confirmed/converted date (Booking#getBookingDate(), the backend's
-        // confirmed_at) - distinct from Created Date above, which is the
-        // original reservation-creation instant. Empty/hidden for a still-
-        // pending Reservation that hasn't converted yet (see ApiMapper).
-        addInfoRow(container, getString(R.string.details_label_booking_date), booking.getBookingDate());
-        addInfoRow(container, getString(R.string.details_label_check_in), booking.getCheckInDate());
-        addInfoRow(container, getString(R.string.details_label_check_out), booking.getCheckOutDate());
-        // The moment the receptionist actually checked the guest in / out, to the second; until then the hotel's posted time.
-        addInfoRow(container, getString(R.string.details_label_checked_in_at), actualOrExpected(booking.getCheckedInAtDisplay(),
-                HotelPolicy.CHECK_IN_TIME));
-        addInfoRow(container, getString(R.string.details_label_checked_out_at), actualOrExpected(booking.getCheckedOutAtDisplay(),
-                HotelPolicy.CHECK_OUT_TIME));
-        StayInfo stay = booking.getStay();
-        if (stay != null) {
-            // In house or finished: the booked dates, the nights billed (always the booked nights), approved amenities and the total.
-            for (StayInfo.Row row : stay.rows(this)) {
-                if (row.label.equals(getString(R.string.stay_scheduled_check_in))
-                        || row.label.equals(getString(R.string.stay_scheduled_check_out))) continue; // already shown just above
-                addInfoRow(container, row.label, row.value);
-            }
-        } else {
-            addInfoRow(container, getString(R.string.receipt_number_of_nights_label), computeNights(booking.getCheckInDate(), booking.getCheckOutDate()));
-        }
-        addGroupStaysSection(container);
-        // Cross-reference for a historical (converted) reservation record -
-        // see Booking.convertedBookingId's own doc for why this is the one
-        // new identifier this feature surfaces, rather than restating the
-        // shared reservation/booking ref number everywhere else.
-        if (booking.getConvertedBookingId() != null) {
-            addInfoRow(container, getString(R.string.details_label_converted_booking),
-                    getString(R.string.direct_booking_ref_format, booking.getConvertedBookingId()));
-        }
-
-        // Multi-room "group booking" siblings (BookingGroupState) - the guest
-        // booked several room types together in one wizard run; each landed
-        // as its own separate Booking/Reservation row, linked only by this
-        // local group tag (see resolveGroupMembers()). This is just a light
-        // cross-reference to each sibling's own id/status here - the actual
-        // room-type/quantity/price breakdown across the whole group is in
-        // Room Information, and the summed Room/Grand Total is in Payment
-        // Summary, so neither is duplicated in this section.
-        String groupRef = BookingGroupState.getGroupRef(this, booking.getId());
-        if (groupRef != null && groupMembers != null) {
-            addSectionDivider(container, getString(R.string.details_group_reference_label, groupRef));
-            for (Booking sibling : groupMembers) {
-                if (sibling.getId().equals(booking.getId())) continue;
-                addInfoRow(container, sibling.getRoomName(),
-                        getString(sibling.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, sibling.getDisplayId()));
-            }
-        }
-    }
 
     /** Populates {@link #groupMembers} (this record included) if it belongs to a BookingGroupState group, else leaves it null. */
     private void resolveGroupMembers() {
@@ -571,47 +391,30 @@ public class BookingDetailsActivity extends SafeActivity {
      * card width to wrap into, never squeezed into a narrow trailing column.
      */
     private void buildGuestInfoSection(LinearLayout container) {
-        android.content.SharedPreferences prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
-        String guestAccountName = prefs.getString("userName", null);
-        addIconRow(container, R.drawable.ic_person, getString(R.string.guest_label_name), guestAccountName);
-        addIconRow(container, R.drawable.ic_people, RepresentativeName.rowLabel(this, booking), RepresentativeName.rowValue(this, booking));
-        addIconRow(container, R.drawable.ic_email, getString(R.string.guest_label_email), prefs.getString("userEmail", null));
-        addIconRow(container, R.drawable.ic_phone, getString(R.string.guest_label_phone), prefs.getString("userMobile", null));
-        addIconRow(container, R.drawable.ic_location, getString(R.string.guest_label_address), prefs.getString("userAddress", null));
-
-        // Guest counts live here (not Room Information) - they describe WHO is
-        // staying, not what was booked. Moved from buildRoomInfoSection().
-        // Deliberately NOT summed across groupMembers: every sibling in a
-        // BookingGroupState group was created from the SAME
-        // pendingWizardState.adults/children (see
-        // PaymentActivity#submitPendingBookingGroups()/submitPendingReservationGroups(),
-        // which pass the one whole-party adults/children value to every
-        // per-room-type create call) - each sibling's own getAdults()/
-        // getChildren()/getGuests() already holds the full party count, not
-        // a per-room-type split, so summing across N siblings would inflate
-        // the true count by a factor of N. This one anchor record's own
-        // value is already correct, exactly like getGuests() below already
-        // relied on unconditionally.
-        addInfoRow(container, getString(R.string.details_label_adults), String.valueOf(Math.max(1, booking.getAdults())));
-        addInfoRow(container, getString(R.string.details_label_children), booking.getChildren() > 0 ? String.valueOf(booking.getChildren()) : null);
-        addMinorLines(container);
-        addInfoRow(container, getString(R.string.details_label_total_guests), String.valueOf(booking.getGuests()));
+        TransactionSections.guests(this, container, booking);
     }
 
-    /** "Minor 1 · age 5": each minor with the age the guest gave; any other companion by name and relationship. */
-    private void addMinorLines(LinearLayout container) {
-        List<Booking.AdditionalGuest> guests = booking.getAdditionalGuests();
-        if (guests == null || guests.isEmpty()) return;
-        int minor = 0;
-        for (Booking.AdditionalGuest g : guests) {
-            if (g == null) continue;
-            if ("Child".equalsIgnoreCase(g.relationship) || "Minor".equalsIgnoreCase(g.relationship)) {
-                minor++;
-                addNote(container, getString(R.string.details_minor_line_format, minor, g.age >= 0 ? String.valueOf(g.age) : getString(R.string.details_minor_age_unknown)));
-            } else if (g.name != null && !g.name.trim().isEmpty()) {
-                addInfoRow(container, g.name, g.relationship != null ? g.relationship : getString(R.string.label_not_available));
-            }
+    private void hideCardOf(int contentId) {
+        View content = findViewById(contentId);
+        if (content != null && content.getParent() != null && ((View) content.getParent()).getParent() instanceof View) {
+            ((View) ((View) content.getParent()).getParent()).setVisibility(View.GONE);
         }
+    }
+
+    /** The picture of the receipt the guest uploaded, when there is one (tap to open it). */
+    private void addReceiptImage(LinearLayout container) {
+        if (booking.getReceiptUrl() == null || booking.getReceiptUrl().isEmpty()) return;
+        ImageView receiptView = new ImageView(this);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, (int) (180 * getResources().getDisplayMetrics().density));
+        params.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        receiptView.setLayoutParams(params);
+        receiptView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        receiptView.setAdjustViewBounds(true);
+        Glide.with(this).load(booking.getReceiptUrl()).into(receiptView);
+        receiptView.setContentDescription(getString(R.string.receipt_image_content_description));
+        receiptView.setOnClickListener(v -> ReceiptImageViewerActivity.start(this, booking.getReceiptUrl()));
+        container.addView(receiptView);
     }
 
     // ---- Room Information section ----
@@ -621,61 +424,6 @@ public class BookingDetailsActivity extends SafeActivity {
      * never the span of the whole transaction), then that stay's amenities by room, then its room charges; and last the room charges of
      * all the stays with the number of room types and rooms.
      */
-    private void buildStaysRoomInfo(LinearLayout container, List<Booking.StayRecord> stays) {
-        roomsCount = BookingTotals.roomCount(booking);
-        roomTotalAmount = BookingTotals.roomCharges(booking);
-        boolean several = stays.size() > 1;
-        for (Booking.StayRecord stay : stays) {
-            if (stay == null) continue;
-            long nights = BookingTotals.nightsOf(stay);
-            String dates = formatStayDates(stay.checkIn, stay.checkOut);
-            String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights);
-            addSectionDivider(container, several ? getString(R.string.details_stay_heading_format, stay.position, dates, nightsText)
-                    : getString(R.string.details_single_stay_heading_format, dates, nightsText));
-            for (BookingRoom room : stay.rooms) {
-                if (room == null) continue;
-                String name = room.getRoomTypeName() != null ? room.getRoomTypeName() : getString(R.string.label_not_available);
-                addInfoRow(container, getString(R.string.details_room_line_format, name, Math.max(1, room.getQuantity()),
-                                formatPrice(room.getPricePerNight()), nightsText), formatPrice(BookingTotals.lineTotal(room, stay)));
-                addNote(container, Booking.resolveAssignedRoomsText(this, room.getAssignedRoomNumbers()));
-            }
-            addStayAmenities(container, stay);
-            addTotalRow(container, several ? getString(R.string.details_stay_room_charges_format, stay.position) : getString(R.string.details_room_charges),
-                    formatPrice(BookingTotals.stayRoomCharges(stay)));
-        }
-        if (several) addTotalRow(container, getString(R.string.details_room_charges_all_stays), formatPrice(roomTotalAmount));
-        addInfoRow(container, getString(R.string.details_label_room_number), booking.getRoomNumber());
-        addInfoRow(container, getString(R.string.details_label_room_types), String.valueOf(BookingTotals.roomTypeCount(booking)));
-        addInfoRow(container, getString(R.string.details_label_rooms_requested), String.valueOf(roomsCount));
-    }
-
-    /** One stay's amenities shown ONCE: per room ("Deluxe (room 2)"), and those with no room chosen under their own heading. */
-    private void addStayAmenities(LinearLayout container, Booking.StayRecord stay) {
-        if (stay.amenities.isEmpty()) return;
-        java.util.LinkedHashMap<String, List<BookingAmenity>> byRoom = new java.util.LinkedHashMap<>();
-        List<BookingAmenity> noRoom = new java.util.ArrayList<>();
-        for (BookingAmenity a : stay.amenities) {
-            if (a == null) continue;
-            if (a.getRoomLabel() == null) noRoom.add(a);
-            else byRoom.computeIfAbsent(a.getRoomLabel(), k -> new java.util.ArrayList<>()).add(a);
-        }
-        boolean approved = booking.isStaffVerified();
-        addSubheading(container, getString(approved ? R.string.details_amenities_approved : R.string.details_amenities_selected));
-        for (java.util.Map.Entry<String, List<BookingAmenity>> e : byRoom.entrySet()) {
-            addSubheading(container, e.getKey());
-            for (BookingAmenity a : e.getValue()) addAmenityLine(container, a);
-        }
-        if (!noRoom.isEmpty()) {
-            addSubheading(container, getString(R.string.details_amenities_no_room));
-            for (BookingAmenity a : noRoom) addAmenityLine(container, a);
-        }
-    }
-
-    private void addAmenityLine(LinearLayout container, BookingAmenity a) {
-        double unit = a.getQuantity() > 0 ? a.getSubtotal() / a.getQuantity() : a.getSubtotal();
-        addInfoRow(container, getString(R.string.receipt_bd_item_format, a.getAmenityName(), a.getQuantity(), formatPrice(unit)), formatPrice(a.getSubtotal()));
-    }
-
     /** A small secondary line under a row (a room's assignment, a minor's age): text only, no value column. */
     private void addNote(LinearLayout container, String text) {
         TextView tv = new TextView(this);
@@ -701,158 +449,7 @@ public class BookingDetailsActivity extends SafeActivity {
         container.addView(tv);
     }
 
-    private void buildRoomInfoSection(LinearLayout container) {
-        if (!booking.getStays().isEmpty() && groupMembers == null) {
-            buildStaysRoomInfo(container, booking.getStays());
-            return;
-        }
-        // Itemized multi-room-type breakdown (Booking#getRooms()) only ever
-        // populates once the backend ships the contract in
-        // MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md - empty on every
-        // transaction today, so this falls back first to the legacy grouped-
-        // siblings reconstruction, then to a single-room block - see each
-        // branch below. All three render the identical Room Name/Quantity/
-        // Price Per Room/Night/Subtotal breakdown (Number of Nights is a
-        // whole-stay fact, shown once at reservation level, never repeated
-        // per room type), then No. of Rooms and Room Total at the bottom of
-        // this section. Both roomsCount and roomTotalAmount are cached as
-        // instance fields so buildPaymentSummarySection()'s own Room Total
-        // row (part of the running Amenities Total -> Room Total -> Grand
-        // Total breakdown there) reuses this exact same computed value
-        // instead of recomputing it independently - the two can never
-        // disagree.
-        int stayNights = nightsOrOne(booking.getCheckInDate(), booking.getCheckOutDate());
-        List<BookingRoom> rooms = booking.getRooms();
-        roomsCount = 0;
-        roomTotalAmount = 0;
-        if (!rooms.isEmpty()) {
-            // Itemized backend line items - one entry per distinct room TYPE
-            // already (see BookingRoomDto's own doc), so no de-duplication is
-            // needed here. The image is resolved from the already-cached room
-            // catalog by type id (see RoomRepository#findRoomTypeImageUrl()'s
-            // own doc), and assigned room numbers now come directly from each
-            // line's own BookingRoom#getAssignedRoomNumbers() (confirmed live
-            // 2026-09-18 - see BookingRoomDto#assigned_room_numbers's own doc)
-            // rather than guessing from the single legacy roomNumber field.
-            for (BookingRoom room : rooms) {
-                // Each room line's own nights when the front desk itemized the stay (an extended room costs more nights).
-                long lineNights = booking.getStay() != null && room.getNights() > 0 ? room.getNights() : stayNights;
-                double subtotal = room.getPricePerNight() * room.getQuantity() * lineNights;
-                String imageUrl = RoomRepository.getInstance(this).findRoomTypeImageUrl(room.getRoomTypeId());
-                String assignedRoomsText = Booking.resolveAssignedRoomsText(this, room.getAssignedRoomNumbers());
-                addRoomDetailBlock(container, room.getRoomTypeName(), room.getQuantity(), room.getPricePerNight(), subtotal, imageUrl, assignedRoomsText);
-                roomsCount += Math.max(1, room.getQuantity());
-                roomTotalAmount += subtotal;
-            }
-        } else if (groupMembers != null) {
-            // Today's actual multi-room-type case: each sibling record IS one
-            // distinct room type (see resolveGroupMembers()) - one block per
-            // sibling, its own quantity and own subtotal, instead of just this
-            // one member's single Room Type row. Each sibling is its own full
-            // Booking, so its own getRoomImageUrl()/getRoomNumber() are already
-            // correctly scoped to that specific room type - no catalog lookup
-            // needed, unlike the itemized branch above.
-            for (Booking member : groupMembers) {
-                int quantity = Math.max(1, member.getRoomsRequested());
-                // Room-only subtotal: a converted member's real Billing split
-                // (getRoomCharge()) when one exists, else its own total minus
-                // any itemized amenity charge already counted separately below
-                // - never double-counts amenities.
-                double subtotal = member.getRoomCharge() > 0.009
-                        ? member.getRoomCharge() : Math.max(0, member.getTotalAmount() - member.getAmenityCharge());
-                double pricePerNight = stayNights > 0 ? subtotal / (quantity * stayNights) : subtotal;
-                addRoomDetailBlock(container, member.getRoomType(), quantity, pricePerNight, subtotal,
-                        member.getRoomImageUrl(), resolveAssignedRoomsText(member.getRoomNumber()));
-                roomsCount += quantity;
-                roomTotalAmount += subtotal;
-            }
-        } else {
-            int quantity = Math.max(1, booking.getRoomsRequested());
-            double subtotal = booking.getRoomCharge() > 0.009
-                    ? booking.getRoomCharge() : Math.max(0, booking.getTotalAmount() - booking.getAmenityCharge());
-            double pricePerNight = stayNights > 0 ? subtotal / (quantity * stayNights) : subtotal;
-            addRoomDetailBlock(container, booking.getRoomType(), quantity, pricePerNight, subtotal,
-                    booking.getRoomImageUrl(), resolveAssignedRoomsText(booking.getRoomNumber()));
-            roomsCount = quantity;
-            roomTotalAmount = subtotal;
-        }
-        addInfoRow(container, getString(R.string.details_label_room_number), booking.getRoomNumber());
-
-        List<Booking.AdditionalGuest> additionalGuests = booking.getAdditionalGuests();
-        if (additionalGuests != null && !additionalGuests.isEmpty()) {
-            addSectionDivider(container, getString(R.string.details_label_additional_guests));
-            for (Booking.AdditionalGuest g : additionalGuests) {
-                addInfoRow(container, g.name, g.relationship != null ? g.relationship : getString(R.string.label_not_available));
-            }
-        }
-
-        // Total Room Types, then No. of Rooms, directly above Room Total, at
-        // the very bottom of this section - the sole location for all three
-        // (see buildPaymentSummarySection(), which reuses roomTotalAmount
-        // rather than showing its own "No. of Rooms").
-        int roomTypeCount = !rooms.isEmpty() ? rooms.size() : (groupMembers != null ? groupMembers.size() : 1);
-        addInfoRow(container, getString(R.string.details_label_room_types), String.valueOf(roomTypeCount));
-        addInfoRow(container, getString(R.string.details_label_rooms_requested), String.valueOf(Math.max(0, roomsCount)));
-        addTotalRow(container, getString(R.string.room_total_label), formatPrice(roomTotalAmount));
-    }
-
     // ---- Payment Information section ----
-
-    private void buildPaymentInfoSection(LinearLayout container) {
-        boolean showPaymentMethod = booking.getPaymentMethod() != null && !booking.getPaymentMethod().trim().isEmpty();
-        if (showPaymentMethod) {
-            addInfoRow(container, getString(R.string.details_label_payment_method),
-                    "cash".equalsIgnoreCase(booking.getPaymentMethod()) ? getString(R.string.payment_method_cash) : getString(R.string.payment_method_gcash));
-        }
-        boolean isGcash = "gcash".equalsIgnoreCase(booking.getPaymentMethod());
-        if (isGcash) {
-            // GCash Mobile #/GCash Reference # - the exact values the guest entered in
-            // payment.xml Steps 2-3 for this booking's latest payment. Formatted via the
-            // same shared GcashReferenceFormatter the receipt uses, so the two screens
-            // never disagree on how a value is displayed. Replaces the old generic
-            // "Transaction Ref." label, which is kept below for Cash only.
-            addInfoRow(container, getString(R.string.receipt_gcash_mobile_label),
-                    GcashReferenceFormatter.formatMobileNumber(booking.getGcashNumber()));
-            addInfoRow(container, getString(R.string.receipt_gcash_reference_number_label),
-                    GcashReferenceFormatter.formatOrFallback(booking.getTransactionRef(),
-                            getString(R.string.receipt_gcash_value_missing),
-                            getString(R.string.receipt_gcash_reference_legacy_incomplete)));
-        } else {
-            addInfoRow(container, getString(R.string.details_label_transaction_ref), booking.getTransactionRef());
-        }
-        // Percentage is the deposit/full-payment percentage chosen once at
-        // reservation-creation time (Booking#getSelectedPaymentPercentage()'s own
-        // doc) - shown regardless of fullyPaid, so a Full Payment (100%)
-        // transaction still shows "Payment Percentage: 100%" instead of the row
-        // being hidden entirely (the old `!fullyPaid` gate here hid it for every
-        // Full Payment, since that always leaves remainingBalance at 0 - the exact
-        // bug PaymentReceiptActivity#populateReceipt() already fixed; kept
-        // consistent with it here). Backend-authoritative payment_summary totals
-        // when attached, else the legacy fields - must never disagree with the
-        // Payment Status row right below (BookingStatusPresenter.paymentStatusPillText(),
-        // same authoritative-first rule) - PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md
-        // Phase 6 §1.
-        boolean fullyPaid = booking.getEffectiveRemainingBalance() <= 0.009;
-        if (booking.getEffectiveTotalAmountPaid() > 0.009 || booking.isHasBooking()) {
-            addInfoRow(container, getString(R.string.details_label_payment_type),
-                    getString(fullyPaid ? R.string.review_payment_type_full : R.string.review_payment_type_partial));
-        }
-        if (booking.getSelectedPaymentPercentage() != null) {
-            addInfoRow(container, getString(R.string.receipt_payment_percentage_label),
-                    formatPercentage(booking.getSelectedPaymentPercentage()));
-        }
-        addInfoRow(container, getString(R.string.payment_status), BookingStatusPresenter.paymentStatusPillText(this, booking));
-        addInfoRow(container, getString(R.string.details_label_payment_date), booking.getPaymentDateOnly());
-        addInfoRow(container, getString(R.string.details_label_payment_time), booking.getPaymentTimeOnly());
-        if (booking.getPaymentVerificationStatus() != null) {
-            addInfoRow(container, getString(R.string.details_label_verification_status), DisplayLabels.verification(this, booking.getPaymentVerificationStatus()));
-        }
-        boolean showRejectionReason = ("Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus()))
-                && !TextUtils.isEmpty(booking.getTransactionRejectionReason());
-        if (showRejectionReason) {
-            addInfoRow(container, getString(R.string.details_label_rejection_reason), booking.getTransactionRejectionReason());
-        }
-    }
 
     // ---- Discount ID section ----
 
@@ -1030,199 +627,6 @@ public class BookingDetailsActivity extends SafeActivity {
      * remaining balance, payable at check-out - with the requests that are NOT counted listed apart), and the Payment
      * Summary that closes it. Every figure is the server's (StayBill); nothing is recomputed on the phone.
      */
-    private void buildStayBillGroups(LinearLayout container, StayInfo stay, BalanceBreakdown b) {
-        addSectionDivider(container, getString(R.string.details_group_checkin_billing));
-        addInfoRow(container, getString(R.string.receipt_bd_room_rate_nights,
-                getResources().getQuantityString(R.plurals.receipt_nights_count, stay.scheduledNights, stay.scheduledNights)), formatPrice(b.roomCharge));
-        if (b.bookedAmenities > 0.009) addInfoRow(container, getString(R.string.receipt_bd_booked_amenities), formatPrice(b.bookedAmenities));
-        if (b.discount > 0.009) {
-            addInfoRow(container, b.discountName == null ? getString(R.string.details_label_discount)
-                    : getString(R.string.receipt_bd_discount_named, b.discountName), "-" + formatPrice(b.discount));
-        }
-        addTotalRow(container, getString(R.string.receipt_bd_checkin_grand_total), formatPrice(b.checkinGrandTotal));
-        addInfoRow(container, getString(R.string.receipt_bd_paid_at_checkin), formatPrice(b.amountPaidAtCheckin));
-
-        addSectionDivider(container, getString(R.string.details_group_amenities_charges));
-        if (b.amenities.isEmpty() && b.charges.isEmpty()) {
-            addInfoRow(container, getString(R.string.details_none_added), formatPrice(0));
-        }
-        for (BalanceBreakdown.Item item : b.amenities) {
-            addInfoRow(container, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
-        }
-        if (!b.amenities.isEmpty()) addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(b.amenitiesTotal));
-        for (BalanceBreakdown.Item item : b.charges) {
-            addInfoRow(container, getString(R.string.receipt_bd_item_format, item.name, item.quantity, formatPrice(item.unitPrice)), formatPrice(item.subtotal));
-        }
-        if (!b.charges.isEmpty()) addTotalRow(container, getString(R.string.receipt_bd_additional_charges), formatPrice(b.chargesTotal));
-        addGrandTotalRow(container, getString(R.string.remaining_balance_payable_at_checkout), formatPrice(b.remainingBalance));
-        // Requests the front desk has not approved: shown apart so the guest knows their status, never in a total.
-        for (StayInfo.RequestedAmenity r : stay.requestedAmenities) {
-            String name = getString(R.string.receipt_bd_item_format, r.name, r.quantity, formatPrice(r.subtotal / r.quantity));
-            String status = r.rejected
-                    ? (r.reason == null || r.reason.isEmpty() ? getString(R.string.details_request_rejected) : getString(R.string.details_request_rejected_reason, r.reason))
-                    : getString(R.string.details_request_pending);
-            addInfoRow(container, name, status);
-        }
-
-        addSectionDivider(container, getString(R.string.payment_summary_section_title));
-        addInfoRow(container, getString(R.string.receipt_bd_final_checkin_total), formatPrice(b.checkinGrandTotal));
-        addInfoRow(container, getString(R.string.receipt_bd_final_plus_remaining), "+" + formatPrice(b.remainingBalance));
-        addTotalRow(container, getString(R.string.receipt_bd_final_grand_total), formatPrice(b.finalGrandTotal));
-        addInfoRow(container, getString(R.string.receipt_bd_total_paid), formatPrice(b.totalPaid));
-        addGrandTotalRow(container, getString(R.string.receipt_bd_balance_due), formatPrice(b.balanceDue));
-        addTotalExplainer(container);
-    }
-
-    private void buildPaymentSummarySection(LinearLayout container) {
-        // Room Total itself is NOT recomputed here - buildRoomInfoSection() (which
-        // always runs first, see renderAllSections()) already computed the
-        // canonical roomTotalAmount, with the correct per-branch fallbacks
-        // (itemized room lines / grouped siblings / single legacy room), and
-        // this section just reuses it below so the two can never disagree.
-        // Grouped multi-room-type transaction (see resolveGroupMembers()): every
-        // amount below must be the sum across every sibling, not just this one
-        // member's own room-only amount - "All Selected Rooms + All Selected Paid
-        // Amenities = Grand Total". amountPaid is always the CUMULATIVE amount
-        // across every verified payment (Booking#getAmountPaid(), itself already a
-        // sum over booking.getPaymentHistory()/payments - never just the latest
-        // one), so remainingBalance below is never wrong after a second or later
-        // partial payment. See BookingGroupAggregator's own doc for the
-        // deliberately-unchanged status-handling caveat (a Cancelled/Rejected
-        // sibling is still summed in, matching this method's pre-existing behavior).
-        double amenityCharge;
-        double additionalGuestFee;
-        double totalAmount;
-        double amountPaid;
-        double remainingBalance;
-        if (groupMembers != null) {
-            BookingGroupAggregator.Totals totals = BookingGroupAggregator.sum(groupMembers);
-            amenityCharge = totals.amenityCharge;
-            additionalGuestFee = totals.additionalGuestFee;
-            totalAmount = totals.totalAmount;
-            amountPaid = totals.amountPaid;
-            remainingBalance = totalAmount - amountPaid;
-        } else {
-            amenityCharge = booking.getAmenityCharge();
-            additionalGuestFee = booking.getAdditionalGuestFee();
-            totalAmount = TransactionStatusHelper.grandTotalOf(booking); // the one total every screen shows
-            // Backend-authoritative payment_summary.total_amount_paid/remaining_balance
-            // when attached, else the legacy client-side fields - see
-            // Booking#getEffectiveTotalAmountPaid()'s own doc
-            // (PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 5 §11).
-            amountPaid = booking.getEffectiveTotalAmountPaid();
-            remainingBalance = booking.getEffectiveRemainingBalance();
-        }
-
-        // Every room with its approved amenities (the one shared view), above the money - once the stay is in house and amenity requests
-        // exist. Before that the Stays card above already lists the amenities by room, so they are not repeated here.
-        boolean staysMode = !booking.getStays().isEmpty() && groupMembers == null;
-        boolean stayStarted = false;
-        for (Booking.StayRecord st : booking.getStays()) if (st != null && (st.isInHouse() || st.isCheckedOut())) stayStarted = true;
-        if (!staysMode || stayStarted) {
-            // The button check below asks the server for the same request list and hands it to this view; otherwise ask here.
-            TransactionRoomsView.addLive(this, container, booking, !offersAmenityRequests());
-        }
-
-        // A stay that is in house or finished and was paid at check-in: the server's own breakdown, grouped
-        // Check-in Billing / Amenities & Charges / Payment Summary (the same figures the 3rd receipt prints).
-        // Anything else keeps the generic summary below.
-        StayInfo billStay = groupMembers == null ? booking.getStay() : null;
-        BalanceBreakdown breakdown = billStay != null ? billStay.balanceBreakdown : null;
-        if (breakdown != null) {
-            buildStayBillGroups(container, billStay, breakdown);
-        } else {
-            // ---- 1. Selected Amenities: every selected amenity, then Amenities
-            // Total at the bottom of THIS section (never outside it). amenitiesTotalValue
-            // is cached so section 3 below (Grand Total Amount) can show the exact
-            // same figure again rather than recalculating it.
-            // Itemized amenity breakdown (Booking#getAmenities()) only ever populates
-            // once the backend ships the multi-room contract - falls back to the
-            // single amenityCharge dollar total computed either from this one
-            // record's own Billing row or summed across the legacy group.
-            double amenitiesTotalValue = staysMode ? BookingTotals.amenities(booking) : amenityCharge;
-            if (staysMode) {
-                // listed once, in the Stays card; only the total is repeated in the money breakdown below
-            } else if (!booking.getAmenities().isEmpty()) {
-                addSectionDivider(container, getString(R.string.details_label_amenities_section));
-                double itemizedAmenityTotal = 0;
-                for (BookingAmenity amenity : booking.getAmenities()) {
-                    double unitPrice = amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal();
-                    addAmenityDetailBlock(container, amenity.getAmenityName(), amenity.getQuantity(), unitPrice, amenity.getSubtotal());
-                    itemizedAmenityTotal += amenity.getSubtotal();
-                }
-                addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(itemizedAmenityTotal));
-                amenitiesTotalValue = itemizedAmenityTotal;
-            } else if (amenityCharge > 0.009) {
-                addSectionDivider(container, getString(R.string.details_label_amenities_section));
-                addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(amenityCharge));
-            }
-
-            // ---- 2. Payment Balance: purely payment PROGRESS (what's been paid
-            // so far vs. what's left) - never mixed with the totals below it.
-            // Required Payment is deliberately not shown anywhere in this screen.
-            addSectionDivider(container, getString(R.string.payment_balance_section_title));
-            if (amountPaid > 0.009) {
-                addInfoRow(container, getString(R.string.details_label_amount_paid), formatPrice(amountPaid));
-            }
-            // A plain Reservation with no payment made yet and no Booking row
-            // behind it has no real payment obligation established - showing
-            // "Remaining Balance: <full total>" there would be booking-only
-            // payment info leaking into a transaction where no payment is
-            // actually involved yet. Once either is true (some amount was
-            // already paid, or a real Booking exists), the balance is meaningful.
-            if (remainingBalance > 0.009 && (amountPaid > 0.009 || booking.isHasBooking())) {
-                addInfoRow(container, getString(R.string.details_label_remaining_balance), formatPrice(remainingBalance));
-            }
-            if (PaymentEligibility.needsFrontDeskPayment(booking)) {
-                TextView note = (TextView) LayoutInflater.from(this).inflate(R.layout.view_front_desk_note, container, false);
-                note.setText(FrontDeskNote.messageFor(this, booking));
-                container.addView(note);
-            }
-
-            // ---- 3. Grand Total Amount: Amenities Total (same value as section 1
-            // above, never recalculated), Room Total (same value already shown at
-            // the bottom of Room Information), then Grand Total LAST, most
-            // strongly highlighted.
-            addSectionDivider(container, getString(R.string.grand_total_amount_section_title));
-            addTotalRow(container, staysMode && booking.hasSeveralStays() ? getString(R.string.details_room_charges_all_stays) : getString(R.string.details_room_charges),
-                    formatPrice(roomTotalAmount));
-            addTotalRow(container, getString(R.string.details_amenities_total_label), formatPrice(amenitiesTotalValue));
-            if (additionalGuestFee > 0.009) {
-                addInfoRow(container, getString(R.string.details_label_additional_guest_fee), formatPrice(additionalGuestFee));
-            }
-            // A discount is taken off only once the front desk has checked the ID and applied it; until then it is a note.
-            double applied = BookingTotals.discountAppliedAmount(booking);
-            String discountName = BookingTotals.discountLabel(booking);
-            if (applied > 0.009) {
-                addInfoRow(container, getString(R.string.details_discount_applied_format, discountName.isEmpty() ? getString(R.string.details_label_discount) : discountName),
-                        "−" + formatPrice(applied));
-            }
-            addGrandTotalRow(container, getString(R.string.details_grand_total_label), formatPrice(totalAmount));
-            double expected = BookingTotals.expectedDiscount(booking);
-            if (expected > 0.009) {
-                addHelperText(container, getString(R.string.details_expected_discount_format,
-                        discountName.isEmpty() ? getString(R.string.details_label_discount) : discountName, formatPrice(expected)));
-                addInfoRow(container, getString(R.string.details_estimated_after_discount), formatPrice(BookingTotals.estimatedAfterDiscount(booking)));
-            }
-            addTotalExplainer(container);
-        }
-
-        if (booking.getReceiptUrl() != null && !booking.getReceiptUrl().isEmpty()) {
-            addSectionDivider(container, getString(R.string.details_label_receipt_image));
-            ImageView receiptView = new ImageView(this);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, (int) (180 * getResources().getDisplayMetrics().density));
-            params.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
-            receiptView.setLayoutParams(params);
-            receiptView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            receiptView.setAdjustViewBounds(true);
-            Glide.with(this).load(booking.getReceiptUrl()).into(receiptView);
-            receiptView.setContentDescription(getString(R.string.receipt_image_content_description));
-            receiptView.setOnClickListener(v -> ReceiptImageViewerActivity.start(this, booking.getReceiptUrl()));
-            container.addView(receiptView);
-        }
-    }
-
     /** Same calendar-day computation PaymentReceiptActivity uses for its identical row - kept as a local copy per this codebase's existing per-screen-helper convention. */
     @Nullable
     private String computeNights(@Nullable String checkIn, @Nullable String checkOut) {
@@ -1295,163 +699,6 @@ public class BookingDetailsActivity extends SafeActivity {
         int statusFg;
         @Nullable String reference;
         @Nullable String receiptNumber;
-    }
-
-    private void buildPaymentHistoryCard(LinearLayout container) {
-        List<PayRow> rows = new ArrayList<>();
-        List<Booking.PaymentTransactionRecord> transactions = booking.getPaymentTransactions();
-        if (!transactions.isEmpty()) {
-            for (Booking.PaymentTransactionRecord tx : transactions) rows.add(rowFrom(tx));
-        } else if (booking.getPaymentHistory() != null) {
-            int order = 0;
-            for (Booking.PaymentRecord record : booking.getPaymentHistory()) {
-                PayRow row = rowFrom(record);
-                row.sortKey = row.sortKey != 0 ? row.sortKey : order;
-                order++;
-                rows.add(row);
-            }
-        }
-        java.util.Collections.sort(rows, (a, b) -> Long.compare(b.sortKey, a.sortKey));
-
-        if (rows.isEmpty()) {
-            TextView none = new TextView(this);
-            none.setText(R.string.ph_no_payments);
-            none.setTextSize(13);
-            none.setTextColor(getColor(R.color.velocity_text_secondary));
-            none.setPadding(0, 0, 0, (int) (8 * getResources().getDisplayMetrics().density));
-            container.addView(none);
-        }
-        for (PayRow row : rows) {
-            container.addView(buildPayRowView(container, row));
-        }
-        addPaymentTotals(container);
-    }
-
-    private PayRow rowFrom(Booking.PaymentTransactionRecord tx) {
-        PayRow row = new PayRow();
-        row.amount = tx.amountPaid;
-        boolean gcash = "gcash".equalsIgnoreCase(tx.paymentMethod);
-        String method = getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash);
-        String stage = tx.paymentStage == null ? "" : tx.paymentStage.toLowerCase(Locale.ROOT);
-        String type;
-        if (stage.contains("deposit")) {
-            type = getString(R.string.ph_type_deposit);
-        } else if ("checkout_payment".equalsIgnoreCase(tx.transactionType)) {
-            type = getString(R.string.ph_type_balance);
-        } else if (stage.contains("final")) {
-            boolean firstPayment = Math.abs(tx.totalPaidAfterTransaction - tx.amountPaid) < 0.01;
-            type = getString(firstPayment ? R.string.ph_type_full : R.string.ph_type_balance);
-        } else {
-            type = getString(R.string.ph_type_payment);
-        }
-        row.methodType = getString(R.string.ph_method_type_format, method, type);
-        row.dateTime = tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "";
-        java.time.Instant at = TimeUtils.parseInstant(tx.paymentDate);
-        row.sortKey = at != null ? at.toEpochMilli() : 0;
-        String ref = tx.gcashReferenceNumber != null ? tx.gcashReferenceNumber : tx.referenceNumber;
-        row.reference = gcash && !TextUtils.isEmpty(ref) ? GcashReferenceFormatter.format(ref) : (TextUtils.isEmpty(ref) ? null : ref);
-        row.receiptNumber = tx.receiptNumber;
-        String verification = tx.verificationStatus != null ? tx.verificationStatus.toLowerCase(Locale.ROOT) : "";
-        String paymentStatus = tx.paymentStatus != null ? tx.paymentStatus.toLowerCase(Locale.ROOT) : "";
-        if ("verified".equals(verification) || (verification.isEmpty() && "completed".equals(paymentStatus))) {
-            setPayStatus(row, R.string.ph_status_verified, R.color.velocity_green_soft, R.color.velocity_green_dark);
-        } else if ("rejected".equals(verification) || "rejected".equals(paymentStatus) || "failed".equals(paymentStatus)) {
-            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_text);
-        } else {
-            setPayStatus(row, R.string.ph_status_pending, R.color.velocity_orange_soft, R.color.velocity_orange_primary);
-        }
-        return row;
-    }
-
-    private PayRow rowFrom(Booking.PaymentRecord record) {
-        PayRow row = new PayRow();
-        row.amount = MoneyFormat.parse(record.amount);
-        boolean gcash = record.method != null && record.method.toLowerCase(Locale.ROOT).contains("gcash");
-        row.methodType = getString(R.string.ph_method_type_format,
-                getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash), getString(R.string.ph_type_payment));
-        row.dateTime = record.date != null ? TimeUtils.formatDateTime(record.date) : "";
-        java.time.Instant at = TimeUtils.parseInstant(record.date);
-        row.sortKey = at != null ? at.toEpochMilli() : 0;
-        row.reference = TextUtils.isEmpty(record.referenceNumber) ? null : (gcash ? GcashReferenceFormatter.format(record.referenceNumber) : record.referenceNumber);
-        String st = record.status == null ? "" : record.status.toLowerCase(Locale.ROOT);
-        if (st.contains("reject") || st.contains("fail")) {
-            setPayStatus(row, R.string.ph_status_rejected, R.color.velocity_red_subtle, R.color.velocity_red_text);
-        } else if (st.contains("verif") || st.contains("complet") || st.contains("paid")) {
-            setPayStatus(row, R.string.ph_status_verified, R.color.velocity_green_soft, R.color.velocity_green_dark);
-        } else {
-            setPayStatus(row, R.string.ph_status_pending, R.color.velocity_orange_soft, R.color.velocity_orange_primary);
-        }
-        return row;
-    }
-
-    private static void setPayStatus(PayRow row, int label, int bg, int fg) {
-        row.statusRes = label;
-        row.statusBg = bg;
-        row.statusFg = fg;
-    }
-
-    private View buildPayRowView(LinearLayout parent, PayRow row) {
-        View view = LayoutInflater.from(this).inflate(R.layout.item_payment_history_row, parent, false);
-        ((TextView) view.findViewById(R.id.tvPhAmount)).setText(formatPrice(row.amount));
-        TextView status = view.findViewById(R.id.tvPhStatus);
-        status.setText(row.statusRes);
-        status.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(row.statusBg)));
-        status.setTextColor(getColor(row.statusFg));
-        ((TextView) view.findViewById(R.id.tvPhMethodType)).setText(row.methodType);
-        TextView date = view.findViewById(R.id.tvPhDate);
-        date.setText(row.dateTime);
-        date.setVisibility(TextUtils.isEmpty(row.dateTime) ? View.GONE : View.VISIBLE);
-        TextView ref = view.findViewById(R.id.tvPhReference);
-        if (TextUtils.isEmpty(row.reference)) {
-            ref.setVisibility(View.GONE);
-        } else {
-            ref.setText(getString(R.string.ph_reference_format, row.reference));
-        }
-        View hint = view.findViewById(R.id.tvPhReceiptHint);
-        if (!TextUtils.isEmpty(row.receiptNumber)) {
-            hint.setVisibility(View.VISIBLE);
-            view.setClickable(true);
-            view.setOnClickListener(v -> {
-                if (clickGuard.tryAcquire()) {
-                    startActivity(PaymentReceiptActivity.newIntentForReceipt(this, booking, row.receiptNumber));
-                }
-            });
-        }
-        return view;
-    }
-
-    /** Total, Discount (only once approved), Paid and Remaining Balance - same figures and same Remaining rule as the billing breakdown. */
-    private void addPaymentTotals(LinearLayout container) {
-        double totalAmount;
-        double amountPaid;
-        double remainingBalance;
-        if (groupMembers != null) {
-            BookingGroupAggregator.Totals totals = BookingGroupAggregator.sum(groupMembers);
-            totalAmount = totals.totalAmount;
-            amountPaid = totals.amountPaid;
-            remainingBalance = totalAmount - amountPaid;
-        } else {
-            totalAmount = booking.getTotalAmount();
-            amountPaid = booking.getEffectiveTotalAmountPaid();
-            remainingBalance = booking.getEffectiveRemainingBalance();
-        }
-        View rule = new View(this);
-        LinearLayout.LayoutParams ruleLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int) getResources().getDisplayMetrics().density);
-        ruleLp.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
-        ruleLp.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
-        rule.setLayoutParams(ruleLp);
-        rule.setBackgroundColor(getColor(R.color.velocity_red_subtle));
-        container.addView(rule);
-
-        addInfoRow(container, getString(R.string.ph_total_label), formatPrice(totalAmount));
-        if ("approved".equalsIgnoreCase(booking.getDiscountVerificationStatus()) && booking.getDiscountAmount() > 0.009) {
-            addInfoRow(container, getString(R.string.ph_discount_label), "-" + formatPrice(booking.getDiscountAmount()));
-        }
-        addInfoRow(container, getString(R.string.ph_amount_paid_label), formatPrice(amountPaid));
-        if (remainingBalance > 0.009 && (amountPaid > 0.009 || booking.isHasBooking())
-                && !"Checked-Out".equalsIgnoreCase(booking.getStatus()) && !"Completed".equalsIgnoreCase(booking.getStatus())) {
-            addInfoRow(container, getString(R.string.ph_remaining_label), formatPrice(remainingBalance));
-        }
     }
 
     /** One label/value row with a small leading icon; skipped when there is no real value (never shows "null"). */
@@ -1561,73 +808,9 @@ public class BookingDetailsActivity extends SafeActivity {
      * each room's amenities, then that stay's own subtotal. Every figure is the server's; the transaction's money breakdown follows below.
      * Nothing for a single-stay transaction (its rooms and amenities are shown in the sections that always existed).
      */
-    private void addStaysSection(LinearLayout container) {
-        if (!booking.hasSeveralStays()) return;
-        addSectionDivider(container, getString(R.string.details_stays_title));
-        for (Booking.StayRecord stay : booking.getStays()) {
-            if (stay == null) continue;
-            String dates = formatStayDates(stay.checkIn, stay.checkOut);
-            String nights = getResources().getQuantityString(R.plurals.receipt_nights_count, Math.max(1, stay.nights), Math.max(1, stay.nights));
-            String state = stay.isInHouse() ? getString(R.string.stay_state_in_house)
-                    : stay.isCheckedOut() ? getString(R.string.stay_state_checked_out) : "";
-            addInfoRowVertical(container, getString(R.string.stay_label_format, stay.position),
-                    getString(R.string.stay_details_line_format, dates, nights) + (state.isEmpty() ? "" : " · " + state));
-            for (BookingRoom room : stay.rooms) {
-                if (room == null) continue;
-                String numbers = room.getAssignedRoomNumbers().isEmpty() ? ""
-                        : getString(R.string.stay_room_numbers_format, android.text.TextUtils.join(", ", room.getAssignedRoomNumbers()));
-                addInfoRow(container, getString(R.string.stay_room_line_format, room.getQuantity(), room.getRoomTypeName(), numbers),
-                        formatPrice(room.getSubtotal()));
-            }
-            for (BookingAmenity amenity : stay.amenities) {
-                if (amenity == null) continue;
-                addInfoRow(container, StayCardText.withRoom(this, getString(R.string.receipt_bd_item_format, amenity.getAmenityName(), amenity.getQuantity(),
-                        formatPrice(amenity.getQuantity() > 0 ? amenity.getSubtotal() / amenity.getQuantity() : amenity.getSubtotal())), amenity.getRoomLabel()), formatPrice(amenity.getSubtotal()));
-            }
-            addTotalRow(container, getString(R.string.stay_subtotal_format, stay.position), formatPrice(stay.subtotal));
-        }
-    }
-
     /** "Oct 25 → Oct 26, 2026" from the server's yyyy-MM-dd dates; the raw text when it cannot be read. */
     private String formatStayDates(@Nullable String in, @Nullable String out) {
         return StayCardText.stayDates(in, out);
-    }
-
-    /** The one-line "what is this total" for a beginner, right under the Grand Total. */
-    private void addTotalExplainer(LinearLayout container) {
-        TextView note = new TextView(this);
-        note.setText(booking.hasSeveralStays() ? R.string.total_explainer_stays : R.string.total_explainer_single);
-        note.setTextSize(12);
-        note.setTextColor(getColor(R.color.velocity_text_secondary));
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        p.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
-        note.setLayoutParams(p);
-        container.addView(note);
-    }
-
-    /** "Stays in this group": every other stay booked together with this one, each a link to its own details. Nothing for a single stay. */
-    private void addGroupStaysSection(LinearLayout container) {
-        if (!booking.isInGroup() || GroupStays.size(booking) < 2) return;
-        addSectionDivider(container, getString(R.string.group_stays_section_title));
-        addInfoRow(container, getString(R.string.group_stay_this_one), GroupStays.label(this, booking));
-        java.util.List<Booking> all = GroupStays.members(this, booking);
-        for (int i = 0; i < all.size(); i++) {
-            Booking stay = all.get(i);
-            if (stay.getId().equals(booking.getId())) continue;
-            TextView link = new TextView(this);
-            link.setText(GroupStays.describe(this, stay, i + 1));
-            link.setTextSize(13);
-            link.setTextColor(getColor(R.color.velocity_action_text));
-            link.setMinHeight((int) (44 * getResources().getDisplayMetrics().density));
-            link.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            link.setOnClickListener(v -> {
-                if (clickGuard.tryAcquire()) startActivity(BookingDetailsActivity.newIntent(this, stay));
-            });
-            container.addView(link);
-        }
-        if (all.size() < GroupStays.size(booking)) {
-            addInfoRow(container, getString(R.string.group_stays_section_title), getString(R.string.group_stays_not_loaded));
-        }
     }
 
     private void addSectionDivider(LinearLayout container, String title) {
@@ -1698,14 +881,6 @@ public class BookingDetailsActivity extends SafeActivity {
 
     private String resolveAssignedRoomsText(@Nullable String rawRoomNumber) {
         return Booking.resolveAssignedRoomsText(this, rawRoomNumber);
-    }
-
-    /** One itemized amenity block - name, then Quantity/Price/Subtotal rows, per the required Additional Amenities breakdown. */
-    private void addAmenityDetailBlock(LinearLayout container, String amenityName, int quantity, double unitPrice, double subtotal) {
-        addSubHeading(container, amenityName);
-        addInfoRow(container, getString(R.string.quantity_label), String.valueOf(quantity));
-        addInfoRow(container, getString(R.string.details_amenity_price_label), formatPrice(unitPrice));
-        addInfoRow(container, getString(R.string.summary_subtotal_label), formatPrice(subtotal));
     }
 
     /** Emphasized "Room Total"/"Amenities Total"/"Grand Total" line - bold label, larger bold red-accent value, so a running total visually stands apart from the itemized rows above it. */

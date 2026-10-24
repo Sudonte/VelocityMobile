@@ -141,22 +141,21 @@ public class StaysScreensTest {
     }
 
     @Test
-    public void detailsListsEveryStay_withRoomsRoomNumbersAmenitiesAndItsOwnSubtotal_andExplainsTheTotal() {
+    public void detailsListsEveryDateRange_withRoomsRoomNumbersAmenitiesAndItsOwnSubtotal() {
         Booking b = twoStayBooking();
         b.setTotalAmount(18900.0);
         BookingDetailsActivity a = Robolectric.buildActivity(BookingDetailsActivity.class, BookingDetailsActivity.newIntent(app, b)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
 
         String all = textOf(a.getWindow().getDecorView());
-        assertTrue(all, all.contains("Stays"));
-        assertTrue(all, all.contains("Stay 1"));
-        assertTrue(all, all.contains("Stay 2"));
-        assertTrue("room numbers once assigned: " + all, all.contains("Assigned Room(s): 303"));
+        assertTrue(all, all.contains("Your Stay"));
+        assertFalse("no 'Stay N' labels: the dates head each range", all.contains("Stay 1") || all.contains("Stay 2"));
+        assertTrue(all, all.contains("Oct 25 → Oct 26, 2026 · 1 night"));
+        assertTrue("room numbers once assigned: " + all, all.contains("Room 303"));
         assertTrue(all, all.contains("Extra bed"));
         assertTrue("the amenity names the room it was chosen for: " + all, all.contains("Deluxe (room 1)"));
-        assertTrue("each stay's own subtotal: " + all, all.contains("Stay 1 room charges") && all.contains("₱9,300.00"));
-        assertTrue(all, all.contains("Stay 2 room charges"));
-        assertTrue("the one-line explanation under the total: " + all, all.contains("Total for all stays after discount and extras."));
+        assertTrue("each range's own subtotal: " + all, all.contains("Subtotal") && all.contains("₱9,600.00") && all.contains("₱9,300.00"));
+        assertTrue("one short line under the bill: " + all, all.contains("You pay the balance at the hotel."));
     }
 
     @Test
@@ -167,8 +166,9 @@ public class StaysScreensTest {
         BookingDetailsActivity a = Robolectric.buildActivity(BookingDetailsActivity.class, BookingDetailsActivity.newIntent(app, r)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
         String all = textOf(a.getWindow().getDecorView());
-        assertTrue(all, all.contains("Stay 1 room charges") && all.contains("Stay 2 room charges"));
-        assertTrue(all, all.contains("Assigned Room(s): 303") && all.contains("Extra bed") && all.contains("Deluxe (room 1)"));
+        assertTrue(all, all.contains("Your Stay") && all.contains("Subtotal"));
+        assertTrue(all, all.contains("Room 303") && all.contains("Extra bed") && all.contains("Deluxe (room 1)"));
+        assertFalse(all, all.contains("Stay 1") || all.contains("Stay 2"));
     }
 
     @Test
@@ -181,21 +181,21 @@ public class StaysScreensTest {
                 com.example.velocitysuites.TransactionDetailsActivity.newIntent(app, tx)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
         String all = textOf(a.getWindow().getDecorView());
-        assertTrue(all, all.contains("Stay 1") && all.contains("Stay 2"));
-        assertTrue(all, all.contains("Stay 1 Subtotal") && all.contains("₱9,600.00"));
-        assertTrue(all, all.contains("Stay 2 Subtotal") && all.contains("₱9,300.00"));
+        assertTrue(all, all.contains("Your Stay") && all.contains("Oct 25 → Oct 26, 2026 · 1 night"));
+        assertTrue(all, all.contains("Subtotal") && all.contains("₱9,600.00") && all.contains("₱9,300.00"));
         assertTrue(all, all.contains("Room 303") && all.contains("Deluxe (room 1)"));
+        assertFalse(all, all.contains("Stay 1") || all.contains("Stay 2"));
     }
 
     @Test
-    public void aSingleStayHasNoStaysSection_andSaysTotalForYourStay() {
+    public void aSingleDateRangeHasNoSubtotalRow() {
         Booking b = new Booking("5", "1", "Deluxe", "Deluxe", "Oct 25, 2026", "Oct 26, 2026", 1, 3500, "Confirmed", "Oct 01, 2026");
         b.setHasBooking(true);
         BookingDetailsActivity a = Robolectric.buildActivity(BookingDetailsActivity.class, BookingDetailsActivity.newIntent(app, b)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
         String all = textOf(a.getWindow().getDecorView());
-        assertFalse(all, all.contains("Stay 1 Subtotal"));
-        assertTrue(all, all.contains("Total for your stay after discount and extras."));
+        assertFalse(all, all.contains("Subtotal"));
+        assertTrue(all, all.contains("Room charges") && all.contains("Grand total"));
     }
 
     @Test
@@ -209,7 +209,7 @@ public class StaysScreensTest {
     }
 
     @Test
-    public void theReceiptListsEveryStayWithItsRoomsAndSubtotal() {
+    public void theReceiptListsEveryDateRangeWithItsRoomsAndSubtotal() {
         String json = ReceiptFromApiPayloadTest.RECEIPT_3.replace("\"receipt\":{", "\"receipt\":{\"stays\":" + BOOKING_JSON.substring(BOOKING_JSON.indexOf("\"stays\":[") + 8, BOOKING_JSON.length() - 1) + ",");
         ReceiptDetail detail = ApiMapper.toReceiptDetail(new Gson().fromJson(json, ReceiptDetailResponse.class));
         assertEquals(2, detail.getStays().size());
@@ -219,9 +219,10 @@ public class StaysScreensTest {
         shadowOf(Looper.getMainLooper()).idle();
         try {
             String all = textOf(a.findViewById(R.id.layoutDynamicReceiptContent));
-            assertTrue(all, all.contains("Stay 1") && all.contains("Stay 2"));
+            assertFalse(all, all.contains("Stay 1") || all.contains("Stay 2"));
+            assertTrue(all, all.contains("Oct 25 → Oct 26, 2026 · 1 night"));
             assertTrue(all, all.contains("Room 303"));
-            assertTrue(all, all.contains("Stay 2 Subtotal"));
+            assertTrue(all, all.contains("Subtotal"));
             assertTrue("the receipt names the room too: " + all, all.contains("Deluxe (room 1)"));
         } finally {
             PaymentReceiptActivity.debugPreviewFixtures.clear();
@@ -276,10 +277,10 @@ public class StaysScreensTest {
 
         androidx.appcompat.app.AlertDialog d = (androidx.appcompat.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
         assertNotNull("asks which stay first", d);
-        assertEquals("Which stay is this for?", String.valueOf(((TextView) d.findViewById(androidx.appcompat.R.id.alertTitle)).getText()));
+        assertEquals("Which dates is this for?", String.valueOf(((TextView) d.findViewById(androidx.appcompat.R.id.alertTitle)).getText()));
         android.widget.ListView list = d.getListView();
         assertEquals(2, list.getCount());
-        assertTrue(String.valueOf(list.getAdapter().getItem(1)), String.valueOf(list.getAdapter().getItem(1)).startsWith("Stay 2"));
+        assertTrue(String.valueOf(list.getAdapter().getItem(1)), String.valueOf(list.getAdapter().getItem(1)).startsWith("2026-10-27"));
         shadowOf(Looper.getMainLooper()).idle();
         list.performItemClick(null, 1, 0); // stay 2
         shadowOf(Looper.getMainLooper()).idle();

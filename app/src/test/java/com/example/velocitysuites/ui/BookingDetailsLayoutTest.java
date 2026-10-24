@@ -116,16 +116,15 @@ public class BookingDetailsLayoutTest {
     }
 
     @Test
-    public void paymentHistory_withNoPayments_saysSo_andStillShowsTotals() {
+    public void paymentHistory_withNoPayments_saysSo_andRepeatsNoTotals() {
         BookingDetailsActivity a = open(booking("not_requested"));
         String text = textOf(a.findViewById(R.id.sectionPaymentHistoryContent));
         assertTrue(text, text.contains("No payments yet."));
-        assertTrue(text.contains("Total"));
-        assertFalse("no discount line without an approved ID", text.contains("Discount"));
+        assertFalse("the totals live in the Bill, not here", text.contains("Total") || text.contains("Discount"));
     }
 
     @Test
-    public void paymentHistory_listsNewestFirst_andShowsPaidAndRemaining() {
+    public void paymentHistory_listsNewestFirst_eachPaymentOnce() {
         Booking b = booking("not_requested");
         List<Booking.PaymentTransactionRecord> txs = new ArrayList<>();
         txs.add(new Booking.PaymentTransactionRecord(1, "cash", "deposit", "partial_payment", 1000, "completed", "verified",
@@ -143,6 +142,6 @@ public class BookingDetailsLayoutTest {
         assertTrue(text, newer >= 0 && older >= 0 && newer < older);
         assertTrue(text, text.contains("Pending verification"));
         assertTrue(text, text.contains("Verified"));
-        assertTrue(text, text.contains("Remaining Balance"));
+        assertFalse("the balance is in the Bill, not repeated here", text.contains("Remaining Balance") || text.contains("Balance due"));
     }
 }

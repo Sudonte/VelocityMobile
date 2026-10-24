@@ -178,10 +178,10 @@ public class ReceiptFromApiPayloadTest {
     private static void collectRows(View view, Map<String, String> out) {
         if (!(view instanceof ViewGroup) || view.getVisibility() != View.VISIBLE) return;
         ViewGroup group = (ViewGroup) view;
-        View label = group.findViewById(R.id.tvRowLabel);
-        View value = group.findViewById(R.id.tvRowValue);
-        if (label instanceof TextView && value instanceof TextView && label.getParent() == group && value.getParent() == group) {
-            out.put(((TextView) label).getText().toString(), ((TextView) value).getText().toString());
+        // a row of the shared structure: a label and its amount, side by side
+        if (group instanceof android.widget.LinearLayout && ((android.widget.LinearLayout) group).getOrientation() == android.widget.LinearLayout.HORIZONTAL
+                && group.getChildCount() == 2 && group.getChildAt(0) instanceof TextView && group.getChildAt(1) instanceof TextView) {
+            out.put(((TextView) group.getChildAt(0)).getText().toString(), ((TextView) group.getChildAt(1)).getText().toString());
             return;
         }
         for (int i = 0; i < group.getChildCount(); i++) collectRows(group.getChildAt(i), out);
@@ -204,7 +204,7 @@ public class ReceiptFromApiPayloadTest {
 
     private static void assertNoBlankField(String name, PaymentReceiptActivity activity) {
         Map<String, String> rows = rows(activity);
-        assertTrue(name + " has rows", rows.size() >= 12);
+        assertTrue(name + " has rows", rows.size() >= 8);
         for (Map.Entry<String, String> row : rows.entrySet()) {
             String v = row.getValue().trim();
             assertFalse(name + " / " + row.getKey() + " is blank", v.isEmpty());
@@ -224,24 +224,20 @@ public class ReceiptFromApiPayloadTest {
         PaymentReceiptActivity a = open(RECEIPT_1);
         assertNoBlankField("Receipt 1", a);
         Map<String, String> r = rows(a);
+        List<String> all = allTexts(a.findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("PR-20260920-000501", r.get("Payment Reference"));
-        assertEquals("250", r.get("Booking ID"));
-        assertEquals("588", r.get("Original Reservation ID"));
-        assertEquals("Juan Dela Cruz", r.get("Guest Account Name"));
-        assertEquals("Sep 25, 2026", r.get("Check-in"));
-        assertEquals("Sep 27, 2026", r.get("Check-out"));
-        assertEquals("2", r.get("Number of Nights"));
-        assertEquals("3", r.get("Total Guests"));
-        assertEquals("305", r.get("Room Number"));
-        assertEquals("₱2,500.00 / night", r.get("Room Rate"));
-        assertEquals("₱1,000.00", r.get("Amount Paid This Transaction"));
-        assertEquals("₱1,000.00", r.get("Total Amount Paid At This Point"));
-        assertEquals("₱4,000.00", r.get("Remaining Balance At This Point"));
-        assertEquals("Partially Paid", r.get("Payment Status"));
-        assertEquals("GCash", r.get("Payment Method"));
-        assertEquals("Sep 20, 2026", r.get("Payment Date"));
-        assertEquals("Maria Santos", r.get("Verified by"));
-        assertTrue(allTexts(a.findViewById(R.id.layoutDynamicReceiptContent)).toString().contains("₱5,000.00"));
+        assertEquals("Reservation #588", r.get("Transaction ID"));
+        assertTrue(all.toString(), all.contains("Payment verified") && all.contains("Partially Paid"));
+        assertTrue(all.toString(), all.contains("Sep 25 → Sep 27, 2026 · 2 nights"));
+        assertEquals("₱5,000.00", r.get("Deluxe Room × 1 · ₱2,500.00 × 2 nights"));
+        assertTrue("the room number once assigned", all.contains("Room 305"));
+        assertEquals("Juan Dela Cruz", r.get("Representative"));
+        assertEquals("2", r.get("Adults"));
+        assertEquals("₱5,000.00", r.get("Grand total"));
+        assertEquals("₱1,000.00", r.get("Paid so far"));
+        assertEquals("₱4,000.00", r.get("Balance due"));
+        assertEquals("₱1,000.00", r.get("GCash · Payment"));
+        assertTrue(all.toString(), all.contains("Sep 20, 2026 • 02:10:00 PM · Ref. 1234 567 890123 · Verified"));
     }
 
     @Test
@@ -249,16 +245,15 @@ public class ReceiptFromApiPayloadTest {
         PaymentReceiptActivity a = open(RECEIPT_2);
         assertNoBlankField("Receipt 2", a);
         Map<String, String> r = rows(a);
+        List<String> all = allTexts(a.findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("SR-20260925-000077", r.get("Payment Reference"));
-        assertEquals("₱5,000.00", r.get("Total Amount"));
-        assertEquals("₱4,000.00", r.get("Amount Settled at Check-In"));
-        assertEquals("₱5,000.00", r.get("Total Amount Paid At This Point"));
-        assertEquals("₱0.00", r.get("Remaining Balance At This Point"));
-        assertEquals("Paid", r.get("Payment Status"));
-        assertEquals("Cash", r.get("Payment Method"));
-        assertEquals("Sep 25, 2026", r.get("Payment Date"));
-        assertNotNull(r.get("Payment Time"));
-        assertEquals("Maria Santos", r.get("Verified by"));
+        assertTrue(all.toString(), all.contains("Check-in") && all.contains("Paid"));
+        assertEquals("₱5,000.00", r.get("Grand total"));
+        assertEquals("₱5,000.00", r.get("Paid so far"));
+        assertEquals("the settled balance reads green and plain", "₱0.00 · Fully paid", r.get("Balance due"));
+        assertEquals("₱4,000.00", r.get("Cash · Payment"));
+        assertEquals("₱1,000.00", r.get("GCash · Payment"));
+        assertTrue(all.toString(), all.contains("Sep 25, 2026 • 12:30:00 PM · Verified"));
     }
 
     @Test
@@ -266,17 +261,13 @@ public class ReceiptFromApiPayloadTest {
         PaymentReceiptActivity a = open(RECEIPT_3);
         assertNoBlankField("Receipt 3", a);
         Map<String, String> r = rows(a);
+        List<String> all = allTexts(a.findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("OR-20260927-000310", r.get("Payment Reference"));
-        assertEquals("2 nights", r.get("Number of Nights"));
-        assertEquals("₱0.00", r.get("Remaining Balance"));
-        assertEquals("Paid", r.get("Payment Status"));
-        assertEquals("Cash", r.get("Payment Method"));
-        assertEquals("Sep 27, 2026", r.get("Payment Date"));
-        assertEquals("₱5,000.00", r.get("Cash received"));
-        assertEquals("11:00:00 AM", r.get("Payment Time"));
-        assertEquals("₱4,000.00", r.get("Paid at check-out"));
-        assertEquals("₱1,000.00", r.get("Change"));
-        assertTrue(allTexts(a.findViewById(R.id.layoutDynamicReceiptContent)).toString().contains("₱5,000.00"));
+        assertTrue(all.toString(), all.contains("Check-out (final)") && all.contains("Sep 25 → Sep 27, 2026 · 2 nights"));
+        assertEquals("₱0.00 · Fully paid", r.get("Balance due"));
+        assertEquals("₱4,000.00", r.get("Cash · Balance"));
+        assertTrue("what was handed over and the change", all.toString().contains("Cash received ₱5,000.00 · Change ₱1,000.00"));
+        assertTrue("the no-refund note ends the final receipt", all.contains("No refunds for early check-out (hotel policy)."));
     }
 
     @Test

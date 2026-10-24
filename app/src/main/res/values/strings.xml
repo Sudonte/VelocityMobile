@@ -129,8 +129,6 @@
     <string name="reservation_information_label">Reservation Information</string>
     <string name="booking_information_label">Booking Information</string>
     <string name="details_label_room_type">Room Type</string>
-    <string name="details_label_rooms_requested">No. of Rooms</string>
-    <string name="details_label_room_types">Total Room Types</string>
     <string name="details_label_check_in">Check-in</string>
     <string name="details_label_check_out">Check-out</string>
     <string name="details_label_adults">Adults</string>
@@ -139,14 +137,12 @@
     <string name="details_label_discount">Discount</string>
     <string name="details_label_total_amount">Total Amount</string>
     <string name="details_label_status">Status</string>
-    <string name="details_label_additional_guests">Additional Guests</string>
     <string name="details_label_representative_name">Representative Name</string>
     <string name="details_label_payment_method">Payment Method</string>
     <string name="details_label_amount_paid">Amount Paid</string>
     <string name="details_label_remaining_balance">Remaining Balance</string>
     <string name="details_label_transaction_ref">Transaction Ref.</string>
     <string name="details_label_payment_date">Payment Date</string>
-    <string name="details_label_verification_status">Verification Status</string>
 
     <!-- Payment Receipt: guest-facing "View/Download Receipt" gate on
          BookingDetailsActivity's Payment tab, and the read-only receipt
@@ -171,7 +167,6 @@
     <string name="loading_transactions_label">Loading transactions…</string>
     <string name="receipt_load_failed_desc">Payment receipt could not be loaded. Please try again.</string>
     <!-- receipt-number mode (PaymentReceiptActivity#renderReceiptDetail()) - see PAYMENT_RECEIPT_HISTORY_BACKEND_SPEC.md Phase 4. -->
-    <string name="receipt_payment_summary_title">Payment Summary</string>
     <!-- Itemized Payment Summary (ReceiptSummaryRenderer): Selected Rooms -> Rooms Total,
          Amenities -> Amenities Total, charges/deductions, Grand Total. -->
     <string name="receipt_selected_rooms_title">Selected Rooms</string>
@@ -195,15 +190,7 @@
         <item quantity="one">%d night</item>
         <item quantity="other">%d nights</item>
     </plurals>
-    <string name="receipt_payment_transaction_history_title">Payment Transaction History</string>
-    <string name="receipt_amount_paid_this_transaction_label">Amount Paid This Transaction</string>
-    <string name="receipt_total_paid_at_this_point_label">Total Amount Paid At This Point</string>
-    <string name="receipt_cash_received_label">Cash received</string>
-    <string name="receipt_change_label">Change</string>
-    <string name="receipt_remaining_balance_at_this_point_label">Remaining Balance At This Point</string>
-    <string name="receipt_original_reservation_id_label">Original Reservation ID</string>
     <string name="receipt_issued_date_label">Receipt Date</string>
-    <string name="receipt_no_transactions_desc">No payment transactions are available for this receipt.</string>
     <string name="receipt_status_official_paid">PAID</string>
     <string name="official_payment_receipt_title">Official Payment Receipt</string>
     <string name="receipt_reference_label">Payment Reference</string>
@@ -223,96 +210,14 @@
     <string name="receipt_information_title">Receipt Information</string>
     <string name="receipt_payment_percentage_label">Payment Percentage</string>
     <string name="receipt_payment_status_label">Payment Status</string>
-    <string name="receipt_settlement_type_label">Settlement</string>
-    <string name="receipt_settlement_partial_to_full">Remaining balance paid - now fully paid</string>
-    <string name="receipt_settlement_full_payment">Paid in full at check-in</string>
-    <string name="receipt_settlement_full_confirmation">Already fully paid - confirmed at check-in</string>
-    <string name="receipt_amount_settled_label">Amount Settled at Check-In</string>
-    <string name="receipt_total_amount_label">Total Amount</string>
-    <string name="receipt_id_validation_label">Discount ID Validation</string>
-    <string name="receipt_id_validated_named_format">Validated - %1$s (%2$s off)</string>
-    <string name="receipt_id_not_validated_reason_format">Not validated - %1$s</string>
-    <string name="receipt_id_no_discount">No discount ID submitted</string>
-    <string name="receipt_summary_title">Summary</string>
-    <string name="receipt_hl_room_charges">Room charges</string>
-    <string name="receipt_hl_amenities">Amenities</string>
-    <string name="receipt_hl_additional">Additional / other charges</string>
-    <string name="receipt_hl_discount">Discount</string>
-    <string name="receipt_hl_paid_r1">Paid - Receipt 1 (booking)</string>
-    <string name="receipt_hl_paid_r2">Paid - Receipt 2 (check-in)</string>
-    <string name="receipt_hl_paid_checkout">Paid at check-out</string>
-    <string name="receipt_hl_grand_total">Grand total</string>
-    <string name="receipt_hl_total_paid">Total paid</string>
-    <string name="receipt_hl_final_balance">Final balance</string>
-    <string name="receipt_bd_title">Balance breakdown</string>
-    <string name="receipt_bd_checkin_title">Check-in summary (%1$s)</string>
-    <string name="receipt_bd_fully_paid">fully paid</string>
-    <string name="receipt_bd_not_fully_paid">not fully paid</string>
-    <string name="receipt_bd_room_rate_nights">Room rate × %1$s</string>
-    <string name="receipt_bd_booked_amenities">Amenities booked</string>
-    <string name="receipt_bd_discount_named">Discount (%1$s)</string>
-    <string name="receipt_bd_discount_named_percent">Discount (%1$s, %2$s%%)</string>
-    <string name="receipt_bd_checkin_grand_total">Check-in Grand Total</string>
-    <string name="receipt_bd_paid_at_checkin">Amount Paid at Check-in</string>
-    <string name="receipt_bd_status">Status</string>
     <string name="receipt_bd_status_paid">PAID IN FULL</string>
     <string name="receipt_bd_status_partial">PARTIALLY PAID</string>
-    <string name="receipt_bd_additional_title">Remaining balance: amenities &amp; charges</string>
-    <string name="receipt_bd_final_checkin_total">Check-in Grand Total (after discount)</string>
-    <string name="receipt_bd_final_plus_remaining">+ Remaining Balance (amenities + additional charges)</string>
-    <string name="receipt_bd_none">No additional charges</string>
-    <string name="receipt_bd_item_format">%1$s × %2$d @ %3$s</string>
-    <string name="receipt_bd_amenity_requests">Amenity requests</string>
-    <string name="receipt_bd_additional_charges">Additional charges</string>
-    <string name="receipt_bd_additional_subtotal">Subtotal of Additional</string>
-    <string name="receipt_bd_remaining_balance">REMAINING BALANCE</string>
-    <string name="receipt_bd_final_grand_total">Final grand total</string>
-    <string name="receipt_bd_total_paid">Total paid</string>
-    <string name="receipt_bd_balance_due">Balance due</string>
-    <string name="receipt_hl_total_booking">Total booking amount</string>
-    <string name="receipt_hl_paid_checkin">Paid at check-in</string>
-    <string name="receipt_hl_payment_type">Payment type</string>
-    <string name="receipt_hl_type_full">Full payment</string>
-    <string name="receipt_hl_type_partial">Partial payment</string>
-    <string name="receipt_hl_paid_now">Amount paid now</string>
-    <string name="receipt_hl_remaining">Remaining balance</string>
-    <string name="receipt_hl_remaining_balance_due">Amount to pay</string>
-    <string name="receipt_hl_total_paid_so_far">Total paid so far</string>
-    <string name="receipt_hl_paid_before_checkin">Paid before check-in</string>
-    <string name="receipt_hl_due_at_hotel">Remaining balance due at the hotel</string>
-    <string name="receipt_hl_due_at_checkout">Balance due at check-out</string>
-    <string name="receipt_hl_nothing_due">Balance</string>
-    <string name="receipt_hl_fully_paid">Fully paid</string>
-    <string name="receipt_final_room_charges">Room charges (%1$s, as booked)</string>
-    <string name="receipt_final_amenities_title">Approved amenities</string>
-    <string name="receipt_final_all_rooms">All rooms</string>
     <string name="receipt_final_room_format">Room %1$s</string>
-    <string name="receipt_final_amenities_total">Approved amenities total</string>
-    <string name="receipt_final_other_charges_title">Other charges (added by the front desk)</string>
-    <string name="receipt_final_other_charges_total">Other charges total</string>
-    <string name="receipt_final_total">Total</string>
-    <string name="receipt_final_payments_title">Payments made</string>
-    <string name="receipt_final_no_payments">No payments recorded</string>
-    <string name="receipt_final_balance">Final balance</string>
     <string name="no_refund_note">No refunds for early check-out (hotel policy).</string>
     <string name="receipt_transaction_id_label">Transaction ID</string>
     <string name="receipt_transaction_id_reservation">Reservation #%1$s</string>
     <string name="receipt_transaction_id_booking">Booking #%1$s</string>
-    <string name="balance_summary_title">Your balance</string>
-    <string name="balance_plain_owe">You still need to pay %1$s</string>
-    <string name="balance_plain_paid">Fully paid - you owe nothing</string>
     <string name="balance_plain_cancelled">This booking was cancelled</string>
-    <string name="tracker_title">Progress</string>
-    <string name="tracker_booked">Booked</string>
-    <string name="tracker_booked_note">Your booking was received</string>
-    <string name="tracker_verified">Verified by the front desk</string>
-    <string name="tracker_checked_in">Checked in</string>
-    <string name="tracker_checked_out">Checked out</string>
-    <string name="tracker_receipt1_placeholder">Receipt 1 - available once the front desk verifies your payment</string>
-    <string name="tracker_receipt2_placeholder">Receipt 2 - available after check-in</string>
-    <string name="tracker_receipt3_placeholder">Receipt 3 - available after check-out</string>
-    <string name="tracker_receipt_ready_format">Receipt %1$s - tap to view</string>
-    <string name="receipt_payment_information_title">Payment Information</string>
     <string name="receipt_verification_title">Payment Verification Information</string>
     <string name="receipt_total_amount_paid_label">Total Amount Paid</string>
     <string name="receipt_verified_by_label">Verified by</string>
@@ -321,20 +226,12 @@
     <string name="receipt_payment_type_partial">PARTIAL PAYMENT</string>
     <string name="receipt_payment_type_full">FULL PAYMENT</string>
     <string name="details_label_payment_type">Payment Type</string>
-    <string name="details_label_booking_date">Booking Date</string>
     <string name="details_label_payment_time">Payment Time</string>
     <string name="details_label_room_number">Room Number</string>
     <string name="room_assignment_pending_label">Room Assignment: Pending</string>
     <string name="assigned_rooms_format">Assigned Room(s): %1$s</string>
-    <string name="details_label_amenities_section">Selected Amenities</string>
     <string name="details_price_per_night_label">Price Per Room/Night</string>
-    <string name="details_amenity_price_label">Price</string>
     <string name="details_amenities_total_label">Amenities Total</string>
-    <string name="details_group_checkin_billing">Check-in Billing</string>
-    <string name="details_group_amenities_charges">Amenities &amp; Charges</string>
-    <string name="payment_summary_section_title">Final Summary</string>
-    <string name="details_none_added">No amenities or charges added</string>
-    <string name="remaining_balance_payable_at_checkout">Remaining Balance – payable at check-out</string>
     <string name="details_request_pending">Pending approval – not counted</string>
     <string name="details_request_rejected">Not approved – not counted</string>
     <string name="details_request_rejected_reason">Not approved (%1$s) – not counted</string>
@@ -344,22 +241,15 @@
         <item quantity="one">%d amenity request awaiting approval – not counted yet</item>
         <item quantity="other">%d amenity requests awaiting approval – not counted yet</item>
     </plurals>
-    <string name="details_grand_total_label">Grand Total</string>
     <string name="details_label_additional_guest_fee">Additional Guest Fee</string>
-    <string name="payment_balance_section_title">Payment Balance</string>
-    <string name="grand_total_amount_section_title">Grand Total Amount</string>
     <string name="receipt_thank_you_message">Thank you for choosing Velocity Suites.</string>
     <string name="receipt_download_success">Receipt saved to Downloads.</string>
     <string name="receipt_download_failed">Could not save the receipt. Please try again.</string>
     <string name="receipt_label_booking_id">Booking ID</string>
     <string name="receipt_label_reservation_id">Reservation ID</string>
     <string name="details_label_rejection_reason">Reason</string>
-    <string name="details_label_receipt_image">Receipt / Proof of Payment</string>
     <string name="details_label_receipts_section">Receipts</string>
-    <string name="details_label_payment_history">Payment History</string>
-    <string name="details_label_converted_booking">Converted Booking</string>
     <string name="details_label_cancelled_on">Cancelled On</string>
-    <string name="timeline_created">Reservation Created</string>
     <string name="member_since_format">Member since %1$s</string>
     <!-- Transaction History card: stay dates and "N Receipts Available". -->
     <string name="ptx_stay_label">Stay</string>
@@ -541,7 +431,6 @@
     <string name="nav_room_browsing">Room Browsing</string>
     <string name="nav_booking_reservation">Booking &amp; Reservation</string>
     <string name="nav_transaction_history">Transaction History</string>
-    <string name="payment_history_reference_format">Ref: %1$s</string>
     <string name="nav_profile_management">Profile Management</string>
     <string name="nav_logout">Logout</string>
     <string name="nav_open_drawer">Open navigation drawer</string>
@@ -750,9 +639,6 @@
     </plurals>
     <string name="search_transactions_hint">Search by ID or room</string>
     <string name="more_stays_title">Other Recent &amp; Upcoming Stays</string>
-    <string name="details_label_checked_in_at">Checked-In At</string>
-    <string name="details_label_checked_out_at">Checked-Out At</string>
-    <string name="details_expected_time_format">Expected %1$s</string>
     <string name="stay_calendar_kind_checked_out">Checked out</string>
     <string name="upcoming_balance_label">Balance</string>
     <string name="stay_calendar_title">Stay Calendar</string>
@@ -1330,37 +1216,26 @@
     <string name="available_rooms_subtitle_placeholder">Pick a room type to add to your stay</string>
     <string name="available_qty_format">Available: %1$d</string>
     <string name="quantity_label">Quantity</string>
-    <string name="review_stay_room_format">Stay %1$d: %2$s</string>
-    <string name="group_stay_label_format">Group · Stay %1$d of %2$d</string>
+    <string name="group_stay_label_format" tools:ignore="PluralsCandidate">Group · %1$d of %2$d</string>
     <string name="group_two_parts_format">%1$s  ·  %2$s</string>
     <string name="group_stay_link">Other stays</string>
-    <string name="group_stay_line_format">Stay %1$d · %2$s · %3$s - %4$s</string>
+    <string name="group_stay_line_format">%1$s · %2$s - %3$s</string>
     <string name="group_stays_title">Stays in this group</string>
     <string name="group_stays_not_loaded">The other stays of this group are not loaded yet. Pull to refresh the list and try again.</string>
-    <string name="group_pick_stay_title">Which stay is this for?</string>
-    <string name="group_stays_section_title">Stays in this group</string>
-    <string name="group_stay_this_one">This stay</string>
+    <string name="group_pick_stay_title">Which dates is this for?</string>
     <string name="cancel_all_stays_button">Cancel all stays</string>
     <string name="cancel_all_stays_done">The unverified stays of this group were cancelled. Stays the front desk already verified were kept.</string>
     <string name="stays_title">Your stays</string>
-    <string name="details_stays_title">Stays</string>
-    <string name="stay_state_in_house">In house</string>
-    <string name="stay_state_checked_out">Checked out</string>
-    <string name="stay_details_line_format">%1$s · %2$s</string>
     <string name="stay_room_numbers_format">Room %1$s</string>
-    <string name="stay_room_line_format">%1$d × %2$s %3$s</string>
-    <string name="stay_subtotal_format" tools:ignore="PluralsCandidate">Stay %1$d Subtotal</string>
-    <string name="total_explainer_stays">Total for all stays after discount and extras.</string>
-    <string name="total_explainer_single">Total for your stay after discount and extras.</string>
-    <string name="amenity_stay_pick_line_format">Stay %1$d · %2$s → %3$s</string>
+    <string name="amenity_stay_pick_line_format">%1$s → %2$s</string>
     <string name="stays_total_label">Total for all stays</string>
     <string name="stay_editing_badge">Editing</string>
-    <string name="stay_heading_format">Stay %1$d · Choose dates and rooms</string>
+    <string name="stay_heading_format">Edit %1$s</string>
     <string name="stay_heading_single">Choose dates and rooms</string>
     <string name="stay_row_dates_format">%1$s&#160;→&#160;%2$s&#160;·&#160;%3$s</string>
     <string name="stay_row_rooms_format">%1$s · %2$s</string>
-    <string name="stay_edit_cd_format">Edit stay %1$d</string>
-    <string name="stay_remove_cd_format">Remove stay %1$d</string>
+    <string name="stay_edit_cd_format">Edit %1$s</string>
+    <string name="stay_remove_cd_format">Remove %1$s</string>
     <string name="stay_duplicate_error_format">You already added a stay for %1$s – %2$s. Pick different dates or add rooms to that stay.</string>
     <string name="stay_duplicate_generic">Two of your stays have the same dates. Pick different dates or add rooms to one of them.</string>
     <string name="helper_checkin_earliest">Earliest: %1$s</string>
@@ -1376,16 +1251,15 @@
     <string name="wizard_summary_left_format">%1$s · %2$s · %3$s</string>
     <string name="wizard_summary_breakdown_format">Rooms %1$s + Amenities %2$s = %3$s</string>
     <string name="step_title_stays">Dates and rooms</string>
-    <string name="stay_label_format">Stay %1$d</string>
-    <string name="add_another_stay">Add another stay</string>
+    <string name="add_another_stay">Add another date</string>
     <string name="stay_edit">Edit</string>
     <string name="stay_remove">Remove</string>
-    <string name="stay_remove_title_format">Remove stay %1$d?</string>
+    <string name="stay_remove_title_format">Remove %1$s?</string>
     <string name="stay_remove_message">Its dates, rooms and amenities are removed from this booking.</string>
     <string name="stay_summary_no_dates">Dates not chosen yet</string>
     <string name="stays_max_format" tools:ignore="PluralsCandidate">You can book up to %1$d stays together.</string>
     <string name="stay_incomplete_dates">Choose valid check-in and check-out dates for this stay first.</string>
-    <string name="stay_incomplete_format" tools:ignore="PluralsCandidate">Stay %1$d needs its dates and at least one room.</string>
+    <string name="stay_incomplete_format">%1$s: choose its dates and at least one room.</string>
     <string name="rooms_limit_message" tools:ignore="PluralsCandidate">No more %1$s rooms available for these dates (%2$d available).</string>
     <plurals name="rooms_available_count">
         <item quantity="one">%1$d room available</item>
@@ -1514,7 +1388,6 @@
     <!-- Connectivity banner -->
     <string name="no_internet_connection_label">No Internet Connection</string>
     <string name="group_reference_suffix_format" tools:ignore="PluralsCandidate"> · Group %1$s (%2$d of %3$d rooms)</string>
-    <string name="details_group_reference_label">Group Reference: %1$s</string>
     <string name="multi_room_created_title">Rooms Reserved!</string>
     <plurals name="multi_room_booked_msg">
         <item quantity="one">Room 1 of %1$d is ready for payment now. The remaining %2$d room have been reserved under group reference %3$s and can be paid individually from your Booking List.</item>
@@ -1877,16 +1750,9 @@
     <string name="txn_lookup_error_format">Couldn\'t open that transaction: %1$s</string>
 
     <!-- Payment receipt additions -->
-    <string name="receipt_room_rate_label">Room Rate</string>
-    <string name="receipt_rate_per_night_format">%1$s / night</string>
-    <string name="receipt_rate_varies">Varies by room type</string>
     <string name="receipt_no_fees_discounts">No additional fees or discounts</string>
 
     <!-- Transaction detail header + payment history -->
-    <string name="txn_last_payment_format">Last payment: %1$s</string>
-    <string name="txn_no_payment_yet">No payment made yet</string>
-    <string name="txn_amount_paid_verified_label">Amount Paid (verified)</string>
-    <string name="txn_submitted_label">Submitted (awaiting verification)</string>
     <string name="txn_history_status_verified">Verified</string>
     <string name="txn_history_status_awaiting">Awaiting verification</string>
     <string name="status_awaiting_verification">Awaiting verification</string>
@@ -1966,10 +1832,6 @@
     </plurals>
     <string name="pinned_dates_format">%1$s → %2$s · %3$s</string>
     <string name="pinned_dates_cd">Dates: %1$s. Tap to change.</string>
-    <string name="guest_label_name">Name</string>
-    <string name="guest_label_email">Email</string>
-    <string name="guest_label_phone">Phone</string>
-    <string name="guest_label_address">Address</string>
     <string name="searching_rooms_button">Searching…</string>
     <string name="discount_chip_pending">To be validated at check-in</string>
     <string name="discount_help_pending">The receptionist will check your ID when you check in. Your discount will be applied to your bill then.</string>
@@ -1986,12 +1848,7 @@
     <string name="discount_name_senior">Senior Citizen</string>
     <string name="discount_name_pwd">PWD</string>
     <string name="discount_name_generic">discount</string>
-    <string name="ph_amount_paid_label">Paid</string>
-    <string name="ph_total_label">Total</string>
-    <string name="ph_discount_label">Discount</string>
-    <string name="ph_remaining_label">Remaining Balance</string>
     <string name="ph_no_payments">No payments yet.</string>
-    <string name="ph_view_receipt">View receipt</string>
     <string name="ph_type_deposit">Deposit</string>
     <string name="ph_type_full">Full Payment</string>
     <string name="ph_type_balance">Balance</string>
@@ -2489,19 +2346,19 @@
     <string name="confirm_stay_title">Confirm this stay?</string>
     <string name="confirm_stay_yes">Yes, confirm</string>
     <string name="confirm_stay_first">Confirm this stay to continue.</string>
-    <string name="stay_unconfirmed_format" tools:ignore="PluralsCandidate">Stay %1$d needs to be confirmed.</string>
+    <string name="stay_unconfirmed_format">%1$s: tap Confirm before continuing.</string>
     <string name="confirm_stay_summary_format">%1$s · %2$s · %3$s</string>
     <string name="stay_row_not_confirmed_format">%1$s · Not confirmed yet</string>
     <string name="review_stays_title">Review your stays</string>
     <string name="review_edit_stays">Edit stays</string>
     <string name="review_continue">Continue</string>
     <string name="review_edit">Edit</string>
-    <string name="review_stay_heading_format" tools:ignore="PluralsCandidate">Stay %1$d · %2$s → %3$s · %4$s</string>
+    <string name="review_stay_heading_format">%1$s → %2$s · %3$s</string>
     <string name="review_room_line_format">%1$d × %2$s × %3$s × %4$s</string>
-    <string name="review_stay_subtotal_format" tools:ignore="PluralsCandidate">Stay %1$d subtotal</string>
+    <string name="review_stay_subtotal">Subtotal</string>
     <string name="proceed_to_amenities">Proceed to amenities?</string>
     <string name="proceed_stays_summary_format">%1$s · %2$s · %3$s</string>
-    <string name="amenity_stay_heading_format" tools:ignore="PluralsCandidate">Stay %1$d · %2$s → %3$s</string>
+    <string name="amenity_stay_heading_format">%1$s → %2$s</string>
     <string name="amenity_room_heading_format" tools:ignore="PluralsCandidate">%1$s (room %2$d)</string>
     <string name="amenity_price_each_format">%1$s each</string>
     <string name="amenity_line_format">%1$d × %2$s = %3$s</string>
@@ -2547,8 +2404,6 @@
     <string name="review_edit_cd_format">Edit %1$s</string>
     <string name="review_section_collapsed_format">%1$s, collapsed</string>
     <string name="review_section_expanded_format">%1$s, expanded</string>
-    <string name="review_bill_rooms_stay_format" tools:ignore="PluralsCandidate">Room charges · Stay %1$d</string>
-    <string name="review_bill_amenities_stay_format" tools:ignore="PluralsCandidate">Amenities · Stay %1$d</string>
     <string name="review_pay_now_label">Payment</string>
     <string name="review_pay_now_range_label">Pay now (20% to 50%)</string>
     <string name="review_balance_hotel_label">Balance to pay at the hotel</string>
@@ -2569,18 +2424,10 @@
     <string name="gcash_success_transaction_id_format">Transaction ID: %1$s</string>
     <string name="amenity_row_room_format">%1$s · %2$s</string>
     <string name="amenity_any_room_heading">Any room</string>
-    <string name="section_title_stays">Stays</string>
-    <string name="details_stay_heading_format">Stay %1$d · %2$s · %3$s</string>
     <string name="details_single_stay_heading_format">%1$s · %2$s</string>
     <string name="details_room_line_format">%1$s × %2$d · %3$s × %4$s</string>
-    <string name="details_stay_room_charges_format" tools:ignore="PluralsCandidate">Stay %1$d room charges</string>
     <string name="details_room_charges_all_stays">Room charges (all stays)</string>
-    <string name="details_room_charges">Room charges</string>
-    <string name="details_amenities_selected">Selected amenities</string>
-    <string name="details_amenities_approved">Approved amenities</string>
-    <string name="details_amenities_no_room">Amenities for this stay (no room chosen)</string>
     <string name="details_expected_discount_format">Expected discount (%1$s): −%2$s — applied after your ID is checked at check-in.</string>
-    <string name="details_estimated_after_discount">Estimated total after discount</string>
     <string name="details_discount_applied_format">Discount (%1$s)</string>
     <string name="details_minor_line_format">Minor %1$d · age %2$s</string>
     <string name="details_minor_age_unknown">not given</string>
@@ -2607,8 +2454,28 @@ Estimated total after discount: %3$s</string>
     <string name="breakdown_no_amenities">No amenities added</string>
     <string name="breakdown_amenities_total_label">Amenities total</string>
     <string name="breakdown_room_amenity_format">%1$s: %2$s</string>
-    <string name="breakdown_stay_subtotal_format" tools:ignore="PluralsCandidate">Stay %1$d subtotal</string>
+    <string name="breakdown_stay_subtotal">Subtotal</string>
     <string name="gcash_paying_for_total_format">Grand total %1$s</string>
+    <string name="stay_these_dates">these dates</string>
+    <string name="review_room_range_format">%1$s · %2$s</string>
+    <string name="bill_other_charges">Other charges (front desk)</string>
+    <string name="bill_other_charge_format">Other charges: %1$s</string>
+    <string name="bill_amenities">Amenities</string>
+    <string name="bill_paid_so_far">Paid so far</string>
+    <string name="bill_balance_due">Balance due</string>
+    <string name="bill_fully_paid_format">%1$s · Fully paid</string>
+    <string name="bill_plain_balance_at_hotel">You pay the balance at the hotel.</string>
+    <string name="details_title_stay">Your Stay</string>
+    <string name="details_title_guests">Guests</string>
+    <string name="details_title_bill">Bill</string>
+    <string name="details_title_payments">Payments</string>
+    <string name="details_type_booking">Booking</string>
+    <string name="details_type_reservation">Reservation</string>
+    <string name="details_created_format">Created %1$s</string>
+    <string name="receipt_line_verified">Payment verified</string>
+    <string name="receipt_line_checkin">Check-in</string>
+    <string name="receipt_line_checkout">Check-out (final)</string>
+    <string name="payment_cash_tender_format">Cash received %1$s · Change %2$s</string>
 </resources>
 
 

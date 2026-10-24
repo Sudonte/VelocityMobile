@@ -32,7 +32,7 @@ final class WizardReview {
     /** "Stay 1 · Oct 25 → Oct 26 · 1 night" */
     static String stayHeading(Context c, int index, BookingWizardState.Stay stay) {
         SimpleDateFormat fmt = shortDate();
-        return c.getString(R.string.review_stay_heading_format, index + 1, fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime()),
+        return c.getString(R.string.review_stay_heading_format, fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime()),
                 nights(c, stay.nights()));
     }
 
@@ -52,7 +52,7 @@ final class WizardReview {
                                 MoneyFormat.format(room.getPricePerNight()), nights(c, nights)),
                         MoneyFormat.format(room.getPricePerNight() * nights * group.size())));
             }
-            section.add(ReviewSheet.Row.bold(c.getString(R.string.review_stay_subtotal_format, i + 1), MoneyFormat.format(stay.roomsTotal())));
+            section.add(ReviewSheet.Row.bold(c.getString(R.string.review_stay_subtotal), MoneyFormat.format(stay.roomsTotal())));
             sections.add(section);
         }
         return sections;
@@ -67,7 +67,7 @@ final class WizardReview {
         for (int i = 0; i < stays.size(); i++) {
             BookingWizardState.Stay stay = stays.get(i);
             if (stay.amenities.isEmpty() || stay.checkIn == null || stay.checkOut == null) continue;
-            ReviewSheet.Section section = new ReviewSheet.Section(c.getString(R.string.amenity_stay_heading_format, i + 1,
+            ReviewSheet.Section section = new ReviewSheet.Section(c.getString(R.string.amenity_stay_heading_format,
                     fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime())));
             if (stay.roomAmenityQty.isEmpty()) { // seeded without a per-room split (older state): the stay's amenities as they are
                 for (AddOnAmenity a : stay.amenities) {

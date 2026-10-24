@@ -90,7 +90,7 @@ public class StayMoneyScreensTest {
         BookingDetailsActivity a = Robolectric.buildActivity(BookingDetailsActivity.class, BookingDetailsActivity.newIntent(app, booking)).setup().get();
         shadowOf(Looper.getMainLooper()).idle();
         List<String> rows = new ArrayList<>();
-        collect(a.findViewById(R.id.sectionPaymentSummaryContent), rows);
+        collect(a.getWindow().getDecorView(), rows);
         return String.join(" | ", rows);
     }
 
@@ -104,22 +104,20 @@ public class StayMoneyScreensTest {
     }
 
     @Test
-    public void bookingDetails_groupsTheMoney_andLabelsTheRemainingBalance() {
+    public void bookingDetails_putsTheMoneyInOneBill_andLabelsTheBalanceDue() {
         String all = summaryText(inHouseWithMoney());
 
-        assertInOrder(all, "Check-in Billing", "Discount (Senior Citizen)", "-₱400.00", "Check-in Grand Total", "₱1,600.00",
-                "Amenities & Charges", "Breakfast × 1 @ ₱200.00", "Amenities Total", "Broken lamp × 1 @ ₱300.00",
-                "Remaining Balance – payable at check-out", "₱500.00",
-                "Final Summary", "Check-in Grand Total (after discount)", "Final grand total", "₱2,100.00", "Total paid", "Balance due");
-        assertInOrder(all, "Massage × 1 @ ₱100.00", "Pending approval – not counted");
-        assertFalse("the generic summary is replaced", all.contains("Payment Balance"));
+        assertInOrder(all, "Massage × 1 · ₱100.00", "Pending approval – not counted", "Room charges", "₱2,000.00", "Amenities", "₱200.00",
+                "Other charges: Broken lamp", "₱300.00", "Discount (Senior Citizen)", "−₱400.00", "Grand total", "₱2,100.00",
+                "Paid so far", "₱1,600.00", "Balance due", "₱500.00", "You pay the balance at the hotel.");
+        assertFalse("the generic summary and the old groups are replaced", all.contains("Payment Balance") || all.contains("Check-in Billing") || all.contains("Final Summary"));
     }
 
     @Test
     public void aRejectedRequest_isListedApartWithItsReason_andNeverCounted() {
         String all = summaryText(inHouse("{\"amenity_name\":\"Massage\",\"quantity\":1,\"subtotal\":100,\"status\":\"rejected\",\"reason\":\"Spa is closed\"}"));
 
-        assertInOrder(all, "Massage × 1 @ ₱100.00", "Not approved (Spa is closed) – not counted");
+        assertInOrder(all, "Massage × 1 · ₱100.00", "Not approved (Spa is closed) – not counted");
         assertFalse("a rejected request is never added to the balance", all.contains("₱600.00"));
     }
 

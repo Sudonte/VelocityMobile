@@ -69,7 +69,7 @@ final class GroupStays {
     @NonNull
     static String describe(@NonNull Context context, @NonNull Booking stay, int position) {
         String ref = context.getString(stay.isHasBooking() ? R.string.direct_booking_ref_format : R.string.reservation_ref_format, stay.getDisplayId());
-        return context.getString(R.string.group_stay_line_format, position, ref, stay.getCheckInDate(), stay.getCheckOutDate());
+        return context.getString(R.string.group_stay_line_format, ref, stay.getCheckInDate(), stay.getCheckOutDate());
     }
 
     /** A dialog listing the OTHER stays of this booking's group; tapping one opens it. */

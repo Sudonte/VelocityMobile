@@ -121,37 +121,40 @@ public class BalanceBreakdownReceiptTest {
     }
 
     @Test
-    public void receipt3_printsTheBreakdownInTheAgreedOrderWithTheServersFigures() {
+    public void receipt3_printsTheBillInTheAgreedOrderWithTheServersFigures() {
         List<String> t = texts(receipt(BREAKDOWN, HIGHLIGHT));
-        String[] order = {"Check-in summary (fully paid)", "Room rate × 2 nights", "₱5,000.00", "Discount (Senior Citizen, 20%)", "-₱1,000.00",
-                "Check-in Grand Total", "₱4,000.00", "Amount Paid at Check-in", "PAID IN FULL", "Extra Towel × 2 @ ₱50.00", "Broken lamp × 1 @ ₱300.00",
-                "Subtotal of Additional", "₱400.00", "REMAINING BALANCE", "Check-in Grand Total (after discount)", "+ Remaining Balance (amenities + additional charges)", "+₱400.00", "Final grand total", "₱4,400.00", "Total paid", "-₱4,400.00", "Balance due", "₱0.00"};
+        String[] order = {"Check-out (final)", "Your Stay", "Deluxe Room × 1 · ₱2,500.00 × 2 nights", "Bill", "Room charges", "₱5,000.00", "Amenities", "₱100.00",
+                "Other charges: Broken lamp", "₱300.00", "Discount (Senior Citizen)", "−₱1,000.00", "Grand total", "₱4,400.00", "Paid so far", "₱4,400.00",
+                "Balance due", "₱0.00 · Fully paid"};
         int last = -1;
         for (String needle : order) {
             int at = indexOf(t.subList(Math.max(0, last), t.size()), needle);
             assertTrue(needle + " missing or out of order in " + t, at >= 0);
             last = Math.max(0, last) + at;
         }
-        assertFalse("the old summary block is replaced", t.contains("Paid - Receipt 1 (booking)"));
+        assertFalse("the old summary blocks are replaced", t.contains("Paid - Receipt 1 (booking)") || indexOf(t, "Check-in summary") >= 0);
+        assertEquals("the grand total is printed once", indexOf(t, "Grand total"), t.lastIndexOf("Grand total"));
     }
 
     @Test
-    public void aStayWithNothingAddedSaysSoAndKeepsRemainingBalanceAtZero() {
+    public void aStayWithNothingAddedSaysSoAndKeepsTheBalanceAtZero() {
         String none = ",\"receipt_breakdown\":{\"checkin\":{\"room_charge\":5000.0,\"booked_amenities\":0,\"discount_name\":null,\"discount_percent\":null,"
                 + "\"discount\":0,\"grand_total\":5000.0,\"amount_paid\":5000.0,\"paid_in_full\":true,\"status\":\"PAID IN FULL\"},"
                 + "\"after_checkin\":{\"amenities\":[],\"amenities_total\":0,\"charges\":[],\"charges_total\":0,\"stay_adjustment\":0,\"subtotal\":0},"
                 + "\"remaining_balance\":0,\"final_grand_total\":5000.0,\"total_paid\":5000.0,\"balance_due\":0}";
         List<String> t = texts(receipt(none, HIGHLIGHT));
-        assertTrue(t.toString(), indexOf(t, "No additional charges") >= 0);
-        assertTrue(indexOf(t, "REMAINING BALANCE") >= 0);
+        assertTrue(t.toString(), indexOf(t, "No amenities added") >= 0);
+        assertTrue(indexOf(t, "Balance due") >= 0);
         assertEquals("no discount row when there is no discount", -1, indexOf(t, "Discount ("));
+        assertEquals("no other-charges row when there are none", -1, indexOf(t, "Other charges"));
     }
 
     @Test
-    public void aReceiptWithoutTheBreakdownKeepsItsPreviousLayout() {
+    public void aReceiptWithoutTheBreakdownKeepsTheSameStructure() {
         List<String> t = texts(receipt("", HIGHLIGHT));
         assertEquals(-1, indexOf(t, "Check-in summary"));
-        assertTrue(indexOf(t, "Paid - Receipt 2 (check-in)") >= 0);
+        assertTrue(t.toString(), indexOf(t, "Your Stay") >= 0 && indexOf(t, "Guests") > indexOf(t, "Your Stay") && indexOf(t, "Bill") > indexOf(t, "Guests")
+                && indexOf(t, "Payments") > indexOf(t, "Bill"));
     }
 
     @Test

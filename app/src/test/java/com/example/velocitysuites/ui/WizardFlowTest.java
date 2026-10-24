@@ -150,9 +150,9 @@ public class WizardFlowTest {
     public void amenities_areOrganisedByStayThenRoom_withBoldNameDescriptionPriceAndAStepper() {
         BookingWizardActivity a = atAmenities();
         String shown = plain(collect(step(a).getView()));
-        assertTrue(shown, shown.contains("Stay 1 · ") && shown.contains("→"));
+        assertTrue(shown, !shown.contains("Stay 1") && shown.contains("→"));
         assertTrue(shown, shown.contains("Room 1 (room 1)") && shown.contains("Room 1 (room 2)"));
-        assertTrue(shown, shown.contains("Stay 2 · ") && shown.contains("Room 2 (room 1)"));
+        assertTrue(shown, shown.contains("Room 2 (room 1)"));
         assertTrue(shown, shown.contains("Extra bed") && shown.contains("A rollaway bed with fresh linens.") && shown.contains("₱300.00 each"));
         assertTrue(shown, shown.contains("Breakfast") && shown.contains("₱150.00 each"));
         assertEquals("two amenities in each of the three rooms", 6, plusButtons(a).size());
@@ -229,8 +229,8 @@ public class WizardFlowTest {
         Dialog sheet = latestDialog();
         String shown = dialogText(sheet);
         assertTrue(shown, shown.contains("Review your amenities"));
-        assertTrue(shown, shown.contains("Stay 1") && shown.contains("Room 1 (room 1)") && shown.contains("Extra bed") && shown.contains("₱600.00"));
-        assertTrue(shown, shown.contains("Stay 2") && shown.contains("Room 2 (room 1)") && shown.contains("₱300.00"));
+        assertTrue(shown, shown.contains("→") && shown.contains("Room 1 (room 1)") && shown.contains("Extra bed") && shown.contains("₱600.00"));
+        assertTrue(shown, shown.contains("Room 2 (room 1)") && shown.contains("₱300.00"));
         assertTrue(shown, shown.contains("Amenities") && shown.contains("₱900.00") && shown.contains("Grand total") && shown.contains("₱7,900.00"));
         assertEquals("Edit", text(sheet.findViewById(R.id.btnReviewEdit)));
         assertEquals("Continue", text(sheet.findViewById(R.id.btnReviewContinue)));
@@ -574,7 +574,7 @@ public class WizardFlowTest {
     public void review_showsEverythingChosen_inSections_withTheBillBreakdown_andThePartialPaymentForABooking() {
         BookingWizardActivity a = readyToReview(BookingWizardState.Mode.BOOKING);
         String sections = plain(collect(find(a, R.id.layoutReviewSections)));
-        for (String needed : new String[]{"Stays", "Stay 1", "Stay 2", "2 × Room 1 × ₱1,000.00 × 2 nights", "1 × Room 2 × ₱3,000.00 × 1 night",
+        for (String needed : new String[]{"Stays", "2 × Room 1 × ₱1,000.00 × 2 nights", "1 × Room 2 × ₱3,000.00 × 1 night",
                 "Amenities", "Room 1 (room 1)", "Extra bed", "₱600.00",
                 "Representative", "Someone else", "Dela Cruz, Juan",
                 "Guests", "Adults", "Minors", "Minor 1 age", "5",
@@ -584,8 +584,8 @@ public class WizardFlowTest {
         assertFalse("a booking has no payment-method section", sections.contains("Payment method"));
 
         String bill = plain(collect(find(a, R.id.cardBookingSummary)));
-        assertTrue(bill, bill.contains("Room charges · Stay 1") && bill.contains("₱4,000.00") && bill.contains("Room charges · Stay 2") && bill.contains("₱3,000.00"));
-        assertTrue(bill, bill.contains("Amenities · Stay 1") && bill.contains("₱600.00"));
+        assertTrue(bill, bill.contains("Room charges") && bill.contains("₱7,000.00") && !bill.contains("Stay 1"));
+        assertTrue(bill, bill.contains("Amenities") && bill.contains("₱600.00"));
         assertEquals("₱7,600.00", plain(text(find(a, R.id.tvSummaryTotal))));
         assertTrue(bill, bill.contains("Senior Citizen") && bill.contains("-₱1,520.00"));
         assertTrue(bill, bill.contains("Pay now (20% to 50%)") && bill.contains("₱1,520.00 – ₱3,800.00"));

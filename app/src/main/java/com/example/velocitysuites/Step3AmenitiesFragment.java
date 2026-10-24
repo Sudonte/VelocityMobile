@@ -142,7 +142,7 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
         for (int i = 0; i < stays.size(); i++) {
             BookingWizardState.Stay stay = stays.get(i);
             if (stay.checkIn == null || stay.checkOut == null) continue;
-            layoutAmenitiesItemsContainer.addView(stayHeading(getString(R.string.amenity_stay_heading_format, i + 1,
+            layoutAmenitiesItemsContainer.addView(stayHeading(getString(R.string.amenity_stay_heading_format,
                     fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime())), i == 0));
             // amenities that have no room yet (older rows) wait in "Any room" until the guest moves them to one
             if (stay.hasAnyRoomAmenities()) {

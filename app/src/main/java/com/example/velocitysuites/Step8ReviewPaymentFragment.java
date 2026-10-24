@@ -405,21 +405,8 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private void renderBill(BookingWizardState state, boolean freshReservation) {
         android.content.Context c = requireContext();
         layoutBillRows.removeAllViews();
-        List<BookingWizardState.Stay> stays = state.allStays();
-        boolean several = stays.size() > 1;
-        for (int i = 0; i < stays.size(); i++) {
-            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(several ? getString(R.string.review_bill_rooms_stay_format, i + 1) : getString(R.string.review_rooms_total_label),
-                    money(stays.get(i).roomsTotal()))));
-        }
-        for (int i = 0; i < stays.size(); i++) {
-            double amenities = stays.get(i).amenitiesTotal();
-            if (several && amenities <= 0.004) continue;
-            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(several ? getString(R.string.review_bill_amenities_stay_format, i + 1) : getString(R.string.review_amenities_total_label),
-                    money(amenities))));
-        }
-        if (several && amenitiesTotal() <= 0.004) {
-            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_amenities_total_label), money(0))));
-        }
+        layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_rooms_total_label), money(roomsTotal()))));
+        layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_amenities_total_label), money(amenitiesTotal()))));
         double total = roomsTotal() + amenitiesTotal();
         tvSummaryTotal.setText(money(total));
         renderDiscountEstimate(state);

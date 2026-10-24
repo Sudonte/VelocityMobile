@@ -85,37 +85,34 @@ public class MultiStayScreensTest {
     // ---- Booking Details ----
 
     @Test
-    public void bookingDetails_priceEachRoomOnItsOwnStaysNight_groupedUnderTheStay() {
+    public void bookingDetails_priceEachRoomOnItsOwnNights_groupedUnderTheirDates() {
         Booking b = MultiStayFixtures.booking();
         b.setAdditionalGuests(Arrays.asList(new Booking.AdditionalGuest("Child 1", 5, null, "Child"), new Booking.AdditionalGuest("Child 2", 7, null, "Child")));
         String text = all(details(b).getWindow().getDecorView());
 
         assertFalse("no ₱37,200: " + text, text.contains("37,200"));
         assertFalse("no null: " + text, text.contains("null"));
-        assertTrue(text, text.contains("Stay 1 · Oct 26 → Oct 27, 2026 · 1 night"));
-        assertTrue(text, text.contains("Stay 2 · Oct 27 → Oct 28, 2026 · 1 night"));
-        assertTrue(text, text.contains("Deluxe × 1 · ₱3,500.00 × 1 night") && text.contains("Executive × 1 · ₱5,800.00 × 1 night"));
-        assertTrue(text, text.contains("Stay 1 room charges") && text.contains("Stay 2 room charges") && text.contains("₱9,300.00"));
+        assertFalse("the dates head each range, never 'Stay N': " + text, text.contains("Stay 1") || text.contains("Stay 2"));
+        assertTrue(text, text.contains("Oct 26 → Oct 27, 2026 · 1 night"));
+        assertTrue(text, text.contains("Oct 27 → Oct 28, 2026 · 1 night"));
+        assertTrue(text, text.contains("Deluxe × 1 · ₱3,500.00 × 1 night\n₱3,500.00") && text.contains("Executive × 1 · ₱5,800.00 × 1 night\n₱5,800.00"));
+        assertEquals("a subtotal under each of the two ranges", 2, count(text, "Subtotal\n"));
         assertTrue(text, text.contains("Room charges (all stays)\n₱18,600.00"));
-        assertTrue("Room charges + Amenities = Grand total: " + text, text.contains("Amenities Total\n₱300.00") && text.contains("Grand Total\n₱18,900.00"));
-        assertTrue("distinct types, not rooms: " + text, text.contains("Total Room Types\n2\n") && text.contains("No. of Rooms\n4\n"));
+        assertTrue("Room charges + Amenities = Grand total: " + text, text.contains("Amenities\n₱300.00") && text.contains("Grand total\n₱18,900.00"));
+        assertEquals("the grand total is shown once", 1, count(text, "Grand total"));
         assertTrue(text, text.contains("Minor 1 · age 5") && text.contains("Minor 2 · age 7"));
         assertFalse("not 'Child 1: Child': " + text, text.contains("Child 1"));
         assertTrue("Adults count is shown: " + text, text.contains("Adults\n1\n"));
     }
 
     @Test
-    public void bookingDetails_listAmenitiesOnce_underTheirStay_andSayWhetherTheyAreApproved() {
+    public void bookingDetails_listAmenitiesOnce_underTheirDates() {
         Booking b = MultiStayFixtures.booking();
         String text = all(details(b).getWindow().getDecorView());
         assertEquals("each amenity once: " + text, 1, count(text, "Additional Towel"));
         assertEquals(1, count(text, "Additional Blanket"));
         assertFalse("the old duplicate section is gone: " + text, text.contains("Selected Amenities"));
-        assertTrue(text, text.contains("Selected amenities") && text.contains("Amenities for this stay (no room chosen)"));
-        assertFalse("not approved until verified", text.contains("Approved amenities"));
-
-        b.setStaffVerified(true);
-        assertTrue(all(details(b).getWindow().getDecorView()).contains("Approved amenities"));
+        assertTrue(text, text.contains("Amenities for this stay\nAdditional Towel × 2\n₱100.00"));
     }
 
     @Test
@@ -127,29 +124,29 @@ public class MultiStayScreensTest {
         b.setStays(Arrays.asList(new Booking.StayRecord(s1.id, s1.position, s1.checkIn, s1.checkOut, s1.nights, s1.state, s1.rooms,
                 Arrays.asList(bed), s1.roomsSubtotal, 300, s1.subtotal), b.getStays().get(1)));
         String text = all(details(b).getWindow().getDecorView());
-        assertTrue(text, text.contains("Deluxe (room 2)") && text.contains("Extra bed × 1 @ ₱300.00"));
-        assertFalse("nothing is left without a room here", text.contains("no room chosen"));
+        assertTrue(text, text.contains("Deluxe (room 2): Extra bed × 1\n₱300.00"));
+        assertFalse("nothing is left without a room here", text.contains("Amenities for this stay\nExtra bed"));
     }
 
     @Test
-    public void bookingDetails_verificationStatusIsReadable_notTheRawValue() {
+    public void bookingDetails_neverShowsARawServerValue() {
         Booking b = MultiStayFixtures.booking();
         b.setPaymentVerificationStatus("pending_verification");
         String text = all(details(b).getWindow().getDecorView());
-        assertTrue(text, text.contains("Waiting for verification"));
         assertFalse(text, text.contains("pending_verification"));
+        assertFalse(text, text.contains("Expected discount"));
     }
 
     @Test
-    public void bookingDetails_sectionOrder_staysGuestsMoneyPaymentReceiptsTimeline() {
+    public void bookingDetails_sectionOrder_stayGuestsBillPaymentsReceiptsTimeline() {
         String text = all(details(MultiStayFixtures.booking()).getWindow().getDecorView());
-        int stays = text.indexOf("Stay 1 ·");
-        int guests = text.indexOf("Adults\n");
-        int money = text.indexOf("Grand Total Amount");
-        int payment = text.indexOf("Payment Method");
+        int stay = text.indexOf("Your Stay\n");
+        int guests = text.indexOf("Guests\n");
+        int bill = text.indexOf("Bill\n");
+        int payments = text.indexOf("Payments\n");
         int timeline = text.indexOf("Booking created");
-        assertTrue(text, stays >= 0 && guests > stays && money > guests && payment > money);
-        assertTrue(timeline < 0 || timeline > payment);
+        assertTrue(text, stay >= 0 && guests > stay && bill > guests && payments > bill);
+        assertTrue(timeline < 0 || timeline > payments);
     }
 
     // ---- Reservation Details ----
@@ -158,9 +155,8 @@ public class MultiStayScreensTest {
     public void reservationDetails_sameFigures_andTheDiscountIsAnExpectedNote() {
         String text = all(details(MultiStayFixtures.reservation("pending")).getWindow().getDecorView());
         assertFalse(text, text.contains("37,200") || text.contains("null"));
-        assertTrue(text, text.contains("Room charges (all stays)\n₱18,600.00") && text.contains("Amenities Total\n₱415.00") && text.contains("Grand Total\n₱19,015.00"));
+        assertTrue(text, text.contains("Room charges (all stays)\n₱18,600.00") && text.contains("Amenities\n₱415.00") && text.contains("Grand total\n₱19,015.00"));
         assertTrue(text, text.contains("Expected discount (PWD): −₱3,803.00 — applied after your ID is checked at check-in."));
-        assertTrue(text, text.contains("Estimated total after discount\n₱15,212.00"));
         assertFalse("not subtracted yet: " + text, text.contains("Discount (PWD)\n"));
         assertEquals("amenities once", 1, count(text, "Additional Towel"));
         assertEquals(1, count(text, "Test1"));
@@ -172,7 +168,7 @@ public class MultiStayScreensTest {
         r.setTotalAmount(15212.0);
         String text = all(details(r).getWindow().getDecorView());
         assertTrue(text, text.contains("Discount (PWD)\n−₱3,803.00"));
-        assertTrue(text, text.contains("Grand Total\n₱15,212.00"));
+        assertTrue(text, text.contains("Grand total\n₱15,212.00"));
         assertFalse(text, text.contains("Expected discount"));
     }
 
@@ -189,9 +185,11 @@ public class MultiStayScreensTest {
     public void transactionHistoryDetails_addUpVisibly() {
         String text = all(transaction(MultiStayFixtures.booking()).getWindow().getDecorView());
         assertFalse(text, text.contains("37,200") || text.contains("null"));
-        assertTrue(text, text.contains("Room charges (all stays)\n₱18,600.00") && text.contains("Amenities Total\n₱300.00"));
-        assertTrue(text, text.contains("₱18,900.00"));
-        assertTrue(text, text.contains("Stay 1 room charges") || text.contains("Stay 1 Subtotal"));
+        assertTrue(text, text.contains("Room charges (all stays)\n₱18,600.00") && text.contains("Amenities\n₱300.00"));
+        assertTrue(text, text.contains("Grand total\n₱18,900.00"));
+        assertEquals("the grand total is shown once", 1, count(text, "Grand total"));
+        assertTrue(text, text.contains("Subtotal"));
+        assertFalse(text, text.contains("Stay 1") || text.contains("Stay 2"));
         String reservation = all(transaction(MultiStayFixtures.reservation("pending")).getWindow().getDecorView());
         assertTrue(reservation, reservation.contains("Expected discount (PWD)") && reservation.contains("₱19,015.00"));
     }
@@ -213,14 +211,15 @@ public class MultiStayScreensTest {
         String text = all(a.getWindow().getDecorView());
         assertFalse(text, text.contains("null") || text.contains("37,200"));
         assertTrue(text, text.contains("2 Deluxe, 2 Executive · 2 stays"));
-        assertTrue(text, text.contains("Stay 1 · Oct 26 → Oct 27, 2026 · 1 night") && text.contains("Stay 2 · Oct 27 → Oct 28, 2026 · 1 night"));
-        assertTrue(text, text.contains("Deluxe × 1") && text.contains("Executive × 1") && text.contains("Stay 2 subtotal\n₱9,300.00"));
+        assertTrue(text, text.contains("Oct 26 → Oct 27, 2026 · 1 night") && text.contains("Oct 27 → Oct 28, 2026 · 1 night"));
+        assertFalse(text, text.contains("Stay 1") || text.contains("Stay 2"));
+        assertTrue(text, text.contains("Deluxe × 1") && text.contains("Executive × 1") && text.contains("Subtotal\n₱9,300.00"));
         assertTrue(text, text.contains("Room Total\n₱18,600.00") || text.contains("₱18,600.00"));
         assertTrue(text, text.contains("₱19,015.00"));
         assertTrue(text, text.contains("Expected discount (PWD): −₱3,803.00"));
         assertEquals("not subtracted", View.GONE, a.findViewById(R.id.layoutBillingDiscount).getVisibility());
         assertTrue(text, text.contains("Pay now (20%–50%): ₱3,803.00 – ₱9,507.50"));
-        assertTrue("each stay lists its own amenities and a subtotal", text.contains("Amenities for this stay\nAdditional Towel × 1\n₱50.00") && text.contains("Stay 1 subtotal\n₱9,715.00"));
+        assertTrue("each stay lists its own amenities and a subtotal", text.contains("Amenities for this stay\nAdditional Towel × 1\n₱50.00") && text.contains("Subtotal\n₱9,715.00") && !text.contains("Stay 1 subtotal"));
         assertFalse("amenities are listed once, in their stay", text.contains("Add-on Amenities"));
         assertTrue("the grand total is rooms + amenities", text.contains("Room Total\n₱18,600.00") && text.contains("Amenities Total\n₱415.00") && text.contains("Grand Total\n₱19,015.00"));
         assertEquals("a reservation continues to payment", "Continue to payment", ((TextView) a.findViewById(R.id.btnConfirmBilling)).getText().toString());
