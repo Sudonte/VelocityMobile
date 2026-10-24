@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -645,7 +646,9 @@ public class BookingWizardActivity extends SafeActivity {
         stepIndicator.setCurrentStep(currentStepIndex);
         WizardStepFragment current = currentFragment();
         String title = current != null ? current.stepTitle() : "";
-        tvStepLabel.setText(getString(R.string.wizard_step_x_of_y_format, currentStepIndex, stepCount));
+        // one line: "Step 2 of 6 · Amenities"
+        tvStepLabel.setText(title.isEmpty() ? getString(R.string.wizard_step_x_of_y_format, currentStepIndex, stepCount)
+                : getString(R.string.wizard_step_x_of_y_title_format, currentStepIndex, stepCount, title));
         TextView tvStepName = findViewById(R.id.tvWizardStepName);
         if (tvStepName != null) tvStepName.setText(title);
         com.google.android.material.progressindicator.LinearProgressIndicator progressBar = findViewById(R.id.wizardProgressBar);
@@ -661,6 +664,10 @@ public class BookingWizardActivity extends SafeActivity {
         // Reservation button inside the fragment (gated on the T&C checkbox)
         // instead of this generic Next button.
         btnNext.setVisibility(currentStepIndex < stepCount ? View.VISIBLE : View.GONE);
+        // Back fills the bar when it is the only button (the final step has its own Confirm), so its edge lines up with Confirm's
+        ViewGroup.MarginLayoutParams backParams = (ViewGroup.MarginLayoutParams) btnPrevious.getLayoutParams();
+        backParams.setMarginEnd(currentStepIndex < stepCount ? Math.round(8 * getResources().getDisplayMetrics().density) : 0);
+        btnPrevious.setLayoutParams(backParams);
         // Reset to enabled by default on every step change - Step 1's own
         // onWizardStepShown() below re-disables it when nothing is selected
         // yet (see setNextEnabled()); every other step has no such gate.

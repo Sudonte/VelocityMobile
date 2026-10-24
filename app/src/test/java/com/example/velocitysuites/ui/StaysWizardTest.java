@@ -78,7 +78,7 @@ public class StaysWizardTest {
         BookingWizardActivity activity = open(app, BookingWizardState.Mode.BOOKING);
         fill(activity, 5, 2, room("1", 1000), 1);
 
-        assertEquals("Step 1 of 6", text(activity.findViewById(R.id.tvWizardStepLabel)));
+        assertEquals("Step 1 of 6 · Dates and rooms", text(activity.findViewById(R.id.tvWizardStepLabel)));
         assertNotNull("the dates are on this step", find(activity, R.id.etCheckIn));
         assertNotNull("and so are the rooms", find(activity, R.id.layoutSelectedRooms));
     }

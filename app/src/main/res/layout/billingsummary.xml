@@ -11,34 +11,33 @@
     tools:context=".BillingSummaryActivity">
 
     <LinearLayout
+        android:id="@+id/billingHeaderBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/velocity_surface_elevated"
-        android:elevation="0dp"
+        android:background="@color/velocity_red_primary"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="4dp"
-        android:paddingEnd="18dp"
-        android:paddingTop="40dp"
-        android:paddingBottom="14dp">
+        android:paddingBottom="8dp"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="10dp">
 
         <ImageButton
             android:id="@+id/btnBillingBack"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
             android:contentDescription="@string/back_label"
             android:src="@drawable/ic_arrow_back"
-            app:tint="@color/velocity_red_primary" />
+            app:tint="@color/white" />
 
         <TextView
-            style="@style/TextAppearance.Velocity.ScreenTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
             android:text="@string/billing_summary_title"
-            android:textColor="@color/velocity_red_primary"
+            android:textColor="@color/white"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -84,7 +83,7 @@
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
-                            android:textColor="#E6FFFFFF"
+                            android:textColor="@color/white"
                             android:textSize="13sp" />
 
                         <TextView
@@ -107,7 +106,7 @@
                         android:layout_marginTop="14dp"
                         android:fontFamily="sans-serif-medium"
                         android:text="@string/grand_total_label"
-                        android:textColor="#E6FFFFFF"
+                        android:textColor="@color/white"
                         android:textSize="12sp" />
 
                     <TextView
@@ -760,7 +759,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
                         android:includeFontPadding="false"
-                        android:textColor="@color/velocity_red_primary"
+                        android:textColor="@color/velocity_action_text"
                         android:textSize="26sp"
                         tools:text="₱8,200.00" />
                 </LinearLayout>
@@ -850,7 +849,7 @@
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-black"
                             android:text="@string/view_terms_link_label"
-                            android:textColor="@color/velocity_red_primary"
+                            android:textColor="@color/velocity_action_text"
                             android:textSize="13sp" />
                         <ImageView
                             android:layout_width="16dp"

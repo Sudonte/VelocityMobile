@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="22dp">
+        android:padding="16dp">
 
         <!-- Everything the guest chose, in collapsible sections (each with an Edit link back to its step), built by Step8ReviewPaymentFragment. -->
         <LinearLayout
@@ -80,7 +80,7 @@
                     android:fontFamily="sans-serif-black"
                     android:gravity="end"
                     android:text="@string/zero_price"
-                    android:textColor="@color/velocity_red_primary"
+                    android:textColor="@color/velocity_action_text"
                     android:textSize="15sp" />
             </LinearLayout>
 
@@ -303,7 +303,7 @@
         android:layout_height="wrap_content"
         android:background="@color/velocity_surface_elevated"
         android:orientation="vertical"
-        android:paddingHorizontal="14dp"
+        android:paddingHorizontal="16dp"
         android:paddingVertical="8dp">
 
         <TextView
@@ -322,7 +322,8 @@
             android:minHeight="52dp"
             android:enabled="false"
             android:text="@string/confirm_booking_button"
-            app:backgroundTint="@color/velocity_red_primary" />
+            android:textColor="@color/button_primary_text"
+            app:backgroundTint="@color/button_primary_bg" />
     </LinearLayout>
 
 </LinearLayout>

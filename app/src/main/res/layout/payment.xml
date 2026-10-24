@@ -168,7 +168,7 @@
                     android:orientation="vertical"
                     android:paddingHorizontal="14dp"
                     android:paddingTop="14dp"
-                    android:paddingBottom="22dp">
+                    android:paddingBottom="16dp">
 
                     <!-- Book/Reserve Now CTA: only visible when this screen was reached generically (e.g. the
                          Payment nav-drawer item) with no specific transaction being paid right now - hidden by
@@ -430,7 +430,7 @@
                             <View
                                 android:layout_width="40dp"
                                 android:layout_height="2dp"
-                                android:layout_marginBottom="22dp"
+                                android:layout_marginBottom="16dp"
                                 android:background="@color/velocity_red_soft"
                                 android:importantForAccessibility="no" />
 
@@ -479,7 +479,7 @@
                             <RelativeLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:padding="22dp">
+                                android:padding="16dp">
 
                                 <ImageView
                                     android:layout_width="120dp"
@@ -2054,7 +2054,7 @@
                                         <TextView
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginTop="22dp"
+                                            android:layout_marginTop="16dp"
                                             android:accessibilityHeading="true"
                                             android:fontFamily="sans-serif-black"
                                             android:text="@string/scan_qr_title"
@@ -2234,6 +2234,7 @@
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="8dp"
                                             android:text="@string/gcash_reference_format_hint"
+                                            android:visibility="gone"
                                             android:textColor="@color/velocity_text_secondary"
                                             android:textSize="12sp" />
                                     </LinearLayout>
@@ -3099,7 +3100,8 @@
                         android:minHeight="52dp"
                         android:stateListAnimator="@null"
                         android:text="@string/next"
-                        app:backgroundTint="@color/gcash_blue" />
+                        android:textColor="@color/button_primary_text"
+                        app:backgroundTint="@color/button_primary_bg" />
                 </LinearLayout>
 
                 <!-- GCash step 2: mobile number -->
@@ -3132,7 +3134,8 @@
                         android:minHeight="52dp"
                         android:stateListAnimator="@null"
                         android:text="@string/next"
-                        app:backgroundTint="@color/gcash_blue" />
+                        android:textColor="@color/button_primary_text"
+                        app:backgroundTint="@color/button_primary_bg" />
                 </LinearLayout>
 
                 <!-- GCash step 3: reference number -->
@@ -3165,7 +3168,8 @@
                         android:minHeight="52dp"
                         android:stateListAnimator="@null"
                         android:text="@string/next"
-                        app:backgroundTint="@color/gcash_blue" />
+                        android:textColor="@color/button_primary_text"
+                        app:backgroundTint="@color/button_primary_bg" />
                 </LinearLayout>
 
                 <!-- GCash step 4: receipt -->
@@ -3198,7 +3202,8 @@
                         android:minHeight="52dp"
                         android:stateListAnimator="@null"
                         android:text="@string/next"
-                        app:backgroundTint="@color/gcash_blue" />
+                        android:textColor="@color/button_primary_text"
+                        app:backgroundTint="@color/button_primary_bg" />
                 </LinearLayout>
 
                 <!-- GCash step 5: review and submit -->
@@ -3232,7 +3237,8 @@
                         android:stateListAnimator="@null"
                         android:text="@string/submit_payment_verification_button"
                         android:textSize="13sp"
-                        app:backgroundTint="@color/gcash_blue"
+                        android:textColor="@color/button_primary_text"
+                        app:backgroundTint="@color/button_primary_bg"
                         app:icon="@drawable/ic_check_circle"
                         app:iconGravity="textStart" />
                 </LinearLayout>

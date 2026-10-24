@@ -241,7 +241,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     /** Shows what is missing in red under the button and scrolls the page to the first problem (the Terms block). */
     private void showMissingAndScroll() {
         updateConfirmButtonEnabled();
-        tvConfirmHint.setTextColor(requireContext().getColor(R.color.velocity_red_primary));
+        tvConfirmHint.setTextColor(requireContext().getColor(R.color.velocity_action_text));
         View page = getView() == null ? null : getView().findViewById(R.id.step8Scroll);
         if (page instanceof androidx.core.widget.NestedScrollView) {
             ((androidx.core.widget.NestedScrollView) page).smoothScrollTo(0, Math.max(0, termsConsent.getTop() - dp(12)));

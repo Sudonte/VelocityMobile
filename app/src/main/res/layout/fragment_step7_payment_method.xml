@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="22dp">
+        android:padding="16dp">
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.Velocity.Card.Flat"
@@ -59,6 +59,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/wizard_step_title_payment_method"
+                            android:visibility="gone"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="12sp" />
 
@@ -101,8 +102,8 @@
                             android:focusable="false" />
 
                         <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
                             android:layout_marginStart="8dp"
                             android:importantForAccessibility="no"
                             android:src="@drawable/ic_cash"
@@ -161,8 +162,8 @@
                             android:focusable="false" />
 
                         <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
                             android:layout_marginStart="8dp"
                             android:importantForAccessibility="no"
                             android:src="@drawable/ic_payment"

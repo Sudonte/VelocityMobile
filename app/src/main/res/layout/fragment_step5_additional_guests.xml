@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="22dp">
+        android:padding="16dp">
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.Velocity.Card.Flat"
@@ -59,6 +59,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/additional_guest_info_title"
+                            android:visibility="gone"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="12sp" />
 

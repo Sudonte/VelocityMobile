@@ -103,8 +103,7 @@ public class BillingSummaryScreenTest {
 
         assertEquals("₱500.00", text(a, R.id.tvBillingAlreadyPaid));
         assertEquals("₱1,300.00", text(a, R.id.tvBillingRemaining));
-        assertEquals(View.VISIBLE, a.findViewById(R.id.tvBillingPayNowOption).getVisibility());
-        assertEquals("Remaining Balance", text(a, R.id.tvBillingPayNowOption));
+        assertEquals("the Breakdown says Remaining balance once; the amount stands alone", View.GONE, a.findViewById(R.id.tvBillingPayNowOption).getVisibility());
         assertEquals("₱1,300.00", text(a, R.id.tvBillingPayNowAmount));
         assertEquals(View.GONE, a.findViewById(R.id.tvBillingPayNowNote).getVisibility());
     }
@@ -135,8 +134,8 @@ public class BillingSummaryScreenTest {
 
         int grandTotals = 0, amenitiesTotals = 0;
         for (String t : shown) {
-            if (t.equals("Grand Total")) grandTotals++;
-            if (t.equals("Amenities Total")) amenitiesTotals++;
+            if (t.equals("Grand total")) grandTotals++;
+            if (t.equals("Amenities total")) amenitiesTotals++;
         }
         // The header and Billing Breakdown carry "Grand Total"; the highlighted block shows only the amount.
         assertEquals(2, grandTotals);

@@ -174,6 +174,15 @@ public class BillingSummaryActivity extends SafeActivity {
     private TextView tvBillingExpectedDiscount;
 
     private void initViews() {
+        // the red header sits below the status bar (the same bar as the wizard's)
+        View headerBar = findViewById(R.id.billingHeaderBar);
+        final int headerTop = headerBar.getPaddingTop();
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(headerBar, (v, insets) -> {
+            androidx.core.graphics.Insets bars = insets.getInsets(
+                    androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout());
+            v.setPadding(v.getPaddingLeft(), headerTop + bars.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
         findViewById(R.id.btnBillingBack).setOnClickListener(v -> finish());
 
         tvBillingRef = findViewById(R.id.tvBillingRef);
@@ -523,7 +532,7 @@ public class BillingSummaryActivity extends SafeActivity {
         tvBillingPayNowAmount.setGravity(amounts.paymentMade ? android.view.Gravity.END : android.view.Gravity.START);
         // Before a payment the block is just the amount (the Grand Total is already in the header and the breakdown).
         tvBillingPayNowOption.setText(R.string.billing_remaining_balance_label);
-        tvBillingPayNowOption.setVisibility(amounts.paymentMade ? View.VISIBLE : View.GONE);
+        tvBillingPayNowOption.setVisibility(View.GONE); // the Breakdown above already says "Remaining balance": the amount stands alone
         tvBillingAlreadyPaid.setTextColor(getColor(amounts.paymentMade ? R.color.velocity_green_dark : R.color.velocity_text_primary));
         tvBillingPayNowNote.setVisibility(amounts.paymentMade ? View.GONE : View.VISIBLE);
     }

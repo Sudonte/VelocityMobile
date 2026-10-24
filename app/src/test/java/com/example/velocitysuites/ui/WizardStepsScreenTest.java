@@ -639,7 +639,7 @@ public class WizardStepsScreenTest {
         assertTrue(list, list.contains("• Check the box to confirm you agree"));
         hint.performClick(); // jumps to the Terms block
         assertEquals("no toast", 0, org.robolectric.shadows.ShadowToast.shownToastCount());
-        assertEquals(a.getColor(R.color.velocity_red_primary), hint.getCurrentTextColor());
+        assertEquals(a.getColor(R.color.velocity_action_text), hint.getCurrentTextColor());
         assertFalse("Confirm stays disabled", find(a, R.id.btnConfirmTransaction).isEnabled());
 
         state.termsViewed = true;

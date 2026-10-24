@@ -259,7 +259,7 @@ public class StayCardAndDetailsTest {
         assertEquals("Booking ID", s.stay.get(0).label);
         assertEquals("338", s.stay.get(0).value);
         assertEquals("3 nights", valueOf(s.stay, "Nights"));
-        assertEquals("2 Guests", valueOf(s.stay, "Total Guests"));
+        assertEquals("2 Guests", valueOf(s.stay, "Total guests"));
         assertEquals("Deluxe", valueOf(s.room, "Room Type"));
         assertEquals("101, 102", valueOf(s.room, "Room Number"));
         assertEquals("2", valueOf(s.room, "Quantity"));
@@ -288,7 +288,7 @@ public class StayCardAndDetailsTest {
 
         assertNoPlaceholders(s.all());
         assertNull("no dates: no Nights row", find(s.stay, "Nights"));
-        assertNull("no guests: no Guests row", find(s.stay, "Total Guests"));
+        assertNull("no guests: no Guests row", find(s.stay, "Total guests"));
         assertTrue("no room data: no Room Details at all", s.room.isEmpty());
         assertNull("no total: no Total Amount / Balance", find(s.payment, "Total Amount"));
         assertNull(find(s.payment, "Balance"));

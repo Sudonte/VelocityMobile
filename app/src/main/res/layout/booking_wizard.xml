@@ -46,38 +46,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="22dp"
+        android:paddingHorizontal="16dp"
         android:paddingTop="10dp"
         android:paddingBottom="4dp">
 
-        <LinearLayout
+        <!-- "Step 2 of 6 · Amenities": the one line that names the step (tvWizardStepName keeps the bare title for code and tests, hidden). -->
+        <TextView
+            android:id="@+id/tvWizardStepLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:orientation="horizontal">
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-black"
+            android:maxLines="2"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="18sp"
+            tools:text="Step 2 of 6 · Amenities" />
 
-            <TextView
-                android:id="@+id/tvWizardStepName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-black"
-                android:maxLines="2"
-                android:textColor="@color/velocity_text_primary"
-                android:textSize="18sp"
-                tools:text="Room Selection" />
-
-            <TextView
-                android:id="@+id/tvWizardStepLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:fontFamily="sans-serif-bold"
-                android:textColor="@color/velocity_red_primary"
-                android:textSize="13sp"
-                tools:text="Step 2 of 8" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvWizardStepName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:text="Room Selection" />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/wizardProgressBar"
@@ -134,7 +124,7 @@
         android:layout_height="wrap_content"
         android:background="@color/velocity_red_soft"
         android:orientation="vertical"
-        android:paddingHorizontal="22dp"
+        android:paddingHorizontal="16dp"
         android:paddingVertical="8dp"
         android:visibility="gone"
         tools:visibility="visible">
@@ -157,6 +147,7 @@
 
             <TextView
                 android:id="@+id/wizardSummaryTotal"
+                android:fontFeatureSettings="tnum"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
@@ -169,6 +160,7 @@
 
         <TextView
             android:id="@+id/wizardSummaryBreakdown"
+            android:fontFeatureSettings="tnum"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
@@ -190,7 +182,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingHorizontal="22dp"
+        android:paddingHorizontal="16dp"
         android:paddingVertical="12dp"
         android:background="@color/velocity_surface_elevated">
 
@@ -214,6 +206,7 @@
             android:layout_marginStart="8dp"
             android:textAllCaps="false"
             android:text="@string/next_label"
-            app:backgroundTint="@color/velocity_red_primary" />
+            android:textColor="@color/button_primary_text"
+            app:backgroundTint="@color/button_primary_bg" />
     </LinearLayout>
 </LinearLayout>
