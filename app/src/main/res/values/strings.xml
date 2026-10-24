@@ -1850,7 +1850,7 @@
     <string name="discount_name_generic">discount</string>
     <string name="ph_no_payments">No payments yet.</string>
     <string name="ph_type_payment">Payment</string>
-    <string name="ph_status_pending">Pending verification</string>
+    <string name="ph_status_pending">Waiting for verification</string>
     <string name="ph_status_verified">Verified</string>
     <string name="ph_status_rejected">Rejected</string>
     <string name="ph_method_type_format">%1$s · %2$s</string>
@@ -2515,6 +2515,13 @@ Estimated total after discount: %3$s</string>
     <string name="receipt_id_discount_row">ID / discount</string>
     <string name="receipt_id_applied_format">%1$s · applied</string>
     <string name="receipt_id_pending_format">%1$s · not yet applied</string>
+    <string name="bill_waiting_for_verification">Waiting for verification</string>
+    <string name="bill_waiting_note">%1$s will be deducted once the front desk verifies your payment.</string>
+    <string name="payment_rejected_format">Payment rejected: %1$s</string>
+    <string name="payment_rejected_plain">Payment rejected</string>
+    <string name="progress_submitted">Payment submitted (GCash)</string>
+    <string name="progress_waiting_line">%1$s waiting for verification</string>
+    <string name="booking_card_waiting_format">Waiting for verification: %1$s</string>
 </resources>
 
 

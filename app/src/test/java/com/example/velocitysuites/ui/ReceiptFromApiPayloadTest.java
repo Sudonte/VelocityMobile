@@ -227,7 +227,7 @@ public class ReceiptFromApiPayloadTest {
         List<String> all = allTexts(a.findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("PR-20260920-000501", r.get("Receipt number"));
         assertEquals("Reservation #588", r.get("Transaction ID"));
-        assertTrue(all.toString(), all.contains("Payment verified") && all.contains("Partially Paid"));
+        assertTrue(all.toString(), all.contains("Receipt 1 of 3 · Payment verified") && all.contains("Partially Paid"));
         assertTrue(all.toString(), all.contains("Sep 25 → Sep 27, 2026 · 2 nights"));
         assertEquals("₱5,000.00", r.get("Deluxe Room × 1 · ₱2,500.00 × 2 nights"));
         assertTrue("the room number once assigned", all.contains("Room 305"));

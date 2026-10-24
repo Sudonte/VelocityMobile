@@ -41,4 +41,6 @@ public class PaymentSummaryDto {
     public boolean official_receipt_available;
     /** Locked Billing discount amount once billed, 0 before that - see ReceiptService::paymentSummary()'s own doc. */
     public double discount;
+    /** Submitted GCash money the front desk has not verified yet (not in total_amount_paid). */
+    public double waiting_for_verification;
 }

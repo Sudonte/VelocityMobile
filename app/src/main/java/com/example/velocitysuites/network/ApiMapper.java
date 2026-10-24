@@ -756,7 +756,7 @@ public final class ApiMapper {
     @androidx.annotation.Nullable
     private static Booking.PaymentSummary toPaymentSummary(@androidx.annotation.Nullable PaymentSummaryDto dto) {
         if (dto == null) return null;
-        return new Booking.PaymentSummary(
+        Booking.PaymentSummary summary = new Booking.PaymentSummary(
                 dto.grand_total,
                 dto.total_amount_paid,
                 dto.remaining_balance,
@@ -765,6 +765,8 @@ public final class ApiMapper {
                 dto.official_receipt_available,
                 dto.discount
         );
+        summary.waitingForVerification = dto.waiting_for_verification;
+        return summary;
     }
 
     /** Empty (never null) when the backend response didn't attach payment_transactions - see Booking#getPaymentTransactions()'s contract. */

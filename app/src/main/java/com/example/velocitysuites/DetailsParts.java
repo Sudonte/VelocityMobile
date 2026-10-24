@@ -101,11 +101,17 @@ final class DetailsParts {
         Booking.PaymentTransactionRecord online = null;
         Booking.PaymentTransactionRecord atCheckin = null;
         Booking.PaymentTransactionRecord atCheckout = null;
+        Booking.PaymentTransactionRecord rejected = null;
         for (Booking.PaymentTransactionRecord p : b.getPaymentTransactions()) {
-            if (p == null || !"completed".equalsIgnoreCase(p.paymentStatus) && !"verified".equalsIgnoreCase(p.verificationStatus)) continue;
+            if (p == null) continue;
             if ("gcash".equalsIgnoreCase(p.paymentMethod)) {
-                if (online == null) online = p;
-            } else if (p.referenceNumber != null && p.referenceNumber.startsWith("CHECKIN-")) {
+                boolean wasRejected = "rejected".equalsIgnoreCase(p.verificationStatus) || "rejected".equalsIgnoreCase(p.paymentStatus) || "failed".equalsIgnoreCase(p.paymentStatus);
+                if (wasRejected) rejected = p;
+                else if (online == null) online = p;
+                continue;
+            }
+            if (!"completed".equalsIgnoreCase(p.paymentStatus)) continue;
+            if (p.referenceNumber != null && p.referenceNumber.startsWith("CHECKIN-")) {
                 if (atCheckin == null) atCheckin = p;
             } else if (atCheckout == null) {
                 atCheckout = p;
@@ -116,8 +122,14 @@ final class DetailsParts {
         boolean fully = summary.balance <= MoneyFormat.EPSILON && summary.grandTotal > MoneyFormat.EPSILON;
 
         if (online != null) {
-            steps.add(new Step(c.getString(R.string.progress_paid_online), when(online.paymentDate), true));
-            steps.add(new Step(c.getString(R.string.progress_verified), online.verifiedAt != null ? when(online.verifiedAt) : null, online.verifiedAt != null));
+            boolean verified = online.verifiedAt != null || "verified".equalsIgnoreCase(online.verificationStatus);
+            // a submitted payment is "submitted" until the front desk verifies it; only then it is "paid online"
+            steps.add(new Step(c.getString(verified ? R.string.progress_paid_online : R.string.progress_submitted), when(online.paymentDate), true));
+            steps.add(new Step(c.getString(R.string.progress_verified), verified ? when(online.verifiedAt) : null, verified));
+        } else if (rejected != null) {
+            String reason = rejected.rejectionReason != null && !rejected.rejectionReason.trim().isEmpty()
+                    ? c.getString(R.string.payment_rejected_format, rejected.rejectionReason.trim()) : c.getString(R.string.payment_rejected_plain);
+            steps.add(new Step(reason, when(rejected.paymentDate), false));
         }
         if (atCheckin != null || (!checkedIn && !fully)) {
             steps.add(new Step(c.getString(R.string.progress_paid_checkin), atCheckin != null ? when(atCheckin.paymentDate) : null, atCheckin != null));
@@ -148,7 +160,7 @@ final class DetailsParts {
         double paid = Math.min(summary.verifiedPaid, total > 0 ? total : summary.verifiedPaid);
         double left = Math.max(0, total - paid);
 
-        TextView title = text(c, c.getString(R.string.progress_title), 12, true, R.color.velocity_red_primary);
+        TextView title = text(c, c.getString(R.string.progress_title), 12, true, R.color.velocity_action_text);
         title.setPadding(0, 0, 0, dp(c, 8));
         into.addView(title);
         TextView head = text(c, left > MoneyFormat.EPSILON
@@ -156,6 +168,11 @@ final class DetailsParts {
                 : c.getString(R.string.progress_line_paid, MoneyFormat.format(paid), MoneyFormat.format(total)), 14, true, R.color.velocity_text_primary);
         head.setPadding(0, 0, 0, dp(c, 8));
         into.addView(head);
+        if (summary.pendingSubmitted > MoneyFormat.EPSILON) {
+            TextView waiting = text(c, c.getString(R.string.progress_waiting_line, MoneyFormat.format(summary.pendingSubmitted)), 12, false, R.color.velocity_text_secondary);
+            waiting.setPadding(0, 0, 0, dp(c, 8));
+            into.addView(waiting);
+        }
 
         ProgressBar bar = new ProgressBar(c, null, android.R.attr.progressBarStyleHorizontal);
         bar.setMax(1000);

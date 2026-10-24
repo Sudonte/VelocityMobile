@@ -528,7 +528,7 @@ public class PaymentReceiptActivity extends SafeActivity {
         logo.setContentDescription(getString(R.string.app_name));
         content.addView(logo);
 
-        content.addView(centeredText(getString(R.string.app_name), 16, true, R.color.velocity_red_primary, dp(6)));
+        content.addView(centeredText(getString(R.string.app_name), 16, true, R.color.velocity_action_text, dp(6)));
         content.addView(centeredText(getString(R.string.welcome_tagline), 11, false, R.color.velocity_text_secondary, dp(2)));
         content.addView(centeredText(typeLabel, 15, true, R.color.velocity_text_primary, dp(14)));
 
@@ -671,7 +671,7 @@ public class PaymentReceiptActivity extends SafeActivity {
         if (title != null) {
             TextView titleView = new TextView(ui);
             titleView.setText(title);
-            titleView.setTextColor(ui.getColor(R.color.velocity_red_primary));
+            titleView.setTextColor(ui.getColor(R.color.velocity_action_text));
             titleView.setTypeface(titleView.getTypeface(), android.graphics.Typeface.BOLD);
             titleView.setTextSize(12);
             titleView.setLetterSpacing(0f);

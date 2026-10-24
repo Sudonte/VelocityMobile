@@ -98,6 +98,8 @@ final class PayingForBreakdown {
     /** Paid so far and Balance due are part of the bill (details screens and receipts); the payment steps stop at the Grand total. */
     boolean settlement;
     double paid;
+    /** Submitted and not yet verified: shown on its own line, never inside Paid so far. */
+    double waiting;
     double balance;
     /** A cancelled or rejected transaction owes nothing: no Paid / Balance rows. */
     boolean cancelled;
@@ -185,6 +187,7 @@ final class PayingForBreakdown {
             out.paid = summary.verifiedPaid;
             out.balance = summary.balance;
         }
+        out.waiting = TransactionStatusHelper.summarize(booking).pendingSubmitted;
         out.plainLine = out.plainLine(c);
         return out;
     }
@@ -474,12 +477,16 @@ final class PayingForBreakdown {
         }
         if (settlement && !cancelled) {
             into.addView(row(c, c.getString(R.string.bill_paid_so_far), paid, false));
+            if (waiting > 0.009) into.addView(row(c, c.getString(R.string.bill_waiting_for_verification), waiting, false));
             if (balance > 0.009) {
                 into.addView(row(c, c.getString(R.string.bill_balance_due), balance, true));
             } else {
                 into.addView(ReviewSheet.row(c, ReviewSheet.Row.boldColored(c.getString(R.string.bill_balance_due),
                         c.getString(R.string.bill_fully_paid_format, MoneyFormat.format(0)), R.color.velocity_green_dark)));
             }
+        }
+        if (settlement && !cancelled && waiting > 0.009) {
+            into.addView(small(c, c.getString(R.string.bill_waiting_note, MoneyFormat.format(waiting)), 8));
         }
         if (plainLine != null && !plainLine.isEmpty()) into.addView(small(c, plainLine, 8));
     }

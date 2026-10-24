@@ -140,7 +140,7 @@ public class BookingDetailsLayoutTest {
         int newer = text.indexOf("GCash");
         int older = text.indexOf("\nCash ·");
         assertTrue(text, newer >= 0 && older >= 0 && newer < older);
-        assertTrue(text, text.contains("Pending verification"));
+        assertTrue(text, text.contains("Waiting for verification"));
         assertTrue(text, text.contains("Verified"));
         assertFalse("the balance is in the Bill, not repeated here", text.contains("Remaining Balance") || text.contains("Balance due"));
     }

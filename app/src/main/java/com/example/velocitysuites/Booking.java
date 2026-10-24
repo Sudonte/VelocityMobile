@@ -295,6 +295,8 @@ public class Booking implements Serializable {
         public final boolean officialReceiptAvailable;
         /** Locked Billing discount amount once billed, 0 before that - see PaymentSummaryDto's own doc. */
         public final double discount;
+        /** Submitted GCash money awaiting verification: shown on its own line, never counted as paid. */
+        public double waitingForVerification;
 
         public PaymentSummary(double grandTotal, double totalAmountPaid, double remainingBalance,
                                String paymentStatus, Integer paymentPercentage, boolean officialReceiptAvailable,

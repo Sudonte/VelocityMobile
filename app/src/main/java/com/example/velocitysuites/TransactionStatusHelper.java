@@ -150,6 +150,13 @@ public final class TransactionStatusHelper {
         Booking.PaymentSummary s = booking.getPaymentSummary();
         if (s != null) return Math.max(0, s.totalAmountPaid);
 
+        List<Booking.PaymentTransactionRecord> txs = booking.getPaymentTransactions();
+        if (txs != null && !txs.isEmpty()) {
+            double sum = 0;
+            for (Booking.PaymentTransactionRecord t : txs) if (t != null && countsAsPaid(t)) sum += t.amountPaid;
+            return sum;
+        }
+
         List<Booking.PaymentRecord> rows = booking.getPaymentHistory();
         if (rows != null && !rows.isEmpty()) {
             double sum = 0;
@@ -168,6 +175,14 @@ public final class TransactionStatusHelper {
 
     /** Payments submitted but not yet verified. When only the flag is known (no itemized rows), the amount the reservation recorded with the submission. */
     public static double pendingSubmittedOf(@NonNull Booking booking) {
+        Booking.PaymentSummary summary = booking.getPaymentSummary();
+        if (summary != null && summary.waitingForVerification > MoneyFormat.EPSILON) return summary.waitingForVerification;
+        List<Booking.PaymentTransactionRecord> txs = booking.getPaymentTransactions();
+        if (txs != null && !txs.isEmpty()) {
+            double sum = 0;
+            for (Booking.PaymentTransactionRecord t : txs) if (t != null && isWaiting(t)) sum += t.amountPaid;
+            return sum;
+        }
         List<Booking.PaymentRecord> rows = booking.getPaymentHistory();
         if (rows != null && !rows.isEmpty()) {
             double sum = 0;
@@ -180,6 +195,22 @@ public final class TransactionStatusHelper {
             return Math.max(0, booking.getRequiredPaymentAmount());
         }
         return 0;
+    }
+
+    /** Paid money: completed, and (for GCash) verified by the front desk. */
+    static boolean countsAsPaid(@NonNull Booking.PaymentTransactionRecord t) {
+        boolean gcash = "gcash".equalsIgnoreCase(t.paymentMethod);
+        boolean verified = t.verifiedAt != null || "verified".equalsIgnoreCase(t.verificationStatus);
+        return isCompleted(t.paymentStatus) && (!gcash || verified);
+    }
+
+    /** Submitted GCash money the front desk has not decided on: neither paid nor rejected. */
+    static boolean isWaiting(@NonNull Booking.PaymentTransactionRecord t) {
+        boolean gcash = "gcash".equalsIgnoreCase(t.paymentMethod);
+        String status = t.paymentStatus == null ? "" : t.paymentStatus.trim().toLowerCase(java.util.Locale.ROOT);
+        boolean verified = t.verifiedAt != null || "verified".equalsIgnoreCase(t.verificationStatus);
+        boolean rejected = "rejected".equalsIgnoreCase(t.verificationStatus) || status.equals("rejected") || status.equals("failed");
+        return gcash && !verified && !rejected && (status.equals("pending") || status.equals("completed"));
     }
 
     private static boolean isCompleted(@Nullable String paymentStatus) {

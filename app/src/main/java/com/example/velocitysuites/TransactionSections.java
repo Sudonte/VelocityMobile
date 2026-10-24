@@ -106,7 +106,9 @@ final class TransactionSections {
             StringBuilder detail = new StringBuilder();
             if (!e.date.isEmpty()) detail.append(e.date);
             if (e.reference != null) detail.append(detail.length() > 0 ? " · " : "").append(c.getString(R.string.ph_reference_format, e.reference));
-            detail.append(detail.length() > 0 ? " · " : "").append(c.getString(e.statusRes));
+            detail.append(detail.length() > 0 ? " · " : "").append(e.statusRes == R.string.ph_status_rejected
+                    ? (e.rejectionReason != null ? c.getString(R.string.payment_rejected_format, e.rejectionReason) : c.getString(R.string.payment_rejected_plain))
+                    : c.getString(e.statusRes));
             if (e.tender != null) detail.append(" · ").append(e.tender);
             TextView line = new TextView(c);
             line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -154,6 +156,7 @@ final class TransactionSections {
         /** Cash only: "Cash received ₱5,000.00 · Change ₱1,000.00" when the front desk recorded what was handed over. */
         @Nullable String tender;
         @Nullable String proofUrl;
+        @Nullable String rejectionReason;
         int statusRes;
         long sortKey;
     }
@@ -164,7 +167,7 @@ final class TransactionSections {
         boolean gcash = "gcash".equalsIgnoreCase(tx.paymentMethod);
         String method = c.getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash);
         // where the money was taken, in plain words: online, at check-in, or at check-out (never "Deposit" for a balance)
-        boolean atCheckin = tx.referenceNumber != null && tx.referenceNumber.startsWith("CHECKIN-");
+        boolean atCheckin = (tx.referenceNumber != null && tx.referenceNumber.startsWith("CHECKIN-")) || "CHECKIN_SETTLEMENT_RECEIPT".equals(tx.receiptType);
         String type = gcash ? c.getString(R.string.ph_type_online) : atCheckin ? c.getString(R.string.ph_type_checkin) : c.getString(R.string.ph_type_checkout);
         e.title = c.getString(R.string.ph_method_type_format, method, type);
         e.proofUrl = gcash && tx.proofUrl != null && !tx.proofUrl.trim().isEmpty() ? tx.proofUrl : null;
@@ -184,6 +187,7 @@ final class TransactionSections {
             e.statusRes = R.string.ph_status_verified;
         } else if ("rejected".equals(verification) || "rejected".equals(paymentStatus) || "failed".equals(paymentStatus)) {
             e.statusRes = R.string.ph_status_rejected;
+            e.rejectionReason = tx.rejectionReason != null && !tx.rejectionReason.trim().isEmpty() ? tx.rejectionReason.trim() : null;
         } else {
             e.statusRes = R.string.ph_status_pending;
         }

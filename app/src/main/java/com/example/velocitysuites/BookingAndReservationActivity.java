@@ -3767,6 +3767,13 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
             span.setSpan(new android.text.style.ForegroundColorSpan(getColor(color)), start, line.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             span.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), start, line.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+        if (summary.pendingSubmitted > MoneyFormat.EPSILON) {
+            // submitted money is not paid: it gets its own line until the front desk verifies it
+            android.text.SpannableStringBuilder both = new android.text.SpannableStringBuilder(span);
+            both.append((char) 10).append(getString(R.string.booking_card_waiting_format, MoneyFormat.format(summary.pendingSubmitted)));
+            paidView.setText(both);
+            return;
+        }
         paidView.setText(span);
     }
 
