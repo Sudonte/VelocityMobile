@@ -90,6 +90,33 @@ public class ReceiptDetail implements Serializable {
     public void setCheckinSettlement(@Nullable CheckinSettlement checkinSettlement) { this.checkinSettlement = checkinSettlement; }
     private CheckinSettlement checkinSettlement;
     /** Every stay of the transaction as the receipt froze it; a one-stay receipt has one entry (or none from an older server). */
+    /** One receipt of the stay: its stage (1 verified, 2 check-in, 3 check-out), number, date and amount. */
+    public static final class ReceiptRef implements Serializable {
+        public final int stage;
+        public final String number;
+        @Nullable public final String issuedAt;
+        public final double amount;
+
+        public ReceiptRef(int stage, String number, @Nullable String issuedAt, double amount) {
+            this.stage = stage;
+            this.number = number;
+            this.issuedAt = issuedAt;
+            this.amount = amount;
+        }
+    }
+
+    private List<ReceiptRef> receiptRefs = new ArrayList<>();
+    @Nullable private String discountIdType;
+    @Nullable private String discountStatus;
+    private List<Booking.TimelineEntry> history = new ArrayList<>();
+    public List<ReceiptRef> getReceiptRefs() { return receiptRefs; }
+    public void setReceiptRefs(@Nullable List<ReceiptRef> refs) { this.receiptRefs = refs != null ? refs : new ArrayList<>(); }
+    @Nullable public String getDiscountIdType() { return discountIdType; }
+    @Nullable public String getDiscountStatus() { return discountStatus; }
+    public void setDiscountInfo(@Nullable String idType, @Nullable String status) { this.discountIdType = idType; this.discountStatus = status; }
+    public List<Booking.TimelineEntry> getHistory() { return history; }
+    public void setHistory(@Nullable List<Booking.TimelineEntry> history) { this.history = history != null ? history : new ArrayList<>(); }
+
     public List<Booking.StayRecord> getStays() { return stays; }
     public void setStays(@Nullable List<Booking.StayRecord> stays) { this.stays = stays != null ? stays : new ArrayList<>(); }
     private List<Booking.StayRecord> stays = new ArrayList<>();

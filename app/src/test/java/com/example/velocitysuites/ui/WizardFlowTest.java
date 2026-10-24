@@ -319,7 +319,7 @@ public class WizardFlowTest {
         BookingWizardActivity a = atRepresentative(BookingWizardState.Mode.BOOKING);
         MaterialButtonToggleGroup toggle = find(a, R.id.toggleWho);
         assertEquals(View.NO_ID, toggle.getCheckedButtonId());
-        assertEquals("Owner (me)", text(find(a, R.id.btnWhoOwner)));
+        assertEquals("Account owner", text(find(a, R.id.btnWhoOwner)));
         assertEquals("Someone else", text(find(a, R.id.btnWhoOther)));
         assertTrue("large touch targets", find(a, R.id.btnWhoOwner).getLayoutParams().height >= 64 * a.getResources().getDisplayMetrics().density - 1);
         assertEquals(View.GONE, find(a, R.id.layoutWhoOwner).getVisibility());
@@ -330,7 +330,7 @@ public class WizardFlowTest {
         assertEquals("no question: Next is blocked", 0, TapTestSupport.alertsShowing());
         assertTrue(stepLabel(a).startsWith("Step 3 of 6"));
         assertEquals(View.VISIBLE, find(a, R.id.tvWhoError).getVisibility());
-        assertEquals("Choose who will check in", text(find(a, R.id.tvWhoError)));
+        assertEquals("Choose the representative who will check in at the hotel", text(find(a, R.id.tvWhoError)));
     }
 
     @Test
@@ -347,7 +347,7 @@ public class WizardFlowTest {
 
         tapNext(a);
         String ask = dialogText(latestDialog());
-        assertTrue(ask, ask.contains("Proceed to guest details?") && ask.contains("Owner (me)") && ask.contains("Santos, Maria Reyes"));
+        assertTrue(ask, ask.contains("Proceed to guest details?") && ask.contains("Account owner") && ask.contains("Santos, Maria Reyes"));
         answer(true);
         assertTrue(stepLabel(a).startsWith("Step 4 of 6"));
         BookingWizardState state = a.getState();

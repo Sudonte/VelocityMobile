@@ -33,6 +33,7 @@ final class AdditionalAmenitiesEntry {
                                     @NonNull Runnable onClick) {
         button.setVisibility(View.VISIBLE);
         button.setEnabled(false);
+        button.setAlpha(0.5f);
         reason.setVisibility(View.GONE);
         button.setOnClickListener(v -> onClick.run());
         RoomRepository.getInstance(context).fetchAdditionalAmenities(booking.isDirectBooking(), booking.getId(),
@@ -41,6 +42,7 @@ final class AdditionalAmenitiesEntry {
                     public void onSuccess(AdditionalAmenityInfoDto info) {
                         AmenityRoomSources.publish(booking, info); // the same answer names the room of each request
                         button.setEnabled(info.can_request);
+                        button.setAlpha(info.can_request ? 1f : 0.5f); // greyed until the front desk has checked the guest in
                         if (!info.can_request) {
                             reason.setText(info.reason != null ? info.reason : context.getString(R.string.additional_amenities_not_available));
                             reason.setVisibility(View.VISIBLE);

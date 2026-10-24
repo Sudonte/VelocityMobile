@@ -208,8 +208,8 @@ public class ReceiptsAndHeaderScreensTest {
         String text = all(open(partial).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals(text, "₱500.00", after(text, "Paid so far"));
         assertEquals(text, "₱1,500.00", after(text, "Balance due"));
-        assertTrue(text, text.contains("You pay the balance at the hotel."));
-        assertTrue(text, text.contains("Payment verified"));
+        assertTrue(text, text.contains("Balance due at the hotel: ₱1,500.00"));
+        assertTrue(text, text.contains("Receipt 1 of 3 · Payment verified"));
     }
 
     @Test
@@ -219,7 +219,7 @@ public class ReceiptsAndHeaderScreensTest {
         String text = all(open(any).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals(text, "₱2,000.00", after(text, "Paid so far"));
         assertEquals(text, "₱0.00 · Fully paid", after(text, "Balance due"));
-        assertTrue(text, text.contains("Check-in"));
+        assertTrue(text, text.contains("Receipt 1 of 3"));
     }
 
     @Test

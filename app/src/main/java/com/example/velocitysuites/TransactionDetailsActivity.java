@@ -190,22 +190,9 @@ public class TransactionDetailsActivity extends SafeActivity {
      * Payment Receipt card BookingDetailsActivity's Payment tab shows, shared via ReceiptCardHelper.
      */
     private void buildReceiptActionCard() {
-        View legacyCard = findViewById(R.id.includeReceiptAction);
-        LinearLayout receiptsSection = findViewById(R.id.sectionTxDetailReceipts);
-        receiptsSection.removeAllViews();
-
-        if (!booking.getReceipts().isEmpty()) {
-            legacyCard.setVisibility(View.GONE);
-            ReceiptCardHelper.buildReceiptsSection(this, receiptsSection, booking);
-            return;
-        }
-
-        if (!ReceiptCardHelper.hasLegacyReceiptCandidate(booking)) {
-            legacyCard.setVisibility(View.GONE);
-            return;
-        }
-        legacyCard.setVisibility(View.VISIBLE);
-        ReceiptCardHelper.bindLegacyReceiptActionCard(this, legacyCard, booking);
+        // the three receipts are listed inside the details, between Payments and the Timeline; the old single block is gone
+        findViewById(R.id.includeReceiptAction).setVisibility(View.GONE);
+        ((LinearLayout) findViewById(R.id.sectionTxDetailReceipts)).removeAllViews();
     }
 
     /**
@@ -228,7 +215,7 @@ public class TransactionDetailsActivity extends SafeActivity {
         StatusBadges.bind(findViewById(R.id.tvTxDetailStatusBadge), summary.status);
         ((TextView) findViewById(R.id.tvTxDetailRef)).setText(
                 TransactionText.reference(this, booking.isHasBooking(), booking.getDisplayId()));
-        ((TextView) findViewById(R.id.tvTxDetailTitle)).setText(TransactionStatusHelper.headlineRes(summary));
+        ((TextView) findViewById(R.id.tvTxDetailTitle)).setText(DetailsParts.statusLine(this, booking));
         findViewById(R.id.tvTxDetailRoom).setVisibility(View.GONE); // the rooms are listed once, under "Your Stay"
 
         // Created date (the payments below carry their own dates)
@@ -237,8 +224,8 @@ public class TransactionDetailsActivity extends SafeActivity {
         tvDate.setText(TextUtils.isEmpty(created) ? "" : getString(R.string.details_created_format, created));
         tvDate.setVisibility(TextUtils.isEmpty(created) ? View.GONE : View.VISIBLE);
 
-        // the bill (rooms, amenities, discount, grand total, paid, balance) is one section below, not a second copy up here
-        findViewById(R.id.sectionTxDetailMoney).setVisibility(View.GONE);
+        // the payment progress, near the top; the bill itself is one section below, not a second copy up here
+        DetailsParts.paymentProgress(this, findViewById(R.id.sectionTxDetailMoney), booking);
     }
 
     private void buildInfoSection(LinearLayout container) {
@@ -254,6 +241,14 @@ public class TransactionDetailsActivity extends SafeActivity {
 
         addSectionDivider(container, getString(R.string.details_title_payments));
         TransactionSections.payments(this, container, booking.getPaymentTransactions(), booking.getPaymentHistory());
+
+        LinearLayout receipts = new LinearLayout(this);
+        receipts.setOrientation(LinearLayout.VERTICAL);
+        DetailsParts.receipts(this, receipts, booking);
+        if (receipts.getChildCount() > 0) {
+            addSectionDivider(container, getString(R.string.details_title_receipts));
+            container.addView(receipts);
+        }
 
         boolean isCancelledOrRejected = "Cancelled".equalsIgnoreCase(booking.getStatus()) || "Rejected".equalsIgnoreCase(booking.getStatus());
         if (isCancelledOrRejected) {

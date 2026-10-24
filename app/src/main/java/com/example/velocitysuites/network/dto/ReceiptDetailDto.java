@@ -60,6 +60,24 @@ public class ReceiptDetailDto {
     public AnchorPaymentDto anchor_payment;
     /** ISO-8601 instant this receipt was issued. */
     public String issued_at;
+    /** The receipts issued for this stay so far (number, stage, date, amount). */
+    public List<ReceiptNumberDto> receipt_numbers;
+    public DiscountInfoDto discount_info;
+    /** The whole story of the transaction from creation on (the check-out receipt prints it). */
+    public List<TimelineStepDto> transaction_history;
+
+    public static class ReceiptNumberDto {
+        public int stage;
+        public String receipt_number;
+        public String receipt_type;
+        public String issued_at;
+        public double amount;
+    }
+
+    public static class DiscountInfoDto {
+        public String id_type;
+        public String status;
+    }
 
     /** Receipt 2: what was settled in the Check-In module, as the server froze it. */
     public static class CheckinSettlementDto {

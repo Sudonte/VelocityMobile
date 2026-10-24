@@ -48,6 +48,12 @@ final class TransactionSections {
         } else if (d.getChildren() > 0) {
             into.addView(row(c, c.getString(R.string.details_label_children), String.valueOf(d.getChildren())));
         }
+        String id = d.getDiscountIdType();
+        if (ReceiptTypeMapper.stageOf(d.getReceiptType()) == 3 && id != null && !id.trim().isEmpty() && !"none".equalsIgnoreCase(id.trim())) {
+            boolean applied = "approved".equalsIgnoreCase(d.getDiscountStatus());
+            into.addView(row(c, c.getString(R.string.receipt_id_discount_row),
+                    c.getString(applied ? R.string.receipt_id_applied_format : R.string.receipt_id_pending_format, id.trim())));
+        }
     }
 
     /** "Minor 1 · age 5": each minor with the age the guest gave; any other companion by name; just the count when there is no list. */
@@ -109,7 +115,35 @@ final class TransactionSections {
             line.setTextColor(ContextCompat.getColor(c, R.color.velocity_text_secondary));
             line.setPadding(0, 0, 0, dp(c, 6));
             into.addView(line);
+            if (e.proofUrl != null) into.addView(proof(c, e.proofUrl));
         }
+    }
+
+    /** A small labelled thumbnail of the guest's own proof (the GCash screenshot); tap to see it full screen. */
+    private static android.view.View proof(Context c, String url) {
+        LinearLayout box = new LinearLayout(c);
+        box.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.bottomMargin = dp(c, 8);
+        box.setLayoutParams(lp);
+        TextView label = new TextView(c);
+        label.setText(R.string.payment_proof_label);
+        label.setTextSize(12);
+        label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
+        label.setTextColor(ContextCompat.getColor(c, R.color.velocity_text_primary));
+        box.addView(label);
+        android.widget.ImageView thumb = new android.widget.ImageView(c);
+        thumb.setLayoutParams(new LinearLayout.LayoutParams(dp(c, 72), dp(c, 96)));
+        thumb.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+        thumb.setContentDescription(c.getString(R.string.payment_proof_open));
+        try {
+            com.bumptech.glide.Glide.with(c).load(url).into(thumb);
+        } catch (RuntimeException ignored) {
+            // an image that cannot load leaves the empty frame; the label still says what it is
+        }
+        thumb.setOnClickListener(v -> ReceiptImageViewerActivity.start(c, url));
+        box.addView(thumb);
+        return box;
     }
 
     private static final class Entry {
@@ -119,6 +153,7 @@ final class TransactionSections {
         @Nullable String reference;
         /** Cash only: "Cash received ₱5,000.00 · Change ₱1,000.00" when the front desk recorded what was handed over. */
         @Nullable String tender;
+        @Nullable String proofUrl;
         int statusRes;
         long sortKey;
     }
@@ -128,19 +163,13 @@ final class TransactionSections {
         e.amount = tx.amountPaid;
         boolean gcash = "gcash".equalsIgnoreCase(tx.paymentMethod);
         String method = c.getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash);
-        String stage = tx.paymentStage == null ? "" : tx.paymentStage.toLowerCase(Locale.ROOT);
-        String type;
-        if (stage.contains("deposit")) {
-            type = c.getString(R.string.ph_type_deposit);
-        } else if ("checkout_payment".equalsIgnoreCase(tx.transactionType)) {
-            type = c.getString(R.string.ph_type_balance);
-        } else if (stage.contains("final")) {
-            type = c.getString(Math.abs(tx.totalPaidAfterTransaction - tx.amountPaid) < 0.01 ? R.string.ph_type_full : R.string.ph_type_balance);
-        } else {
-            type = c.getString(R.string.ph_type_payment);
-        }
+        // where the money was taken, in plain words: online, at check-in, or at check-out (never "Deposit" for a balance)
+        boolean atCheckin = tx.referenceNumber != null && tx.referenceNumber.startsWith("CHECKIN-");
+        String type = gcash ? c.getString(R.string.ph_type_online) : atCheckin ? c.getString(R.string.ph_type_checkin) : c.getString(R.string.ph_type_checkout);
         e.title = c.getString(R.string.ph_method_type_format, method, type);
-        e.date = tx.paymentDate != null ? TimeUtils.formatDateTime(tx.paymentDate) : "";
+        e.proofUrl = gcash && tx.proofUrl != null && !tx.proofUrl.trim().isEmpty() ? tx.proofUrl : null;
+        String when = DetailsParts.when(tx.paymentDate);
+        e.date = when != null ? when : "";
         java.time.Instant at = TimeUtils.parseInstant(tx.paymentDate);
         e.sortKey = at != null ? at.toEpochMilli() : 0;
         String ref = tx.gcashReferenceNumber != null ? tx.gcashReferenceNumber : tx.referenceNumber;
@@ -166,8 +195,9 @@ final class TransactionSections {
         e.amount = MoneyFormat.parse(record.amount);
         boolean gcash = record.method != null && record.method.toLowerCase(Locale.ROOT).contains("gcash");
         e.title = c.getString(R.string.ph_method_type_format,
-                c.getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash), c.getString(R.string.ph_type_payment));
-        e.date = record.date != null ? TimeUtils.formatDateTime(record.date) : "";
+                c.getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash), c.getString(gcash ? R.string.ph_type_online : R.string.ph_type_payment));
+        String recordWhen = DetailsParts.when(record.date);
+        e.date = recordWhen != null ? recordWhen : "";
         java.time.Instant at = TimeUtils.parseInstant(record.date);
         e.sortKey = at != null ? at.toEpochMilli() : 0;
         e.reference = record.referenceNumber == null || record.referenceNumber.trim().isEmpty() ? null

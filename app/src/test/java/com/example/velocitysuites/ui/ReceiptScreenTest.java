@@ -156,7 +156,7 @@ public class ReceiptScreenTest {
         assertTrue(texts.toString(), texts.contains("Partially Paid"));
         assertEquals("₱5,000.00", after(texts, "Paid so far"));
         assertEquals("₱5,000.00", after(texts, "Balance due"));
-        assertTrue("the plain line under the bill", texts.contains("You pay the balance at the hotel."));
+        assertTrue("the plain line under the bill", texts.contains("Balance due at the hotel: ₱5,000.00"));
     }
 
     @Test
@@ -179,7 +179,7 @@ public class ReceiptScreenTest {
     @Test
     public void showsEveryRequiredField_inTheSharedStructure() {
         List<String> texts = texts(open(DebugReceiptFixtures.partialReceipt()));
-        assertEquals("PR-20260920-000501", after(texts, "Payment Reference"));
+        assertEquals("PR-20260920-000501", after(texts, "Receipt number"));
         assertEquals("Booking #250", after(texts, "Transaction ID"));
         int stay = texts.indexOf("Your Stay");
         int guests = texts.indexOf("Guests");
@@ -200,7 +200,7 @@ public class ReceiptScreenTest {
     public void showsThePaymentMethod_date_amountReferenceAndStatus_once() {
         List<String> texts = texts(open(DebugReceiptFixtures.partialReceipt()));
         int payments = texts.indexOf("Payments");
-        assertEquals("GCash · Deposit", texts.get(payments + 1));
+        assertEquals("GCash · Paid online", texts.get(payments + 1));
         assertEquals("₱5,000.00", texts.get(payments + 2));
         String line = texts.get(payments + 3);
         assertTrue(line, line.contains("Sep 20, 2026") && line.contains("Ref. 4136 202 609205") && line.endsWith("Verified"));
@@ -210,9 +210,9 @@ public class ReceiptScreenTest {
     public void anOfficialReceiptEndsWithAZeroBalance_theNoRefundNote_andEveryPayment() {
         List<String> texts = texts(open(DebugReceiptFixtures.officialReceipt()));
         assertEquals("₱0.00 · Fully paid", after(texts, "Balance due"));
-        assertTrue(texts.toString(), texts.contains("Cash · Balance") && texts.contains("GCash · Deposit"));
+        assertTrue(texts.toString(), texts.contains("Cash · Paid at check-out") && texts.contains("GCash · Paid online"));
         assertTrue("the no-refund note", texts.contains("No refunds for early check-out (hotel policy)."));
-        assertTrue(texts.contains("Check-out (final)"));
+        assertTrue(texts.contains("Receipt 3 of 3 · Check-out (final)"));
     }
 
     @Test
@@ -236,7 +236,7 @@ public class ReceiptScreenTest {
 
         assertEquals(View.VISIBLE, activity.findViewById(R.id.receiptScrollView).getVisibility());
         List<String> texts = texts(activity);
-        assertEquals("FR-SPARSE-1", after(texts, "Payment Reference"));
+        assertEquals("FR-SPARSE-1", after(texts, "Receipt number"));
         assertFalse(texts.toString(), texts.toString().contains("null"));
     }
 
@@ -251,7 +251,7 @@ public class ReceiptScreenTest {
         List<String> texts = texts(open(detail));
 
         assertFalse(texts.toString(), texts.toString().contains("null"));
-        assertEquals("₱900.00", after(texts, "Cash · Payment"));
+        assertEquals("₱900.00", after(texts, "Cash · Paid at check-out"));
         assertTrue(texts.toString(), texts.contains("Partially Paid"));
     }
 

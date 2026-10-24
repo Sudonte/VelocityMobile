@@ -202,7 +202,7 @@ public class OneStructureNoDuplicatesTest {
             if (!"OFFICIAL_RECEIPT".equals(detail.getReceiptType())) continue;
             List<String> t = textsOf(receipt(detail).findViewById(R.id.layoutDynamicReceiptContent));
             assertEquals(detail.getReceiptNumber(), "₱0.00 · Fully paid", after(t, "Balance due"));
-            assertTrue(detail.getReceiptNumber(), t.contains("Check-out (final)"));
+            assertTrue(detail.getReceiptNumber(), t.contains("Receipt 3 of 3 · Check-out (final)"));
             assertTrue(detail.getReceiptNumber(), t.contains("No refunds for early check-out (hotel policy)."));
         }
     }

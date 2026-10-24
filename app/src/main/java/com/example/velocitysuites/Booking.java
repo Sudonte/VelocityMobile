@@ -324,6 +324,8 @@ public class Booking implements Serializable {
         /** Cash only (null for GCash and older payments): the cash handed over and the change returned. */
         @Nullable public Double cashReceived;
         @Nullable public Double changeGiven;
+        /** The GCash screenshot the guest uploaded as proof, or null. */
+        @Nullable public String proofUrl;
         public final String paymentStatus;
         @Nullable public final String verificationStatus;
         @Nullable public final String gcashNumber;

@@ -52,4 +52,6 @@ public class PaymentTransactionDto {
     public String receipt_type;
     /** PR-.../FR-... when receipt_type is non-null, otherwise null. Never generate one client-side - display exactly what the backend already issued. */
     public String receipt_number;
+    /** The guest's own proof (the GCash screenshot), or null (cash, or none uploaded). */
+    public String proof_url;
 }

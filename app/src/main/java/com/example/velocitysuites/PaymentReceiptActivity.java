@@ -404,8 +404,9 @@ public class PaymentReceiptActivity extends SafeActivity {
     private void buildReceiptBody(ViewGroup content, ReceiptDetail detail, @Nullable List<BookingAmenity> amenities, double aggregateAmenityCharge) {
         // The same structure as the details screens, on screen and in the PDF alike (this body is built once for both): the header with
         // the receipt's own line, Your Stay (date ranges with rooms and amenities), Guests, Bill, Payments - every value once.
-        String stageLabel = ReceiptTypeMapper.labelWithStage(detail.getReceiptType());
-        buildHeaderSection(content, detail, stageLabel);
+        int stage = ReceiptTypeMapper.stageOf(detail.getReceiptType());
+        buildHeaderSection(content, detail, stage > 0 ? getString(R.string.receipt_of_three_format, stage, ReceiptTypeMapper.labelForReceiptType(detail.getReceiptType()))
+                : ReceiptTypeMapper.labelWithStage(detail.getReceiptType()));
         PayingForBreakdown breakdown = PayingForBreakdown.forReceipt(ui, detail, amenities, aggregateAmenityCharge);
 
         LinearLayout stay = newSectionCard(content, getString(R.string.details_title_stay));
@@ -423,6 +424,27 @@ public class PaymentReceiptActivity extends SafeActivity {
 
         LinearLayout payments = newSectionCard(content, getString(R.string.details_title_payments));
         TransactionSections.payments(ui, payments, detail.getPaymentTransactions(), null);
+
+        if (stageOfReceipt(detail) == 3) {
+            // the final receipt: the earlier receipt numbers and the whole story of the transaction
+            List<ReceiptDetail.ReceiptRef> earlier = new java.util.ArrayList<>();
+            for (ReceiptDetail.ReceiptRef r : detail.getReceiptRefs()) if (r.stage < 3) earlier.add(r);
+            if (!earlier.isEmpty()) {
+                LinearLayout card = newSectionCard(content, getString(R.string.receipt_title_earlier));
+                for (ReceiptDetail.ReceiptRef r : earlier) addRow(card, getString(R.string.receipt_earlier_format, r.stage), r.number);
+            }
+            if (!detail.getHistory().isEmpty()) {
+                LinearLayout card = newSectionCard(content, getString(R.string.receipt_title_history));
+                for (Booking.TimelineEntry t : detail.getHistory()) {
+                    String when = DetailsParts.when(t.atRaw);
+                    if (when != null) addRow(card, t.label, when);
+                }
+            }
+        }
+    }
+
+    private static int stageOfReceipt(ReceiptDetail detail) {
+        return ReceiptTypeMapper.stageOf(detail.getReceiptType());
     }
 
     /** What this receipt is for, in a few plain words: "Payment verified", "Check-in", "Check-out (final)". */
@@ -516,7 +538,6 @@ public class PaymentReceiptActivity extends SafeActivity {
         // balance, a Full/Official Receipt reads "Paid" - never a fixed "Verified".
         TransactionStatusHelper.Summary statusSummary = TransactionStatusHelper.summarize(detail);
         content.addView(newStatusBadge(statusSummary.status));
-        content.addView(centeredText(receiptLine(detail), 13, true, R.color.velocity_text_primary, dp(8)));
 
         addDivider(content, dp(16));
         addRowOrDash(content, getString(R.string.receipt_reference_label), detail.getReceiptNumber());

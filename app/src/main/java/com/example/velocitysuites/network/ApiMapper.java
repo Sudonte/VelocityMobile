@@ -544,6 +544,7 @@ public final class ApiMapper {
         historical.setAmenityCharge(real.getAmenityCharge());
         historical.setAdditionalGuestFee(real.getAdditionalGuestFee());
         historical.setRooms(real.getRooms());
+        historical.setStays(real.getStays());
         historical.setAmenities(real.getAmenities());
         historical.setReceiptUrl(real.getReceiptUrl());
         historical.setPaymentVerificationStatus(real.getPaymentVerificationStatus());
@@ -780,6 +781,7 @@ public final class ApiMapper {
                     dto.total_paid_after_transaction, dto.remaining_balance_after_transaction,
                     dto.receipt_type, dto.receipt_number
             );
+            record.proofUrl = dto.proof_url;
             record.cashReceived = dto.cash_received;
             record.changeGiven = dto.change_given;
             out.add(record);
@@ -855,6 +857,15 @@ public final class ApiMapper {
         receiptDetail.setIssuedAtRaw(dto.issued_at);
         receiptDetail.setStay(StayInfo.from(dto.stay_bill));
         receiptDetail.setStays(toStays(dto.stays));
+        if (dto.receipt_numbers != null) {
+            List<ReceiptDetail.ReceiptRef> refs = new ArrayList<>();
+            for (ReceiptDetailDto.ReceiptNumberDto r : dto.receipt_numbers) {
+                if (r != null && r.receipt_number != null) refs.add(new ReceiptDetail.ReceiptRef(r.stage, r.receipt_number, r.issued_at, r.amount));
+            }
+            receiptDetail.setReceiptRefs(refs);
+        }
+        if (dto.discount_info != null) receiptDetail.setDiscountInfo(dto.discount_info.id_type, dto.discount_info.status);
+        receiptDetail.setHistory(toTimeline(dto.transaction_history));
         if (dto.highlight != null) {
             ReceiptDetailDto.HighlightDto h = dto.highlight;
             ReceiptDetail.Highlight hl = new ReceiptDetail.Highlight(h.kind, h.payment_type, h.payment_method, h.amount_to_pay_note);

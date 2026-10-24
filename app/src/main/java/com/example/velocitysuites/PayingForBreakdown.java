@@ -352,7 +352,7 @@ final class PayingForBreakdown {
         if (finalSnapshot) {
             out.roomsOverride = h.amount("room_charges");
             out.amenitiesOverride = h.amount("amenities_total");
-            if (!h.amenityGroups.isEmpty()) {
+            if (!h.amenityGroups.isEmpty() && (recorded == null || recorded.isEmpty())) {
                 // the final receipt's own amenities, grouped by room, replace the booking-time list
                 for (StayBlock s : out.stays) s.amenities.clear();
                 StayBlock first = out.stays.get(0);
@@ -405,7 +405,10 @@ final class PayingForBreakdown {
                 out.balance = rb.grandTotal;
             }
         }
-        out.plainLine = out.plainLine(c);
+        int stage = ReceiptTypeMapper.stageOf(detail.getReceiptType());
+        if (stage == 1 && out.balance > 0.009) out.plainLine = c.getString(R.string.receipt_balance_at_hotel_format, MoneyFormat.format(out.balance));
+        else if (stage == 2 && out.balance > 0.009) out.plainLine = c.getString(R.string.receipt_balance_at_checkout_format, MoneyFormat.format(out.balance));
+        else out.plainLine = out.plainLine(c);
         return out;
     }
 

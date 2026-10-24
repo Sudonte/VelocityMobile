@@ -191,7 +191,24 @@ public class BookingDetailsActivity extends SafeActivity {
      */
     private void refreshFromServer(boolean userInitiated) {
         if (booking.isHistoricalReservation()) {
-            swipeRefresh.setRefreshing(false);
+            // the payments and receipts live on the booking it became: read them (the frozen copy keeps its own look)
+            RoomRepository.getInstance(this).fetchTransactionById(booking.getId(), true, new RoomRepository.RepositoryCallback<Booking>() {
+                @Override
+                public void onSuccess(Booking real) {
+                    if (isFinishing() || isDestroyed()) return;
+                    swipeRefresh.setRefreshing(false);
+                    booking.setPaymentTransactions(real.getPaymentTransactions());
+                    booking.setReceipts(real.getReceipts());
+                    booking.setPaymentSummary(real.getPaymentSummary());
+                    renderAllSections();
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
+                    swipeRefresh.setRefreshing(false);
+                }
+            });
             return;
         }
         if (userInitiated) swipeRefresh.setRefreshing(true);
@@ -286,14 +303,17 @@ public class BookingDetailsActivity extends SafeActivity {
         // amenities), guests, bill, payments, receipts, timeline. Each value appears once; the old balance card, booking-information
         // card and payment-information rows repeated the dates, the status, the totals and the balance, so they are gone.
         hideCardOf(R.id.sectionBookingInfoContent);
-        findViewById(R.id.cardBalanceSummary).setVisibility(View.GONE);
+        buildProgressCard();
         hideCardOf(R.id.sectionPaymentInfoContent);
         PayingForBreakdown breakdown = PayingForBreakdown.forDetails(this, booking);
         breakdown.renderRanges(this, findViewById(R.id.sectionRoomInfoContent));
         buildGuestInfoSection(findViewById(R.id.sectionGuestInfoContent));
         breakdown.renderBill(this, findViewById(R.id.sectionPaymentSummaryContent));
-        addReceiptImage(findViewById(R.id.sectionPaymentSummaryContent));
-        TransactionSections.payments(this, findViewById(R.id.sectionPaymentHistoryContent), booking.getPaymentTransactions(), booking.getPaymentHistory());
+        LinearLayout payments = findViewById(R.id.sectionPaymentHistoryContent);
+        TransactionSections.payments(this, payments, booking.getPaymentTransactions(), booking.getPaymentHistory());
+        if (booking.isHistoricalReservation() && !booking.getPaymentTransactions().isEmpty()) {
+            payments.addView(DetailsParts.text(this, getString(R.string.payment_moved_to_booking, booking.getConvertedBookingId()), 12, true, R.color.velocity_text_secondary));
+        }
         buildReceiptsCard();
         buildDiscountIdSection(findViewById(R.id.cardDiscountId), findViewById(R.id.sectionDiscountIdContent));
         buildTimelineSection(findViewById(R.id.sectionTimelineContent));
@@ -366,8 +386,9 @@ public class BookingDetailsActivity extends SafeActivity {
         String created = booking.getCreatedAtDisplay();
         tvDates.setText(created == null || created.trim().isEmpty() ? "" : getString(R.string.details_created_format, created));
         tvDates.setVisibility(created == null || created.trim().isEmpty() ? View.GONE : View.VISIBLE);
-        TextView tvType = findViewById(R.id.tvDetailsRoomGuestCounts);
-        tvType.setText(booking.isHasBooking() ? R.string.details_type_booking : R.string.details_type_reservation);
+        TextView tvLine = findViewById(R.id.tvDetailsRoomGuestCounts);
+        tvLine.setText(DetailsParts.statusLine(this, booking));
+        if (booking.isHistoricalReservation()) tvStatus.setText(R.string.status_chip_converted);
     }
 
     // ---- Booking Information section ----
@@ -656,16 +677,35 @@ public class BookingDetailsActivity extends SafeActivity {
     }
 
     private void buildReceiptActionCard(LinearLayout container) {
-        if (!booking.getReceipts().isEmpty()) {
-            ReceiptCardHelper.buildReceiptsSection(this, container, booking);
-            return;
+        DetailsParts.receipts(this, container, booking);
+    }
+
+    /** Payment progress: the bar and the steps; for a converted reservation also a button to the booking it became. */
+    private void buildProgressCard() {
+        LinearLayout box = findViewById(R.id.sectionBalanceContent);
+        View card = findViewById(R.id.cardBalanceSummary);
+        DetailsParts.paymentProgress(this, box, booking);
+        if (booking.isHistoricalReservation() && booking.getConvertedBookingId() != null) {
+            if (box.getChildCount() == 0) box.setVisibility(View.VISIBLE);
+            com.google.android.material.button.MaterialButton open = new com.google.android.material.button.MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+            open.setText(getString(R.string.view_booking_n, booking.getConvertedBookingId()));
+            open.setAllCaps(false);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.topMargin = dpPx(12);
+            open.setLayoutParams(lp);
+            open.setOnClickListener(v -> {
+                if (!clickGuard.tryAcquire()) return;
+                for (Booking b : RoomRepository.getInstance(this).getAllBookings()) {
+                    if (b != null && b.isHasBooking() && booking.getId().equals(b.getId())) {
+                        startActivity(newIntent(this, b));
+                        return;
+                    }
+                }
+                Toast.makeText(this, R.string.details_refresh_failed, Toast.LENGTH_SHORT).show();
+            });
+            box.addView(open);
         }
-
-        if (!ReceiptCardHelper.hasLegacyReceiptCandidate(booking)) return;
-
-        View card = LayoutInflater.from(this).inflate(R.layout.item_payment_receipt_action, container, false);
-        ReceiptCardHelper.bindLegacyReceiptActionCard(this, card, booking);
-        container.addView(card);
+        card.setVisibility(box.getChildCount() == 0 ? View.GONE : View.VISIBLE);
     }
 
     // ---- Timeline ----

@@ -272,7 +272,7 @@ final class TransactionTimeline {
         if (millis <= 0) return; // no date, no entry: the timeline never shows a made-up time
         for (Entry e : out) {
             if (e.key.equals(key)) return;
-            if (once(kind) && e.kind == kind) return;
+            if (once(kind) && e.kind == kind && !key.contains("stay_") && !e.key.contains("stay_")) return;
         }
         out.add(new Entry(key, kind, millis, title, detail, format(millis), icon));
     }
