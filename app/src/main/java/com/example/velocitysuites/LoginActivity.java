@@ -22,8 +22,6 @@ import com.example.velocitysuites.network.dto.ProfileResponse;
 import java.util.Locale;
 import com.example.velocitysuites.network.dto.ReactivateResendRequest;
 import com.example.velocitysuites.network.dto.ReactivateVerifyRequest;
-import com.example.velocitysuites.network.dto.ResetPasswordRequest;
-import com.example.velocitysuites.network.dto.VerifyResetOtpRequest;
 import android.os.CountDownTimer;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -36,25 +34,18 @@ import retrofit2.Response;
 public class LoginActivity extends SafeActivity {
 
     private TextInputEditText emailEditText, passwordEditText;
-    private TextInputEditText forgotEmailEditText, loginOtpEditText, newPasswordEditText, confirmNewPasswordEditText;
     private TextInputLayout emailLayout, passwordLayout;
     private boolean signingIn;
     private TextView loginError;
     private MaterialButton loginResendCode;
     /** The address the unverified-account "Resend code" button is for. */
     private String unverifiedEmail;
-    private TextInputLayout forgotEmailLayout, loginOtpLayout, newPasswordLayout, confirmNewPasswordLayout;
-    private View forgotEmailLabel, otpLabel, newPasswordLabel, confirmPasswordLabel;
-    private View loginCard, forgotPasswordCard, signupRedirect, headerSection, loginLabel;
-    private TextView forgotPasswordDesc, forgotPasswordTitle;
-    private PasswordRulesView forgotPasswordRules;
-    private TextView resendOtpLink;
-    private MaterialButton forgotActionButton;
+    private View loginCard, signupRedirect, headerSection, loginLabel;
     private MaterialCheckBox rememberMeCheckbox;
     private Animation flipLeft, fadeInSlideUp;
 
-    private boolean isOtpSent = false;
-    private boolean isOtpVerified = false;
+    /** A line to show under the form on arrival (for example "Your password was changed. Sign in with it."). */
+    public static final String EXTRA_NOTICE = "login_notice";
 
     // Account-reactivation OTP flow (see handleLogin()'s reactivation_required
     // branch) - a deliberately separate card/state from the forgot-password
@@ -167,14 +158,26 @@ public class LoginActivity extends SafeActivity {
 
         findViewById(R.id.btnBack).setOnClickListener(v -> goToWelcome());
 
-        findViewById(R.id.forgotPasswordText).setOnClickListener(v -> showForgotPasswordFlow());
-        findViewById(R.id.backToLoginLink).setOnClickListener(v -> showLoginFlow());
-        forgotActionButton.setOnClickListener(v -> handleForgotAction());
-        resendOtpLink.setOnClickListener(v -> handleResendOtp());
+        findViewById(R.id.forgotPasswordText).setOnClickListener(v -> openResetPassword(false));
 
         reactivationActionButton.setOnClickListener(v -> handleVerifyReactivation());
         reactivationResendLink.setOnClickListener(v -> handleResendReactivationOtp());
         findViewById(R.id.backToLoginFromReactivationLink).setOnClickListener(v -> backToLoginFromReactivation());
+
+        String notice = getIntent().getStringExtra(EXTRA_NOTICE);
+        if (notice != null && !notice.isEmpty()) showLoginError(notice);
+    }
+
+    /**
+     * Opens Reset password with the email typed so far. {@code afterTrouble} is true when this is the redirect after three failed
+     * sign-ins: the first step then says why it opened.
+     */
+    private void openResetPassword(boolean afterTrouble) {
+        Intent intent = new Intent(this, ResetPasswordActivity.class);
+        String typed = emailEditText != null && emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
+        if (!typed.isEmpty()) intent.putExtra(ResetPasswordActivity.EXTRA_EMAIL, typed);
+        if (afterTrouble) intent.putExtra(ResetPasswordActivity.EXTRA_TROUBLE, true);
+        startActivity(intent);
     }
 
     private void initializeViews() {
@@ -198,32 +201,11 @@ public class LoginActivity extends SafeActivity {
         emailEditText.addTextChangedListener(new SimpleTextWatcher(this::clearLoginError));
         passwordEditText.addTextChangedListener(new SimpleTextWatcher(this::clearLoginError));
         
-        forgotEmailEditText = findViewById(R.id.forgotEmailEditText);
-        loginOtpEditText = findViewById(R.id.loginOtpEditText);
-        newPasswordEditText = findViewById(R.id.newPasswordEditText);
-        confirmNewPasswordEditText = findViewById(R.id.confirmNewPasswordEditText);
-        
-        forgotEmailLayout = findViewById(R.id.forgotEmailLayout);
-        loginOtpLayout = findViewById(R.id.loginOtpLayout);
-        newPasswordLayout = findViewById(R.id.newPasswordLayout);
-        confirmNewPasswordLayout = findViewById(R.id.confirmNewPasswordLayout);
-
-        forgotEmailLabel = findViewById(R.id.forgotEmailLabel);
-        otpLabel = findViewById(R.id.otpLabel);
-        newPasswordLabel = findViewById(R.id.newPasswordLabel);
-        confirmPasswordLabel = findViewById(R.id.confirmPasswordLabel);
-        
         loginCard = findViewById(R.id.loginCard);
-        forgotPasswordCard = findViewById(R.id.forgotPasswordCard);
         signupRedirect = findViewById(R.id.signupRedirect);
         headerSection = findViewById(R.id.headerSection);
         loginLabel = findViewById(R.id.loginLabel);
         
-        forgotPasswordTitle = findViewById(R.id.forgotPasswordTitle);
-        forgotPasswordDesc = findViewById(R.id.forgotPasswordDesc);
-        forgotActionButton = findViewById(R.id.forgotActionButton);
-        forgotPasswordRules = findViewById(R.id.forgotPasswordRules);
-        resendOtpLink = findViewById(R.id.resendOtpLink);
         rememberMeCheckbox = findViewById(R.id.rememberMeCheckbox);
 
         reactivationCard = findViewById(R.id.reactivationCard);
@@ -272,6 +254,7 @@ public class LoginActivity extends SafeActivity {
                     // before a real session exists (see showReactivationFlow()).
                     showReactivationFlow(response.body());
                 } else if (response.isSuccessful() && response.body() != null) {
+                    FailedSignIns.clear(LoginActivity.this, email);
                     successfulLogin(response.body(), R.string.welcome_back);
                 } else if (response.code() == 423) {
                     // only the right password gets here: the account is locked for a while (or until the password is reset)
@@ -299,6 +282,11 @@ public class LoginActivity extends SafeActivity {
                     if (failure.kind == LoginFailure.Kind.INVALID_CREDENTIALS) {
                         // an unknown email and a wrong password get the same words in the same place (nothing says which accounts exist)
                         showLoginError(getString(R.string.login_invalid_credentials));
+                        // the third failure for the same email (counted here, so an address with no account behaves the same): Reset password
+                        if (FailedSignIns.record(LoginActivity.this, email) >= FailedSignIns.REDIRECT_AT) {
+                            FailedSignIns.clear(LoginActivity.this, email);
+                            openResetPassword(true);
+                        }
                     } else if (failure.kind == LoginFailure.Kind.ACCOUNT_NOT_VERIFIED) {
                         unverifiedEmail = email;
                         showLoginError(failure.message != null ? failure.message : getString(R.string.login_not_verified));
@@ -326,16 +314,7 @@ public class LoginActivity extends SafeActivity {
     }
 
     private void successfulLogin(AuthResponse auth, @androidx.annotation.StringRes int messageResId) {
-        String firstName = auth.user.first_name != null ? auth.user.first_name : "";
-        String lastName = auth.user.last_name != null ? auth.user.last_name : "";
-        String fullName = auth.user.full_name != null ? auth.user.full_name : (firstName + " " + lastName).trim();
-        String mobile = auth.user.guest != null ? auth.user.guest.mobile_number : null;
-        String gender = auth.user.guest != null ? auth.user.guest.gender : null;
-        String dob = auth.user.guest != null ? auth.user.guest.date_of_birth : null;
-        String pictureUrl = auth.user.guest != null ? auth.user.guest.profile_picture_url : null;
-
-        SessionManager.saveSession(this, auth.token, auth.user.id, firstName, lastName, auth.user.middle_name,
-                fullName, auth.user.email, mobile, gender, dob, pictureUrl);
+        String fullName = GuestSession.save(this, auth);
 
         // Persistent login only if "Remember Me" is checked; otherwise the
         // token still lives in prefs for this process/app-open, but there's
@@ -344,10 +323,6 @@ public class LoginActivity extends SafeActivity {
         // Remember Me state, so this call is what (re)establishes it.
         boolean isRemembered = rememberMeCheckbox != null && rememberMeCheckbox.isChecked();
         SessionManager.setRememberMe(this, isRemembered);
-        if (auth.user.guest != null && auth.user.guest.address != null) {
-            // Shown in the Guest Information card of the booking/reservation details.
-            getSharedPreferences("VelocityPrefs", MODE_PRIVATE).edit().putString("userAddress", auth.user.guest.address).apply();
-        }
 
         // The account was soft-deleted (see ProfileManagementActivity's
         // Delete Account action) but is still inside its 30-day restore
@@ -668,15 +643,6 @@ public class LoginActivity extends SafeActivity {
         return isValid;
     }
 
-    private void showForgotPasswordFlow() {
-        transitionCards(loginCard, forgotPasswordCard);
-        resetForgotFields();
-    }
-
-    private void showLoginFlow() {
-        transitionCards(forgotPasswordCard, loginCard);
-    }
-
     private void transitionCards(View fromCard, View toCard) {
         fromCard.animate().alpha(0f).translationY(50f).setDuration(250).withEndAction(() -> {
             fromCard.setVisibility(View.GONE);
@@ -691,201 +657,6 @@ public class LoginActivity extends SafeActivity {
                     .setInterpolator(new android.view.animation.DecelerateInterpolator())
                     .start();
         }).start();
-    }
-
-    private void handleForgotAction() {
-        if (!isOtpSent) {
-            if (forgotEmailEditText == null) return;
-            String email = forgotEmailEditText.getText() != null ? forgotEmailEditText.getText().toString().trim() : "";
-            if (TextUtils.isEmpty(email)) {
-                forgotEmailEditText.setError(getString(R.string.email_required));
-                return;
-            }
-            if (!EmailValidator.isValid(email)) {
-                forgotEmailEditText.setError(getString(R.string.valid_email_required));
-                return;
-            }
-
-            forgotActionButton.setEnabled(false);
-            ApiClient.getService(this).forgotPassword(new EmailRequest(email)).enqueue(new Callback<ApiMessage>() {
-                @Override
-                public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                    if (isFinishing() || isDestroyed()) return;
-                    forgotActionButton.setEnabled(true);
-                    if (!response.isSuccessful()) {
-                        // the server's wait-a-moment answer (it is the same for every address) or a plain failure
-                        forgotEmailLayout.setError(response.code() == 429 ? errorMessage(response) : getString(R.string.reset_code_send_failed));
-                        return;
-                    }
-
-                    isOtpSent = true;
-
-                    forgotEmailLayout.setVisibility(View.GONE);
-                    forgotEmailLabel.setVisibility(View.GONE);
-                    loginOtpLayout.setVisibility(View.VISIBLE);
-                    otpLabel.setVisibility(View.VISIBLE);
-                    resendOtpLink.setVisibility(View.VISIBLE);
-                    forgotPasswordDesc.setText(R.string.forgot_generic_sent); // the same words whether or not the email has an account
-                    forgotActionButton.setText(R.string.verify_otp_button);
-                }
-
-                @Override
-                public void onFailure(Call<ApiMessage> call, Throwable t) {
-                    if (isFinishing() || isDestroyed()) return;
-                    forgotActionButton.setEnabled(true);
-                    Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
-                }
-            });
-        } else if (!isOtpVerified) {
-            if (loginOtpEditText == null) return;
-            String otp = loginOtpEditText.getText() != null ? loginOtpEditText.getText().toString() : "";
-            if (otp.length() != 6) {
-                loginOtpEditText.setError(getString(R.string.invalid_otp));
-                return;
-            }
-            String email = forgotEmailEditText.getText() != null ? forgotEmailEditText.getText().toString().trim() : "";
-
-            forgotActionButton.setEnabled(false);
-            ApiClient.getService(this).verifyResetOtp(new VerifyResetOtpRequest(email, otp)).enqueue(new Callback<ApiMessage>() {
-                @Override
-                public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                    if (isFinishing() || isDestroyed()) return;
-                    forgotActionButton.setEnabled(true);
-                    if (!response.isSuccessful()) {
-                        String msg = errorMessage(response);
-                        loginOtpEditText.setError(msg);
-                        Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_LONG).show();
-                        return;
-                    }
-
-                    isOtpVerified = true;
-                    Toast.makeText(LoginActivity.this, R.string.otp_verified, Toast.LENGTH_SHORT).show();
-                    loginOtpLayout.setVisibility(View.GONE);
-                    otpLabel.setVisibility(View.GONE);
-                    resendOtpLink.setVisibility(View.GONE);
-                    newPasswordLayout.setVisibility(View.VISIBLE);
-                    newPasswordLabel.setVisibility(View.VISIBLE);
-                    confirmNewPasswordLayout.setVisibility(View.VISIBLE);
-                    confirmPasswordLabel.setVisibility(View.VISIBLE);
-                    forgotPasswordTitle.setText(R.string.reset_password_title);
-                    forgotPasswordDesc.setText(R.string.set_new_password_instruction);
-                    forgotActionButton.setText(R.string.reset_password_button);
-                    forgotPasswordRules.setVisibility(View.VISIBLE);
-                    forgotPasswordRules.bind(newPasswordEditText, confirmNewPasswordEditText, () -> forgotActionButton.setEnabled(!isOtpVerified || forgotPasswordRules.isSatisfied()));
-                }
-
-                @Override
-                public void onFailure(Call<ApiMessage> call, Throwable t) {
-                    if (isFinishing() || isDestroyed()) return;
-                    forgotActionButton.setEnabled(true);
-                    Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
-                }
-            });
-        } else {
-            if (newPasswordEditText == null || confirmNewPasswordEditText == null) return;
-            String newPass = newPasswordEditText.getText() != null ? newPasswordEditText.getText().toString() : "";
-            String confirmPass = confirmNewPasswordEditText.getText() != null ? confirmNewPasswordEditText.getText().toString() : "";
-
-            if (!validateNewPassword(newPass, confirmPass)) return;
-
-            String email = forgotEmailEditText.getText() != null ? forgotEmailEditText.getText().toString().trim() : "";
-            String otp = loginOtpEditText.getText() != null ? loginOtpEditText.getText().toString() : "";
-
-            forgotActionButton.setEnabled(false);
-            ApiClient.getService(this).resetPassword(new ResetPasswordRequest(email, otp, newPass, confirmPass))
-                    .enqueue(new Callback<AuthResponse>() {
-                        @Override
-                        public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                            if (isFinishing() || isDestroyed()) return;
-                            forgotActionButton.setEnabled(true);
-                            if (!response.isSuccessful() || response.body() == null) {
-                                String msg = errorMessage(response);
-                                loginOtpEditText.setError(msg);
-                                Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_LONG).show();
-                                return;
-                            }
-                            if (Boolean.TRUE.equals(response.body().reactivation_required)) {
-                                // Same shape login itself guards against above - this
-                                // account needs a fresh reactivation OTP before a real
-                                // session exists, so .user/.token are null here too.
-                                isOtpSent = false;
-                                isOtpVerified = false;
-                                showReactivationFlow(response.body());
-                                return;
-                            }
-
-                            isOtpSent = false;
-                            isOtpVerified = false;
-                            successfulLogin(response.body(), R.string.password_reset_success);
-                        }
-
-                        @Override
-                        public void onFailure(Call<AuthResponse> call, Throwable t) {
-                            if (isFinishing() || isDestroyed()) return;
-                            forgotActionButton.setEnabled(true);
-                            Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
-                        }
-                    });
-        }
-    }
-
-    private boolean validateNewPassword(String newPass, String confirmPass) {
-        if (!PasswordRules.isValid(newPass)) {
-            newPasswordEditText.setError(getString(R.string.password_min_length));
-            return false;
-        }
-        if (!newPass.equals(confirmPass)) {
-            confirmNewPasswordEditText.setError(getString(R.string.passwords_do_not_match));
-            return false;
-        }
-        return true;
-    }
-
-    private void handleResendOtp() {
-        if (forgotEmailEditText == null) return;
-        String email = forgotEmailEditText.getText() != null ? forgotEmailEditText.getText().toString().trim() : "";
-        if (TextUtils.isEmpty(email)) return;
-
-        resendOtpLink.setEnabled(false);
-        ApiClient.getService(this).forgotPassword(new EmailRequest(email)).enqueue(new Callback<ApiMessage>() {
-            @Override
-            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                if (isFinishing() || isDestroyed()) return;
-                resendOtpLink.setEnabled(true);
-                if (!response.isSuccessful()) {
-                    Toast.makeText(LoginActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (loginOtpEditText != null) loginOtpEditText.setText("");
-                Toast.makeText(LoginActivity.this, R.string.otp_resent, Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(Call<ApiMessage> call, Throwable t) {
-                if (isFinishing() || isDestroyed()) return;
-                resendOtpLink.setEnabled(true);
-                Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private void resetForgotFields() {
-        isOtpSent = false;
-        isOtpVerified = false;
-        forgotEmailLayout.setVisibility(View.VISIBLE);
-        forgotEmailLabel.setVisibility(View.VISIBLE);
-        loginOtpLayout.setVisibility(View.GONE);
-        otpLabel.setVisibility(View.GONE);
-        resendOtpLink.setVisibility(View.GONE);
-        newPasswordLayout.setVisibility(View.GONE);
-        newPasswordLabel.setVisibility(View.GONE);
-        confirmNewPasswordLayout.setVisibility(View.GONE);
-        confirmPasswordLabel.setVisibility(View.GONE);
-        forgotPasswordRules.setVisibility(View.GONE);
-        forgotActionButton.setEnabled(true);
-        forgotPasswordTitle.setText(R.string.reset_password_title);
-        forgotPasswordDesc.setText(R.string.forgot_password_instruction);
-        forgotActionButton.setText(R.string.send_otp_button);
     }
 
     /** Returns to the Welcome screen, clearing any Login/Registration

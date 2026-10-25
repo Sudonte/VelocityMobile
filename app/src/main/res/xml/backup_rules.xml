@@ -10,4 +10,5 @@
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="VelocitySecurePrefs.xml" />
+    <exclude domain="sharedpref" path="VelocityFailedSignIns.xml" />
 </full-backup-content>

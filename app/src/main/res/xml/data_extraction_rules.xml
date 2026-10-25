@@ -13,8 +13,10 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="VelocitySecurePrefs.xml" />
+        <exclude domain="sharedpref" path="VelocityFailedSignIns.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="VelocitySecurePrefs.xml" />
+        <exclude domain="sharedpref" path="VelocityFailedSignIns.xml" />
     </device-transfer>
 </data-extraction-rules>

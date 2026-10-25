@@ -142,7 +142,7 @@ public class ChangePasswordFlowTest {
         idle();
         assertEquals(View.VISIBLE, d.findViewById(R.id.changePasswordStepOtp).getVisibility());
         assertEquals("entering the code is still the Verify stage", "Step 1 of 3", ((TextView) d.findViewById(R.id.changePasswordStepText)).getText().toString());
-        assertEquals("Verify OTP", ((android.widget.Button) d.findViewById(R.id.btnConfirmChangePasswordOtp)).getText().toString());
+        assertEquals("Verify code", ((android.widget.Button) d.findViewById(R.id.btnConfirmChangePasswordOtp)).getText().toString());
     }
 
     @Test

@@ -71,6 +71,11 @@
             android:theme="@style/Theme.VelocitySuites.Auth" />
 
         <activity
+            android:name=".ResetPasswordActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.VelocitySuites.Auth" />
+
+        <activity
             android:name=".RegistrationActivity"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.VelocitySuites.Auth" />

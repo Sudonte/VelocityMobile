@@ -25,6 +25,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.example.velocitysuites.LoginActivity;
 import com.example.velocitysuites.R;
+import com.example.velocitysuites.ResetPasswordActivity;
 import com.example.velocitysuites.RegistrationActivity;
 import com.example.velocitysuites.network.ApiClient;
 import com.example.velocitysuites.network.SessionManager;
@@ -286,14 +287,10 @@ public class Release165Test {
     }
 
     @Test
-    public void signIn_keepsForgotPassword_andTheBackAndSignUpLinks() {
+    public void signIn_keepsForgotPassword_andTheSignUpLink() {
         LoginActivity a = signIn();
         a.findViewById(R.id.forgotPasswordText).performClick();
-        settle();
-        assertEquals(View.VISIBLE, a.findViewById(R.id.forgotPasswordCard).getVisibility());
-        a.findViewById(R.id.backToLoginLink).performClick();
-        settle();
-        assertEquals(View.VISIBLE, a.findViewById(R.id.loginCard).getVisibility());
+        assertEquals("Forgot password opens Reset password", ResetPasswordActivity.class.getName(), shadowOf(a).getNextStartedActivity().getComponent().getClassName());
         a.findViewById(R.id.signUpLink).performClick();
         assertEquals(RegistrationActivity.class.getName(), shadowOf(a).getNextStartedActivity().getComponent().getClassName());
     }

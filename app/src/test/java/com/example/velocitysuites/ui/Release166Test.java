@@ -17,7 +17,6 @@ import com.example.velocitysuites.LoginActivity;
 import com.example.velocitysuites.R;
 import com.example.velocitysuites.network.ApiClient;
 import com.example.velocitysuites.network.SessionManager;
-import com.example.velocitysuites.network.dto.ApiMessage;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.junit.After;
@@ -34,8 +33,7 @@ import java.time.Duration;
 
 /**
  * 1.66.0: the sign-in screen never says whether an email has an account (an unknown email and a wrong password get the same words in the
- * same place), Forgot password gives one answer either way, and the forgot-password reset uses the same live password checklist and rule
- * (8+ characters, a letter, a number) as sign-up and change password.
+ * same place); the forgot-password answer and the password checklist moved to Reset password (see Release167Test).
  */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
@@ -46,7 +44,6 @@ public class Release166Test {
     public final com.example.velocitysuites.ThemeResetRule themeReset = new com.example.velocitysuites.ThemeResetRule();
 
     private static final String GENERIC = "Incorrect email or password.";
-    private static final String SENT = "If an account exists for that email, we've sent a code.";
 
     private ScreenTestSupport.FakeApi api;
 
@@ -182,112 +179,5 @@ public class Release166Test {
         assertEquals(View.VISIBLE, a.findViewById(R.id.loginError).getVisibility());
         type(a, R.id.passwordEditText, "Another1");
         assertEquals(View.GONE, a.findViewById(R.id.loginError).getVisibility());
-    }
-
-    // ================================================================ 1b. forgot password: one answer
-
-    private LoginActivity forgotCard() {
-        LoginActivity a = signIn();
-        a.findViewById(R.id.forgotPasswordText).performClick();
-        settle();
-        assertEquals(View.VISIBLE, a.findViewById(R.id.forgotPasswordCard).getVisibility());
-        return a;
-    }
-
-    private void askForCode(LoginActivity a, String email) {
-        type(a, R.id.forgotEmailEditText, email);
-        a.findViewById(R.id.forgotActionButton).performClick();
-        idle();
-        assertEquals(1, api.count("forgotPassword"));
-    }
-
-    @Test
-    public void forgotPassword_sayWhetherOrNot_theSameWords() {
-        String serverAnswer = "If an account exists for that email, we've sent a code.";
-        for (String email : new String[]{"ana@example.com", "nobody@example.com"}) {
-            api = new ScreenTestSupport.FakeApi();
-            ApiClient.setServiceForTests(api.proxy());
-            LoginActivity a = forgotCard();
-            askForCode(a, email);
-            ApiMessage ok = new ApiMessage();
-            ok.message = serverAnswer;
-            api.<ApiMessage>last("forgotPassword").succeed(ok);
-            idle();
-            assertEquals(email, SENT, text(a, R.id.forgotPasswordDesc));
-            assertEquals("the code step is next, for every address", View.VISIBLE, a.findViewById(R.id.loginOtpLayout).getVisibility());
-            assertFalse("the address is not echoed back as if it existed", text(a, R.id.forgotPasswordDesc).contains(email));
-            assertEquals("no popup", 0, ShadowToast.shownToastCount());
-        }
-    }
-
-    @Test
-    public void forgotPassword_theWaitAMomentAnswer_isInlineUnderTheEmail() {
-        LoginActivity a = forgotCard();
-        askForCode(a, "ana@example.com");
-        api.<ApiMessage>last("forgotPassword").httpWithBody(429, "{\"message\":\"Please wait 60 seconds before requesting another code.\"}");
-        idle();
-        assertEquals("Please wait 60 seconds before requesting another code.", errorOf(a, R.id.forgotEmailLayout));
-        assertEquals(View.VISIBLE, a.findViewById(R.id.forgotEmailLayout).getVisibility());
-        assertEquals(0, ShadowToast.shownToastCount());
-    }
-
-    // ================================================================ 2. one password rule in the reset
-
-    private LoginActivity atNewPassword() {
-        LoginActivity a = forgotCard();
-        askForCode(a, "ana@example.com");
-        api.<ApiMessage>last("forgotPassword").succeed(new ApiMessage());
-        idle();
-        type(a, R.id.loginOtpEditText, "123456");
-        a.findViewById(R.id.forgotActionButton).performClick();
-        idle();
-        api.<ApiMessage>last("verifyResetOtp").succeed(new ApiMessage());
-        idle();
-        assertEquals(View.VISIBLE, a.findViewById(R.id.newPasswordLayout).getVisibility());
-        return a;
-    }
-
-    @Test
-    public void theResetShowsTheSameChecklist_andOnlyAGoodPasswordCanBeSent() {
-        LoginActivity a = atNewPassword();
-        assertEquals(View.VISIBLE, a.findViewById(R.id.forgotPasswordRules).getVisibility());
-        for (int id : new int[]{R.id.ruleLength, R.id.ruleLetter, R.id.ruleNumber, R.id.ruleMatch, R.id.passwordStrengthBar, R.id.passwordStrengthText}) {
-            assertEquals(View.VISIBLE, a.findViewById(id).getVisibility());
-        }
-        assertFalse("nothing typed yet: the button waits", a.findViewById(R.id.forgotActionButton).isEnabled());
-
-        for (String weak : new String[]{"abcdefgh", "12345678", "abc12", "short1"}) {
-            type(a, R.id.newPasswordEditText, weak);
-            type(a, R.id.confirmNewPasswordEditText, weak);
-            assertFalse(weak + " cannot be sent", a.findViewById(R.id.forgotActionButton).isEnabled());
-        }
-        type(a, R.id.newPasswordEditText, "abcdefg1");
-        type(a, R.id.confirmNewPasswordEditText, "abcdefg2");
-        assertFalse("the confirmation must match", a.findViewById(R.id.forgotActionButton).isEnabled());
-        assertTrue(text(a, R.id.ruleMatch).startsWith("○"));
-
-        type(a, R.id.confirmNewPasswordEditText, "abcdefg1");
-        assertTrue(text(a, R.id.ruleLength).startsWith("✓") && text(a, R.id.ruleLetter).startsWith("✓") && text(a, R.id.ruleNumber).startsWith("✓") && text(a, R.id.ruleMatch).startsWith("✓"));
-        assertEquals("Strength: Good", text(a, R.id.passwordStrengthText));
-        assertTrue(a.findViewById(R.id.forgotActionButton).isEnabled());
-        assertEquals("nothing weak ever reached the server", 0, api.count("resetPassword"));
-
-        a.findViewById(R.id.forgotActionButton).performClick();
-        idle();
-        assertEquals(1, api.count("resetPassword"));
-        com.example.velocitysuites.network.dto.ResetPasswordRequest sent = (com.example.velocitysuites.network.dto.ResetPasswordRequest) api.lastArgs.get("resetPassword")[0];
-        assertEquals("abcdefg1", sent.password);
-    }
-
-    @Test
-    public void theChecklistIsReadable_inLightAndDark() {
-        for (String q : new String[]{"w360dp-h800dp-notnight", "w393dp-h851dp-night"}) {
-            RuntimeEnvironment.setQualifiers("+" + q);
-            api = new ScreenTestSupport.FakeApi();
-            ApiClient.setServiceForTests(api.proxy());
-            LoginActivity a = atNewPassword();
-            type(a, R.id.newPasswordEditText, "abcdefg1");
-            Release160Test.assertReadable(q + " reset", a, a.getWindow().getDecorView());
-        }
     }
 }

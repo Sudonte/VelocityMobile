@@ -48,7 +48,6 @@
     <string name="age_label">Age</string>
     <string name="helper_mobile_format_intl">Include your country code (e.g. +1 234 567 8900)</string>
     <string name="email_label">Email Address</string>
-    <string name="password_label">Password</string>
     <string name="first_name_label">First Name</string>
     <string name="middle_name_label">Middle Name (Optional)</string>
     <string name="last_name_label">Last Name</string>
@@ -57,33 +56,26 @@
     <string name="mobile_label">Mobile Number</string>
     <string name="otp_label">Verification Code</string>
     <string name="confirm_password_label">Confirm Password</string>
-    <string name="email_hint">yourname@example.com</string>
-    <string name="helper_email_any">Use an email address you can open - we send your codes there</string>
     <string name="profile_picture_none_selected">No photo selected</string>
     <string name="profile_picture_selected">Photo selected</string>
     <string name="terms_and_agreement_body">Welcome to Velocity Suites.\n\nBy creating an account, you acknowledge that you have read, understood, and agreed to comply with the following Terms and Agreement.\n\n1. You agree that all personal information provided during registration is accurate, complete, and truthful. Providing false or misleading information may result in the suspension or termination of your account.\n\n2. You are responsible for maintaining the confidentiality of your account credentials, including your email address, mobile number, and password. Do not share your login information with other individuals.\n\n3. Velocity Suites collects your personal information solely for account management, room reservations, payment processing, customer support, security, and other hotel-related services. Your information will be handled in accordance with applicable privacy laws and will not be disclosed to unauthorized third parties without your consent unless required by law.\n\n4. You agree to use the Velocity Suites application only for lawful purposes. Any fraudulent booking, unauthorized access, abusive behavior, or misuse of the system may result in account suspension or permanent termination.\n\n5. Room availability, reservation confirmation, promotional offers, prices, and hotel services are subject to change without prior notice.\n\n6. Reservation cancellations, refunds, modifications, and payment processing are subject to the hotel\'s cancellation and payment policies.\n\n7. Velocity Suites reserves the right to reject, suspend, or terminate accounts that violate these Terms and Agreement or any applicable laws and regulations.\n\n8. Users are responsible for ensuring that all booking details and personal information remain accurate and up to date.\n\n9. Velocity Suites implements reasonable security measures to protect user information; however, users are also responsible for protecting their own account credentials.\n\n10. By selecting the agreement checkbox and continuing with the registration process, you confirm that you voluntarily agree to these Terms and Agreement and consent to the collection and processing of your personal information for hotel management purposes.</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="dont_have_account">Don\'t have an account? </string>
     <string name="already_have_account">Already have an account? </string>
-    <string name="otp_hint">OTP Code</string>
-    <string name="resend_otp">Resend OTP</string>
+    <string name="otp_hint">6-digit code</string>
+    <string name="resend_otp">Resend code</string>
     <string name="resend_otp_countdown">Resend code in %1$ds</string>
     <string name="preparing_stay">Loading… Please wait…</string>
     <string name="velocity_suites">Velocity Suites</string>
-    <string name="forgot_password_instruction">Enter your email to receive an OTP code.</string>
-    <string name="otp_sent_to">Enter the 6-digit OTP sent to %1$s</string>
-    <string name="verify_otp_button">Verify OTP</string>
-    <string name="set_new_password_instruction">Set your new secure password.</string>
-    <string name="send_otp_button">Send OTP</string>
-    <string name="back_to_sign_in">Back to Sign In</string>
+    <string name="otp_sent_to">Enter the 6-digit code sent to %1$s</string>
+    <string name="verify_otp_button">Verify code</string>
+    <string name="back_to_sign_in">Back to sign in</string>
     <string name="new_password_hint">New Password</string>
     <string name="confirm_new_password_hint">Confirm New Password</string>
-    <string name="reset_password_title">Reset Password</string>
     <string name="reset_password_button">Update Password</string>
-    <string name="otp_sent">OTP sent to your email.</string>
+    <string name="otp_sent">Code sent to your email.</string>
     <string name="otp_resent">A new code has been sent to your email.</string>
     <string name="otp_verified">Code verified.</string>
-    <string name="password_reset_success">Password updated successfully!</string>
     <string name="remember_me">Remember me</string>
     <string name="registration_step_format">Step %1$d of %2$d</string>
     <string name="gcash_payment_heading">GCash Payment</string>
@@ -326,7 +318,7 @@
     <string name="mobile_invalid_for_country">Enter a valid mobile number for the selected country.</string>
     <string name="password_min_length">Use at least 8 characters with a letter and a number</string>
     <string name="passwords_do_not_match">Passwords do not match</string>
-    <string name="invalid_otp">Invalid OTP</string>
+    <string name="invalid_otp">That code isn\'t right</string>
     <string name="network_error">Couldn\'t reach the server. Check your connection.</string>
     <string name="reset_code_send_failed">Couldn\'t send reset code. Please try again.</string>
     <string name="otp_invalid_or_expired">That code is invalid or expired. Please try again.</string>
@@ -1397,7 +1389,7 @@
     <string name="change_password_new_desc">Code verified. Choose a new password for your account.</string>
     <string name="change_password_discard_message">Your password has not been changed. You will need to verify a new code if you leave now.</string>
     <string name="otp_box_desc">Code digit %1$d of %2$d</string>
-    <string name="otp_too_many_attempts">Too many incorrect codes. Request a new code with Resend OTP.</string>
+    <string name="otp_too_many_attempts">Too many incorrect codes. Request a new code with Resend code.</string>
     <string name="password_change_failed">Couldn\'t change your password. Please try again.</string>
     <string name="password_rule_length">At least 8 characters</string>
     <string name="password_rule_letter">A letter</string>
@@ -1748,7 +1740,7 @@
     <string name="terms_part_hotel">Hotel Policies</string>
     <string name="terms_part_privacy">Privacy and Data Handling (Data Privacy Act of 2012, RA 10173)</string>
     <string name="terms_advance_body">1. Earliest check-in date\nThe earliest check-in date you can choose for a Booking or Reservation is two (2) calendar days after today - 48 hours in advance - using the hotel\'s local date (Philippine Time).\n\n2. Example\nIf today is October 8, check-in on October 8 or 9 is not available. October 10 and any later date can be booked.\n\n3. Check-out\nCheck-out must be at least one (1) day after check-in.\n\n4. Bookings made at the front desk\nBookings made in person by hotel staff are not covered by this online advance-booking rule.</string>
-    <string name="terms_privacy_body">Velocity Suites respects your privacy and processes your personal information in line with the Data Privacy Act of 2012 (Republic Act No. 10173) and its implementing rules.\n\n1. What we collect\nThe details you give when you create an account, make a Booking or Reservation, upload an ID, or pay: your name, birth date, gender, email, mobile number, address, guest details, ID image (only to verify a discount), and payment records such as GCash references.\n\n2. Why we collect it\nOnly to manage your account, process Bookings and Reservations, verify discounts and payments, send OTPs and notifications, give you customer support, keep the property secure, and meet legal obligations.\n\n3. Your consent\nBy checking the agreement box you consent to this collection and use. You may withdraw your consent by contacting the hotel, but some services may then no longer be available.\n\n4. Sharing\nYour information is shared only with hotel staff who need it to serve you, with payment providers to process payments, and with authorities when required by law. It is not sold.\n\n5. Storage and security\nWe use reasonable organizational, physical, and technical safeguards, and keep your information only as long as needed for the purposes above or as the law requires.\n\n6. Your rights\nUnder RA 10173 you have the right to be informed, to access, to correct, to object, to request erasure or blocking, to data portability, and to be compensated for damages caused by inaccurate, incomplete, outdated, false, or unlawfully obtained data. You may also file a complaint with the National Privacy Commission.\n\n7. Contact\nTo use your rights or ask about your data, contact the Velocity Suites front desk.</string>
+    <string name="terms_privacy_body">Velocity Suites respects your privacy and processes your personal information in line with the Data Privacy Act of 2012 (Republic Act No. 10173) and its implementing rules.\n\n1. What we collect\nThe details you give when you create an account, make a Booking or Reservation, upload an ID, or pay: your name, birth date, gender, email, mobile number, address, guest details, ID image (only to verify a discount), and payment records such as GCash references.\n\n2. Why we collect it\nOnly to manage your account, process Bookings and Reservations, verify discounts and payments, send verification codes and notifications, give you customer support, keep the property secure, and meet legal obligations.\n\n3. Your consent\nBy checking the agreement box you consent to this collection and use. You may withdraw your consent by contacting the hotel, but some services may then no longer be available.\n\n4. Sharing\nYour information is shared only with hotel staff who need it to serve you, with payment providers to process payments, and with authorities when required by law. It is not sold.\n\n5. Storage and security\nWe use reasonable organizational, physical, and technical safeguards, and keep your information only as long as needed for the purposes above or as the law requires.\n\n6. Your rights\nUnder RA 10173 you have the right to be informed, to access, to correct, to object, to request erasure or blocking, to data portability, and to be compensated for damages caused by inaccurate, incomplete, outdated, false, or unlawfully obtained data. You may also file a complaint with the National Privacy Commission.\n\n7. Contact\nTo use your rights or ask about your data, contact the Velocity Suites front desk.</string>
     <string name="registration_terms_section_title">Terms and Policy</string>
     <string name="receipt_image_missing">No receipt image is available for this payment.</string>
     <string name="receipt_image_load_failed">The receipt image could not be loaded. Check your connection and try again.</string>
@@ -2539,7 +2531,6 @@ Estimated total after discount: %3$s</string>
     <string name="login_password_hint">Password</string>
     <string name="login_resend_code">Resend code</string>
     <string name="login_invalid_credentials">Incorrect email or password.</string>
-    <string name="forgot_generic_sent">If an account exists for that email, we\'ve sent a code.</string>
     <string name="login_not_verified">This account is not verified yet. Enter the code we sent to your email, or ask for a new one.</string>
     <string name="reg_title">Create account</string>
     <string name="reg_step_name_1">Your name</string>
@@ -2602,6 +2593,28 @@ Estimated total after discount: %3$s</string>
     <string name="reg_success_continue">Continue</string>
     <string name="reg_please_wait">Please wait…</string>
     <string name="reg_submit_failed">We couldn\'t do that. Please try again.</string>
+
+    <!-- Reset password (ResetPasswordActivity): three steps, the same header as Sign in -->
+    <string name="reset_step1_title">Reset your password</string>
+    <string name="reset_step2_title">Enter the code</string>
+    <string name="reset_step3_title">Create a new password</string>
+    <string name="reset_step_line">Step %1$d of 3 · %2$s</string>
+    <string name="reset_step1_name">Your email</string>
+    <string name="reset_step2_name">Check your email</string>
+    <string name="reset_step3_name">New password</string>
+    <string name="reset_email_helper">Enter the email you used for your Velocity Suites account</string>
+    <string name="reset_send_code">Send code</string>
+    <string name="reset_generic_sent">If an account exists for that email, we\'ve sent a 6-digit code.</string>
+    <string name="reset_code_desc">We sent a 6-digit code to %1$s</string>
+    <string name="reset_code_wrong">That code isn\'t right or has expired. Check it and try again, or ask for a new one.</string>
+    <string name="reset_save_and_sign_in">Save and sign in</string>
+    <string name="reset_success_snackbar">Password changed. Welcome back!</string>
+    <string name="reset_banner_trouble">Having trouble signing in? Let\'s reset your password.</string>
+    <string name="reset_stop_title">Stop resetting your password?</string>
+    <string name="reset_stop_message">Your new password has not been saved yet.</string>
+    <string name="reset_stop_keep">Keep going</string>
+    <string name="reset_stop_leave">Stop</string>
+    <string name="reset_signin_instead">Your password was changed. Sign in with it to continue.</string>
 </resources>
 
 
