@@ -24,6 +24,12 @@ public final class ApiClient {
 
     private ApiClient() {}
 
+    /** A unit test answers the screens' calls itself (null puts the real client back). */
+    @androidx.annotation.VisibleForTesting
+    public static synchronized void setServiceForTests(ApiService fake) {
+        service = fake;
+    }
+
     public static synchronized ApiService getService(Context context) {
         if (service == null) {
             // Mirrors RoomRepository's own null-Context contract (its

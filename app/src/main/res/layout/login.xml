@@ -43,8 +43,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="22dp"
-            android:paddingBottom="25dp">
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp">
 
             <!-- Hero Branding Section: photo header + circular logo + curved
                  red/white transition + brand name + tagline. The hero photo
@@ -65,18 +65,18 @@
                 <com.example.velocitysuites.CurvedHeaderView
                     android:id="@+id/curvedHeaderView"
                     android:layout_width="0dp"
-                    android:layout_height="260dp"
-                    android:layout_marginStart="-24dp"
-                    android:layout_marginEnd="-24dp"
+                    android:layout_height="182dp"
+                    android:layout_marginStart="-16dp"
+                    android:layout_marginEnd="-16dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/logoContainer"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginTop="74dp"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginTop="52dp"
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="@dimen/card_corner_radius"
                     app:cardElevation="@dimen/card_elevation"
@@ -91,7 +91,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:contentDescription="@string/app_logo"
-                        android:padding="13dp"
+                        android:padding="9dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/velocity_suites_logo" />
                 </com.google.android.material.card.MaterialCardView>
@@ -100,13 +100,13 @@
                     android:id="@+id/appNameLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-black"
                     android:letterSpacing="0"
                     android:text="@string/velocity_suites"
                     android:textAllCaps="false"
-                    android:textColor="@color/velocity_red_primary"
-                    android:textSize="23sp"
+                    android:textColor="@color/velocity_action_text"
+                    android:textSize="20sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/curvedHeaderView" />
@@ -115,7 +115,7 @@
                     android:id="@+id/taglineLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="2dp"
                     android:fontFamily="sans-serif-medium"
                     android:letterSpacing="0"
                     android:text="@string/welcome_tagline"
@@ -126,22 +126,13 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/appNameLabel" />
 
-                <View
-                    android:layout_width="40dp"
-                    android:layout_height="3dp"
-                    android:layout_marginTop="10dp"
-                    android:background="@color/velocity_red_primary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/taglineLabel" />
-
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <LinearLayout
                 android:id="@+id/loginLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:visibility="invisible"
@@ -151,10 +142,15 @@
                 app:layout_constraintTop_toBottomOf="@id/headerSection">
 
                 <TextView
+                    android:id="@+id/loginHeading"
                     style="@style/TextAppearance.Velocity.ScreenTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/login_heading" />
+                    android:accessibilityHeading="true"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/login_heading"
+                    android:textColor="@color/velocity_text_primary"
+                    android:textSize="24sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -173,7 +169,7 @@
                 style="@style/Widget.Velocity.Card.Glass.Elevated"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="12dp"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toTopOf="@+id/signupRedirect"
                 app:layout_constraintTop_toBottomOf="@id/loginLabel">
@@ -183,22 +179,15 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="22dp"
-                    android:paddingVertical="25dp">
-
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Label.Input"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="6dp"
-                        android:text="@string/email_label" />
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="16dp">
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/emailLayout"
-                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Floating"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:helperText="@string/helper_email_any"
+                        android:hint="@string/login_email_hint"
                         app:startIconDrawable="@drawable/ic_email">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -206,26 +195,20 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
-                            android:hint="@string/email_hint"
                             android:inputType="textEmailAddress"
+                            android:maxLines="1"
                             android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <TextView
-                        style="@style/TextAppearance.Velocity.Label.Input"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:layout_marginBottom="6dp"
-                        android:text="@string/password_label" />
-
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/passwordLayout"
-                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Rounded"
+                        style="@style/Widget.Velocity.TextInputLayout.OutlinedBox.Floating"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="@string/login_password_hint"
                         app:passwordToggleEnabled="true"
                         app:startIconDrawable="@drawable/ic_lock">
 
@@ -234,17 +217,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
-                            android:hint="@string/password_hint"
                             android:inputType="textPassword"
+                            android:maxLines="1"
                             android:paddingVertical="13dp"
                             android:textColor="@color/velocity_text_primary"
                             android:textSize="13sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <LinearLayout
+                        android:id="@+id/rememberRow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
+                        android:layout_marginTop="4dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -255,10 +239,9 @@
                             android:checked="true"
                             android:text="@string/remember_me"
                             android:textColor="@color/velocity_text_secondary"
-                            android:textSize="12sp"
-                            android:minHeight="0dp"
+                            android:textSize="13sp"
+                            android:minHeight="48dp"
                             android:minWidth="0dp"
-                            android:padding="0dp"
                             app:buttonTint="@color/velocity_red_primary"
                             app:useMaterialThemeColors="false" />
 
@@ -271,18 +254,43 @@
                             android:id="@+id/forgotPasswordText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="4dp"
+                            android:gravity="center_vertical"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="4dp"
                             android:fontFamily="sans-serif-black"
                             android:text="@string/forgot_password"
-                            android:textColor="@color/velocity_red_primary"
-                            android:textSize="12sp" />
+                            android:textColor="@color/velocity_action_text"
+                            android:textSize="13sp" />
                     </LinearLayout>
+
+                    <!-- What the server said, in plain words, under the form (never a popup). -->
+                    <TextView
+                        android:id="@+id/loginError"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:accessibilityLiveRegion="polite"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/velocity_action_text"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/loginResendCode"
+                        style="@style/Widget.Velocity.Flat.Button.Text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:text="@string/login_resend_code"
+                        android:textAllCaps="false"
+                        android:textColor="@color/velocity_action_text"
+                        android:visibility="gone" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/signInButton"
                         style="@style/Widget.Velocity.Button"
                         android:layout_width="match_parent"
-                        android:layout_marginTop="23dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/sign_in"
                         app:icon="@drawable/ic_arrow_forward"
                         app:iconGravity="textEnd"
@@ -297,11 +305,11 @@
                 android:id="@+id/signupRedirect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="invisible"
-                app:layout_constraintBottom_toTopOf="@+id/featuresRow"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/loginCard">
@@ -318,109 +326,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:padding="4dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="4dp"
                     android:text="@string/sign_up"
-                    android:textColor="@color/velocity_red_primary"
+                    android:textColor="@color/velocity_action_text"
                     android:textSize="13sp" />
-            </LinearLayout>
-
-            <!-- Supporting feature indicators -->
-            <LinearLayout
-                android:id="@+id/featuresRow"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:baselineAligned="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/signupRedirect">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_shield_check"
-                        app:tint="@color/velocity_red_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/feature_secure_safe"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="30dp"
-                    android:background="@color/velocity_red_subtle" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_headset"
-                        app:tint="@color/velocity_red_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/feature_247_support"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="30dp"
-                    android:background="@color/velocity_red_subtle" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_award"
-                        app:tint="@color/velocity_red_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:text="@string/feature_best_rate"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="11sp"
-                        android:gravity="center" />
-                </LinearLayout>
-
             </LinearLayout>
 
             <!-- Forgot Password Card -->
@@ -439,7 +350,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="22dp"
+                    android:paddingHorizontal="16dp"
                     android:paddingVertical="29dp">
 
                     <ImageView
@@ -645,7 +556,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_gradient_light"
                     android:orientation="vertical"
-                    android:paddingHorizontal="22dp"
+                    android:paddingHorizontal="16dp"
                     android:paddingVertical="29dp">
 
                     <ImageView
@@ -745,30 +656,18 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Floating Back Button (returns to Welcome) -->
-    <com.google.android.material.button.MaterialButton
+    <!-- Back: a plain white arrow on the red header (48dp touch target), returns to Welcome -->
+    <ImageButton
         android:id="@+id/btnBack"
-        style="@style/Widget.MaterialComponents.Button.Icon"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="14dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/back_label"
-        android:insetLeft="0dp"
-        android:insetTop="0dp"
-        android:insetRight="0dp"
-        android:insetBottom="0dp"
-        android:padding="0dp"
-        app:backgroundTint="@color/white"
-        app:cornerRadius="0dp"
-        app:elevation="0dp"
-        app:icon="@drawable/ic_arrow_back"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:iconSize="20dp"
-        app:iconTint="@color/velocity_red_primary"
+        android:src="@drawable/ic_arrow_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:rippleColor="@color/velocity_red_soft" />
+        app:tint="@color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

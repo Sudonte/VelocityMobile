@@ -653,6 +653,24 @@ public class AddressHierarchyController {
         return true;
     }
 
+    private boolean completeForTest;
+
+    /** A unit test cannot drive the live region/province/city lookups: it declares the address filled in. */
+    @androidx.annotation.VisibleForTesting
+    public void setCompleteForTest(boolean complete) {
+        completeForTest = complete;
+    }
+
+    /** Same rule as {@link #validate()} without touching any field or showing any error: for deciding whether Next is enabled. */
+    public boolean isComplete() {
+        if (completeForTest) return true;
+        if (TextUtils.isEmpty(textOf(countryField))) return false;
+        if (!isPhilippines) return currentTimezoneOptions.length == 0 || !TextUtils.isEmpty(selectedTimezoneId);
+        if (selectedRegion == null || (!provinceHasNoProvinces && selectedProvince == null) || selectedCity == null || selectedBarangay == null) return false;
+        if (TextUtils.isEmpty(textOf(streetField))) return false;
+        return textOf(zipField).matches("\\d{4}");
+    }
+
     /** Single-line string for the backend's existing flat `address` field. Non-PH addresses are
      *  just the country - no other address detail is collected outside the Philippines. */
     public String getComposedAddress() {

@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,6 +39,10 @@ public class LoginActivity extends SafeActivity {
     private TextInputEditText forgotEmailEditText, loginOtpEditText, newPasswordEditText, confirmNewPasswordEditText;
     private TextInputLayout emailLayout, passwordLayout;
     private boolean signingIn;
+    private TextView loginError;
+    private MaterialButton loginResendCode;
+    /** The address the unverified-account "Resend code" button is for. */
+    private String unverifiedEmail;
     private TextInputLayout forgotEmailLayout, loginOtpLayout, newPasswordLayout, confirmNewPasswordLayout;
     private View forgotEmailLabel, otpLabel, newPasswordLabel, confirmPasswordLabel;
     private View loginCard, forgotPasswordCard, signupRedirect, headerSection, loginLabel;
@@ -179,6 +184,18 @@ public class LoginActivity extends SafeActivity {
         // An inline error clears as soon as the guest starts fixing the field.
         emailEditText.addTextChangedListener(new SimpleTextWatcher(() -> setFieldError(emailLayout, emailEditText, null)));
         passwordEditText.addTextChangedListener(new SimpleTextWatcher(() -> setFieldError(passwordLayout, passwordEditText, null)));
+        // at the largest font sizes the two links would not fit side by side: they stack instead
+        if (getResources().getConfiguration().fontScale >= 1.5f) {
+            LinearLayout row = findViewById(R.id.rememberRow);
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setGravity(android.view.Gravity.START);
+        }
+        loginError = findViewById(R.id.loginError);
+        loginResendCode = findViewById(R.id.loginResendCode);
+        loginResendCode.setOnClickListener(v -> resendVerificationCode());
+        // typing again clears what the server said
+        emailEditText.addTextChangedListener(new SimpleTextWatcher(this::clearLoginError));
+        passwordEditText.addTextChangedListener(new SimpleTextWatcher(this::clearLoginError));
         
         forgotEmailEditText = findViewById(R.id.forgotEmailEditText);
         loginOtpEditText = findViewById(R.id.loginOtpEditText);
@@ -225,6 +242,7 @@ public class LoginActivity extends SafeActivity {
         String password = passwordEditText.getText() != null ? passwordEditText.getText().toString().trim() : "";
 
         if (signingIn) return;
+        clearLoginError();
         if (!validateInput(email, password)) return;
 
         boolean isDefaultAccount = email.equalsIgnoreCase(DEFAULT_EMAIL) && password.equals(DEFAULT_PASSWORD);
@@ -254,15 +272,15 @@ public class LoginActivity extends SafeActivity {
                 } else if (response.isSuccessful() && response.body() != null) {
                     successfulLogin(response.body(), R.string.welcome_back);
                 } else if (response.code() == 423) {
-                    Toast.makeText(LoginActivity.this, R.string.failed_attempts_warning, Toast.LENGTH_LONG).show();
                     showForgotPasswordFlow();
+                    forgotPasswordDesc.setText(R.string.failed_attempts_warning); // the reset card says why it opened
                 } else if (response.code() == 403) {
                     // Wrong password never reaches here (that's a 401) -
                     // 403 means the credentials were correct but the
                     // account isn't a guest account (see AuthController::
                     // login's role check), so show the server's actual
                     // reason instead of a misleading "invalid credentials".
-                    Toast.makeText(LoginActivity.this, messageFrom(errorBody), Toast.LENGTH_LONG).show();
+                    showLoginError(messageFrom(errorBody));
                 } else if (isDefaultAccount) {
                     // Demo account rejected by the server (e.g. not seeded
                     // in this environment) - fall back to the fully local
@@ -282,9 +300,13 @@ public class LoginActivity extends SafeActivity {
                     } else if (failure.kind == LoginFailure.Kind.WRONG_PASSWORD) {
                         setFieldError(passwordLayout, passwordEditText, failure.message != null ? failure.message : getString(R.string.login_wrong_password));
                         passwordEditText.requestFocus();
+                    } else if (failure.kind == LoginFailure.Kind.ACCOUNT_NOT_VERIFIED) {
+                        unverifiedEmail = email;
+                        showLoginError(failure.message != null ? failure.message : getString(R.string.login_not_verified));
+                        loginResendCode.setVisibility(View.VISIBLE);
                     } else {
-                        Toast.makeText(LoginActivity.this, messageFrom(errorBody), Toast.LENGTH_SHORT).show();
-                        setFieldError(passwordLayout, passwordEditText, getString(R.string.incorrect_password));
+                        // blocked or suspended accounts: the server's own words
+                        showLoginError(messageFrom(errorBody));
                     }
                 }
             }
@@ -299,7 +321,7 @@ public class LoginActivity extends SafeActivity {
                     loginWithDefaultAccount();
                     return;
                 }
-                Toast.makeText(LoginActivity.this, RoomRepository.networkErrorMessage(LoginActivity.this, t), Toast.LENGTH_LONG).show();
+                showLoginError(RoomRepository.networkErrorMessage(LoginActivity.this, t));
             }
         });
     }
@@ -573,6 +595,43 @@ public class LoginActivity extends SafeActivity {
     private String messageFrom(String errorBody) {
         String message = LoginFailure.parse(errorBody).message;
         return message != null && !message.trim().isEmpty() ? message : getString(R.string.invalid_credentials);
+    }
+
+    /** The server's answer, in plain words, under the form. */
+    private void showLoginError(String message) {
+        if (loginError == null) return;
+        loginError.setText(message);
+        loginError.setVisibility(View.VISIBLE);
+    }
+
+    private void clearLoginError() {
+        if (loginError != null) loginError.setVisibility(View.GONE);
+        if (loginResendCode != null) loginResendCode.setVisibility(View.GONE);
+    }
+
+    /** An unverified sign-up: ask for a new code, then land on the verification screen for that address. */
+    private void resendVerificationCode() {
+        if (unverifiedEmail == null || signingIn) return;
+        loginResendCode.setEnabled(false);
+        ApiClient.getService(this).resendOtp(new EmailRequest(unverifiedEmail)).enqueue(new Callback<ApiMessage>() {
+            @Override
+            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                if (isFinishing() || isDestroyed()) return;
+                loginResendCode.setEnabled(true);
+                if (response.isSuccessful()) {
+                    startActivity(new Intent(LoginActivity.this, RegistrationActivity.class).putExtra(RegistrationActivity.EXTRA_VERIFY_EMAIL, unverifiedEmail));
+                } else {
+                    showLoginError(messageFrom(readErrorBody(response)));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                loginResendCode.setEnabled(true);
+                showLoginError(RoomRepository.networkErrorMessage(LoginActivity.this, t));
+            }
+        });
     }
 
     /** One shot per tap: while a sign-in is in flight the button is disabled and says so. */

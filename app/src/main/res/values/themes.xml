@@ -206,6 +206,13 @@
         <item name="helperTextTextColor">@color/velocity_text_secondary</item>
     </style>
 
+    <!-- Sign in and Create account: the same outlined box, but the label floats (it sits in the box until the field is used, then rides the border) -->
+    <style name="Widget.Velocity.TextInputLayout.OutlinedBox.Floating" parent="Widget.Velocity.TextInputLayout.OutlinedBox.Rounded">
+        <item name="hintEnabled">true</item>
+        <item name="hintTextColor">@color/velocity_action_text</item>
+        <item name="android:textColorHint">@color/velocity_text_secondary</item>
+    </style>
+
     <!-- Modern exposed dropdown (combo box) used for Sort By / Room Type filter -->
     <style name="Widget.Velocity.TextInputLayout.ExposedDropdown" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
         <item name="boxCornerRadiusBottomEnd">0dp</item>

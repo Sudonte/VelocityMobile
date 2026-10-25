@@ -3,31 +3,25 @@ package com.example.velocitysuites;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.StringRes;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
@@ -41,18 +35,15 @@ import com.example.velocitysuites.network.dto.ProfileResponse;
 import com.example.velocitysuites.network.dto.RegisterRequest;
 import com.example.velocitysuites.network.dto.VerifyOtpRequest;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.checkbox.MaterialCheckBox;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import okhttp3.MediaType;
@@ -62,88 +53,154 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Create account, in six short steps: 1 name, 2 about you (gender, date of birth, the age that follows from it), 3 contact (email, mobile),
+ * 4 address, 5 password and photo, 6 review and terms. Then the verification screen (a six-box code) and the success screen. One compact
+ * header on every screen (logo, "Create account", "Step N of 6 - Title", one progress bar) and Back / Next pinned at the bottom: Next is
+ * always on screen, disabled with the reason above it until the step is valid.
+ */
 public class RegistrationActivity extends SafeActivity {
-    private TextInputEditText firstNameEdit, lastNameEdit, middleNameEdit, ageEdit, dobEdit, mobileEdit, emailEdit, passwordEdit, confirmPasswordEdit, otpEdit;
-    private AutoCompleteTextView genderDropdown;
-    private View step1Layout, step2Layout, step3Layout, otpLayout;
-    private MaterialButton nextButton, signUpButton;
-    /** True while register/verify is in flight - a second tap does nothing. */
-    private boolean requestInFlight;
+
+    /** Opens straight on the verification screen for an address whose sign-up was started but never verified (sent by Sign in). */
+    public static final String EXTRA_VERIFY_EMAIL = "verify_email";
+
+    static final int STEPS = 6;
+    private static final int PHASE_FORM = 0, PHASE_VERIFY = 1, PHASE_SUCCESS = 2;
     private static final long RESEND_COOLDOWN_MS = 60_000L;
-    private android.os.CountDownTimer resendTimer;
-    private TextView stepText, resendOtpLink;
-    private View registrationLabel;
-    private View stepProgressBar;
-    private View stepDot1, stepDot2, stepDot3, stepDot4;
-    private View headerSection, registrationCard, loginRedirect, stepIndicatorContainer;
-    private Animation flipLeft, fadeInSlideUp;
-    private TermsConsentView termsConsent;
-    private TextView submitHintText;
-    private AddressHierarchyController addressController;
-    private View ageValidationErrorContainer;
-    private TextInputLayout mobileInputLayout;
-    private ImageView regProfileImage;
-    private View regSelectPhotoButton;
-    private TextView regPhotoStatusText, regRemovePhotoLink;
+    private static final ZoneId MANILA = ZoneId.of("Asia/Manila");
+    private static final DateTimeFormatter DOB_SHOWN = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US);
 
     private static final String STATE_STEP = "currentStep";
-    private static final String STATE_OTP_STEP = "isOtpStep";
-    private static final int MIN_REGISTRATION_AGE = 18;
-    private static final int PASSWORD_MIN_LENGTH = 8;
+    private static final String STATE_PHASE = "phase";
+    private static final String STATE_DOB = "dob";
+    private static final String STATE_VERIFY_EMAIL = "verifyEmail";
+    private static final String STATE_VERIFY_ONLY = "verifyOnly";
+    private static final String STATE_RESEND_UNTIL = "resendUntil";
+    private static final String STATE_ADDR = "addr_";
+
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int CAPTURE_IMAGE_REQUEST = 2;
     private static final int PERMISSION_REQUEST_CODE = 100;
 
+    private TextInputEditText firstNameEdit, lastNameEdit, middleNameEdit, dobEdit, mobileEdit, emailEdit, passwordEdit, confirmPasswordEdit;
+    private AutoCompleteTextView genderDropdown;
+    private TextInputLayout mobileInputLayout, dobLayout, genderLayout;
+    private final View[] stepLayouts = new View[STEPS + 1];
+    private View otpLayout, successLayout, loginRedirect, bottomBar;
+    private MaterialButton nextButton, signUpButton, previousButton;
+    private TextView stepText, nextReason, ageText, ageErrorText, resendOtpLink, otpErrorText, otpVerifyingText, regSubmitError, otpDesc;
+    private LinearProgressIndicator progressBar;
+    private NestedScrollView scroll;
+    private TermsConsentView termsConsent;
+    private AddressHierarchyController addressController;
+    private OtpBoxes otpBoxes;
+    private ImageView regProfileImage;
+    private TextView regPhotoStatusText;
+    private View regRemovePhotoLink;
+    private ProgressBar strengthBar;
+    private TextView strengthText;
+    private TextView[] rules;
+    private android.os.CountDownTimer resendTimer;
+
+    private int phase = PHASE_FORM;
     private int currentStep = 1;
-    private boolean isOtpStep = false;
-    /** Picked during registration but not uploaded until after OTP verification,
-     *  since the profile-picture endpoint requires the account/token that only
-     *  exists once verifyOtp() succeeds. Null means the guest skipped it. */
+    private boolean verifyOnly;
+    private String verifyEmail = "";
+    private long resendUntil;
+    /** True while register / verify is in flight - a second tap does nothing. */
+    private boolean requestInFlight;
+    @Nullable
+    private LocalDate dob;
+    /** Picked now but only uploaded after the code is verified (the picture endpoint needs the account's token). */
     private Bitmap selectedProfileBitmap;
+    private boolean continuing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registration);
+        bindViews();
+        setupGender();
+        dobEdit.setOnClickListener(v -> openDobPicker());
+        addressController = AddressHierarchyController.attach(this, findViewById(R.id.step4Layout));
+        addressController.setOnCountryChangeListener(isPh -> {
+            mobileInputLayout.setHelperText(getString(isPh ? R.string.reg_mobile_helper : R.string.helper_mobile_format_intl));
+            refreshNext();
+        });
+        setupValidation();
+        setupPasswordRules();
+        setupButtons();
 
-        initializeViews();
-        setupGenderDropdown();
-        setupDatePicker();
-        addressController = AddressHierarchyController.attach(this, step3Layout);
-        addressController.setOnCountryChangeListener(this::updateMobileHelperText);
+        verifyOnly = getIntent().getStringExtra(EXTRA_VERIFY_EMAIL) != null;
         if (savedInstanceState != null) {
-            // Rotation / configuration change: stay on the step the guest was on instead of restarting at step 1.
-            currentStep = savedInstanceState.getInt(STATE_STEP, 1);
-            isOtpStep = savedInstanceState.getBoolean(STATE_OTP_STEP, false);
+            restoreState(savedInstanceState);
+        } else if (verifyOnly) {
+            verifyEmail = getIntent().getStringExtra(EXTRA_VERIFY_EMAIL);
+            emailEdit.setText(verifyEmail);
+            phase = PHASE_VERIFY;
+            resendUntil = android.os.SystemClock.elapsedRealtime() + RESEND_COOLDOWN_MS;
         }
-        updateStepUI();
-        startIntroAnimations();
+        render(false);
+    }
 
-        nextButton.setOnClickListener(v -> handleNextStep());
-        signUpButton.setOnClickListener(v -> {
-            if (isOtpStep) {
-                verifyOtp();
-            } else {
-                handleRegistration();
-            }
+    // ---------------------------------------------------------------- setup
+
+    private void bindViews() {
+        firstNameEdit = findViewById(R.id.firstNameEditText);
+        lastNameEdit = findViewById(R.id.lastNameEditText);
+        middleNameEdit = findViewById(R.id.middleNameEditText);
+        dobEdit = findViewById(R.id.dobEditText);
+        mobileEdit = findViewById(R.id.mobileEditText);
+        mobileInputLayout = findViewById(R.id.mobileInputLayout);
+        dobLayout = findViewById(R.id.dobLayout);
+        genderLayout = findViewById(R.id.genderLayout);
+        emailEdit = findViewById(R.id.emailEditText);
+        passwordEdit = findViewById(R.id.passwordEditText);
+        confirmPasswordEdit = findViewById(R.id.confirmPasswordEditText);
+        genderDropdown = findViewById(R.id.genderDropdown);
+        int[] ids = {0, R.id.step1Layout, R.id.step2Layout, R.id.step3Layout, R.id.step4Layout, R.id.step5Layout, R.id.step6Layout};
+        for (int i = 1; i <= STEPS; i++) stepLayouts[i] = findViewById(ids[i]);
+        otpLayout = findViewById(R.id.otpLayout);
+        successLayout = findViewById(R.id.successLayout);
+        loginRedirect = findViewById(R.id.loginRedirect);
+        bottomBar = findViewById(R.id.bottomActionBar);
+        nextButton = findViewById(R.id.nextButton);
+        signUpButton = findViewById(R.id.signUpButton);
+        previousButton = findViewById(R.id.btnPrevious);
+        stepText = findViewById(R.id.stepText);
+        nextReason = findViewById(R.id.nextReason);
+        ageText = findViewById(R.id.ageText);
+        ageErrorText = findViewById(R.id.ageValidationErrorText);
+        resendOtpLink = findViewById(R.id.resendOtpLink);
+        otpErrorText = findViewById(R.id.otpErrorText);
+        otpVerifyingText = findViewById(R.id.otpVerifyingText);
+        regSubmitError = findViewById(R.id.regSubmitError);
+        otpDesc = findViewById(R.id.otpVerifyDescText);
+        progressBar = findViewById(R.id.stepProgressBar);
+        scroll = findViewById(R.id.regScroll);
+        termsConsent = findViewById(R.id.termsConsent);
+        regProfileImage = findViewById(R.id.regProfileImage);
+        regPhotoStatusText = findViewById(R.id.regPhotoStatusText);
+        regRemovePhotoLink = findViewById(R.id.regRemovePhotoLink);
+        strengthBar = findViewById(R.id.passwordStrengthBar);
+        strengthText = findViewById(R.id.passwordStrengthText);
+        rules = new TextView[]{findViewById(R.id.ruleLength), findViewById(R.id.ruleLetter), findViewById(R.id.ruleNumber), findViewById(R.id.ruleMatch)};
+    }
+
+    private void setupGender() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, new String[]{"Male", "Female"});
+        genderDropdown.setAdapter(adapter);
+        genderDropdown.setOnClickListener(v -> genderDropdown.showDropDown());
+        genderDropdown.setOnItemClickListener((p, v, pos, id) -> {
+            genderLayout.setError(null);
+            refreshNext();
         });
+    }
 
-        resendOtpLink.setOnClickListener(v -> resendOtp());
-
-        termsConsent.setActionLabel(getString(R.string.sign_up_now));
-        termsConsent.setListener((viewed, accepted) -> updateSignUpEnabledState());
-        setupInlineValidation();
-
-        regSelectPhotoButton.setOnClickListener(v -> selectProfilePicture());
-        regRemovePhotoLink.setOnClickListener(v -> clearSelectedProfilePicture());
-
-        findViewById(R.id.signInLink).setOnClickListener(v -> {
-            finish();
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        });
-
-        // Single unified Back control for all 4 steps: floating button, and hardware/gesture
-        // back, both funnel through handleBack() so Step 4->3->2->1->Welcome is consistent.
+    private void setupButtons() {
+        nextButton.setOnClickListener(v -> goNext());
+        previousButton.setOnClickListener(v -> handleBack());
+        signUpButton.setOnClickListener(v -> confirmAndRegister());
         findViewById(R.id.btnBack).setOnClickListener(v -> handleBack());
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
@@ -151,162 +208,614 @@ public class RegistrationActivity extends SafeActivity {
                 handleBack();
             }
         });
+        findViewById(R.id.signInLink).setOnClickListener(v -> confirmLeave(this::finish));
+        findViewById(R.id.regSelectPhotoButton).setOnClickListener(v -> selectProfilePicture());
+        regRemovePhotoLink.setOnClickListener(v -> clearSelectedProfilePicture());
+        termsConsent.setActionLabel(getString(R.string.reg_create_account));
+        termsConsent.setListener((viewed, accepted) -> refreshNext());
+        resendOtpLink.setOnClickListener(v -> resendOtp());
+        findViewById(R.id.changeEmailLink).setOnClickListener(v -> changeEmail());
+        findViewById(R.id.successContinueButton).setOnClickListener(v -> continueIntoApp());
     }
 
-    private void initializeViews() {
-        firstNameEdit = findViewById(R.id.firstNameEditText);
-        lastNameEdit = findViewById(R.id.lastNameEditText);
-        middleNameEdit = findViewById(R.id.middleNameEditText);
-        ageEdit = findViewById(R.id.ageEditText);
-        dobEdit = findViewById(R.id.dobEditText);
-        mobileEdit = findViewById(R.id.mobileEditText);
-        mobileInputLayout = findViewById(R.id.mobileInputLayout);
-        emailEdit = findViewById(R.id.emailEditText);
-        passwordEdit = findViewById(R.id.passwordEditText);
-        confirmPasswordEdit = findViewById(R.id.confirmPasswordEditText);
-        otpEdit = findViewById(R.id.otpEditText);
-        genderDropdown = findViewById(R.id.genderDropdown);
-        termsConsent = findViewById(R.id.termsConsent);
-        submitHintText = findViewById(R.id.submitHintText);
-        ageValidationErrorContainer = findViewById(R.id.ageValidationErrorContainer);
-        regProfileImage = findViewById(R.id.regProfileImage);
-        regSelectPhotoButton = findViewById(R.id.regSelectPhotoButton);
-        regPhotoStatusText = findViewById(R.id.regPhotoStatusText);
-        regRemovePhotoLink = findViewById(R.id.regRemovePhotoLink);
-        step1Layout = findViewById(R.id.step1Layout);
-        step2Layout = findViewById(R.id.step2Layout);
-        step3Layout = findViewById(R.id.step3Layout);
-        otpLayout = findViewById(R.id.otpLayout);
-
-        nextButton = findViewById(R.id.nextButton);
-        signUpButton = findViewById(R.id.signUpButton);
-        resendOtpLink = findViewById(R.id.resendOtpLink);
-
-        stepText = findViewById(R.id.stepText);
-        registrationLabel = findViewById(R.id.registrationLabel);
-        stepProgressBar = findViewById(R.id.stepProgressBar);
-        stepDot1 = findViewById(R.id.stepDot1);
-        stepDot2 = findViewById(R.id.stepDot2);
-        stepDot3 = findViewById(R.id.stepDot3);
-        stepDot4 = findViewById(R.id.stepDot4);
-
-        headerSection = findViewById(R.id.headerSection);
-        registrationCard = findViewById(R.id.registrationCard);
-        loginRedirect = findViewById(R.id.loginRedirect);
-        stepIndicatorContainer = findViewById(R.id.stepIndicatorContainer);
-
-        fadeInSlideUp = AnimationUtils.loadAnimation(this, R.anim.fade_in_slide_up);
-        flipLeft = AnimationUtils.loadAnimation(this, R.anim.flip_left);
-    }
-
-    private void setupGenderDropdown() {
-        String[] genders = new String[]{"Male", "Female"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, genders);
-        genderDropdown.setAdapter(adapter);
-        genderDropdown.setOnClickListener(v -> genderDropdown.showDropDown());
-    }
-
-    private void setupDatePicker() {
-        dobEdit.setOnClickListener(v -> openDobPicker());
-
-        // Live 18+ check: reacts to the age auto-filled whenever a DOB is picked, so the
-        // Step 2 gate reflects the age the instant it changes. Age itself is read-only -
-        // Date of Birth is the only source of truth for it.
-        ageEdit.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                updateAgeValidationUI();
+    /** Inline errors appear when a field loses focus and clear while it is edited; every edit re-decides whether Next is enabled. */
+    private void setupValidation() {
+        TextInputEditText[] all = {firstNameEdit, lastNameEdit, middleNameEdit, mobileEdit, emailEdit, passwordEdit, confirmPasswordEdit};
+        for (TextInputEditText field : all) {
+            field.addTextChangedListener(new SimpleTextWatcher(() -> {
+                TextInputLayout layout = layoutOf(field);
+                if (layout != null) layout.setError(null);
+                refreshNext();
+            }));
+            field.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) validateOnBlur(field);
+            });
+        }
+        // the address controller owns these fields: watch them so Next follows the address as it is filled in
+        int[] addressFields = {R.id.addrCountryField, R.id.addrRegionField, R.id.addrProvinceField, R.id.addrCityField, R.id.addrBarangayField,
+                R.id.addrStreetField, R.id.addrZipField, R.id.addrTimezoneField};
+        for (int id : addressFields) {
+            TextView field = findViewById(id);
+            if (field != null) field.addTextChangedListener(new SimpleTextWatcher(this::refreshNext));
+        }
+        TextView zip = findViewById(R.id.addrZipField);
+        zip.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus && zip.getText().length() > 0 && !zip.getText().toString().matches("\\d{4}")) {
+                TextInputLayout layout = findViewById(R.id.addrZipLayout);
+                layout.setError(getString(R.string.zip_invalid));
             }
         });
     }
 
-    /**
-     * Shows/hides the "must be 18+" banner and, while on Step 2, disables the Next
-     * button whenever the current age value is a valid but underage number. An
-     * empty or unparsable age is left to the on-submit required-field check instead.
-     */
-    private void updateAgeValidationUI() {
-        if (ageValidationErrorContainer == null) return;
-        Integer age = parseValidAge(textOf(ageEdit));
-        boolean underage = age != null && age < MIN_REGISTRATION_AGE;
-        ageValidationErrorContainer.setVisibility(underage ? View.VISIBLE : View.GONE);
-        if (currentStep == 2 && !isOtpStep && nextButton != null) {
-            nextButton.setEnabled(!underage);
-        }
+    private void setupPasswordRules() {
+        passwordEdit.addTextChangedListener(new SimpleTextWatcher(this::updatePasswordRules));
+        confirmPasswordEdit.addTextChangedListener(new SimpleTextWatcher(this::updatePasswordRules));
+        updatePasswordRules();
     }
 
-    /**
-     * Opens the DOB picker, capped at yesterday so neither today nor any future date can
-     * ever be selected as a Date of Birth. Reopens at the previously chosen date when one
-     * exists; otherwise anchors on MIN_REGISTRATION_AGE years ago (a typical new adult
-     * guest) instead of today, so the guest isn't forced to spin the picker back several
-     * decades from the current date just to reach a plausible birth year.
-     */
+    private void updatePasswordRules() {
+        String p = textOf(passwordEdit, false);
+        String c = textOf(confirmPasswordEdit, false);
+        boolean[] met = {PasswordRules.hasMinLength(p), PasswordRules.hasLetter(p), PasswordRules.hasNumber(p), PasswordRules.matches(p, c)};
+        int[] labels = {R.string.reg_rule_length, R.string.reg_rule_letter, R.string.reg_rule_number, R.string.reg_rule_match};
+        for (int i = 0; i < rules.length; i++) {
+            rules[i].setText((met[i] ? "✓ " : "○ ") + getString(labels[i]));
+            rules[i].setTextColor(ContextCompat.getColor(this, met[i] ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
+            rules[i].setTypeface(null, met[i] ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        }
+        int level = PasswordRules.strength(p);
+        strengthBar.setProgress(level);
+        int[] colors = {R.color.velocity_divider_hairline, R.color.velocity_action_text, R.color.velocity_orange_primary, R.color.velocity_gold_primary, R.color.velocity_green_primary};
+        strengthBar.setProgressTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, colors[level])));
+        strengthBar.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.velocity_divider_hairline)));
+        int[] words = {R.string.reg_strength_none, R.string.reg_strength_1, R.string.reg_strength_2, R.string.reg_strength_3, R.string.reg_strength_4};
+        strengthText.setText(words[level]);
+        refreshNext();
+    }
+
+    // ---------------------------------------------------------------- date of birth and age
+
+    private LocalDate today() {
+        return LocalDate.now(MANILA);
+    }
+
     private void openDobPicker() {
-        Calendar initial = Calendar.getInstance();
-        String existingDob = textOf(dobEdit);
-        if (!TextUtils.isEmpty(existingDob)) {
-            try {
-                Date parsed = new SimpleDateFormat("MM/dd/yyyy", Locale.US).parse(existingDob);
-                if (parsed != null) initial.setTime(parsed);
-            } catch (ParseException ignored) {
+        LocalDate start = dob != null ? dob : today().minusYears(AgeRules.MIN_AGE);
+        DatePickerDialog dialog = new DatePickerDialog(this, (view, y, m, d) -> {
+            dob = LocalDate.of(y, m + 1, d);
+            updateDobUi();
+            dobLayout.setError(null);
+            refreshNext();
+        }, start.getYear(), start.getMonthValue() - 1, start.getDayOfMonth());
+        // no date of birth in the future (the 18+ rule is explained under the field, so an under-age date can still be chosen and read)
+        dialog.getDatePicker().setMaxDate(today().minusDays(1).atStartOfDay(MANILA).toInstant().toEpochMilli());
+        SafeDialogs.show(dialog);
+    }
+
+    private void updateDobUi() {
+        if (dob == null) {
+            dobEdit.setText("");
+            ageText.setText(R.string.reg_age_empty);
+            ageErrorText.setVisibility(View.GONE);
+            return;
+        }
+        dobEdit.setText(DOB_SHOWN.format(dob));
+        int age = AgeRules.ageOn(dob, today());
+        ageText.setText(getString(R.string.reg_age_format, age));
+        ageErrorText.setVisibility(age < AgeRules.MIN_AGE ? View.VISIBLE : View.GONE);
+    }
+
+    /** What the date picker does, for tests (a system dialog cannot be driven from a unit test). */
+    @androidx.annotation.VisibleForTesting
+    public void setDateOfBirthForTest(@NonNull LocalDate date) {
+        dob = date;
+        updateDobUi();
+        refreshNext();
+    }
+
+    /** Declares the address filled in (the live region/province/city lookups need the network, which a unit test does not have). */
+    @androidx.annotation.VisibleForTesting
+    public void markAddressCompleteForTest() {
+        addressController.setCompleteForTest(true);
+        refreshNext();
+    }
+
+    /** Opens the Terms and ticks the box (the Terms dialog must be scrolled to the end on a phone). */
+    @androidx.annotation.VisibleForTesting
+    public void acceptTermsForTest() {
+        termsConsent.restore(true, true);
+        refreshNext();
+    }
+
+    @androidx.annotation.VisibleForTesting
+    public int currentStepForTest() {
+        return phase == PHASE_FORM ? currentStep : 100 + phase;
+    }
+
+    // ---------------------------------------------------------------- step rules
+
+    private String textOf(TextInputEditText et, boolean trim) {
+        if (et == null || et.getText() == null) return "";
+        return trim ? et.getText().toString().trim() : et.getText().toString();
+    }
+
+    private String textOf(TextInputEditText et) {
+        return textOf(et, true);
+    }
+
+    private String gender() {
+        return genderDropdown.getText() != null ? genderDropdown.getText().toString().trim() : "";
+    }
+
+    private boolean stepValid(int step) {
+        switch (step) {
+            case 1:
+                return !textOf(firstNameEdit).isEmpty() && !textOf(lastNameEdit).isEmpty();
+            case 2:
+                return !gender().isEmpty() && dob != null && AgeRules.isAdult(dob, today());
+            case 3:
+                return EmailValidator.isValid(textOf(emailEdit)) && PhoneNumberValidator.isValid(addressController.getSelectedCountry(), textOf(mobileEdit));
+            case 4:
+                return addressController.isComplete();
+            case 5:
+                return PasswordRules.isValid(textOf(passwordEdit, false)) && PasswordRules.matches(textOf(passwordEdit, false), textOf(confirmPasswordEdit, false));
+            case 6:
+                return termsConsent.isViewed() && termsConsent.isAccepted();
+            default:
+                return true;
+        }
+    }
+
+    @StringRes
+    private int reasonFor(int step) {
+        switch (step) {
+            case 1: return R.string.reg_reason_1;
+            case 2: return R.string.reg_reason_2;
+            case 3: return R.string.reg_reason_3;
+            case 4: return R.string.reg_reason_4;
+            case 5: return R.string.reg_reason_5;
+            default: return TermsGate.missingHintRes(termsConsent.isViewed(), termsConsent.isAccepted());
+        }
+    }
+
+    /** Enables the pinned button for the current step, or says in plain words what is still missing. */
+    private void refreshNext() {
+        if (phase != PHASE_FORM || nextButton == null || termsConsent == null || addressController == null) return;
+        boolean valid = stepValid(currentStep);
+        MaterialButton primary = currentStep == STEPS ? signUpButton : nextButton;
+        primary.setEnabled(valid && !requestInFlight);
+        int reason = valid ? 0 : reasonFor(currentStep);
+        nextReason.setVisibility(reason == 0 ? View.GONE : View.VISIBLE);
+        if (reason != 0) nextReason.setText(reason);
+    }
+
+    private void validateOnBlur(TextInputEditText field) {
+        TextInputLayout layout = layoutOf(field);
+        if (layout == null) return;
+        String error = null;
+        if (field == firstNameEdit) {
+            if (textOf(field).isEmpty()) error = getString(R.string.first_name_required);
+        } else if (field == lastNameEdit) {
+            if (textOf(field).isEmpty()) error = getString(R.string.last_name_required);
+        } else if (field == emailEdit) {
+            if (!EmailValidator.isValid(textOf(field))) error = getString(R.string.valid_email_required);
+        } else if (field == mobileEdit) {
+            String country = addressController.getSelectedCountry();
+            if (!PhoneNumberValidator.isValid(country, textOf(field))) error = PhoneNumberValidator.errorMessage(this, country);
+        } else if (field == passwordEdit) {
+            if (!PasswordRules.isValid(textOf(field, false))) error = getString(R.string.password_min_length);
+        } else if (field == confirmPasswordEdit) {
+            if (!textOf(field, false).isEmpty() && !PasswordRules.matches(textOf(passwordEdit, false), textOf(field, false))) error = getString(R.string.passwords_do_not_match);
+        }
+        layout.setError(error);
+    }
+
+    @Nullable
+    private TextInputLayout layoutOf(View field) {
+        android.view.ViewParent parent = field.getParent();
+        while (parent != null && !(parent instanceof TextInputLayout)) parent = parent.getParent();
+        return (TextInputLayout) parent;
+    }
+
+    // ---------------------------------------------------------------- navigation
+
+    private void goNext() {
+        if (phase != PHASE_FORM || currentStep >= STEPS || !stepValid(currentStep)) return;
+        showStep(currentStep + 1, true);
+    }
+
+    private void showStep(int step, boolean forward) {
+        View from = stepLayouts[currentStep];
+        currentStep = step;
+        render(true);
+        if (WelcomeEffects.enabled(this)) {
+            View to = stepLayouts[currentStep];
+            to.setAlpha(0f);
+            to.setTranslationX((forward ? 24 : -24) * getResources().getDisplayMetrics().density);
+            to.animate().alpha(1f).translationX(0f).setDuration(220L).start();
+        }
+        scroll.scrollTo(0, 0);
+    }
+
+    private void handleBack() {
+        if (requestInFlight) return;
+        if (phase == PHASE_SUCCESS) {
+            continueIntoApp();
+        } else if (phase == PHASE_VERIFY) {
+            if (verifyOnly) {
+                finish();
+            } else {
+                phase = PHASE_FORM;
+                currentStep = STEPS;
+                cancelResend();
+                render(true);
             }
+        } else if (currentStep > 1) {
+            showStep(currentStep - 1, false);
         } else {
-            initial.add(Calendar.YEAR, -MIN_REGISTRATION_AGE);
-        }
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                (view, year1, monthOfYear, dayOfMonth) -> {
-                    dobEdit.setText(String.format(Locale.US, "%02d/%02d/%d", monthOfYear + 1, dayOfMonth, year1));
-                    ageEdit.setText(String.valueOf(calculateAge(year1, monthOfYear + 1, dayOfMonth)));
-                }, initial.get(Calendar.YEAR), initial.get(Calendar.MONTH), initial.get(Calendar.DAY_OF_MONTH));
-
-        Calendar maxDob = Calendar.getInstance();
-        maxDob.add(Calendar.DAY_OF_YEAR, -1);
-        datePickerDialog.getDatePicker().setMaxDate(maxDob.getTimeInMillis());
-        SafeDialogs.show(datePickerDialog);
-    }
-
-    private Integer parseValidAge(String value) {
-        if (TextUtils.isEmpty(value)) return null;
-        try {
-            int age = Integer.parseInt(value.trim());
-            return (age > 0 && age < 120) ? age : null;
-        } catch (NumberFormatException e) {
-            return null;
+            confirmLeave(this::goToWelcome);
         }
     }
 
-    private int calculateAge(int birthYear, int birthMonth, int birthDay) {
-        Calendar today = Calendar.getInstance();
-        int age = today.get(Calendar.YEAR) - birthYear;
-        int todayMonth = today.get(Calendar.MONTH) + 1;
-        int todayDay = today.get(Calendar.DAY_OF_MONTH);
-        if (todayMonth < birthMonth || (todayMonth == birthMonth && todayDay < birthDay)) {
-            age--;
+    /** Leaving with something typed asks first; with nothing typed it just leaves. */
+    private void confirmLeave(Runnable leave) {
+        if (!hasAnyInput()) {
+            leave.run();
+            return;
         }
-        return age;
+        new SafeDialogs.Material(this)
+                .setTitle(R.string.reg_discard_title)
+                .setMessage(R.string.reg_discard_message)
+                .setPositiveButton(R.string.reg_discard_yes, (d, w) -> leave.run())
+                .setNegativeButton(R.string.reg_discard_no, null)
+                .show();
     }
 
-    /** Optional profile picture: same take-photo/choose-from-gallery chooser as
-     *  {@link ProfileManagementActivity}, but the result is only held locally
-     *  (uploaded post-verification, see {@link #verifyOtp()}). */
+    private boolean hasAnyInput() {
+        return !textOf(firstNameEdit).isEmpty() || !textOf(lastNameEdit).isEmpty() || !textOf(middleNameEdit).isEmpty() || !gender().isEmpty() || dob != null
+                || !textOf(emailEdit).isEmpty() || !textOf(mobileEdit).isEmpty() || !textOf(passwordEdit, false).isEmpty() || selectedProfileBitmap != null;
+    }
+
+    private void goToWelcome() {
+        Intent intent = new Intent(this, WelcomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
+    private void changeEmail() {
+        if (requestInFlight) return;
+        phase = PHASE_FORM;
+        currentStep = verifyOnly ? 1 : 3;
+        verifyOnly = false;
+        cancelResend();
+        render(true);
+        emailEdit.requestFocus();
+    }
+
+    // ---------------------------------------------------------------- drawing the current screen
+
+    /** Shows the right screen (a step, the verification or the success screen) with its header line, progress and buttons. */
+    private void render(boolean animateProgress) {
+        for (int i = 1; i <= STEPS; i++) stepLayouts[i].setVisibility(phase == PHASE_FORM && i == currentStep ? View.VISIBLE : View.GONE);
+        otpLayout.setVisibility(phase == PHASE_VERIFY ? View.VISIBLE : View.GONE);
+        successLayout.setVisibility(phase == PHASE_SUCCESS ? View.VISIBLE : View.GONE);
+        loginRedirect.setVisibility(phase == PHASE_FORM && currentStep == 1 ? View.VISIBLE : View.GONE);
+        bottomBar.setVisibility(phase == PHASE_FORM ? View.VISIBLE : View.GONE);
+        findViewById(R.id.bottomRule).setVisibility(phase == PHASE_FORM ? View.VISIBLE : View.GONE);
+        boolean motion = animateProgress && WelcomeEffects.enabled(this);
+        if (phase == PHASE_FORM) {
+            int[] names = {0, R.string.reg_step_name_1, R.string.reg_step_name_2, R.string.reg_step_name_3, R.string.reg_step_name_4, R.string.reg_step_name_5, R.string.reg_step_name_6};
+            stepText.setText(getString(R.string.wizard_step_x_of_y_title_format, currentStep, STEPS, getString(names[currentStep])));
+            progressBar.setProgressCompat(Math.round(100f * currentStep / STEPS), motion);
+            previousButton.setVisibility(currentStep > 1 ? View.VISIBLE : View.INVISIBLE);
+            nextButton.setVisibility(currentStep < STEPS ? View.VISIBLE : View.GONE);
+            signUpButton.setVisibility(currentStep == STEPS ? View.VISIBLE : View.GONE);
+            ((ViewGroup.MarginLayoutParams) previousButton.getLayoutParams()).setMarginEnd(Math.round(8 * getResources().getDisplayMetrics().density));
+            if (currentStep == 6) buildReview();
+            updateDobUi();
+            ((TextView) findViewById(R.id.regPhotoHint)).setText(R.string.reg_photo_hint);
+            refreshNext();
+        } else if (phase == PHASE_VERIFY) {
+            stepText.setText(R.string.reg_step_verify);
+            progressBar.setProgressCompat(100, motion);
+            showVerify();
+        } else {
+            stepText.setText(R.string.reg_step_done);
+            progressBar.setProgressCompat(100, motion);
+        }
+    }
+
+    private void buildReview() {
+        LinearLayout box = findViewById(R.id.reviewSummary);
+        box.removeAllViews();
+        addReviewSection(box, R.string.reg_review_name, 1, fullName());
+        addReviewSection(box, R.string.reg_review_about, 2, gender() + " · " + (dob != null ? DOB_SHOWN.format(dob) + " · " + getString(R.string.reg_age_format, AgeRules.ageOn(dob, today())) : ""));
+        addReviewSection(box, R.string.reg_review_contact, 3, textOf(emailEdit) + "\n" + textOf(mobileEdit));
+        addReviewSection(box, R.string.reg_review_address, 4, addressController.getComposedAddress());
+        addReviewSection(box, R.string.reg_review_password, 5, getString(R.string.reg_review_password_value,
+                getString(selectedProfileBitmap != null ? R.string.reg_review_photo_yes : R.string.reg_review_photo_no)));
+    }
+
+    private String fullName() {
+        StringBuilder sb = new StringBuilder(textOf(firstNameEdit));
+        if (!textOf(middleNameEdit).isEmpty()) sb.append(' ').append(textOf(middleNameEdit));
+        sb.append(' ').append(textOf(lastNameEdit));
+        return sb.toString();
+    }
+
+    private void addReviewSection(LinearLayout box, @StringRes int title, int editStep, String value) {
+        float d = getResources().getDisplayMetrics().density;
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setBackgroundResource(R.drawable.bg_flat_box);
+        row.setPadding(Math.round(12 * d), Math.round(8 * d), Math.round(12 * d), Math.round(10 * d));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = Math.round(8 * d);
+        row.setLayoutParams(lp);
+
+        LinearLayout head = new LinearLayout(this);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        TextView t = new TextView(this);
+        t.setText(title);
+        t.setTextSize(13f);
+        t.setTypeface(null, android.graphics.Typeface.BOLD);
+        t.setTextColor(ContextCompat.getColor(this, R.color.velocity_text_secondary));
+        t.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        head.addView(t);
+        TextView edit = new TextView(this);
+        edit.setText(R.string.reg_edit);
+        edit.setTextSize(14f);
+        edit.setTypeface(null, android.graphics.Typeface.BOLD);
+        edit.setGravity(Gravity.CENTER_VERTICAL);
+        edit.setMinHeight(Math.round(48 * d));
+        edit.setPadding(Math.round(8 * d), 0, 0, 0);
+        edit.setTextColor(ContextCompat.getColor(this, R.color.velocity_action_text));
+        edit.setContentDescription(getString(R.string.reg_edit) + " " + getString(title));
+        edit.setOnClickListener(v -> {
+            if (phase == PHASE_FORM) showStep(editStep, false);
+        });
+        head.addView(edit);
+        row.addView(head);
+
+        TextView v = new TextView(this);
+        v.setText(value);
+        v.setTextSize(14f);
+        v.setTextColor(ContextCompat.getColor(this, R.color.velocity_text_primary));
+        row.addView(v);
+        box.addView(row);
+    }
+
+    // ---------------------------------------------------------------- create the account
+
+    private void confirmAndRegister() {
+        if (requestInFlight || phase != PHASE_FORM || !stepValid(STEPS)) return;
+        new SafeDialogs.Material(this)
+                .setTitle(R.string.reg_confirm_title)
+                .setMessage(getString(R.string.reg_confirm_message, textOf(emailEdit)))
+                .setPositiveButton(R.string.reg_create_account, (d, w) -> register())
+                .setNegativeButton(R.string.cancel_label, null)
+                .show();
+    }
+
+    private void register() {
+        if (requestInFlight) return;
+        RegisterRequest request = new RegisterRequest();
+        request.first_name = textOf(firstNameEdit);
+        request.last_name = textOf(lastNameEdit);
+        request.middle_name = textOf(middleNameEdit);
+        request.email = textOf(emailEdit);
+        request.password = textOf(passwordEdit, false);
+        request.password_confirmation = textOf(confirmPasswordEdit, false);
+        request.mobile_number = textOf(mobileEdit);
+        request.address = addressController.getComposedAddress();
+        AddressSelection address = addressController.getStructuredValues();
+        request.country = address.country;
+        request.region = address.region;
+        request.province = address.province;
+        request.city = address.city;
+        request.barangay = address.barangay;
+        request.street = address.street;
+        request.zip_code = address.zip;
+        request.timezone = addressController.getResolvedTimezone();
+        request.otp_channel = "email";
+        request.gender = mapGender(gender());
+        request.date_of_birth = dob != null ? dob.toString() : "";
+        request.age = dob != null ? AgeRules.ageOn(dob, today()) : 0;
+
+        regSubmitError.setVisibility(View.GONE);
+        setInFlight(true);
+        signUpButton.setText(R.string.sending_code);
+        ApiClient.getService(this).register(request).enqueue(new Callback<ApiMessage>() {
+            @Override
+            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                signUpButton.setText(R.string.reg_create_account);
+                setInFlight(false);
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful()) {
+                    verifyEmail = textOf(emailEdit);
+                    phase = PHASE_VERIFY;
+                    resendUntil = android.os.SystemClock.elapsedRealtime() + RESEND_COOLDOWN_MS;
+                    render(true);
+                } else {
+                    showSubmitError(ApiErrorParser.extractMessage(response, getString(R.string.reg_submit_failed)));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiMessage> call, Throwable t) {
+                signUpButton.setText(R.string.reg_create_account);
+                setInFlight(false);
+                if (isFinishing() || isDestroyed()) return;
+                showSubmitError(RoomRepository.networkErrorMessage(RegistrationActivity.this, t));
+            }
+        });
+    }
+
+    private void showSubmitError(String message) {
+        regSubmitError.setText(message);
+        regSubmitError.setVisibility(View.VISIBLE);
+        scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+    }
+
+    private void setInFlight(boolean inFlight) {
+        requestInFlight = inFlight;
+        if (inFlight) signUpButton.setEnabled(false);
+        else refreshNext();
+    }
+
+    private String mapGender(String shown) {
+        if ("Male".equals(shown)) return "male";
+        if ("Female".equals(shown)) return "female";
+        return "other";
+    }
+
+    // ---------------------------------------------------------------- verify the code
+
+    private void showVerify() {
+        otpDesc.setText(getString(R.string.reg_verify_desc, OtpBoxes.maskEmail(verifyEmail)));
+        LinearLayout container = findViewById(R.id.otpBoxesContainer);
+        otpBoxes = new OtpBoxes(container, 6, (code, complete) -> {
+            otpErrorText.setVisibility(View.GONE);
+            otpBoxes.setError(false);
+            if (complete) verifyOtp(code);
+        });
+        otpErrorText.setVisibility(View.GONE);
+        otpVerifyingText.setVisibility(View.GONE);
+        startResendCooldown(Math.max(0, resendUntil - android.os.SystemClock.elapsedRealtime()));
+        otpBoxes.focusFirst();
+    }
+
+    private void verifyOtp(String code) {
+        if (requestInFlight) return;
+        setInFlight(true);
+        otpBoxes.setEnabled(false);
+        otpVerifyingText.setVisibility(View.VISIBLE);
+        ApiClient.getService(this).verifyOtp(new VerifyOtpRequest(verifyEmail, code)).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                requestInFlight = false;
+                otpVerifyingText.setVisibility(View.GONE);
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful() && response.body() != null && response.body().user != null) {
+                    AuthResponse auth = response.body();
+                    String fullName = auth.user.full_name != null ? auth.user.full_name : (auth.user.first_name + " " + auth.user.last_name);
+                    String mobile = auth.user.guest != null && auth.user.guest.mobile_number != null ? auth.user.guest.mobile_number : textOf(mobileEdit);
+                    String dobText = auth.user.guest != null && auth.user.guest.date_of_birth != null ? auth.user.guest.date_of_birth : (dob != null ? dob.toString() : "");
+                    String genderText = auth.user.guest != null && auth.user.guest.gender != null ? auth.user.guest.gender : mapGender(gender());
+                    SessionManager.saveSession(RegistrationActivity.this, auth.token, auth.user.id, auth.user.first_name, auth.user.last_name,
+                            auth.user.middle_name, fullName, auth.user.email, mobile, genderText, dobText,
+                            auth.user.guest != null ? auth.user.guest.profile_picture_url : null);
+                    phase = PHASE_SUCCESS;
+                    cancelResend();
+                    render(true);
+                } else {
+                    otpBoxes.setEnabled(true);
+                    otpBoxes.clear(); // empty boxes for another try (clearing also hides any old message, so it comes first)
+                    otpBoxes.setError(true);
+                    otpErrorText.setText(response.code() == 422 || response.code() == 400 ? getString(R.string.reg_code_wrong)
+                            : ApiErrorParser.extractMessage(response, getString(R.string.reg_code_wrong)));
+                    otpErrorText.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
+                requestInFlight = false;
+                otpVerifyingText.setVisibility(View.GONE);
+                if (isFinishing() || isDestroyed()) return;
+                otpBoxes.setEnabled(true);
+                otpErrorText.setText(RoomRepository.networkErrorMessage(RegistrationActivity.this, t));
+                otpErrorText.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void resendOtp() {
+        if (requestInFlight || android.os.SystemClock.elapsedRealtime() < resendUntil) return;
+        resendOtpLink.setEnabled(false);
+        ApiClient.getService(this).resendOtp(new EmailRequest(verifyEmail)).enqueue(new Callback<ApiMessage>() {
+            @Override
+            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful()) {
+                    resendUntil = android.os.SystemClock.elapsedRealtime() + RESEND_COOLDOWN_MS;
+                    startResendCooldown(RESEND_COOLDOWN_MS);
+                    otpErrorText.setVisibility(View.GONE);
+                    otpBoxes.clear();
+                } else {
+                    resendOtpLink.setEnabled(true);
+                    otpErrorText.setText(ApiErrorParser.extractMessage(response, getString(R.string.reg_submit_failed)));
+                    otpErrorText.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                resendOtpLink.setEnabled(true);
+                otpErrorText.setText(RoomRepository.networkErrorMessage(RegistrationActivity.this, t));
+                otpErrorText.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    /** "Resend code in 57s" while locked, "Resend code" once it can be used again. */
+    private void startResendCooldown(long millis) {
+        cancelResend();
+        if (millis <= 0) {
+            resendOtpLink.setText(R.string.reg_resend_code);
+            resendOtpLink.setEnabled(true);
+            return;
+        }
+        resendOtpLink.setEnabled(false);
+        resendOtpLink.setText(getString(R.string.resend_otp_countdown, (int) ((millis + 999) / 1000)));
+        resendTimer = new android.os.CountDownTimer(millis, 1000L) {
+            @Override
+            public void onTick(long left) {
+                resendOtpLink.setText(getString(R.string.resend_otp_countdown, (int) ((left + 999) / 1000)));
+            }
+
+            @Override
+            public void onFinish() {
+                resendOtpLink.setText(R.string.reg_resend_code);
+                resendOtpLink.setEnabled(true);
+            }
+        }.start();
+    }
+
+    private void cancelResend() {
+        if (resendTimer != null) {
+            resendTimer.cancel();
+            resendTimer = null;
+        }
+    }
+
+    // ---------------------------------------------------------------- success
+
+    private void continueIntoApp() {
+        if (continuing) return;
+        continuing = true;
+        MaterialButton button = findViewById(R.id.successContinueButton);
+        button.setEnabled(false);
+        button.setText(R.string.reg_please_wait);
+        String fullName = getSharedPreferences("VelocityPrefs", MODE_PRIVATE).getString("userName", "");
+        uploadProfilePictureThenProceed(() -> {
+            startActivity(PendingRoomSelection.createPostAuthIntent(RegistrationActivity.this, fullName));
+            finish();
+        });
+    }
+
+    // ---------------------------------------------------------------- profile picture
+
     private void selectProfilePicture() {
         String[] options = {getString(R.string.take_photo), getString(R.string.choose_from_gallery)};
         new SafeDialogs.Material(this)
                 .setTitle(R.string.select_image_title)
                 .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        checkPermissionAndCamera();
-                    } else {
-                        openGallery();
-                    }
+                    if (which == 0) checkPermissionAndCamera();
+                    else openGallery();
                 })
                 .show();
     }
@@ -321,47 +830,37 @@ public class RegistrationActivity extends SafeActivity {
 
     private void openCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST);
-        }
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST);
     }
 
     private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        startActivityForResult(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI), PICK_IMAGE_REQUEST);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
-            } else {
-                Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_SHORT).show();
-            }
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) openCamera();
+            else Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
-            if (requestCode == PICK_IMAGE_REQUEST) {
-                android.net.Uri selectedImage = data.getData();
-                if (selectedImage != null) {
-                    BackgroundWork.run(this, () -> ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE), bitmap -> {
-                        if (bitmap != null) {
-                            setSelectedProfilePicture(bitmap);
-                        } else {
-                            Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            } else if (requestCode == CAPTURE_IMAGE_REQUEST && data.getExtras() != null) {
-                Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
-                if (imageBitmap != null) setSelectedProfilePicture(imageBitmap);
+        if (resultCode != RESULT_OK || data == null) return;
+        if (requestCode == PICK_IMAGE_REQUEST) {
+            android.net.Uri selected = data.getData();
+            if (selected != null) {
+                BackgroundWork.run(this, () -> ImageDecoding.decode(getContentResolver(), selected, ImageDecoding.DEFAULT_MAX_EDGE), bitmap -> {
+                    if (bitmap != null) setSelectedProfilePicture(bitmap);
+                    else Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
+                });
             }
+        } else if (requestCode == CAPTURE_IMAGE_REQUEST && data.getExtras() != null) {
+            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+            if (bitmap != null) setSelectedProfilePicture(bitmap);
         }
     }
 
@@ -379,28 +878,12 @@ public class RegistrationActivity extends SafeActivity {
         regRemovePhotoLink.setVisibility(View.GONE);
     }
 
-    /**
-     * Keeps the mobile field's helper text in sync with the selected
-     * country so the expected format is always visible, matching whichever
-     * pattern validateFinalStep() will actually check.
-     */
-    private void updateMobileHelperText(boolean isPhilippines) {
-        mobileInputLayout.setHelperText(getString(isPhilippines
-                ? R.string.helper_mobile_format : R.string.helper_mobile_format_intl));
-    }
-
-    /**
-     * Uploads the locally-picked photo now that a real bearer token exists
-     * (post-OTP-verification), then proceeds regardless of outcome - a
-     * failed picture upload shouldn't block account creation/login since the
-     * photo was always optional and can be added later from Profile.
-     */
+    /** Uploads the photo now that a real token exists; a failed upload never blocks the new account (it can be added later). */
     private void uploadProfilePictureThenProceed(Runnable proceed) {
         if (selectedProfileBitmap == null) {
             proceed.run();
             return;
         }
-
         final Bitmap toUpload = selectedProfileBitmap;
         BackgroundWork.run(this, () -> {
             File file = File.createTempFile("profile_", ".jpg", getCacheDir());
@@ -409,18 +892,14 @@ public class RegistrationActivity extends SafeActivity {
             }
             return file;
         }, file -> {
-            if (file == null) {
-                proceed.run();
-            } else {
-                uploadProfileFile(file, proceed);
-            }
+            if (file == null) proceed.run();
+            else uploadProfileFile(file, proceed);
         });
     }
 
     private void uploadProfileFile(File tempFile, Runnable proceed) {
         RequestBody fileBody = RequestBody.create(tempFile, MediaType.parse("image/jpeg"));
         MultipartBody.Part part = MultipartBody.Part.createFormData("profile_picture", tempFile.getName(), fileBody);
-
         ApiClient.getService(this).updateProfilePicture(part).enqueue(new Callback<ProfileResponse>() {
             @Override
             public void onResponse(Call<ProfileResponse> call, Response<ProfileResponse> response) {
@@ -439,531 +918,50 @@ public class RegistrationActivity extends SafeActivity {
         });
     }
 
-    private void handleNextStep() {
-        if (validateCurrentStep()) {
-            animateStepOut(true, () -> {
-                currentStep++;
-                updateStepUI();
-                animateStepIn(true);
-            });
-        }
-    }
-
-    /**
-     * Single Back handler for the floating button, and hardware/gesture back: Step 4 (OTP) goes
-     * to Step 3, Step 3->2->1 step back one at a time, and Step 1 exits to Welcome. All previously
-     * entered fields are preserved since steps are just toggled visibility, never cleared.
-     */
-    private void handleBack() {
-        if (isOtpStep) {
-            animateStepOut(false, () -> {
-                isOtpStep = false;
-                currentStep = 3;
-                updateStepUI();
-                animateStepIn(false);
-            });
-        } else if (currentStep > 1) {
-            animateStepOut(false, () -> {
-                currentStep--;
-                updateStepUI();
-                animateStepIn(false);
-            });
-        } else {
-            goToWelcome();
-        }
-    }
+    // ---------------------------------------------------------------- rotation and process death
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(STATE_STEP, currentStep);
-        outState.putBoolean(STATE_OTP_STEP, isOtpStep);
-    }
-
-    private void updateStepUI() {
-        // Reset visibility
-        step1Layout.setVisibility(View.GONE);
-        step2Layout.setVisibility(View.GONE);
-        step3Layout.setVisibility(View.GONE);
-        otpLayout.setVisibility(View.GONE);
-        
-        stepText.setText(getString(R.string.registration_step_format, currentStep, 4));
-
-        // Update progress bar width proportionally (now for 4 steps)
-        float density = getResources().getDisplayMetrics().density;
-        float totalProgressWidth = 120 * density;
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) stepProgressBar.getLayoutParams();
-        params.width = (int) ((totalProgressWidth / 4) * currentStep);
-        stepProgressBar.setLayoutParams(params);
-        updateStepDots();
-
-        submitHintText.setVisibility(View.GONE);
-        if (isOtpStep) {
-            otpLayout.setVisibility(View.VISIBLE);
-            nextButton.setVisibility(View.GONE);
-            signUpButton.setVisibility(View.VISIBLE);
-            signUpButton.setText(R.string.verify_button);
-            return;
-        }
-
-        switch (currentStep) {
-            case 1:
-                step1Layout.setVisibility(View.VISIBLE);
-                nextButton.setVisibility(View.VISIBLE);
-                nextButton.setEnabled(true);
-                signUpButton.setVisibility(View.GONE);
-                break;
-            case 2:
-                step2Layout.setVisibility(View.VISIBLE);
-                nextButton.setVisibility(View.VISIBLE);
-                signUpButton.setVisibility(View.GONE);
-                updateAgeValidationUI();
-                break;
-            case 3:
-                step3Layout.setVisibility(View.VISIBLE);
-                nextButton.setVisibility(View.GONE);
-                signUpButton.setVisibility(View.VISIBLE);
-                signUpButton.setText(R.string.sign_up_now);
-                updateSignUpEnabledState();
-                break;
+    protected void onSaveInstanceState(@NonNull Bundle out) {
+        super.onSaveInstanceState(out);
+        out.putInt(STATE_STEP, currentStep);
+        out.putInt(STATE_PHASE, phase);
+        out.putString(STATE_DOB, dob != null ? dob.toString() : null);
+        out.putString(STATE_VERIFY_EMAIL, verifyEmail);
+        out.putBoolean(STATE_VERIFY_ONLY, verifyOnly);
+        out.putLong(STATE_RESEND_UNTIL, resendUntil);
+        if (addressController != null) {
+            AddressSelection a = addressController.getStructuredValues();
+            out.putStringArray(STATE_ADDR, new String[]{a.country, a.region, a.province, a.city, a.barangay, a.street, a.zip, a.timezone});
         }
     }
 
-    /** Fills in step dots up to (and including) the current step; the rest stay dim. */
-    private void updateStepDots() {
-        View[] dots = {stepDot1, stepDot2, stepDot3, stepDot4};
-        int filledThrough = isOtpStep ? 4 : currentStep;
-        for (int i = 0; i < dots.length; i++) {
-            boolean filled = (i + 1) <= filledThrough;
-            dots[i].setBackgroundTintList(getColorStateList(filled ? R.color.velocity_red_primary : R.color.velocity_red_soft));
+    private void restoreState(Bundle in) {
+        currentStep = Math.max(1, Math.min(STEPS, in.getInt(STATE_STEP, 1)));
+        phase = in.getInt(STATE_PHASE, PHASE_FORM);
+        String iso = in.getString(STATE_DOB);
+        dob = iso != null ? LocalDate.parse(iso) : null;
+        verifyEmail = in.getString(STATE_VERIFY_EMAIL, "");
+        verifyOnly = in.getBoolean(STATE_VERIFY_ONLY, false);
+        resendUntil = in.getLong(STATE_RESEND_UNTIL, 0L);
+        String[] a = in.getStringArray(STATE_ADDR);
+        if (a != null && a.length == 8) {
+            AddressSelection saved = new AddressSelection();
+            saved.country = a[0];
+            saved.region = a[1];
+            saved.province = a[2];
+            saved.city = a[3];
+            saved.barangay = a[4];
+            saved.street = a[5];
+            saved.zip = a[6];
+            saved.timezone = a[7];
+            addressController.populateFrom(saved);
         }
-    }
-
-    private void animateStepOut(boolean forward, Runnable onEnd) {
-        View currentLayout = getCurrentStepLayout();
-        float translationX = forward ? -100f : 100f;
-        currentLayout.animate()
-                .alpha(0f)
-                .translationX(translationX)
-                .setDuration(250)
-                .withEndAction(() -> {
-                    currentLayout.setTranslationX(0f);
-                    currentLayout.setVisibility(View.GONE);
-                    onEnd.run();
-                })
-                .start();
-    }
-
-    private void animateStepIn(boolean forward) {
-        View currentLayout = getCurrentStepLayout();
-        float startTranslationX = forward ? 100f : -100f;
-        currentLayout.setVisibility(View.VISIBLE);
-        currentLayout.setAlpha(0f);
-        currentLayout.setTranslationX(startTranslationX);
-        currentLayout.animate()
-                .alpha(1f)
-                .translationX(0f)
-                .setDuration(300)
-                .start();
-    }
-
-    private View getCurrentStepLayout() {
-        if (isOtpStep) return otpLayout;
-        switch (currentStep) {
-            case 1: return step1Layout;
-            case 2: return step2Layout;
-            case 3: return step3Layout;
-            default: return step1Layout;
-        }
-    }
-
-    private boolean validateCurrentStep() {
-        switch (currentStep) {
-            case 1:
-                if (isEmpty(firstNameEdit)) return showError(firstNameEdit, getString(R.string.first_name_required));
-                if (isEmpty(lastNameEdit)) return showError(lastNameEdit, getString(R.string.last_name_required));
-                return true;
-            case 2:
-                if (TextUtils.isEmpty(genderDropdown.getText())) {
-                    genderDropdown.setError(getString(R.string.gender_required));
-                    genderDropdown.requestFocus();
-                    return false;
-                }
-                if (isEmpty(dobEdit)) return showError(dobEdit, getString(R.string.dob_required));
-
-                Integer age = parseValidAge(textOf(ageEdit));
-                if (age == null || age < MIN_REGISTRATION_AGE) {
-                    ageValidationErrorContainer.setVisibility(View.VISIBLE);
-                    return showError(dobEdit, getString(R.string.age_validation_error));
-                }
-                return true;
-            case 3:
-                return validateFinalStep();
-            default:
-                return true;
-        }
-    }
-
-    private void handleRegistration() {
-        if (!validateCurrentStep()) return;
-
-        RegisterRequest request = new RegisterRequest();
-        request.first_name = textOf(firstNameEdit);
-        request.last_name = textOf(lastNameEdit);
-        request.middle_name = textOf(middleNameEdit);
-        request.email = textOf(emailEdit);
-        request.password = textOf(passwordEdit);
-        request.password_confirmation = textOf(confirmPasswordEdit);
-        request.mobile_number = textOf(mobileEdit);
-        request.address = addressController.getComposedAddress();
-        AddressSelection address = addressController.getStructuredValues();
-        request.country = address.country;
-        request.region = address.region;
-        request.province = address.province;
-        request.city = address.city;
-        request.barangay = address.barangay;
-        request.street = address.street;
-        request.zip_code = address.zip;
-        request.timezone = addressController.getResolvedTimezone();
-        // Email is the only verification channel offered - see the
-        // registration.xml OTP step (SMS/mobile delivery was never
-        // configured server-side and has been removed from the UI).
-        request.otp_channel = "email";
-        request.gender = mapGender(genderDropdown.getText() != null ? genderDropdown.getText().toString() : "");
-        request.date_of_birth = toApiDate(textOf(dobEdit));
-        try {
-            request.age = Integer.parseInt(textOf(ageEdit));
-        } catch (NumberFormatException e) {
-            request.age = 0;
-        }
-
-        if (requestInFlight) return;
-        setRequestInFlight(true, R.string.sending_code);
-        ApiClient.getService(this).register(request).enqueue(new Callback<ApiMessage>() {
-            @Override
-            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                setRequestInFlight(false, R.string.sign_up_now);
-                if (isFinishing() || isDestroyed()) return;
-                if (response.isSuccessful()) {
-                    animateStepOut(true, () -> {
-                        isOtpStep = true;
-                        currentStep = 4;
-                        updateStepUI();
-                        animateStepIn(true);
-                        startResendCooldown();
-                        Toast.makeText(RegistrationActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
-                    });
-                } else {
-                    String message = errorMessage(response);
-                    Toast.makeText(RegistrationActivity.this, "Registration failed: " + message, Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiMessage> call, Throwable t) {
-                setRequestInFlight(false, R.string.sign_up_now);
-                if (isFinishing() || isDestroyed()) return;
-                Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    /**
-     * Disables the primary button and swaps its label while a request is out (so a second tap cannot
-     * double-submit); on the way out it restores {@code idleLabel} and the Terms gate decides enabled-ness.
-     */
-    private void setRequestInFlight(boolean inFlight, int label) {
-        requestInFlight = inFlight;
-        signUpButton.setText(label);
-        if (inFlight) {
-            signUpButton.setEnabled(false);
-        } else if (isOtpStep) {
-            signUpButton.setEnabled(true);
-        } else {
-            updateSignUpEnabledState();
-        }
-    }
-
-    /** Resend OTP is locked for a minute after a code goes out, with the seconds left shown on the link. */
-    private void startResendCooldown() {
-        if (resendTimer != null) resendTimer.cancel();
-        resendOtpLink.setEnabled(false);
-        resendTimer = new android.os.CountDownTimer(RESEND_COOLDOWN_MS, 1000L) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                resendOtpLink.setText(getString(R.string.resend_otp_countdown, (int) ((millisUntilFinished + 999) / 1000)));
-            }
-
-            @Override
-            public void onFinish() {
-                resendOtpLink.setText(R.string.resend_otp);
-                resendOtpLink.setEnabled(true);
-            }
-        }.start();
     }
 
     @Override
     protected void onDestroy() {
-        if (resendTimer != null) resendTimer.cancel();
+        cancelResend();
         if (addressController != null) addressController.dispose();
         super.onDestroy();
-    }
-
-    private void verifyOtp() {
-        String otp = otpEdit.getText() != null ? otpEdit.getText().toString() : "";
-        if (otp.length() != 6) {
-            otpEdit.setError(getString(R.string.invalid_otp));
-            return;
-        }
-
-        String email = textOf(emailEdit);
-        if (requestInFlight) return;
-        setRequestInFlight(true, R.string.verifying);
-        ApiClient.getService(this).verifyOtp(new VerifyOtpRequest(email, otp)).enqueue(new Callback<AuthResponse>() {
-            @Override
-            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                setRequestInFlight(false, R.string.verify_button);
-                if (isFinishing() || isDestroyed()) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    AuthResponse auth = response.body();
-                    String fullName = auth.user.full_name != null ? auth.user.full_name
-                            : (auth.user.first_name + " " + auth.user.last_name);
-                    SessionManager.saveSession(RegistrationActivity.this, auth.token, auth.user.id,
-                            auth.user.first_name, auth.user.last_name, auth.user.middle_name, fullName,
-                            auth.user.email, textOf(mobileEdit), mapGender(genderDropdown.getText() != null ? genderDropdown.getText().toString() : ""),
-                            textOf(dobEdit), auth.user.guest != null ? auth.user.guest.profile_picture_url : null);
-
-                    Toast.makeText(RegistrationActivity.this, R.string.registration_success, Toast.LENGTH_LONG).show();
-
-                    uploadProfilePictureThenProceed(() -> {
-                        Intent intent = PendingRoomSelection.createPostAuthIntent(RegistrationActivity.this, fullName);
-                        startActivity(intent);
-                        finish();
-                    });
-                } else {
-                    otpEdit.setError(getString(R.string.invalid_otp));
-                    Toast.makeText(RegistrationActivity.this, "Verification failed: " + errorMessage(response), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AuthResponse> call, Throwable t) {
-                setRequestInFlight(false, R.string.verify_button);
-                if (isFinishing() || isDestroyed()) return;
-                Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private void resendOtp() {
-        resendOtpLink.setEnabled(false);
-        ApiClient.getService(this).resendOtp(new EmailRequest(textOf(emailEdit))).enqueue(new Callback<ApiMessage>() {
-            @Override
-            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
-                if (isFinishing() || isDestroyed()) return;
-                if (response.isSuccessful()) {
-                    startResendCooldown();
-                    Toast.makeText(RegistrationActivity.this, "A new OTP has been sent to your email.", Toast.LENGTH_SHORT).show();
-                } else {
-                    resendOtpLink.setEnabled(true);
-                    Toast.makeText(RegistrationActivity.this, "Couldn't resend OTP: " + errorMessage(response), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiMessage> call, Throwable t) {
-                if (isFinishing() || isDestroyed()) return;
-                resendOtpLink.setEnabled(true);
-                Toast.makeText(RegistrationActivity.this, RoomRepository.networkErrorMessage(RegistrationActivity.this, t), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private String textOf(TextInputEditText et) {
-        return et != null && et.getText() != null ? et.getText().toString().trim() : "";
-    }
-
-    private String mapGender(String displayGender) {
-        if (displayGender == null) return "other";
-        switch (displayGender) {
-            case "Male": return "male";
-            case "Female": return "female";
-            default: return "other";
-        }
-    }
-
-    /** Converts the dobEdit text ("MM/dd/yyyy") into the API's expected "YYYY-MM-DD". */
-    private String toApiDate(String mmDdYyyy) {
-        try {
-            SimpleDateFormat input = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
-            SimpleDateFormat output = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            return output.format(input.parse(mmDdYyyy));
-        } catch (ParseException | NullPointerException e) {
-            return mmDdYyyy;
-        }
-    }
-
-    private String errorMessage(Response<?> response) {
-        return ApiErrorParser.extractMessage(response, "please try again.");
-    }
-
-    private boolean validateFinalStep() {
-        // Country drives the expected mobile format - see PhoneNumberValidator, shared with
-        // ProfileManagementActivity and mirrored server-side by PhoneValidationService.
-        String selectedCountry = addressController.getSelectedCountry();
-        if (!PhoneNumberValidator.isValid(selectedCountry, textOf(mobileEdit)))
-            return showError(mobileEdit, PhoneNumberValidator.errorMessage(this, selectedCountry));
-
-        if (!addressController.validate())
-            return false;
-
-        if (!isValidEmail(emailEdit.getText()))
-            return showError(emailEdit, getString(R.string.valid_email_required));
-        
-        if (isEmpty(passwordEdit) || (passwordEdit.getText() != null && passwordEdit.getText().length() < PASSWORD_MIN_LENGTH))
-            return showError(passwordEdit, getString(R.string.password_min_length));
-        
-        if (passwordEdit.getText() != null && confirmPasswordEdit.getText() != null &&
-            !passwordEdit.getText().toString().equals(confirmPasswordEdit.getText().toString())) {
-            return showError(confirmPasswordEdit, getString(R.string.passwords_do_not_match));
-        }
-
-        // The signUpButton is already disabled until the Terms are opened and agreed to; this is a
-        // defense-in-depth backup in case handleRegistration() is ever reached otherwise.
-        if (!TermsGate.isActionEnabled(termsConsent.isViewed(), termsConsent.isAccepted())) {
-            Toast.makeText(this, termsConsent.isViewed() ? R.string.msg_terms_not_checked : R.string.msg_terms_not_viewed, Toast.LENGTH_LONG).show();
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isEmpty(TextInputEditText et) {
-        return TextUtils.isEmpty(et.getText());
-    }
-
-    /** Shows the error inline, under the field, when the field sits in a TextInputLayout (every text field here does). */
-    private boolean showError(TextInputEditText et, String message) {
-        TextInputLayout layout = layoutOf(et);
-        if (layout != null) {
-            layout.setError(message);
-        } else {
-            et.setError(message);
-        }
-        et.requestFocus();
-        return false;
-    }
-
-    @Nullable
-    private TextInputLayout layoutOf(View field) {
-        android.view.ViewParent parent = field.getParent();
-        while (parent != null && !(parent instanceof TextInputLayout)) {
-            parent = parent.getParent();
-        }
-        return (TextInputLayout) parent;
-    }
-
-    private void clearError(TextInputEditText et) {
-        TextInputLayout layout = layoutOf(et);
-        if (layout != null) layout.setError(null);
-        et.setError(null);
-    }
-
-    /**
-     * Each field is validated when it loses focus (not while the guest is still typing) and its error clears as
-     * soon as they edit it again. Confirm-password also re-checks live so the match status stays current.
-     */
-    private void setupInlineValidation() {
-        TextInputEditText[] all = {firstNameEdit, lastNameEdit, mobileEdit, emailEdit, passwordEdit, confirmPasswordEdit};
-        for (TextInputEditText field : all) {
-            field.addTextChangedListener(new SimpleTextWatcher(() -> clearError(field)));
-            field.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) validateFieldOnBlur(field);
-            });
-        }
-        passwordEdit.addTextChangedListener(new SimpleTextWatcher(() -> {
-            if (!isEmpty(confirmPasswordEdit)) validateConfirmPassword();
-        }));
-        confirmPasswordEdit.addTextChangedListener(new SimpleTextWatcher(() -> {
-            if (!isEmpty(confirmPasswordEdit)) validateConfirmPassword();
-        }));
-    }
-
-    private void validateFieldOnBlur(TextInputEditText field) {
-        TextInputLayout layout = layoutOf(field);
-        if (layout == null) return;
-        String error = null;
-        if (field == firstNameEdit) {
-            if (isEmpty(field)) error = getString(R.string.first_name_required);
-        } else if (field == lastNameEdit) {
-            if (isEmpty(field)) error = getString(R.string.last_name_required);
-        } else if (field == emailEdit) {
-            if (!isValidEmail(field.getText())) error = getString(R.string.valid_email_required);
-        } else if (field == mobileEdit) {
-            String country = addressController.getSelectedCountry();
-            if (!PhoneNumberValidator.isValid(country, textOf(field))) error = PhoneNumberValidator.errorMessage(this, country);
-        } else if (field == passwordEdit) {
-            if (isEmpty(field) || textOf(field).length() < PASSWORD_MIN_LENGTH) error = getString(R.string.password_min_length);
-        } else if (field == confirmPasswordEdit) {
-            validateConfirmPassword();
-            return;
-        }
-        layout.setError(error);
-    }
-
-    private void validateConfirmPassword() {
-        TextInputLayout layout = layoutOf(confirmPasswordEdit);
-        if (layout == null) return;
-        boolean matches = textOf(passwordEdit).equals(textOf(confirmPasswordEdit));
-        layout.setError(matches ? null : getString(R.string.passwords_do_not_match));
-    }
-
-    /** Sign Up Now needs the Terms opened and agreed to; while it is locked, a line under it says what is missing. */
-    private void updateSignUpEnabledState() {
-        if (isOtpStep || currentStep != 3) return;
-        boolean viewed = termsConsent.isViewed();
-        boolean accepted = termsConsent.isAccepted();
-        signUpButton.setEnabled(TermsGate.isActionEnabled(viewed, accepted));
-        int missing = TermsGate.missingHintRes(viewed, accepted);
-        submitHintText.setVisibility(missing == 0 ? View.GONE : View.VISIBLE);
-        if (missing != 0) submitHintText.setText(missing);
-    }
-
-    private boolean isValidEmail(CharSequence target) {
-        return EmailValidator.isValid(target);
-    }
-
-    /** Returns to the Welcome screen, clearing any Login/Registration
-     *  activities stacked above it so back always lands on Welcome. */
-    private void goToWelcome() {
-        Intent intent = new Intent(this, WelcomeActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-    }
-
-    private void startIntroAnimations() {
-        headerSection.setVisibility(View.VISIBLE);
-        headerSection.startAnimation(flipLeft);
-
-        registrationLabel.postDelayed(() -> {
-            registrationLabel.setVisibility(View.VISIBLE);
-            registrationLabel.startAnimation(flipLeft);
-        }, 100);
-
-        stepIndicatorContainer.postDelayed(() -> {
-            stepIndicatorContainer.setVisibility(View.VISIBLE);
-            stepIndicatorContainer.startAnimation(flipLeft);
-        }, 200);
-
-        registrationCard.postDelayed(() -> {
-            registrationCard.setVisibility(View.VISIBLE);
-            registrationCard.startAnimation(flipLeft);
-        }, 300);
-
-        loginRedirect.postDelayed(() -> {
-            loginRedirect.setVisibility(View.VISIBLE);
-            loginRedirect.startAnimation(flipLeft);
-        }, 400);
     }
 }

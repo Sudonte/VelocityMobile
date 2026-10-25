@@ -12,7 +12,7 @@ import com.google.gson.JsonParser;
  */
 public final class LoginFailure {
 
-    public enum Kind { ACCOUNT_NOT_FOUND, WRONG_PASSWORD, OTHER }
+    public enum Kind { ACCOUNT_NOT_FOUND, ACCOUNT_NOT_VERIFIED, WRONG_PASSWORD, OTHER }
 
     public final Kind kind;
     /** The server's own message, or null when the body had none. */
@@ -31,6 +31,7 @@ public final class LoginFailure {
             String code = json.has("code") && !json.get("code").isJsonNull() ? json.get("code").getAsString() : "";
             String message = json.has("message") && !json.get("message").isJsonNull() ? json.get("message").getAsString() : null;
             if ("ACCOUNT_NOT_FOUND".equals(code)) return new LoginFailure(Kind.ACCOUNT_NOT_FOUND, message);
+            if ("ACCOUNT_NOT_VERIFIED".equals(code)) return new LoginFailure(Kind.ACCOUNT_NOT_VERIFIED, message);
             if ("WRONG_PASSWORD".equals(code)) return new LoginFailure(Kind.WRONG_PASSWORD, message);
             return new LoginFailure(Kind.OTHER, message);
         } catch (RuntimeException e) {
