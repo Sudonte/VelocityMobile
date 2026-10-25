@@ -274,7 +274,7 @@ public class WelcomeScreenTest {
         TextView description = activity.findViewById(R.id.welcomeDescriptionText);
         assertEquals("VELOCITY SUITES", brand.getText().toString());
         assertTrue("the brand label is bold", brand.getTypeface().getWeight() >= 700 || brand.getTypeface().isBold());
-        assertEquals("primary red", activity.getColor(R.color.velocity_red_primary), brand.getCurrentTextColor());
+        assertEquals("the brand red (adaptive: readable on dark too)", activity.getColor(R.color.velocity_action_text), brand.getCurrentTextColor());
         assertEquals("Your comfort is our service", tagline.getText().toString());
         assertTrue("the tagline is smaller than the brand label", tagline.getTextSize() < brand.getTextSize());
         assertEquals("secondary colour", activity.getColor(R.color.velocity_text_secondary), tagline.getCurrentTextColor());

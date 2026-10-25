@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One welcome feature opened (WelcomeSheet): drag handle, icon + title + close, a short explanation, numbered steps, then the two ways on.
+     The steps scroll when the font is large; the buttons stay at the bottom. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/welcomeSheetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_welcome_sheet"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/welcomeSheetHandle"
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/shape_sheet_handle"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="4dp"
+        android:paddingTop="4dp">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/shape_notification_icon_circle"
+            android:backgroundTint="@color/velocity_red_soft"
+            android:importantForAccessibility="no">
+
+            <ImageView
+                android:id="@+id/welcomeSheetIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                app:tint="@color/velocity_red_primary"
+                tools:src="@drawable/ic_bed" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/welcomeSheetTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:accessibilityHeading="true"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="18sp"
+            tools:text="Easy booking" />
+
+        <ImageButton
+            android:id="@+id/welcomeSheetClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/welcome_sheet_close"
+            android:src="@drawable/ic_close"
+            app:tint="@color/velocity_text_secondary" />
+    </LinearLayout>
+
+    <com.example.velocitysuites.MaxHeightNestedScrollView
+        android:id="@+id/welcomeSheetScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="ifContentScrolls">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/welcomeSheetIntro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="2dp"
+                android:textColor="@color/velocity_text_secondary"
+                android:textSize="14sp"
+                tools:text="A booking is paid by GCash." />
+
+            <LinearLayout
+                android:id="@+id/welcomeSheetSteps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+
+            <LinearLayout
+                android:id="@+id/welcomeSheetContact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone" />
+        </LinearLayout>
+    </com.example.velocitysuites.MaxHeightNestedScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/welcomeSheetCreate"
+            style="@style/Widget.Velocity.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="52dp"
+            android:stateListAnimator="@null"
+            android:text="@string/welcome_sheet_create"
+            android:textAllCaps="false"
+            android:textColor="@color/button_primary_text"
+            app:backgroundTint="@color/button_primary_bg" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/welcomeSheetSignIn"
+            style="@style/Widget.Velocity.Flat.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:minHeight="48dp"
+            android:text="@string/welcome_sheet_sign_in"
+            android:textAllCaps="false"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="14sp" />
+    </LinearLayout>
+</LinearLayout>

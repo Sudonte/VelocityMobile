@@ -12,6 +12,7 @@ public class TestApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        com.example.velocitysuites.WelcomeEffects.motion = false;
         com.example.velocitysuites.MoneySummaryPanel.motion = false; // the summary slides in and counts up in the app; a test reads its final text
         com.example.velocitysuites.RoomRepository.setMapInlineForTests(true); // lists are mapped in the same call, so a test needs no thread to wait for
     }

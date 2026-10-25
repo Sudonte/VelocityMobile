@@ -30,15 +30,15 @@
     <string name="welcome_tagline">Your comfort is our service</string>
     <!-- Welcome screen: what the app is and does, then what to do next. Only describes what the app itself does. -->
     <string name="welcome_headline">Welcome, Guest!</string>
-    <string name="welcome_support">Book rooms, manage reservations and track payments — all in one app.</string>
-    <string name="welcome_point_rooms_title">Easy room booking</string>
-    <string name="welcome_point_rooms_desc">Browse and book in a few taps.</string>
-    <string name="welcome_point_pay_title">Secure GCash payments</string>
-    <string name="welcome_point_pay_desc">Pay and upload your receipt.</string>
+    <string name="welcome_support">Book rooms and track payments in one app.</string>
+    <string name="welcome_point_rooms_title">Easy booking</string>
+    <string name="welcome_point_rooms_desc">Dates, rooms, extras</string>
+    <string name="welcome_point_pay_title">GCash payments</string>
+    <string name="welcome_point_pay_desc">Pay online, 20%–50%</string>
     <string name="welcome_point_track_title">Track transactions</string>
-    <string name="welcome_point_track_desc">Follow every booking and payment.</string>
-    <string name="welcome_point_notify_title">Friendly front-desk support</string>
-    <string name="welcome_point_notify_desc">Help whenever you need us.</string>
+    <string name="welcome_point_track_desc">Receipts and updates</string>
+    <string name="welcome_point_notify_title">Front-desk help</string>
+    <string name="welcome_point_notify_desc">Open 24/7</string>
     <string name="welcome_action_create_account">Create an account</string>
     <string name="welcome_action_sign_in">Already have an account? Sign in</string>
     <string name="sign_in">Sign In</string>
@@ -2529,6 +2529,60 @@ Estimated total after discount: %3$s</string>
     <string name="money_fully_paid_format">%1$s · Fully paid</string>
     <string name="money_cancelled">This transaction was cancelled</string>
     <string name="money_summary_hint">Tap to see the full bill</string>
+    <string name="welcome_card_cue">Learn more ›</string>
+    <string name="welcome_sheet_close">Close</string>
+    <string name="welcome_sheet_create">Create an account</string>
+    <string name="welcome_sheet_sign_in">Already have an account? Sign in</string>
+
+    <string name="welcome_topic_booking_intro">A booking is paid by GCash: a partial payment (20%–50%) now and the rest at the hotel. A reservation holds your room now and you pay later.</string>
+    <string name="welcome_topic_booking_s1_title">Dates and rooms</string>
+    <string name="welcome_topic_booking_s1_desc">Pick check-in, check-out and your rooms. Tap “Add another date” for a second stay.</string>
+    <string name="welcome_topic_booking_s2_title">Amenities</string>
+    <string name="welcome_topic_booking_s2_desc">Add optional extras. You can request more after booking.</string>
+    <string name="welcome_topic_booking_s3_title">Representative</string>
+    <string name="welcome_topic_booking_s3_desc">Choose who checks in: the account owner or someone else.</string>
+    <string name="welcome_topic_booking_s4_title">Guests</string>
+    <string name="welcome_topic_booking_s4_desc">Set adults and minors within your rooms’ capacity.</string>
+    <string name="welcome_topic_booking_s5_title">ID verification</string>
+    <string name="welcome_topic_booking_s5_desc">Claim a discount with one valid ID, or skip it.</string>
+    <string name="welcome_topic_booking_s6_title">Payment method (reservations)</string>
+    <string name="welcome_topic_booking_s6_desc">Choose cash or GCash. You pay later.</string>
+    <string name="welcome_topic_booking_s7_title">Review and bill summary</string>
+    <string name="welcome_topic_booking_s7_desc">Check the bill, accept the terms and confirm.</string>
+
+    <string name="welcome_topic_gcash_intro">Pay a partial amount (20%–50% of the total) now. The rest is paid at the hotel. The front desk verifies your payment before it counts.</string>
+    <string name="welcome_topic_gcash_s1_title">Check amount</string>
+    <string name="welcome_topic_gcash_s1_desc">See what you are paying for and the amount to pay now.</string>
+    <string name="welcome_topic_gcash_s2_title">Send via GCash</string>
+    <string name="welcome_topic_gcash_s2_desc">Scan the QR code and pay exactly that amount.</string>
+    <string name="welcome_topic_gcash_s3_title">Enter reference</string>
+    <string name="welcome_topic_gcash_s3_desc">Type your GCash number and the 13-digit reference number.</string>
+    <string name="welcome_topic_gcash_s4_title">Upload receipt</string>
+    <string name="welcome_topic_gcash_s4_desc">Attach a photo or screenshot of your GCash receipt.</string>
+    <string name="welcome_topic_gcash_s5_title">Submit</string>
+    <string name="welcome_topic_gcash_s5_desc">Review and send it for verification.</string>
+
+    <string name="welcome_topic_track_intro">Follow every booking and reservation from one place.</string>
+    <string name="welcome_topic_track_s1_title">Booking &amp; Reservation</string>
+    <string name="welcome_topic_track_s1_desc">See each one’s status and balance. Filter and search the list.</string>
+    <string name="welcome_topic_track_s2_title">Details</string>
+    <string name="welcome_topic_track_s2_desc">Open one for its payment progress, stay, guests and bill.</string>
+    <string name="welcome_topic_track_s3_title">Three receipts</string>
+    <string name="welcome_topic_track_s3_desc">Payment verified, then check-in, then check-out (final).</string>
+    <string name="welcome_topic_track_s4_title">Notifications</string>
+    <string name="welcome_topic_track_s4_desc">Get an alert whenever something changes.</string>
+    <string name="welcome_topic_track_s5_title">Cancelling</string>
+    <string name="welcome_topic_track_s5_desc">You can cancel until the front desk verifies it. Payments are non-refundable.</string>
+
+    <string name="welcome_topic_support_intro">The front desk is open 24 hours a day, 7 days a week.</string>
+    <string name="welcome_topic_support_s1_title">At check-in</string>
+    <string name="welcome_topic_support_s1_desc">Bring your valid ID. The front desk checks any discount ID.</string>
+    <string name="welcome_topic_support_s2_title">Amenities</string>
+    <string name="welcome_topic_support_s2_desc">Ask for extras, or request them from your booking details.</string>
+    <string name="welcome_topic_support_s3_title">Payment questions</string>
+    <string name="welcome_topic_support_s3_desc">Ask if your payment is waiting to be verified.</string>
+    <string name="welcome_topic_support_call">Call %1$s</string>
+    <string name="welcome_topic_support_email">Email %1$s</string>
 </resources>
 
 
