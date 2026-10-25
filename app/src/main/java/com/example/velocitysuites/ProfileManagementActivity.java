@@ -1480,8 +1480,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         TextView labelNew = dialogView.findViewById(R.id.changePasswordLabelNew);
         TextView labelDone = dialogView.findViewById(R.id.changePasswordLabelDone);
         View stepDone = dialogView.findViewById(R.id.changePasswordStepDone);
-        com.google.android.material.progressindicator.LinearProgressIndicator strengthBar = dialogView.findViewById(R.id.changePasswordStrengthBar);
-        TextView strengthText = dialogView.findViewById(R.id.changePasswordStrengthText);
+        PasswordRulesView passwordRules = dialogView.findViewById(R.id.changePasswordRules);
         View stepOtp = dialogView.findViewById(R.id.changePasswordStepOtp);
         View stepPassword = dialogView.findViewById(R.id.changePasswordStepPassword);
         TextView stepText = dialogView.findViewById(R.id.changePasswordStepText);
@@ -1492,8 +1491,6 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         TextInputEditText confirmPass = dialogView.findViewById(R.id.changePasswordConfirmNew);
         TextInputLayout newPassLayout = dialogView.findViewById(R.id.changePasswordNewLayout);
         TextInputLayout confirmPassLayout = dialogView.findViewById(R.id.changePasswordConfirmNewLayout);
-        TextView ruleLength = dialogView.findViewById(R.id.changePasswordRuleLength);
-        TextView ruleMatch = dialogView.findViewById(R.id.changePasswordRuleMatch);
         MaterialButton btnConfirm = dialogView.findViewById(R.id.btnConfirmChangePasswordOtp);
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancelChangePasswordOtp);
 
@@ -1665,13 +1662,11 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
                     });
         });
 
-        // ---- step 2: live rule hints (they mirror the server: at least 8 characters, and a matching confirmation) ----
+        // ---- step 2: live rule hints (the server's rule for every new password: 8+ characters, a letter, a number, and a matching confirmation) ----
         Runnable updateRules = () -> {
             String p = newPass.getText() != null ? newPass.getText().toString() : "";
             String c = confirmPass.getText() != null ? confirmPass.getText().toString() : "";
-            updateStrength(strengthBar, strengthText, p);
-            setRuleState(ruleLength, R.string.password_rule_length, p.length() >= 8);
-            setRuleState(ruleMatch, R.string.password_rule_match, !p.isEmpty() && p.equals(c));
+            passwordRules.update(p, c);
         };
         TextWatcher rulesWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -1692,7 +1687,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
             if (busy[0] || resetToken[0] == null) return;
             String nPass = newPass.getText() != null ? newPass.getText().toString() : "";
             String cPass = confirmPass.getText() != null ? confirmPass.getText().toString() : "";
-            if (nPass.length() < 8) {
+            if (!PasswordRules.isValid(nPass)) {
                 newPassLayout.setError(getString(R.string.password_min_length));
                 newPass.requestFocus();
                 return;
@@ -1815,31 +1810,6 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         errorView.setText(message);
         errorView.setVisibility(View.VISIBLE);
         boxes.setError(true);
-    }
-
-    /** 0 (empty) to 4: length 8+, mixed case, a digit, a symbol - a hint shown next to the server's own rule (8+ characters). */
-    static int passwordStrength(String p) {
-        if (p == null || p.isEmpty()) return 0;
-        int score = 0;
-        if (p.length() >= 8) score++;
-        if (!p.equals(p.toLowerCase(Locale.ROOT)) && !p.equals(p.toUpperCase(Locale.ROOT))) score++;
-        if (p.matches(".*\\d.*")) score++;
-        if (p.matches(".*[^A-Za-z0-9].*")) score++;
-        if (p.length() < 8) score = Math.min(score, 1);
-        score = Math.max(score, 1); // anything typed is at least "Weak"
-        return score;
-    }
-
-    private void updateStrength(com.google.android.material.progressindicator.LinearProgressIndicator bar, TextView text, String password) {
-        int score = passwordStrength(password);
-        bar.setProgress(score);
-        text.setText(score == 0 ? R.string.password_strength_none : score == 1 ? R.string.password_strength_weak
-                : score == 2 ? R.string.password_strength_fair : score == 3 ? R.string.password_strength_good : R.string.password_strength_strong);
-    }
-
-    private void setRuleState(TextView rule, int textRes, boolean met) {
-        rule.setText(getString(met ? R.string.password_rule_met_format : R.string.password_rule_unmet_format, getString(textRes)));
-        rule.setTextColor(getColor(met ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
     }
 
     private void selectProfilePicture() {

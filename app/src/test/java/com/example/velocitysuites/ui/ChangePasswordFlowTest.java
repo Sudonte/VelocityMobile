@@ -230,6 +230,34 @@ public class ChangePasswordFlowTest {
     }
 
     @Test
+    public void theSameChecklistAsSignUp_andThePasswordRuleIsEnforcedBeforeAnythingIsSent() {
+        verifyWithServer();
+        for (int id : new int[]{R.id.ruleLength, R.id.ruleLetter, R.id.ruleNumber, R.id.ruleMatch, R.id.passwordStrengthBar, R.id.passwordStrengthText}) {
+            assertEquals(View.VISIBLE, v(id).getVisibility());
+        }
+        EditText pw = (EditText) v(R.id.changePasswordNew);
+        EditText confirm = (EditText) v(R.id.changePasswordConfirmNew);
+        for (String weak : new String[]{"abcdefgh", "12345678", "abc12", "short1"}) {
+            pw.setText(weak);
+            confirm.setText(weak);
+            v(R.id.btnConfirmChangePasswordOtp).performClick();
+            assertNotNull(weak + " is refused with the rule in plain words", ((TextInputLayout) v(R.id.changePasswordNewLayout)).getError());
+            assertEquals("Use at least 8 characters with a letter and a number", ((TextInputLayout) v(R.id.changePasswordNewLayout)).getError().toString());
+        }
+        assertEquals("nothing reached the server", 0, api.count("changePasswordWithToken"));
+
+        pw.setText("abcdefg1");
+        assertTrue(((TextView) v(R.id.ruleLength)).getText().toString().startsWith("✓"));
+        assertTrue(((TextView) v(R.id.ruleLetter)).getText().toString().startsWith("✓"));
+        assertTrue(((TextView) v(R.id.ruleNumber)).getText().toString().startsWith("✓"));
+        assertTrue("the confirmation does not match yet", ((TextView) v(R.id.ruleMatch)).getText().toString().startsWith("○"));
+        confirm.setText("abcdefg1");
+        assertTrue(((TextView) v(R.id.ruleMatch)).getText().toString().startsWith("✓"));
+        v(R.id.btnConfirmChangePasswordOtp).performClick();
+        assertEquals(1, api.count("changePasswordWithToken"));
+    }
+
+    @Test
     public void theChangeIsSentWithTheVerifiedToken() {
         verifyWithServer();
         ((EditText) v(R.id.changePasswordNew)).setText("LongEnough1");
@@ -267,18 +295,18 @@ public class ChangePasswordFlowTest {
     @Test
     public void theStrengthMeterFollowsWhatIsTyped() {
         verifyWithServer();
-        TextView text = (TextView) v(R.id.changePasswordStrengthText);
+        TextView text = (TextView) v(R.id.passwordStrengthText);
         EditText pw = (EditText) v(R.id.changePasswordNew);
         assertEquals("Choose a strong password", text.getText().toString());
         pw.setText("abc");
         assertEquals("Strength: Weak", text.getText().toString());
         pw.setText("abcdefgh");
-        assertEquals("Strength: Weak", text.getText().toString());
+        assertEquals("Strength: Fair", text.getText().toString());
         pw.setText("Abcdefgh1");
         assertEquals("Strength: Good", text.getText().toString());
         pw.setText("Abcdefgh1!");
         assertEquals("Strength: Strong", text.getText().toString());
-        assertEquals(4, ((com.google.android.material.progressindicator.LinearProgressIndicator) v(R.id.changePasswordStrengthBar)).getProgress());
+        assertEquals(4, ((com.google.android.material.progressindicator.LinearProgressIndicator) v(R.id.passwordStrengthBar)).getProgress());
     }
 
     @Test

@@ -80,7 +80,6 @@
     <string name="confirm_new_password_hint">Confirm New Password</string>
     <string name="reset_password_title">Reset Password</string>
     <string name="reset_password_button">Update Password</string>
-    <string name="failed_attempts_warning">Too many failed attempts. Please reset your password.</string>
     <string name="otp_sent">OTP sent to your email.</string>
     <string name="otp_resent">A new code has been sent to your email.</string>
     <string name="otp_verified">Code verified.</string>
@@ -325,7 +324,7 @@
     <string name="mobile_required_intl">Enter a valid mobile number with country code</string>
     <string name="mobile_invalid_ph">Enter a valid Philippine mobile number using 09XXXXXXXXX or +639XXXXXXXXX.</string>
     <string name="mobile_invalid_for_country">Enter a valid mobile number for the selected country.</string>
-    <string name="password_min_length">Password must be at least 8 characters</string>
+    <string name="password_min_length">Use at least 8 characters with a letter and a number</string>
     <string name="passwords_do_not_match">Passwords do not match</string>
     <string name="invalid_otp">Invalid OTP</string>
     <string name="network_error">Couldn\'t reach the server. Check your connection.</string>
@@ -1401,6 +1400,8 @@
     <string name="otp_too_many_attempts">Too many incorrect codes. Request a new code with Resend OTP.</string>
     <string name="password_change_failed">Couldn\'t change your password. Please try again.</string>
     <string name="password_rule_length">At least 8 characters</string>
+    <string name="password_rule_letter">A letter</string>
+    <string name="password_rule_number">A number</string>
     <string name="password_rule_match">Both passwords match</string>
     <string name="password_rule_met_format">✓  %1$s</string>
     <string name="password_rule_unmet_format">○  %1$s</string>
@@ -1759,8 +1760,6 @@
         <item quantity="one">%1$d unread</item>
         <item quantity="other">%1$d unread</item>
     </plurals>
-    <string name="login_account_not_found">Account does not exist.</string>
-    <string name="login_wrong_password">Incorrect password. Please try again.</string>
     <string name="signing_in">Signing in…</string>
     <string name="sending_code">Sending code…</string>
     <string name="verifying">Verifying…</string>
@@ -2539,6 +2538,8 @@ Estimated total after discount: %3$s</string>
     <string name="login_email_hint">Email</string>
     <string name="login_password_hint">Password</string>
     <string name="login_resend_code">Resend code</string>
+    <string name="login_invalid_credentials">Incorrect email or password.</string>
+    <string name="forgot_generic_sent">If an account exists for that email, we\'ve sent a code.</string>
     <string name="login_not_verified">This account is not verified yet. Enter the code we sent to your email, or ask for a new one.</string>
     <string name="reg_title">Create account</string>
     <string name="reg_step_name_1">Your name</string>
@@ -2565,15 +2566,6 @@ Estimated total after discount: %3$s</string>
     <string name="reg_zip">ZIP code</string>
     <string name="reg_password">Password</string>
     <string name="reg_confirm_password">Confirm password</string>
-    <string name="reg_rule_length">At least 8 characters</string>
-    <string name="reg_rule_letter">A letter</string>
-    <string name="reg_rule_number">A number</string>
-    <string name="reg_rule_match">Passwords match</string>
-    <string name="reg_strength_none">Password strength</string>
-    <string name="reg_strength_1">Weak</string>
-    <string name="reg_strength_2">Fair</string>
-    <string name="reg_strength_3">Good</string>
-    <string name="reg_strength_4">Strong</string>
     <string name="reg_photo_title">Profile picture (optional)</string>
     <string name="reg_add_photo">Add photo</string>
     <string name="reg_remove_photo">Remove</string>

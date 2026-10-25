@@ -601,71 +601,11 @@
                         android:textColor="@color/velocity_text_primary"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
-                <LinearLayout
+                <com.example.velocitysuites.PasswordRulesView
+                    android:id="@+id/passwordRules"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ProgressBar
-                        android:id="@+id/passwordStrengthBar"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="6dp"
-                        android:layout_weight="1"
-                        android:max="4"
-                        android:progress="0" />
-
-                    <TextView
-                        android:id="@+id/passwordStrengthText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:fontFamily="sans-serif-bold"
-                        android:textColor="@color/velocity_text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/passwordChecklist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/ruleLength"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingVertical="2dp"
-                        android:text="@string/reg_rule_length"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/ruleLetter"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingVertical="2dp"
-                        android:text="@string/reg_rule_letter"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/ruleNumber"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingVertical="2dp"
-                        android:text="@string/reg_rule_number"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/ruleMatch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingVertical="2dp"
-                        android:text="@string/reg_rule_match"
-                        android:textSize="13sp" />
-                </LinearLayout>
+                    android:layout_marginTop="12dp" />
 
                 <TextView
                     android:layout_width="match_parent"

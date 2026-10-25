@@ -8,17 +8,21 @@ import org.junit.Test;
 public class LoginFailureTest {
 
     @Test
-    public void unknownAccountCode_isAccountNotFound() {
-        LoginFailure f = LoginFailure.parse("{\"code\":\"ACCOUNT_NOT_FOUND\",\"message\":\"Account does not exist.\"}");
-        assertEquals(LoginFailure.Kind.ACCOUNT_NOT_FOUND, f.kind);
-        assertEquals("Account does not exist.", f.message);
+    public void theSharedCode_isInvalidCredentials() {
+        LoginFailure f = LoginFailure.parse("{\"code\":\"INVALID_CREDENTIALS\",\"message\":\"Incorrect email or password.\"}");
+        assertEquals(LoginFailure.Kind.INVALID_CREDENTIALS, f.kind);
+        assertEquals("Incorrect email or password.", f.message);
     }
 
     @Test
-    public void wrongPasswordCode_isWrongPassword() {
-        LoginFailure f = LoginFailure.parse("{\"code\":\"WRONG_PASSWORD\",\"message\":\"Incorrect password. Please try again.\"}");
-        assertEquals(LoginFailure.Kind.WRONG_PASSWORD, f.kind);
-        assertEquals("Incorrect password. Please try again.", f.message);
+    public void anOlderServersTwoCodes_arethesameKind_soNothingTellsThemApart() {
+        assertEquals(LoginFailure.Kind.INVALID_CREDENTIALS, LoginFailure.parse("{\"code\":\"ACCOUNT_NOT_FOUND\",\"message\":\"Account does not exist.\"}").kind);
+        assertEquals(LoginFailure.Kind.INVALID_CREDENTIALS, LoginFailure.parse("{\"code\":\"WRONG_PASSWORD\",\"message\":\"Incorrect password.\"}").kind);
+    }
+
+    @Test
+    public void anUnverifiedSignUp_isItsOwnKind() {
+        assertEquals(LoginFailure.Kind.ACCOUNT_NOT_VERIFIED, LoginFailure.parse("{\"code\":\"ACCOUNT_NOT_VERIFIED\",\"message\":\"x\"}").kind);
     }
 
     @Test

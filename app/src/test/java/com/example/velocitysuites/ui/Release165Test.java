@@ -238,15 +238,10 @@ public class Release165Test {
     public void signIn_serverErrors_areInline_inPlainWords() {
         LoginActivity a = signInWith("ana@example.com");
         assertFalse("loading state", a.findViewById(R.id.signInButton).isEnabled());
-        api.<Object>last("login").httpWithBody(401, "{\"code\":\"WRONG_PASSWORD\",\"message\":\"Incorrect password. Please try again.\"}");
+        api.<Object>last("login").httpWithBody(401, "{\"code\":\"INVALID_CREDENTIALS\",\"message\":\"Incorrect email or password.\"}");
         idle();
-        assertEquals("Incorrect password. Please try again.", errorOf(a, R.id.passwordLayout));
+        assertEquals("Incorrect email or password.", text(a, R.id.loginError));
         assertTrue(a.findViewById(R.id.signInButton).isEnabled());
-
-        a = signInWith("nobody@example.com");
-        api.<Object>last("login").httpWithBody(401, "{\"code\":\"ACCOUNT_NOT_FOUND\",\"message\":\"Account does not exist.\"}");
-        idle();
-        assertEquals(a.getString(R.string.login_account_not_found), errorOf(a, R.id.emailLayout));
 
         a = signInWith("blocked@example.com");
         api.<Object>last("login").httpWithBody(401, "{\"message\":\"Account suspended or credentials invalid.\"}");
@@ -542,10 +537,10 @@ public class Release165Test {
         type(a, R.id.confirmPasswordEditText, "abcdefg1");
         assertTrue(nextEnabled(a));
         assertTrue(text(a, R.id.ruleMatch).startsWith("✓"));
-        assertEquals("Good", text(a, R.id.passwordStrengthText));
+        assertEquals("Strength: Good", text(a, R.id.passwordStrengthText));
         type(a, R.id.passwordEditText, "Str0ngPass!");
         type(a, R.id.confirmPasswordEditText, "Str0ngPass!");
-        assertEquals("Strong", text(a, R.id.passwordStrengthText));
+        assertEquals("Strength: Strong", text(a, R.id.passwordStrengthText));
         assertEquals(4, ((android.widget.ProgressBar) a.findViewById(R.id.passwordStrengthBar)).getProgress());
         assertTrue("the photo is optional: Next works without one", nextEnabled(a));
         assertTrue(textsOf(a.findViewById(R.id.step5Layout)).contains("Profile picture (optional)"));

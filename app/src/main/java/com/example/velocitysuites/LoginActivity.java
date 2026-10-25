@@ -47,6 +47,7 @@ public class LoginActivity extends SafeActivity {
     private View forgotEmailLabel, otpLabel, newPasswordLabel, confirmPasswordLabel;
     private View loginCard, forgotPasswordCard, signupRedirect, headerSection, loginLabel;
     private TextView forgotPasswordDesc, forgotPasswordTitle;
+    private PasswordRulesView forgotPasswordRules;
     private TextView resendOtpLink;
     private MaterialButton forgotActionButton;
     private MaterialCheckBox rememberMeCheckbox;
@@ -221,6 +222,7 @@ public class LoginActivity extends SafeActivity {
         forgotPasswordTitle = findViewById(R.id.forgotPasswordTitle);
         forgotPasswordDesc = findViewById(R.id.forgotPasswordDesc);
         forgotActionButton = findViewById(R.id.forgotActionButton);
+        forgotPasswordRules = findViewById(R.id.forgotPasswordRules);
         resendOtpLink = findViewById(R.id.resendOtpLink);
         rememberMeCheckbox = findViewById(R.id.rememberMeCheckbox);
 
@@ -272,8 +274,8 @@ public class LoginActivity extends SafeActivity {
                 } else if (response.isSuccessful() && response.body() != null) {
                     successfulLogin(response.body(), R.string.welcome_back);
                 } else if (response.code() == 423) {
-                    showForgotPasswordFlow();
-                    forgotPasswordDesc.setText(R.string.failed_attempts_warning); // the reset card says why it opened
+                    // only the right password gets here: the account is locked for a while (or until the password is reset)
+                    showLoginError(messageFrom(errorBody));
                 } else if (response.code() == 403) {
                     // Wrong password never reaches here (that's a 401) -
                     // 403 means the credentials were correct but the
@@ -294,12 +296,9 @@ public class LoginActivity extends SafeActivity {
                     // attempt will require verification"), which a fixed
                     // local string would otherwise hide from the guest.
                     LoginFailure failure = LoginFailure.parse(errorBody);
-                    if (failure.kind == LoginFailure.Kind.ACCOUNT_NOT_FOUND) {
-                        setFieldError(emailLayout, emailEditText, getString(R.string.login_account_not_found));
-                        emailEditText.requestFocus();
-                    } else if (failure.kind == LoginFailure.Kind.WRONG_PASSWORD) {
-                        setFieldError(passwordLayout, passwordEditText, failure.message != null ? failure.message : getString(R.string.login_wrong_password));
-                        passwordEditText.requestFocus();
+                    if (failure.kind == LoginFailure.Kind.INVALID_CREDENTIALS) {
+                        // an unknown email and a wrong password get the same words in the same place (nothing says which accounts exist)
+                        showLoginError(getString(R.string.login_invalid_credentials));
                     } else if (failure.kind == LoginFailure.Kind.ACCOUNT_NOT_VERIFIED) {
                         unverifiedEmail = email;
                         showLoginError(failure.message != null ? failure.message : getString(R.string.login_not_verified));
@@ -714,19 +713,19 @@ public class LoginActivity extends SafeActivity {
                     if (isFinishing() || isDestroyed()) return;
                     forgotActionButton.setEnabled(true);
                     if (!response.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, R.string.reset_code_send_failed, Toast.LENGTH_LONG).show();
+                        // the server's wait-a-moment answer (it is the same for every address) or a plain failure
+                        forgotEmailLayout.setError(response.code() == 429 ? errorMessage(response) : getString(R.string.reset_code_send_failed));
                         return;
                     }
 
                     isOtpSent = true;
-                    Toast.makeText(LoginActivity.this, R.string.otp_sent, Toast.LENGTH_SHORT).show();
 
                     forgotEmailLayout.setVisibility(View.GONE);
                     forgotEmailLabel.setVisibility(View.GONE);
                     loginOtpLayout.setVisibility(View.VISIBLE);
                     otpLabel.setVisibility(View.VISIBLE);
                     resendOtpLink.setVisibility(View.VISIBLE);
-                    forgotPasswordDesc.setText(getString(R.string.otp_sent_to, email));
+                    forgotPasswordDesc.setText(R.string.forgot_generic_sent); // the same words whether or not the email has an account
                     forgotActionButton.setText(R.string.verify_otp_button);
                 }
 
@@ -771,6 +770,8 @@ public class LoginActivity extends SafeActivity {
                     forgotPasswordTitle.setText(R.string.reset_password_title);
                     forgotPasswordDesc.setText(R.string.set_new_password_instruction);
                     forgotActionButton.setText(R.string.reset_password_button);
+                    forgotPasswordRules.setVisibility(View.VISIBLE);
+                    forgotPasswordRules.bind(newPasswordEditText, confirmNewPasswordEditText, () -> forgotActionButton.setEnabled(!isOtpVerified || forgotPasswordRules.isSatisfied()));
                 }
 
                 @Override
@@ -829,7 +830,7 @@ public class LoginActivity extends SafeActivity {
     }
 
     private boolean validateNewPassword(String newPass, String confirmPass) {
-        if (newPass.length() < 8) {
+        if (!PasswordRules.isValid(newPass)) {
             newPasswordEditText.setError(getString(R.string.password_min_length));
             return false;
         }
@@ -880,6 +881,8 @@ public class LoginActivity extends SafeActivity {
         newPasswordLabel.setVisibility(View.GONE);
         confirmNewPasswordLayout.setVisibility(View.GONE);
         confirmPasswordLabel.setVisibility(View.GONE);
+        forgotPasswordRules.setVisibility(View.GONE);
+        forgotActionButton.setEnabled(true);
         forgotPasswordTitle.setText(R.string.reset_password_title);
         forgotPasswordDesc.setText(R.string.forgot_password_instruction);
         forgotActionButton.setText(R.string.send_otp_button);

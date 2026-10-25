@@ -6,13 +6,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 /**
- * What the backend's 401 from POST /login means. Api\AuthController::login() answers an unknown email with
- * code ACCOUNT_NOT_FOUND and a known email with a bad password with code WRONG_PASSWORD, so the app can put the
- * message under the right field. An older server (or any other 401) is OTHER and keeps the generic handling.
+ * What the backend's 401 from POST /login means. An unknown email and a wrong password get the SAME answer (code INVALID_CREDENTIALS), so the
+ * sign-in screen cannot be used to find out which emails have an account; an older server's ACCOUNT_NOT_FOUND / WRONG_PASSWORD are treated
+ * the same way. The only specific 401s come after a correct password: ACCOUNT_NOT_VERIFIED (a sign-up still waiting for its code).
  */
 public final class LoginFailure {
 
-    public enum Kind { ACCOUNT_NOT_FOUND, ACCOUNT_NOT_VERIFIED, WRONG_PASSWORD, OTHER }
+    public enum Kind { INVALID_CREDENTIALS, ACCOUNT_NOT_VERIFIED, OTHER }
 
     public final Kind kind;
     /** The server's own message, or null when the body had none. */
@@ -30,9 +30,8 @@ public final class LoginFailure {
             JsonObject json = JsonParser.parseString(errorBody).getAsJsonObject();
             String code = json.has("code") && !json.get("code").isJsonNull() ? json.get("code").getAsString() : "";
             String message = json.has("message") && !json.get("message").isJsonNull() ? json.get("message").getAsString() : null;
-            if ("ACCOUNT_NOT_FOUND".equals(code)) return new LoginFailure(Kind.ACCOUNT_NOT_FOUND, message);
+            if ("INVALID_CREDENTIALS".equals(code) || "ACCOUNT_NOT_FOUND".equals(code) || "WRONG_PASSWORD".equals(code)) return new LoginFailure(Kind.INVALID_CREDENTIALS, message);
             if ("ACCOUNT_NOT_VERIFIED".equals(code)) return new LoginFailure(Kind.ACCOUNT_NOT_VERIFIED, message);
-            if ("WRONG_PASSWORD".equals(code)) return new LoginFailure(Kind.WRONG_PASSWORD, message);
             return new LoginFailure(Kind.OTHER, message);
         } catch (RuntimeException e) {
             return new LoginFailure(Kind.OTHER, null);

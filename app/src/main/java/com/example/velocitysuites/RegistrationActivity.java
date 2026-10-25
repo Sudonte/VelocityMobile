@@ -15,7 +15,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -97,9 +96,7 @@ public class RegistrationActivity extends SafeActivity {
     private ImageView regProfileImage;
     private TextView regPhotoStatusText;
     private View regRemovePhotoLink;
-    private ProgressBar strengthBar;
-    private TextView strengthText;
-    private TextView[] rules;
+    private PasswordRulesView passwordRules;
     private android.os.CountDownTimer resendTimer;
 
     private int phase = PHASE_FORM;
@@ -182,9 +179,7 @@ public class RegistrationActivity extends SafeActivity {
         regProfileImage = findViewById(R.id.regProfileImage);
         regPhotoStatusText = findViewById(R.id.regPhotoStatusText);
         regRemovePhotoLink = findViewById(R.id.regRemovePhotoLink);
-        strengthBar = findViewById(R.id.passwordStrengthBar);
-        strengthText = findViewById(R.id.passwordStrengthText);
-        rules = new TextView[]{findViewById(R.id.ruleLength), findViewById(R.id.ruleLetter), findViewById(R.id.ruleNumber), findViewById(R.id.ruleMatch)};
+        passwordRules = findViewById(R.id.passwordRules);
     }
 
     private void setupGender() {
@@ -248,29 +243,7 @@ public class RegistrationActivity extends SafeActivity {
     }
 
     private void setupPasswordRules() {
-        passwordEdit.addTextChangedListener(new SimpleTextWatcher(this::updatePasswordRules));
-        confirmPasswordEdit.addTextChangedListener(new SimpleTextWatcher(this::updatePasswordRules));
-        updatePasswordRules();
-    }
-
-    private void updatePasswordRules() {
-        String p = textOf(passwordEdit, false);
-        String c = textOf(confirmPasswordEdit, false);
-        boolean[] met = {PasswordRules.hasMinLength(p), PasswordRules.hasLetter(p), PasswordRules.hasNumber(p), PasswordRules.matches(p, c)};
-        int[] labels = {R.string.reg_rule_length, R.string.reg_rule_letter, R.string.reg_rule_number, R.string.reg_rule_match};
-        for (int i = 0; i < rules.length; i++) {
-            rules[i].setText((met[i] ? "✓ " : "○ ") + getString(labels[i]));
-            rules[i].setTextColor(ContextCompat.getColor(this, met[i] ? R.color.velocity_text_primary : R.color.velocity_text_secondary));
-            rules[i].setTypeface(null, met[i] ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
-        }
-        int level = PasswordRules.strength(p);
-        strengthBar.setProgress(level);
-        int[] colors = {R.color.velocity_divider_hairline, R.color.velocity_action_text, R.color.velocity_orange_primary, R.color.velocity_gold_primary, R.color.velocity_green_primary};
-        strengthBar.setProgressTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, colors[level])));
-        strengthBar.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.velocity_divider_hairline)));
-        int[] words = {R.string.reg_strength_none, R.string.reg_strength_1, R.string.reg_strength_2, R.string.reg_strength_3, R.string.reg_strength_4};
-        strengthText.setText(words[level]);
-        refreshNext();
+        passwordRules.bind(passwordEdit, confirmPasswordEdit, this::refreshNext);
     }
 
     // ---------------------------------------------------------------- date of birth and age
