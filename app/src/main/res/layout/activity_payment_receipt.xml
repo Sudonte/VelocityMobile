@@ -88,14 +88,35 @@
             app:tint="@color/velocity_text_secondary" />
 
         <TextView
-            android:id="@+id/tvReceiptErrorMessage"
+            android:id="@+id/tvReceiptErrorTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="11dp"
             android:gravity="center"
+            android:text="@string/receipt_open_failed_title"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvReceiptErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
             android:textColor="@color/velocity_text_primary"
             android:textSize="13sp"
             tools:text="This receipt is not available." />
+
+        <TextView
+            android:id="@+id/tvReceiptErrorHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="If it keeps happening, show this receipt number to the front desk: SR-20261028-000154" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnReceiptRetry"

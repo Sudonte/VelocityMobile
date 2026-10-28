@@ -128,7 +128,7 @@ public final class MoneySummaryPanel {
         rule.setBackgroundColor(ContextCompat.getColor(c, R.color.velocity_divider_hairline));
         col.addView(rule);
 
-        int payColor = s.isSettled() ? R.color.velocity_green_dark : R.color.velocity_action_text;
+        int payColor = s.isSettled() ? R.color.velocity_success_text : R.color.velocity_action_text;
         TextView pay = amount(c, "", 22, payColor);
         setPayText(pay, s.amountToPay.substring(0, s.amountEnd), s.amountToPay.substring(s.amountEnd));
         col.addView(row(c, c.getString(R.string.money_amount_to_pay), 16, true, pay, stack));

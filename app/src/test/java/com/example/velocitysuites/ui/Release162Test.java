@@ -288,7 +288,7 @@ public class Release162Test {
     @Test
     public void aSettledTransaction_isGreen_andAnOwingOneIsRed() {
         int redText = app.getColor(R.color.velocity_action_text);
-        int settled = app.getColor(R.color.velocity_green_dark);
+        int settled = app.getColor(R.color.velocity_success_text);
         TextView owing = payView(open(booking("Confirmed", 9450, 0)));
         assertEquals(redText, owing.getCurrentTextColor());
         TextView done = payView(open(booking("Completed", 18900, 0)));

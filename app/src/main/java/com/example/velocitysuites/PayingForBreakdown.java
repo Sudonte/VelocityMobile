@@ -184,7 +184,7 @@ final class PayingForBreakdown {
             out.amenitiesOverride = b.bookedAmenities + b.amenitiesTotal;
             for (BalanceBreakdown.Item item : b.charges) out.otherCharges.add(new Line(item.name, item.subtotal));
             out.otherChargesTotal = b.chargesTotal;
-            out.appliedDiscount = b.discount;
+            out.appliedDiscount = b.discount + b.discountOnAmenities;
             if (b.promo > 0.009) {
                 out.appliedPromo = b.promo;
                 if (b.promoName != null && !b.promoName.isEmpty()) out.promoName = b.promoName;
@@ -408,7 +408,7 @@ final class PayingForBreakdown {
             out.amenitiesOverride = b.bookedAmenities + b.amenitiesTotal;
             for (BalanceBreakdown.Item item : b.charges) out.otherCharges.add(new Line(item.name, item.subtotal));
             out.otherChargesTotal = b.chargesTotal;
-            out.appliedDiscount = b.discount;
+            out.appliedDiscount = b.discount + b.discountOnAmenities;
             out.appliedPromo = b.promo;
             out.promoName = b.promoName;
             out.discountName = b.discountName;

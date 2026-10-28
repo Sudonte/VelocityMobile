@@ -121,6 +121,9 @@
     <string name="receipt_rejected_desc">This payment was rejected, so no official receipt was generated. Please resubmit valid proof of payment.</string>
     <!-- GET guest/receipts/{receiptNumber} - shown when the backend returns 404 (unknown, not-yet-available, or not owned by this guest - deliberately indistinguishable). -->
     <string name="receipt_not_available_desc">This receipt is not available.</string>
+    <string name="receipt_open_failed_title">We couldn\'t open this receipt</string>
+    <string name="receipt_open_failed_hint">Tap Retry. If it keeps happening, show this receipt number to the front desk: %1$s</string>
+    <string name="receipt_open_failed_hint_plain">Tap Retry. If it keeps happening, contact the front desk.</string>
     <string name="receipt_loading_label">Loading receipt…</string>
     <string name="loading_notifications_label">Loading notifications…</string>
     <string name="loading_transactions_label">Loading transactions…</string>
@@ -2434,6 +2437,17 @@ Estimated total after discount: %3$s</string>
     <string name="receipt_row_1">Receipt 1 · Payment verified</string>
     <string name="receipt_row_2">Receipt 2 · Check-in</string>
     <string name="receipt_row_3">Receipt 3 · Check-out (final)</string>
+    <string name="receipt_amount_paid_online">Paid online %1$s</string>
+    <string name="receipt_amount_paid_cash">Paid in cash %1$s</string>
+    <string name="receipt_amount_paid">Paid %1$s</string>
+    <string name="receipt_amount_paid_checkin">Paid at check-in %1$s</string>
+    <string name="receipt_amount_no_payment_checkin">No payment at check-in</string>
+    <string name="receipt_amount_total_paid">Total %1$s · Fully paid</string>
+    <string name="receipt_amount_total_owing">Total %1$s · Balance still due</string>
+    <string name="receipt_amount_total">Total %1$s</string>
+    <string name="tl_paid_at_checkin_format">Paid at check-in · %1$s</string>
+    <string name="tl_paid_at_checkout_format">Paid at check-out · %1$s</string>
+    <string name="next_stay_discount_on_amenities">Discount on added amenities</string>
     <string name="receipt_later_1">Issued after the front desk verifies your payment</string>
     <string name="receipt_later_2">Issued at check-in</string>
     <string name="receipt_later_3">Issued at check-out</string>

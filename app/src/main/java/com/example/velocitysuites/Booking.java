@@ -384,15 +384,27 @@ public class Booking implements Serializable {
         public final double amount;
         @Nullable public final Integer paymentPercentage;
         @Nullable public final String issuedAt;
+        /** cash | gcash for a payment receipt; null for the final one and for a check-in with no payment. */
+        @Nullable public final String paymentMethod;
+        /** Final receipt only: true when nothing is owed (null = the server did not say). */
+        @Nullable public final Boolean fullyPaid;
 
         public ReceiptSummary(String receiptNumber, String receiptType, String status, double amount,
                                @Nullable Integer paymentPercentage, @Nullable String issuedAt) {
+            this(receiptNumber, receiptType, status, amount, paymentPercentage, issuedAt, null, null);
+        }
+
+        public ReceiptSummary(String receiptNumber, String receiptType, String status, double amount,
+                               @Nullable Integer paymentPercentage, @Nullable String issuedAt,
+                               @Nullable String paymentMethod, @Nullable Boolean fullyPaid) {
             this.receiptNumber = receiptNumber;
             this.receiptType = receiptType;
             this.status = status;
             this.amount = amount;
             this.paymentPercentage = paymentPercentage;
             this.issuedAt = issuedAt;
+            this.paymentMethod = paymentMethod;
+            this.fullyPaid = fullyPaid;
         }
     }
 

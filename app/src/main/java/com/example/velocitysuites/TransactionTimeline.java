@@ -159,6 +159,17 @@ final class TransactionTimeline {
         boolean verified = !rejected && (p.verifiedAt != null || verification.equals("verified") || payStatus.equals("completed"));
         long decided = ms(p.verifiedAt);
         if (decided == 0) decided = submitted;
+        // Cash taken at the desk is one event, not a submission waiting for a verification: "Paid at check-in · Cash".
+        if (verified && "cash".equalsIgnoreCase(p.paymentMethod)) {
+            boolean atCheckIn = p.referenceNumber != null && p.referenceNumber.startsWith("CHECKIN-");
+            boolean atCheckOut = ReceiptTypeMapper.CHECKOUT_PAYMENT.equals(p.transactionType);
+            if (atCheckIn || atCheckOut) {
+                String cash = DisplayLabels.paymentMethod(c, p.paymentMethod);
+                add(out, "pay_ver|" + p.id, Kind.PAYMENT_VERIFIED, decided, c.getString(atCheckIn ? R.string.tl_paid_at_checkin_format : R.string.tl_paid_at_checkout_format, cash),
+                        MoneyFormat.format(p.amountPaid), R.drawable.ic_check_circle);
+                return;
+            }
+        }
         add(out, "pay_sub|" + p.id, Kind.PAYMENT_SUBMITTED, submitted, c.getString(R.string.tl_payment_submitted), detail, R.drawable.ic_payment);
         if (rejected) {
             add(out, "pay_rej|" + p.id, Kind.PAYMENT_REJECTED, decided, c.getString(R.string.tl_payment_rejected),

@@ -237,8 +237,11 @@ final class DetailsParts {
                 if (r.receiptNumber != null && !r.receiptNumber.trim().isEmpty()) detail.append(r.receiptNumber);
                 String date = when(r.issuedAt);
                 if (date != null) detail.append(detail.length() > 0 ? " · " : "").append(date);
-                if (r.amount > MoneyFormat.EPSILON) detail.append(detail.length() > 0 ? " · " : "").append(MoneyFormat.format(r.amount));
                 row.addView(text(activity, detail.toString(), 12, false, R.color.velocity_text_secondary));
+                // what the amount IS: paid online / paid at check-in / the final total and whether it is settled
+                TextView what = text(activity, receiptAmountLine(activity, stage, r), 13, true, R.color.velocity_text_primary);
+                what.setPadding(0, dp(activity, 2), 0, 0);
+                row.addView(what);
                 row.setClickable(true);
                 row.setFocusable(true);
                 row.setOnClickListener(v -> activity.startActivity(PaymentReceiptActivity.newIntentForReceipt(activity, b, r.receiptNumber)));
@@ -248,6 +251,23 @@ final class DetailsParts {
             }
             into.addView(row);
         }
+    }
+
+    /** What a receipt row's amount is: "Paid online ₱1,750.00", "Paid at check-in ₱1,000.00" / "No payment at check-in", "Total ₱3,000.00 · Fully paid". */
+    @NonNull
+    static String receiptAmountLine(@NonNull Context c, int stage, @NonNull Booking.ReceiptSummary r) {
+        String money = MoneyFormat.format(r.amount);
+        if (stage == 1) {
+            if ("gcash".equalsIgnoreCase(r.paymentMethod)) return c.getString(R.string.receipt_amount_paid_online, money);
+            if ("cash".equalsIgnoreCase(r.paymentMethod)) return c.getString(R.string.receipt_amount_paid_cash, money);
+            return c.getString(R.string.receipt_amount_paid, money);
+        }
+        if (stage == 2) {
+            return r.amount > MoneyFormat.EPSILON ? c.getString(R.string.receipt_amount_paid_checkin, money) : c.getString(R.string.receipt_amount_no_payment_checkin);
+        }
+        if (Boolean.TRUE.equals(r.fullyPaid)) return c.getString(R.string.receipt_amount_total_paid, money);
+        if (Boolean.FALSE.equals(r.fullyPaid)) return c.getString(R.string.receipt_amount_total_owing, money);
+        return c.getString(R.string.receipt_amount_total, money);
     }
 
     // ---- helpers ----

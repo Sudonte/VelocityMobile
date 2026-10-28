@@ -812,7 +812,7 @@ public final class ApiMapper {
         for (ReceiptSummaryDto dto : dtos) {
             out.add(new Booking.ReceiptSummary(
                     dto.receipt_number, dto.receipt_type, dto.status, dto.amount,
-                    dto.payment_percentage, dto.issued_at
+                    dto.payment_percentage, dto.issued_at, dto.payment_method, dto.fully_paid
             ));
         }
         return out;

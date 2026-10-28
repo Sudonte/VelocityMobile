@@ -45,6 +45,8 @@ public final class BalanceBreakdown implements Serializable {
     public final boolean paidInFull;
     public final List<Item> amenities;
     public final double amenitiesTotal;
+    /** The ID discount on the amenities added after check-in (the discount covers every approved amenity). */
+    public final double discountOnAmenities;
     public final List<Item> charges;
     public final double chargesTotal;
     public final double additionalSubtotal;
@@ -68,6 +70,7 @@ public final class BalanceBreakdown implements Serializable {
         this.paidInFull = c.paid_in_full;
         this.amenities = items(a.amenities);
         this.amenitiesTotal = a.amenities_total;
+        this.discountOnAmenities = a.discount_on_amenities;
         this.charges = items(a.charges);
         this.chargesTotal = a.charges_total;
         this.additionalSubtotal = a.subtotal;

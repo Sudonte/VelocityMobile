@@ -65,6 +65,8 @@ public class StayBillDto {
     public static class AfterCheckin {
         public List<Line> amenities;
         public double amenities_total;
+        /** The ID discount on those added amenities (it covers every approved amenity); absent on older receipts. */
+        public double discount_on_amenities;
         public List<Line> charges;
         public double charges_total;
         public double subtotal;

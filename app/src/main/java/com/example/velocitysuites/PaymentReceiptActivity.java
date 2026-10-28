@@ -269,7 +269,13 @@ public class PaymentReceiptActivity extends SafeActivity {
             public void onSuccess(ReceiptDetail result) {
                 if (isFinishing() || isDestroyed()) return;
                 receiptDetail = result;
-                resolveAmenitiesThenRender(result);
+                try {
+                    resolveAmenitiesThenRender(result);
+                } catch (RuntimeException e) {
+                    // a receipt this build cannot draw is an error the guest can retry or report, never a blank screen
+                    android.util.Log.e("PaymentReceipt", "Could not draw receipt " + receiptNumber, e);
+                    showErrorState(null);
+                }
             }
 
             @Override
@@ -349,6 +355,9 @@ public class PaymentReceiptActivity extends SafeActivity {
         errorLayout.setVisibility(View.VISIBLE);
         ((TextView) findViewById(R.id.tvReceiptErrorMessage)).setText(
                 message != null && !message.trim().isEmpty() ? message : getString(R.string.receipt_load_failed_desc));
+        boolean hasNumber = receiptNumber != null && !receiptNumber.trim().isEmpty();
+        ((TextView) findViewById(R.id.tvReceiptErrorHint)).setText(hasNumber
+                ? getString(R.string.receipt_open_failed_hint, receiptNumber) : getString(R.string.receipt_open_failed_hint_plain));
     }
 
     private void showContentState() {

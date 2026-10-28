@@ -111,8 +111,10 @@ public class ReceiptDetailDto {
         public Double room_charges;
         public Double amenities_total;
         public Double additional_charges_total;
+        @com.google.gson.annotations.JsonAdapter(LenientAmount.class)
         public Double discount;
-        /** The promo the desk verified: its own line, off the room rate. */
+        /** The promo the desk verified: its own line, off the room rate. Read leniently: the 1.68.0 check-in receipt stored an object here. */
+        @com.google.gson.annotations.JsonAdapter(LenientAmount.class)
         public Double promo;
         public String promo_name;
         public String discount_name;

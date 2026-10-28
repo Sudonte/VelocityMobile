@@ -125,6 +125,9 @@ final class NextStayDetails {
         if (!b.amenities.isEmpty()) {
             rows.add(line(c.getString(R.string.next_stay_amenities_total), b.amenitiesTotal, false, Tone.NORMAL));
         }
+        if (b.discountOnAmenities > MoneyFormat.EPSILON) {
+            rows.add(new Row(Kind.LINE, c.getString(R.string.next_stay_discount_on_amenities), "-" + MoneyFormat.format(b.discountOnAmenities), false, Tone.NORMAL));
+        }
         List<BalanceBreakdown.Item> charges = grouped(b.charges);
         if (!charges.isEmpty()) {
             rows.add(new Row(Kind.HEADER, c.getString(R.string.next_stay_detail_additional_charges), "", false, Tone.NORMAL));

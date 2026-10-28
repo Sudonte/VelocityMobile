@@ -38,6 +38,8 @@
     <color name="velocity_green_primary">#B71C1C</color>
     <color name="velocity_green_dark">#7F1212</color>
     <color name="velocity_green_soft">#FDECEC</color>
+    <!-- A real green, only for "nothing owed" (the brand family above is red): dark green in Light, light green in Dark. -->
+    <color name="velocity_success_text">#1B5E20</color>
     <color name="velocity_green_subtle">#F7D4D4</color>
 
     <!-- Blue Status (Checked-In) -> red -->

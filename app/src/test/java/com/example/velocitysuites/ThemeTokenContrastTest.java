@@ -54,6 +54,7 @@ public class ThemeTokenContrastTest {
             check(mode, c, "velocity_text_primary", surface);
             check(mode, c, "velocity_text_secondary", surface);
             check(mode, c, "velocity_action_text", surface);
+            check(mode, c, "velocity_success_text", surface); // the green of "Nothing to pay"
         }
         check(mode, c, "white", "velocity_red_primary"); // button text on the brand red
     }

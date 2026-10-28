@@ -24,4 +24,8 @@ public class ReceiptSummaryDto {
     public Integer payment_percentage;
     /** ISO-8601 instant this specific receipt was issued - the payment's own verified_at for PR/FR, or the billing's own updated_at for OR. Nullable. */
     public String issued_at;
+    /** cash | gcash for a payment receipt; null for the final one and for a check-in with no payment. */
+    public String payment_method;
+    /** Final receipt only: true when nothing is owed. */
+    public Boolean fully_paid;
 }
