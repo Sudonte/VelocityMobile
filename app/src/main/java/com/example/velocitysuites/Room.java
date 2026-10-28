@@ -22,6 +22,8 @@ public class Room implements Serializable {
     private List<String> imageLabels = java.util.Collections.emptyList();
     private long roomTypeId;
     private int availableCount;
+    /** The promos running for this room type today (empty when none). */
+    private List<PromoOffer> promos = java.util.Collections.emptyList();
 
     public Room(String id, String name, String type, int capacity, double pricePerNight, String description, int imageResId, boolean isAvailable, List<RoomAmenity> amenities, String bedType, String roomSize, String policies) {
         this.id = id;
@@ -58,10 +60,12 @@ public class Room implements Serializable {
     public List<String> getImageLabels() { return imageLabels; }
     public long getRoomTypeId() { return roomTypeId; }
     public int getAvailableCount() { return availableCount; }
+    public List<PromoOffer> getPromos() { return promos; }
 
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls != null ? imageUrls : java.util.Collections.emptyList(); }
     public void setImageLabels(List<String> imageLabels) { this.imageLabels = imageLabels != null ? imageLabels : java.util.Collections.emptyList(); }
     public void setRoomTypeId(long roomTypeId) { this.roomTypeId = roomTypeId; }
     public void setAvailableCount(int availableCount) { this.availableCount = availableCount; }
+    public void setPromos(List<PromoOffer> promos) { this.promos = promos != null ? promos : java.util.Collections.<PromoOffer>emptyList(); }
 }

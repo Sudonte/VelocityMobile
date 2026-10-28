@@ -41,4 +41,6 @@ public class BookingDto {
     public String completed_at;
     public RoomDto room;
     public BillingDto billing;
+    /** The promos this booking can use and the one the desk applied (the booking is where the desk verifies it). */
+    public PromoInfoDto promo_info;
 }

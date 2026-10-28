@@ -415,6 +415,7 @@ public class StepStaysFragment extends WizardStepFragment {
         List<ReviewSheet.Section> sections = WizardReview.stays(requireContext(), state);
         List<ReviewSheet.Row> totals = new java.util.ArrayList<>();
         totals.add(ReviewSheet.Row.bold(getString(R.string.stays_total_label), MoneyFormat.format(state.roomsTotal())));
+        totals.addAll(WizardReview.promoRows(requireContext(), state));
         ReviewSheet.show(getWizardActivity(), getString(R.string.review_stays_title), null, sections, totals,
                 getString(R.string.review_edit_stays), getString(R.string.review_continue), null, proceed);
         return true; // Next is handled either way (a second tap while the sheet is up does nothing)

@@ -152,7 +152,7 @@ public class Release160Test {
         List<String> t = textsOf(open(withPayment("verified")).getWindow().getDecorView());
         assertEquals(t.toString(), "₱3,500.00", after(t, "Paid so far"));
         assertEquals("₱15,400.00", after(t, "Remaining balance"));
-        assertEquals("₱15,400.00 · at check-in", after(t, "Amount to pay"));
+        assertEquals("₱15,400.00 · at check-out", after(t, "Amount to pay"));
         assertFalse(t.toString(), t.contains("Waiting for verification") && !t.contains("Waiting for front desk verification"));
         assertFalse(t.toString(), String.join("\n", t).contains("will be deducted"));
     }

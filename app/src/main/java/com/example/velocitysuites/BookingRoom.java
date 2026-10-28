@@ -21,9 +21,19 @@ public class BookingRoom implements Serializable {
     private final long nights;
     private final double subtotal;
     private final List<String> assignedRoomNumbers;
+    /** The nightly rate after the front desk verified a promo for this room type (0 = no promo on this line). */
+    private final double ratePerNightAfterPromo;
+    private final boolean promoApplied;
 
     public BookingRoom(String roomTypeId, String roomTypeName, int quantity, double pricePerNight, long nights, double subtotal,
                         List<String> assignedRoomNumbers) {
+        this(roomTypeId, roomTypeName, quantity, pricePerNight, nights, subtotal, assignedRoomNumbers, -1);
+    }
+
+    public BookingRoom(String roomTypeId, String roomTypeName, int quantity, double pricePerNight, long nights, double subtotal,
+                        List<String> assignedRoomNumbers, double ratePerNightAfterPromo) {
+        this.promoApplied = ratePerNightAfterPromo >= 0 && ratePerNightAfterPromo < pricePerNight - 0.004;
+        this.ratePerNightAfterPromo = Math.max(0, ratePerNightAfterPromo);
         this.roomTypeId = roomTypeId;
         this.roomTypeName = roomTypeName;
         this.quantity = quantity;
@@ -38,6 +48,9 @@ public class BookingRoom implements Serializable {
     public int getQuantity() { return quantity; }
     public double getPricePerNight() { return pricePerNight; }
     public long getNights() { return nights; }
+    /** The nightly rate with the verified promo, or 0 when no promo applies to this line. */
+    public double getRatePerNightAfterPromo() { return ratePerNightAfterPromo; }
+    public boolean hasPromoRate() { return promoApplied; }
     public double getSubtotal() { return subtotal; }
 
     /** Physical room number(s) assigned to this room type at check-in - empty before check-in (or for a not-yet-converted Reservation, which never has physical assignments). */

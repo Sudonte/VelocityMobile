@@ -1,5 +1,6 @@
 package com.example.velocitysuites;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.Serializable;
@@ -243,6 +244,8 @@ public class Booking implements Serializable {
     private List<BookingRoom> rooms = new ArrayList<>();
     /** The server's itemized stay once the guest is in house or checked out (actual nights, extra nights, ...); null before. */
     private StayInfo stay;
+    /** The promos this transaction can use and the one the front desk applied (nothing is subtracted before that). */
+    private PromoInfo promoInfo = PromoInfo.NONE;
     /**
      * Itemized paid-amenity breakdown for this transaction - see
      * MULTI_ROOM_TRANSACTION_BACKEND_SPEC.md. Empty on every transaction
@@ -691,6 +694,8 @@ public class Booking implements Serializable {
     public String getPaymentTimeOnly() { return paymentTimeOnly; }
     public List<BookingRoom> getRooms() { return rooms; }
     @Nullable public StayInfo getStay() { return stay; }
+    @NonNull public PromoInfo getPromoInfo() { return promoInfo; }
+    public void setPromoInfo(@Nullable PromoInfo info) { this.promoInfo = info != null ? info : PromoInfo.NONE; }
     public void setStay(@Nullable StayInfo stay) { this.stay = stay; }
     public List<BookingAmenity> getAmenities() { return amenities; }
 

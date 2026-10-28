@@ -217,6 +217,38 @@ public final class RoomDetailsDialog {
         return showDialog(dialog);
     }
 
+    /** The Promos section: one card per active promo - title, value, short description, valid until. Hidden when none is running. */
+    private static void bindPromos(Activity activity, View dialogView, Room room) {
+        LinearLayout list = dialogView.findViewById(R.id.layoutDetailPromos);
+        View head = dialogView.findViewById(R.id.headPromos);
+        list.removeAllViews();
+        List<PromoOffer> promos = room.getPromos();
+        boolean any = promos != null && !promos.isEmpty();
+        head.setVisibility(any ? View.VISIBLE : View.GONE);
+        list.setVisibility(any ? View.VISIBLE : View.GONE);
+        if (!any) return;
+        LayoutInflater inflater = LayoutInflater.from(activity);
+        for (PromoOffer p : promos) {
+            View card = inflater.inflate(R.layout.item_room_promo, list, false);
+            ((TextView) card.findViewById(R.id.promoTitle)).setText(p.title);
+            TextView value = card.findViewById(R.id.promoValue);
+            String rate = p.hasMoneyEffect && p.rateAfter > 0
+                    ? activity.getString(R.string.promo_rate_per_night_format, MoneyFormat.format(room.getPricePerNight()), MoneyFormat.format(p.rateAfter)) : null;
+            value.setText(rate != null ? p.label + " · " + rate : p.label);
+            value.setVisibility(p.label.isEmpty() && rate == null ? View.GONE : View.VISIBLE);
+            TextView desc = card.findViewById(R.id.promoDescription);
+            String text = p.description;
+            if (!p.amenities.isEmpty()) text = (text.isEmpty() ? "" : text + "\n") + android.text.TextUtils.join(", ", p.amenities);
+            desc.setText(text);
+            desc.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
+            TextView until = card.findViewById(R.id.promoValidUntil);
+            String when = p.validUntil == null ? "" : activity.getString(R.string.promo_valid_until_format, StayInfo.display(p.validUntil));
+            until.setText(when);
+            until.setVisibility(when.isEmpty() ? View.GONE : View.VISIBLE);
+            list.addView(card);
+        }
+    }
+
     /** Binds every field the two entry points above share (gallery, name, price, type, refund, overview, facts, amenities, policies) - only the sticky bar's actions differ between them. */
     @SuppressLint("InflateParams") // a dialog's content view has no parent to inflate into
     private static View inflateAndBindCommonFields(Activity activity, Room room) {
@@ -240,6 +272,9 @@ public final class RoomDetailsDialog {
         String price = activity.getString(R.string.price_format_per_night, room.getPricePerNight());
         tvPrice.setText(price);
         ((TextView) dialogView.findViewById(R.id.detailBarPrice)).setText(price);
+
+        // Promos: the ones running for this room type today, each with what it does to the nightly rate and when it ends.
+        bindPromos(activity, dialogView, room);
 
         // Overview: the full description (the section is left out when there is none).
         String description = room.getDescription() == null ? "" : room.getDescription().trim();

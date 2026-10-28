@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Where a photo comes from: Take a photo, Choose from gallery, (Remove photo,) Cancel. Rows are 56dp tall, easy to tap. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/velocity_surface_elevated"
+    android:orientation="vertical"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:id="@+id/photoSheetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="6dp"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/photoSheetHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/photoSheetTake"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="16dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:text="@string/take_photo"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="15sp"
+        app:drawableStartCompat="@drawable/ic_camera"
+        app:drawableTint="@color/velocity_red_primary" />
+
+    <TextView
+        android:id="@+id/photoSheetGallery"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="16dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:text="@string/choose_from_gallery"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="15sp"
+        app:drawableStartCompat="@drawable/ic_gallery"
+        app:drawableTint="@color/velocity_red_primary" />
+
+    <TextView
+        android:id="@+id/photoSheetRemove"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="16dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:text="@string/remove_photo"
+        android:textColor="@color/velocity_action_text"
+        android:textSize="15sp"
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_delete"
+        app:drawableTint="@color/velocity_action_text" />
+
+    <TextView
+        android:id="@+id/photoSheetCancel"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:text="@string/cancel_label"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="15sp" />
+</LinearLayout>

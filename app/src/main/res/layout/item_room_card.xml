@@ -76,6 +76,28 @@
                         android:textAllCaps="false"
                         android:textColor="@color/velocity_green_primary"
                         android:textSize="12sp" />
+
+                    <!-- "1 promo" / "2 promos": only when a promo is running for this room type; top-right on the photo. -->
+                    <TextView
+                        android:id="@+id/roomPromoBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/bg_badge_promo"
+                        android:drawablePadding="4dp"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center_vertical"
+                        android:includeFontPadding="false"
+                        android:letterSpacing="0"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="2 promos"
+                        tools:visibility="visible" />
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -108,7 +108,7 @@ public class StayMoneyScreensTest {
         String all = summaryText(inHouseWithMoney());
 
         assertInOrder(all, "Massage × 1 · ₱100.00", "Pending approval – not counted", "Room charges", "₱2,000.00", "Amenities", "₱200.00",
-                "Other charges: Broken lamp", "₱300.00", "Discount (Senior Citizen)", "−₱400.00",
+                "Discount (Senior Citizen)", "−₱400.00", "Other charges: Broken lamp", "₱300.00",
                 "Paid so far", "₱1,600.00", "Grand total", "₱2,100.00", "Remaining balance", "₱500.00", "Amount to pay", "₱500.00 · at check-out");
         assertFalse("the generic summary and the old groups are replaced", all.contains("Payment Balance") || all.contains("Check-in Billing") || all.contains("Final Summary"));
     }

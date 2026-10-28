@@ -97,6 +97,9 @@ public interface ApiService {
     @POST("reactivate-verify")
     Call<AuthResponse> reactivateVerify(@Body ReactivateVerifyRequest request);
 
+    @retrofit2.http.DELETE("guest/profile/picture")
+    Call<ApiMessage> removeProfilePicture();
+
     @GET("rooms")
     Call<RoomsResponse> getRooms(@QueryMap Map<String, String> filters);
 

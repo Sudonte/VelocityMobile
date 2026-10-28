@@ -60,9 +60,6 @@ import retrofit2.Response;
 
 public class ProfileManagementActivity extends BaseNavigationActivity {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int CAPTURE_IMAGE_REQUEST = 2;
-    private static final int PERMISSION_REQUEST_CODE = 100;
 
     // 30-day rolling edit lock - applies to the profile picture and password
     // (still purely device-local/best-effort for those two), and now ALSO to
@@ -94,6 +91,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
     private MaterialButton editProfileButton;
     private View updateProfilePictureButton, changePasswordButton;
     private ImageView profileImage;
+    private PhotoCapture photoCapture;
     private SharedPreferences prefs;
 
     private com.google.android.material.switchmaterial.SwitchMaterial themeModeSwitch;
@@ -105,6 +103,20 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profilemanagement);
         setupGuestNavigation(R.id.nav_profile_management);
+        photoCapture = new PhotoCapture(this, () -> this, new PhotoCapture.Listener() {
+            @Override
+            public void onPhoto(@NonNull Uri photo) {
+                previewProfilePhoto(photo);
+            }
+
+            @Override
+            public void onProblem(@NonNull PhotoCapture.Problem problem) {
+                Toast.makeText(ProfileManagementActivity.this, problem == PhotoCapture.Problem.NO_CAMERA_APP ? R.string.photo_no_camera_app
+                        : problem == PhotoCapture.Problem.NO_GALLERY ? R.string.photo_no_gallery
+                        : problem == PhotoCapture.Problem.PERMISSION_DENIED ? R.string.camera_permission_required : R.string.photo_camera_failed, Toast.LENGTH_LONG).show();
+            }
+        });
+        photoCapture.restoreState(savedInstanceState);
 
         prefs = getSharedPreferences("VelocityPrefs", MODE_PRIVATE);
         initializeViews();
@@ -586,14 +598,14 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
 
         if (profileImage != null) {
             if (TextUtils.isEmpty(profilePictureUrl)) {
-                // No uploaded picture yet - show the neutral default avatar.
-                profileImage.setImageResource(R.drawable.img_profile_placeholder);
+                // No uploaded picture yet: a round avatar with the guest's initials.
+                profileImage.setImageDrawable(initialsAvatar());
             } else {
                 Glide.with(this)
                         .load(profilePictureUrl)
                         .circleCrop()
-                        .placeholder(R.drawable.img_profile_placeholder)
-                        .error(R.drawable.img_profile_placeholder)
+                        .placeholder(initialsAvatar())
+                        .error(initialsAvatar())
                         .into(profileImage);
             }
         }
@@ -692,7 +704,7 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         }
 
         if (profileImage != null) {
-            profileImage.setOnClickListener(v -> handleProfilePictureTap());
+            profileImage.setOnClickListener(v -> openProfilePhotoFullScreen());
         }
 
         changePasswordButton = findViewById(R.id.changePasswordButton);
@@ -727,12 +739,31 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         }
     }
 
+    /** The guest's initials on the brand red, round: shown while there is no profile photo (and while one loads). */
+    private android.graphics.drawable.Drawable initialsAvatar() {
+        String name = prefs != null ? prefs.getString("userName", "") : "";
+        return new InitialsDrawable(name, ContextCompat.getColor(this, R.color.velocity_red_primary), ContextCompat.getColor(this, R.color.white));
+    }
+
+    /** The camera badge: the photo sheet (the lock only stops a NEW photo - it is checked when one is chosen). */
     private void handleProfilePictureTap() {
-        if (isLocked(KEY_PROFILE_PICTURE_UPDATED_AT)) {
-            showLockedMessage(R.string.locked_profile_picture, KEY_PROFILE_PICTURE_UPDATED_AT);
-        } else {
-            selectProfilePicture();
+        selectProfilePicture();
+    }
+
+    /** Tapping the photo itself opens it full screen (pinch to zoom, close button); with no photo there is nothing to open. */
+    private void openProfilePhotoFullScreen() {
+        String url = SessionManager.getProfilePictureUrl(this);
+        if (TextUtils.isEmpty(url)) {
+            selectProfilePicture(); // no photo yet: the same sheet to add one
+            return;
         }
+        ReceiptImageViewerActivity.start(this, url);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (photoCapture != null) photoCapture.saveState(outState);
     }
 
     /**
@@ -1812,107 +1843,85 @@ public class ProfileManagementActivity extends BaseNavigationActivity {
         boxes.setError(true);
     }
 
+    /** The camera badge: Take a photo, Choose from gallery, Remove photo (when there is one), Cancel. A new photo is previewed with Save / Cancel first. */
     private void selectProfilePicture() {
-        String[] options = {getString(R.string.take_photo), getString(R.string.choose_from_gallery)};
-        new SafeDialogs.Material(this)
-                .setTitle(R.string.select_image_title)
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        checkPermissionAndCamera();
-                    } else {
-                        openGallery();
-                    }
-                })
-                .show();
-    }
-
-    private void checkPermissionAndCamera() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CODE);
-        } else {
-            openCamera();
-        }
-    }
-
-    private void openCamera() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, CAPTURE_IMAGE_REQUEST);
-        }
-    }
-
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
-            } else {
-                Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
-            if (requestCode == PICK_IMAGE_REQUEST) {
-                Uri selectedImage = data.getData();
-                if (selectedImage != null) {
-                    // Decoding the picked photo reads a file: off the main thread.
-                    BackgroundWork.run(this, () -> ImageDecoding.decode(getContentResolver(), selectedImage, ImageDecoding.DEFAULT_MAX_EDGE), bitmap -> {
-                        if (bitmap != null) {
-                            confirmAndUploadProfilePicture(bitmap);
-                        } else {
-                            Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            } else if (requestCode == CAPTURE_IMAGE_REQUEST && data.getExtras() != null) {
-                Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
-                if (imageBitmap != null) {
-                    confirmAndUploadProfilePicture(imageBitmap);
+        boolean hasPhoto = !TextUtils.isEmpty(SessionManager.getProfilePictureUrl(this));
+        PhotoSourceSheet.show(this, R.string.profile_photo_sheet_title, 0, hasPhoto, new PhotoSourceSheet.Choice() {
+            @Override
+            public void takePhoto() {
+                if (isLocked(KEY_PROFILE_PICTURE_UPDATED_AT)) {
+                    showLockedMessage(R.string.locked_profile_picture, KEY_PROFILE_PICTURE_UPDATED_AT);
+                } else {
+                    photoCapture.takePhoto();
                 }
             }
-        }
+
+            @Override
+            public void chooseFromGallery() {
+                if (isLocked(KEY_PROFILE_PICTURE_UPDATED_AT)) {
+                    showLockedMessage(R.string.locked_profile_picture, KEY_PROFILE_PICTURE_UPDATED_AT);
+                } else {
+                    photoCapture.chooseFromGallery();
+                }
+            }
+
+            @Override
+            public void removePhoto() {
+                confirmRemoveProfilePicture();
+            }
+        });
     }
 
-    private void confirmAndUploadProfilePicture(Bitmap bitmap) {
+    /** "Remove your profile photo?" - then the server drops the file and the initials come back. */
+    private void confirmRemoveProfilePicture() {
         new SafeDialogs.Material(this)
-                .setMessage(R.string.confirm_update_profile_picture)
-                .setPositiveButton(R.string.confirm_dialog_positive, (d, w) -> saveAndSetProfileImage(bitmap))
+                .setTitle(R.string.remove_photo_confirm_title)
+                .setMessage(R.string.remove_photo_confirm_message)
+                .setPositiveButton(R.string.remove_photo, (d, w) -> removeProfilePicture())
                 .setNegativeButton(R.string.cancel_label, null)
                 .show();
     }
 
-    private void saveAndSetProfileImage(Bitmap bitmap) {
-        // Show it immediately for responsiveness, but the picture isn't
-        // "saved" until the upload below succeeds - the server, not this
-        // device, is the source of truth (so it follows the account
-        // across reinstalls/devices instead of living only in local prefs).
-        if (profileImage != null) profileImage.setImageBitmap(bitmap);
-
-        BackgroundWork.run(this, () -> writeProfileJpeg(bitmap), file -> {
-            if (file == null) {
-                Toast.makeText(this, "Failed to prepare image for upload", Toast.LENGTH_SHORT).show();
-                return;
+    private void removeProfilePicture() {
+        ApiClient.getService(this).removeProfilePicture().enqueue(new Callback<ApiMessage>() {
+            @Override
+            public void onResponse(Call<ApiMessage> call, Response<ApiMessage> response) {
+                if (isFinishing() || isDestroyed()) return;
+                if (!response.isSuccessful()) {
+                    Toast.makeText(ProfileManagementActivity.this, R.string.photo_remove_failed, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                SessionManager.setProfilePictureUrl(ProfileManagementActivity.this, "");
+                refreshHeader();
+                Toast.makeText(ProfileManagementActivity.this, R.string.photo_removed, Toast.LENGTH_SHORT).show();
             }
-            uploadProfileFile(file);
+
+            @Override
+            public void onFailure(Call<ApiMessage> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                Toast.makeText(ProfileManagementActivity.this, RoomRepository.networkErrorMessage(ProfileManagementActivity.this, t), Toast.LENGTH_LONG).show();
+            }
         });
     }
 
-    private File writeProfileJpeg(Bitmap bitmap) throws IOException {
-        File tempFile = File.createTempFile("profile_", ".jpg", getCacheDir());
-        try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-        }
-        return tempFile;
+    /** A photo came back from the camera or the gallery: straighten and shrink it off the main thread, show it, upload only on Save. */
+    private void previewProfilePhoto(Uri photo) {
+        BackgroundWork.run(this, () -> {
+            File out = File.createTempFile("profile_", ".jpg", getCacheDir());
+            IdImageCompressor.compress(this, photo, out);
+            return out;
+        }, file -> {
+            if (file == null) {
+                Toast.makeText(this, R.string.photo_unreadable, Toast.LENGTH_LONG).show();
+                return;
+            }
+            PhotoPreviewDialog.show(this, Uri.fromFile(file), R.string.profile_photo_preview_title, 0, R.string.profile_photo_preview_save, R.string.cancel_label,
+                    () -> {
+                        if (profileImage != null) Glide.with(this).load(file).circleCrop().into(profileImage);
+                        uploadProfileFile(file);
+                    },
+                    file::delete);
+        });
     }
 
     private void uploadProfileFile(File tempFile) {

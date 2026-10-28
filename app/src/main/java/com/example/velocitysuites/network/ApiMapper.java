@@ -5,6 +5,8 @@ import com.example.velocitysuites.BookingAmenity;
 import com.example.velocitysuites.BookingRoom;
 import com.example.velocitysuites.ReceiptDetail;
 import com.example.velocitysuites.StayInfo;
+import com.example.velocitysuites.PromoInfo;
+import com.example.velocitysuites.PromoOffer;
 import com.example.velocitysuites.Room;
 import com.example.velocitysuites.RoomAmenity;
 import com.example.velocitysuites.TimeUtils;
@@ -75,6 +77,7 @@ public final class ApiMapper {
             room.setImageUrl(dto.image_url);
         }
         room.setImageUrls(toImageUrls(dto.gallery));
+        room.setPromos(PromoOffer.listOf(dto.promos));
         room.setImageLabels(toImageLabels(dto.gallery));
 
         return room;
@@ -103,6 +106,15 @@ public final class ApiMapper {
             labels.add(image.room_label);
         }
         return labels;
+    }
+
+    /** The promos a transaction can use; once the desk billed the stay, the applied promo and its pesos are the bill's own. */
+    static PromoInfo promoInfoOf(com.example.velocitysuites.network.dto.PromoInfoDto dto, StayInfo stay) {
+        PromoInfo info = PromoInfo.from(dto);
+        if (stay != null && stay.promoDiscount > 0.009) {
+            return new PromoInfo(info.available, stay.promoName != null ? stay.promoName : info.appliedTitle, stay.promoDiscount);
+        }
+        return info;
     }
 
     private static List<RoomAmenity> toRoomAmenities(List<RoomAmenityDto> dtos) {
@@ -298,6 +310,7 @@ public final class ApiMapper {
         StayInfo stay = StayInfo.from(dto.booking != null && dto.booking.billing != null ? dto.booking.billing.stay_bill : null);
         booking.setStay(stay);
         if (stay != null && !stay.rooms.isEmpty()) booking.setRooms(stay.asBookingRooms());
+        booking.setPromoInfo(promoInfoOf(dto.booking != null && dto.booking.promo_info != null ? dto.booking.promo_info : dto.promo_info, stay));
         booking.setAmenities(toBookingAmenities(amenityLineDtos));
         if (dto.discount_preview != null) {
             booking.setDiscountAmount(dto.discount_preview.discount);
@@ -645,6 +658,7 @@ public final class ApiMapper {
         StayInfo directStay = StayInfo.from(dto.stay_bill);
         booking.setStay(directStay);
         if (directStay != null && !directStay.rooms.isEmpty()) booking.setRooms(directStay.asBookingRooms());
+        booking.setPromoInfo(promoInfoOf(dto.promo_info, directStay));
         booking.setAmenities(toBookingAmenities(dto.amenities));
         // Room Charges/Amenities Total breakdown for the Payment Summary
         // section - summed from the same itemized lines just set above, so
@@ -881,6 +895,8 @@ public final class ApiMapper {
             hl.amounts.put("amenities_total", h.amenities_total);
             hl.amounts.put("additional_charges_total", h.additional_charges_total);
             hl.amounts.put("discount", h.discount);
+            hl.amounts.put("promo", h.promo);
+            hl.promoName = h.promo_name;
             hl.amounts.put("grand_total", h.grand_total);
             hl.amounts.put("paid_receipt_1", h.paid_receipt_1);
             hl.amounts.put("paid_receipt_2", h.paid_receipt_2);

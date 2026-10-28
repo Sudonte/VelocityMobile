@@ -156,7 +156,7 @@ public class ReceiptScreenTest {
         assertTrue(texts.toString(), texts.contains("Partially Paid"));
         assertEquals("₱5,000.00", after(texts, "Paid so far"));
         assertEquals("₱5,000.00", after(texts, "Remaining balance"));
-        assertEquals("₱5,000.00 · at check-in", after(texts, "Amount to pay"));
+        assertEquals("₱5,000.00 · at check-out", after(texts, "Amount to pay"));
     }
 
     @Test

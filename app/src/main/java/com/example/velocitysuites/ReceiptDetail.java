@@ -154,6 +154,8 @@ public class ReceiptDetail implements Serializable {
         public final java.util.List<ChargeLine> otherCharges = new java.util.ArrayList<>();
         public final java.util.List<PaymentLine> payments = new java.util.ArrayList<>();
         @Nullable public String noRefundNote;
+        /** The title of the promo the desk verified (its pesos are the "promo" amount). */
+        @Nullable public String promoName;
 
         public static class AmenityItem implements Serializable {
             public final String name;

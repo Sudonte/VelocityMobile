@@ -132,6 +132,15 @@ public final class MoneySummaryPanel {
         TextView pay = amount(c, "", 22, payColor);
         setPayText(pay, s.amountToPay.substring(0, s.amountEnd), s.amountToPay.substring(s.amountEnd));
         col.addView(row(c, c.getString(R.string.money_amount_to_pay), 16, true, pay, stack));
+        if (pinned && s.kind == MoneySummary.Kind.AT_CHECK_IN) {
+            // payment at check-in is optional now: the whole balance is due at check-out, and may be paid earlier
+            TextView note = new TextView(c);
+            note.setText(R.string.money_optional_check_in_note);
+            note.setTextSize(12);
+            note.setGravity(Gravity.END);
+            note.setTextColor(ContextCompat.getColor(c, R.color.velocity_text_secondary));
+            col.addView(note);
+        }
         outer.addView(col);
 
         // the figures count up once on the first open (the final text is already in place when motion is off)

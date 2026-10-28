@@ -88,6 +88,11 @@ final class PayingForBreakdown {
     @Nullable String discountName;
     /** A discount the front desk already applied (a subtraction); 0 for none. */
     double appliedDiscount;
+    /** The promo the front desk verified: pesos off the room rate of its room type (a subtraction, its own line); 0 for none. */
+    double appliedPromo;
+    @Nullable String promoName;
+    /** The promos available for these rooms that the desk has not verified (a note with the estimated saving, never subtracted). */
+    final List<PromoOffer> availablePromos = new ArrayList<>();
 
     // ---- the bill of the details screens and receipts ----
     /** Figures that come from the server's own snapshot instead of the lines above (null = add the lines up). */
@@ -140,7 +145,17 @@ final class PayingForBreakdown {
         out.expectedDiscount = BookingTotals.expectedDiscount(booking);
         out.appliedDiscount = BookingTotals.discountAppliedAmount(booking);
         out.discountName = BookingTotals.discountLabel(booking);
+        out.takePromos(booking);
         return out;
+    }
+
+    /** The promo the desk applied and the ones still to be verified, from the booking (or reservation). */
+    private void takePromos(@NonNull Booking booking) {
+        PromoInfo info = booking.getPromoInfo();
+        appliedPromo = info.promoDiscount;
+        promoName = info.appliedTitle;
+        availablePromos.clear();
+        availablePromos.addAll(info.toBeVerified());
     }
 
     /** For Booking / Reservation Details and Transaction History details: the ranges and the whole bill, settled against what was paid. */
@@ -152,6 +167,7 @@ final class PayingForBreakdown {
         out.cancelled = summary.status == TransactionStatusHelper.Status.CANCELLED || summary.status == TransactionStatusHelper.Status.REJECTED;
         out.discountName = BookingTotals.discountLabel(booking);
         out.expectedDiscount = BookingTotals.expectedDiscount(booking);
+        out.takePromos(booking);
         StayInfo stay = booking.getStay();
         BalanceBreakdown b = stay != null ? stay.balanceBreakdown : null;
         if (stay != null) {
@@ -169,6 +185,10 @@ final class PayingForBreakdown {
             for (BalanceBreakdown.Item item : b.charges) out.otherCharges.add(new Line(item.name, item.subtotal));
             out.otherChargesTotal = b.chargesTotal;
             out.appliedDiscount = b.discount;
+            if (b.promo > 0.009) {
+                out.appliedPromo = b.promo;
+                if (b.promoName != null && !b.promoName.isEmpty()) out.promoName = b.promoName;
+            }
             if (b.discountName != null && !b.discountName.isEmpty()) out.discountName = b.discountName;
             out.grandTotal = b.finalGrandTotal;
             out.paid = b.totalPaid;
@@ -240,6 +260,11 @@ final class PayingForBreakdown {
         if (!detailed) return new Line(roomName(c, name, qty), amount);
         String note = room.getAssignedRoomNumbers().isEmpty() ? null
                 : c.getString(R.string.stay_room_numbers_format, android.text.TextUtils.join(", ", room.getAssignedRoomNumbers()));
+        if (room.hasPromoRate()) {
+            // the verified promo lowers this room type's nightly rate: shown under the line (the Promo row below subtracts it once)
+            String promo = c.getString(R.string.promo_rate_per_night_format, MoneyFormat.format(room.getPricePerNight()), MoneyFormat.format(room.getRatePerNightAfterPromo()));
+            note = note == null ? promo : note + "\n" + promo;
+        }
         return new Line(c.getString(R.string.details_room_line_format, name, qty, MoneyFormat.format(room.getPricePerNight()), nightsText), amount, note);
     }
 
@@ -278,6 +303,7 @@ final class PayingForBreakdown {
             out.stays.add(block);
         }
         out.grandTotal = state.roomsTotal() + state.amenitiesTotal();
+        out.availablePromos.addAll(promosFor(state));
         if (state.discount != null) {
             out.expectedDiscount = state.discount.estimateOff(out.grandTotal);
             out.discountName = state.discount.getName();
@@ -372,6 +398,8 @@ final class PayingForBreakdown {
             for (ReceiptDetail.Highlight.ChargeLine charge : h.otherCharges) out.otherCharges.add(new Line(charge.name, charge.amount));
             out.otherChargesTotal = h.amount("additional_charges_total");
             out.appliedDiscount = h.amount("discount");
+            out.appliedPromo = h.amount("promo");
+            out.promoName = h.promoName;
             out.grandTotal = h.amount("grand_total");
             out.paid = h.amount("total_paid");
             out.balance = h.amount("remaining_balance");
@@ -381,6 +409,8 @@ final class PayingForBreakdown {
             for (BalanceBreakdown.Item item : b.charges) out.otherCharges.add(new Line(item.name, item.subtotal));
             out.otherChargesTotal = b.chargesTotal;
             out.appliedDiscount = b.discount;
+            out.appliedPromo = b.promo;
+            out.promoName = b.promoName;
             out.discountName = b.discountName;
             out.grandTotal = b.finalGrandTotal;
             out.paid = b.totalPaid;
@@ -446,7 +476,15 @@ final class PayingForBreakdown {
         ruleLp.bottomMargin = dp(c, 4);
         into.addView(rule);
         into.addView(row(c, stays.size() > 1 ? c.getString(R.string.details_room_charges_all_stays) : c.getString(R.string.review_rooms_total_label), roomCharges(), false));
+        if (appliedPromo > 0.009) {
+            into.addView(row(c, c.getString(R.string.promo_applied_format, promoName == null || promoName.isEmpty() ? c.getString(R.string.promos_heading) : promoName), -appliedPromo, false));
+        }
         into.addView(row(c, c.getString(settlement ? R.string.bill_amenities : R.string.breakdown_amenities_total_label), amenityCharges(), false));
+        if (appliedDiscount > 0.009) {
+            into.addView(row(c, discountName == null || discountName.isEmpty() ? c.getString(R.string.details_label_discount)
+                    : c.getString(R.string.details_discount_applied_format, discountName), -appliedDiscount, false));
+            into.addView(small(c, c.getString(R.string.discount_covers_note), 0));
+        }
         if (!otherCharges.isEmpty()) {
             for (Line l : otherCharges) {
                 boolean generic = l.label.equals(c.getString(R.string.bill_other_charges));
@@ -455,10 +493,6 @@ final class PayingForBreakdown {
         } else if (otherChargesTotal > 0.009) {
             into.addView(row(c, c.getString(R.string.bill_other_charges), otherChargesTotal, false));
         }
-        if (appliedDiscount > 0.009) {
-            into.addView(row(c, discountName == null || discountName.isEmpty() ? c.getString(R.string.details_label_discount)
-                    : c.getString(R.string.details_discount_applied_format, discountName), -appliedDiscount, false));
-        }
         // the payment steps end the bill with the Grand total; on the details screens and receipts the Grand total, the Remaining balance
         // and the Amount to pay are shown once, in the summary at the bottom (MoneySummary), not repeated here
         if (!settlement) into.addView(row(c, c.getString(R.string.review_grand_total_label), grandTotal, true));
@@ -466,6 +500,7 @@ final class PayingForBreakdown {
             into.addView(small(c, c.getString(R.string.details_expected_discount_format,
                     discountName == null || discountName.isEmpty() ? c.getString(R.string.details_label_discount) : discountName, MoneyFormat.format(expectedDiscount)), 6));
         }
+        renderPromos(c, into);
         if (settlement && !cancelled) {
             into.addView(row(c, c.getString(R.string.bill_paid_so_far), paid, false));
             if (waiting > 0.009) into.addView(row(c, c.getString(R.string.bill_waiting_for_verification), waiting, false));
@@ -473,6 +508,44 @@ final class PayingForBreakdown {
         if (settlement && !cancelled && waiting > 0.009) {
             into.addView(small(c, c.getString(R.string.bill_waiting_note, MoneyFormat.format(waiting)), 8));
         }
+    }
+
+    /** "Promos for your rooms (verified at check-in)": each promo that can apply, with its estimated saving as a note - never subtracted. */
+    void renderPromos(Context c, ViewGroup into) {
+        if (availablePromos.isEmpty()) return;
+        into.addView(heading(c, c.getString(R.string.promos_for_your_rooms)));
+        for (PromoOffer p : availablePromos) {
+            String where = p.roomTypeName == null ? c.getString(R.string.promo_all_room_types) : p.roomTypeName;
+            String what = p.label.isEmpty() ? where : p.label + " · " + where;
+            into.addView(ReviewSheet.row(c, ReviewSheet.Row.of(p.title, what)));
+            if (p.estimatedSaving > 0.009) {
+                into.addView(small(c, c.getString(R.string.promo_saving_note_format, java.lang.String.format(java.util.Locale.US, "%,.2f", p.estimatedSaving)), 0));
+            }
+        }
+        into.addView(small(c, c.getString(R.string.promo_to_be_verified_note), 4));
+    }
+
+    /**
+     * The promos that can apply to the rooms chosen in the wizard, each with the saving it would give on THOSE rooms and nights
+     * (the room list carries every promo with the room type's rate after it). One entry per promo.
+     */
+    static List<PromoOffer> promosFor(@NonNull BookingWizardState state) {
+        java.util.Map<Long, PromoOffer> byId = new java.util.LinkedHashMap<>();
+        java.util.Map<Long, Double> saving = new java.util.HashMap<>();
+        for (BookingWizardState.Stay stay : state.allStays()) {
+            if (stay.checkIn == null || stay.checkOut == null) continue;
+            long n = stay.nights();
+            for (Room room : stay.rooms) {
+                for (PromoOffer p : room.getPromos()) {
+                    byId.putIfAbsent(p.id, p);
+                    double off = p.hasMoneyEffect && p.rateAfter > 0 ? Math.max(0, room.getPricePerNight() - p.rateAfter) * n : 0;
+                    saving.merge(p.id, off, Double::sum);
+                }
+            }
+        }
+        List<PromoOffer> out = new ArrayList<>();
+        for (java.util.Map.Entry<Long, PromoOffer> e : byId.entrySet()) out.add(e.getValue().withSaving(saving.get(e.getKey())));
+        return out;
     }
 
     /** "No amenities added", in the secondary colour. */

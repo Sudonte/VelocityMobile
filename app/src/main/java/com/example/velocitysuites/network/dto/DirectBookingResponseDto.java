@@ -46,6 +46,8 @@ public class DirectBookingResponseDto {
     public boolean hidden_by_guest;
     /** The itemized stay once it is in house or finished (same calculation as the front desk's bill); null before that. */
     public StayBillDto stay_bill;
+    /** Every promo this booking can use, and the one the desk applied. */
+    public PromoInfoDto promo_info;
     // Set when a receptionist rejects this booking (Receptionist\
     // BookingController::reject() - a direct "New Booking" is just as
     // rejectable as a reservation-derived one, since that action only

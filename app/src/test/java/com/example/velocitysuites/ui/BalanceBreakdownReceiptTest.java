@@ -124,7 +124,7 @@ public class BalanceBreakdownReceiptTest {
     public void receipt3_printsTheBillInTheAgreedOrderWithTheServersFigures() {
         List<String> t = texts(receipt(BREAKDOWN, HIGHLIGHT));
         String[] order = {"Receipt 3 of 3 · Check-out (final)", "Your Stay", "Deluxe Room × 1 · ₱2,500.00 × 2 nights", "Bill", "Room charges", "₱5,000.00", "Amenities", "₱100.00",
-                "Other charges: Broken lamp", "₱300.00", "Discount (Senior Citizen)", "−₱1,000.00", "Paid so far", "₱4,400.00",
+                "Discount (Senior Citizen)", "−₱1,000.00", "Other charges: Broken lamp", "₱300.00", "Paid so far", "₱4,400.00",
                 "Payments", "Grand total", "₱4,400.00", "Remaining balance", "₱0.00", "Amount to pay", "₱0.00 · Fully paid"};
         int last = -1;
         for (String needle : order) {

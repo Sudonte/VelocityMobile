@@ -77,18 +77,23 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
     private boolean loadFailed;
     private int loadGeneration;
 
-    private ActivityResultLauncher<String> idPickerLauncher;
+    private PhotoCapture photoCapture;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        idPickerLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-            if (uri == null) return;
-            BookingWizardState state = getState();
-            state.idCardImageUri = uri;
-            state.removeIdCard = false;
-            if (isAdded() && getView() != null) refreshUploadSection();
+        photoCapture = new PhotoCapture(this, this::getActivity, new PhotoCapture.Listener() {
+            @Override
+            public void onPhoto(@NonNull Uri photo) {
+                if (isAdded() && getActivity() != null) previewId(photo);
+            }
+
+            @Override
+            public void onProblem(@NonNull PhotoCapture.Problem problem) {
+                if (isAdded()) Toast.makeText(requireContext(), messageFor(problem), Toast.LENGTH_LONG).show();
+            }
         });
+        photoCapture.restoreState(savedInstanceState);
     }
 
     @Nullable
@@ -129,13 +134,18 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         btnViewId.setOnClickListener(v -> viewFullSize());
 
         view.findViewById(R.id.btnDiscountRetry).setOnClickListener(v -> loadDiscounts());
-        btnUploadId.setOnClickListener(v -> {
-            try {
-                idPickerLauncher.launch("image/*");
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(requireContext(), R.string.discount_id_picker_unavailable, Toast.LENGTH_SHORT).show();
-            }
-        });
+        btnUploadId.setOnClickListener(v -> PhotoSourceSheet.show(requireActivity(), R.string.id_photo_sheet_title, R.string.id_photo_guidance, false,
+                new PhotoSourceSheet.Choice() {
+                    @Override
+                    public void takePhoto() {
+                        photoCapture.takePhoto();
+                    }
+
+                    @Override
+                    public void chooseFromGallery() {
+                        photoCapture.chooseFromGallery();
+                    }
+                }));
         btnRemoveId.setOnClickListener(v -> {
             BookingWizardState state = getState();
             state.idCardImageUri = null;
@@ -151,6 +161,35 @@ public class Step6IdVerificationFragment extends WizardStepFragment {
         renderList();
         refreshUploadSection();
         loadDiscounts();
+    }
+
+    /** The photo just taken or chosen, shown with guidance before it becomes the ID: "Use photo", or "Retake" to choose again. */
+    private void previewId(@NonNull Uri photo) {
+        PhotoPreviewDialog.show(requireActivity(), photo, R.string.id_photo_preview_title, R.string.id_photo_guidance, R.string.id_photo_use, R.string.id_photo_retake,
+                () -> {
+                    BookingWizardState state = getState();
+                    state.idCardImageUri = photo;
+                    state.removeIdCard = false;
+                    if (isAdded() && getView() != null) refreshUploadSection();
+                },
+                () -> {
+                    if (isAdded()) btnUploadId.performClick();
+                });
+    }
+
+    private String messageFor(PhotoCapture.Problem problem) {
+        switch (problem) {
+            case NO_CAMERA_APP: return getString(R.string.photo_no_camera_app);
+            case NO_GALLERY: return getString(R.string.photo_no_gallery);
+            case PERMISSION_DENIED: return getString(R.string.camera_permission_required);
+            default: return getString(R.string.photo_camera_failed);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (photoCapture != null) photoCapture.saveState(outState);
     }
 
     @Override

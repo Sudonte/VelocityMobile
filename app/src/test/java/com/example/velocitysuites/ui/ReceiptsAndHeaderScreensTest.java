@@ -208,7 +208,7 @@ public class ReceiptsAndHeaderScreensTest {
         String text = all(open(partial).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals(text, "₱500.00", after(text, "Paid so far"));
         assertEquals(text, "₱1,500.00", after(text, "Remaining balance"));
-        assertEquals(text, "₱1,500.00 · at check-in", after(text, "Amount to pay"));
+        assertEquals(text, "₱1,500.00 · at check-out", after(text, "Amount to pay"));
         assertTrue(text, text.contains("Receipt 1 of 3 · Payment verified"));
     }
 
@@ -261,7 +261,7 @@ public class ReceiptsAndHeaderScreensTest {
         assertEquals(text, "₱5,000.00", after(text, "Remaining balance"));
         assertEquals("Remaining balance appears once", text.indexOf("Remaining balance"), text.lastIndexOf("Remaining balance"));
         assertEquals(text, "₱0.00", after(text, "Paid so far"));
-        assertEquals(text, "₱5,000.00 · at check-in", after(text, "Amount to pay"));
+        assertEquals(text, "₱5,000.00 · at check-out", after(text, "Amount to pay"));
         assertFalse("the old balance card is gone", text.contains("You still need to pay") || text.contains("Your balance"));
     }
 

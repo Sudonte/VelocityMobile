@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One promo in Room Details > Promos: a soft red card with the title, its value, a short description and the end date. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="6dp"
+    android:background="@drawable/bg_flat_box"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
+
+    <TextView
+        android:id="@+id/promoTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="14sp"
+        tools:text="Deluxe 10" />
+
+    <TextView
+        android:id="@+id/promoValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="sans-serif-bold"
+        android:textColor="@color/velocity_action_text"
+        android:textSize="13sp"
+        tools:text="10% off the room rate · ₱3,500.00 → ₱3,150.00 per night (Promo)" />
+
+    <TextView
+        android:id="@+id/promoDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp"
+        tools:text="Stay more, save more." />
+
+    <TextView
+        android:id="@+id/promoValidUntil"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="12sp"
+        tools:text="Valid until Dec 31, 2026" />
+</LinearLayout>

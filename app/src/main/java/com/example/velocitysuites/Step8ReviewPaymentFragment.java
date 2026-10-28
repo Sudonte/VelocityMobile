@@ -282,6 +282,14 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         if (amenityRows.isEmpty()) amenityRows.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_no_amenities), null)));
         layoutReviewSections.addView(buildSection(R.string.review_section_amenities, 2, amenityRows));
 
+        // Promos for the rooms chosen: a note with the estimated saving, verified by the front desk at check-in (never subtracted here)
+        List<ReviewSheet.Row> promoRows = WizardReview.promoRows(c, state);
+        if (!promoRows.isEmpty()) {
+            List<View> promoViews = new ArrayList<>();
+            for (ReviewSheet.Row row : promoRows.subList(1, promoRows.size())) promoViews.add(ReviewSheet.row(c, row));
+            layoutReviewSections.addView(buildSection(R.string.promos_for_your_rooms, 1, promoViews));
+        }
+
         // 3. Representative
         List<View> who = new ArrayList<>();
         RepresentativeName.Parts rep = state.who == BookingWizardState.Who.OWNER

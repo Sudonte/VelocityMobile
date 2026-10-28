@@ -60,7 +60,11 @@ public class TransactionHistoryPolishTest {
         File manifest = new File("src/main/AndroidManifest.xml");
         if (manifest.exists()) {
             String text = new String(Files.readAllBytes(manifest.toPath()), "UTF-8");
-            assertFalse("no file provider is needed", text.contains("FileProvider"));
+            // the only FileProvider is the one for camera photos (cache/photos/): never the old export folder
+            assertTrue(text.contains("FileProvider"));
+            String paths = new String(Files.readAllBytes(new File("src/main/res/xml/file_paths.xml").toPath()), "UTF-8");
+            assertTrue(paths.contains("<cache-path name=\"photos\" path=\"photos/\""));
+            assertFalse("no export folder is shared", paths.contains("external") || paths.contains("files-path"));
             assertFalse(text.contains("WRITE_EXTERNAL_STORAGE"));
         }
     }

@@ -276,7 +276,7 @@ public class Release159Test {
         assertFalse(t.toString(), t.contains("Payment verified"));
         assertTrue(t.toString(), t.contains("Receipt number") && t.contains("Date issued") && t.contains("Transaction ID"));
         assertFalse(t.toString(), t.contains("Payment Reference") || t.contains("Receipt Date"));
-        assertTrue("the balance at the hotel is said plainly: " + t, after(t, "Amount to pay").endsWith("· at check-in"));
+        assertTrue("the balance at the hotel is said plainly: " + t, after(t, "Amount to pay").endsWith("· at check-out"));
     }
 
     @Test

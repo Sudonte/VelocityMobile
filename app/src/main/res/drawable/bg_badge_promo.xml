@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The "1 promo" badge on a room photo: the brand red, white text. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/velocity_red_primary" />
+    <corners android:radius="12dp" />
+</shape>

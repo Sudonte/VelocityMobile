@@ -217,6 +217,23 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
+                <!-- Promos: every promo running for this room type (title, value, short description, valid until). Left out when none. -->
+                <TextView
+                    android:id="@+id/headPromos"
+                    style="@style/TextAppearance.Velocity.Section.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/promos_heading"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/layoutDetailPromos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
                 <!-- Overview -->
                 <TextView
                     android:id="@+id/headOverview"

@@ -98,6 +98,27 @@ final class WizardReview {
         return sections;
     }
 
+    /**
+     * "Promos for your rooms (verified at check-in)": every promo running for the room types chosen, with the estimated saving on those
+     * rooms as a note. Never subtracted - the front desk verifies one promo at check-in (like the expected ID discount). Empty without any.
+     */
+    @NonNull
+    static List<ReviewSheet.Row> promoRows(Context c, BookingWizardState state) {
+        List<ReviewSheet.Row> rows = new ArrayList<>();
+        List<PromoOffer> promos = PayingForBreakdown.promosFor(state);
+        if (promos.isEmpty()) return rows;
+        rows.add(ReviewSheet.Row.bold(c.getString(R.string.promos_for_your_rooms), null));
+        for (PromoOffer p : promos) {
+            String where = p.roomTypeName == null ? c.getString(R.string.promo_all_room_types) : p.roomTypeName;
+            rows.add(ReviewSheet.Row.of(p.title, p.label.isEmpty() ? where : p.label + " · " + where));
+            if (p.estimatedSaving > 0.009) {
+                rows.add(ReviewSheet.Row.indented(c.getString(R.string.promo_saving_note_format, String.format(java.util.Locale.US, "%,.2f", p.estimatedSaving)), null));
+            }
+        }
+        rows.add(ReviewSheet.Row.indented(c.getString(R.string.promo_to_be_verified_note), null));
+        return rows;
+    }
+
     /** Rooms ₱x / Amenities ₱y / Grand total ₱z. */
     @NonNull
     static List<ReviewSheet.Row> totals(Context c, BookingWizardState state) {
@@ -105,6 +126,7 @@ final class WizardReview {
         rows.add(ReviewSheet.Row.of(c.getString(R.string.review_rooms_total_label), MoneyFormat.format(state.roomsTotal())));
         rows.add(ReviewSheet.Row.of(c.getString(R.string.review_amenities_total_label), MoneyFormat.format(state.amenitiesTotal())));
         rows.add(ReviewSheet.Row.bold(c.getString(R.string.review_grand_total_label), MoneyFormat.format(state.roomsTotal() + state.amenitiesTotal())));
+        rows.addAll(promoRows(c, state));
         return rows;
     }
 }

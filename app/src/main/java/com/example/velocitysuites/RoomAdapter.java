@@ -269,6 +269,12 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             holder.tvAmenitiesMore.setVisibility(amenityCount == 0 ? View.INVISIBLE : View.VISIBLE);
         }
         holder.roomPrice.setText(context.getString(R.string.price_format_per_night, room.getPricePerNight()));
+        if (holder.roomPromoBadge != null) {
+            // "1 promo" / "2 promos": the promos running for this room type today (the Room Details lists them)
+            int promos = room.getPromos().size();
+            holder.roomPromoBadge.setVisibility(promos > 0 ? View.VISIBLE : View.GONE);
+            if (promos > 0) holder.roomPromoBadge.setText(context.getResources().getQuantityString(R.plurals.promo_badge_format, promos, promos));
+        }
         holder.roomBedType.setText(room.getBedType() == null || room.getBedType().isEmpty()
                 ? RoomVisuals.getBedType(context, room.getType(), room.getCapacity())
                 : room.getBedType());
@@ -518,6 +524,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     static class RoomViewHolder extends RecyclerView.ViewHolder {
         ImageView roomImage;
+        TextView roomPromoBadge;
         TextView roomStatusBadge, roomPrice, roomName, roomTypeText, roomGuestsText, roomSizeText, roomBedType, tvRoomsLeftHint, tvAmenitiesMore;
         View factSize;
         MaterialButton btnViewDetails, btnQuickBook, btnReserveNow;
@@ -538,6 +545,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             btnRoomQtyPlus = itemView.findViewById(R.id.btnRoomQtyPlus);
             roomImage = itemView.findViewById(R.id.roomImage);
             roomStatusBadge = itemView.findViewById(R.id.roomStatusBadge);
+            roomPromoBadge = itemView.findViewById(R.id.roomPromoBadge);
             roomPrice = itemView.findViewById(R.id.roomPrice);
             roomName = itemView.findViewById(R.id.roomName);
             roomTypeText = itemView.findViewById(R.id.roomTypeText);

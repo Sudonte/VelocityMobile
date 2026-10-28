@@ -25,7 +25,7 @@ import java.io.InputStream;
 final class IdImageCompressor {
 
     static final int MAX_EDGE_PX = 1600;
-    static final int JPEG_QUALITY = 85;
+    static final int JPEG_QUALITY = 80;
 
     private IdImageCompressor() {
     }

@@ -399,7 +399,6 @@
     <string name="title_payment">Payment</string>
     <string name="title_transaction_history">Transaction History</string>
     <string name="title_notifications">Notifications</string>
-    <string name="title_profile_management">Profile Management</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="change_password">Change Password</string>
     <string name="notifications">Notifications</string>
@@ -499,7 +498,6 @@
     <string name="contact_info_title">Contact Information</string>
     <string name="security_section_title">Security</string>
     <string name="change_password_hint">Keep your account secure with a strong password</string>
-    <string name="profile_management_screen_desc">Manage your personal information and account settings.</string>
     <string name="personal_info_subtitle">Your basic information</string>
     <string name="contact_info_subtitle">Your email and mobile number</string>
     <string name="address_info_subtitle">Your registered address</string>
@@ -937,7 +935,6 @@
     <string name="discount_view_id">View full size</string>
     <string name="discount_id_loading">Your previously uploaded ID is on file. Loading preview…</string>
     <string name="discount_id_load_failed">Your uploaded ID is on file, but its preview could not be loaded.</string>
-    <string name="discount_id_picker_unavailable">No app available to choose a photo.</string>
     <string name="discount_replace_id">Replace ID</string>
     <string name="discount_remove_id">Remove ID</string>
     <string name="discount_id_on_file">Your previously uploaded ID is on file.</string>
@@ -1398,7 +1395,6 @@
     <string name="password_rule_met_format">✓  %1$s</string>
     <string name="password_rule_unmet_format">○  %1$s</string>
     <string name="profile_picture_updated">Your profile picture has been updated successfully. You may update it again after 30 days.</string>
-    <string name="confirm_update_profile_picture">Are you sure you want to update your profile picture? After saving your changes, you will not be able to update your profile picture again for 30 days.</string>
     <string name="restore_account_title">Welcome Back!</string>
     <string name="restore_account_message">Your account is scheduled for deletion and will be permanently removed on %1$s. Would you like to restore it?</string>
     <string name="restore_account_button">Restore My Account</string>
@@ -1415,8 +1411,8 @@
     <string name="cancel_label">Cancel</string>
     <string name="current_password_label">Current Password</string>
     <string name="select_image_title">Update Profile Picture</string>
-    <string name="take_photo">Take New Photo</string>
-    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="take_photo">Take a photo</string>
+    <string name="choose_from_gallery">Choose from gallery</string>
     <string name="camera_permission_required">Camera permission is required to take photos.</string>
     <string name="invalid_age">Please enter a valid age</string>
     <string name="full_name_format">%1$s %2$s</string>
@@ -2466,7 +2462,8 @@ Estimated total after discount: %3$s</string>
     <string name="money_pay_now_range_format">Pay now: %1$s – %2$s (20%%–50%%)</string>
     <string name="money_pay_at_hotel">Pay at the hotel</string>
     <string name="money_waiting_format">%1$s now · %2$s waiting for verification</string>
-    <string name="money_at_check_in_format">%1$s · at check-in</string>
+    <string name="money_at_check_in_format">%1$s · at check-out</string>
+    <string name="money_optional_check_in_note">Optional: pay at check-in</string>
     <string name="money_at_check_out_format">%1$s · at check-out</string>
     <string name="money_at_front_desk_format">%1$s · at the front desk</string>
     <string name="money_nothing_to_pay_format">%1$s · Nothing to pay</string>
@@ -2615,6 +2612,47 @@ Estimated total after discount: %3$s</string>
     <string name="reset_stop_keep">Keep going</string>
     <string name="reset_stop_leave">Stop</string>
     <string name="reset_signin_instead">Your password was changed. Sign in with it to continue.</string>
+
+    <!-- Promos from the admin Promotional module (1.68.0) -->
+    <plurals name="promo_badge_format">
+        <item quantity="one">%d promo</item>
+        <item quantity="other">%d promos</item>
+    </plurals>
+    <string name="promos_heading">Promos</string>
+    <string name="promos_for_your_rooms">Promos for your rooms (verified at check-in)</string>
+    <string name="promo_valid_until_format">Valid until %1$s</string>
+    <string name="promo_saving_note_format">Estimated saving ₱%1$s. Not subtracted until the front desk verifies it.</string>
+    <string name="promo_to_be_verified_note">Promos are checked by the front desk at check-in. The Grand total stays whole until then.</string>
+    <string name="promo_applied_format">Promo applied: %1$s</string>
+    <string name="promo_rate_per_night_format">%1$s → %2$s per night (Promo)</string>
+    <string name="promo_all_room_types">every room type</string>
+    <string name="discount_covers_note">on rooms and amenities</string>
+
+    <!-- Camera or gallery for the profile photo and the ID (1.68.0) -->
+    <string name="remove_photo">Remove photo</string>
+    <string name="remove_photo_confirm_title">Remove your profile photo?</string>
+    <string name="remove_photo_confirm_message">Your initials will be shown instead. You can add a photo again later.</string>
+    <string name="photo_removed">Profile photo removed.</string>
+    <string name="photo_remove_failed">Couldn\'t remove your photo. Please try again.</string>
+    <string name="profile_photo_sheet_title">Profile photo</string>
+    <string name="profile_photo_preview_title">Use this as your profile photo?</string>
+    <string name="profile_photo_preview_save">Save</string>
+    <string name="id_photo_sheet_title">Upload your ID</string>
+    <string name="id_photo_guidance">Make sure all four corners and the text are clear.</string>
+    <string name="id_photo_preview_title">Check your ID photo</string>
+    <string name="id_photo_use">Use photo</string>
+    <string name="id_photo_retake">Retake</string>
+    <string name="photo_preview_desc">The photo you just took or chose</string>
+    <string name="camera_why_title">Use your camera?</string>
+    <string name="camera_why_message">Velocity Suites uses the camera only to take the photo you ask for (your profile photo or your ID). Nothing is recorded in the background.</string>
+    <string name="camera_why_continue">Continue</string>
+    <string name="camera_denied_title">Camera is turned off</string>
+    <string name="camera_denied_message">To take a photo, allow the camera for Velocity Suites in Settings. You can also choose a photo from your gallery.</string>
+    <string name="camera_open_settings">Open Settings</string>
+    <string name="photo_no_camera_app">No camera app was found on this phone. Choose a photo from your gallery instead.</string>
+    <string name="photo_no_gallery">No gallery app was found on this phone. Take a photo instead.</string>
+    <string name="photo_camera_failed">The camera could not be opened. Please try again.</string>
+    <string name="photo_unreadable">That photo could not be read. Please try another one.</string>
 </resources>
 
 

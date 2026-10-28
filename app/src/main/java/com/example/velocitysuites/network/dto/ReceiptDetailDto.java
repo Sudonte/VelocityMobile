@@ -112,6 +112,10 @@ public class ReceiptDetailDto {
         public Double amenities_total;
         public Double additional_charges_total;
         public Double discount;
+        /** The promo the desk verified: its own line, off the room rate. */
+        public Double promo;
+        public String promo_name;
+        public String discount_name;
         public Double grand_total;
         public Double paid_receipt_1;
         public Double paid_receipt_2;

@@ -22,6 +22,8 @@ public class RoomTypeDto {
     public String image_url;
     public List<RoomAmenityDto> amenities;
     public List<RoomGalleryImageDto> gallery;
+    /** The promos running for this room type today (switched on, inside their dates, on an active room type). */
+    public List<PromoOfferDto> promos;
 
     public double rateAsDouble() {
         try {

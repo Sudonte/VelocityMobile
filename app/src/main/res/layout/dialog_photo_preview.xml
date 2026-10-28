@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The photo just taken or chosen, before it is used: guidance above, the picture, nothing sent yet. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="8dp">
+
+    <TextView
+        android:id="@+id/photoPreviewGuidance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/velocity_text_secondary"
+        android:textSize="13sp" />
+
+    <ImageView
+        android:id="@+id/photoPreviewImage"
+        android:layout_width="match_parent"
+        android:layout_height="280dp"
+        android:background="@color/velocity_red_soft"
+        android:contentDescription="@string/photo_preview_desc"
+        android:scaleType="fitCenter" />
+</LinearLayout>

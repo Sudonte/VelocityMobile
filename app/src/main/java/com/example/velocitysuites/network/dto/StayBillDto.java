@@ -22,6 +22,9 @@ public class StayBillDto {
     public double subtotal;
     public double discount;
     public String discount_name;
+    /** The promo the desk verified: its own line, taken off the room rate of its room type only. */
+    public double promo_discount;
+    public String promo_name;
     public double total;
     public double total_paid;
     public double balance;
@@ -50,6 +53,8 @@ public class StayBillDto {
         public String discount_name;
         public Double discount_percent;
         public double discount;
+        public double promo;
+        public String promo_name;
         public double grand_total;
         public double amount_paid;
         public boolean paid_in_full;
@@ -97,6 +102,9 @@ public class StayBillDto {
         public String room_type;
         public String room_type_id;
         public double rate;
+        /** The nightly rate after the promo (same as rate when none applies). */
+        public Double rate_after_promo;
+        public double promo_off;
         public int nights;
         public double subtotal;
         /** "active" or "checked_out". */

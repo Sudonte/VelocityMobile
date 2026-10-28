@@ -236,7 +236,7 @@ public class ReceiptFromApiPayloadTest {
         assertEquals("₱5,000.00", r.get("Grand total"));
         assertEquals("₱1,000.00", r.get("Paid so far"));
         assertEquals("₱4,000.00", r.get("Remaining balance"));
-        assertEquals("₱4,000.00 · at check-in", r.get("Amount to pay"));
+        assertEquals("₱4,000.00 · at check-out", r.get("Amount to pay"));
         assertEquals("₱1,000.00", r.get("GCash · Paid online"));
         assertTrue(all.toString(), all.contains("Sep 20, 2026 • 02:10:00 PM · Ref. 1234 567 890123 · Verified"));
     }

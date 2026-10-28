@@ -75,6 +75,8 @@ public class ReservationDto {
     /** Nullable JSON column, not a relationship - Laravel serializes an unset value as JSON null, not [] (see ApiMapper's own comment on this). */
     public List<AdditionalGuestDto> additional_guest_details;
     public DiscountPreviewDto discount_preview;
+    /** Every promo this reservation can use, and the one the desk applied. */
+    public PromoInfoDto promo_info;
     /** Set once staff convert this reservation into a Booking - see ApiMapper#toBooking()/#toHistoricalReservation(). */
     public BookingDto booking;
     /**
@@ -120,5 +122,7 @@ public class ReservationDto {
 
     public static class DiscountPreviewDto {
         public double discount;
+        /** The promo's own line next to the ID discount (a quote before the desk verifies one is 0). */
+        public double promo_discount;
     }
 }

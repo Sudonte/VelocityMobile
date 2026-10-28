@@ -72,7 +72,7 @@ public class MoneySummaryRuleTest {
     public void verifiedNotCheckedIn_isTheRemainingBalanceAtCheckIn() {
         MoneySummary s = MoneySummary.of(c, booking(true, "Confirmed", "gcash", 10000, 4000, 0));
         assertEquals(MoneySummary.Kind.AT_CHECK_IN, s.kind);
-        assertEquals("₱6,000.00 · at check-in", s.amountToPay);
+        assertEquals("₱6,000.00 · at check-out", s.amountToPay);
         assertEquals(6000, s.remaining, 0.001);
         assertEquals("₱6,000.00".length(), s.amountEnd);
     }
@@ -107,7 +107,7 @@ public class MoneySummaryRuleTest {
     @Test
     public void receipts_showTheValueAsOfThatReceipt() {
         MoneySummary one = MoneySummary.ofReceipt(c, 1, 10000, 6000);
-        assertEquals("₱6,000.00 · at check-in", one.amountToPay);
+        assertEquals("₱6,000.00 · at check-out", one.amountToPay);
         MoneySummary two = MoneySummary.ofReceipt(c, 2, 10000, 2500);
         assertEquals("₱2,500.00 · at check-out", two.amountToPay);
         MoneySummary three = MoneySummary.ofReceipt(c, 3, 10000, 0);

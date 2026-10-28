@@ -37,6 +37,9 @@ public final class BalanceBreakdown implements Serializable {
     @Nullable public final String discountName;
     @Nullable public final Double discountPercent;
     public final double discount;
+    /** The promo the desk verified, taken off ONCE at check-in (its own line next to the ID discount). */
+    public final double promo;
+    @Nullable public final String promoName;
     public final double checkinGrandTotal;
     public final double amountPaidAtCheckin;
     public final boolean paidInFull;
@@ -58,6 +61,8 @@ public final class BalanceBreakdown implements Serializable {
         this.discountName = c.discount_name;
         this.discountPercent = c.discount_percent;
         this.discount = c.discount;
+        this.promo = c.promo;
+        this.promoName = c.promo_name;
         this.checkinGrandTotal = c.grand_total;
         this.amountPaidAtCheckin = c.amount_paid;
         this.paidInFull = c.paid_in_full;

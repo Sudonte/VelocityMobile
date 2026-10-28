@@ -30,13 +30,16 @@ public final class StayInfo implements Serializable {
         public final String roomType;
         public final String roomTypeId;
         public final double rate;
+        /** The nightly rate after the verified promo (= rate when none applies). */
+        public final double rateAfterPromo;
         public final int nights;
         public final double subtotal;
         public final boolean checkedOut;
         @Nullable public final String checkedOutOn;
 
-        RoomLine(String roomNumber, String roomType, String roomTypeId, double rate, int nights,
+        RoomLine(String roomNumber, String roomType, String roomTypeId, double rate, double rateAfterPromo, int nights,
                  double subtotal, boolean checkedOut, @Nullable String checkedOutOn) {
+            this.rateAfterPromo = rateAfterPromo;
             this.roomNumber = roomNumber;
             this.roomType = roomType;
             this.roomTypeId = roomTypeId;
@@ -69,6 +72,9 @@ public final class StayInfo implements Serializable {
     public final double roomCharge;
     public final double discount;
     @Nullable public final String discountName;
+    /** The promo the front desk verified: its pesos off the room rate (0 until then). */
+    public final double promoDiscount;
+    @Nullable public final String promoName;
     public final double total;
     public final List<RoomLine> rooms;
     /** The 3rd receipt's balance breakdown, when the stay was settled at check-in. */
@@ -143,6 +149,8 @@ public final class StayInfo implements Serializable {
         this.roomCharge = d.room_charge;
         this.discount = d.discount;
         this.discountName = d.discount_name;
+        this.promoDiscount = d.promo_discount;
+        this.promoName = d.promo_name;
         this.total = d.total;
         this.rooms = Collections.unmodifiableList(rooms);
         this.balanceBreakdown = BalanceBreakdown.from(d.receipt_breakdown);
@@ -156,7 +164,7 @@ public final class StayInfo implements Serializable {
         if (dto.rooms != null) {
             for (StayBillDto.Room r : dto.rooms) {
                 if (r == null) continue;
-                lines.add(new RoomLine(r.room_number, r.room_type, r.room_type_id, r.rate, Math.max(1, r.nights),
+                lines.add(new RoomLine(r.room_number, r.room_type, r.room_type_id, r.rate, r.rate_after_promo != null ? r.rate_after_promo : r.rate, Math.max(1, r.nights),
                         r.subtotal, "checked_out".equals(r.status), r.checked_out_on));
             }
         }
@@ -170,7 +178,7 @@ public final class StayInfo implements Serializable {
     public List<BookingRoom> asBookingRooms() {
         Map<String, List<RoomLine>> groups = new LinkedHashMap<>();
         for (RoomLine r : rooms) {
-            String key = r.roomTypeId + "|" + r.roomType + "|" + r.rate + "|" + r.nights;
+            String key = r.roomTypeId + "|" + r.roomType + "|" + r.rate + "|" + r.rateAfterPromo + "|" + r.nights;
             groups.computeIfAbsent(key, k -> new ArrayList<>()).add(r);
         }
         List<BookingRoom> out = new ArrayList<>();
@@ -182,7 +190,7 @@ public final class StayInfo implements Serializable {
                 subtotal += r.subtotal;
                 if (r.roomNumber != null && !r.roomNumber.isEmpty()) numbers.add(r.roomNumber);
             }
-            out.add(new BookingRoom(first.roomTypeId, first.roomType, g.size(), first.rate, first.nights, subtotal, numbers));
+            out.add(new BookingRoom(first.roomTypeId, first.roomType, g.size(), first.rate, first.nights, subtotal, numbers, first.rateAfterPromo));
         }
         return out;
     }
@@ -208,7 +216,7 @@ public final class StayInfo implements Serializable {
         return c.getResources().getQuantityString(R.plurals.receipt_nights_count, actualNights, actualNights);
     }
 
-    static String display(@Nullable String isoDate) {
+    public static String display(@Nullable String isoDate) {
         if (isoDate == null || isoDate.isEmpty()) return "—";
         try {
             return LocalDate.parse(isoDate.length() > 10 ? isoDate.substring(0, 10) : isoDate).format(DISPLAY);

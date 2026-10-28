@@ -163,8 +163,8 @@ public class Release162Test {
         Object[][] cases = {
                 // status, verified, waiting, expected Amount to pay, expected Remaining balance
                 {"Confirmed", 0.0, 3500.0, "₱0.00 now · ₱3,500.00 waiting for verification", "₱18,900.00"},
-                {"Confirmed", 9450.0, 0.0, "₱9,450.00 · at check-in", "₱9,450.00"},
-                {"Confirmed", 0.0, 0.0, "₱18,900.00 · at check-in", "₱18,900.00"},
+                {"Confirmed", 9450.0, 0.0, "₱9,450.00 · at check-out", "₱9,450.00"},
+                {"Confirmed", 0.0, 0.0, "₱18,900.00 · at check-out", "₱18,900.00"},
                 {"Checked-In", 9450.0, 0.0, "₱9,450.00 · at check-out", "₱9,450.00"},
                 {"Checked-In", 18900.0, 0.0, "₱0.00 · Nothing to pay", "₱0.00"},
                 {"Confirmed", 18900.0, 0.0, "₱0.00 · Nothing to pay", "₱0.00"},
@@ -310,13 +310,13 @@ public class Release162Test {
         String[] s = summaryOf(a);
         assertEquals("₱18,900.00", s[0]);
         assertEquals("₱9,450.00", s[1]);
-        assertEquals("₱9,450.00 · at check-in", s[2]);
+        assertEquals("₱9,450.00 · at check-out", s[2]);
         assertEquals(1f, host(a).getChildAt(0).getAlpha(), 0.001f);
         assertEquals(0f, host(a).getChildAt(0).getTranslationY(), 0.001f);
 
         MoneySummaryPanel.motion = false;
         BookingDetailsActivity b = open(booking("Confirmed", 9450, 0));
-        assertEquals("with motion off the final text is there at once", "₱9,450.00 · at check-in", summaryOf(b)[2]);
+        assertEquals("with motion off the final text is there at once", "₱9,450.00 · at check-out", summaryOf(b)[2]);
     }
 
     // ---- receipts ----
@@ -340,7 +340,7 @@ public class Release162Test {
         ReceiptDetail two = asStage(DebugReceiptFixtures.partialReceipt(), "CHECKIN_SETTLEMENT_RECEIPT"); // Receipt 2
         ReceiptDetail three = DebugReceiptFixtures.officialReceipt();           // Receipt 3
         Object[][] cases = {
-                {one, "at check-in"},
+                {one, "at check-out"},
                 {two, "at check-out"},
                 {three, "Fully paid"},
         };
@@ -367,7 +367,7 @@ public class Release162Test {
         List<String> t1 = textsOf(openReceipt(one).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("₱10,000.00", after(t1, "Grand total"));
         assertEquals("₱5,000.00", after(t1, "Remaining balance"));
-        assertEquals("₱5,000.00 · at check-in", after(t1, "Amount to pay"));
+        assertEquals("₱5,000.00 · at check-out", after(t1, "Amount to pay"));
         List<String> t3 = textsOf(openReceipt(three).findViewById(R.id.layoutDynamicReceiptContent));
         assertEquals("₱0.00 · Fully paid", after(t3, "Amount to pay"));
         assertEquals("₱0.00", after(t3, "Remaining balance"));
