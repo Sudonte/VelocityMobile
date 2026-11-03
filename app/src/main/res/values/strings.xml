@@ -391,7 +391,7 @@
     <string name="nav_booking_reservation">Booking &amp; Reservation</string>
     <string name="nav_transaction_history">Transaction History</string>
     <string name="nav_profile_management">Profile Management</string>
-    <string name="nav_logout">Logout</string>
+    <string name="nav_logout">Log out</string>
     <string name="nav_open_drawer">Open navigation drawer</string>
     <string name="menu_label">Menu</string>
     <string name="hello_user">Hello, %1$s!</string>
@@ -1475,9 +1475,9 @@
          Exact server-provided dates, never a vague "try again later". -->
     <string name="profile_edit_locked_status">Profile information was last updated on %1$s. You can update it again on %2$s.</string>
     <string name="profile_edit_locked_message">You can update your profile again on %1$s.</string>
-    <string name="logout_confirm_title">Log out?</string>
+    <string name="logout_confirm_title">Log out of Velocity Suites?</string>
     <string name="logout_confirm_message">Are you sure you want to log out of your Velocity Suites account?</string>
-    <string name="logout_confirm_action">Logout</string>
+    <string name="logout_confirm_action">Log out</string>
     <string name="confirm_update_action">Confirm Update</string>
     <string name="profile_update_failed_generic">Couldn\'t update your profile. Please check your details and try again.</string>
     <string name="profile_updated_full">Profile updated successfully.</string>
