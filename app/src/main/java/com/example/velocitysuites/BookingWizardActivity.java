@@ -458,7 +458,7 @@ public class BookingWizardActivity extends SafeActivity {
             // Step8ReviewPaymentFragment#saveEditedReservation(), which now
             // always sends whatever ends up in state.selectedRooms).
             for (BookingRoom line : itemizedRooms) {
-                for (Room r : cached) {
+                for (Room r : Room.withOptions(cached)) {
                     if (r.getId().equals(line.getRoomTypeId())) {
                         for (int i = 0; i < Math.max(1, line.getQuantity()); i++) {
                             state.selectedRooms.add(r);

@@ -19,6 +19,8 @@ public class BookingRoomDto {
     public String room_type_name;
     public Integer number_of_nights;
     public int quantity;
+    /** Which option of the room type this line is for ("std", or e.g. "r4200c4"); missing from an older server. */
+    public String option_key;
     public double price_per_night;
     public int nights;
     public double subtotal;

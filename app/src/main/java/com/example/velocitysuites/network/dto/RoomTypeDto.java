@@ -24,6 +24,8 @@ public class RoomTypeDto {
     public List<RoomGalleryImageDto> gallery;
     /** The promos running for this room type today (switched on, inside their dates, on an active room type). */
     public List<PromoOfferDto> promos;
+    /** Rooms of this type with their own price or capacity ("Other Deluxe rooms"); available_count above is the standard option's. Missing from an older server. */
+    public List<RoomOptionDto> other_options;
 
     public double rateAsDouble() {
         try {

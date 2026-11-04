@@ -326,7 +326,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     private void showSelectedRoomsDialog() {
         List<Room> selected = new ArrayList<>();
-        for (Room r : allRooms) {
+        for (Room r : Room.withOptions(allRooms)) {
             Integer qty = selectedQuantities.get(r.getId());
             if (qty == null) continue;
             for (int i = 0; i < qty; i++) selected.add(r);
@@ -1241,7 +1241,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         int combinedCapacity = 0;
         double totalPerNight = 0;
         int matched = 0;
-        for (Room r : allRooms) {
+        for (Room r : Room.withOptions(allRooms)) {
             Integer qty = selectedQuantities.get(r.getId());
             if (qty != null) {
                 combinedCapacity += r.getCapacity() * qty;
@@ -1282,7 +1282,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             return java.util.Collections.singletonList(room);
         }
         List<Room> cartRooms = new ArrayList<>();
-        for (Room r : allRooms) {
+        for (Room r : Room.withOptions(allRooms)) {
             Integer qty = selectedQuantities.get(r.getId());
             if (qty == null) continue;
             for (int i = 0; i < qty; i++) cartRooms.add(r);
@@ -1299,7 +1299,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private void navigateToBookingWithCart(boolean reservation) {
         if (isNavigatingToBookingFlow || selectedQuantities.isEmpty()) return;
         List<Room> cartRooms = new ArrayList<>();
-        for (Room r : allRooms) {
+        for (Room r : Room.withOptions(allRooms)) {
             Integer qty = selectedQuantities.get(r.getId());
             if (qty == null) continue;
             for (int i = 0; i < qty; i++) cartRooms.add(r);

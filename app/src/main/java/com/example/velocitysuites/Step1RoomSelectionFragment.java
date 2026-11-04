@@ -126,7 +126,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
             @Override
             public void onSuccess(List<Room> result) {
                 if (!isAdded() || seq != availabilityRequestSeq) return;
-                allRooms = result;
+                allRooms = Room.withOptions(result);
                 roomsLoadedSuccessfullyOnce = true;
                 reconcileSelectedRoomsWithAvailability();
                 showRoomAvailabilityResult();
@@ -158,7 +158,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
     /** The wizard re-read availability after the guest came back to the app: show the fresh list, quietly. */
     void onFreshRoomsAfterReturn(List<Room> fresh) {
         if (!isAdded() || layoutRoomSelectionContent == null) return;
-        allRooms = fresh;
+        allRooms = Room.withOptions(fresh);
         roomsLoadedSuccessfullyOnce = true;
         showRoomAvailabilityResult();
     }
@@ -270,7 +270,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         repository.refreshRoomsFresh(getState().checkIn, getState().checkOut, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
-                allRooms = result;
+                allRooms = Room.withOptions(result);
                 roomsLoadedSuccessfullyOnce = true;
                 openAvailableRoomsDialogOrToast();
             }

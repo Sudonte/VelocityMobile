@@ -12,9 +12,16 @@ package com.example.velocitysuites.network.dto;
 public class RoomSelectionDto {
     public long room_type_id;
     public int quantity;
+    /** Null (left out of the request) for the standard option. */
+    public String option_key;
 
     public RoomSelectionDto(long roomTypeId, int quantity) {
         this.room_type_id = roomTypeId;
         this.quantity = quantity;
+    }
+
+    public RoomSelectionDto(long roomTypeId, int quantity, String optionKey) {
+        this(roomTypeId, quantity);
+        this.option_key = optionKey;
     }
 }

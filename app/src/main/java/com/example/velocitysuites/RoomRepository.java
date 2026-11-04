@@ -1440,7 +1440,7 @@ public final class RoomRepository {
                                    List<AddOnAmenity> amenities, String paymentMethod, @Nullable Integer selectedPaymentPercentage,
                                    RepositoryCallback<Booking> callback) {
         ReservationRequest request = new ReservationRequest(
-                Long.parseLong(room.getId()),
+                room.apiTypeId(),
                 roomsRequested,
                 ApiMapper.toApiDate(checkIn),
                 ApiMapper.toApiDate(checkOut),
@@ -1522,7 +1522,7 @@ public final class RoomRepository {
                                    RepositoryCallback<Booking> callback) {
         List<Room> firstGroup = roomGroups.get(0);
         ReservationRequest request = new ReservationRequest(
-                Long.parseLong(firstGroup.get(0).getId()),
+                firstGroup.get(0).apiTypeId(),
                 firstGroup.size(),
                 ApiMapper.toApiDate(checkIn),
                 ApiMapper.toApiDate(checkOut),
@@ -1533,7 +1533,7 @@ public final class RoomRepository {
         );
         List<RoomSelectionDto> roomDtos = new ArrayList<>();
         for (List<Room> group : roomGroups) {
-            roomDtos.add(new RoomSelectionDto(Long.parseLong(group.get(0).getId()), group.size()));
+            roomDtos.add(new RoomSelectionDto(group.get(0).apiTypeId(), group.size(), group.get(0).getOptionKey()));
         }
         request.rooms = roomDtos;
         request.payment_method = paymentMethod;
@@ -2187,7 +2187,7 @@ public final class RoomRepository {
             request.additional_guests = guestDtos;
         }
         if (room != null) {
-            request.room_type_id = Long.parseLong(room.getId());
+            request.room_type_id = room.apiTypeId();
             request.rooms_requested = Math.max(1, roomQty);
         }
 
@@ -2271,12 +2271,12 @@ public final class RoomRepository {
             // when they were primitives, silently serialized as 0 and tripped the
             // server's exists/min:1 validation - see ReservationUpdateRequest's doc).
             List<Room> firstGroup = roomGroups.get(0);
-            request.room_type_id = Long.parseLong(firstGroup.get(0).getId());
+            request.room_type_id = firstGroup.get(0).apiTypeId();
             request.rooms_requested = firstGroup.size();
 
             List<RoomSelectionDto> roomDtos = new ArrayList<>();
             for (List<Room> group : roomGroups) {
-                roomDtos.add(new RoomSelectionDto(Long.parseLong(group.get(0).getId()), group.size()));
+                roomDtos.add(new RoomSelectionDto(group.get(0).apiTypeId(), group.size(), group.get(0).getOptionKey()));
             }
             request.rooms = roomDtos;
         }
@@ -2295,7 +2295,7 @@ public final class RoomRepository {
                     for (java.util.Map.Entry<String, Integer> e : forRoom.entrySet()) {
                         if (e.getValue() == null || e.getValue() <= 0) continue;
                         AmenitySelectionDto dto = new AmenitySelectionDto(Long.parseLong(e.getKey()), e.getValue());
-                        dto.room_type_id = Long.parseLong(slot.room.getId());
+                        dto.room_type_id = slot.room.apiTypeId();
                         dto.room_slot = slot.number;
                         amenityDtos.add(dto);
                     }

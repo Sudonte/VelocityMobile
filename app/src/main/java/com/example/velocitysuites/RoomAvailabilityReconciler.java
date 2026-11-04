@@ -40,7 +40,7 @@ public final class RoomAvailabilityReconciler {
      */
     public static List<Shortfall> reconcile(List<Room> selected, List<Room> fresh) {
         Map<String, Integer> freeById = new LinkedHashMap<>();
-        for (Room r : fresh) freeById.put(r.getId(), r.getAvailableCount());
+        for (Room r : Room.withOptions(fresh)) freeById.put(r.getId(), r.getAvailableCount());
 
         Map<String, List<Room>> grouped = new LinkedHashMap<>();
         for (Room r : selected) grouped.computeIfAbsent(r.getId(), k -> new ArrayList<>()).add(r);

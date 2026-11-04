@@ -29,6 +29,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ROOM = 1;
     private static final int TYPE_MESSAGE = 2;
+    /** "Other Deluxe rooms >" under a type's card, and (when opened) one row per other option. */
+    private static final int TYPE_OTHER_TOGGLE = 3;
+    private static final int TYPE_OTHER_OPTION = 4;
 
     /**
      * A row in the results list: either a section header ("Available Rooms (n)")
@@ -41,12 +44,26 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final Room room;
         final String headerText;
         final String occupiedRangeText;
+        final boolean expanded;
 
         private RoomListItem(int viewType, Room room, String headerText, String occupiedRangeText) {
+            this(viewType, room, headerText, occupiedRangeText, false);
+        }
+
+        private RoomListItem(int viewType, Room room, String headerText, String occupiedRangeText, boolean expanded) {
             this.viewType = viewType;
             this.room = room;
             this.headerText = headerText;
             this.occupiedRangeText = occupiedRangeText;
+            this.expanded = expanded;
+        }
+
+        static RoomListItem toggle(Room type, boolean expanded) {
+            return new RoomListItem(TYPE_OTHER_TOGGLE, type, null, null, expanded);
+        }
+
+        static RoomListItem option(Room option) {
+            return new RoomListItem(TYPE_OTHER_OPTION, option, null, null);
         }
 
         static RoomListItem header(String text) {
@@ -80,6 +97,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * the quantity stepper entirely (e.g. any future details-only usage).
      */
     private final Map<String, Integer> selectedQuantities;
+
+    /** Room types whose "Other ... rooms" list is open. */
+    private final java.util.Set<String> expandedTypes = new java.util.HashSet<>();
 
     /**
      * True only when populated via {@link #updateSectionedResults}: enables the
@@ -127,20 +147,34 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     /** @param selectedQuantities shared, mutable id-to-quantity cart map - pass null to hide the quantity stepper entirely. */
     public RoomAdapter(List<Room> rooms, OnRoomClickListener listener, boolean detailsOnlyMode, Map<String, Integer> selectedQuantities) {
-        this.items = toRoomItems(rooms);
         this.listener = listener;
         this.detailsOnlyMode = detailsOnlyMode;
         this.selectedQuantities = selectedQuantities;
+        this.items = toRoomItems(rooms);
     }
 
-    private static List<RoomListItem> toRoomItems(List<Room> rooms) {
+    private List<RoomListItem> toRoomItems(List<Room> rooms) {
         List<RoomListItem> result = new ArrayList<>();
         if (rooms != null) {
             for (Room r : rooms) {
-                result.add(RoomListItem.forRoom(r));
+                addRoomWithOptions(result, r);
             }
         }
         return result;
+    }
+
+    /** The type's card, then - when some of its rooms have their own price or capacity - the "Other ... rooms" row and, if open, the options. */
+    private void addRoomWithOptions(List<RoomListItem> out, Room r) {
+        out.add(RoomListItem.forRoom(r));
+        if (selectedQuantities == null || detailsOnlyMode || !r.isAvailable() && r.getOtherOptions().isEmpty()) return;
+        if (r.getOtherOptions() == null || r.getOtherOptions().isEmpty()) return;
+        boolean open = expandedTypes.contains(r.getId());
+        if (!open) {
+            for (Room o : r.getOtherOptions()) if (selectedQuantities.getOrDefault(o.getId(), 0) > 0) open = true; // a picked option stays visible
+        }
+        if (open) expandedTypes.add(r.getId());
+        out.add(RoomListItem.toggle(r, open));
+        if (open) for (Room o : r.getOtherOptions()) out.add(RoomListItem.option(o));
     }
 
     /** Legacy path: a flat room list with no section headers, Reserve Now, or occupancy info. */
@@ -166,7 +200,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
         if (availableRooms != null && !availableRooms.isEmpty()) {
             // No heading above the available rooms: the results bar already says "5 rooms".
-            for (Room r : availableRooms) newItems.add(RoomListItem.forRoom(r));
+            for (Room r : availableRooms) addRoomWithOptions(newItems, r);
         }
         if (unavailableRooms != null && !unavailableRooms.isEmpty()) {
             newItems.add(RoomListItem.header(unavailableHeaderText));
@@ -199,6 +233,12 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_room_message_banner, parent, false);
             return new MessageViewHolder(view);
         }
+        if (viewType == TYPE_OTHER_TOGGLE) {
+            return new OtherToggleViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_room_other_toggle, parent, false));
+        }
+        if (viewType == TYPE_OTHER_OPTION) {
+            return new OtherOptionViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_room_other_option, parent, false));
+        }
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_room_card, parent, false);
         return new RoomViewHolder(view);
     }
@@ -213,13 +253,17 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void notifyQuantitiesChanged(@androidx.annotation.Nullable String roomId) {
         for (int i = 0; i < items.size(); i++) {
             RoomListItem item = items.get(i);
-            if (item.viewType != TYPE_ROOM || item.room == null) continue;
+            if ((item.viewType != TYPE_ROOM && item.viewType != TYPE_OTHER_OPTION) || item.room == null) continue;
             if (roomId == null || roomId.equals(item.room.getId())) notifyItemChanged(i, PAYLOAD_QUANTITY);
         }
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position, @NonNull java.util.List<Object> payloads) {
+        if (!payloads.isEmpty() && payloads.contains(PAYLOAD_QUANTITY) && viewHolder instanceof OtherOptionViewHolder) {
+            bindOption((OtherOptionViewHolder) viewHolder, items.get(position).room);
+            return;
+        }
         if (!payloads.isEmpty() && payloads.contains(PAYLOAD_QUANTITY) && viewHolder instanceof RoomViewHolder) {
             Room room = items.get(position).room;
             if (room != null) {
@@ -233,6 +277,14 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
         RoomListItem item = items.get(position);
+        if (item.viewType == TYPE_OTHER_TOGGLE) {
+            bindToggle((OtherToggleViewHolder) viewHolder, item);
+            return;
+        }
+        if (item.viewType == TYPE_OTHER_OPTION) {
+            bindOption((OtherOptionViewHolder) viewHolder, item.room);
+            return;
+        }
         if (item.viewType == TYPE_HEADER) {
             ((HeaderViewHolder) viewHolder).tvSectionHeader.setText(item.headerText);
             return;
@@ -376,6 +428,70 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // their own (an earlier version widened their tap areas with a TouchDelegate because they were 40dp).
 
         animateItemEntrance(holder.itemView, position);
+    }
+
+    private void bindToggle(OtherToggleViewHolder holder, RoomListItem item) {
+        Room type = item.room;
+        Context context = holder.itemView.getContext();
+        holder.tvOtherToggle.setText(context.getString(R.string.room_other_toggle, type.getType()));
+        holder.itemView.setContentDescription(context.getString(item.expanded ? R.string.room_other_toggle_cd_close : R.string.room_other_toggle_cd_open, type.getType()));
+        holder.imgChevron.setRotation(item.expanded ? 90f : 0f);
+        holder.itemView.setOnClickListener(v -> {
+            int position = holder.getBindingAdapterPosition();
+            if (position == RecyclerView.NO_POSITION) { // not laid out in a RecyclerView yet: find this type's row by its id
+                for (int i = 0; i < items.size(); i++) if (items.get(i).viewType == TYPE_OTHER_TOGGLE && items.get(i).room.getId().equals(type.getId())) { position = i; break; }
+                if (position == RecyclerView.NO_POSITION) return;
+            }
+            boolean nowOpen = !items.get(position).expanded;
+            if (nowOpen) expandedTypes.add(type.getId()); else expandedTypes.remove(type.getId());
+            items.set(position, RoomListItem.toggle(type, nowOpen));
+            notifyItemChanged(position);
+            if (nowOpen) {
+                List<RoomListItem> added = new ArrayList<>();
+                for (Room o : type.getOtherOptions()) added.add(RoomListItem.option(o));
+                items.addAll(position + 1, added);
+                notifyItemRangeInserted(position + 1, added.size());
+            } else {
+                int count = 0;
+                while (position + 1 + count < items.size() && items.get(position + 1 + count).viewType == TYPE_OTHER_OPTION) count++;
+                for (int i = 0; i < count; i++) items.remove(position + 1);
+                notifyItemRangeRemoved(position + 1, count);
+            }
+        });
+    }
+
+    /** One other option: capacity, price per night, availability for the dates, and its own stepper (limited by that option's rooms). */
+    private void bindOption(OtherOptionViewHolder holder, Room option) {
+        Context context = holder.itemView.getContext();
+        int free = option.isAvailable() ? Math.max(0, option.getAvailableCount()) : 0;
+        holder.tvCapacity.setText(context.getString(R.string.room_option_capacity, option.getCapacity()));
+        holder.tvPrice.setText(context.getString(R.string.room_option_price, option.getPricePerNight()));
+        holder.tvAvailability.setText(free > 0 ? context.getResources().getQuantityString(R.plurals.rooms_available_count, free, free) : context.getString(R.string.rooms_fully_booked));
+        if (selectedQuantities == null || free <= 0) {
+            holder.stepper.setVisibility(View.GONE);
+            return;
+        }
+        holder.stepper.setVisibility(View.VISIBLE);
+        int qty = selectedQuantities.getOrDefault(option.getId(), 0);
+        holder.tvQty.setText(String.valueOf(qty));
+        holder.btnMinus.setEnabled(qty > 0);
+        holder.btnPlus.setEnabled(qty < free);
+        holder.btnMinus.setOnClickListener(v -> {
+            int current = selectedQuantities.getOrDefault(option.getId(), 0);
+            if (current <= 0) return;
+            if (current == 1) selectedQuantities.remove(option.getId()); else selectedQuantities.put(option.getId(), current - 1);
+            int position = holder.getBindingAdapterPosition();
+            if (position != RecyclerView.NO_POSITION) notifyItemChanged(position, PAYLOAD_QUANTITY);
+            listener.onRoomSelectionChanged();
+        });
+        holder.btnPlus.setOnClickListener(v -> {
+            int current = selectedQuantities.getOrDefault(option.getId(), 0);
+            if (current >= free) return;
+            selectedQuantities.put(option.getId(), current + 1);
+            int position = holder.getBindingAdapterPosition();
+            if (position != RecyclerView.NO_POSITION) notifyItemChanged(position, PAYLOAD_QUANTITY);
+            listener.onRoomSelectionChanged();
+        });
     }
 
     /**
@@ -564,6 +680,34 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    static class OtherToggleViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvOtherToggle;
+        final ImageView imgChevron;
+
+        OtherToggleViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvOtherToggle = itemView.findViewById(R.id.tvOtherToggle);
+            imgChevron = itemView.findViewById(R.id.imgOtherChevron);
+        }
+    }
+
+    static class OtherOptionViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvCapacity, tvPrice, tvAvailability, tvQty;
+        final View stepper;
+        final MaterialButton btnMinus, btnPlus;
+
+        OtherOptionViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvCapacity = itemView.findViewById(R.id.tvOptCapacity);
+            tvPrice = itemView.findViewById(R.id.tvOptPrice);
+            tvAvailability = itemView.findViewById(R.id.tvOptAvailability);
+            tvQty = itemView.findViewById(R.id.tvOptQty);
+            stepper = itemView.findViewById(R.id.optQtyStepper);
+            btnMinus = itemView.findViewById(R.id.btnOptMinus);
+            btnPlus = itemView.findViewById(R.id.btnOptPlus);
+        }
+    }
+
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvSectionHeader;
 
@@ -615,7 +759,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             RoomListItem o = oldList.get(oldItemPosition);
             RoomListItem n = newList.get(newItemPosition);
             if (o.viewType == TYPE_HEADER || o.viewType == TYPE_MESSAGE) return Objects.equals(o.headerText, n.headerText);
-            return sameRoom(o.room, n.room) && Objects.equals(o.occupiedRangeText, n.occupiedRangeText);
+            return sameRoom(o.room, n.room) && Objects.equals(o.occupiedRangeText, n.occupiedRangeText) && o.expanded == n.expanded;
         }
     }
 
@@ -634,6 +778,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 && a.getCapacity() == b.getCapacity()
                 && a.getImageResId() == b.getImageResId()
                 && a.getRoomTypeId() == b.getRoomTypeId()
+                && Objects.equals(a.getOptionKey(), b.getOptionKey())
+                && sameOptions(a.getOtherOptions(), b.getOtherOptions())
                 && Double.compare(a.getPricePerNight(), b.getPricePerNight()) == 0
                 && Objects.equals(a.getId(), b.getId())
                 && Objects.equals(a.getName(), b.getName())
@@ -646,6 +792,18 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 && Objects.equals(a.getImageUrls(), b.getImageUrls())
                 && Objects.equals(a.getImageLabels(), b.getImageLabels())
                 && sameAmenities(a.getAmenities(), b.getAmenities());
+    }
+
+    private static boolean sameOptions(List<Room> a, List<Room> b) {
+        int sizeA = a == null ? 0 : a.size();
+        int sizeB = b == null ? 0 : b.size();
+        if (sizeA != sizeB) return false;
+        for (int i = 0; i < sizeA; i++) {
+            Room x = a.get(i), y = b.get(i);
+            if (!Objects.equals(x.getId(), y.getId()) || x.getAvailableCount() != y.getAvailableCount() || x.isAvailable() != y.isAvailable()
+                    || x.getCapacity() != y.getCapacity() || Double.compare(x.getPricePerNight(), y.getPricePerNight()) != 0) return false;
+        }
+        return true;
     }
 
     private static boolean sameAmenities(List<RoomAmenity> a, List<RoomAmenity> b) {

@@ -79,6 +79,24 @@ public final class ApiMapper {
         room.setImageUrls(toImageUrls(dto.gallery));
         room.setPromos(PromoOffer.listOf(dto.promos));
         room.setImageLabels(toImageLabels(dto.gallery));
+        if (dto.other_options != null && !dto.other_options.isEmpty()) {
+            List<Room> options = new ArrayList<>();
+            for (com.example.velocitysuites.network.dto.RoomOptionDto o : dto.other_options) {
+                if (o == null || o.option_key == null) continue;
+                Room opt = new Room(dto.id + ":" + o.option_key, dto.name + " (up to " + o.capacity + " guests)", dto.name, o.capacity, o.price,
+                        dto.description != null ? dto.description : "", 0, !o.is_fully_booked, room.getAmenities(),
+                        room.getBedType(), room.getRoomSize(), room.getPolicies());
+                opt.setRoomTypeId(dto.id);
+                opt.setOptionKey(o.option_key);
+                opt.setAvailableCount(o.available_count);
+                opt.setImageUrl(room.getImageUrl());
+                opt.setImageUrls(room.getImageUrls());
+                opt.setImageLabels(room.getImageLabels());
+                opt.setPromos(PromoOffer.listOf(o.promos));
+                options.add(opt);
+            }
+            room.setOtherOptions(options);
+        }
 
         return room;
     }
@@ -176,7 +194,8 @@ public final class ApiMapper {
         for (BookingRoomDto dto : dtos) {
             String typeName = dto.room_type != null && !dto.room_type.trim().isEmpty() ? dto.room_type : dto.room_type_name;
             long lineNights = dto.nights > 0 ? dto.nights : (dto.number_of_nights != null ? dto.number_of_nights : 0);
-            rooms.add(new BookingRoom(dto.room_type_id, typeName, dto.quantity, dto.price_per_night, lineNights, dto.subtotal, dto.assigned_room_numbers));
+            String lineKey = dto.option_key != null && !dto.option_key.isEmpty() && !"std".equals(dto.option_key) && dto.room_type_id != null ? dto.room_type_id + ":" + dto.option_key : dto.room_type_id;
+            rooms.add(new BookingRoom(lineKey, typeName, dto.quantity, dto.price_per_night, lineNights, dto.subtotal, dto.assigned_room_numbers));
         }
         return rooms;
     }

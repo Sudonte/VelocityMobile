@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One other option of a room type: capacity, price per night, availability for the chosen dates, and its own stepper. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="24dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/shape_search_field"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvOptCapacity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="14sp"
+            tools:text="Up to 4 guests" />
+
+        <TextView
+            android:id="@+id/tvOptPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFeatureSettings="tnum"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="₱4,200.00 per night" />
+
+        <TextView
+            android:id="@+id/tvOptAvailability"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="2 rooms available" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/optQtyStepper"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOptMinus"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/cd_decrease_quantity"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:padding="0dp"
+            android:stateListAnimator="@null"
+            app:backgroundTint="@color/velocity_red_soft"
+            app:cornerRadius="0dp"
+            app:elevation="0dp"
+            app:icon="@drawable/ic_remove"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="18dp"
+            app:iconTint="@color/velocity_action_text" />
+
+        <TextView
+            android:id="@+id/tvOptQty"
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-bold"
+            android:gravity="center"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="15sp"
+            tools:text="0" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOptPlus"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/cd_increase_quantity"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:padding="0dp"
+            android:stateListAnimator="@null"
+            app:backgroundTint="@color/velocity_red_primary"
+            app:cornerRadius="0dp"
+            app:elevation="0dp"
+            app:icon="@drawable/ic_add"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="18dp"
+            app:iconTint="@color/white" />
+    </LinearLayout>
+</LinearLayout>

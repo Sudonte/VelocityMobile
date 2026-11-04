@@ -25,7 +25,7 @@ final class CartSelectionReconciler {
         if (selectedQuantities.isEmpty()) return false;
         Map<String, Room> byId = new HashMap<>();
         if (availableRooms != null) {
-            for (Room room : availableRooms) {
+            for (Room room : Room.withOptions(availableRooms)) {
                 if (room != null) byId.put(room.getId(), room);
             }
         }

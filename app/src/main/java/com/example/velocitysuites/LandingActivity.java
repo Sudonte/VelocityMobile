@@ -1054,7 +1054,7 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
      */
     private List<Room> resolveSelectedRooms() {
         List<Room> resolved = new ArrayList<>();
-        for (Room r : allAvailableRooms) {
+        for (Room r : Room.withOptions(allAvailableRooms)) {
             Integer qty = selectedQuantities.get(r.getId());
             if (qty == null) continue;
             for (int i = 0; i < qty; i++) resolved.add(r);
