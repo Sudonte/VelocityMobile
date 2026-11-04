@@ -32,6 +32,8 @@ public class StayDto {
         /** The booked room the amenity was chosen for ("Deluxe (room 2)"); null for the whole stay or an older row. */
         public String room_label;
         public String room_type_id;
+        /** The option of the room type this amenity is on ("std", or e.g. "r4200c4"); missing from an older server. */
+        public String option_key;
         public Integer room_slot;
     }
 }

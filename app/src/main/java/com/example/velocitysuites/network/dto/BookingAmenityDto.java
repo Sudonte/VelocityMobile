@@ -17,4 +17,6 @@ public class BookingAmenityDto {
     public String room_label;
     public String room_type_id;
     public Integer room_slot;
+    /** The option of the room's type this amenity is on ("std", or e.g. "r4200c4"); missing from an older server. */
+    public String option_key;
 }

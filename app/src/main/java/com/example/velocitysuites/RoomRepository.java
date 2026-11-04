@@ -1637,7 +1637,8 @@ public final class RoomRepository {
             Map<String, RequestBody> fields = new LinkedHashMap<>();
             for (int i = 0; i < roomGroups.size(); i++) {
                 List<Room> group = roomGroups.get(i);
-                putText(fields, "rooms[" + i + "][room_type_id]", group.get(0).getId());
+                putText(fields, "rooms[" + i + "][room_type_id]", String.valueOf(group.get(0).apiTypeId()));
+                if (group.get(0).getOptionKey() != null) putText(fields, "rooms[" + i + "][option_key]", group.get(0).getOptionKey());
                 putText(fields, "rooms[" + i + "][quantity]", String.valueOf(group.size()));
             }
             putText(fields, "check_in", ApiMapper.toApiDate(checkIn));
@@ -1785,7 +1786,8 @@ public final class RoomRepository {
             // authoritative shape whenever present.
             for (int i = 0; i < roomGroups.size(); i++) {
                 List<Room> group = roomGroups.get(i);
-                putText(fields, "rooms[" + i + "][room_type_id]", group.get(0).getId());
+                putText(fields, "rooms[" + i + "][room_type_id]", String.valueOf(group.get(0).apiTypeId()));
+                if (group.get(0).getOptionKey() != null) putText(fields, "rooms[" + i + "][option_key]", group.get(0).getOptionKey());
                 putText(fields, "rooms[" + i + "][quantity]", String.valueOf(group.size()));
             }
             putText(fields, "check_in", ApiMapper.toApiDate(checkIn));
@@ -1917,7 +1919,8 @@ public final class RoomRepository {
                 putText(fields, "stays[" + s + "][check_out]", ApiMapper.toApiDate(stay.checkOut));
                 int r = 0;
                 for (List<Room> group : stay.roomsGroupedByType().values()) {
-                    putText(fields, "stays[" + s + "][rooms][" + r + "][room_type_id]", group.get(0).getId());
+                    putText(fields, "stays[" + s + "][rooms][" + r + "][room_type_id]", String.valueOf(group.get(0).apiTypeId()));
+                    if (group.get(0).getOptionKey() != null) putText(fields, "stays[" + s + "][rooms][" + r + "][option_key]", group.get(0).getOptionKey());
                     putText(fields, "stays[" + s + "][rooms][" + r + "][quantity]", String.valueOf(group.size()));
                     r++;
                 }
@@ -1948,7 +1951,8 @@ public final class RoomRepository {
                             if (e.getValue() == null || e.getValue() <= 0) continue;
                             putText(fields, "stays[" + s + "][amenities][" + a + "][amenity_id]", e.getKey());
                             putText(fields, "stays[" + s + "][amenities][" + a + "][quantity]", String.valueOf(e.getValue()));
-                            putText(fields, "stays[" + s + "][amenities][" + a + "][room_type_id]", slot.room.getId());
+                            putText(fields, "stays[" + s + "][amenities][" + a + "][room_type_id]", String.valueOf(slot.room.apiTypeId()));
+                            if (slot.room.getOptionKey() != null) putText(fields, "stays[" + s + "][amenities][" + a + "][option_key]", slot.room.getOptionKey());
                             putText(fields, "stays[" + s + "][amenities][" + a + "][room_slot]", String.valueOf(slot.number));
                             a++;
                         }
@@ -2297,6 +2301,8 @@ public final class RoomRepository {
                         AmenitySelectionDto dto = new AmenitySelectionDto(Long.parseLong(e.getKey()), e.getValue());
                         dto.room_type_id = slot.room.apiTypeId();
                         dto.room_slot = slot.number;
+                        dto.option_key = slot.room.getOptionKey();
+                        
                         amenityDtos.add(dto);
                     }
                 }

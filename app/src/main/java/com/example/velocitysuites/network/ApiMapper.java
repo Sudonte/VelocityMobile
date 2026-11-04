@@ -177,7 +177,7 @@ public final class ApiMapper {
             List<BookingAmenity> amenities = new ArrayList<>();
             if (d.amenities != null) {
                 for (com.example.velocitysuites.network.dto.StayDto.StayAmenityDto a : d.amenities) {
-                    if (a != null) amenities.add(new BookingAmenity(a.amenity_id, a.amenity_name, a.quantity, a.unit_price, a.subtotal, a.room_label, a.room_type_id, a.room_slot != null ? a.room_slot : 0));
+                    if (a != null) amenities.add(new BookingAmenity(a.amenity_id, a.amenity_name, a.quantity, a.unit_price, a.subtotal, a.room_label, roomKey(a.room_type_id, a.option_key), a.room_slot != null ? a.room_slot : 0));
                 }
             }
             out.add(new Booking.StayRecord(d.id != null ? d.id : d.position, d.position, d.check_in, d.check_out, d.nights, d.state,
@@ -200,6 +200,12 @@ public final class ApiMapper {
         return rooms;
     }
 
+    /** The id a wizard Room carries for a room type and option: "5", or "5:r4200c4" for one of its other options. */
+    public static String roomKey(String roomTypeId, String optionKey) {
+        if (roomTypeId == null || optionKey == null || optionKey.isEmpty() || "std".equals(optionKey)) return roomTypeId;
+        return roomTypeId + ":" + optionKey;
+    }
+
     /** Itemized paid-amenity breakdown - see toBookingRooms()'s own doc, same "always empty today" rule. */
     private static List<BookingAmenity> toBookingAmenities(List<BookingAmenityDto> dtos) {
         if (dtos == null || dtos.isEmpty()) {
@@ -207,7 +213,7 @@ public final class ApiMapper {
         }
         List<BookingAmenity> amenities = new ArrayList<>(dtos.size());
         for (BookingAmenityDto dto : dtos) {
-            amenities.add(new BookingAmenity(dto.amenity_id, dto.amenity_name, dto.quantity, dto.unit_price, dto.subtotal, dto.room_label, dto.room_type_id, dto.room_slot != null ? dto.room_slot : 0));
+            amenities.add(new BookingAmenity(dto.amenity_id, dto.amenity_name, dto.quantity, dto.unit_price, dto.subtotal, dto.room_label, roomKey(dto.room_type_id, dto.option_key), dto.room_slot != null ? dto.room_slot : 0));
         }
         return amenities;
     }

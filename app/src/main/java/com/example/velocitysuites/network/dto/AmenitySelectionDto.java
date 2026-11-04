@@ -14,6 +14,8 @@ public class AmenitySelectionDto {
     /** Optional: the booked room this amenity is for - its room type and which room of that type (1-based). Omitted when null. */
     public Long room_type_id;
     public Integer room_slot;
+    /** Optional: which option of that room type ("Other Deluxe rooms"), e.g. "r4200c4"; omitted for the standard option, so an older server is unaffected. */
+    public String option_key;
 
     public AmenitySelectionDto(long amenityId, int quantity) {
         this.amenity_id = amenityId;
