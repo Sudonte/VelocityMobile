@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One room type in a date range's card: "Deluxe × 2", its price per night and nights, and what it adds up to. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="4dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvStayRoomName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="Deluxe × 2" />
+
+        <TextView
+            android:id="@+id/tvStayRoomRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="₱3,500.00 per night · 2 nights" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvStayRoomAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:fontFeatureSettings="tnum"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="end"
+        android:textColor="@color/velocity_text_primary"
+        android:textSize="13sp"
+        tools:text="₱14,000.00" />
+</LinearLayout>

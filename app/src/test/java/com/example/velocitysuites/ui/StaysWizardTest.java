@@ -210,7 +210,7 @@ public class StaysWizardTest {
         assertEquals("both are confirmed: nobody is 'being edited'", View.GONE, first.findViewById(R.id.tvStayRowEditing).getVisibility());
         assertEquals(View.GONE, second.findViewById(R.id.tvStayRowEditing).getVisibility());
         assertEquals("₱17,300.00", text(find(activity, R.id.tvStaysTotal)));
-        assertTrue(collect(find(activity, R.id.layoutStaysSummary)).contains("Total for all stays"));
+        assertTrue(collect(find(activity, R.id.layoutStaysSummary)).contains("Total for all dates"));
 
         // Edit on the other stay opens it (and highlights it)
         advance();
@@ -385,7 +385,7 @@ public class StaysWizardTest {
         assertTrue(shown, shown.contains("2 × Room 1 × ₱1,000.00 × 2 nights") && shown.contains("₱4,000.00"));
         assertTrue(shown, shown.contains("1 × Room 2 × ₱3,000.00 × 1 night") && shown.contains("₱3,000.00"));
         assertTrue(shown, shown.contains("Subtotal"));
-        assertTrue(shown, shown.contains("Total for all stays") && shown.contains("₱7,000.00"));
+        assertTrue(shown, shown.contains("Total for all dates") && shown.contains("₱7,000.00"));
         assertEquals("Edit stays", text(sheet.findViewById(R.id.btnReviewEdit)));
         assertEquals("Continue", text(sheet.findViewById(R.id.btnReviewContinue)));
 
@@ -457,5 +457,33 @@ public class StaysWizardTest {
         String title = plain(text(rows.getChildAt(0).findViewById(R.id.tvStayRowTitle)));
         assertTrue(title, title.contains("→") && title.contains("2 nights"));
         assertEquals("the rooms line is its own text, not part of a Stay label", "2 rooms · ₱4,000.00", text(rows.getChildAt(0).findViewById(R.id.tvStayRowRooms)));
+    }
+
+    @Test
+    public void yourDatesAndRooms_listsEachRangeWithItsRoomsPricePerNightSubtotalAndTheTotalForAllDates() {
+        BookingWizardActivity activity = onConfirmedStay(app, 5, 2, room("1", 3500), 2); // 2 x 3,500 x 2 nights = 14,000
+        addConfirmedStay(activity, 12, 1, room("2", 2000), 1);                           // 1 x 2,000 x 1 night = 2,000
+
+        assertEquals("the heading says what the card is", "Your dates and rooms", ((android.widget.TextView) ((android.widget.LinearLayout) find(activity, R.id.layoutStaysSummary)).getChildAt(0)).getText().toString());
+        android.widget.LinearLayout rows = find(activity, R.id.layoutStayRows);
+        assertEquals(2, rows.getChildCount());
+        android.widget.LinearLayout firstRooms = rows.getChildAt(0).findViewById(R.id.layoutStayRowRooms);
+        assertEquals("one line per room type", 1, firstRooms.getChildCount());
+        assertEquals("Room 1 × 2", text(firstRooms.getChildAt(0).findViewById(R.id.tvStayRoomName)).replace("Room ", "Room "));
+        assertTrue(text(firstRooms.getChildAt(0).findViewById(R.id.tvStayRoomRate)), text(firstRooms.getChildAt(0).findViewById(R.id.tvStayRoomRate)).startsWith("₱3,500.00 per night"));
+        assertEquals("₱14,000.00", text(firstRooms.getChildAt(0).findViewById(R.id.tvStayRoomAmount)));
+        assertEquals("₱14,000.00", text(rows.getChildAt(0).findViewById(R.id.tvStayRowSubtotal)));
+        assertEquals("₱2,000.00", text(rows.getChildAt(1).findViewById(R.id.tvStayRowSubtotal)));
+        assertEquals("the total for all dates", "₱16,000.00", text(find(activity, R.id.tvStaysTotal)));
+        assertTrue(collect(find(activity, R.id.layoutStaysSummary)).contains("Total for all dates"));
+    }
+
+    @Test
+    public void yourDatesAndRooms_isThereFromTheStart_withAnEmptyStateThatSaysWhatToDo() {
+        BookingWizardActivity activity = open(app, BookingWizardState.Mode.BOOKING);
+        assertEquals(View.VISIBLE, find(activity, R.id.layoutStaysSummary).getVisibility());
+        assertEquals(View.VISIBLE, find(activity, R.id.tvStaysEmpty).getVisibility());
+        assertEquals(0, ((android.widget.LinearLayout) find(activity, R.id.layoutStayRows)).getChildCount());
+        assertEquals(View.GONE, find(activity, R.id.layoutStaysTotalRow).getVisibility());
     }
 }

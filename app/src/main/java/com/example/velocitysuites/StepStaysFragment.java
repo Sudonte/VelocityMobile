@@ -46,6 +46,9 @@ public class StepStaysFragment extends WizardStepFragment {
     private View layoutStaysSummary;
     private LinearLayout layoutStayRows;
     private TextView tvStaysTotal;
+    private TextView tvStaysEmpty;
+    private View layoutStaysTotalRow;
+    private View viewStaysTotalRule;
     private TextView tvActiveHeading;
     private TextView tvIncomplete;
     private TextView tvDuplicate;
@@ -69,6 +72,9 @@ public class StepStaysFragment extends WizardStepFragment {
         layoutStaysSummary = view.findViewById(R.id.layoutStaysSummary);
         layoutStayRows = view.findViewById(R.id.layoutStayRows);
         tvStaysTotal = view.findViewById(R.id.tvStaysTotal);
+        tvStaysEmpty = view.findViewById(R.id.tvStaysEmpty);
+        layoutStaysTotalRow = view.findViewById(R.id.layoutStaysTotalRow);
+        viewStaysTotalRule = view.findViewById(R.id.viewStaysTotalRule);
         tvActiveHeading = view.findViewById(R.id.tvActiveStayHeading);
         tvIncomplete = view.findViewById(R.id.tvStayIncomplete);
         tvDuplicate = view.findViewById(R.id.tvStayDuplicate);
@@ -183,20 +189,24 @@ public class StepStaysFragment extends WizardStepFragment {
         boolean anyConfirmed = false;
         for (BookingWizardState.Stay s : stays) anyConfirmed |= s.confirmed;
         boolean confirmedActive = state.activeConfirmed;
-        // The card lists every stay as soon as one is confirmed (or there are several); a stay still being edited shows its editor instead.
-        boolean showCard = several || anyConfirmed;
-        layoutStaysSummary.setVisibility(showCard ? View.VISIBLE : View.GONE);
+        // "Your dates and rooms" is always on this step: every date range as its own card (an empty one says what to do), so a beginner sees what was chosen.
+        boolean showCard = true;
+        layoutStaysSummary.setVisibility(View.VISIBLE);
         layoutStayEditor.setVisibility(confirmedActive ? View.GONE : View.VISIBLE);
         tvActiveHeading.setText(editingIndex == active && !confirmedActive && stays.get(active).checkIn != null && stays.get(active).checkOut != null
                 ? getString(R.string.stay_heading_format, rangeOf(stays.get(active))) : getString(R.string.stay_heading_single));
 
         layoutStayRows.removeAllViews();
-        if (showCard) {
-            for (int i = 0; i < stays.size(); i++) {
-                layoutStayRows.addView(buildRow(i, stays.get(i), i == active && !confirmedActive));
-            }
-            tvStaysTotal.setText(MoneyFormat.format(state.groupTotal()));
+        for (int i = 0; i < stays.size(); i++) {
+            BookingWizardState.Stay s = stays.get(i);
+            if (s.checkIn == null && s.checkOut == null && s.rooms.isEmpty()) continue; // a brand-new range with nothing in it yet is the editor below, not a card
+            layoutStayRows.addView(buildRow(i, s, i == active && !confirmedActive));
         }
+        boolean any = layoutStayRows.getChildCount() > 0;
+        tvStaysEmpty.setVisibility(any ? View.GONE : View.VISIBLE);
+        layoutStaysTotalRow.setVisibility(any ? View.VISIBLE : View.GONE);
+        viewStaysTotalRule.setVisibility(any ? View.VISIBLE : View.GONE);
+        if (any) tvStaysTotal.setText(MoneyFormat.format(state.groupTotal()));
 
         // Identical dates in two stays: said right here, under the dates, and Next waits.
         int duplicate = state.duplicateOf(active);
@@ -223,11 +233,37 @@ public class StepStaysFragment extends WizardStepFragment {
     private View buildRow(int index, BookingWizardState.Stay stay, boolean active) {
         View row = LayoutInflater.from(requireContext()).inflate(R.layout.item_stay_row, layoutStayRows, false);
         row.setTag(index);
-        if (active) row.setBackgroundColor(requireContext().getColor(R.color.velocity_red_soft));
+        if (active) row.setBackgroundResource(R.drawable.bg_stay_card_active);
 
         ((TextView) row.findViewById(R.id.tvStayRowTitle)).setText(titleOf(index, stay));
         ((TextView) row.findViewById(R.id.tvStayRowRooms)).setText(roomsLineOf(stay));
         row.findViewById(R.id.tvStayRowEditing).setVisibility(active ? View.VISIBLE : View.GONE);
+
+        // the rooms of this date range, one line each: type and count, price per night and nights, and what it adds up to
+        LinearLayout roomsBox = row.findViewById(R.id.layoutStayRowRooms);
+        long nightsCount = stay.nights();
+        String nightsText = getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nightsCount, (int) nightsCount);
+        for (java.util.Map.Entry<String, List<Room>> group : stay.roomsGroupedByType().entrySet()) {
+            Room r = group.getValue().get(0);
+            int qty = group.getValue().size();
+            View line = LayoutInflater.from(requireContext()).inflate(R.layout.item_stay_row_room, roomsBox, false);
+            ((TextView) line.findViewById(R.id.tvStayRoomName)).setText(getString(R.string.stay_room_line_format, r.getName(), qty));
+            ((TextView) line.findViewById(R.id.tvStayRoomRate)).setText(getString(R.string.stay_room_rate_format, MoneyFormat.format(r.getPricePerNight()), nightsText));
+            ((TextView) line.findViewById(R.id.tvStayRoomAmount)).setText(MoneyFormat.format(r.getPricePerNight() * nightsCount * qty));
+            roomsBox.addView(line);
+        }
+        if (stay.amenitiesTotal() > 0.009) {
+            View line = LayoutInflater.from(requireContext()).inflate(R.layout.item_stay_row_room, roomsBox, false);
+            ((TextView) line.findViewById(R.id.tvStayRoomName)).setText(R.string.stay_amenities_line);
+            line.findViewById(R.id.tvStayRoomRate).setVisibility(View.GONE);
+            ((TextView) line.findViewById(R.id.tvStayRoomAmount)).setText(MoneyFormat.format(stay.amenitiesTotal()));
+            roomsBox.addView(line);
+        }
+        View subtotalRow = row.findViewById(R.id.layoutStayRowSubtotal);
+        if (!stay.rooms.isEmpty()) {
+            subtotalRow.setVisibility(View.VISIBLE);
+            ((TextView) row.findViewById(R.id.tvStayRowSubtotal)).setText(MoneyFormat.format(stay.total()));
+        }
 
         MaterialButton edit = row.findViewById(R.id.btnStayRowEdit);
         edit.setContentDescription(getString(R.string.stay_edit_cd_format, rangeOf(stay)));

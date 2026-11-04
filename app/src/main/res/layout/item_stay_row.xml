@@ -4,12 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
-    android:minHeight="56dp"
-    android:orientation="horizontal"
-    android:paddingVertical="6dp"
-    android:paddingStart="10dp"
-    android:paddingEnd="2dp">
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_stay_card"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:paddingVertical="4dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="0dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -83,4 +91,44 @@
         android:text="@string/stay_remove"
         android:textColor="@color/velocity_action_text"
         android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- the rooms of this date range: type, count, price per night, and what each adds up to -->
+    <LinearLayout
+        android:id="@+id/layoutStayRowRooms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp" />
+
+    <LinearLayout
+        android:id="@+id/layoutStayRowSubtotal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="6dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/stay_subtotal_label"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvStayRowSubtotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFeatureSettings="tnum"
+            android:fontFamily="sans-serif-black"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="13sp"
+            tools:text="₱14,000.00" />
+    </LinearLayout>
 </LinearLayout>
