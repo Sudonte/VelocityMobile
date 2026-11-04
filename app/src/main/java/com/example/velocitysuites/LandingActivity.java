@@ -887,7 +887,7 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
         if (sourceRooms == null) return availableRooms;
 
         for (Room room : sourceRooms) {
-            if (room != null && room.isAvailable()) {
+            if (room != null && room.isAvailableInAnyOption()) {
                 availableRooms.add(room);
             }
         }

@@ -182,4 +182,59 @@ public class RoomOptionsTest {
         cart.put("5:r4200c4", 1);
         assertEquals(3, adapter(deluxe, cart, new int[]{0}).getItemCount());
     }
+
+    /** Deluxe whose STANDARD rooms are all taken (available_count 0) while the other option still has 2 free (or none, when otherFree is 0). */
+    private static Room standardFull(int otherFree) {
+        RoomTypeDto dto = new RoomTypeDto();
+        dto.id = 5;
+        dto.name = "Deluxe";
+        dto.capacity = 2;
+        dto.rate = "3500.00";
+        dto.available_count = 0;
+        dto.is_fully_booked = true;
+        RoomOptionDto o = new RoomOptionDto();
+        o.option_key = "r4200c4";
+        o.price = 4200;
+        o.capacity = 4;
+        o.available_count = otherFree;
+        o.is_fully_booked = otherFree <= 0;
+        dto.other_options = Collections.singletonList(o);
+        return ApiMapper.toRoom(dto);
+    }
+
+    private static String badgeText(RoomAdapter a, FrameLayout parent) {
+        RecyclerView.ViewHolder h = bind(a, parent, 0);
+        return ((TextView) h.itemView.findViewById(R.id.roomStatusBadge)).getText().toString();
+    }
+
+    @Test
+    public void standardFullButAnOtherOptionFree_isNotFullyBooked_andTheOtherRoomsStartOpen() {
+        Room deluxe = standardFull(2);
+        assertTrue(deluxe.isOnlyOtherOptionAvailable());
+        assertTrue(deluxe.isAvailableInAnyOption());
+        RoomAdapter a = adapter(deluxe, new LinkedHashMap<>(), new int[]{0});
+        FrameLayout parent = LayoutHarness.parentOfWidth(context(), 360);
+        assertEquals("Other Deluxe rooms available", badgeText(a, parent));
+        assertEquals("the card, the 'Other Deluxe rooms' row and its option, already open", 3, a.getItemCount());
+        // the guest can still close it, and it stays closed
+        bind(a, parent, 1).itemView.performClick();
+        assertEquals(2, a.getItemCount());
+    }
+
+    @Test
+    public void fullyBookedOnlyWhenEveryOptionIsFull() {
+        Room deluxe = standardFull(0);
+        assertFalse(deluxe.isOnlyOtherOptionAvailable());
+        assertFalse(deluxe.isAvailableInAnyOption());
+        RoomAdapter a = adapter(deluxe, new LinkedHashMap<>(), new int[]{0});
+        assertEquals("Fully booked", badgeText(a, LayoutHarness.parentOfWidth(context(), 360)));
+        assertEquals("closed", 2, a.getItemCount());
+    }
+
+    @Test
+    public void aTypeWithFreeStandardRoomsIsUnchanged() {
+        Room deluxe = ApiMapper.toRoom(deluxeDto(true));
+        assertFalse(deluxe.isOnlyOtherOptionAvailable());
+        assertTrue(deluxe.isAvailableInAnyOption());
+    }
 }

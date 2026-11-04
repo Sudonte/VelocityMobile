@@ -1222,6 +1222,7 @@
     <string name="stay_incomplete_dates">Choose valid check-in and check-out dates for this stay first.</string>
     <string name="stay_incomplete_format">%1$s: choose its dates and at least one room.</string>
     <string name="rooms_limit_message" tools:ignore="PluralsCandidate">No more %1$s rooms available for these dates (%2$d available).</string>
+    <string name="room_other_available">Other %1$s rooms available</string>
     <string name="room_other_toggle">Other %1$s rooms</string>
     <string name="room_other_toggle_cd_open">Show other %1$s rooms</string>
     <string name="room_other_toggle_cd_close">Hide other %1$s rooms</string>

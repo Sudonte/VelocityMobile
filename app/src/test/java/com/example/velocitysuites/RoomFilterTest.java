@@ -69,4 +69,21 @@ public class RoomFilterTest {
         assertEquals(0f, none[0], 0.01f);
         assertEquals(1000f, none[1], 0.01f);
     }
+
+    @Test
+    public void aTypeWithOnlyItsOtherOptionFreeCountsAsAvailable_andIsUnavailableOnlyWhenEveryOptionIsFull() {
+        Room type = room("1", "Deluxe", 2, 3500, 0);               // standard rooms all taken
+        Room other = room("1:r4200c4", "Deluxe", 4, 4200, 2);      // the other option has 2 free
+        other.setOptionKey("r4200c4");
+        type.setOtherOptions(java.util.Collections.singletonList(other));
+        org.junit.Assert.assertTrue(RoomFilter.statusMatches("Available", type));
+        org.junit.Assert.assertFalse(RoomFilter.statusMatches("Unavailable", type));
+
+        Room allFull = room("2", "Deluxe", 2, 3500, 0);
+        Room otherFull = room("2:r4200c4", "Deluxe", 4, 4200, 0);
+        otherFull.setOptionKey("r4200c4");
+        allFull.setOtherOptions(java.util.Collections.singletonList(otherFull));
+        org.junit.Assert.assertFalse(RoomFilter.statusMatches("Available", allFull));
+        org.junit.Assert.assertTrue(RoomFilter.statusMatches("Unavailable", allFull));
+    }
 }

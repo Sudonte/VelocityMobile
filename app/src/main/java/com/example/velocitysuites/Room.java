@@ -68,6 +68,23 @@ public class Room implements Serializable {
     public String getOptionKey() { return optionKey; }
     public boolean isOtherOption() { return optionKey != null; }
     public List<Room> getOtherOptions() { return otherOptions; }
+
+    /** Some "other" option of this room type has a free room for the dates. */
+    public boolean hasFreeOtherOption() {
+        if (otherOptions == null) return false;
+        for (Room o : otherOptions) if (o.isAvailable() && o.getAvailableCount() > 0) return true;
+        return false;
+    }
+
+    /** The standard rooms are full but another option is free: the type is still bookable, just not as its standard option. */
+    public boolean isOnlyOtherOptionAvailable() {
+        return !isAvailable() && hasFreeOtherOption();
+    }
+
+    /** Anything of this room type can be booked for the dates: the standard option or one of the others. */
+    public boolean isAvailableInAnyOption() {
+        return isAvailable() || hasFreeOtherOption();
+    }
     public void setOptionKey(String optionKey) { this.optionKey = optionKey; }
     public void setOtherOptions(List<Room> otherOptions) { this.otherOptions = otherOptions != null ? otherOptions : java.util.Collections.<Room>emptyList(); }
 

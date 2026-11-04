@@ -408,7 +408,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 showLoadedRooms();
                 List<Room> bookable = new ArrayList<>();
                 for (Room room : allRooms) {
-                    if (room != null && room.isAvailable()) bookable.add(room);
+                    if (room != null && room.isAvailableInAnyOption()) bookable.add(room);
                 }
                 CartSelectionReconciler.reconcile(selectedQuantities, bookable);
                 updateSelectionSummaryBar();
@@ -1097,7 +1097,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             List<Room> trueAvailable = new ArrayList<>();
             List<Room> trueUnavailable = new ArrayList<>();
             for (Room r : newFilteredList) {
-                (r.isAvailable() ? trueAvailable : trueUnavailable).add(r);
+                (r.isAvailableInAnyOption() ? trueAvailable : trueUnavailable).add(r);
             }
 
             // The availability filter narrows which section(s) are shown, but must not change whether the "no rooms available"

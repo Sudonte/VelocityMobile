@@ -100,6 +100,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     /** Room types whose "Other ... rooms" list is open. */
     private final java.util.Set<String> expandedTypes = new java.util.HashSet<>();
+    /** Types the guest closed on purpose: they stay closed even where the list would open them by default. */
+    private final java.util.Set<String> collapsedTypes = new java.util.HashSet<>();
 
     /**
      * True only when populated via {@link #updateSectionedResults}: enables the
@@ -166,9 +168,11 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     /** The type's card, then - when some of its rooms have their own price or capacity - the "Other ... rooms" row and, if open, the options. */
     private void addRoomWithOptions(List<RoomListItem> out, Room r) {
         out.add(RoomListItem.forRoom(r));
-        if (selectedQuantities == null || detailsOnlyMode || !r.isAvailable() && r.getOtherOptions().isEmpty()) return;
+        if (selectedQuantities == null || detailsOnlyMode) return;
         if (r.getOtherOptions() == null || r.getOtherOptions().isEmpty()) return;
         boolean open = expandedTypes.contains(r.getId());
+        // the standard rooms are full and another option is free: that is all there is to pick, so the list starts open
+        if (!open && r.isOnlyOtherOptionAvailable() && !collapsedTypes.contains(r.getId())) open = true;
         if (!open) {
             for (Room o : r.getOtherOptions()) if (selectedQuantities.getOrDefault(o.getId(), 0) > 0) open = true; // a picked option stays visible
         }
@@ -350,8 +354,14 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         boolean available = room.isAvailable();
+        boolean otherOnly = room.isOnlyOtherOptionAvailable();
         RoomAvailabilityStatus status = RoomAvailabilityStatus.of(room);
-        switch (status) {
+        if (otherOnly) {
+            // the standard rooms are full but another option is free: not "Fully booked" - the other options are what can be picked
+            holder.roomStatusBadge.setText(context.getString(R.string.room_other_available, room.getType()));
+            holder.roomStatusBadge.setBackgroundResource(R.drawable.bg_badge_success);
+            holder.roomStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.velocity_green_primary));
+        } else switch (status) {
             // The badge fills are fixed pale colours (they do not change in dark mode), so the text colours must be
             // fixed dark ones too: the "available" badge used to be white text on a pale pink fill (about 1.1:1),
             // and the other two were under 4.5:1.
@@ -394,7 +404,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             holder.btnReserveNow.setEnabled(available);
             holder.btnReserveNow.setAlpha(available ? 1.0f : 0.5f);
 
-            boolean showOccupiedInfo = sectionedResultsMode && !available;
+            boolean showOccupiedInfo = sectionedResultsMode && !available && !otherOnly;
             holder.layoutOccupiedInfo.setVisibility(showOccupiedInfo ? View.VISIBLE : View.GONE);
             if (showOccupiedInfo) {
                 holder.tvOccupiedRange.setText(occupiedRangeText != null ? occupiedRangeText : context.getString(R.string.unavailable_label));
@@ -443,7 +453,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (position == RecyclerView.NO_POSITION) return;
             }
             boolean nowOpen = !items.get(position).expanded;
-            if (nowOpen) expandedTypes.add(type.getId()); else expandedTypes.remove(type.getId());
+            if (nowOpen) { expandedTypes.add(type.getId()); collapsedTypes.remove(type.getId()); } else { expandedTypes.remove(type.getId()); collapsedTypes.add(type.getId()); }
             items.set(position, RoomListItem.toggle(type, nowOpen));
             notifyItemChanged(position);
             if (nowOpen) {

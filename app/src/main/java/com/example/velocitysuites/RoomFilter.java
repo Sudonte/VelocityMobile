@@ -53,11 +53,11 @@ final class RoomFilter {
         if (status == null || "All".equals(status)) return true;
         switch (status) {
             case "Available":
-                return room.isAvailable();
+                return room.isAvailableInAnyOption();
             case "Limited":
                 return room.isAvailable() && RoomAvailabilityStatus.of(room) == RoomAvailabilityStatus.LIMITED;
             case "Unavailable":
-                return !room.isAvailable();
+                return !room.isAvailableInAnyOption();
             default:
                 return true;
         }
