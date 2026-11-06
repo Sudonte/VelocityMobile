@@ -55,6 +55,10 @@ public class StepStaysFragment extends WizardStepFragment {
     private MaterialButton btnAddStay;
     private MaterialButton btnConfirmStay;
     private View layoutStayEditor;
+    private View layoutStayDates;
+    private TextView tvStaysTitle;
+    private TextView tvChooseDatesHint;
+    private TextView tvRoomsLowered;
     /** Set when a valid range was just picked: once the room list is ready, the page scrolls down to "Add room". */
     private boolean scrollToAddRoomWhenReady;
 
@@ -81,6 +85,10 @@ public class StepStaysFragment extends WizardStepFragment {
         btnAddStay = view.findViewById(R.id.btnAddAnotherStay);
         btnConfirmStay = view.findViewById(R.id.btnConfirmStay);
         layoutStayEditor = view.findViewById(R.id.layoutStayEditor);
+        layoutStayDates = view.findViewById(R.id.layoutStayDates);
+        tvStaysTitle = view.findViewById(R.id.tvStaysTitle);
+        tvChooseDatesHint = view.findViewById(R.id.tvChooseDatesHint);
+        tvRoomsLowered = view.findViewById(R.id.tvRoomsLowered);
 
         btnAddStay.setOnClickListener(v -> {
             if (guard.tryAcquire()) onAddStay();
@@ -111,8 +119,16 @@ public class StepStaysFragment extends WizardStepFragment {
     void onDatesChanged() {
         if (!isAdded()) return;
         scrollToAddRoomWhenReady = datesValid();
+        tvRoomsLowered.setVisibility(View.GONE);
         showRooms();
         refreshSummary();
+    }
+
+    /** The room list lowered (or dropped) the picked rooms because fewer are free for the dates: said inline, right under the dates. */
+    void onRoomsLowered(String message) {
+        if (!isAdded() || tvRoomsLowered == null) return;
+        tvRoomsLowered.setText(message);
+        tvRoomsLowered.setVisibility(message == null || message.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     /** Called by the room list once the availability for the dates is on screen - the moment "Add room" is where it will stay. */
@@ -193,8 +209,21 @@ public class StepStaysFragment extends WizardStepFragment {
         boolean showCard = true;
         layoutStaysSummary.setVisibility(View.VISIBLE);
         layoutStayEditor.setVisibility(confirmedActive ? View.GONE : View.VISIBLE);
-        tvActiveHeading.setText(editingIndex == active && !confirmedActive && stays.get(active).checkIn != null && stays.get(active).checkOut != null
-                ? getString(R.string.stay_heading_format, rangeOf(stays.get(active))) : getString(R.string.stay_heading_single));
+        layoutStayDates.setVisibility(confirmedActive ? View.GONE : View.VISIBLE);
+        // While the guest is still choosing the one and only range, the date step comes FIRST (then the rooms they selected, then the room list);
+        // from a second range on, the "Your dates and rooms" card stays on top and the editor of the new range follows it.
+        boolean datesFirst = !confirmedActive && count == 1;
+        int wantDates = datesFirst ? 0 : 1;
+        if (content instanceof ViewGroup && ((ViewGroup) content).indexOfChild(layoutStayDates) != wantDates) {
+            ViewGroup box = (ViewGroup) content;
+            box.removeView(layoutStayDates);
+            box.addView(layoutStayDates, wantDates);
+        }
+        boolean editingThis = editingIndex == active && !confirmedActive && stays.get(active).checkIn != null && stays.get(active).checkOut != null;
+        tvActiveHeading.setText(editingThis ? getString(R.string.stay_heading_format, rangeOf(stays.get(active)))
+                : datesFirst ? getString(R.string.choose_dates_heading) : getString(R.string.stay_heading_single));
+        tvChooseDatesHint.setText(stays.get(active).rooms.isEmpty() ? R.string.choose_dates_hint_no_rooms : R.string.choose_dates_hint_rooms);
+        tvChooseDatesHint.setVisibility(datesFirst && !editingThis ? View.VISIBLE : View.GONE);
 
         layoutStayRows.removeAllViews();
         for (int i = 0; i < stays.size(); i++) {
@@ -203,10 +232,15 @@ public class StepStaysFragment extends WizardStepFragment {
             layoutStayRows.addView(buildRow(i, s, i == active && !confirmedActive));
         }
         boolean any = layoutStayRows.getChildCount() > 0;
+        // a total only means something once the dates are in: with no dates there is no night count and so no total
+        boolean anyDated = false;
+        for (BookingWizardState.Stay s : stays) anyDated |= s.checkIn != null && s.checkOut != null && !s.rooms.isEmpty();
+        boolean onlyUndatedRooms = any && !anyDated && stays.size() == 1;
         tvStaysEmpty.setVisibility(any ? View.GONE : View.VISIBLE);
-        layoutStaysTotalRow.setVisibility(any ? View.VISIBLE : View.GONE);
-        viewStaysTotalRule.setVisibility(any ? View.VISIBLE : View.GONE);
-        if (any) tvStaysTotal.setText(MoneyFormat.format(state.groupTotal()));
+        tvStaysTitle.setVisibility(onlyUndatedRooms ? View.GONE : View.VISIBLE); // the one row is headed "Selected rooms"
+        layoutStaysTotalRow.setVisibility(any && anyDated ? View.VISIBLE : View.GONE);
+        viewStaysTotalRule.setVisibility(any && anyDated ? View.VISIBLE : View.GONE);
+        if (any && anyDated) tvStaysTotal.setText(MoneyFormat.format(state.groupTotal()));
 
         // Identical dates in two stays: said right here, under the dates, and Next waits.
         int duplicate = state.duplicateOf(active);
@@ -226,7 +260,16 @@ public class StepStaysFragment extends WizardStepFragment {
         if (tvIncomplete != null && activeStay.isComplete()
                 && (confirmedActive || !getString(R.string.confirm_stay_first).contentEquals(tvIncomplete.getText()))) tvIncomplete.setVisibility(View.GONE);
         // Next needs valid dates and a room in EVERY stay, and no two stays with the same dates.
-        getWizardActivity().setNextEnabledQuietly(state.staysReadyToContinue());
+        boolean ready = state.staysReadyToContinue();
+        getWizardActivity().setNextEnabledQuietly(ready);
+        // one short line above Next saying why it is disabled
+        String reason = null;
+        if (!ready) {
+            if (!confirmedActive && !datesValid()) reason = getString(R.string.next_reason_choose_dates);
+            else if (!confirmedActive && stays.get(active).rooms.isEmpty()) reason = getString(R.string.next_reason_choose_room);
+            else if (!confirmedActive && duplicate < 0) reason = getString(R.string.next_reason_confirm_dates);
+        }
+        getWizardActivity().setNextReason(reason);
         getWizardActivity().refreshSummaryBar();
     }
 
@@ -236,8 +279,10 @@ public class StepStaysFragment extends WizardStepFragment {
         if (active) row.setBackgroundResource(R.drawable.bg_stay_card_active);
 
         ((TextView) row.findViewById(R.id.tvStayRowTitle)).setText(titleOf(index, stay));
-        ((TextView) row.findViewById(R.id.tvStayRowRooms)).setText(roomsLineOf(stay));
-        row.findViewById(R.id.tvStayRowEditing).setVisibility(active ? View.VISIBLE : View.GONE);
+        boolean dated = stay.checkIn != null && stay.checkOut != null;
+        TextView roomsLine = row.findViewById(R.id.tvStayRowRooms);
+        roomsLine.setText(roomsLineOf(stay, active));
+        row.findViewById(R.id.tvStayRowEditing).setVisibility(active && getState().stayCount() > 1 ? View.VISIBLE : View.GONE); // with one range the editor above is obvious
 
         // the rooms of this date range, one line each: type and count, price per night and nights, and what it adds up to
         LinearLayout roomsBox = row.findViewById(R.id.layoutStayRowRooms);
@@ -247,9 +292,16 @@ public class StepStaysFragment extends WizardStepFragment {
             Room r = group.getValue().get(0);
             int qty = group.getValue().size();
             View line = LayoutInflater.from(requireContext()).inflate(R.layout.item_stay_row_room, roomsBox, false);
-            ((TextView) line.findViewById(R.id.tvStayRoomName)).setText(getString(R.string.stay_room_line_format, r.getName(), qty));
-            ((TextView) line.findViewById(R.id.tvStayRoomRate)).setText(getString(R.string.stay_room_rate_format, MoneyFormat.format(r.getPricePerNight()), nightsText));
-            ((TextView) line.findViewById(R.id.tvStayRoomAmount)).setText(MoneyFormat.format(r.getPricePerNight() * nightsCount * qty));
+            if (dated) {
+                ((TextView) line.findViewById(R.id.tvStayRoomName)).setText(getString(R.string.stay_room_line_format, r.getName(), qty));
+                ((TextView) line.findViewById(R.id.tvStayRoomRate)).setText(getString(R.string.stay_room_rate_format, MoneyFormat.format(r.getPricePerNight()), nightsText));
+                ((TextView) line.findViewById(R.id.tvStayRoomAmount)).setText(MoneyFormat.format(r.getPricePerNight() * nightsCount * qty));
+            } else {
+                // no dates yet: "Deluxe Room × 2 · ₱1,200.00 per night" and no night count or amount
+                ((TextView) line.findViewById(R.id.tvStayRoomName)).setText(getString(R.string.stay_room_line_rate_format, r.getName(), qty, MoneyFormat.format(r.getPricePerNight())));
+                line.findViewById(R.id.tvStayRoomRate).setVisibility(View.GONE);
+                line.findViewById(R.id.tvStayRoomAmount).setVisibility(View.GONE);
+            }
             roomsBox.addView(line);
         }
         if (stay.amenitiesTotal() > 0.009) {
@@ -259,8 +311,14 @@ public class StepStaysFragment extends WizardStepFragment {
             ((TextView) line.findViewById(R.id.tvStayRoomAmount)).setText(MoneyFormat.format(stay.amenitiesTotal()));
             roomsBox.addView(line);
         }
+        if (!dated && !stay.rooms.isEmpty()) {
+            // "Choose your dates to see the total" goes under the room lines, not above them
+            View note = (View) roomsLine.getParent();
+            ((ViewGroup) row).removeView(note);
+            ((ViewGroup) row).addView(note, ((ViewGroup) row).indexOfChild(roomsBox) + 1);
+        }
         View subtotalRow = row.findViewById(R.id.layoutStayRowSubtotal);
-        if (!stay.rooms.isEmpty()) {
+        if (!stay.rooms.isEmpty() && dated) {
             subtotalRow.setVisibility(View.VISIBLE);
             ((TextView) row.findViewById(R.id.tvStayRowSubtotal)).setText(MoneyFormat.format(stay.total()));
         }
@@ -271,7 +329,8 @@ public class StepStaysFragment extends WizardStepFragment {
             if (guard.tryAcquire()) onOpenStay(index);
         });
         MaterialButton remove = row.findViewById(R.id.btnStayRowRemove);
-        remove.setContentDescription(getString(R.string.stay_remove_cd_format, rangeOf(stay)));
+        if (!dated && !stay.rooms.isEmpty()) remove.setContentDescription(getString(R.string.selected_rooms_title));
+        if (dated || stay.rooms.isEmpty()) remove.setContentDescription(getString(R.string.stay_remove_cd_format, rangeOf(stay)));
         remove.setOnClickListener(v -> {
             if (guard.tryAcquire()) confirmRemove(index);
         });
@@ -282,12 +341,12 @@ public class StepStaysFragment extends WizardStepFragment {
     private CharSequence titleOf(int index, BookingWizardState.Stay stay) {
         String text;
         if (stay.checkIn == null || stay.checkOut == null) {
-            text = getString(R.string.stay_summary_no_dates);
+            text = getString(stay.rooms.isEmpty() ? R.string.stay_summary_no_dates : R.string.selected_rooms_title);
         } else {
             long nights = stay.nights();
-            // no-break spaces keep "Oct 28 → Oct 29" and "1 night" whole when the line wraps beside the Edit / Remove buttons
-            text = getString(R.string.stay_row_dates_format, shortDate.format(stay.checkIn.getTime()).replace(' ', ' '), shortDate.format(stay.checkOut.getTime()).replace(' ', ' '),
-                    getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights).replace(' ', ' '));
+            // the dates stay whole (no-break spaces) and the title may wrap after the dot, so "2 nights" never breaks inside a word
+            String range = shortDate.format(stay.checkIn.getTime()).replace(' ', '\u00a0') + "\u00a0\u2192\u00a0" + shortDate.format(stay.checkOut.getTime()).replace(' ', '\u00a0');
+            text = range + " \u00b7 " + getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights).replace(' ', '\u00a0');
         }
         SpannableStringBuilder sb = new SpannableStringBuilder(text);
         sb.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -303,12 +362,17 @@ public class StepStaysFragment extends WizardStepFragment {
     /** The date range the guest tapped Edit on (its editor is titled "Edit Oct 26 → Oct 27"); -1 otherwise. */
     private int editingIndex = -1;
 
-    /** "2 rooms · ₱9,300.00" */
-    private String roomsLineOf(BookingWizardState.Stay stay) {
+    /** "2 rooms × 2 nights = ₱4,800.00"; with no dates "Choose your dates to see the total" (no night count, no total). */
+    private String roomsLineOf(BookingWizardState.Stay stay, boolean active) {
         if (stay.rooms.isEmpty()) return getString(R.string.wizard_summary_no_rooms);
-        String line = getString(R.string.stay_row_rooms_format,
-                getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size()), MoneyFormat.format(stay.total()));
-        return stay.confirmed ? line : getString(R.string.stay_row_not_confirmed_format, line);
+        if (stay.checkIn == null || stay.checkOut == null) return getString(R.string.choose_dates_to_see_total);
+        long nights = stay.nights();
+        double roomsOnly = 0;
+        for (Room r : stay.rooms) roomsOnly += r.getPricePerNight() * nights;
+        String line = getString(R.string.stay_rooms_nights_total_format,
+                getResources().getQuantityString(R.plurals.wizard_summary_rooms, stay.rooms.size(), stay.rooms.size()),
+                getResources().getQuantityString(R.plurals.receipt_nights_count, (int) nights, (int) nights), MoneyFormat.format(roomsOnly));
+        return stay.confirmed || active ? line : getString(R.string.stay_row_not_confirmed_format, line);
     }
 
     private static String capitalized(String s) {
@@ -347,12 +411,16 @@ public class StepStaysFragment extends WizardStepFragment {
     }
 
     private void confirmRemove(int index) {
+        BookingWizardState.Stay target = getState().allStays().get(index);
+        boolean roomsOnly = (target.checkIn == null || target.checkOut == null) && !target.rooms.isEmpty();
         new SafeDialogs.Material(requireContext())
-                .setTitle(getString(R.string.stay_remove_title_format, rangeOf(getState().allStays().get(index))))
-                .setMessage(R.string.stay_remove_message)
+                .setTitle(roomsOnly ? getString(R.string.stay_remove_rooms_title) : getString(R.string.stay_remove_title_format, rangeOf(target)))
+                .setMessage(roomsOnly ? R.string.stay_remove_rooms_message : R.string.stay_remove_message)
                 .setNegativeButton(R.string.cancel_label, null)
                 .setPositiveButton(R.string.stay_remove, (d, w) -> {
-                    getState().removeStay(index);
+                    if (getState().stayCount() <= 1) getState().clearOnlyStay();
+                    else getState().removeStay(index);
+                    editingIndex = -1;
                     showStay();
                 })
                 .show();

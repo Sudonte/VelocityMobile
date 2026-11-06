@@ -13,84 +13,79 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:minHeight="56dp"
+        android:minHeight="40dp"
         android:orientation="horizontal"
-        android:paddingVertical="4dp"
         android:paddingStart="8dp"
         android:paddingEnd="0dp">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <!-- "Stay 1" in bold, then "Oct 25 → Oct 26 · 1 night" in regular text (one TextView so it wraps as a sentence). -->
+        <!-- "Selected rooms" (no dates yet) or "Oct 25 → Oct 26 · 1 night" in bold, with Edit and Remove aligned at the top right. -->
         <TextView
             android:id="@+id/tvStayRowTitle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:textColor="@color/velocity_text_primary"
             android:textSize="13sp"
-            tools:text="Stay 1  Oct 25 → Oct 26 · 1 night" />
+            tools:text="Oct 25 → Oct 26 · 1 night" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStayRowEdit"
+            style="@style/Widget.Velocity.Flat.Button.Text"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="10dp"
+            android:text="@string/stay_edit"
+            android:textColor="@color/velocity_text_primary"
+            android:textSize="12sp" />
 
-            <TextView
-                android:id="@+id/tvStayRowRooms"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/velocity_text_secondary"
-                android:textSize="12sp"
-                tools:text="2 rooms · ₱9,300.00" />
-
-            <TextView
-                android:id="@+id/tvStayRowEditing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_count_badge"
-                android:fontFamily="sans-serif-medium"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="1dp"
-                android:text="@string/stay_editing_badge"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:visibility="gone"
-                tools:visibility="visible" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStayRowRemove"
+            style="@style/Widget.Velocity.Flat.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="10dp"
+            android:text="@string/stay_remove"
+            android:textColor="@color/velocity_action_text"
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnStayRowEdit"
-        style="@style/Widget.Velocity.Flat.Button.Text"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:insetLeft="0dp"
-        android:insetRight="0dp"
-        android:minWidth="0dp"
-        android:paddingHorizontal="10dp"
-        android:text="@string/stay_edit"
-        android:textColor="@color/velocity_text_primary"
-        android:textSize="12sp" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="6dp"
+        android:paddingHorizontal="8dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnStayRowRemove"
-        style="@style/Widget.Velocity.Flat.Button.Text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:insetLeft="0dp"
-        android:insetRight="0dp"
-        android:minWidth="0dp"
-        android:paddingHorizontal="10dp"
-        android:text="@string/stay_remove"
-        android:textColor="@color/velocity_action_text"
-        android:textSize="12sp" />
+        <TextView
+            android:id="@+id/tvStayRowRooms"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="12sp"
+            tools:text="2 rooms × 2 nights = ₱4,800.00" />
+
+        <TextView
+            android:id="@+id/tvStayRowEditing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_count_badge"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="1dp"
+            android:text="@string/stay_editing_badge"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </LinearLayout>
 
     <!-- the rooms of this date range: type, count, price per night, and what each adds up to -->

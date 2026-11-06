@@ -281,6 +281,16 @@ public class BookingWizardState implements Serializable {
     }
 
     /** Removes stay {@code index} (never the last one) and opens a neighbour. */
+    /** Remove on the only date range: it is emptied (dates, rooms and amenities) so the guest starts that range again. */
+    public void clearOnlyStay() {
+        checkIn = null;
+        checkOut = null;
+        selectedRooms.clear();
+        selectedAmenities.clear();
+        activeConfirmed = false;
+        commitActive();
+    }
+
     public void removeStay(int index) {
         commitActive();
         if (stays.size() <= 1 || index < 0 || index >= stays.size()) return;

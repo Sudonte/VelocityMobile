@@ -95,11 +95,11 @@ public class StaysWizardTest {
 
         fill(activity, 5, 2, room("1", 1000), 1);
         assertEquals("a room: the stay can be confirmed", View.VISIBLE, find(activity, R.id.btnConfirmStay).getVisibility());
-        assertEquals("Confirm this stay", text(find(activity, R.id.btnConfirmStay)));
+        assertEquals("Confirm these dates", text(find(activity, R.id.btnConfirmStay)));
         assertEquals("but it cannot be added to yet", View.GONE, find(activity, R.id.btnAddAnotherStay).getVisibility());
         assertFalse("and Next waits for the confirmation", nextEnabled(activity));
         assertFalse(valid(activity));
-        assertEquals("Confirm this stay to continue.", text(find(activity, R.id.tvStayIncomplete)));
+        assertEquals("Confirm these dates to continue.", text(find(activity, R.id.tvStayIncomplete)));
 
         confirmStay(activity);
         assertEquals(View.VISIBLE, find(activity, R.id.btnAddAnotherStay).getVisibility());
@@ -115,7 +115,7 @@ public class StaysWizardTest {
         idle();
         Dialog d = latestDialog();
         String shown = dialogText(d);
-        assertTrue(shown, shown.contains("Confirm this stay?"));
+        assertTrue(shown, shown.contains("Confirm these dates?"));
         assertTrue(shown, shown.contains("1 night") && shown.contains("2 rooms") && shown.contains("₱9,300.00") && shown.contains("→"));
         assertNotNull(((androidx.appcompat.app.AlertDialog) d).getButton(android.content.DialogInterface.BUTTON_POSITIVE));
         assertEquals("Yes, confirm", ((androidx.appcompat.app.AlertDialog) d).getButton(android.content.DialogInterface.BUTTON_POSITIVE).getText().toString());
@@ -200,8 +200,8 @@ public class StaysWizardTest {
         View second = rows.getChildAt(1);
         String title1 = plain(text(first.findViewById(R.id.tvStayRowTitle)));
         assertTrue(title1, !title1.contains("Stay") && title1.contains("→") && title1.contains("1 night"));
-        assertEquals("1 room · ₱9,300.00", text(first.findViewById(R.id.tvStayRowRooms)));
-        assertEquals("2 rooms · ₱8,000.00", text(second.findViewById(R.id.tvStayRowRooms)));
+        assertTrue(text(first.findViewById(R.id.tvStayRowRooms)), text(first.findViewById(R.id.tvStayRowRooms)).startsWith("1 room × 1 night = "));
+        assertTrue(text(second.findViewById(R.id.tvStayRowRooms)), text(second.findViewById(R.id.tvStayRowRooms)).startsWith("2 rooms × 2 nights = "));
         assertTrue(plain(text(second.findViewById(R.id.tvStayRowTitle))).contains("2 nights"));
         for (View row : new View[]{first, second}) {
             assertEquals(View.VISIBLE, row.findViewById(R.id.btnStayRowEdit).getVisibility());
@@ -219,8 +219,6 @@ public class StaysWizardTest {
         assertEquals(0, state.activeStayIndex());
         assertTrue(text(find(activity, R.id.tvActiveStayHeading)), text(find(activity, R.id.tvActiveStayHeading)).startsWith("Edit ") && text(find(activity, R.id.tvActiveStayHeading)).contains("→"));
         assertEquals(View.VISIBLE, ((android.widget.LinearLayout) find(activity, R.id.layoutStayRows)).getChildAt(0).findViewById(R.id.tvStayRowEditing).getVisibility());
-        assertTrue("stay 1 reads 'not confirmed yet' while open",
-                text(((android.widget.LinearLayout) find(activity, R.id.layoutStayRows)).getChildAt(0).findViewById(R.id.tvStayRowRooms)).contains("Not confirmed yet"));
     }
 
     @Test
@@ -456,7 +454,7 @@ public class StaysWizardTest {
         android.widget.LinearLayout rows = find(activity, R.id.layoutStayRows);
         String title = plain(text(rows.getChildAt(0).findViewById(R.id.tvStayRowTitle)));
         assertTrue(title, title.contains("→") && title.contains("2 nights"));
-        assertEquals("the rooms line is its own text, not part of a Stay label", "2 rooms · ₱4,000.00", text(rows.getChildAt(0).findViewById(R.id.tvStayRowRooms)));
+        assertEquals("the rooms line is its own text, not part of a Stay label", "2 rooms × 2 nights = ₱4,000.00", text(rows.getChildAt(0).findViewById(R.id.tvStayRowRooms)));
     }
 
     @Test

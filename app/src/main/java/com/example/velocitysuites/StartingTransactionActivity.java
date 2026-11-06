@@ -87,20 +87,17 @@ public class StartingTransactionActivity extends SafeActivity {
         }
 
         StringBuilder names = new StringBuilder();
-        double total = 0;
         for (Room r : representatives.values()) {
             int qty = quantities.get(r.getId());
             if (names.length() > 0) names.append("\n");
-            names.append("• ").append(r.getName());
-            if (qty > 1) names.append(" × ").append(qty);
-            total += r.getPricePerNight() * qty;
+            // "Deluxe Room × 2 · ₱1,200.00 per night" (a rate, never a total: no dates are chosen yet)
+            names.append("• ").append(getString(R.string.stay_room_line_rate_format, r.getName(), qty, MoneyFormat.format(r.getPricePerNight())));
         }
 
         TextView tvCount = findViewById(R.id.tvRoomRecapCount);
         tvCount.setText(getResources().getQuantityString(R.plurals.room_recap_count_format, rooms.size(), rooms.size()));
         TextView tvNames = findViewById(R.id.tvRoomRecapNames);
         tvNames.setText(names.toString());
-        TextView tvTotal = findViewById(R.id.tvRoomRecapTotal);
-        tvTotal.setText(String.format(Locale.US, "₱%,.0f / night", total));
+        findViewById(R.id.tvRoomRecapTotal).setVisibility(View.GONE);
     }
 }

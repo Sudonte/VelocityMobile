@@ -192,6 +192,7 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         if (state.selectedRooms.isEmpty()) return;
 
         boolean changed = false;
+        StringBuilder note = new StringBuilder();
         for (Map.Entry<String, List<Room>> entry : new ArrayList<>(state.selectedRoomsGroupedByType().entrySet())) {
             List<Room> group = entry.getValue();
             Room fresh = null;
@@ -205,6 +206,10 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
             if (available >= group.size()) continue;
 
             changed = true;
+            if (note.length() > 0) note.append('\n');
+            String typeName = group.get(0).getName();
+            note.append(available > 0 ? getString(R.string.stay_rooms_lowered_format, available, typeName, group.size())
+                    : getString(R.string.stay_rooms_dropped_format, typeName));
             int toRemove = group.size() - Math.max(0, available);
             for (int i = 0; i < toRemove; i++) {
                 state.selectedRooms.remove(group.get(group.size() - 1 - i));
@@ -212,7 +217,8 @@ public class Step1RoomSelectionFragment extends WizardStepFragment {
         }
 
         if (changed) {
-            Toast.makeText(requireContext(), R.string.error_room_no_longer_available_for_dates, Toast.LENGTH_LONG).show();
+            if (getParentFragment() instanceof StepStaysFragment) ((StepStaysFragment) getParentFragment()).onRoomsLowered(note.toString());
+            else Toast.makeText(requireContext(), R.string.error_room_no_longer_available_for_dates, Toast.LENGTH_LONG).show();
             renderSelectedRooms();
             updateCapacityIndicator();
         }

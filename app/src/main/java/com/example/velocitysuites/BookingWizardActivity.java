@@ -151,6 +151,14 @@ public class BookingWizardActivity extends SafeActivity {
         }
     }
 
+    /** One short line above Next saying why it is disabled (null hides it); only the step that sets it shows it. */
+    public void setNextReason(@Nullable String reason) {
+        TextView v = findViewById(R.id.wizardNextReason);
+        if (v == null) return;
+        v.setText(reason == null ? "" : reason);
+        v.setVisibility(reason == null || reason.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
     /** Redraws the one-line summary under the step (stays, rooms, guests, running group total). */
     public void refreshSummaryBar() {
         updateSummaryBar();
@@ -606,6 +614,7 @@ public class BookingWizardActivity extends SafeActivity {
         currentStepIndex = stepIndex;
         // Only the first two steps (stays, amenities) work on one stay at a time; from the guest steps on everything reads all stays.
         if (stepIndex >= 3) state.activate(0);
+        setNextReason(null);
         Fragment fragment = createFragmentForStep(stepIndex);
         FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
         if (Motion.enabled(this)) {

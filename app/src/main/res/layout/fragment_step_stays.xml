@@ -29,6 +29,7 @@
             tools:visibility="visible">
 
             <TextView
+                android:id="@+id/tvStaysTitle"
                 style="@style/TextAppearance.Velocity.Label.Section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -91,13 +92,14 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- The date step: first on the page while the guest is still choosing (before the rooms card), under the Your dates and rooms card from a second range on. -->
         <LinearLayout
-            android:id="@+id/layoutStayEditor"
+            android:id="@+id/layoutStayDates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-        <!-- "Stay 2 · Choose dates and rooms": which stay is being edited, and what to do. -->
+        <!-- "Choose your dates" + one line saying why: which stay is being edited, and what to do. -->
         <TextView
             android:id="@+id/tvActiveStayHeading"
             style="@style/TextAppearance.Velocity.Label.Section"
@@ -107,7 +109,19 @@
             android:layout_marginTop="18dp"
             android:textColor="@color/velocity_text_primary"
             android:textSize="15sp"
-            tools:text="Stay 2 · Choose dates and rooms" />
+            tools:text="Choose your dates" />
+
+        <TextView
+            android:id="@+id/tvChooseDatesHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/velocity_text_secondary"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="Pick check-in and check-out for the rooms you selected"
+            tools:visibility="visible" />
 
         <FrameLayout
             android:id="@+id/stayDatesContainer"
@@ -127,6 +141,26 @@
             android:visibility="gone"
             tools:text="You already added a stay for Oct 25 – Oct 26. Pick different dates or add rooms to that stay."
             tools:visibility="visible" />
+
+        <!-- The picked rooms were lowered because fewer are free for these dates. -->
+        <TextView
+            android:id="@+id/tvRoomsLowered"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="6dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/velocity_action_text"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="Only 1 of Deluxe Room is free for these dates, so your selection was lowered from 2 to 1." />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutStayEditor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
         <FrameLayout
             android:id="@+id/stayRoomsContainer"

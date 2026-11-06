@@ -1184,7 +1184,7 @@
     <string name="stay_room_numbers_format">Room %1$s</string>
     <string name="amenity_stay_pick_line_format">%1$s → %2$s</string>
     <string name="stays_empty_title">Nothing chosen yet</string>
-    <string name="stays_empty_desc">Pick your check-in and check-out dates below, choose your rooms, then confirm. Each date range appears here as its own card.</string>
+    <string name="stays_empty_desc">Pick your check-in and check-out dates above, choose your rooms, then confirm. Each date range appears here as its own card.</string>
     <string name="stay_room_line_format">%1$s × %2$d</string>
     <string name="stay_room_rate_format">%1$s per night · %2$s</string>
     <string name="stay_subtotal_label">Subtotal for these dates</string>
@@ -1194,7 +1194,6 @@
     <string name="stay_heading_format">Edit %1$s</string>
     <string name="stay_heading_single">Choose dates and rooms</string>
     <string name="stay_row_dates_format">%1$s&#160;→&#160;%2$s&#160;·&#160;%3$s</string>
-    <string name="stay_row_rooms_format">%1$s · %2$s</string>
     <string name="stay_edit_cd_format">Edit %1$s</string>
     <string name="stay_remove_cd_format">Remove %1$s</string>
     <string name="stay_duplicate_error_format">You already added a stay for %1$s – %2$s. Pick different dates or add rooms to that stay.</string>
@@ -1218,6 +1217,20 @@
     <string name="stay_remove_title_format">Remove %1$s?</string>
     <string name="stay_remove_message">Its dates, rooms and amenities are removed from this booking.</string>
     <string name="stay_summary_no_dates">Dates not chosen yet</string>
+    <string name="selected_rooms_title">Selected rooms</string>
+    <string name="choose_dates_heading">Choose your dates</string>
+    <string name="choose_dates_hint_rooms">Pick check-in and check-out for the rooms you selected</string>
+    <string name="choose_dates_hint_no_rooms">Pick check-in and check-out, then choose your rooms</string>
+    <string name="choose_dates_to_see_total">Choose your dates to see the total</string>
+    <string name="stay_room_line_rate_format">%1$s × %2$d · %3$s per night</string>
+    <string name="stay_rooms_nights_total_format">%1$s × %2$s = %3$s</string>
+    <string name="next_reason_choose_dates">Choose your dates first</string>
+    <string name="next_reason_choose_room">Choose at least one room</string>
+    <string name="next_reason_confirm_dates">Confirm these dates to continue</string>
+    <string name="stay_remove_rooms_title">Remove the selected rooms?</string>
+    <string name="stay_remove_rooms_message">The rooms you selected are removed from this booking.</string>
+    <string name="stay_rooms_lowered_format">Only %1$d of %2$s is free for these dates, so your selection was lowered from %3$d to %1$d.</string>
+    <string name="stay_rooms_dropped_format">%1$s is not free for these dates, so it was removed from your selection.</string>
     <string name="stays_max_format" tools:ignore="PluralsCandidate">You can book up to %1$d stays together.</string>
     <string name="stay_incomplete_dates">Choose valid check-in and check-out dates for this stay first.</string>
     <string name="stay_incomplete_format">%1$s: choose its dates and at least one room.</string>
@@ -2294,10 +2307,10 @@
     <string name="wizard_discard_message">Everything you chose so far will be lost.</string>
     <string name="wizard_discard_yes">Yes, discard</string>
     <string name="wizard_discard_keep">Keep editing</string>
-    <string name="confirm_this_stay">Confirm this stay</string>
-    <string name="confirm_stay_title">Confirm this stay?</string>
+    <string name="confirm_this_stay">Confirm these dates</string>
+    <string name="confirm_stay_title">Confirm these dates?</string>
     <string name="confirm_stay_yes">Yes, confirm</string>
-    <string name="confirm_stay_first">Confirm this stay to continue.</string>
+    <string name="confirm_stay_first">Confirm these dates to continue.</string>
     <string name="stay_unconfirmed_format">%1$s: tap Confirm before continuing.</string>
     <string name="confirm_stay_summary_format">%1$s · %2$s · %3$s</string>
     <string name="stay_row_not_confirmed_format">%1$s · Not confirmed yet</string>
