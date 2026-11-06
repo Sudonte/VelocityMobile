@@ -128,6 +128,14 @@ public class Release165Test {
         return e == null ? null : e.toString();
     }
 
+    /** The error on the sign-up email field (its layout has no id: it is the field's TextInputLayout parent). */
+    private static String signUpEmailError(android.app.Activity a) {
+        android.view.ViewParent p = a.findViewById(R.id.emailEditText).getParent();
+        while (p != null && !(p instanceof TextInputLayout)) p = p.getParent();
+        CharSequence e = p == null ? null : ((TextInputLayout) p).getError();
+        return e == null ? null : e.toString();
+    }
+
     private static int dp(android.app.Activity a, int px) {
         return Math.round(px / a.getResources().getDisplayMetrics().density);
     }
@@ -753,7 +761,7 @@ public class Release165Test {
     }
 
     @Test
-    public void aServerRefusal_showsInlineOnTheReviewStep() {
+    public void aServerRefusalOfTheEmail_showsItsOwnMessageUnderTheEmailField() {
         RegistrationActivity a = upToReview();
         a.acceptTermsForTest();
         a.findViewById(R.id.signUpButton).performClick();
@@ -761,11 +769,33 @@ public class Release165Test {
         ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         idle();
         int toastsBefore = ShadowToast.shownToastCount();
-        api.<Object>last("register").httpWithBody(422, "{\"message\":\"The email has already been taken.\",\"errors\":{\"email\":[\"This email address is already registered. Please login instead.\"]}}");
+        String gmailRule = "Please use a Gmail address (@gmail.com) to create your account.";
+        api.<Object>last("register").httpWithBody(422, "{\"message\":\"" + gmailRule + "\",\"errors\":{\"email\":[\"" + gmailRule + "\"]}}");
         idle();
-        assertEquals("This email address is already registered. Please login instead.", text(a, R.id.regSubmitError));
-        assertEquals(6, a.currentStepForTest());
+        // the app goes back to the Contact step and the server's own words sit under the email field
+        assertEquals(3, a.currentStepForTest());
+        assertEquals(gmailRule, signUpEmailError(a));
+        assertEquals("not also at the bottom of the form", View.GONE, a.findViewById(R.id.regSubmitError).getVisibility());
         assertEquals("no popup for the refusal", toastsBefore, ShadowToast.shownToastCount());
+        assertFalse("the same address cannot be sent again", nextEnabled(a));
+        // a different address is accepted again and clears the message
+        type(a, R.id.emailEditText, "juan@gmail.com");
+        assertNull(signUpEmailError(a));
+        assertTrue(nextEnabled(a));
+    }
+
+    @Test
+    public void aServerRefusalOfSomethingElse_showsInlineOnTheReviewStep() {
+        RegistrationActivity a = upToReview();
+        a.acceptTermsForTest();
+        a.findViewById(R.id.signUpButton).performClick();
+        idle();
+        ((AlertDialog) ShadowDialog.getLatestDialog()).getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        api.<Object>last("register").httpWithBody(422, "{\"message\":\"Mobile taken.\",\"errors\":{\"mobile_number\":[\"This mobile number is already registered to another account.\"]}}");
+        idle();
+        assertEquals("This mobile number is already registered to another account.", text(a, R.id.regSubmitError));
+        assertEquals(6, a.currentStepForTest());
         assertTrue("the button works again", a.findViewById(R.id.signUpButton).isEnabled());
     }
 

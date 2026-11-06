@@ -46,6 +46,20 @@ public final class ApiErrorParser {
         }
     }
 
+    /** The server's message for one named field ("email"), or null when the body has none for it. */
+    public static String fieldMessage(String jsonBody, String field) {
+        if (jsonBody == null) return null;
+        try {
+            JsonObject errors = JsonParser.parseString(jsonBody).getAsJsonObject().getAsJsonObject("errors");
+            if (errors == null || !errors.has(field)) return null;
+            JsonElement value = errors.get(field);
+            String msg = value.isJsonArray() ? (value.getAsJsonArray().size() > 0 ? value.getAsJsonArray().get(0).getAsString() : null) : value.getAsString();
+            return msg == null || msg.trim().isEmpty() ? null : msg;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     private static String firstFieldError(JsonObject json) {
         if (!json.has("errors") || !json.get("errors").isJsonObject()) return null;
         JsonObject errors = json.getAsJsonObject("errors");

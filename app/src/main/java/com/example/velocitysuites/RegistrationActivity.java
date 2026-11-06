@@ -101,6 +101,8 @@ public class RegistrationActivity extends SafeActivity {
 
     private int phase = PHASE_FORM;
     private int currentStep = 1;
+    /** The address the server refused at sign-up and why: shown under the field and kept until the address is edited. */
+    private String emailRejectedValue, emailRejectedMessage;
     private boolean verifyOnly;
     private String verifyEmail = "";
     private long resendUntil;
@@ -327,7 +329,7 @@ public class RegistrationActivity extends SafeActivity {
             case 2:
                 return !gender().isEmpty() && dob != null && AgeRules.isAdult(dob, today());
             case 3:
-                return EmailValidator.isValid(textOf(emailEdit)) && PhoneNumberValidator.isValid(addressController.getSelectedCountry(), textOf(mobileEdit));
+                return EmailValidator.isValid(textOf(emailEdit)) && !textOf(emailEdit).equals(emailRejectedValue) && PhoneNumberValidator.isValid(addressController.getSelectedCountry(), textOf(mobileEdit));
             case 4:
                 return addressController.isComplete();
             case 5:
@@ -372,6 +374,7 @@ public class RegistrationActivity extends SafeActivity {
             if (textOf(field).isEmpty()) error = getString(R.string.last_name_required);
         } else if (field == emailEdit) {
             if (!EmailValidator.isValid(textOf(field))) error = getString(R.string.valid_email_required);
+            else if (textOf(field).equals(emailRejectedValue)) error = emailRejectedMessage;
         } else if (field == mobileEdit) {
             String country = addressController.getSelectedCountry();
             if (!PhoneNumberValidator.isValid(country, textOf(field))) error = PhoneNumberValidator.errorMessage(this, country);
@@ -612,7 +615,14 @@ public class RegistrationActivity extends SafeActivity {
                     resendUntil = android.os.SystemClock.elapsedRealtime() + RESEND_COOLDOWN_MS;
                     render(true);
                 } else {
-                    showSubmitError(ApiErrorParser.extractMessage(response, getString(R.string.reg_submit_failed)));
+                    String body = null;
+                    try { body = response.errorBody() != null ? response.errorBody().string() : null; } catch (Exception ignored) { }
+                    String emailMessage = ApiErrorParser.fieldMessage(body, "email");
+                    if (emailMessage != null) {
+                        showEmailError(emailMessage);   // the server's own words (for example the Gmail rule), under the email field
+                    } else {
+                        showSubmitError(ApiErrorParser.extractMessage(body, getString(R.string.reg_submit_failed)));
+                    }
                 }
             }
 
@@ -624,6 +634,17 @@ public class RegistrationActivity extends SafeActivity {
                 showSubmitError(RoomRepository.networkErrorMessage(RegistrationActivity.this, t));
             }
         });
+    }
+
+    /** The server refused the email: back to the step that has it, with the server's message under the field. */
+    private void showEmailError(String message) {
+        regSubmitError.setVisibility(View.GONE);
+        emailRejectedValue = textOf(emailEdit);
+        emailRejectedMessage = message;
+        if (currentStep != 3) showStep(3, false);
+        TextInputLayout layout = layoutOf(emailEdit);
+        if (layout != null) layout.setError(message);
+        emailEdit.requestFocus();
     }
 
     private void showSubmitError(String message) {

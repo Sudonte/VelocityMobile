@@ -47,4 +47,15 @@ public class ApiErrorParserTest {
     public void neitherMessageNorErrors_returnsFallback() {
         assertEquals("fallback", ApiErrorParser.extractMessage("{}", "fallback"));
     }
+
+    @Test
+    public void fieldMessage_returnsTheNamedFieldsMessageOrNull() {
+        String body = "{\"message\":\"x\",\"errors\":{\"email\":[\"Please use a Gmail address (@gmail.com) to create your account.\"],\"age\":[\"Too young.\"]}}";
+        assertEquals("Please use a Gmail address (@gmail.com) to create your account.", ApiErrorParser.fieldMessage(body, "email"));
+        assertEquals("Too young.", ApiErrorParser.fieldMessage(body, "age"));
+        org.junit.Assert.assertNull(ApiErrorParser.fieldMessage(body, "mobile_number"));
+        org.junit.Assert.assertNull(ApiErrorParser.fieldMessage("{\"message\":\"x\"}", "email"));
+        org.junit.Assert.assertNull(ApiErrorParser.fieldMessage(null, "email"));
+        org.junit.Assert.assertNull(ApiErrorParser.fieldMessage("not json", "email"));
+    }
 }
