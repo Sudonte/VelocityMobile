@@ -54,7 +54,7 @@ public class Release164Test {
     private static final int[] CARDS = {R.id.welcomeCardRooms, R.id.welcomeCardPay, R.id.welcomeCardTrack, R.id.welcomeCardSupport};
     private static final int[] TITLES = {R.id.welcomeCardRoomsTitle, R.id.welcomeCardPayTitle, R.id.welcomeCardTrackTitle, R.id.welcomeCardSupportTitle};
     private static final String[] CARD_TITLES = {"Easy booking", "GCash payments", "Track transactions", "Front-desk help"};
-    private static final int[] STEP_COUNTS = {7, 5, 5, 3};
+    private static final int[] STEP_COUNTS = {4, 3, 5, 3};
 
     @After
     public void tearDown() {
@@ -188,7 +188,7 @@ public class Release164Test {
         // booking: the wizard's own step names, "Add another date", booking vs reservation
         Dialog booking = open(a, 0);
         List<String> b = stepTitles(booking);
-        for (String wizardStep : new String[]{"Dates and rooms", "Amenities", "Representative", "Guests", "ID verification", "Review and bill summary"}) {
+        for (String wizardStep : new String[]{"Dates and rooms", "Representative and guests", "Review and bill summary"}) {
             assertTrue(wizardStep + " in " + b, b.contains(wizardStep));
         }
         assertTrue(b.toString(), b.contains("Payment method (reservations)"));
@@ -197,11 +197,10 @@ public class Release164Test {
         booking.dismiss();
         shadowOf(Looper.getMainLooper()).idle();
 
-        // GCash: the five steps (named as the payment screen names them), the 20%-50% rule, front-desk verification
+        // GCash: the three steps (named as the payment screen names them), the 20%-50% rule, front-desk verification
         Dialog gcash = open(a, 1);
         List<String> g = stepTitles(gcash);
-        assertEquals(java.util.Arrays.asList(a.getString(R.string.gcash_step_name_1), a.getString(R.string.gcash_step_name_2), a.getString(R.string.gcash_step_name_3),
-                a.getString(R.string.gcash_step_name_4), a.getString(R.string.gcash_step_name_5)), g);
+        assertEquals(java.util.Arrays.asList(a.getString(R.string.gcash_step_name_1), a.getString(R.string.gcash_step_name_2), a.getString(R.string.gcash_step_name_3)), g);
         String gText = String.join(" | ", textsOf(gcash.getWindow().getDecorView()));
         assertTrue(gText, gText.contains("20%–50%") && gText.contains("verifies your payment before it counts") && gText.contains("13-digit"));
         gcash.dismiss();

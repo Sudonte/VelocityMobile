@@ -181,6 +181,8 @@ public class PaymentActivity extends BaseNavigationActivity {
 
     // GCash 5-step wizard (Scan QR / Mobile Number / Reference Number / Receipt / Review & Submit)
     private int currentGcashStep = 1;
+    /** Send via GCash, Payment details (the reference number and the receipt), Submit. */
+    private static final int GCASH_STEPS = 3;
     private View gcashStep1Amount;
     private TextView tvGcashStepLabel;
     private WizardStepIndicatorView gcashStepIndicator;
@@ -397,7 +399,7 @@ public class PaymentActivity extends BaseNavigationActivity {
 
         tvGcashStepLabel = findViewById(R.id.tvGcashStepLabel);
         gcashStepIndicator = findViewById(R.id.gcashStepIndicator);
-        if (gcashStepIndicator != null) gcashStepIndicator.setStepCount(5);
+        if (gcashStepIndicator != null) gcashStepIndicator.setStepCount(GCASH_STEPS);
         gcashStep1Qr = findViewById(R.id.gcashStep1Qr);
         gcashStep1Amount = findViewById(R.id.gcashStep1Amount);
         bindHotelGcashNumber();
@@ -483,36 +485,21 @@ public class PaymentActivity extends BaseNavigationActivity {
     }
 
     /**
-     * Wires Back/Next across the 5-step GCash form (Scan QR / Mobile Number / Reference
-     * Number / Receipt / Review). Each Next gate re-validates its own step's field(s) -
-     * the same checks processPayment() used to do all at once - so a guest can never reach
-     * Review with an invalid field, and updateSubmitButtonState() (still called from each
-     * field's text watcher / receipt callbacks) keeps every step's own Next button in sync
-     * as the guest types, exactly mirroring how completePaymentButton used to behave.
+     * Wires Back/Next across the 3-step GCash form (1 Send via GCash: the amount, the QR code and the hotel number; 2 Payment details:
+     * the reference number and the receipt on one screen; 3 Submit). Next on Payment details re-validates both fields - the same checks
+     * processPayment() does - so a guest can never reach Submit with an invalid field, and updateSubmitButtonState() (still called from
+     * each field's text watcher / receipt callbacks) keeps the button in sync as the guest types. The GCash mobile number is not asked for.
      */
     private void setupGcashStepNavigation() {
         if (btnGcashStep1Next != null) {
-            btnGcashStep1Next.setOnClickListener(v -> showGcashStep(2));
-        }
-        if (btnGcashStep2Back != null) {
-            btnGcashStep2Back.setOnClickListener(v -> showGcashStep(1));
-        }
-        if (btnGcashStep2Next != null) {
-            btnGcashStep2Next.setOnClickListener(v -> showGcashStep(3)); // "Send via GCash" has nothing to validate
+            btnGcashStep1Next.setOnClickListener(v -> showGcashStep(2)); // "Send via GCash" has nothing to validate
         }
         if (btnGcashStep3Back != null) {
-            btnGcashStep3Back.setOnClickListener(v -> showGcashStep(2));
+            btnGcashStep3Back.setOnClickListener(v -> showGcashStep(1));
         }
         if (btnGcashStep3Next != null) {
             btnGcashStep3Next.setOnClickListener(v -> {
-                // "Enter reference": the GCash number the guest paid from, then the reference number - both inline
-                String numberError = gcashNumberErrorMessage(true);
-                if (numberError != null) {
-                    setGcashNumberError(numberError);
-                    if (etGcashNumber != null) etGcashNumber.requestFocus();
-                    return;
-                }
-                setGcashNumberError(null);
+                // "Payment details": the reference number and the receipt, both inline
                 String referenceError = gcashReferenceErrorMessage();
                 if (referenceError != null) {
                     setGcashReferenceError(referenceError);
@@ -522,7 +509,7 @@ public class PaymentActivity extends BaseNavigationActivity {
                 // Fast, local pre-check against this guest's own already-loaded bookings (never
                 // another guest's - refreshBookings() only ever returns the authenticated
                 // guest's own records) so an obvious re-typed/reused reference is caught here
-                // instead of only after the receipt upload + a full round trip on Step 5. This
+                // instead of only after a full round trip on the last step. This
                 // is a UX convenience only, not the authoritative check - the server's own
                 // uniqueness constraint at final submission (see submitPaymentToServer()/
                 // reconcileDuplicateReference()) remains the real safety net, since this local
@@ -533,23 +520,15 @@ public class PaymentActivity extends BaseNavigationActivity {
                     return;
                 }
                 setGcashReferenceError(null);
-                showGcashStep(4);
-            });
-        }
-        if (btnGcashStep4Back != null) {
-            btnGcashStep4Back.setOnClickListener(v -> showGcashStep(3));
-        }
-        if (btnGcashStep4Next != null) {
-            btnGcashStep4Next.setOnClickListener(v -> {
                 if (receiptUri == null) {
                     setReceiptStatusError(getString(R.string.error_attach_receipt));
                     return;
                 }
-                showGcashStep(5);
+                showGcashStep(3);
             });
         }
         if (btnGcashStep5Back != null) {
-            btnGcashStep5Back.setOnClickListener(v -> showGcashStep(4));
+            btnGcashStep5Back.setOnClickListener(v -> showGcashStep(2));
         }
     }
 
@@ -571,23 +550,23 @@ public class PaymentActivity extends BaseNavigationActivity {
         if (screenContent != null) screenContent.scrollTo(0, 0);
     }
 
-    /** Shows only the current step's view, updates the "Step X of 5" label + WizardStepIndicatorView, and (on Step 5) refreshes the review summary. */
+    /** Shows only the current step's view, updates the "Step X of 3" label + WizardStepIndicatorView, and (on Step 3) refreshes the review summary. */
     private void renderGcashStep() {
         if (gcashStep1Qr == null) return;
-        // 1 Check amount, 2 Send via GCash, 3 Enter reference (the number paid from and the reference), 4 Upload receipt, 5 Submit
-        if (gcashStep1Amount != null) gcashStep1Amount.setVisibility(currentGcashStep == 1 ? View.VISIBLE : View.GONE);
-        gcashStep1Qr.setVisibility(currentGcashStep == 2 ? View.VISIBLE : View.GONE);
-        if (gcashStep2Number != null) gcashStep2Number.setVisibility(currentGcashStep == 3 ? View.VISIBLE : View.GONE);
-        if (gcashStep3Reference != null) gcashStep3Reference.setVisibility(currentGcashStep == 3 ? View.VISIBLE : View.GONE);
-        if (gcashStep4Receipt != null) gcashStep4Receipt.setVisibility(currentGcashStep == 4 ? View.VISIBLE : View.GONE);
-        if (gcashStep5Review != null) gcashStep5Review.setVisibility(currentGcashStep == 5 ? View.VISIBLE : View.GONE);
+        // 1 Send via GCash (amount, QR, hotel number), 2 Payment details (reference + receipt), 3 Submit. The old "Check amount" and the
+        // GCash mobile number are not shown any more.
+        if (gcashStep1Amount != null) gcashStep1Amount.setVisibility(View.GONE);
+        gcashStep1Qr.setVisibility(currentGcashStep == 1 ? View.VISIBLE : View.GONE);
+        if (gcashStep2Number != null) gcashStep2Number.setVisibility(View.GONE);
+        if (gcashStep3Reference != null) gcashStep3Reference.setVisibility(currentGcashStep == 2 ? View.VISIBLE : View.GONE);
+        if (gcashStep4Receipt != null) gcashStep4Receipt.setVisibility(currentGcashStep == 2 ? View.VISIBLE : View.GONE);
+        if (gcashStep5Review != null) gcashStep5Review.setVisibility(currentGcashStep == 3 ? View.VISIBLE : View.GONE);
         if (tvGcashStepLabel != null) {
-            int[] names = {R.string.gcash_step_name_1, R.string.gcash_step_name_2, R.string.gcash_step_name_3, R.string.gcash_step_name_4, R.string.gcash_step_name_5};
-            tvGcashStepLabel.setText(getString(R.string.gcash_step_label_format, currentGcashStep, 5, getString(names[currentGcashStep - 1])));
+            int[] names = {R.string.gcash_step_name_1, R.string.gcash_step_name_2, R.string.gcash_step_name_3};
+            tvGcashStepLabel.setText(getString(R.string.gcash_step_label_format, currentGcashStep, GCASH_STEPS, getString(names[currentGcashStep - 1])));
         }
         if (gcashStepIndicator != null) gcashStepIndicator.setCurrentStep(currentGcashStep);
-        if (currentGcashStep == 5) populateGcashReviewStep(); else clearSubmitError();
-        setButtonEnabled(btnGcashStep2Next, true); // "Send via GCash": nothing to fill in, so Next is always usable
+        if (currentGcashStep == 3) populateGcashReviewStep(); else clearSubmitError();
         if (currentGcashStep != lastPayingForStep) { payingForOpen = null; lastPayingForStep = currentGcashStep; }
         applyPayingForState();
         renderActionBar();
@@ -606,10 +585,10 @@ public class PaymentActivity extends BaseNavigationActivity {
                 && cardGcashSubmissionForm != null && cardGcashSubmissionForm.getVisibility() == View.VISIBLE;
         setVisible(rowActionReview, reviewShowing);
         setVisible(rowActionStep1, gcashFormShowing && currentGcashStep == 1);
-        setVisible(rowActionStep2, gcashFormShowing && currentGcashStep == 2);
-        setVisible(rowActionStep3, gcashFormShowing && currentGcashStep == 3);
-        setVisible(rowActionStep4, gcashFormShowing && currentGcashStep == 4);
-        setVisible(rowActionStep5, gcashFormShowing && currentGcashStep == 5);
+        setVisible(rowActionStep2, false); // the old Send via GCash row: its content is Step 1 now
+        setVisible(rowActionStep3, gcashFormShowing && currentGcashStep == 2);
+        setVisible(rowActionStep4, false); // the old Upload receipt row: its content is on Payment details
+        setVisible(rowActionStep5, gcashFormShowing && currentGcashStep == 3);
         setVisible(paymentActionBar, reviewShowing || gcashFormShowing);
     }
 
@@ -750,8 +729,9 @@ public class PaymentActivity extends BaseNavigationActivity {
             tvReviewRemainingBalance.setText(MoneyFormat.format(balanceAfterThisPayment));
         }
         if (tvReviewGcashNumber != null) {
-            String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
-            tvReviewGcashNumber.setText(getString(R.string.gcash_number_prefixed_format, number));
+            // not asked for any more: its row stays out of the summary
+            View row = (View) tvReviewGcashNumber.getParent();
+            if (row != null) row.setVisibility(View.GONE);
         }
         if (tvReviewReferenceNumber != null) {
             // Step 3 keeps the raw 13 digits (no live formatting); Step 5 is the
@@ -1057,11 +1037,16 @@ public class PaymentActivity extends BaseNavigationActivity {
      */
     private void enforcePartialAvailability() {
         if (cgPaymentAmount == null || grandTotalValue <= 0) return;
-        boolean partialAllowed = rulesRange().canPartial();
+        PaymentRules.Range range = rulesRange();
+        boolean partialAllowed = range.canPartial();
         int[] partialChipIds = {R.id.chipPercent20, R.id.chipPercent30, R.id.chipPercent40, R.id.chipPercent50};
-        for (int id : partialChipIds) {
-            com.google.android.material.chip.Chip chip = findViewById(id);
-            if (chip != null) chip.setVisibility(partialAllowed ? View.VISIBLE : View.GONE);
+        for (int i = 0; i < partialChipIds.length; i++) {
+            com.google.android.material.chip.Chip chip = findViewById(partialChipIds[i]);
+            if (chip == null) continue;
+            chip.setVisibility(partialAllowed ? View.VISIBLE : View.GONE);
+            // "30% · ₱1,080.00": the share of the original grand total, capped the way the server caps it
+            chip.setText(getString(R.string.percent_with_amount_format, Math.round(PARTIAL_PERCENTAGES[i] * 100),
+                    MoneyFormat.format(PaymentRules.partialAmount(range, PARTIAL_PERCENTAGES[i]))));
         }
     }
 
@@ -1501,12 +1486,9 @@ public class PaymentActivity extends BaseNavigationActivity {
      * single-form behavior this replaces).
      */
     private void updateSubmitButtonState() {
-        String number = etGcashNumber != null && etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
         boolean referenceValid = gcashReferenceDigitsOnly().length() == 13;
-        setButtonEnabled(btnGcashStep2Next, true); // "Send via GCash" has nothing to fill in
-        setButtonEnabled(btnGcashStep3Next, isValidGcashNumber(number) && referenceValid); // "Enter reference": the number paid from and the reference
-        setButtonEnabled(btnGcashStep4Next, receiptUri != null);
-        boolean valid = isValidGcashNumber(number) && referenceValid && receiptUri != null;
+        setButtonEnabled(btnGcashStep3Next, referenceValid && receiptUri != null); // "Payment details": the reference number and the receipt
+        boolean valid = referenceValid && receiptUri != null;
         setButtonEnabled(completePaymentButton, valid);
     }
 
@@ -2953,15 +2935,7 @@ public class PaymentActivity extends BaseNavigationActivity {
             return;
         }
 
-        String number = etGcashNumber.getText() != null ? etGcashNumber.getText().toString().trim() : "";
-        String numberError = gcashNumberErrorMessage(true);
-        if (numberError != null) {
-            setGcashNumberError(numberError);
-            showGcashStep(3);
-            etGcashNumber.requestFocus();
-            return;
-        }
-        setGcashNumberError(null);
+        String number = ""; // the GCash mobile number is not asked for: the reference number and the receipt are what the front desk verifies
 
         // The reference/transaction number from the guest's actual GCash
         // receipt - required so the receptionist can cross-check it against
@@ -2969,7 +2943,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         String referenceError = gcashReferenceErrorMessage();
         if (referenceError != null) {
             setGcashReferenceError(referenceError);
-            showGcashStep(3);
+            showGcashStep(2);
             if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
             return;
         }
@@ -2979,7 +2953,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // re-typed a different, already-used reference after first passing Step 3.
         if (findBookingByReference(repository.getBookings(), gcashReferenceDigitsOnly()) != null) {
             setGcashReferenceError(getString(R.string.error_gcash_reference_duplicate));
-            showGcashStep(3);
+            showGcashStep(2);
             if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
             return;
         }
@@ -2991,7 +2965,7 @@ public class PaymentActivity extends BaseNavigationActivity {
         // Receipt image is mandatory so the receptionist can validate the GCash payment.
         if (receiptUri == null) {
             setReceiptStatusError(getString(R.string.error_attach_receipt));
-            showGcashStep(4);
+            showGcashStep(2);
             return;
         }
 
@@ -3162,9 +3136,9 @@ public class PaymentActivity extends BaseNavigationActivity {
         return null;
     }
 
-    /** The one place a genuine (not self-caused) duplicate-reference rejection is surfaced - sends the guest back to Step 3 to fix it. */
+    /** The one place a genuine (not self-caused) duplicate-reference rejection is surfaced - sends the guest back to Payment details (step 2) to fix it. */
     private void showGenuineDuplicateReferenceError() {
-        showGcashStep(3);
+        showGcashStep(2);
         setGcashReferenceError(getString(R.string.error_gcash_reference_duplicate));
         if (etGcashReferenceNumber != null) etGcashReferenceNumber.requestFocus();
         Toast.makeText(PaymentActivity.this, R.string.error_gcash_reference_duplicate, Toast.LENGTH_LONG).show();

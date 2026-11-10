@@ -152,8 +152,7 @@ public class PaymentHeaderLayoutTest {
         idle();
         settle();
         assertEquals("the GCash step is the visible one", View.VISIBLE, activity.findViewById(R.id.gcashPortalSection).getVisibility());
-        activity.findViewById(R.id.btnGcashStep1Next).performClick(); // step 2 (Send via GCash, the QR) is the tall one
-        idle();
+        idle(); // step 1 (Send via GCash: the amount, the QR and the hotel number) is the tall one
         return activity;
     }
 

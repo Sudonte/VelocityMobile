@@ -199,7 +199,7 @@ public class PaymentScreenTest {
         idle();
     }
 
-    /** Walks Review -> GCash steps 1..4 with valid input, ending on step 5 (review and submit). */
+    /** Walks Review -> GCash steps 1..2 with valid input, ending on step 3 (review and submit). */
     private PaymentActivity toSubmitStep() {
         return toSubmitStep(ScreenTestSupport.reservation(588, 1800));
     }
@@ -207,13 +207,10 @@ public class PaymentScreenTest {
     private PaymentActivity toSubmitStep(ReservationDto reservation) {
         PaymentActivity a = launch(reservation);
         proceedToGcash(a);
-        a.findViewById(R.id.btnGcashStep1Next).performClick();
-        type(a, R.id.etGcashNumber, NUMBER);
-        a.findViewById(R.id.btnGcashStep2Next).performClick();
+        a.findViewById(R.id.btnGcashStep1Next).performClick(); // Send via GCash -> Payment details
         type(a, R.id.etGcashReferenceNumber, REFERENCE);
-        a.findViewById(R.id.btnGcashStep3Next).performClick();
         attachReceipt(a);
-        a.findViewById(R.id.btnGcashStep4Next).performClick();
+        a.findViewById(R.id.btnGcashStep3Next).performClick(); // Payment details -> Submit
         idle();
         assertEquals("on the review/submit step", View.VISIBLE, a.findViewById(R.id.gcashStep5Review).getVisibility());
         return a;
@@ -538,19 +535,20 @@ public class PaymentScreenTest {
     public void actionBar_showsOneRowPerGcashStep_andBackToSummaryReturnsToReview() {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
-        int[] rows = {R.id.rowActionStep1, R.id.rowActionStep2, R.id.rowActionStep3, R.id.rowActionStep4, R.id.rowActionStep5};
-        assertOnlyRow(a, rows[0]);
+        assertOnlyRow(a, R.id.rowActionStep1);
 
         a.findViewById(R.id.btnGcashStep1Next).performClick();
-        assertOnlyRow(a, rows[1]);
-        assertEquals("Step 2 of 5 · Send via GCash", text(a, R.id.tvGcashStepLabel));
-        type(a, R.id.etGcashNumber, NUMBER);
-        a.findViewById(R.id.btnGcashStep2Next).performClick();
-        assertOnlyRow(a, rows[2]);
+        assertOnlyRow(a, R.id.rowActionStep3);
+        assertEquals("Step 2 of 3 · Payment details", text(a, R.id.tvGcashStepLabel));
+        type(a, R.id.etGcashReferenceNumber, REFERENCE);
+        attachReceipt(a);
+        a.findViewById(R.id.btnGcashStep3Next).performClick();
+        assertOnlyRow(a, R.id.rowActionStep5);
+        assertEquals("Step 3 of 3 · Submit", text(a, R.id.tvGcashStepLabel));
+        a.findViewById(R.id.btnGcashStep5Back).performClick();
+        assertOnlyRow(a, R.id.rowActionStep3);
         a.findViewById(R.id.btnGcashStep3Back).performClick();
-        assertOnlyRow(a, rows[1]);
-        a.findViewById(R.id.btnGcashStep2Back).performClick();
-        assertOnlyRow(a, rows[0]);
+        assertOnlyRow(a, R.id.rowActionStep1);
 
         a.findViewById(R.id.backToSummaryButton).performClick();
         assertOnlyRow(a, R.id.rowActionReview);
@@ -682,42 +680,13 @@ public class PaymentScreenTest {
     }
 
     @Test
-    public void validation_mobileNumber_saysWhatIsWrong_inline() {
+    public void paymentDetails_doNotAskForAMobileNumber() {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
         a.findViewById(R.id.btnGcashStep1Next).performClick();
-        a.findViewById(R.id.btnGcashStep2Next).performClick();
-        type(a, R.id.etGcashReferenceNumber, REFERENCE); // "Enter reference" needs the number and the reference
-        MaterialButton next = a.findViewById(R.id.btnGcashStep3Next);
-
-        assertFalse("Next waits for a valid number", next.isEnabled());
-        assertNull("an untouched field shows no error", inlineError(a, R.id.tilGcashNumber));
-
-        type(a, R.id.etGcashNumber, "8");
-        assertEquals("a wrong first digit is flagged at once", a.getString(R.string.error_gcash_number_prefix), inlineError(a, R.id.tilGcashNumber));
-
-        type(a, R.id.etGcashNumber, "9171");
-        assertNull("an unfinished number is left alone while the guest is still typing", inlineError(a, R.id.tilGcashNumber));
-        blur(a, R.id.etGcashNumber);
-        assertEquals("leaving it unfinished says how many digits there are",
-                a.getString(R.string.error_gcash_number_short_format, 4), inlineError(a, R.id.tilGcashNumber));
-        assertFalse(next.isEnabled());
-
-        type(a, R.id.etGcashNumber, NUMBER);
-        assertNull("a valid number clears the error", inlineError(a, R.id.tilGcashNumber));
-        assertTrue("and enables Next", next.isEnabled());
-    }
-
-    @Test
-    public void validation_mobileNumber_acceptsTheShapesAGuestPastes() {
-        PaymentActivity a = launchUnpaid();
-        proceedToGcash(a);
-        a.findViewById(R.id.btnGcashStep1Next).performClick();
-        for (String pasted : new String[]{"09171234567", "+639171234567", "639171234567"}) {
-            type(a, R.id.etGcashNumber, pasted);
-            assertEquals(pasted + " is stored as the local number", NUMBER, text(a, R.id.etGcashNumber));
-            assertNull(inlineError(a, R.id.tilGcashNumber));
-        }
+        assertFalse("the GCash mobile number field is not on screen", isVisible(a, R.id.gcashStep2Number));
+        assertTrue("the reference number is", isVisible(a, R.id.gcashStep3Reference));
+        assertTrue("and so is the receipt", isVisible(a, R.id.gcashStep4Receipt));
     }
 
     @Test
@@ -725,8 +694,6 @@ public class PaymentScreenTest {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
         a.findViewById(R.id.btnGcashStep1Next).performClick();
-        type(a, R.id.etGcashNumber, NUMBER);
-        a.findViewById(R.id.btnGcashStep2Next).performClick();
         MaterialButton next = a.findViewById(R.id.btnGcashStep3Next);
 
         assertFalse(next.isEnabled());
@@ -738,6 +705,8 @@ public class PaymentScreenTest {
 
         type(a, R.id.etGcashReferenceNumber, REFERENCE);
         assertNull("13 digits clears it", inlineError(a, R.id.tilGcashReferenceNumber));
+        assertFalse("Next still waits for the receipt, which is on the same screen", next.isEnabled());
+        attachReceipt(a);
         assertTrue(next.isEnabled());
     }
 
@@ -746,16 +715,17 @@ public class PaymentScreenTest {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
         a.findViewById(R.id.btnGcashStep1Next).performClick();
-        type(a, R.id.etGcashNumber, NUMBER);
-        a.findViewById(R.id.btnGcashStep2Next).performClick();
         type(a, R.id.etGcashReferenceNumber, REFERENCE);
-        a.findViewById(R.id.btnGcashStep3Next).performClick();
+        MaterialButton next = a.findViewById(R.id.btnGcashStep3Next);
 
         assertEquals(a.getString(R.string.receipt_not_attached), text(a, R.id.tvReceiptStatus));
-        assertFalse("Next waits for the receipt", a.findViewById(R.id.btnGcashStep4Next).isEnabled());
+        assertFalse("Next waits for the receipt", next.isEnabled());
+        next.performClick();
+        assertEquals("asked for inline, and the guest stays on this step", a.getString(R.string.error_attach_receipt), text(a, R.id.tvReceiptStatus));
+        assertEquals("Step 2 of 3 · Payment details", text(a, R.id.tvGcashStepLabel));
         attachReceipt(a);
         assertEquals(a.getString(R.string.receipt_attached_success), text(a, R.id.tvReceiptStatus));
-        assertTrue(a.findViewById(R.id.btnGcashStep4Next).isEnabled());
+        assertTrue(next.isEnabled());
     }
 
     // ---- submission: loading, error, retry, success, no double submit ----
@@ -1023,40 +993,79 @@ public class PaymentScreenTest {
         assertEquals(a.getString(R.string.submitting_payment_button), submit.getText().toString());
     }
 
-    // ---- the five GCash steps, as the guest reads them ----
+    // ---- the three GCash steps, as the guest reads them ----
 
     @Test
-    public void gcashSteps_areNamed_checkAmount_sendViaGcash_enterReference_uploadReceipt_submit() {
+    public void gcashSteps_areNamed_sendViaGcash_paymentDetails_submit() {
         PaymentActivity a = launchUnpaid();
         proceedToGcash(a);
-        assertEquals("Step 1 of 5 · Check amount", text(a, R.id.tvGcashStepLabel));
+        assertEquals("Step 1 of 3 · Send via GCash", text(a, R.id.tvGcashStepLabel));
+        assertTrue("the QR is on the first step", isVisible(a, R.id.gcashStep1Qr));
+        assertFalse("there is no Check amount step", isVisible(a, R.id.gcashStep1Amount));
         a.findViewById(R.id.btnGcashStep1Next).performClick();
-        assertEquals("Step 2 of 5 · Send via GCash", text(a, R.id.tvGcashStepLabel));
-        assertTrue("the QR is on the send step", isVisible(a, R.id.gcashStep1Qr));
-        assertTrue("and 'Next' is usable without typing anything there", a.findViewById(R.id.btnGcashStep2Next).isEnabled());
-        a.findViewById(R.id.btnGcashStep2Next).performClick();
-        assertEquals("Step 3 of 5 · Enter reference", text(a, R.id.tvGcashStepLabel));
-        assertTrue("the GCash number and the reference are together", isVisible(a, R.id.gcashStep2Number) && isVisible(a, R.id.gcashStep3Reference));
-        type(a, R.id.etGcashNumber, NUMBER);
+        assertEquals("Step 2 of 3 · Payment details", text(a, R.id.tvGcashStepLabel));
+        assertTrue("the reference number and the receipt are together", isVisible(a, R.id.gcashStep3Reference) && isVisible(a, R.id.gcashStep4Receipt));
+        assertFalse("and no mobile number", isVisible(a, R.id.gcashStep2Number));
         type(a, R.id.etGcashReferenceNumber, REFERENCE);
-        a.findViewById(R.id.btnGcashStep3Next).performClick();
-        assertEquals("Step 4 of 5 · Upload receipt", text(a, R.id.tvGcashStepLabel));
         attachReceipt(a);
-        a.findViewById(R.id.btnGcashStep4Next).performClick();
-        assertEquals("Step 5 of 5 · Submit", text(a, R.id.tvGcashStepLabel));
+        a.findViewById(R.id.btnGcashStep3Next).performClick();
+        assertEquals("Step 3 of 3 · Submit", text(a, R.id.tvGcashStepLabel));
     }
 
     @Test
-    public void checkAmount_showsTheAmountLargeAndBold_withTheShareAndTheRestForTheHotel() {
+    public void sendViaGcash_showsTheAmountLargeAndBold_withTheQrAndACopyButton() {
         PaymentActivity a = launchUnpaid(); // P1,800, 20% = P360
         proceedToGcash(a);
         layout(a);
-        assertTrue(isVisible(a, R.id.gcashStep1Amount));
-        assertFalse("the QR waits for step 2", isVisible(a, R.id.gcashStep1Qr));
-        TextView amount = a.findViewById(R.id.tvPortalAmount);
+        assertTrue(isVisible(a, R.id.gcashStep1Qr));
+        TextView amount = a.findViewById(R.id.tvSendAmount);
         assertEquals("₱360.00", amount.getText().toString());
-        assertTrue("large", amount.getTextSize() / a.getResources().getDisplayMetrics().scaledDensity >= 36f);
-        assertEquals("20% of ₱1,800.00 (grand total) · the rest (₱1,440.00) is paid at the hotel", text(a, R.id.tvGcashShareLine));
+        assertTrue("large", amount.getTextSize() / a.getResources().getDisplayMetrics().scaledDensity >= 30f);
+        assertTrue("with Copy", isVisible(a, R.id.btnCopySendAmount));
+        assertTrue("the QR is there", isVisible(a, R.id.cardGcashQr));
+    }
+
+    @Test
+    public void reviewBilling_eachPercentageShowsItsPesoAmount_andTheRestIsLeftForTheHotel() {
+        PaymentActivity a = launchUnpaid(); // P1,800
+        layout(a);
+        assertEquals("20% · ₱360.00", ((TextView) a.findViewById(R.id.chipPercent20)).getText().toString());
+        assertEquals("30% · ₱540.00", ((TextView) a.findViewById(R.id.chipPercent30)).getText().toString());
+        assertEquals("40% · ₱720.00", ((TextView) a.findViewById(R.id.chipPercent40)).getText().toString());
+        assertEquals("50% · ₱900.00", ((TextView) a.findViewById(R.id.chipPercent50)).getText().toString());
+        assertEquals("Show GCash QR Code", ((TextView) a.findViewById(R.id.proceedToGcashButton)).getText().toString());
+        a.findViewById(R.id.chipPercent30).performClick();
+        idle();
+        assertEquals("the rest is what is left after the chosen share", "₱1,260.00", text(a, R.id.tvRemainingBalance));
+    }
+
+    private void chooseThenGcash(int chipId, String amount) {
+        PaymentActivity a = launchUnpaid(); // P1,800
+        a.findViewById(chipId).performClick();
+        idle();
+        proceedToGcash(a);
+        assertEquals("Step 1 of 3 · Send via GCash", text(a, R.id.tvGcashStepLabel));
+        assertEquals(amount, text(a, R.id.tvSendAmount));
+    }
+
+    @Test
+    public void reviewBilling_twentyPercent_goesToGcashWithItsAmount() {
+        chooseThenGcash(R.id.chipPercent20, "₱360.00");
+    }
+
+    @Test
+    public void reviewBilling_thirtyPercent_goesToGcashWithItsAmount() {
+        chooseThenGcash(R.id.chipPercent30, "₱540.00");
+    }
+
+    @Test
+    public void reviewBilling_fortyPercent_goesToGcashWithItsAmount() {
+        chooseThenGcash(R.id.chipPercent40, "₱720.00");
+    }
+
+    @Test
+    public void reviewBilling_fiftyPercent_goesToGcashWithItsAmount() {
+        chooseThenGcash(R.id.chipPercent50, "₱900.00");
     }
 
 @Test
@@ -1124,22 +1133,18 @@ public class PaymentScreenTest {
     public void everyGcashStep_showsTheStays_andNeverNull() {
         PaymentActivity a = launch(com.example.velocitysuites.MultiStayFixtures.reservationDto("pending"));
         proceedToGcash(a);
-        int[] nexts = {R.id.btnGcashStep1Next, R.id.btnGcashStep2Next, 0, 0};
-        for (int step = 1; step <= 5; step++) {
+        for (int step = 1; step <= 3; step++) {
             if (step > 1) a.findViewById(R.id.headerGcashPayingFor).performClick(); // one line until opened
             String strip = collectText(a.findViewById(R.id.layoutGcashStays));
             assertTrue("step " + step + ": " + strip, strip.contains("Oct 26 → Oct 27, 2026") && strip.contains("Oct 27 → Oct 28, 2026") && !strip.contains("Stay 1") && strip.contains("₱9,300.00") && strip.contains("Deluxe × 1") && strip.contains("Executive × 1"));
             assertEquals(View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
             assertFalse(collectText(a.findViewById(R.id.cardGcashSubmissionForm)).contains("null"));
-            if (step == 1) a.findViewById(R.id.btnGcashStep1Next).performClick();
-            else if (step == 2) a.findViewById(R.id.btnGcashStep2Next).performClick();
-            else if (step == 3) {
-                type(a, R.id.etGcashNumber, NUMBER);
+            if (step == 1) {
+                a.findViewById(R.id.btnGcashStep1Next).performClick();
+            } else if (step == 2) {
                 type(a, R.id.etGcashReferenceNumber, REFERENCE);
-                a.findViewById(R.id.btnGcashStep3Next).performClick();
-            } else if (step == 4) {
                 attachReceipt(a);
-                a.findViewById(R.id.btnGcashStep4Next).performClick();
+                a.findViewById(R.id.btnGcashStep3Next).performClick();
             }
         }
     }

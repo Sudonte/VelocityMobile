@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The GCash payment screen, all five steps, for a one-stay and a two-stay transaction - an existing reservation AND a new booking that is
+ * The GCash payment screen, all three steps (Send via GCash, Payment details, Submit), for a one-stay and a two-stay transaction - an existing reservation AND a new booking that is
  * still being paid for (the path where the breakdown once went blank) - at 360dp and 393dp, light and dark. Every visible text is
  * non-empty, inside the screen, and readable (contrast of at least 4.5:1 against what is behind it); Step 1 has no dead space between
  * rows; the big amount is the bottom bar's amount, on every step.
@@ -205,7 +205,7 @@ public class GcashStepsLayoutTest {
     }
 
     private static void next(PaymentActivity a, int step) {
-        int[] ids = {R.id.btnGcashStep1Next, R.id.btnGcashStep2Next, R.id.btnGcashStep3Next, R.id.btnGcashStep4Next};
+        int[] ids = {R.id.btnGcashStep1Next, R.id.btnGcashStep3Next};
         a.findViewById(ids[step - 1]).performClick();
         idle();
         settle();
@@ -328,39 +328,35 @@ public class GcashStepsLayoutTest {
         return ((TextView) a.findViewById(id)).getText().toString();
     }
 
-    /** Walks Step 1 to Step 5 checking each; {@code a} must be on the review screen. */
-    private void walkAllFiveSteps(String tag, PaymentActivity a, boolean twoStays) {
+    /** Walks Step 1 to Step 3 checking each; {@code a} must be on the review screen. */
+    private void walkAllThreeSteps(String tag, PaymentActivity a, boolean twoStays) {
         intoGcash(a);
-        for (int step = 1; step <= 5; step++) {
+        for (int step = 1; step <= 3; step++) {
             String t = tag + " step " + step;
-            assertTrue(t + ": label", text(a, R.id.tvGcashStepLabel).startsWith("Step " + step + " of 5 · "));
+            assertTrue(t + ": label", text(a, R.id.tvGcashStepLabel).startsWith("Step " + step + " of 3 · "));
             assertReadable(t, a);
             String bar = text(a, R.id.tvBarAmount);
             if (step == 1) {
-                assertEquals(t + ": the big amount is the bottom bar's", bar, text(a, R.id.tvPortalAmount));
-                String share = text(a, R.id.tvGcashShareLine);
-                assertTrue(t + ": " + share, share.contains("of ₱") && share.contains("is paid at the hotel"));
-                assertTrue(t + ": " + text(a, R.id.tvGcashTxLine), text(a, R.id.tvGcashTxLine).contains("·"));
+                assertEquals(t + ": the amount to send is the bottom bar's", bar, text(a, R.id.tvSendAmount));
                 assertEquals(t + ": the breakdown is open", View.VISIBLE, a.findViewById(R.id.layoutGcashStays).getVisibility());
                 String breakdown = ReviewTexts.of(a.findViewById(R.id.cardGcashPayingFor));
                 assertTrue(t + ": " + breakdown, breakdown.contains("Subtotal") == twoStays && !breakdown.contains("Stay 1") && breakdown.contains("Deluxe × 1") && (!twoStays || breakdown.contains("Executive × 1")) && breakdown.contains("Room charges") && breakdown.contains("Amenities total") && breakdown.contains("Grand total"));
-                assertNoDeadSpace(t, a.findViewById(R.id.gcashStep1Amount));
                 assertNoDeadSpace(t, a.findViewById(R.id.cardGcashPayingFor));
-                assertNoDeadSpace(t, a.findViewById(R.id.cardGcashSubmissionForm));
             } else {
                 assertEquals(t + ": the breakdown is one line until opened", View.GONE, a.findViewById(R.id.layoutGcashStays).getVisibility());
             }
-            if (step == 2) assertEquals(t + ": the amount to send is the bar's", bar, text(a, R.id.tvSendAmount));
-            if (step == 5) {
+            if (step == 2) {
+                assertEquals(t + ": the old mobile-number field is not shown", View.GONE, a.findViewById(R.id.gcashStep2Number).getVisibility());
+                assertEquals(t + ": the reference and the receipt are on this one screen", View.VISIBLE, a.findViewById(R.id.gcashStep3Reference).getVisibility());
+                assertEquals(t, View.VISIBLE, a.findViewById(R.id.gcashStep4Receipt).getVisibility());
+                type(a, R.id.etGcashReferenceNumber, REFERENCE);
+                attachReceipt(a);
+            }
+            if (step == 3) {
                 assertEquals(t, bar, text(a, R.id.tvReviewAmount));
                 assertTrue(t + ": the reference and receipt show", text(a, R.id.tvReviewReferenceNumber).replace(" ", "").contains(REFERENCE) && a.findViewById(R.id.ivReviewReceiptThumb).getVisibility() == View.VISIBLE);
                 break;
             }
-            if (step == 3) {
-                type(a, R.id.etGcashNumber, NUMBER);
-                type(a, R.id.etGcashReferenceNumber, REFERENCE);
-            }
-            if (step == 4) attachReceipt(a);
             next(a, step);
         }
     }
@@ -373,7 +369,7 @@ public class GcashStepsLayoutTest {
                 ScreenTestSupport.freshRepository(app, api = new ScreenTestSupport.FakeApi());
                 ReservationDto dto = two ? MultiStayFixtures.reservationDto("pending") : oneStayReservation();
                 PaymentActivity a = openExisting(dto);
-                walkAllFiveSteps(q + (two ? " 2 stays (reservation)" : " 1 stay (reservation)"), a, two);
+                walkAllThreeSteps(q + (two ? " 2 stays (reservation)" : " 1 stay (reservation)"), a, two);
                 controller.pause().stop().destroy();
                 controller = null;
             }
@@ -388,7 +384,7 @@ public class GcashStepsLayoutTest {
                 RuntimeEnvironment.setQualifiers("+" + q);
                 ScreenTestSupport.freshRepository(app, api = new ScreenTestSupport.FakeApi());
                 PaymentActivity a = openPendingBooking(stays);
-                walkAllFiveSteps(q + " " + stays + " stay(s) (new booking)", a, stays > 1);
+                walkAllThreeSteps(q + " " + stays + " stay(s) (new booking)", a, stays > 1);
                 controller.pause().stop().destroy();
                 controller = null;
             }
