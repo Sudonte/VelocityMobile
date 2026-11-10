@@ -34,6 +34,11 @@ public final class PendingWizardRooms {
         pendingCheckOut = both ? (java.util.Calendar) checkOut.clone() : null;
     }
 
+    /** True when valid stay dates (check-out after check-in) are waiting for the next wizard run. */
+    public static boolean hasDates() {
+        return pendingCheckIn != null && pendingCheckOut != null && pendingCheckOut.after(pendingCheckIn);
+    }
+
     /** Returns {checkIn, checkOut} (consume-once) or null when no dates were searched. */
     public static java.util.Calendar[] consumeDates() {
         java.util.Calendar[] result = (pendingCheckIn != null && pendingCheckOut != null)

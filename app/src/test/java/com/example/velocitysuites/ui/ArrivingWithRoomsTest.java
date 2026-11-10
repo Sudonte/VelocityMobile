@@ -228,6 +228,7 @@ public class ArrivingWithRoomsTest {
     public void theIntroScreenListsTheRoomsWithARate_andNoTotal() {
         for (BookingWizardState.Mode mode : new BookingWizardState.Mode[]{BookingWizardState.Mode.BOOKING, BookingWizardState.Mode.RESERVATION}) {
             PendingWizardRooms.set(twoDeluxe());
+            PendingWizardRooms.setDates(day(5), day(7));
             StartingTransactionActivity intro = Robolectric.buildActivity(StartingTransactionActivity.class, StartingTransactionActivity.newIntent(app, mode)).setup().get();
             idle();
             assertEquals("2 rooms selected", plain(text(intro.findViewById(R.id.tvRoomRecapCount))));

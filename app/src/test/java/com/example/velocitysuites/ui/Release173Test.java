@@ -270,4 +270,56 @@ public class Release173Test {
         assertNotNull(args);
         assertNull("no pricing_type filter", args[0]);
     }
+
+    // ---- every way into a new transaction follows the dates-first rule ----
+
+    @Test
+    public void withoutDates_everyNewBookingAndReservationEntryOpensRoomBrowsingOnItsDates_keepingTheRooms() {
+        for (com.example.velocitysuites.BookingWizardState.Mode mode : com.example.velocitysuites.BookingWizardState.Mode.values()) {
+            com.example.velocitysuites.PendingWizardRooms.set(java.util.Arrays.asList(WizardDriver.room("1", 1000), WizardDriver.room("1", 1000)));
+            Intent in = com.example.velocitysuites.StartingTransactionActivity.newIntent(ApplicationProvider.getApplicationContext(), mode);
+            assertEquals(RoomBrowsingActivity.class.getName(), in.getComponent().getClassName());
+            assertTrue(in.getBooleanExtra(RoomBrowsingActivity.EXTRA_DATES_FIRST, false));
+            assertEquals("the rooms already picked stay selected", "1,1", in.getStringExtra("ROOM_IDS"));
+        }
+        com.example.velocitysuites.PendingWizardRooms.set(java.util.Collections.<Room>emptyList());
+        Intent plain = com.example.velocitysuites.StartingTransactionActivity.newIntent(ApplicationProvider.getApplicationContext(), com.example.velocitysuites.BookingWizardState.Mode.BOOKING);
+        assertEquals("the New booking button with nothing chosen", RoomBrowsingActivity.class.getName(), plain.getComponent().getClassName());
+    }
+
+    @Test
+    public void withChosenDates_theWayInOpensTheIntroThenTheWizard() {
+        com.example.velocitysuites.PendingWizardRooms.set(java.util.Arrays.asList(WizardDriver.room("1", 1000)));
+        com.example.velocitysuites.PendingWizardRooms.setDates(day(5), day(7));
+        Intent in = com.example.velocitysuites.StartingTransactionActivity.newIntent(ApplicationProvider.getApplicationContext(), com.example.velocitysuites.BookingWizardState.Mode.RESERVATION);
+        assertEquals(com.example.velocitysuites.StartingTransactionActivity.class.getName(), in.getComponent().getClassName());
+        com.example.velocitysuites.PendingWizardRooms.consume();
+        com.example.velocitysuites.PendingWizardRooms.consumeDates();
+    }
+
+    @Test
+    public void roomBrowsingOpenedDatesFirst_showsTheMessageUnderTheDatePicker() {
+        Context app = ApplicationProvider.getApplicationContext();
+        ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
+        RoomBrowsingActivity a = Robolectric.buildActivity(RoomBrowsingActivity.class,
+                new Intent(app, RoomBrowsingActivity.class).putExtra(RoomBrowsingActivity.EXTRA_DATES_FIRST, true)).setup().get();
+        idle();
+        idle();
+        assertEquals("Choose your check-in and check-out dates first.", ((TextInputLayout) a.findViewById(R.id.checkInLayout)).getError().toString());
+    }
+
+    @Test
+    public void theNewBookingAndNewReservationButtons_goToTheDatesFirst() {
+        Context app = ApplicationProvider.getApplicationContext();
+        ScreenTestSupport.FakeApi api = new ScreenTestSupport.FakeApi();
+        ScreenTestSupport.freshRepository(app, api);
+        com.example.velocitysuites.PendingWizardRooms.set(java.util.Collections.<Room>emptyList());
+        com.example.velocitysuites.BookingAndReservationActivity a = Robolectric.buildActivity(com.example.velocitysuites.BookingAndReservationActivity.class,
+                new Intent(app, com.example.velocitysuites.BookingAndReservationActivity.class)).setup().get();
+        idle();
+        a.findViewById(R.id.btnNewBooking).performClick();
+        Intent next = shadowOf(a).getNextStartedActivity();
+        assertNotNull(next);
+        assertEquals(RoomBrowsingActivity.class.getName(), next.getComponent().getClassName());
+    }
 }

@@ -88,6 +88,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private TextView tvSelectionSummaryCount, tvSelectionSummaryTotal;
     /** Debounces rapid double-taps on Book Now/Reserve Now so a fast double-tap can't launch two Activities. Reset in onResume(). */
     private boolean isNavigatingToBookingFlow = false;
+    /** Set by every way into a new booking or reservation that has no dates yet: the screen opens asking for them. */
+    public static final String EXTRA_DATES_FIRST = "DATES_FIRST";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +117,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             // A multi-room cart carried over from landing.xml must immediately
             // show its full details here, not just the collapsed summary bar -
             // mirrors the single-room auto-open path below.
-            shouldOpenSelectedRoomsSummary = ids.length >= 2;
+            shouldOpenSelectedRoomsSummary = ids.length >= 2 && !getIntent().getBooleanExtra(EXTRA_DATES_FIRST, false);
         } else if (selectedRoomIdFromLanding != null) {
             // Whatever quantity the guest already staged on this room's card
             // stepper on landing.xml (ROOM_QTY, default 1) must carry through
@@ -140,6 +142,9 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         updatePersonalizedGreeting();
         applyRestoredDates();
         reattachRestoredPickerListeners();
+        if (savedInstanceState == null && getIntent().getBooleanExtra(EXTRA_DATES_FIRST, false)) {
+            getWindow().getDecorView().post(() -> { if (!isFinishing() && !isDestroyed()) requireDatesFirst(); });
+        }
     }
 
     // ---- surviving recreation (dark-mode toggle, process death) ----

@@ -28,7 +28,20 @@ public class StartingTransactionActivity extends SafeActivity {
 
     private static final String EXTRA_MODE = "EXTRA_MODE";
 
+    /**
+     * The way into a new booking or reservation. Dates come first: without chosen dates waiting (a New booking button, Book Again, the
+     * payment screen's Book Now) this opens Room Browsing on its date fields with "Choose your check-in and check-out dates first.",
+     * keeping any rooms already picked; with dates it opens the intro screen and then Step 1, prefilled.
+     */
     public static Intent newIntent(Context context, BookingWizardState.Mode mode) {
+        if (!PendingWizardRooms.hasDates()) {
+            Intent browse = new Intent(context, RoomBrowsingActivity.class);
+            java.util.List<String> ids = new java.util.ArrayList<>();
+            for (Room r : PendingWizardRooms.peek()) ids.add(r.getId());
+            if (!ids.isEmpty()) browse.putExtra("ROOM_IDS", String.join(",", ids));
+            browse.putExtra(RoomBrowsingActivity.EXTRA_DATES_FIRST, true);
+            return browse;
+        }
         Intent intent = new Intent(context, StartingTransactionActivity.class);
         intent.putExtra(EXTRA_MODE, mode.name());
         return intent;
