@@ -222,12 +222,13 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
     }
 
     private void loadCatalog() {
-        repository.refreshAmenities("paid", new RoomRepository.RepositoryCallback<List<AddOnAmenity>>() {
+        repository.refreshAmenities(null, new RoomRepository.RepositoryCallback<List<AddOnAmenity>>() {
             @Override
             public void onSuccess(List<AddOnAmenity> rawItems) {
                 if (isFinishing()) return;
                 // Active amenities only, each once (by id); same name under two ids is reported, not hidden.
-                List<AddOnAmenity> items = AmenityCatalog.cleaned(rawItems);
+                // "Included with your room" first, then "Additional amenities"
+                List<AddOnAmenity> items = AmenityCatalog.grouped(AmenityCatalog.cleaned(rawItems));
                 List<String> sameName = AmenityCatalog.sameNameDifferentId(items);
                 if (!sameName.isEmpty()) {
                     com.example.velocitysuites.network.DiagnosticLog.w("AdditionalAmenities",
@@ -291,12 +292,22 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
         int[] quantities = selections.get(room.id);
 
         LayoutInflater inflater = LayoutInflater.from(this);
+        boolean anyIncluded = false;
+        for (AddOnAmenity a : catalog) anyIncluded |= AmenityCatalog.isIncluded(a);
         for (int i = 0; i < catalog.size(); i++) {
             final int index = i;
             AddOnAmenity amenity = catalog.get(i);
+            boolean included = AmenityCatalog.isIncluded(amenity);
+            // The two groups get their titles once there is an Included amenity to tell apart; a hotel with only paid ones keeps the plain list.
+            if (anyIncluded && (i == 0 || included != AmenityCatalog.isIncluded(catalog.get(i - 1)))) {
+                list.addView(groupHeading(included ? R.string.additional_amenities_group_included : R.string.additional_amenities_group_paid,
+                        included ? R.string.additional_amenities_included_note : 0));
+            }
             View row = inflater.inflate(R.layout.item_additional_amenity_option, list, false);
             ((TextView) row.findViewById(R.id.tvAmenityOptionName)).setText(amenity.getName());
-            ((TextView) row.findViewById(R.id.tvAmenityOptionPrice)).setText(getString(R.string.additional_amenities_each_format, MoneyFormat.format(amenity.getPrice())));
+            ((TextView) row.findViewById(R.id.tvAmenityOptionPrice)).setText(included
+                    ? getString(R.string.additional_amenities_included_price_format, MoneyFormat.format(0))
+                    : getString(R.string.additional_amenities_each_format, MoneyFormat.format(amenity.getPrice())));
             bindDescription(row, amenity);
             int cap = Math.min(MAX_QTY, amenity.getMaxQuantity());
             bindRow(row, quantities[index], amenity, cap);
@@ -323,6 +334,29 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
         content.findViewById(R.id.btnPickerDone).setOnClickListener(v -> dialog.dismiss());
         dialog.setContentView(content);
         SafeDialogs.show(dialog);
+    }
+
+    /** A group title in the picker ("Included with your room" / "Additional amenities"), with an optional one-line note under it. */
+    private View groupHeading(@androidx.annotation.StringRes int title, @androidx.annotation.StringRes int note) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        int pad = Math.round(8 * getResources().getDisplayMetrics().density);
+        box.setPadding(0, pad, 0, 0);
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTextSize(14);
+        heading.setTypeface(heading.getTypeface(), android.graphics.Typeface.BOLD);
+        heading.setTextColor(getColor(R.color.velocity_text_primary));
+        heading.setAccessibilityHeading(true);
+        box.addView(heading);
+        if (note != 0) {
+            TextView sub = new TextView(this);
+            sub.setText(note);
+            sub.setTextSize(12);
+            sub.setTextColor(getColor(R.color.velocity_text_secondary));
+            box.addView(sub);
+        }
+        return box;
     }
 
     /** "3 items · ₱200.00" for what is chosen in one room. */
@@ -366,8 +400,10 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
         TextView subtotal = row.findViewById(R.id.tvAmenityOptionSubtotal);
         subtotal.setVisibility(qty > 0 ? View.VISIBLE : View.GONE);
         if (qty > 0) {
-            subtotal.setText(getString(R.string.additional_amenities_line_subtotal_format, qty,
-                    MoneyFormat.format(amenity.getPrice()), MoneyFormat.format(amenity.getPrice() * qty)));
+            subtotal.setText(AmenityCatalog.isIncluded(amenity)
+                    ? getString(R.string.additional_amenities_included_line_format, qty)
+                    : getString(R.string.additional_amenities_line_subtotal_format, qty,
+                            MoneyFormat.format(amenity.getPrice()), MoneyFormat.format(amenity.getPrice() * qty)));
         }
         row.findViewById(R.id.btnAmenityOptionMinus).setEnabled(qty > 0);
         row.findViewById(R.id.btnAmenityOptionPlus).setEnabled(qty < cap);

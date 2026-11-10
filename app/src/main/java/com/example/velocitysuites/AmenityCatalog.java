@@ -35,6 +35,20 @@ final class AmenityCatalog {
         return new ArrayList<>(byId.values());
     }
 
+    /** Included with the room (price 0, never on the bill) as opposed to Paid. */
+    static boolean isIncluded(@NonNull AddOnAmenity amenity) {
+        return amenity.getPrice() <= 0.004;
+    }
+
+    /** The included amenities first, then the paid ones, each group keeping the server's order. */
+    @NonNull
+    static List<AddOnAmenity> grouped(@NonNull List<AddOnAmenity> catalog) {
+        List<AddOnAmenity> out = new ArrayList<>();
+        for (AddOnAmenity a : catalog) if (isIncluded(a)) out.add(a);
+        for (AddOnAmenity a : catalog) if (!isIncluded(a)) out.add(a);
+        return out;
+    }
+
     /** Names that appear under more than one amenity id in this catalog (candidates for duplicate data on the server). */
     @NonNull
     static List<String> sameNameDifferentId(@NonNull List<AddOnAmenity> catalog) {
