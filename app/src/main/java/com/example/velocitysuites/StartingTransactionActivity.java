@@ -33,6 +33,15 @@ public class StartingTransactionActivity extends SafeActivity {
      * payment screen's Book Now) this opens Room Browsing on its date fields with "Choose your check-in and check-out dates first.",
      * keeping any rooms already picked; with dates it opens the intro screen and then Step 1, prefilled.
      */
+    /** The New booking / New reservation buttons: like {@link #newIntent}, but Room Browsing then offers only that action. */
+    public static Intent newIntentFromNewButton(Context context, BookingWizardState.Mode mode) {
+        Intent intent = newIntent(context, mode);
+        if (RoomBrowsingActivity.class.getName().equals(intent.getComponent().getClassName())) {
+            intent.putExtra(RoomBrowsingActivity.EXTRA_MODE, mode.name());
+        }
+        return intent;
+    }
+
     public static Intent newIntent(Context context, BookingWizardState.Mode mode) {
         if (!PendingWizardRooms.hasDates()) {
             Intent browse = new Intent(context, RoomBrowsingActivity.class);

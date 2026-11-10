@@ -90,6 +90,10 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private boolean isNavigatingToBookingFlow = false;
     /** Set by every way into a new booking or reservation that has no dates yet: the screen opens asking for them. */
     public static final String EXTRA_DATES_FIRST = "DATES_FIRST";
+    /** BOOKING or RESERVATION: the guest started from New booking / New reservation, so only that action is offered (null = both). */
+    public static final String EXTRA_MODE = "WIZARD_MODE";
+    private static final String STATE_MODE = "wizard_mode";
+    private BookingWizardState.Mode lockedMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +134,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
             int qtyFromLanding = Math.max(1, getIntent().getIntExtra("ROOM_QTY", 1));
             selectedQuantities.put(selectedRoomIdFromLanding, qtyFromLanding);
         }
+        if (savedInstanceState == null) lockedMode = modeOf(getIntent().getStringExtra(EXTRA_MODE));
         setupGuestNavigation(R.id.nav_room_browsing);
 
         initializeViews();
@@ -142,6 +147,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         updatePersonalizedGreeting();
         applyRestoredDates();
         reattachRestoredPickerListeners();
+        setupModeBanner();
+        applyMode();
         if (savedInstanceState == null && getIntent().getBooleanExtra(EXTRA_DATES_FIRST, false)) {
             getWindow().getDecorView().post(() -> { if (!isFinishing() && !isDestroyed()) requireDatesFirst(); });
         }
@@ -183,6 +190,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         outState.putString(STATE_TYPE, selectedRoomTypeFilter);
         outState.putString(STATE_STATUS, selectedStatusFilter);
         outState.putBoolean(STATE_FILTERS_APPLIED, filtersApplied);
+        outState.putString(STATE_MODE, lockedMode == null ? null : lockedMode.name());
     }
 
     private void restoreBrowsingState(Bundle state) {
@@ -202,6 +210,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         selectedRoomTypeFilter = state.getString(STATE_TYPE, "All");
         selectedStatusFilter = state.getString(STATE_STATUS, "All");
         filtersApplied = state.getBoolean(STATE_FILTERS_APPLIED, false);
+        lockedMode = modeOf(state.getString(STATE_MODE));
     }
 
     /** Puts the restored dates back in the fields and re-runs the date-aware availability search (the plain load that onCreate started is superseded). */
@@ -1345,7 +1354,45 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 reservation ? BookingWizardState.Mode.RESERVATION : BookingWizardState.Mode.BOOKING));
     }
 
+    private static BookingWizardState.Mode modeOf(String name) {
+        if ("RESERVATION".equals(name)) return BookingWizardState.Mode.RESERVATION;
+        if ("BOOKING".equals(name)) return BookingWizardState.Mode.BOOKING;
+        return null;
+    }
+
+    private void setupModeBanner() {
+        View link = findViewById(R.id.tvSwitchMode);
+        if (link == null) return;
+        link.setOnClickListener(v -> {
+            lockedMode = lockedMode == BookingWizardState.Mode.RESERVATION ? BookingWizardState.Mode.BOOKING : BookingWizardState.Mode.RESERVATION;
+            applyMode();
+        });
+    }
+
+    /**
+     * Started from New booking or New reservation: a banner says which, with a link to switch; the room cards and the selection bar offer
+     * only that action. Without a mode (landing, nav) everything is as before.
+     */
+    private void applyMode() {
+        View banner = findViewById(R.id.layoutModeBanner);
+        boolean reserve = lockedMode == BookingWizardState.Mode.RESERVATION;
+        if (banner != null) {
+            banner.setVisibility(lockedMode == null ? View.GONE : View.VISIBLE);
+            ((TextView) findViewById(R.id.tvModeBanner)).setText(reserve ? R.string.mode_banner_reservation : R.string.mode_banner_booking);
+            ((TextView) findViewById(R.id.tvSwitchMode)).setText(reserve ? R.string.mode_switch_to_booking : R.string.mode_switch_to_reservation);
+        }
+        if (adapter != null) {
+            adapter.setActionMode(lockedMode == null ? RoomAdapter.ACTIONS_BOTH : (reserve ? RoomAdapter.ACTIONS_RESERVE_ONLY : RoomAdapter.ACTIONS_BOOK_ONLY));
+        }
+        findViewById(R.id.btnCartReserve).setVisibility(lockedMode == BookingWizardState.Mode.BOOKING ? View.GONE : View.VISIBLE);
+        findViewById(R.id.btnCartBook).setVisibility(reserve ? View.GONE : View.VISIBLE);
+    }
+
     private void showRoomDetailsDialog(Room room, String action) {
+        // View Details from a New booking / New reservation start offers only that action too
+        if (lockedMode != null && PendingRoomSelection.ACTION_VIEW.equals(action)) {
+            action = lockedMode == BookingWizardState.Mode.RESERVATION ? PendingRoomSelection.ACTION_RESERVE : PendingRoomSelection.ACTION_BOOK;
+        }
         String occupiedRangeText = (checkInDate != null && checkOutDate != null)
                 ? getString(R.string.occupied_from_until_format,
                         dateFormat.format(checkInDate.getTime()), dateFormat.format(checkOutDate.getTime()))

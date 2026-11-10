@@ -426,6 +426,43 @@
                         tools:text="Oct 21 → Oct 22 · 1 night"
                         tools:visibility="visible" />
 
+                    <!-- New booking / New reservation: which one this is, with a link to switch. -->
+                    <LinearLayout
+                        android:id="@+id/layoutModeBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/velocity_red_soft"
+                        android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/tvModeBanner"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="@color/velocity_text_primary"
+                            android:textSize="13sp"
+                            tools:text="You're making a reservation (pay later)" />
+
+                        <TextView
+                            android:id="@+id/tvSwitchMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:fontFamily="sans-serif-bold"
+                            android:gravity="center"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="@color/velocity_action_text"
+                            android:textSize="13sp"
+                            tools:text="Switch to booking" />
+                    </LinearLayout>
+
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="8dp"

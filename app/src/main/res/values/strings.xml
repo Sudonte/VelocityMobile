@@ -2001,6 +2001,10 @@
     <string name="helper_pick_checkin_first">Pick a check-in date first</string>
     <string name="error_pick_checkin">Choose a check-in date</string>
     <!-- Book now / Reserve / Book Selected / Reserve Selected before any dates are chosen (same words on the web) -->
+    <string name="mode_banner_reservation">You\'re making a reservation (pay later)</string>
+    <string name="mode_banner_booking">You\'re making a booking (pay now)</string>
+    <string name="mode_switch_to_booking">Switch to booking</string>
+    <string name="mode_switch_to_reservation">Switch to reservation</string>
     <string name="error_dates_first">Choose your check-in and check-out dates first.</string>
     <string name="error_pick_checkout">Choose a check-out date</string>
     <string name="chip_up_to_price_format">Up to \u20b1%1$s</string>

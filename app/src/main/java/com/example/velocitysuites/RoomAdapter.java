@@ -139,6 +139,17 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    /** Which of the two room-card actions are offered: both (the default), only Book now, or only Reserve. */
+    public static final int ACTIONS_BOTH = 0, ACTIONS_BOOK_ONLY = 1, ACTIONS_RESERVE_ONLY = 2;
+    private int actionMode = ACTIONS_BOTH;
+
+    /** The guest started from New booking or New reservation: the cards offer only that action. */
+    public void setActionMode(int mode) {
+        if (actionMode == mode) return;
+        actionMode = mode;
+        notifyItemRangeChanged(0, getItemCount());
+    }
+
     public RoomAdapter(List<Room> rooms, OnRoomClickListener listener) {
         this(rooms, listener, false, null);
     }
@@ -433,6 +444,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.btnViewDetails.setContentDescription(context.getString(R.string.cd_view_details_format, room.getName()));
         holder.btnReserveNow.setContentDescription(context.getString(R.string.cd_reserve_now_format, room.getName()));
         holder.btnQuickBook.setContentDescription(context.getString(R.string.cd_book_now_format, room.getName()));
+        if (actionMode == ACTIONS_BOOK_ONLY) holder.btnReserveNow.setVisibility(View.GONE);
+        if (actionMode == ACTIONS_RESERVE_ONLY) holder.btnQuickBook.setVisibility(View.GONE);
 
         // The three action buttons are 48dp tall in item_room_card.xml, so they are full-size touch targets on
         // their own (an earlier version widened their tap areas with a TouchDelegate because they were 40dp).

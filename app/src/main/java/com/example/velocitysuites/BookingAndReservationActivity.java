@@ -487,8 +487,8 @@ public class BookingAndReservationActivity extends BaseNavigationActivity {
         layoutCreateForm = findViewById(R.id.layoutCreateForm);
         btnNewBooking = findViewById(R.id.btnNewBooking);
         btnNewReservation = findViewById(R.id.btnNewReservation);
-        btnNewBooking.setOnClickListener(NavUtils.debounce(v -> startActivity(StartingTransactionActivity.newIntent(this, BookingWizardState.Mode.BOOKING))));
-        btnNewReservation.setOnClickListener(NavUtils.debounce(v -> startActivity(StartingTransactionActivity.newIntent(this, BookingWizardState.Mode.RESERVATION))));
+        btnNewBooking.setOnClickListener(NavUtils.debounce(v -> startActivity(StartingTransactionActivity.newIntentFromNewButton(this, BookingWizardState.Mode.BOOKING))));
+        btnNewReservation.setOnClickListener(NavUtils.debounce(v -> startActivity(StartingTransactionActivity.newIntentFromNewButton(this, BookingWizardState.Mode.RESERVATION))));
         btnAddRoom = findViewById(R.id.btnAddRoom);
         tvRoomSelectionHelper = findViewById(R.id.tvRoomSelectionHelper);
         tilCheckIn = findViewById(R.id.tilCheckIn);
