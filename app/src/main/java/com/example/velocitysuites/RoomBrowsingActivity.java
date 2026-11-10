@@ -439,6 +439,16 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
                 int selectedIndex = index;
                 String action = selectedRoomActionFromLanding != null
                         ? selectedRoomActionFromLanding : PendingRoomSelection.ACTION_VIEW;
+                boolean books = PendingRoomSelection.ACTION_BOOK.equals(action) || PendingRoomSelection.ACTION_RESERVE.equals(action);
+                if (books && !(checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate))) {
+                    // The landing page has no dates: the room stays selected here and the guest is asked for them first.
+                    rvRooms.postDelayed(() -> {
+                        if (isFinishing() || isDestroyed()) return;
+                        requireDatesFirst();
+                        onRoomSelectionChanged();
+                    }, 450L);
+                    return;
+                }
                 rvRooms.postDelayed(() -> {
                     if (isFinishing() || isDestroyed()) return;
                     rvRooms.smoothScrollToPosition(selectedIndex);
@@ -1211,8 +1221,23 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         showRoomDetailsDialog(room, PendingRoomSelection.ACTION_VIEW);
     }
 
+    /**
+     * Book now / Reserve (and Book Selected / Reserve Selected) need check-in and check-out dates the guest chose. Without them the date
+     * fields are brought into view (the header is expanded) with one inline message under the field that is still empty, and nothing opens.
+     */
+    public boolean requireDatesFirst() {
+        if (checkInDate != null && checkOutDate != null && checkOutDate.after(checkInDate)) return true;
+        if (appBarLayout != null) appBarLayout.setExpanded(true, true);
+        checkInLayout.setError(null);
+        checkOutLayout.setError(null);
+        setFieldError(checkInDate == null ? checkInLayout : checkOutLayout, getString(R.string.error_dates_first));
+        (checkInDate == null ? etCheckIn : etCheckOut).requestFocus();
+        return false;
+    }
+
     @Override
     public void onBookNowClick(Room room) {
+        if (!requireDatesFirst()) return;
         // Tapping Book Now from the room list opens the details dialog first
         // (with only Book Now visible) - the guest confirms there before the
         // screen actually navigates to the booking form.
@@ -1221,6 +1246,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
     @Override
     public void onReserveNowClick(Room room) {
+        if (!requireDatesFirst()) return;
         showRoomDetailsDialog(room, PendingRoomSelection.ACTION_RESERVE);
     }
 
@@ -1268,6 +1294,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
      */
     private void navigateToBooking(Room room, boolean reservation) {
         if (isNavigatingToBookingFlow) return;
+        if (!requireDatesFirst()) return;
         isNavigatingToBookingFlow = true;
         List<Room> roomsToCarry = resolveCartRoomsIncluding(room);
         PendingWizardRooms.set(roomsToCarry);
@@ -1298,6 +1325,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
      */
     private void navigateToBookingWithCart(boolean reservation) {
         if (isNavigatingToBookingFlow || selectedQuantities.isEmpty()) return;
+        if (!requireDatesFirst()) return;
         List<Room> cartRooms = new ArrayList<>();
         for (Room r : Room.withOptions(allRooms)) {
             Integer qty = selectedQuantities.get(r.getId());

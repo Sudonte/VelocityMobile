@@ -2034,6 +2034,8 @@
     <string name="helper_earliest_format">Earliest: %1$s</string>
     <string name="helper_pick_checkin_first">Pick a check-in date first</string>
     <string name="error_pick_checkin">Choose a check-in date</string>
+    <!-- Book now / Reserve / Book Selected / Reserve Selected before any dates are chosen (same words on the web) -->
+    <string name="error_dates_first">Choose your check-in and check-out dates first.</string>
     <string name="error_pick_checkout">Choose a check-out date</string>
     <string name="chip_up_to_price_format">Up to \u20b1%1$s</string>
     <string name="chip_from_price_format">From \u20b1%1$s</string>
