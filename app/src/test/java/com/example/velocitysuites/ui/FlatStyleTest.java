@@ -130,7 +130,7 @@ public class FlatStyleTest {
             idle();
             BookingWizardActivity activity = controller.get();
             activity.getState().selectedRooms.add(room("1"));
-            int steps = mode == BookingWizardState.Mode.RESERVATION ? 7 : 6;
+            int steps = mode == BookingWizardState.Mode.RESERVATION ? 4 : 3;
             for (int step = 1; step <= steps; step++) {
                 activity.goToStep(step);
                 idle();
@@ -224,12 +224,12 @@ public class FlatStyleTest {
         assertTrue(problems.toString(), problems.isEmpty());
 
         BottomSheetDialog sheet = new BottomSheetDialog(activity);
-        sheet.setContentView(R.layout.dialog_discount_details);
+        sheet.setContentView(R.layout.sheet_wizard_review);
         sheet.show();
         idle();
         problems.clear();
         collect(sheet.getWindow().getDecorView(), problems, "bottom sheet");
         assertTrue(problems.toString(), problems.isEmpty());
-        assertNull(sheet.findViewById(R.id.btnDetailSelect).getStateListAnimator());
+        assertNull(sheet.findViewById(R.id.btnReviewContinue).getStateListAnimator());
     }
 }

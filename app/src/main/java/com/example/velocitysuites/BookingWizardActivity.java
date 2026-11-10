@@ -275,9 +275,9 @@ public class BookingWizardActivity extends SafeActivity {
             }
         }
 
-        // Dates and rooms are one step now (Step 1), so a Booking and a Reservation Modify have 6 steps; only a fresh (non-edit)
-        // Reservation gains the Payment Method step and has 7.
-        stepCount = (mode == BookingWizardState.Mode.RESERVATION && !isEditMode()) ? 7 : 6;
+        // Dates and rooms (1), Representative and guests (2), Review and bill summary: a Booking and a Reservation Modify have 3 steps; only a
+        // fresh (non-edit) Reservation gains the Payment Method step before the review and has 4.
+        stepCount = (mode == BookingWizardState.Mode.RESERVATION && !isEditMode()) ? 4 : 3;
 
         // Header color mirrors startingbooking.xml (velocity_red_primary) vs
         // startingreservation.xml (velocity_red_dark) - the only visual
@@ -546,10 +546,7 @@ public class BookingWizardActivity extends SafeActivity {
         state.guestLastName = original.getGuestLastName();
         state.adults = Math.max(1, original.getAdults());
         state.children = Math.max(0, original.getChildren());
-        state.idCardType = original.getIdCardType() != null ? original.getIdCardType() : "None";
-        if (!"None".equals(state.idCardType)) {
-            state.discount = new Discount(original.getDiscountId(), state.idCardType, null, 0, null);
-        }
+        // No discount or ID is carried: the front desk records and verifies it at check-in.
         if (original.getAdditionalGuests() != null) {
             for (Booking.AdditionalGuest g : original.getAdditionalGuests()) {
                 state.additionalGuests.add(new BookingAndReservationActivity.AdditionalGuest(g.name, g.age, g.gender, g.relationship));
@@ -612,8 +609,8 @@ public class BookingWizardActivity extends SafeActivity {
     private void showStep(int stepIndex) {
         boolean forward = stepIndex >= currentStepIndex;
         currentStepIndex = stepIndex;
-        // Only the first two steps (stays, amenities) work on one stay at a time; from the guest steps on everything reads all stays.
-        if (stepIndex >= 3) state.activate(0);
+        // Only the first step (the stays) works on one stay at a time; from the guest step on everything reads all stays.
+        if (stepIndex >= 2) state.activate(0);
         setNextReason(null);
         Fragment fragment = createFragmentForStep(stepIndex);
         FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
@@ -632,16 +629,14 @@ public class BookingWizardActivity extends SafeActivity {
         // Payment Method chooser, and the review fragment moves to step 8.
         // Every other run (Booking mode, or Reservation Modify) stays at 7
         // steps with the review fragment still occupying step 7, unchanged.
-        boolean hasPaymentMethodStep = stepCount == 7;
+        boolean hasPaymentMethodStep = stepCount == 4;
         switch (stepIndex) {
             // Dates and the rooms available for them, together (and "Add another stay").
             case 1: return new StepStaysFragment();
-            case 2: return new Step3AmenitiesFragment();
-            case 3: return new Step4GuestIdentificationFragment();
-            case 4: return new Step5AdditionalGuestsFragment();
-            case 5: return new Step6IdVerificationFragment();
-            case 6: return hasPaymentMethodStep ? new Step7PaymentMethodFragment() : new Step8ReviewPaymentFragment();
-            case 7: return new Step8ReviewPaymentFragment();
+            // The representative, then directly below it the guests.
+            case 2: return new StepRepresentativeGuestsFragment();
+            case 3: return hasPaymentMethodStep ? new Step7PaymentMethodFragment() : new Step8ReviewPaymentFragment();
+            case 4: return new Step8ReviewPaymentFragment();
             default: throw new IllegalStateException("Unknown wizard step: " + stepIndex);
         }
     }
@@ -696,8 +691,8 @@ public class BookingWizardActivity extends SafeActivity {
         View bar = findViewById(R.id.wizardSummaryBar);
         if (bar == null) return;
         // The final review step shows the same facts in its own summary card.
-        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount || currentFragment() instanceof Step3AmenitiesFragment) {
-            bar.setVisibility(View.GONE); // the amenities step has its own live total at the bottom
+        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount) {
+            bar.setVisibility(View.GONE);
             return;
         }
         int rooms = 0;

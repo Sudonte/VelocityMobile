@@ -46,9 +46,7 @@ final class WelcomeTopics {
                 return new WelcomeTopics(GCASH, R.drawable.ic_payment_card, R.string.welcome_point_pay_title, R.string.welcome_topic_gcash_intro, false,
                         s(R.string.welcome_topic_gcash_s1_title, R.string.welcome_topic_gcash_s1_desc),
                         s(R.string.welcome_topic_gcash_s2_title, R.string.welcome_topic_gcash_s2_desc),
-                        s(R.string.welcome_topic_gcash_s3_title, R.string.welcome_topic_gcash_s3_desc),
-                        s(R.string.welcome_topic_gcash_s4_title, R.string.welcome_topic_gcash_s4_desc),
-                        s(R.string.welcome_topic_gcash_s5_title, R.string.welcome_topic_gcash_s5_desc));
+                        s(R.string.welcome_topic_gcash_s3_title, R.string.welcome_topic_gcash_s3_desc));
             case TRACK:
                 return new WelcomeTopics(TRACK, R.drawable.ic_transaction_history, R.string.welcome_point_track_title, R.string.welcome_topic_track_intro, false,
                         s(R.string.welcome_topic_track_s1_title, R.string.welcome_topic_track_s1_desc),
@@ -67,10 +65,7 @@ final class WelcomeTopics {
                         s(R.string.welcome_topic_booking_s1_title, R.string.welcome_topic_booking_s1_desc),
                         s(R.string.welcome_topic_booking_s2_title, R.string.welcome_topic_booking_s2_desc),
                         s(R.string.welcome_topic_booking_s3_title, R.string.welcome_topic_booking_s3_desc),
-                        s(R.string.welcome_topic_booking_s4_title, R.string.welcome_topic_booking_s4_desc),
-                        s(R.string.welcome_topic_booking_s5_title, R.string.welcome_topic_booking_s5_desc),
-                        s(R.string.welcome_topic_booking_s6_title, R.string.welcome_topic_booking_s6_desc),
-                        s(R.string.welcome_topic_booking_s7_title, R.string.welcome_topic_booking_s7_desc));
+                        s(R.string.welcome_topic_booking_s4_title, R.string.welcome_topic_booking_s4_desc));
         }
     }
 }

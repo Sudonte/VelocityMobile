@@ -114,7 +114,7 @@ public class Release163Test {
         return a;
     }
 
-    private static final String[] BOOKING_TITLES = {"Dates and rooms", "Amenities", "Representative", "Guests", "ID verification", "Review and bill summary"};
+    private static final String[] BOOKING_TITLES = {"Dates and rooms", "Representative and guests", "Review and bill summary"};
 
     // ---- the step header ----
 
@@ -122,14 +122,14 @@ public class Release163Test {
     public void everyStep_hasOneLine_StepNofM_title_andTheTitleIsNotRepeated() {
         for (BookingWizardState.Mode mode : new BookingWizardState.Mode[]{BookingWizardState.Mode.BOOKING, BookingWizardState.Mode.RESERVATION}) {
             BookingWizardActivity a = filled(mode);
-            int steps = mode == BookingWizardState.Mode.BOOKING ? 6 : 7;
+            int steps = mode == BookingWizardState.Mode.BOOKING ? 3 : 4;
             for (int step = 1; step <= steps; step++) {
                 a.goToStep(step);
                 idle();
                 WizardDriver.advance();
                 String line = ((TextView) a.findViewById(R.id.tvWizardStepLabel)).getText().toString();
                 String tag = mode + " step " + step + ": " + line;
-                assertTrue(tag, line.startsWith("Step " + step + " of " + steps + " · ") && line.length() > ("Step 1 of 6 · ").length());
+                assertTrue(tag, line.startsWith("Step " + step + " of " + steps + " · ") && line.length() > ("Step 1 of 3 · ").length());
                 String title = line.substring(line.indexOf('·') + 2);
                 assertEquals(tag + " (the hidden bare title is the same)", title, ((TextView) a.findViewById(R.id.tvWizardStepName)).getText().toString());
                 assertEquals(tag, View.GONE, a.findViewById(R.id.tvWizardStepName).getVisibility());
@@ -144,15 +144,13 @@ public class Release163Test {
 
     @Test
     public void theHelperLines_areShort_twoLinesAtMost() {
-        String[] helpers = {
-                app.getString(R.string.addon_amenities_notice), app.getString(R.string.who_is_staying_hint), app.getString(R.string.representative_name_helper),
-                app.getString(R.string.discount_step_intro_stays), app.getString(R.string.discount_checkin_note)};
+        String[] helpers = {app.getString(R.string.who_is_staying_hint), app.getString(R.string.representative_name_helper)};
         for (String q : CONFIGS) {
             RuntimeEnvironment.setQualifiers("+" + q);
             ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
             BookingWizardActivity a = filled(BookingWizardState.Mode.BOOKING);
             int found = 0;
-            for (int step = 2; step <= 5; step++) {
+            for (int step = 2; step <= 2; step++) {
                 a.goToStep(step);
                 idle();
                 WizardDriver.advance();
@@ -168,7 +166,7 @@ public class Release163Test {
                     }
                 }
             }
-            assertTrue(q + ": the helpers were on screen (" + found + ")", found >= 4);
+            assertTrue(q + ": the helpers were on screen (" + found + ")", found >= 1);
         }
     }
 
@@ -178,11 +176,11 @@ public class Release163Test {
     public void backLinesUpWithConfirm_onTheLastStep_andKeepsItsGapBeforeNextOtherwise() {
         BookingWizardActivity a = filled(BookingWizardState.Mode.BOOKING);
         float dp = a.getResources().getDisplayMetrics().density;
-        a.goToStep(3);
+        a.goToStep(2);
         idle();
         ViewGroup.MarginLayoutParams back = (ViewGroup.MarginLayoutParams) a.findViewById(R.id.btnWizardPrevious).getLayoutParams();
         assertEquals(Math.round(8 * dp), back.getMarginEnd());
-        a.goToStep(6);
+        a.goToStep(3);
         idle();
         back = (ViewGroup.MarginLayoutParams) a.findViewById(R.id.btnWizardPrevious).getLayoutParams();
         assertEquals("Back is the only button on the last step: it fills the bar like Confirm", 0, back.getMarginEnd());
@@ -214,7 +212,7 @@ public class Release163Test {
             RuntimeEnvironment.setQualifiers("+" + q);
             ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
             BookingWizardActivity a = filled(BookingWizardState.Mode.BOOKING);
-            a.goToStep(6);
+            a.goToStep(3);
             idle();
             assertDisabledReadable(q, a);
             View confirm = WizardDriver.find(a, R.id.btnConfirmTransaction);
@@ -271,7 +269,7 @@ public class Release163Test {
         }
     }
 
-    // ---- every combination still walks all six steps ----
+    // ---- every combination still walks all three steps ----
 
     @Test
     public void everyCombination_walksAllSteps_withOneAndTwoStays_amenities_owner_minors_andDiscount() {
@@ -301,12 +299,12 @@ public class Release163Test {
                             if (minor) s.additionalGuests.add(new BookingAndReservationActivity.AdditionalGuest("Leo Reyes", 8, "Male", "Child"));
                             if (discount) s.setDiscount(new Discount("3", "PWD", "percentage", 20, "d", "active", null, null));
                             String combo = stays + " stays, amenity " + amenity + ", someone else " + someoneElse + ", minor " + minor + ", discount " + discount;
-                            for (int step = 1; step <= 6; step++) {
+                            for (int step = 1; step <= 3; step++) {
                                 a.goToStep(step);
                                 idle();
                                 WizardDriver.advance();
                                 String line = ((TextView) a.findViewById(R.id.tvWizardStepLabel)).getText().toString();
-                                assertTrue(combo + " step " + step + ": " + line, line.startsWith("Step " + step + " of 6 · "));
+                                assertTrue(combo + " step " + step + ": " + line, line.startsWith("Step " + step + " of 3 · "));
                             }
                             // the review lists every stay, with a subtotal each when there are several
                             List<String> review = textsOf(WizardDriver.step(a).getView());
@@ -380,7 +378,7 @@ public class Release163Test {
         a.findViewById(R.id.btnWizardNext).performClick();
         idle();
         String line = ((TextView) a.findViewById(R.id.tvWizardStepLabel)).getText().toString();
-        assertTrue(line, line.startsWith("Step 3 of 6") || line.startsWith("Step 2 of 6"));
+        assertTrue(line, line.startsWith("Step 3 of 3") || line.startsWith("Step 2 of 3"));
     }
 
     // ---- large fonts on the wizard ----
@@ -393,7 +391,7 @@ public class Release163Test {
                 RuntimeEnvironment.setFontScale(scale);
                 ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
                 BookingWizardActivity a = filled(BookingWizardState.Mode.BOOKING);
-                for (int step : new int[]{1, 3, 4, 6}) {
+                for (int step : new int[]{1, 2, 3}) {
                     a.goToStep(step);
                     idle();
                     WizardDriver.advance();

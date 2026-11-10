@@ -527,7 +527,7 @@ public class StepStaysFragment extends WizardStepFragment {
 
     @Override
     public String nextConfirmTitle() {
-        return getString(R.string.proceed_to_amenities);
+        return getString(R.string.proceed_to_rep_guests);
     }
 
     @Override

@@ -273,14 +273,13 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         }
         layoutReviewSections.addView(buildSection(R.string.review_section_stays, 1, stayRows));
 
-        // 2. Amenities: per stay and room
+        // 2. Amenities: not chosen when booking any more (they are requested during the stay); a reservation made with some keeps showing them
         List<View> amenityRows = new ArrayList<>();
         for (ReviewSheet.Section section : WizardReview.amenities(c, state)) {
             amenityRows.add(ReviewSheet.heading(c, section.heading, amenityRows.isEmpty()));
             for (ReviewSheet.Row row : section.rows) amenityRows.add(ReviewSheet.row(c, row));
         }
-        if (amenityRows.isEmpty()) amenityRows.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_no_amenities), null)));
-        layoutReviewSections.addView(buildSection(R.string.review_section_amenities, 2, amenityRows));
+        if (!amenityRows.isEmpty()) layoutReviewSections.addView(buildSection(R.string.review_section_amenities, 0, amenityRows));
 
         // Promos for the rooms chosen: a note with the estimated saving, verified by the front desk at check-in (never subtracted here)
         List<ReviewSheet.Row> promoRows = WizardReview.promoRows(c, state);
@@ -298,7 +297,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 getString(state.who == BookingWizardState.Who.OTHER ? R.string.who_someone_else : R.string.who_owner_me))));
         if (!rep.formatted().isEmpty()) who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_name_label), rep.formatted())));
         who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_present_id_note), null)));
-        layoutReviewSections.addView(buildSection(R.string.review_section_representative, 3, who));
+        layoutReviewSections.addView(buildSection(R.string.review_section_representative, 2, who));
 
         // 4. Guests: adults, minors and their ages
         List<View> guests = new ArrayList<>();
@@ -310,19 +309,17 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             minor++;
             guests.add(ReviewSheet.row(c, ReviewSheet.Row.indented(getString(R.string.child_age_field_format, minor), g.age >= 0 ? String.valueOf(g.age) : "-")));
         }
-        layoutReviewSections.addView(buildSection(R.string.review_section_guests, 4, guests));
+        layoutReviewSections.addView(buildSection(R.string.review_section_guests, 2, guests));
 
-        // 5. ID / discount
-        List<View> id = new ArrayList<>();
-        if (state.discount == null) {
-            id.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_discount_label), getString(R.string.review_discount_none))));
-        } else {
+        // 5. ID / discount: only a reservation made with one keeps showing it (read only); the front desk records it at check-in otherwise
+        if (state.discount != null) {
+            List<View> id = new ArrayList<>();
             id.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_discount_label),
                     state.discount.getName() + " (" + state.discount.getValueLabel() + ")")));
             id.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_id_photo_label),
                     getString(state.idCardImageUri != null || state.idCardOnFile ? R.string.review_id_photo_attached : R.string.review_id_photo_missing))));
+            layoutReviewSections.addView(buildSection(R.string.review_section_id, 0, id));
         }
-        layoutReviewSections.addView(buildSection(R.string.review_section_id, 5, id));
 
         // 6. Payment method (a new reservation chooses it in its own step)
         if (freshReservation) {
@@ -330,7 +327,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             boolean gcash = "gcash".equalsIgnoreCase(state.paymentMethod);
             pay.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.payment_method_section_label),
                     getString(gcash ? R.string.payment_method_gcash : R.string.payment_method_cash))));
-            layoutReviewSections.addView(buildSection(R.string.review_section_payment_method, 6, pay));
+            layoutReviewSections.addView(buildSection(R.string.review_section_payment_method, 3, pay));
         }
 
         renderBill(state, freshReservation);
@@ -382,7 +379,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             if (!editGuard.tryAcquire()) return;
             getWizardActivity().goToStep(editStep);
         });
-        header.addView(edit);
+        if (editStep > 0) header.addView(edit);
 
         ImageView chevron = new ImageView(c);
         chevron.setLayoutParams(new LinearLayout.LayoutParams(dp(20), dp(20)));
@@ -414,7 +411,9 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         android.content.Context c = requireContext();
         layoutBillRows.removeAllViews();
         layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_rooms_total_label), money(roomsTotal()))));
-        layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_amenities_total_label), money(amenitiesTotal()))));
+        if (amenitiesTotal() > 0.004) {
+            layoutBillRows.addView(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_amenities_total_label), money(amenitiesTotal()))));
+        }
         double total = roomsTotal() + amenitiesTotal();
         tvSummaryTotal.setText(money(total));
         renderDiscountEstimate(state);
@@ -444,15 +443,9 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
     private static final double PAY_NOW_MIN = 0.20;
     private static final double PAY_NOW_MAX = 0.50;
 
-    /** Shows the claimed discount's estimated value on the WHOLE bill (rooms + add-ons) - read from the Discount module values the app loaded on Step 6, never a number of its own; the backend's BillDiscount uses the same basis. */
+    /** One note under the total instead of an expected-discount line: the front desk verifies and applies PWD / Senior Citizen discounts at check-in. */
     private void renderDiscountEstimate(BookingWizardState state) {
-        double off = state.discount != null ? state.discount.estimateOff(roomsTotal() + amenitiesTotal()) : 0;
-        if (off <= 0) {
-            tvSummaryDiscountNote.setVisibility(View.GONE);
-            return;
-        }
-        tvSummaryDiscountNote.setText(getString(R.string.summary_discount_estimate_format,
-                state.discount.getName(), state.discount.getValueLabel(), money(off)));
+        tvSummaryDiscountNote.setText(R.string.review_desk_discount_note);
         tvSummaryDiscountNote.setVisibility(View.VISIBLE);
     }
 

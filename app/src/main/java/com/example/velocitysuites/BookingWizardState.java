@@ -22,7 +22,8 @@ import java.util.Map;
  */
 public class BookingWizardState implements Serializable {
 
-    private static final long serialVersionUID = 2L;
+    // 3: the amenities and ID steps are gone (1.73.0); a draft written by an older form cannot be read back and the wizard starts again
+    private static final long serialVersionUID = 3L;
 
     public enum Mode { BOOKING, RESERVATION }
 

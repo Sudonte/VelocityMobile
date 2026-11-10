@@ -189,29 +189,13 @@ public class WizardGroupLayoutTest {
     }
 
     @Test
-    public void idStep_isOneIdForAllStays_withNoDuplicateTitle() {
-        inEachConfig(() -> {
-            BookingWizardActivity activity = wizard(2);
-            activity.goToStep(5);
-            idle();
-            View root = step(activity).getView();
-            String all = collect(root);
-            assertTrue(all, all.contains(app.getString(R.string.discount_step_intro_stays)));
-            assertFalse("the discount list is not hidden any more", all.contains("can't be claimed"));
-            // the step name is the header's job: the section title is not repeated inside the step
-            assertEquals("ID Verification appears once in the step body", 0, countOccurrences(all, app.getString(R.string.id_verification_title)));
-            assertFits("ID step with a group", root, activity.getResources().getDisplayMetrics().widthPixels);
-        });
-    }
-
-    @Test
     public void reviewStep_listsEveryStay() {
         inEachConfig(() -> {
             BookingWizardActivity activity = wizard(3);
             BookingWizardState state = activity.getState();
             state.termsViewed = true;
             state.termsAccepted = true;
-            activity.goToStep(6);
+            activity.goToStep(3);
             idle();
             View root = step(activity).getView();
             String all = collect(root);

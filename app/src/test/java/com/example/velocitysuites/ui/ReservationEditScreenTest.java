@@ -326,18 +326,13 @@ public class ReservationEditScreenTest {
         BookingWizardState s = activity.getState();
         String before = snapshot(s);
 
-        for (int step = 1; step <= 6; step++) {
+        // Dates and rooms, Representative and guests, Review: the amenities and the ID the reservation was made with stay as they were
+        for (int step = 1; step <= 3; step++) {
             activity.goToStep(step);
             idle();
-            if (step == 5) {
-                // the discount list loads; the guest's own discount is bound to it and the ID stays on file
-                api.<List<DiscountDto>>last("getDiscounts").succeed(Arrays.asList(
-                        discount(3, "Senior Citizen"), discount(7, "VIP")));
-                idle();
-                assertTrue(allText(fragment(activity).getView()).contains("ID is on file"));
-            }
         }
-        for (int step = 5; step >= 1; step--) {
+        assertTrue("the stored ID is still shown, read only, on the review", allText(fragment(activity).getView()).contains("ID / discount"));
+        for (int step = 2; step >= 1; step--) {
             activity.goToStep(step);
             idle();
         }
@@ -372,7 +367,7 @@ public class ReservationEditScreenTest {
         cacheRooms();
         BookingWizardActivity activity = openEdit(pendingReservation());
         BookingWizardState s = activity.getState();
-        activity.goToStep(6);
+        activity.goToStep(3);
         idle();
         LinearLayout panel = fragment(activity).getView().findViewById(R.id.layoutEditTotals);
         assertEquals(View.VISIBLE, panel.getVisibility());
@@ -388,7 +383,7 @@ public class ReservationEditScreenTest {
         // dropping the Suite lowers the new total below what was paid -> an excess is shown
         s.selectedRooms.remove(1);
         s.selectedAmenities.clear();
-        activity.goToStep(6);
+        activity.goToStep(3);
         idle();
         EditTotals lower = s.editTotals();
         assertEquals(2000.0, lower.newTotal, 0.001);
