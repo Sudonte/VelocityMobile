@@ -66,8 +66,13 @@ public class RoomBrowsingSearchCardTest {
     }
 
     @Test
-    public void nothingShownUntilBothDatesArePicked() {
-        assertEquals(View.GONE, activity.findViewById(R.id.tvPinnedDates).getVisibility());
+    public void theScreenOpensWithThePrefilledDates_andNothingIsPinnedOnceTheyAreCleared() throws Exception {
+        TextView pinned = activity.findViewById(R.id.tvPinnedDates);
+        assertEquals("the pre-filled dates are summarised at once", View.VISIBLE, pinned.getVisibility());
+        assertTrue(pinned.getText().toString(), pinned.getText().toString().endsWith("1 night"));
+
+        setDates(null, null);
+        assertEquals(View.GONE, pinned.getVisibility());
     }
 
     @Test
@@ -90,12 +95,15 @@ public class RoomBrowsingSearchCardTest {
     }
 
     @Test
-    public void reset_clearsTheDatesAndTheSummary() throws Exception {
-        setDates(day(2026, Calendar.OCTOBER, 12), day(2026, Calendar.OCTOBER, 14));
+    public void reset_putsThePrefilledDatesBack() throws Exception {
+        String prefilled = ((TextView) activity.findViewById(R.id.etCheckIn)).getText().toString();
+        setDates(day(2027, Calendar.OCTOBER, 12), day(2027, Calendar.OCTOBER, 14));
         activity.findViewById(R.id.btnResetSearch).performClick();
         shadowOf(Looper.getMainLooper()).idle();
 
-        assertEquals("", ((TextView) activity.findViewById(R.id.etCheckIn)).getText().toString());
-        assertEquals(View.GONE, activity.findViewById(R.id.tvPinnedDates).getVisibility());
+        assertEquals(prefilled, ((TextView) activity.findViewById(R.id.etCheckIn)).getText().toString());
+        TextView pinned = activity.findViewById(R.id.tvPinnedDates);
+        assertEquals(View.VISIBLE, pinned.getVisibility());
+        assertTrue(pinned.getText().toString(), pinned.getText().toString().endsWith("1 night"));
     }
 }

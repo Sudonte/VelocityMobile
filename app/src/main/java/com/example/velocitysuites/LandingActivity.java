@@ -121,6 +121,13 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
     private TextView tvSelectionSummaryCount, tvSelectionSummaryTotal;
     /** Debounces rapid double-taps on Book Now/Reserve Now so a fast double-tap can't launch two Activities. Reset in onResume(). */
     private boolean isNavigatingToBookingFlow = false;
+    /** The dates the Available Rooms list is for. Pre-filled (today + 2 days in Manila, one night); they count as chosen. */
+    private java.util.Calendar checkInDate, checkOutDate;
+    private android.widget.TextView etLandingCheckIn, etLandingCheckOut, tvLandingDatesNote;
+    private static final String STATE_LANDING_CHECK_IN = "landing_check_in_utc";
+    private static final String STATE_LANDING_CHECK_OUT = "landing_check_out_utc";
+    private static final String TAG_LANDING_IN_PICKER = "LANDING_CHECK_IN_PICKER";
+    private static final String TAG_LANDING_OUT_PICKER = "LANDING_CHECK_OUT_PICKER";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +144,7 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
         });
 
         initializeViews();
+        setupDates(savedInstanceState);
         setupRoomsList();
         setupAnnouncementsList();
         setupPromotionsList();
@@ -146,6 +154,76 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
         setupRefresh();
         // The first load: silent (no pull spinner) - each section shows its own spinner until it has content.
         refreshCoordinator.poll();
+    }
+
+    /** The pre-filled dates (restored after a recreation), their two fields and pickers. Changing a date reloads the rooms for it. */
+    private void setupDates(Bundle saved) {
+        etLandingCheckIn = findViewById(R.id.etLandingCheckIn);
+        etLandingCheckOut = findViewById(R.id.etLandingCheckOut);
+        tvLandingDatesNote = findViewById(R.id.tvLandingDatesNote);
+        long in = saved != null ? saved.getLong(STATE_LANDING_CHECK_IN, -1L) : -1L;
+        long out = saved != null ? saved.getLong(STATE_LANDING_CHECK_OUT, -1L) : -1L;
+        java.util.Calendar savedIn = in >= 0 ? StayDates.fromUtcMidnight(in) : null;
+        java.util.Calendar savedOut = out >= 0 ? StayDates.fromUtcMidnight(out) : null;
+        boolean keep = StayDates.valid(savedIn, savedOut);
+        checkInDate = keep ? savedIn : StayDates.defaultCheckIn();
+        checkOutDate = keep ? savedOut : StayDates.defaultCheckOut(checkInDate);
+        showDates();
+        etLandingCheckIn.setOnClickListener(v -> pickDate(true));
+        etLandingCheckOut.setOnClickListener(v -> pickDate(false));
+        reattachDatePicker(TAG_LANDING_IN_PICKER, true);
+        reattachDatePicker(TAG_LANDING_OUT_PICKER, false);
+    }
+
+    private void showDates() {
+        java.text.SimpleDateFormat field = new java.text.SimpleDateFormat("MMM d, yyyy", Locale.US);
+        etLandingCheckIn.setText(field.format(checkInDate.getTime()));
+        etLandingCheckOut.setText(field.format(checkOutDate.getTime()));
+        int nights = (int) StayDateCalculator.nightsBetween(checkInDate, checkOutDate);
+        tvLandingDatesNote.setText(getString(R.string.landing_dates_note_format,
+                getResources().getQuantityString(R.plurals.nights_lower, nights, nights), CheckInWindow.earliestForDisplay()));
+    }
+
+    private void pickDate(boolean checkIn) {
+        String tag = checkIn ? TAG_LANDING_IN_PICKER : TAG_LANDING_OUT_PICKER;
+        if (getSupportFragmentManager().findFragmentByTag(TAG_LANDING_IN_PICKER) != null
+                || getSupportFragmentManager().findFragmentByTag(TAG_LANDING_OUT_PICKER) != null) return; // a rapid second tap
+        long earliest = checkIn ? CheckInWindow.earliestUtcMillis() : StayDates.toUtcMidnight(checkInDate) + 24L * 60 * 60 * 1000;
+        long selected = Math.max(StayDates.toUtcMidnight(checkIn ? checkInDate : checkOutDate), earliest);
+        com.google.android.material.datepicker.MaterialDatePicker<Long> picker = com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
+                .setTitleText(getString(checkIn ? R.string.title_select_checkin : R.string.title_select_checkout))
+                .setCalendarConstraints(new com.google.android.material.datepicker.CalendarConstraints.Builder()
+                        .setValidator(com.google.android.material.datepicker.DateValidatorPointForward.from(earliest)).build())
+                .setSelection(selected)
+                .build();
+        attachDatePicker(picker, checkIn);
+        picker.show(getSupportFragmentManager(), tag);
+    }
+
+    private void attachDatePicker(com.google.android.material.datepicker.MaterialDatePicker<Long> picker, boolean checkIn) {
+        picker.addOnPositiveButtonClickListener(selection -> onDatePicked(checkIn, StayDates.fromUtcMidnight(selection)));
+    }
+
+    /** A picker that was open across a recreation comes back without its listener. */
+    @SuppressWarnings("unchecked")
+    private void reattachDatePicker(String tag, boolean checkIn) {
+        androidx.fragment.app.Fragment f = getSupportFragmentManager().findFragmentByTag(tag);
+        if (f instanceof com.google.android.material.datepicker.MaterialDatePicker) {
+            attachDatePicker((com.google.android.material.datepicker.MaterialDatePicker<Long>) f, checkIn);
+        }
+    }
+
+    /** A new date: the stay stays at least one night (a check-out on or before the new check-in moves to the day after), then the rooms reload. */
+    public void onDatePicked(boolean checkIn, java.util.Calendar picked) {
+        if (checkIn) {
+            checkInDate = picked;
+            if (!checkOutDate.after(checkInDate)) checkOutDate = StayDates.defaultCheckOut(checkInDate);
+        } else {
+            if (!picked.after(checkInDate)) return;
+            checkOutDate = picked;
+        }
+        showDates();
+        refreshRooms(ok -> { });
     }
 
     private void initializeViews() {
@@ -804,10 +882,18 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
             layoutRoomError.setVisibility(View.GONE);
             rvLandingRooms.setVisibility(View.GONE);
         }
-        RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
+        // a page left open past midnight: a check-in that is no longer bookable moves on to the earliest day
+        if (!StayDates.valid(checkInDate, checkOutDate)) {
+            checkInDate = StayDates.defaultCheckIn();
+            checkOutDate = StayDates.defaultCheckOut(checkInDate);
+            showDates();
+        }
+        final java.util.Calendar forIn = checkInDate, forOut = checkOutDate;
+        RoomRepository.getInstance(this).refreshRoomsFresh(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 if (!isUiAlive()) return;
+                if (forIn != checkInDate || forOut != checkOutDate) return; // the dates changed since: a newer answer is on its way
                 roomsLoaded = true;
                 landingRoomsLoading.setVisibility(View.GONE);
                 layoutRoomError.setVisibility(View.GONE);
@@ -958,6 +1044,10 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        if (checkInDate != null && checkOutDate != null) {
+            outState.putLong(STATE_LANDING_CHECK_IN, StayDates.toUtcMidnight(checkInDate));
+            outState.putLong(STATE_LANDING_CHECK_OUT, StayDates.toUtcMidnight(checkOutDate));
+        }
         if (hotelMapView == null || !mapStarted) {
             // Map never created (guest never scrolled to it): carry any earlier state through untouched.
             if (pendingMapBundle != null) outState.putBundle(MAP_VIEW_BUNDLE_KEY, pendingMapBundle);
@@ -992,12 +1082,14 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
             intent.putExtra("ROOM_QTY", qty);
             intent.putExtra("OPEN_ROOM_DETAILS", true);
             intent.putExtra("ROOM_ACTION", action);
+            putDates(intent);
             startActivity(intent);
             overridePendingTransition(R.anim.fade_in_slide_up, R.anim.fade_out_scale);
         } else {
             List<Room> toSave = new ArrayList<>();
             for (int i = 0; i < qty; i++) toSave.add(room);
             PendingRoomSelection.saveMultiple(this, toSave, action);
+            PendingRoomSelection.saveDates(this, checkInDate, checkOutDate);
             navigateToWelcome();
         }
     }
@@ -1091,6 +1183,12 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
      * the wizard, per spec - rather than jumping straight into the wizard as
      * the single-room quick actions do.
      */
+    /** The landing page's dates go with the rooms into Room Browsing, which opens on them. */
+    private void putDates(Intent intent) {
+        intent.putExtra(StayDates.EXTRA_CHECK_IN_UTC, StayDates.toUtcMidnight(checkInDate));
+        intent.putExtra(StayDates.EXTRA_CHECK_OUT_UTC, StayDates.toUtcMidnight(checkOutDate));
+    }
+
     private void handleCartAction(String action) {
         if (isNavigatingToBookingFlow) return;
         List<Room> selected = resolveSelectedRooms();
@@ -1105,10 +1203,12 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
             intent.putExtra("ROOM_IDS", String.join(",", ids));
             intent.putExtra("OPEN_ROOM_DETAILS", ids.size() == 1);
             intent.putExtra("ROOM_ACTION", action);
+            putDates(intent);
             startActivity(intent);
             overridePendingTransition(R.anim.fade_in_slide_up, R.anim.fade_out_scale);
         } else {
             PendingRoomSelection.saveMultiple(this, selected, action);
+            PendingRoomSelection.saveDates(this, checkInDate, checkOutDate);
             navigateToWelcome();
         }
     }

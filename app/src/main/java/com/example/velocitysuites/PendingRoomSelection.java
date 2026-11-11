@@ -21,6 +21,8 @@ final class PendingRoomSelection {
     private static final String PREFS_NAME = "VelocityPrefs";
     private static final String KEY_PENDING_ROOM_IDS = "pendingLandingRoomIds";
     private static final String KEY_PENDING_ROOM_ACTION = "pendingLandingRoomAction";
+    private static final String KEY_PENDING_CHECK_IN = "pendingLandingCheckInUtc";
+    private static final String KEY_PENDING_CHECK_OUT = "pendingLandingCheckOutUtc";
     private static final String ID_SEPARATOR = ",";
 
     /** Which button the guest tapped on landing.xml - controls which action button(s) roombrowsing.xml shows afterward. */
@@ -43,13 +45,22 @@ final class PendingRoomSelection {
                 .apply();
     }
 
+    /** The dates on the landing page when the guest tapped Book now / Reserve: carried through sign-in with the rooms. */
+    static void saveDates(Context context, java.util.Calendar checkIn, java.util.Calendar checkOut) {
+        if (checkIn == null || checkOut == null) return;
+        prefs(context).edit()
+                .putLong(KEY_PENDING_CHECK_IN, StayDates.toUtcMidnight(checkIn))
+                .putLong(KEY_PENDING_CHECK_OUT, StayDates.toUtcMidnight(checkOut))
+                .apply();
+    }
+
     static boolean hasPendingRoom(Context context) {
         String ids = prefs(context).getString(KEY_PENDING_ROOM_IDS, null);
         return ids != null && !ids.isEmpty();
     }
 
     static void clear(Context context) {
-        prefs(context).edit().remove(KEY_PENDING_ROOM_IDS).remove(KEY_PENDING_ROOM_ACTION).apply();
+        prefs(context).edit().remove(KEY_PENDING_ROOM_IDS).remove(KEY_PENDING_ROOM_ACTION).remove(KEY_PENDING_CHECK_IN).remove(KEY_PENDING_CHECK_OUT).apply();
     }
 
     static Intent createPostAuthIntent(Context context, String userName) {
@@ -61,9 +72,15 @@ final class PendingRoomSelection {
             // Room-selection flow: the guest picked room(s) on the landing
             // screen, so after signing in/up send them straight into
             // RoomBrowsingActivity with that same selection carried over.
-            preferences.edit().remove(KEY_PENDING_ROOM_IDS).remove(KEY_PENDING_ROOM_ACTION).apply();
+            long checkIn = preferences.getLong(KEY_PENDING_CHECK_IN, -1L);
+            long checkOut = preferences.getLong(KEY_PENDING_CHECK_OUT, -1L);
+            preferences.edit().remove(KEY_PENDING_ROOM_IDS).remove(KEY_PENDING_ROOM_ACTION).remove(KEY_PENDING_CHECK_IN).remove(KEY_PENDING_CHECK_OUT).apply();
             String[] ids = idsCsv.split(ID_SEPARATOR);
             Intent intent = new Intent(context, RoomBrowsingActivity.class);
+            if (checkIn >= 0 && checkOut >= 0) {
+                intent.putExtra(StayDates.EXTRA_CHECK_IN_UTC, checkIn);
+                intent.putExtra(StayDates.EXTRA_CHECK_OUT_UTC, checkOut);
+            }
             intent.putExtra("ROOM_ID", ids[0]);
             intent.putExtra("ROOM_IDS", idsCsv);
             intent.putExtra("OPEN_ROOM_DETAILS", ids.length == 1);

@@ -143,12 +143,16 @@ public class ModeStartTest {
     public void theDatesRuleStays_inBothModes() {
         for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
             RoomBrowsingActivity a = open(mode);
-            assertEquals(mode + ": the message is under the date field", "Choose your check-in and check-out dates first.",
-                    ((TextInputLayout) a.findViewById(R.id.checkInLayout)).getError().toString());
+            assertNull(mode + ": the pre-filled dates count, so there is no message", ((TextInputLayout) a.findViewById(R.id.checkInLayout)).getError());
+            // the rule is for a guest who cleared the dates
+            a.findViewById(R.id.checkInLayout).findViewById(com.google.android.material.R.id.text_input_end_icon).performClick();
+            idle();
             a.onReserveNowClick(WizardDriver.room("1", 1000));
             a.onBookNowClick(WizardDriver.room("1", 1000));
             idle();
             assertNull("still no booking screen without dates", shadowOf(a).getNextStartedActivity());
+            assertEquals(mode + ": the message is under the date field", "Choose your check-in and check-out dates first.",
+                    ((TextInputLayout) a.findViewById(R.id.checkInLayout)).getError().toString());
         }
     }
 

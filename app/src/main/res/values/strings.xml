@@ -2005,6 +2005,7 @@
     <string name="mode_banner_booking">You\'re making a booking (pay now)</string>
     <string name="mode_switch_to_booking">Switch to booking</string>
     <string name="mode_switch_to_reservation">Switch to reservation</string>
+    <string name="landing_dates_note_format">%1$s · earliest check-in %2$s</string>
     <string name="error_dates_first">Choose your check-in and check-out dates first.</string>
     <string name="error_pick_checkout">Choose a check-out date</string>
     <string name="chip_up_to_price_format">Up to \u20b1%1$s</string>

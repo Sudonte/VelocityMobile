@@ -90,6 +90,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     private boolean isNavigatingToBookingFlow = false;
     /** Set by every way into a new booking or reservation that has no dates yet: the screen opens asking for them. */
     public static final String EXTRA_DATES_FIRST = "DATES_FIRST";
+    // (the dates are pre-filled now, so the message only shows when the guest cleared one)
     /** BOOKING or RESERVATION: the guest started from New booking / New reservation, so only that action is offered (null = both). */
     public static final String EXTRA_MODE = "WIZARD_MODE";
     private static final String STATE_MODE = "wizard_mode";
@@ -139,6 +140,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
 
         initializeViews();
         setupRecyclerView();
+        if (savedInstanceState == null) prefillDates(true);
         loadRooms();
         setupDatePickers();
         setupSearchAndFilters();
@@ -211,6 +213,32 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         selectedStatusFilter = state.getString(STATE_STATUS, "All");
         filtersApplied = state.getBoolean(STATE_FILTERS_APPLIED, false);
         lockedMode = modeOf(state.getString(STATE_MODE));
+    }
+
+    /**
+     * The dates the screen opens with: the ones carried from the landing page, otherwise check-in = today + 2 days (Manila) and
+     * check-out the day after. They count as chosen - rooms can be booked without touching them - and the first load is for them.
+     */
+    private void prefillDates(boolean fromLaunch) {
+        long in = fromLaunch ? getIntent().getLongExtra(StayDates.EXTRA_CHECK_IN_UTC, -1L) : -1L;
+        long out = fromLaunch ? getIntent().getLongExtra(StayDates.EXTRA_CHECK_OUT_UTC, -1L) : -1L;
+        Calendar carriedIn = in >= 0 ? fromUtcMidnight(in) : null;
+        Calendar carriedOut = out >= 0 ? fromUtcMidnight(out) : null;
+        boolean carried = StayDates.valid(carriedIn, carriedOut);
+        checkInDate = carried ? carriedIn : StayDates.defaultCheckIn();
+        checkOutDate = carried ? carriedOut : StayDates.defaultCheckOut(checkInDate);
+        etCheckIn.setText(fieldDateFormat.format(checkInDate.getTime()));
+        etCheckOut.setText(fieldDateFormat.format(checkOutDate.getTime()));
+        checkInLayout.setError(null);
+        checkOutLayout.setError(null);
+        checkOutLayout.setEnabled(true);
+        updateDateSummary();
+    }
+
+    /** True while the dates are the pre-filled ones (nothing for "Reset" to undo). */
+    private boolean datesArePrefilled() {
+        Calendar in = StayDates.defaultCheckIn();
+        return StayDates.sameDay(checkInDate, in) && StayDates.sameDay(checkOutDate, StayDates.defaultCheckOut(in));
     }
 
     /** Puts the restored dates back in the fields and re-runs the date-aware availability search (the plain load that onCreate started is superseded). */
@@ -359,7 +387,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         layoutRoomError.setVisibility(View.GONE);
         // The no-cache request path (opening, coming back, pull-to-refresh): "refresh" must never be answered from a
         // stale copy sitting in front of the server.
-        RoomRepository.getInstance(this).refreshRoomsFresh(new RoomRepository.RepositoryCallback<List<Room>>() {
+        RoomRepository.getInstance(this).refreshRoomsFresh(checkInDate, checkOutDate, new RoomRepository.RepositoryCallback<List<Room>>() {
             @Override
             public void onSuccess(List<Room> result) {
                 if (isFinishing() || isDestroyed() || seq != roomsRequestSeq) return;
@@ -629,7 +657,7 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
     /** "Reset" shows only when something is set: a date, a filter or a sort. */
     private void updateResetVisibility() {
         if (btnResetSearch == null) return;
-        boolean something = checkInDate != null || checkOutDate != null || activeFilterCount() > 0 || !"Default".equals(currentSortMode);
+        boolean something = !datesArePrefilled() || activeFilterCount() > 0 || !"Default".equals(currentSortMode);
         btnResetSearch.setVisibility(something ? View.VISIBLE : View.GONE);
     }
 
@@ -825,7 +853,8 @@ public class RoomBrowsingActivity extends BaseNavigationActivity implements Room
         btnFilters.setOnClickListener(v -> showFilterDialog());
         btnResetSearch.setOnClickListener(v -> {
             clearAllFilters();   // dates, sort, type, status, guests, price
-            loadRooms();         // and back to the default room list
+            prefillDates(false); // the dates go back to the pre-filled ones
+            loadRooms();         // and the room list for them
         });
         findViewById(R.id.btnClearActiveFilters).setOnClickListener(v -> clearFiltersKeepDates());
         if (tvPinnedDates != null) {

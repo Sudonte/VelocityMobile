@@ -101,7 +101,7 @@ public class RoomBrowsingRecreateTest {
     }
 
     @Test
-    public void aFreshLaunchWithNothingSavedStartsEmpty() throws Exception {
+    public void aFreshLaunchWithNothingSaved_hasAnEmptyCart_andThePrefilledDates() throws Exception {
         Context app = ApplicationProvider.getApplicationContext();
         ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
         ActivityController<RoomBrowsingActivity> c = Robolectric.buildActivity(RoomBrowsingActivity.class, new Intent(app, RoomBrowsingActivity.class)).setup();
@@ -110,8 +110,10 @@ public class RoomBrowsingRecreateTest {
         Bundle state = new Bundle();
         c.saveInstanceState(state);
         assertEquals(0, state.getStringArray("cart_ids").length);
-        assertEquals(-1L, state.getLong("check_in_utc"));
-        assertFalse(((TextView) c.get().findViewById(R.id.etCheckIn)).getText().length() > 0);
+        long in = com.example.velocitysuites.StayDates.toUtcMidnight(com.example.velocitysuites.StayDates.defaultCheckIn());
+        assertEquals("check-in is today + 2 days on the hotel's clock", in, state.getLong("check_in_utc"));
+        assertEquals("check-out is the day after", in + 86_400_000L, state.getLong("check_out_utc"));
+        assertTrue(((TextView) c.get().findViewById(R.id.etCheckIn)).getText().length() > 0);
         c.pause().stop().destroy();
     }
 

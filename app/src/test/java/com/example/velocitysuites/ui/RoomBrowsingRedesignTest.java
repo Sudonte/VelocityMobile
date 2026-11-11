@@ -89,9 +89,18 @@ public class RoomBrowsingRedesignTest {
         idle();
     }
 
+    /** Three rooms on screen and no dates in the fields: the guest cleared the pre-filled ones (the x on Check-in). */
     private RoomBrowsingActivity launchWithThreeRooms() {
         RoomBrowsingActivity a = launch().get();
         answerRooms(type(1, "Deluxe", "1850.00", 2, 5), type(2, "Suite", "3000.00", 4, 5), type(3, "Family", "3999.00", 6, 1));
+        a.findViewById(R.id.checkInLayout).findViewById(com.google.android.material.R.id.text_input_end_icon).performClick();
+        idle();
+        try {
+            invoke(a, "applyControlChange");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        idle();
         return a;
     }
 
@@ -202,10 +211,14 @@ public class RoomBrowsingRedesignTest {
     public void reset_isHiddenUntilSomethingIsSet_andIsAPlainTextButton() throws Exception {
         RoomBrowsingActivity a = launchWithThreeRooms();
         MaterialButton reset = a.findViewById(R.id.btnResetSearch);
-        assertEquals(View.GONE, reset.getVisibility());
+        assertEquals("cleared dates are something to reset", View.VISIBLE, reset.getVisibility());
         assertEquals(0f, reset.getLetterSpacing(), 0.0001f);
-        setDates(a, 2, 3);
-        assertEquals(View.VISIBLE, reset.getVisibility());
+        // Reset puts the pre-filled dates back; with nothing else set there is then nothing to reset
+        reset.performClick();
+        idle();
+        assertEquals(View.GONE, reset.getVisibility());
+        setDates(a, 5, 6);
+        assertEquals("other dates than the pre-filled ones", View.VISIBLE, reset.getVisibility());
     }
 
     @Test

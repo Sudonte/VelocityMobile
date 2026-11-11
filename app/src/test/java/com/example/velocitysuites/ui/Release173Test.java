@@ -56,7 +56,14 @@ public class Release173Test {
         ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
         RoomBrowsingActivity a = Robolectric.buildActivity(RoomBrowsingActivity.class, new Intent(app, RoomBrowsingActivity.class)).setup().get();
         idle();
+        clearDates(a);
         return a;
+    }
+
+    /** The dates are pre-filled since 1.74.0; the dates-first rule is for a guest who cleared them (the x on Check-in clears both). */
+    private static void clearDates(RoomBrowsingActivity a) {
+        a.findViewById(R.id.checkInLayout).findViewById(com.google.android.material.R.id.text_input_end_icon).performClick();
+        idle();
     }
 
     private static void set(Object target, String field, Object value) throws Exception {
@@ -298,13 +305,17 @@ public class Release173Test {
     }
 
     @Test
-    public void roomBrowsingOpenedDatesFirst_showsTheMessageUnderTheDatePicker() {
+    public void roomBrowsingOpenedDatesFirst_hasThePrefilledDatesAndNoMessage_untilADateIsCleared() {
         Context app = ApplicationProvider.getApplicationContext();
         ScreenTestSupport.freshRepository(app, new ScreenTestSupport.FakeApi());
         RoomBrowsingActivity a = Robolectric.buildActivity(RoomBrowsingActivity.class,
                 new Intent(app, RoomBrowsingActivity.class).putExtra(RoomBrowsingActivity.EXTRA_DATES_FIRST, true)).setup().get();
         idle();
         idle();
+        assertNull("the pre-filled dates count as chosen", ((TextInputLayout) a.findViewById(R.id.checkInLayout)).getError());
+        assertTrue(a.requireDatesFirst());
+        clearDates(a);
+        assertFalse(a.requireDatesFirst());
         assertEquals("Choose your check-in and check-out dates first.", ((TextInputLayout) a.findViewById(R.id.checkInLayout)).getError().toString());
     }
 
