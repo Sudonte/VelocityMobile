@@ -2286,15 +2286,15 @@
     <string name="stay_unconfirmed_format">%1$s: tap Confirm before continuing.</string>
     <string name="confirm_stay_summary_format">%1$s · %2$s · %3$s</string>
     <string name="stay_row_not_confirmed_format">%1$s · Not confirmed yet</string>
-    <string name="review_stays_title">Review your stays</string>
-    <string name="review_edit_stays">Edit stays</string>
+    <string name="review_stays_title">Review your dates and rooms</string>
+    <string name="review_edit_stays">Edit dates and rooms</string>
     <string name="review_continue">Continue</string>
     <string name="review_edit">Edit</string>
     <string name="review_stay_heading_format">%1$s → %2$s · %3$s</string>
     <string name="review_room_line_format">%1$d × %2$s × %3$s × %4$s</string>
     <string name="review_stay_subtotal">Subtotal</string>
-    <string name="proceed_to_rep_guests">Proceed to representative and guests?</string>
-    <string name="proceed_to_amenities">Proceed to amenities?</string>
+    <string name="proceed_to_rep_guests">Proceed to Representative and guests?</string>
+    <string name="proceed_to_amenities">Proceed to Amenities?</string>
     <!-- The Amenities step of a booking (step 2 of 4) -->
     <string name="step_title_amenities">Amenities</string>
     <string name="skip_amenities_button">Skip</string>

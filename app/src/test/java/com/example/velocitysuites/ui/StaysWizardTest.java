@@ -47,7 +47,7 @@ import org.robolectric.annotation.GraphicsMode;
 /**
  * Dates and rooms (Step 1): a stay is confirmed ("Confirm this stay", only once it has a room) before "Add another stay" appears or Next
  * works; a confirmed stay collapses into the "Your stays" card and reopens with Edit; identical dates are refused inline; Next shows the
- * "Review your stays" sheet and then asks "Proceed to amenities?". Also the layout at 360dp and 393dp in light and dark.
+ * "Review your dates and rooms" sheet and then asks "Proceed to Amenities?". Also the layout at 360dp and 393dp in light and dark.
  */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
@@ -365,7 +365,7 @@ public class StaysWizardTest {
         assertEquals(View.GONE, find(activity, R.id.btnAddAnotherStay).getVisibility());
     }
 
-    // ---- Next: the review sheet, then "Proceed to representative and guests?" ----
+    // ---- Next: the review sheet, then "Proceed to Amenities?" (a booking) or "Proceed to Representative and guests?" ----
 
     @Test
     public void next_opensTheReviewSheet_withEveryRoomLineTheSubtotalAndTheTotal_thenAsksBeforeTheAmenities() {
@@ -378,28 +378,28 @@ public class StaysWizardTest {
         Dialog sheet = latestDialog();
         assertTrue(sheet.isShowing());
         String shown = dialogText(sheet);
-        assertTrue(shown, shown.contains("Review your stays"));
+        assertTrue(shown, shown.contains("Review your dates and rooms"));
         assertTrue(shown, !shown.contains("Stay 1") && shown.contains("2 nights") && shown.contains("1 night"));
         assertTrue(shown, shown.contains("2 × Room 1 × ₱1,000.00 × 2 nights") && shown.contains("₱4,000.00"));
         assertTrue(shown, shown.contains("1 × Room 2 × ₱3,000.00 × 1 night") && shown.contains("₱3,000.00"));
         assertTrue(shown, shown.contains("Subtotal"));
         assertTrue(shown, shown.contains("Total for all dates") && shown.contains("₱7,000.00"));
-        assertEquals("Edit stays", text(sheet.findViewById(R.id.btnReviewEdit)));
+        assertEquals("Edit dates and rooms", text(sheet.findViewById(R.id.btnReviewEdit)));
         assertEquals("Continue", text(sheet.findViewById(R.id.btnReviewContinue)));
 
-        // Edit stays: back to the step, nothing moved
+        // Edit dates and rooms: back to the step, nothing moved
         sheet.findViewById(R.id.btnReviewEdit).performClick();
         idle();
         assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 1 of 4"));
 
-        // Continue -> "Proceed to amenities?" (a booking); Cancel stays, Yes moves on
+        // Continue -> "Proceed to Amenities?" (a booking); Cancel stays, Yes moves on
         advance();
         activity.findViewById(R.id.btnWizardNext).performClick();
         idle();
         latestDialog().findViewById(R.id.btnReviewContinue).performClick();
         idle();
         String ask = dialogText(latestDialog());
-        assertTrue(ask, ask.contains("Proceed to amenities?"));
+        assertTrue(ask, ask.contains("Proceed to Amenities?"));
         assertTrue(ask, ask.contains("2 stays") && ask.contains("3 rooms") && ask.contains("₱7,000.00"));
         answer(false);
         assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 1 of 4"));

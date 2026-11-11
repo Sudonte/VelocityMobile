@@ -180,7 +180,7 @@ public class Release174StepsTest {
         tapNext(a);
         latestDialog().findViewById(R.id.btnReviewContinue).performClick();
         idle();
-        assertTrue(dialogText(latestDialog()), dialogText(latestDialog()).contains("Proceed to amenities?"));
+        assertTrue(dialogText(latestDialog()), dialogText(latestDialog()).contains("Proceed to Amenities?"));
         answer(true);
         assertEquals("Step 2 of 4 · Amenities", stepLabel(a));
         assertEquals("the amenities are asked for with no price filter, so the included ones arrive", 1, api.count("getAmenities"));
@@ -330,7 +330,7 @@ public class Release174StepsTest {
         tapNext(a);
         latestDialog().findViewById(R.id.btnReviewContinue).performClick();
         idle();
-        assertTrue(dialogText(latestDialog()), dialogText(latestDialog()).contains("Proceed to representative and guests?"));
+        assertTrue(dialogText(latestDialog()), dialogText(latestDialog()).contains("Proceed to Representative and guests?"));
         answer(true);
         assertEquals("Step 2 of 4 · Representative and guests", stepLabel(a));
         assertEquals("no amenities are loaded for a reservation", 0, api.count("getAmenities"));
