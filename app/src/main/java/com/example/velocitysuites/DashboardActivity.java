@@ -1392,7 +1392,9 @@ public class DashboardActivity extends BaseNavigationActivity {
         bindNextStayMoney(item, stay);
 
         View amenities = item.findViewById(R.id.btnNextStayRequestAmenities);
-        amenities.setVisibility(stay.status == NextStay.PlainStatus.STAYING ? View.VISIBLE : View.GONE);
+        // a booking can ask from the day it is confirmed until check-out (before check-in for its booked rooms); a reservation cannot
+        boolean confirmedBooking = stay.booking.isHasBooking() && stay.status == NextStay.PlainStatus.CONFIRMED;
+        amenities.setVisibility(stay.status == NextStay.PlainStatus.STAYING || confirmedBooking ? View.VISIBLE : View.GONE);
         amenities.setOnClickListener(NavUtils.debounce(v -> GroupStays.requestAmenities(this, stay.booking)));
         item.setOnClickListener(openInUpcoming);
         TextView open = item.findViewById(R.id.tvNextStayViewDetails);

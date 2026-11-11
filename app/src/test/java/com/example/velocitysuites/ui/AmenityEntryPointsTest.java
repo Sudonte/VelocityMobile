@@ -114,11 +114,30 @@ public class AmenityEntryPointsTest {
     }
 
     @Test
-    public void nextStay_beforeCheckIn_doesNotOfferIt() {
+    public void nextStay_beforeCheckIn_aBookingStillWaitingForTheFrontDesk_doesNotOfferIt() {
         DashboardActivity a = dashboardWith(booking(339, "ACTIVE_BOOKING", 3, 4));
         ((android.view.ViewGroup) a.findViewById(R.id.nextStayDayStrip)).getChildAt(14 + 3).performClick(); // its check-in day
         idle();
         assertEquals(View.GONE, a.findViewById(R.id.btnNextStayRequestAmenities).getVisibility());
+    }
+
+    /** 1.74.0: a confirmed booking can ask for amenities before check-in too (for the rooms it booked). */
+    @Test
+    public void nextStay_beforeCheckIn_aConfirmedBooking_offersTheButton_andItOpensThePicker() {
+        DirectBookingResponseDto confirmed = booking(340, "ACTIVE_BOOKING", 3, 4);
+        confirmed.verified_at = today().toString() + "T08:00:00Z";
+        DashboardActivity a = dashboardWith(confirmed);
+        ((android.view.ViewGroup) a.findViewById(R.id.nextStayDayStrip)).getChildAt(14 + 3).performClick(); // its check-in day
+        idle();
+
+        View button = a.findViewById(R.id.btnNextStayRequestAmenities);
+        assertEquals(View.VISIBLE, button.getVisibility());
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        button.performClick();
+        Intent opened = pickerIntent(a);
+        assertNotNull(opened);
+        assertEquals(new ComponentName(a, AdditionalAmenitiesActivity.class), opened.getComponent());
+        assertEquals("340", opened.getStringExtra(AdditionalAmenitiesActivity.EXTRA_ID));
     }
 
     private BookingDetailsActivity details(Booking booking) {

@@ -269,11 +269,11 @@ public class AdditionalAmenitiesScreenTest {
         assertEquals("42", args[0]);
         AdditionalAmenitySubmitRequest request = (AdditionalAmenitySubmitRequest) args[1];
         assertEquals("two rooms asked for something", 2, request.rooms.size());
-        assertEquals(11L, request.rooms.get(0).room_id);
+        assertEquals(11L, (long) request.rooms.get(0).room_id);
         assertEquals(2, request.rooms.get(0).items.size());
         assertEquals(7L, request.rooms.get(0).items.get(0).amenity_id);
         assertEquals(2, request.rooms.get(0).items.get(0).quantity);
-        assertEquals(12L, request.rooms.get(1).room_id);
+        assertEquals(12L, (long) request.rooms.get(1).room_id);
         assertEquals(1, request.rooms.get(1).items.size());
         assertEquals(8L, request.rooms.get(1).items.get(0).amenity_id);
         assertEquals("the flat form is not also sent", null, request.items);

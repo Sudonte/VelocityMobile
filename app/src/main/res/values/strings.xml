@@ -1237,6 +1237,7 @@
     <string name="additional_amenities_load_error">We couldn\'t load your amenity requests. Please try again.</string>
     <string name="additional_amenities_not_available">Extra amenities can\'t be requested for this booking right now.</string>
     <string name="additional_amenities_each_format">%1$s each</string>
+    <string name="additional_amenities_before_check_in">Booked room · before check-in</string>
     <string name="additional_amenities_group_included">Included with your room</string>
     <string name="additional_amenities_group_paid">Additional amenities</string>
     <string name="additional_amenities_included_note">Free. Not added to your bill; the front desk still approves the request.</string>

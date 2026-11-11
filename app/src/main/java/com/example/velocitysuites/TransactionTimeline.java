@@ -182,6 +182,7 @@ final class TransactionTimeline {
     private static void addAmenity(Context c, List<Entry> out, AmenityRecord r) {
         String detail = r.name + " × " + r.quantity;
         if (r.room != null) detail += " · " + c.getString(R.string.room_card_title_format, r.room);
+        else if (r.bookedRoom != null) detail += " · " + r.bookedRoom; // asked before check-in: the room that was booked
         if (r.subtotal > 0) detail += " · " + MoneyFormat.format(r.subtotal);
         String id = r.id != 0 ? String.valueOf(r.id) : r.nameKey() + "|" + r.quantity + "|" + r.room;
         add(out, "am_req|" + id, Kind.AMENITY_REQUESTED, r.requestedAtMillis, c.getString(R.string.tl_amenity_requested), detail, R.drawable.ic_amenity_concierge);

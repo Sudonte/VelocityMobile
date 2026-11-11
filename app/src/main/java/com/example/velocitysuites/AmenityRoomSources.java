@@ -81,10 +81,12 @@ final class AmenityRoomSources {
         if (info.requests != null) {
             for (AdditionalAmenityRequestDto r : info.requests) {
                 if (r == null) continue;
-                out.add(new AmenityRecord(r.id, r.name, r.quantity, r.subtotal > 0 ? r.subtotal : r.unit_price * Math.max(1, r.quantity),
+                AmenityRecord record = new AmenityRecord(r.id, r.name, r.quantity, r.subtotal > 0 ? r.subtotal : r.unit_price * Math.max(1, r.quantity),
                         r.room_number, r.room_type, statusOf(r.status),
                         com.example.velocitysuites.network.ApiMapper.epochMillis(r.requested_at),
-                        com.example.velocitysuites.network.ApiMapper.epochMillis(r.decided_at)));
+                        com.example.velocitysuites.network.ApiMapper.epochMillis(r.decided_at));
+                if (record.room == null && r.room_label != null && !r.room_label.trim().isEmpty()) record.bookedRoom = r.room_label.trim();
+                out.add(record);
             }
         }
         API.put(key(b), out);

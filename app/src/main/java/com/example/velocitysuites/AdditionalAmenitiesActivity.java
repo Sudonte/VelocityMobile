@@ -26,8 +26,10 @@ import java.util.Map;
  * several); tapping a room opens a picker where several amenities can be chosen for THAT room, each with a quantity. Different
  * rooms can get different amenities in the same request. Before sending, a summary lists each room with its amenities and the
  * total. The requests start PENDING; the front desk approves or rejects each one and only approved ones reach the bill.
- * Whether the stay may request at all (checked in, own booking) is decided by the server - this screen shows its answer, and
- * the reason when the answer is no.
+ * A booking can ask any time after it is made until check-out: before check-in the rooms listed are the ones that were BOOKED
+ * ("Deluxe Room (room 1)", for the date range the guest picks when there are several), during the stay the rooms the front desk
+ * assigned. A reservation has none until it becomes a booking. Whether the stay may request at all is decided by the server -
+ * this screen shows its answer, and the reason when the answer is no.
  */
 public class AdditionalAmenitiesActivity extends SafeActivity {
 
@@ -44,18 +46,33 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
         final long id;
         final String title;
         final String subtitle;
-        /** The room number ("1-001"), or null for the generic "your room". */
+        /** The room number ("1-001"), or null for the generic "your room" and for a booked room that has no number yet. */
         final String number;
+        /** A room that was booked, before check-in: its type, option and which one of them (1, 2, ...). {@code slot == 0} for an assigned room. */
+        final long roomTypeId;
+        final String optionKey;
+        final int slot;
 
         RoomEntry(long id, String title, String subtitle) {
             this(id, title, subtitle, null);
         }
 
         RoomEntry(long id, String title, String subtitle, String number) {
+            this(id, title, subtitle, number, 0L, null, 0);
+        }
+
+        RoomEntry(long id, String title, String subtitle, String number, long roomTypeId, String optionKey, int slot) {
             this.id = id;
             this.title = title;
             this.subtitle = subtitle;
             this.number = number;
+            this.roomTypeId = roomTypeId;
+            this.optionKey = optionKey;
+            this.slot = slot;
+        }
+
+        boolean isBookedRoom() {
+            return slot > 0;
         }
     }
 
@@ -179,9 +196,31 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
                 .show();
     }
 
-    /** The rooms of the stay, from the server. An older server without the list gets one generic "Your room" entry. */
+    /** The stay this request is for, as the server described it (null from an older server). */
+    @Nullable
+    private AdditionalAmenityInfoDto.Stay chosenStay(AdditionalAmenityInfoDto info) {
+        if (info.stays == null) return null;
+        for (AdditionalAmenityInfoDto.Stay s : info.stays) if (s != null && s.stay_id == stayId) return s;
+        return stayId == 0L && info.stays.size() == 1 ? info.stays.get(0) : null;
+    }
+
+    /**
+     * The rooms of the stay, from the server: before check-in the rooms that were booked ("Deluxe Room (room 1)"), during the stay the
+     * rooms the front desk assigned. An older server without either list gets one generic "Your room" entry.
+     */
     private void readRooms(AdditionalAmenityInfoDto info) {
         rooms.clear();
+        AdditionalAmenityInfoDto.Stay stay = chosenStay(info);
+        if (stay != null && stay.slots != null && !stay.slots.isEmpty()) {
+            long key = -1; // booked rooms have no room id yet: each gets its own negative key on this screen
+            for (AdditionalAmenityInfoDto.Slot slot : stay.slots) {
+                if (slot == null) continue;
+                String title = slot.label != null && !slot.label.trim().isEmpty() ? slot.label.trim() : getString(R.string.additional_amenities_your_room);
+                rooms.add(new RoomEntry(key--, title, getString(R.string.additional_amenities_before_check_in), null,
+                        slot.room_type_id, slot.option_key, Math.max(1, slot.room_slot)));
+            }
+            if (!rooms.isEmpty()) return;
+        }
         if (info.rooms != null) {
             for (AdditionalAmenityInfoDto.Room r : info.rooms) {
                 if (stayId != 0L && r.stay_id != null && r.stay_id != stayId) continue; // a room of another stay
@@ -444,10 +483,12 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
             }
             if (!picked.isEmpty()) addSummaryBlock(room, picked, roomTotal);
         }
-        findViewById(R.id.additionalAmenitiesSummaryHeader).setVisibility(total > 0 ? View.VISIBLE : View.GONE);
+        // an included amenity is free, so "something is chosen" is counted in items, not in pesos
+        boolean any = hasSelection();
+        findViewById(R.id.additionalAmenitiesSummaryHeader).setVisibility(any ? View.VISIBLE : View.GONE);
         totalLabel.setText(MoneyFormat.format(total));
-        hintAddOne.setVisibility(total > 0 ? View.GONE : View.VISIBLE);
-        submitButton.setEnabled(total > 0 && !submitting);
+        hintAddOne.setVisibility(any ? View.GONE : View.VISIBLE);
+        submitButton.setEnabled(any && !submitting);
     }
 
     private void addSummaryBlock(RoomEntry room, List<String> lines, double roomTotal) {
@@ -508,7 +549,9 @@ public class AdditionalAmenitiesActivity extends SafeActivity {
                     // an amenity without a numeric id can't be requested; skip it rather than crash
                 }
             }
-            if (!items.isEmpty()) request.addRoom(room.id, items);
+            if (items.isEmpty()) continue;
+            if (room.isBookedRoom()) request.addBookedRoom(room.roomTypeId, room.optionKey, room.slot, items);
+            else request.addRoom(room.id, items);
         }
         if (request.isEmpty()) return;
 

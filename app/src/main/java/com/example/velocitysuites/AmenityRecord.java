@@ -22,6 +22,8 @@ final class AmenityRecord {
     final double subtotal;
     /** The room NUMBER ("1-001") exactly as the source gave it, or null when the source does not link the line to a room. */
     @Nullable final String room;
+    /** The room that was BOOKED ("Deluxe Room (room 1)") for a request made before check-in, while no room number is assigned; else null. */
+    @Nullable String bookedRoom;
     final String roomType;
     final Status status;
     /** When the guest asked / when the front desk decided (epoch millis, 0 = not given). */
