@@ -130,7 +130,7 @@ public class FlatStyleTest {
             idle();
             BookingWizardActivity activity = controller.get();
             activity.getState().selectedRooms.add(room("1"));
-            int steps = mode == BookingWizardState.Mode.RESERVATION ? 4 : 3;
+            int steps = 4;
             for (int step = 1; step <= steps; step++) {
                 activity.goToStep(step);
                 idle();

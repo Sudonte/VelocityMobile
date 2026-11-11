@@ -46,7 +46,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The real wizard Activity hosting the steps - Step 1 (dates) and Step 2 (representative and guests) of the 3-step Booking flow and the 4-step Reservation flow. Each screen must
+ * The real wizard Activity hosting the steps - the dates step and the representative and guests step (3 of a booking, which has Amenities second; 2 of a reservation) of the 4-step Booking and Reservation flows. Each screen must
  * inflate and bind without a layout crash, and behave per spec: check-in window, capacity-limited steppers with an
  * "N of M guests" counter, and a review with the one front-desk discount note.
  */
@@ -244,7 +244,7 @@ public class WizardStepsScreenTest {
         state.checkOut = daysFromHotelToday(7);
         state.adults = 2;
         state.selectedRooms.add(room("1", 2));
-        controller.get().goToStep(3); // Booking mode: the review step
+        controller.get().goToStep(4); // Booking mode: the review step
         idle();
 
         // PaymentActivity records the refusal, finishes, and the review step comes back to the front
@@ -273,7 +273,7 @@ public class WizardStepsScreenTest {
     private BookingWizardActivity openStep5(BookingWizardState.Mode mode, int roomCapacity, int roomCount) {
         BookingWizardActivity activity = launch(mode).get();
         for (int i = 0; i < roomCount; i++) activity.getState().selectedRooms.add(room("R" + i, roomCapacity));
-        activity.goToStep(2);
+        activity.goToStep(activity.repGuestsStep());
         idle();
         return activity;
     }
@@ -332,7 +332,7 @@ public class WizardStepsScreenTest {
             api = new FakeApi();
             ScreenTestSupport.freshRepository(app, api);
             BookingWizardActivity activity = launch(mode).get();
-            int last = mode == BookingWizardState.Mode.BOOKING ? 3 : 4;
+            int last = 4;
             for (int step = 1; step <= last; step++) {
                 activity.goToStep(step);
                 idle();
@@ -350,7 +350,7 @@ public class WizardStepsScreenTest {
             activity.getState().selectedRooms.add(room("R1", 6));
 
             activity.getState().who = BookingWizardState.Who.OTHER;
-            activity.goToStep(2);
+            activity.goToStep(activity.repGuestsStep());
             idle();
             View other = find(activity, R.id.otherFields);
             ((TextView) other.findViewById(R.id.etRepLast)).setText("Cruz");
@@ -361,7 +361,7 @@ public class WizardStepsScreenTest {
             age.setText("5");
             activity.goToStep(1); // Back
             idle();
-            activity.goToStep(2);
+            activity.goToStep(activity.repGuestsStep());
             idle();
             other = find(activity, R.id.otherFields);
             assertEquals("Cruz", text(other.findViewById(R.id.etRepLast)));
@@ -382,7 +382,7 @@ public class WizardStepsScreenTest {
         out.add(Calendar.DAY_OF_YEAR, 2);
         s.checkIn = in;
         s.checkOut = out; // 2 nights x 2,500 = 5,000
-        activity.goToStep(3);
+        activity.goToStep(4);
         idle();
         TextView note = find(activity, R.id.tvSummaryDiscountNote);
         assertEquals(View.VISIBLE, note.getVisibility());
@@ -392,7 +392,7 @@ public class WizardStepsScreenTest {
         s.setDiscount(new com.example.velocitysuites.Discount("3", "Senior Citizen", "percentage", 20, "d", "active", null, null));
         activity.goToStep(2);
         idle();
-        activity.goToStep(3);
+        activity.goToStep(4);
         idle();
         assertEquals("PWD and Senior Citizen discounts are verified and applied by the front desk at check-in.", text(find(activity, R.id.tvSummaryDiscountNote)));
         assertFalse(text(find(activity, R.id.tvSummaryDiscountNote)).contains("-₱"));
@@ -405,17 +405,17 @@ public class WizardStepsScreenTest {
         BookingWizardActivity activity = launch(BookingWizardState.Mode.BOOKING).get();
         activity.getState().selectedRooms.add(room("R1", 4));
         activity.getState().who = BookingWizardState.Who.OWNER;
-        activity.goToStep(2); // representative and guests: valid as it stands, so a second tap would sail straight through
+        activity.goToStep(3); // representative and guests: valid as it stands, so a second tap would sail straight through
         idle();
         View next = activity.findViewById(R.id.btnWizardNext);
         next.performClick();
         next.performClick();
         idle();
         assertTrue("one question, not two", TapTestSupport.alertsShowing() <= 1);
-        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 2 of 3"));
+        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 3 of 4"));
         ((androidx.appcompat.app.AlertDialog) ShadowDialog.getLatestDialog()).getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();
         idle();
-        assertTrue("one answer moves exactly one step", text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 3 of 3"));
+        assertTrue("one answer moves exactly one step", text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 4 of 4"));
     }
 
     private static android.widget.EditText firstEditText(View v) {
@@ -456,7 +456,7 @@ public class WizardStepsScreenTest {
 
     @Test
     public void bookingWizard_finalConfirm_tripleTap_asksOnce_checksOnce_andOpensPaymentOnce() {
-        ActivityController<BookingWizardActivity> controller = readyToConfirm(BookingWizardState.Mode.BOOKING, 3);
+        ActivityController<BookingWizardActivity> controller = readyToConfirm(BookingWizardState.Mode.BOOKING, 4);
         BookingWizardActivity a = controller.get();
         TapTestSupport.layOut(a);
         View confirm = find(a, R.id.btnConfirmTransaction);
@@ -518,7 +518,7 @@ public class WizardStepsScreenTest {
         state.checkIn = daysFromHotelToday(5);
         state.checkOut = daysFromHotelToday(7);
         state.selectedRooms.add(room("1", 2));
-        controller.get().goToStep(3);
+        controller.get().goToStep(4);
         idle();
         BookingWizardActivity a = controller.get();
         org.robolectric.shadows.ShadowToast.reset();
@@ -534,7 +534,7 @@ public class WizardStepsScreenTest {
         assertFalse("Confirm stays disabled", find(a, R.id.btnConfirmTransaction).isEnabled());
 
         state.termsViewed = true;
-        controller.get().goToStep(3);
+        controller.get().goToStep(4);
         idle();
         String afterViewing = text(find(a, R.id.tvConfirmHint));
         assertTrue(afterViewing, afterViewing.contains("• Check the box"));

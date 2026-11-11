@@ -104,6 +104,19 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
                     if (hasAnyError()) showErrors(); // errors follow the text: they clear as soon as a field is right
                 }
             });
+            // Done on the keyboard, or leaving the three name fields: with valid names the page moves on to Guests.
+            field.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) toGuestsWhenValid();
+                return false;
+            });
+            field.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) return;
+                v.post(() -> {
+                    if (!isAdded() || getView() == null) return;
+                    View now = getView().findFocus();
+                    if (now != etLast && now != etFirst && now != etMiddle) toGuestsWhenValid();
+                });
+            });
         }
         BookingWizardState state = getState();
         boolean typedByGuest = state.who == BookingWizardState.Who.OTHER;
@@ -127,6 +140,7 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
             }
             getState().who = checkedId == R.id.btnWhoOwner ? BookingWizardState.Who.OWNER : BookingWizardState.Who.OTHER;
             applyChoice(getState().who);
+            toGuestsWhenValid();
         });
         view.findViewById(R.id.tvOwnerNotYou).setOnClickListener(v -> toggle.check(R.id.btnWhoOther));
 
@@ -170,6 +184,27 @@ public class Step4GuestIdentificationFragment extends WizardStepFragment {
         layoutOther.setVisibility(who == BookingWizardState.Who.OTHER ? View.VISIBLE : View.GONE);
         tvOwnerMissing.setVisibility(who == BookingWizardState.Who.OWNER && !ownerProfileComplete() ? View.VISIBLE : View.GONE);
         if (who != BookingWizardState.Who.NONE) tvWhoError.setVisibility(View.GONE);
+    }
+
+    /**
+     * The representative is settled - Account owner with a complete profile, or Someone else with valid names: the page scrolls down to the
+     * Guests section (nothing is validated out loud here; Next still checks both sections).
+     */
+    private void toGuestsWhenValid() {
+        if (!(getParentFragment() instanceof StepRepresentativeGuestsFragment) || !isAdded()) return;
+        BookingWizardState.Who who = getState().who;
+        boolean valid;
+        if (who == BookingWizardState.Who.OWNER) {
+            valid = ownerProfileComplete();
+        } else if (who == BookingWizardState.Who.OTHER) {
+            RepresentativeName.Parts p = typed();
+            RepresentativeName.Result r = RepresentativeName.validate(p);
+            valid = !p.isBlank() && r.last == RepresentativeName.Problem.NONE && r.first == RepresentativeName.Problem.NONE
+                    && r.middle == RepresentativeName.Problem.NONE;
+        } else {
+            valid = false;
+        }
+        if (valid) ((StepRepresentativeGuestsFragment) getParentFragment()).scrollToGuests();
     }
 
     private boolean hasAnyError() {

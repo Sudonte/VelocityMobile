@@ -65,7 +65,8 @@ final class WelcomeTopics {
                         s(R.string.welcome_topic_booking_s1_title, R.string.welcome_topic_booking_s1_desc),
                         s(R.string.welcome_topic_booking_s2_title, R.string.welcome_topic_booking_s2_desc),
                         s(R.string.welcome_topic_booking_s3_title, R.string.welcome_topic_booking_s3_desc),
-                        s(R.string.welcome_topic_booking_s4_title, R.string.welcome_topic_booking_s4_desc));
+                        s(R.string.welcome_topic_booking_s4_title, R.string.welcome_topic_booking_s4_desc),
+                        s(R.string.welcome_topic_booking_s5_title, R.string.welcome_topic_booking_s5_desc));
         }
     }
 }

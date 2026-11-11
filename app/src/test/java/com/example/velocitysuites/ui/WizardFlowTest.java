@@ -54,7 +54,7 @@ import java.util.List;
 
 /**
  * The guided steps after "Dates and rooms": the representative (Owner (me) / Someone else) and guests (Adults and Minors) on one screen, the "Proceed to ...?" questions between steps, the final review with its sections and Edit links,
- * the step counts (3 for a booking, 4 for a reservation), and leaving the wizard.
+ * the step counts (4 for a booking, with Amenities second; 4 for a reservation, with Payment method third), and leaving the wizard.
  */
 @RunWith(AndroidJUnit4.class)
 @Config(sdk = 35, qualifiers = "w360dp-h800dp-xxhdpi", application = TestApplication.class)
@@ -106,11 +106,11 @@ public class WizardFlowTest {
         idle();
     }
 
-    /** Two stays: 2 x Room 1 for 2 nights at 1,000 (4,000) and 1 x Room 2 for one night at 3,000 - ready on Step 2 (representative and guests). */
+    /** Two stays: 2 x Room 1 for 2 nights at 1,000 (4,000) and 1 x Room 2 for one night at 3,000 - ready on the representative and guests step (3 of 4 for a booking). */
     private BookingWizardActivity atStepTwo() {
         BookingWizardActivity a = onConfirmedStay(app, 5, 2, room("1", 1000, 4), 2);
         addConfirmedStay(a, 12, 1, room("2", 3000, 4), 1);
-        a.goToStep(2);
+        a.goToStep(3);
         idle();
         return a;
     }
@@ -120,7 +120,7 @@ public class WizardFlowTest {
     private BookingWizardActivity atRepresentative(BookingWizardState.Mode mode) {
         BookingWizardActivity a = open(app, mode);
         WizardDriver.fillAndConfirm(a, 5, 2, room("1", 1000, 4), 1);
-        a.goToStep(2);
+        a.goToStep(mode == BookingWizardState.Mode.BOOKING ? 3 : 2); // a booking has Amenities before it
         idle();
         return a;
     }
@@ -147,7 +147,7 @@ public class WizardFlowTest {
 
         tapNext(a);
         assertEquals("no question: Next is blocked", 0, TapTestSupport.alertsShowing());
-        assertTrue(stepLabel(a).startsWith("Step 2 of 3"));
+        assertTrue(stepLabel(a).startsWith("Step 3 of 4"));
         assertEquals(View.VISIBLE, find(a, R.id.tvWhoError).getVisibility());
         assertEquals("Choose the representative who will check in at the hotel", text(find(a, R.id.tvWhoError)));
     }
@@ -168,7 +168,7 @@ public class WizardFlowTest {
         String ask = dialogText(latestDialog());
         assertTrue(ask, ask.contains("Continue with these details?") && ask.contains("Account owner") && ask.contains("Santos, Maria Reyes"));
         answer(true);
-        assertTrue(stepLabel(a).startsWith("Step 3 of 3"));
+        assertTrue(stepLabel(a).startsWith("Step 4 of 4"));
         BookingWizardState state = a.getState();
         assertEquals("what the server expects for no separate representative", "Maria", state.guestFirstName);
         assertEquals("", state.guestMiddleName);
@@ -244,7 +244,7 @@ public class WizardFlowTest {
         assertEquals(View.GONE, find(a, R.id.layoutWhoOther).getVisibility());
         a.goToStep(1); // leave and come back
         idle();
-        a.goToStep(2);
+        a.goToStep(3);
         idle();
         find(a, R.id.btnWhoOther).performClick();
         idle();
@@ -258,7 +258,7 @@ public class WizardFlowTest {
         BookingWizardActivity a = open(app, BookingWizardState.Mode.BOOKING);
         WizardDriver.fillAndConfirm(a, 5, 2, room("1", 1000, capacity), 1);
         a.getState().who = BookingWizardState.Who.OWNER;
-        a.goToStep(2);
+        a.goToStep(3);
         idle();
         return a;
     }
@@ -305,7 +305,7 @@ public class WizardFlowTest {
         find(a, R.id.btnChildrenPlus).performClick();
         tapNext(a);
         assertEquals("blocked: no age yet", 0, TapTestSupport.alertsShowing());
-        assertTrue(stepLabel(a).startsWith("Step 2 of 3"));
+        assertTrue(stepLabel(a).startsWith("Step 3 of 4"));
         TextInputLayout til = (TextInputLayout) ((LinearLayout) find(a, R.id.layoutChildAgeFields)).getChildAt(0);
         assertNotNull(til.getError());
         ((TextView) til.getEditText()).setText("5");
@@ -313,7 +313,7 @@ public class WizardFlowTest {
         String ask = dialogText(latestDialog());
         assertTrue(ask, ask.contains("Continue with these details?") && ask.contains("1 Adult") && ask.contains("1 Minor"));
         answer(true);
-        assertTrue(stepLabel(a).startsWith("Step 3 of 3"));
+        assertTrue(stepLabel(a).startsWith("Step 4 of 4"));
         List<BookingAndReservationActivity.AdditionalGuest> kept = a.getState().additionalGuests;
         assertEquals("Child 1", kept.get(0).name); // the stored name stays as the server knows it
         assertEquals(5, kept.get(0).age);
@@ -324,7 +324,7 @@ public class WizardFlowTest {
     public void step2_showsTheRepresentativeFirst_thenTheGuestsDirectlyBelow() {
         BookingWizardActivity a = atStepTwo();
         assertEquals("Representative and guests", stepName(a));
-        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 2 of 3"));
+        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 3 of 4"));
         View who = find(a, R.id.toggleWho);
         View adults = find(a, R.id.btnAdultsPlus);
         int[] whoAt = new int[2];
@@ -368,26 +368,26 @@ public class WizardFlowTest {
         String ask = dialogText(latestDialog());
         assertTrue(ask, ask.contains("Continue with these details?") && ask.contains("Account owner") && ask.contains("1 Adult") && ask.contains("1 Minor"));
         answer(true);
-        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 3 of 3"));
+        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 4 of 4"));
         assertEquals("Review and bill summary", stepName(a));
     }
 
     // ---- the step counts and the final steps ----
 
     @Test
-    public void aBooking_hasThreeSteps_andTheReviewIsTheLastOne() {
+    public void aBooking_hasFourSteps_andTheReviewIsTheLastOne() {
         BookingWizardActivity a = open(app, BookingWizardState.Mode.BOOKING);
         WizardDriver.fillAndConfirm(a, 5, 2, room("1", 1000, 4), 1);
-        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 1 of 3"));
+        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 1 of 4"));
         assertEquals("Dates and rooms", stepName(a));
         a.getState().who = BookingWizardState.Who.OWNER;
-        a.goToStep(2);
+        a.goToStep(3);
         idle();
-        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 2 of 3"));
+        assertTrue(stepLabel(a), stepLabel(a).startsWith("Step 3 of 4"));
         tapNext(a);
         assertTrue(dialogText(latestDialog()), dialogText(latestDialog()).contains("Continue with these details?"));
         answer(true);
-        assertEquals("Step 3 of 3", plain(stepLabel(a)).substring(0, 11));
+        assertEquals("Step 4 of 4", plain(stepLabel(a)).substring(0, 11));
         assertEquals("Review and bill summary", stepName(a));
         assertEquals("the last step has its own Confirm button", View.GONE, a.findViewById(R.id.btnWizardNext).getVisibility());
     }
@@ -423,18 +423,23 @@ public class WizardFlowTest {
     }
 
     @Test
-    public void thereIsNoAmenitiesStepAndNoIdStep() {
+    public void onlyABookingHasTheAmenitiesStep_andThereIsNoIdStep() {
         for (BookingWizardState.Mode mode : BookingWizardState.Mode.values()) {
             BookingWizardActivity a = open(app, mode);
             WizardDriver.fillAndConfirm(a, 5, 2, room("1", 1000, 4), 1);
             a.getState().who = BookingWizardState.Who.OWNER;
-            int last = mode == BookingWizardState.Mode.BOOKING ? 3 : 4;
-            for (int step = 1; step <= last; step++) {
+            a.getState().paymentMethod = "cash";
+            a.getState().paymentMethodChosen = true;
+            List<String> names = new ArrayList<>();
+            for (int step = 1; step <= 4; step++) {
                 a.goToStep(step);
                 idle();
-                String name = stepName(a);
-                assertFalse(name, name.contains("Amenities") || name.contains("ID verification"));
+                names.add(stepName(a));
+                assertFalse(stepName(a), stepName(a).contains("ID verification"));
             }
+            assertEquals(mode == BookingWizardState.Mode.BOOKING
+                    ? java.util.Arrays.asList("Dates and rooms", "Amenities", "Representative and guests", "Review and bill summary")
+                    : java.util.Arrays.asList("Dates and rooms", "Representative and guests", "Payment method", "Review and bill summary"), names);
         }
     }
 
@@ -452,7 +457,7 @@ public class WizardFlowTest {
         s.additionalGuests.add(new BookingAndReservationActivity.AdditionalGuest("Child 1", 5, null, "Child"));
         s.paymentMethod = "gcash";
         s.paymentMethodChosen = true;
-        a.goToStep(mode == BookingWizardState.Mode.BOOKING ? 3 : 4);
+        a.goToStep(4);
         idle();
         return a;
     }
@@ -467,7 +472,7 @@ public class WizardFlowTest {
             assertTrue("missing '" + needed + "' in:\n" + sections, sections.contains(needed));
         }
         assertFalse("a booking has no payment-method section", sections.contains("Payment method"));
-        assertFalse("no amenities section when none were chosen", sections.contains("Amenities"));
+        assertTrue("a booking's amenities section says none were chosen", sections.contains("Amenities") && sections.contains("No additional amenities"));
         assertFalse("no ID section", sections.contains("ID / discount"));
 
         String bill = plain(collect(find(a, R.id.cardBookingSummary)));
@@ -589,7 +594,7 @@ public class WizardFlowTest {
         a.getOnBackPressedDispatcher().onBackPressed();
         idle();
         assertEquals(0, TapTestSupport.alertsShowing());
-        assertTrue(stepLabel(a).startsWith("Step 1 of 3"));
+        assertTrue("back from the representative is the amenities step: " + stepLabel(a), stepLabel(a).startsWith("Step 2 of 4"));
         assertFalse(a.isFinishing());
     }
 
@@ -604,7 +609,7 @@ public class WizardFlowTest {
         a.getState().repLast = "Cruz";
         a.getState().repFirst = "Ana";
         a.getState().adults = 2;
-        a.goToStep(2);
+        a.goToStep(3);
         idle();
         android.os.Bundle saved = new android.os.Bundle();
         controller.saveInstanceState(saved);
@@ -613,7 +618,7 @@ public class WizardFlowTest {
         BookingWizardActivity restored = org.robolectric.Robolectric.buildActivity(BookingWizardActivity.class,
                 BookingWizardActivity.newIntent(app, BookingWizardState.Mode.BOOKING)).create(saved).start().resume().visible().get();
         idle();
-        assertTrue(stepLabel(restored), stepLabel(restored).startsWith("Step 2 of 3"));
+        assertTrue(stepLabel(restored), stepLabel(restored).startsWith("Step 3 of 4"));
         BookingWizardState state = restored.getState();
         assertEquals(2, state.selectedRooms.size());
         assertNotNull(state.checkIn);
@@ -641,7 +646,7 @@ public class WizardFlowTest {
                 BookingWizardActivity.newIntent(app, BookingWizardState.Mode.BOOKING)).create(saved).start().resume().visible().get();
         idle();
 
-        assertTrue("back on the first step: " + stepLabel(restored), stepLabel(restored).startsWith("Step 1 of 3"));
+        assertTrue("back on the first step: " + stepLabel(restored), stepLabel(restored).startsWith("Step 1 of 4"));
         assertEquals(restored.getString(R.string.wizard_progress_lost_restart), ShadowToast.getTextOfLatestToast());
         assertTrue(ShadowToast.getTextOfLatestToast().contains("start again"));
         assertNotNull(controller);
@@ -667,7 +672,7 @@ public class WizardFlowTest {
                 find(a, R.id.btnChildrenPlus).performClick();
                 LayoutAssert.assertFits(q + " representative: someone else, with a minor", step(a).getView(), width);
 
-                a.goToStep(3);
+                a.goToStep(4);
                 idle();
                 LayoutAssert.assertFits(q + " review", step(a).getView(), width);
             }

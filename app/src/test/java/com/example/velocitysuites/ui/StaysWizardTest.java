@@ -74,11 +74,11 @@ public class StaysWizardTest {
     }
 
     @Test
-    public void datesAndRoomsAreOneStep_andABookingHasThreeSteps() {
+    public void datesAndRoomsAreOneStep_andABookingHasFourSteps() {
         BookingWizardActivity activity = open(app, BookingWizardState.Mode.BOOKING);
         fill(activity, 5, 2, room("1", 1000), 1);
 
-        assertEquals("Step 1 of 3 · Dates and rooms", text(activity.findViewById(R.id.tvWizardStepLabel)));
+        assertEquals("Step 1 of 4 · Dates and rooms", text(activity.findViewById(R.id.tvWizardStepLabel)));
         assertNotNull("the dates are on this step", find(activity, R.id.etCheckIn));
         assertNotNull("and so are the rooms", find(activity, R.id.layoutSelectedRooms));
     }
@@ -368,7 +368,7 @@ public class StaysWizardTest {
     // ---- Next: the review sheet, then "Proceed to representative and guests?" ----
 
     @Test
-    public void next_opensTheReviewSheet_withEveryRoomLineTheSubtotalAndTheTotal_thenAsksBeforeTheRepresentativeAndGuests() {
+    public void next_opensTheReviewSheet_withEveryRoomLineTheSubtotalAndTheTotal_thenAsksBeforeTheAmenities() {
         BookingWizardActivity activity = onConfirmedStay(app, 5, 2, room("1", 1000), 2); // 4,000
         addConfirmedStay(activity, 12, 1, room("2", 3000), 1); // 3,000
 
@@ -390,19 +390,19 @@ public class StaysWizardTest {
         // Edit stays: back to the step, nothing moved
         sheet.findViewById(R.id.btnReviewEdit).performClick();
         idle();
-        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 1 of 3"));
+        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 1 of 4"));
 
-        // Continue -> "Proceed to representative and guests?"; Cancel stays, Yes moves on
+        // Continue -> "Proceed to amenities?" (a booking); Cancel stays, Yes moves on
         advance();
         activity.findViewById(R.id.btnWizardNext).performClick();
         idle();
         latestDialog().findViewById(R.id.btnReviewContinue).performClick();
         idle();
         String ask = dialogText(latestDialog());
-        assertTrue(ask, ask.contains("Proceed to representative and guests?"));
+        assertTrue(ask, ask.contains("Proceed to amenities?"));
         assertTrue(ask, ask.contains("2 stays") && ask.contains("3 rooms") && ask.contains("₱7,000.00"));
         answer(false);
-        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 1 of 3"));
+        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 1 of 4"));
         advance();
         activity.findViewById(R.id.btnWizardNext).performClick();
         idle();
@@ -410,7 +410,7 @@ public class StaysWizardTest {
         idle();
         assertEquals("Yes, continue", ((androidx.appcompat.app.AlertDialog) latestDialog()).getButton(android.content.DialogInterface.BUTTON_POSITIVE).getText().toString());
         answer(true);
-        assertTrue(text(activity.findViewById(R.id.tvWizardStepLabel)).startsWith("Step 2 of 3"));
+        assertEquals("Step 2 of 4 · Amenities", text(activity.findViewById(R.id.tvWizardStepLabel)));
     }
 
     // ---- layout ----

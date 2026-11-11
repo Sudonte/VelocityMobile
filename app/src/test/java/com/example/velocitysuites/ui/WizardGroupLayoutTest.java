@@ -195,7 +195,7 @@ public class WizardGroupLayoutTest {
             BookingWizardState state = activity.getState();
             state.termsViewed = true;
             state.termsAccepted = true;
-            activity.goToStep(3);
+            activity.goToStep(4);
             idle();
             View root = step(activity).getView();
             String all = collect(root);

@@ -28,19 +28,13 @@ import com.google.android.material.button.MaterialButton;
  * Activity, parameterized by EXTRA_MODE, hosting the shared
  * WizardStepFragment steps (see BookingWizardState's docblock for why a
  * shared in-memory state object rather than per-Activity-hop Intent extras).
- * Steps 1-6 are identical across every run. Step count itself is
- * mode/edit-dependent (see stepCount, set once in onCreate()):
+ * The steps depend on the mode (see stepCount, set once in onCreate(), and createFragmentForStep()):
  * <ul>
- *   <li>Booking mode, and Reservation edit/Modify mode: 7 steps, step 7 is
- *   Step8ReviewPaymentFragment (review + T&amp;C; payment method is chosen on
- *   payment.xml for Booking, or via this same step's own edit-mode chip
- *   picker for Modify) - completely unchanged from before this class's
- *   payment-method-step addition.</li>
- *   <li>Reservation mode, fresh (not editing): 8 steps - step 7 is the new
- *   Step7PaymentMethodFragment (Cash/GCash, no payment collected), step 8 is
- *   Step8ReviewPaymentFragment showing the guest's step-7 choice read-only
- *   and submitting the reservation directly (no payment.xml hand-off at all,
- *   for either method - GCash always defers to a later Pay Now action).</li>
+ *   <li>Booking: 4 steps - Dates and rooms, Amenities (optional), Representative and guests, Review and bill summary (the payment itself
+ *   is made on payment.xml after the review).</li>
+ *   <li>Reservation, fresh (not editing): 4 steps and no amenities - Dates and rooms, Representative and guests, Payment method
+ *   (Cash/GCash, no payment collected), Review and bill summary (the reservation is submitted directly, with no payment.xml hand-off).</li>
+ *   <li>Reservation Modify: 3 steps - Dates and rooms, Representative and guests, Review and bill summary.</li>
  * </ul>
  */
 public class BookingWizardActivity extends SafeActivity {
@@ -93,6 +87,26 @@ public class BookingWizardActivity extends SafeActivity {
 
     public boolean isEditMode() {
         return editingReservationId != null;
+    }
+
+    /** Only a booking chooses amenities while it is being made (step 2); a reservation has none until it becomes a booking. */
+    public boolean hasAmenitiesStep() {
+        return state.isBookingMode() && !isEditMode();
+    }
+
+    /** The step number of Amenities, or 0 when this run has no such step. */
+    public int amenitiesStep() {
+        return hasAmenitiesStep() ? 2 : 0;
+    }
+
+    /** The step number of Representative and guests: 3 for a booking (after Amenities), 2 otherwise. */
+    public int repGuestsStep() {
+        return hasAmenitiesStep() ? 3 : 2;
+    }
+
+    /** The step number of Payment method (a fresh reservation only), or 0. */
+    public int paymentMethodStep() {
+        return !state.isBookingMode() && !isEditMode() ? 3 : 0;
     }
 
     public String getEditingReservationId() {
@@ -275,9 +289,10 @@ public class BookingWizardActivity extends SafeActivity {
             }
         }
 
-        // Dates and rooms (1), Representative and guests (2), Review and bill summary: a Booking and a Reservation Modify have 3 steps; only a
-        // fresh (non-edit) Reservation gains the Payment Method step before the review and has 4.
-        stepCount = (mode == BookingWizardState.Mode.RESERVATION && !isEditMode()) ? 4 : 3;
+        // A booking: Dates and rooms (1), Amenities (2), Representative and guests (3), Review and bill summary (4). A fresh reservation has
+        // no amenities: Dates and rooms, Representative and guests, Payment method, Review and bill summary. A Reservation Modify has 3
+        // (no Payment method step).
+        stepCount = isEditMode() ? 3 : 4;
 
         // Header color mirrors startingbooking.xml (velocity_red_primary) vs
         // startingreservation.xml (velocity_red_dark) - the only visual
@@ -609,8 +624,9 @@ public class BookingWizardActivity extends SafeActivity {
     private void showStep(int stepIndex) {
         boolean forward = stepIndex >= currentStepIndex;
         currentStepIndex = stepIndex;
-        // Only the first step (the stays) works on one stay at a time; from the guest step on everything reads all stays.
-        if (stepIndex >= 2) state.activate(0);
+        // Only the first step (the stays) works on one stay at a time; the amenities step edits every stay by room, and from the guest step
+        // on everything reads all stays.
+        if (stepIndex >= repGuestsStep()) state.activate(0);
         setNextReason(null);
         Fragment fragment = createFragmentForStep(stepIndex);
         FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
@@ -624,18 +640,15 @@ public class BookingWizardActivity extends SafeActivity {
     }
 
     private Fragment createFragmentForStep(int stepIndex) {
-        // Only a fresh (non-edit) Reservation run has 8 steps at all (see
-        // stepCount's assignment in onCreate()) - step 7 there is the new
-        // Payment Method chooser, and the review fragment moves to step 8.
-        // Every other run (Booking mode, or Reservation Modify) stays at 7
-        // steps with the review fragment still occupying step 7, unchanged.
-        boolean hasPaymentMethodStep = stepCount == 4;
+        boolean amenities = hasAmenitiesStep();
         switch (stepIndex) {
-            // Dates and the rooms available for them, together (and "Add another stay").
+            // Dates and the rooms available for them, together (and "Add another date").
             case 1: return new StepStaysFragment();
-            // The representative, then directly below it the guests.
-            case 2: return new StepRepresentativeGuestsFragment();
-            case 3: return hasPaymentMethodStep ? new Step7PaymentMethodFragment() : new Step8ReviewPaymentFragment();
+            // A booking: the optional amenities. Otherwise the representative, then directly below it the guests.
+            case 2: return amenities ? new Step3AmenitiesFragment() : new StepRepresentativeGuestsFragment();
+            // A booking: representative and guests. A fresh reservation: Cash or GCash. A Modify: the review.
+            case 3: return amenities ? new StepRepresentativeGuestsFragment()
+                    : paymentMethodStep() == 3 ? new Step7PaymentMethodFragment() : new Step8ReviewPaymentFragment();
             case 4: return new Step8ReviewPaymentFragment();
             default: throw new IllegalStateException("Unknown wizard step: " + stepIndex);
         }
@@ -691,8 +704,8 @@ public class BookingWizardActivity extends SafeActivity {
         View bar = findViewById(R.id.wizardSummaryBar);
         if (bar == null) return;
         // The final review step shows the same facts in its own summary card.
-        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount) {
-            bar.setVisibility(View.GONE);
+        if (state.checkIn == null || state.checkOut == null || currentStepIndex >= stepCount || currentFragment() instanceof Step3AmenitiesFragment) {
+            bar.setVisibility(View.GONE); // the amenities step has its own live total at the bottom
             return;
         }
         int rooms = 0;

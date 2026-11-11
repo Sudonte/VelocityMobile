@@ -58,7 +58,12 @@ final class WizardReview {
         return sections;
     }
 
-    /** Per stay, then per room: the amenities with quantities and amounts. Stays without amenities are left out. */
+    /** What an amenity line adds: its amount, or "Included" for one that comes with the room (price 0, never on the bill). */
+    private static String amenityAmount(Context c, AddOnAmenity a, int qty) {
+        return AmenityCatalog.isIncluded(a) ? c.getString(R.string.amenity_included_label) : MoneyFormat.format(a.getPrice() * qty);
+    }
+
+    /** Per stay, then per room: the amenities with quantities and amounts ("Included" for the free ones). Stays without amenities are left out. */
     @NonNull
     static List<ReviewSheet.Section> amenities(Context c, BookingWizardState state) {
         List<ReviewSheet.Section> sections = new ArrayList<>();
@@ -71,7 +76,7 @@ final class WizardReview {
                     fmt.format(stay.checkIn.getTime()), fmt.format(stay.checkOut.getTime())));
             if (stay.roomAmenityQty.isEmpty()) { // seeded without a per-room split (older state): the stay's amenities as they are
                 for (AddOnAmenity a : stay.amenities) {
-                    section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), a.getQuantity()), MoneyFormat.format(a.getSubtotal())));
+                    section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), a.getQuantity()), amenityAmount(c, a, a.getQuantity())));
                 }
             }
             Map<String, Integer> anyRoom = stay.roomAmenityQty.get(BookingWizardState.Stay.ANY_ROOM);
@@ -79,7 +84,7 @@ final class WizardReview {
                 section.add(ReviewSheet.Row.bold(c.getString(R.string.amenity_any_room_heading), null));
                 for (Map.Entry<String, Integer> e : anyRoom.entrySet()) {
                     AddOnAmenity a = stay.amenityCatalog.get(e.getKey());
-                    if (a != null) section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), e.getValue()), MoneyFormat.format(a.getPrice() * e.getValue())));
+                    if (a != null) section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), e.getValue()), amenityAmount(c, a, e.getValue())));
                 }
             }
             for (BookingWizardState.Stay.Slot slot : stay.roomSlots()) {
@@ -90,7 +95,7 @@ final class WizardReview {
                     AddOnAmenity a = stay.amenityCatalog.get(e.getKey());
                     if (a == null) continue;
                     section.add(ReviewSheet.Row.indented(c.getString(R.string.summary_amenity_row_qty_format, a.getName(), e.getValue()),
-                            MoneyFormat.format(a.getPrice() * e.getValue())));
+                            amenityAmount(c, a, e.getValue())));
                 }
             }
             sections.add(section);

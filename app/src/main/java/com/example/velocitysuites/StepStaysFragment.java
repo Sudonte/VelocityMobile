@@ -61,6 +61,8 @@ public class StepStaysFragment extends WizardStepFragment {
     private TextView tvRoomsLowered;
     /** Set when a valid range was just picked: once the room list is ready, the page scrolls down to "Add room". */
     private boolean scrollToAddRoomWhenReady;
+    /** Set when the step opens with dates and rooms already chosen (from Room Browsing): once the room list is ready, the page scrolls to "Confirm these dates". */
+    private boolean scrollToConfirmWhenReady;
 
     @Nullable
     @Override
@@ -94,6 +96,10 @@ public class StepStaysFragment extends WizardStepFragment {
             if (guard.tryAcquire()) onAddStay();
         });
         btnConfirmStay.setOnClickListener(v -> onConfirmStay()); // one question at a time is enforced by the wizard itself
+
+        // Arriving with dates and rooms: the next thing to do is "Confirm these dates", so the page goes there by itself.
+        BookingWizardState state = getState();
+        scrollToConfirmWhenReady = savedInstanceState == null && !state.activeConfirmed && datesValid() && !state.selectedRooms.isEmpty();
 
         // Children are rebuilt from the state, so coming back to this step (or switching stay) always shows the stay as saved.
         showStay();
@@ -133,12 +139,25 @@ public class StepStaysFragment extends WizardStepFragment {
 
     /** Called by the room list once the availability for the dates is on screen - the moment "Add room" is where it will stay. */
     void onRoomsListReady() {
-        if (!isAdded() || !scrollToAddRoomWhenReady) return;
+        if (!isAdded()) return;
+        if (scrollToConfirmWhenReady) {
+            scrollToConfirmWhenReady = false;
+            scrollToAddRoomWhenReady = false;
+            scroll.post(this::scrollToConfirm);
+            return;
+        }
+        if (!scrollToAddRoomWhenReady) return;
         scrollToAddRoomWhenReady = false;
         Fragment rooms = getChildFragmentManager().findFragmentByTag(TAG_ROOMS);
         View add = rooms != null && rooms.getView() != null ? rooms.getView().findViewById(R.id.btnAddRoom) : null;
         if (add == null || add.getVisibility() != View.VISIBLE) return;
         scroll.post(() -> scrollTo(topInContent(add) - dp(24)));
+    }
+
+    /** Brings "Confirm these dates" to the middle of the page (the rooms chosen stay in view above it). */
+    private void scrollToConfirm() {
+        if (!isAdded() || btnConfirmStay == null || btnConfirmStay.getVisibility() != View.VISIBLE) return;
+        scrollTo(topInContent(btnConfirmStay) - Math.max(0, (scroll.getHeight() - btnConfirmStay.getHeight()) / 2));
     }
 
     /** Smooth scroll, or a plain jump when the guest turned animations off. */
@@ -527,7 +546,7 @@ public class StepStaysFragment extends WizardStepFragment {
 
     @Override
     public String nextConfirmTitle() {
-        return getString(R.string.proceed_to_rep_guests);
+        return getString(getWizardActivity().hasAmenitiesStep() ? R.string.proceed_to_amenities : R.string.proceed_to_rep_guests);
     }
 
     @Override

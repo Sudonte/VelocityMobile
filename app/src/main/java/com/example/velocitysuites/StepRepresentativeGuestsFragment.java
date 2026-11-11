@@ -9,10 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * Step 2 of 3 (booking) / 4 (reservation) - Representative and guests on one screen: the representative section first (Account owner /
- * Someone else, the names, the helper about presenting 1 valid ID), then directly below it the Guests section (adults, minors with their
- * ages, the capacity check inline). Each section is the same fragment the wizard used as separate steps, so the rules and the inline
- * messages are unchanged; Next validates both (every problem shows at once) and asks one confirmation.
+ * Step 3 of 4 (booking) / 2 of 4 (reservation) - Representative and guests on one screen: the representative section first (Account
+ * owner / Someone else, the names, the helper about presenting 1 valid ID), then directly below it the Guests section (adults, minors with
+ * their ages, the capacity check inline). Each section is the same fragment the wizard used as separate steps, so the rules and the inline
+ * messages are unchanged; Next validates both (every problem shows at once) and asks one confirmation. Once the representative is chosen
+ * and valid, the page scrolls down to Guests by itself.
  */
 public class StepRepresentativeGuestsFragment extends WizardStepFragment {
 
@@ -34,6 +35,20 @@ public class StepRepresentativeGuestsFragment extends WizardStepFragment {
                     .replace(R.id.guestsContainer, new Step5AdditionalGuestsFragment(), TAG_GUESTS)
                     .commitNow();
         }
+    }
+
+    /** The representative is chosen and its names are valid: bring the Guests section up (smoothly, or a plain jump with animations off). */
+    void scrollToGuests() {
+        View root = getView();
+        View guests = root == null ? null : root.findViewById(R.id.guestsContainer);
+        if (!(root instanceof androidx.core.widget.NestedScrollView) || guests == null) return;
+        androidx.core.widget.NestedScrollView page = (androidx.core.widget.NestedScrollView) root;
+        page.post(() -> {
+            if (!isAdded()) return;
+            int y = Math.max(0, guests.getTop());
+            if (Motion.enabled(requireContext())) page.smoothScrollTo(0, y);
+            else page.scrollTo(0, y);
+        });
     }
 
     @Nullable

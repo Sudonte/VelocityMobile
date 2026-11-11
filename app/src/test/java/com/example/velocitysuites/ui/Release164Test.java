@@ -54,7 +54,7 @@ public class Release164Test {
     private static final int[] CARDS = {R.id.welcomeCardRooms, R.id.welcomeCardPay, R.id.welcomeCardTrack, R.id.welcomeCardSupport};
     private static final int[] TITLES = {R.id.welcomeCardRoomsTitle, R.id.welcomeCardPayTitle, R.id.welcomeCardTrackTitle, R.id.welcomeCardSupportTitle};
     private static final String[] CARD_TITLES = {"Easy booking", "GCash payments", "Track transactions", "Front-desk help"};
-    private static final int[] STEP_COUNTS = {4, 3, 5, 3};
+    private static final int[] STEP_COUNTS = {5, 3, 5, 3};
 
     @After
     public void tearDown() {
@@ -188,7 +188,7 @@ public class Release164Test {
         // booking: the wizard's own step names, "Add another date", booking vs reservation
         Dialog booking = open(a, 0);
         List<String> b = stepTitles(booking);
-        for (String wizardStep : new String[]{"Dates and rooms", "Representative and guests", "Review and bill summary"}) {
+        for (String wizardStep : new String[]{"Dates and rooms", "Amenities (bookings)", "Representative and guests", "Review and bill summary"}) {
             assertTrue(wizardStep + " in " + b, b.contains(wizardStep));
         }
         assertTrue(b.toString(), b.contains("Payment method (reservations)"));

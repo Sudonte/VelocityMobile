@@ -273,13 +273,16 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
         }
         layoutReviewSections.addView(buildSection(R.string.review_section_stays, 1, stayRows));
 
-        // 2. Amenities: not chosen when booking any more (they are requested during the stay); a reservation made with some keeps showing them
+        // 2. Amenities, per date range and room, included ("Included") and paid (with their amounts). A booking chose them in its own step
+        // and can go back to it; a reservation has none (one made with some, long ago, keeps showing them, read only).
+        int amenitiesStep = getWizardActivity().amenitiesStep();
         List<View> amenityRows = new ArrayList<>();
         for (ReviewSheet.Section section : WizardReview.amenities(c, state)) {
             amenityRows.add(ReviewSheet.heading(c, section.heading, amenityRows.isEmpty()));
             for (ReviewSheet.Row row : section.rows) amenityRows.add(ReviewSheet.row(c, row));
         }
-        if (!amenityRows.isEmpty()) layoutReviewSections.addView(buildSection(R.string.review_section_amenities, 0, amenityRows));
+        if (amenityRows.isEmpty() && amenitiesStep > 0) amenityRows.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_no_amenities), null)));
+        if (!amenityRows.isEmpty()) layoutReviewSections.addView(buildSection(R.string.review_section_amenities, amenitiesStep, amenityRows));
 
         // Promos for the rooms chosen: a note with the estimated saving, verified by the front desk at check-in (never subtracted here)
         List<ReviewSheet.Row> promoRows = WizardReview.promoRows(c, state);
@@ -297,7 +300,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
                 getString(state.who == BookingWizardState.Who.OTHER ? R.string.who_someone_else : R.string.who_owner_me))));
         if (!rep.formatted().isEmpty()) who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_name_label), rep.formatted())));
         who.add(ReviewSheet.row(c, ReviewSheet.Row.of(getString(R.string.review_present_id_note), null)));
-        layoutReviewSections.addView(buildSection(R.string.review_section_representative, 2, who));
+        layoutReviewSections.addView(buildSection(R.string.review_section_representative, getWizardActivity().repGuestsStep(), who));
 
         // 4. Guests: adults, minors and their ages
         List<View> guests = new ArrayList<>();
@@ -309,7 +312,7 @@ public class Step8ReviewPaymentFragment extends WizardStepFragment {
             minor++;
             guests.add(ReviewSheet.row(c, ReviewSheet.Row.indented(getString(R.string.child_age_field_format, minor), g.age >= 0 ? String.valueOf(g.age) : "-")));
         }
-        layoutReviewSections.addView(buildSection(R.string.review_section_guests, 2, guests));
+        layoutReviewSections.addView(buildSection(R.string.review_section_guests, getWizardActivity().repGuestsStep(), guests));
 
         // 5. ID / discount: only a reservation made with one keeps showing it (read only); the front desk records it at check-in otherwise
         if (state.discount != null) {

@@ -2291,6 +2291,26 @@
     <string name="review_room_line_format">%1$d × %2$s × %3$s × %4$s</string>
     <string name="review_stay_subtotal">Subtotal</string>
     <string name="proceed_to_rep_guests">Proceed to representative and guests?</string>
+    <string name="proceed_to_amenities">Proceed to amenities?</string>
+    <!-- The Amenities step of a booking (step 2 of 4) -->
+    <string name="step_title_amenities">Amenities</string>
+    <string name="skip_amenities_button">Skip</string>
+    <string name="amenities_step_empty">No amenities are offered right now.</string>
+    <string name="addon_amenities_load_error">Unable to load the amenities. Please try again.</string>
+    <string name="error_amenity_qty_exceeds_capacity">Quantity can\'t exceed the room capacity you selected.</string>
+    <plurals name="amenity_only_left_format">
+        <item quantity="one">Only %1$d left</item>
+        <item quantity="other">Only %1$d left</item>
+    </plurals>
+    <string name="amenity_price_each_format">%1$s each</string>
+    <string name="amenity_line_format">%1$d × %2$s = %3$s</string>
+    <string name="amenities_live_total_format">Amenities %1$s · Grand total %2$s</string>
+    <string name="amenities_none_title">Continue without additional amenities?</string>
+    <string name="amenities_none_summary_format">No amenities · Total %1$s</string>
+    <string name="proceed_with_amenities">Proceed with these amenities?</string>
+    <string name="review_amenities_title">Review your amenities</string>
+    <string name="review_no_amenities">No additional amenities</string>
+    <string name="amenity_included_label">Included</string>
     <string name="proceed_stays_summary_format">%1$s · %2$s · %3$s</string>
     <string name="amenity_stay_heading_format">%1$s → %2$s</string>
     <string name="amenity_room_heading_format" tools:ignore="PluralsCandidate">%1$s (room %2$d)</string>
@@ -2473,12 +2493,14 @@ Estimated total after discount: %3$s</string>
     <string name="welcome_topic_booking_intro">A booking is paid by GCash: a partial payment (20%–50%) now and the rest at the hotel. A reservation holds your room now and you pay later.</string>
     <string name="welcome_topic_booking_s1_title">Dates and rooms</string>
     <string name="welcome_topic_booking_s1_desc">Choose your dates first, then your rooms. Tap “Add another date” for a second stay.</string>
-    <string name="welcome_topic_booking_s2_title">Representative and guests</string>
-    <string name="welcome_topic_booking_s2_desc">Choose who checks in, then set adults and minors within your rooms’ capacity.</string>
-    <string name="welcome_topic_booking_s3_title">Payment method (reservations)</string>
-    <string name="welcome_topic_booking_s3_desc">Choose cash or GCash. You pay later.</string>
-    <string name="welcome_topic_booking_s4_title">Review and bill summary</string>
-    <string name="welcome_topic_booking_s4_desc">Check the bill, accept the terms and confirm. PWD and Senior Citizen discounts are verified and applied by the front desk at check-in.</string>
+    <string name="welcome_topic_booking_s2_title">Amenities (bookings)</string>
+    <string name="welcome_topic_booking_s2_desc">Optional: pick what is included with your room and any additional amenities, or skip. You can request more after booking.</string>
+    <string name="welcome_topic_booking_s3_title">Representative and guests</string>
+    <string name="welcome_topic_booking_s3_desc">Choose who checks in, then set adults and minors within your rooms’ capacity.</string>
+    <string name="welcome_topic_booking_s4_title">Payment method (reservations)</string>
+    <string name="welcome_topic_booking_s4_desc">Choose cash or GCash. You pay later.</string>
+    <string name="welcome_topic_booking_s5_title">Review and bill summary</string>
+    <string name="welcome_topic_booking_s5_desc">Check the bill, accept the terms and confirm. PWD and Senior Citizen discounts are verified and applied by the front desk at check-in.</string>
 
     <string name="welcome_topic_gcash_intro">Pay a partial amount (20%–50% of the total) now. The rest is paid at the hotel. The front desk verifies your payment before it counts.</string>
     <string name="welcome_topic_gcash_s1_title">Send via GCash</string>
