@@ -177,11 +177,21 @@ public class LandingActivity extends SafeActivity implements RoomAdapter.OnRoomC
 
     private void showDates() {
         java.text.SimpleDateFormat field = new java.text.SimpleDateFormat("MMM d, yyyy", Locale.US);
-        etLandingCheckIn.setText(field.format(checkInDate.getTime()));
-        etLandingCheckOut.setText(field.format(checkOutDate.getTime()));
+        bindDateField(etLandingCheckIn, R.string.check_in_label, field.format(checkInDate.getTime()));
+        bindDateField(etLandingCheckOut, R.string.check_out_label, field.format(checkOutDate.getTime()));
         int nights = (int) StayDateCalculator.nightsBetween(checkInDate, checkOutDate);
         tvLandingDatesNote.setText(getString(R.string.landing_dates_note_format,
                 getResources().getQuantityString(R.plurals.nights_lower, nights, nights), CheckInWindow.earliestForDisplay()));
+    }
+
+    /** "Check-in" (small, secondary) over the date: one view per field. Read aloud as "Check-in, Nov 13, 2026". */
+    private void bindDateField(android.widget.TextView view, @androidx.annotation.StringRes int label, String date) {
+        String name = getString(label);
+        android.text.SpannableStringBuilder text = new android.text.SpannableStringBuilder(name + "\n" + date);
+        text.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.velocity_text_secondary)), 0, name.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(new android.text.style.RelativeSizeSpan(0.85f), 0, name.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        view.setText(text);
+        view.setContentDescription(getString(R.string.landing_date_field_cd_format, name, date));
     }
 
     private void pickDate(boolean checkIn) {

@@ -154,10 +154,11 @@ public class Release174Test {
         LandingActivity a = landing();
 
         DateTimeFormatter field = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US);
-        assertEquals(checkIn().format(field), ((TextView) a.findViewById(R.id.etLandingCheckIn)).getText().toString());
-        assertEquals(checkIn().plusDays(1).format(field), ((TextView) a.findViewById(R.id.etLandingCheckOut)).getText().toString());
-        assertEquals("Check-in", ((TextInputLayout) a.findViewById(R.id.tilLandingCheckIn)).getHint().toString());
-        assertEquals("Check-out", ((TextInputLayout) a.findViewById(R.id.tilLandingCheckOut)).getHint().toString());
+        // one view per field: its label on the first line, the date on the second
+        assertEquals("Check-in\n" + checkIn().format(field), ((TextView) a.findViewById(R.id.etLandingCheckIn)).getText().toString());
+        assertEquals("Check-out\n" + checkIn().plusDays(1).format(field), ((TextView) a.findViewById(R.id.etLandingCheckOut)).getText().toString());
+        assertEquals("Check-in, " + checkIn().format(field) + ". Tap to change.", a.findViewById(R.id.etLandingCheckIn).getContentDescription().toString());
+        assertTrue(a.findViewById(R.id.etLandingCheckIn).isClickable() && a.findViewById(R.id.etLandingCheckOut).isClickable());
         String note = ((TextView) a.findViewById(R.id.tvLandingDatesNote)).getText().toString();
         assertTrue(note, note.startsWith("1 night · earliest check-in "));
         assertEquals(1, api.count("getRoomsFresh"));
@@ -228,7 +229,7 @@ public class Release174Test {
                 LayoutAssert.assertFits(q + " landing dates", (View) row.getParent(), w);
                 for (int id : new int[]{R.id.etLandingCheckIn, R.id.etLandingCheckOut}) {
                     TextView field = a.findViewById(id);
-                    assertEquals(q + ": the whole date shows", 0, field.getLayout().getEllipsisCount(0));
+                    assertEquals(q + ": the label and the date each stay on their own line", 2, field.getLineCount());
                 }
                 Release160Test.assertReadable(q + " landing dates", a, (View) row.getParent());
             }
@@ -248,10 +249,10 @@ public class Release174Test {
         for (int id : new int[]{R.id.etLandingCheckIn, R.id.etLandingCheckOut}) {
             TextView field = a.findViewById(id);
             assertTrue("the field is laid out", field.getWidth() > 0);
-            assertEquals("the whole date shows (no ellipsis)", 0, field.getLayout().getEllipsisCount(0));
-            assertTrue("a comfortable touch target", ((View) field.getParent().getParent()).getHeight() >= 48 * app.getResources().getDisplayMetrics().density - 1);
+            assertEquals("the label and the whole date, one line each", 2, field.getLineCount());
+            assertTrue("a comfortable touch target", field.getHeight() >= 48 * app.getResources().getDisplayMetrics().density - 1);
         }
-        View in = a.findViewById(R.id.tilLandingCheckIn), out = a.findViewById(R.id.tilLandingCheckOut);
+        View in = a.findViewById(R.id.etLandingCheckIn), out = a.findViewById(R.id.etLandingCheckOut);
         assertTrue("side by side", in.getRight() <= out.getLeft());
     }
 }

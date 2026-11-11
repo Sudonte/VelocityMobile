@@ -639,7 +639,8 @@
                                 app:layout_constraintTop_toTopOf="parent" />
                         </androidx.constraintlayout.widget.ConstraintLayout>
 
-                        <!-- Check-in and check-out, pre-filled (today + 2 days, one night): the rooms below are for these dates. -->
+                        <!-- Check-in and check-out, pre-filled (today + 2 days, one night): the rooms below are for these dates. Each field is one
+                             view - its label on the first line, the date on the second - which keeps this layout as shallow as it was. -->
                         <LinearLayout
                             android:id="@+id/landingDatesRow"
                             android:layout_width="match_parent"
@@ -648,55 +649,51 @@
                             android:baselineAligned="false"
                             android:orientation="horizontal">
 
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:id="@+id/tilLandingCheckIn"
-                                style="@style/Widget.Velocity.TextInputLayout.Filter.Date"
+                            <TextView
+                                android:id="@+id/etLandingCheckIn"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="4dp"
                                 android:layout_weight="1"
-                                android:hint="@string/check_in_label">
+                                android:background="@drawable/bg_flat_box"
+                                android:clickable="true"
+                                android:drawablePadding="8dp"
+                                android:focusable="true"
+                                android:fontFamily="sans-serif-medium"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:lineSpacingExtra="2dp"
+                                android:minHeight="56dp"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="8dp"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp"
+                                app:drawableEndCompat="@drawable/ic_calendar"
+                                app:drawableTint="@color/velocity_text_secondary"
+                                tools:text="Check-in\nNov 13, 2026" />
 
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/etLandingCheckIn"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:clickable="true"
-                                    android:cursorVisible="false"
-                                    android:ellipsize="end"
-                                    android:focusable="false"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:inputType="none"
-                                    android:maxLines="1"
-                                    android:singleLine="true"
-                                    android:textColor="@color/velocity_text_primary"
-                                    android:textSize="13sp" />
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:id="@+id/tilLandingCheckOut"
-                                style="@style/Widget.Velocity.TextInputLayout.Filter.Date"
+                            <TextView
+                                android:id="@+id/etLandingCheckOut"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="4dp"
                                 android:layout_weight="1"
-                                android:hint="@string/check_out_label">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/etLandingCheckOut"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:clickable="true"
-                                    android:cursorVisible="false"
-                                    android:ellipsize="end"
-                                    android:focusable="false"
-                                    android:fontFamily="sans-serif-medium"
-                                    android:inputType="none"
-                                    android:maxLines="1"
-                                    android:singleLine="true"
-                                    android:textColor="@color/velocity_text_primary"
-                                    android:textSize="13sp" />
-                            </com.google.android.material.textfield.TextInputLayout>
+                                android:background="@drawable/bg_flat_box"
+                                android:clickable="true"
+                                android:drawablePadding="8dp"
+                                android:focusable="true"
+                                android:fontFamily="sans-serif-medium"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:lineSpacingExtra="2dp"
+                                android:minHeight="56dp"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="8dp"
+                                android:textColor="@color/velocity_text_primary"
+                                android:textSize="13sp"
+                                app:drawableEndCompat="@drawable/ic_calendar"
+                                app:drawableTint="@color/velocity_text_secondary"
+                                tools:text="Check-out\nNov 13, 2026" />
                         </LinearLayout>
 
                         <TextView
