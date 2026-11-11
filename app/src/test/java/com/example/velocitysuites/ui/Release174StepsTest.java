@@ -573,6 +573,40 @@ public class Release174StepsTest {
     // ---- layout
 
     @Test
+    public void theAmenitiesStep_andItsReviewSheet_fitAndAreReadable_at360And393dp_inLightAndDark() {
+        String[] configs = {"w360dp-h800dp-notnight", "w360dp-h800dp-night", "w393dp-h851dp-notnight", "w393dp-h851dp-night"};
+        try {
+            for (String q : configs) {
+                org.robolectric.RuntimeEnvironment.setQualifiers("+" + q);
+                api = new FakeApi();
+                ScreenTestSupport.freshRepository(app, api);
+                BookingWizardActivity a = atAmenities();
+                plus(a).get(0).performClick(); // an included one
+                plus(a).get(2).performClick(); // a paid one
+                layout(a);
+                int width = a.getResources().getDisplayMetrics().widthPixels;
+                LayoutAssert.assertFits(q + " amenities", step(a).getView(), width);
+                Release160Test.assertReadable(q + " amenities", a, a.getWindow().getDecorView());
+                tapNext(a);
+                Dialog sheet = latestDialog();
+                LayoutAssert.assertFits(q + " amenities review sheet", sheet.findViewById(R.id.reviewSheetRoot), width);
+                sheet.dismiss();
+                idle();
+
+                // the review with included and paid amenities
+                a.getState().who = BookingWizardState.Who.OWNER;
+                a.goToStep(4);
+                idle();
+                layout(a);
+                LayoutAssert.assertFits(q + " review with amenities", step(a).getView(), width);
+                Release160Test.assertReadable(q + " review with amenities", a, a.getWindow().getDecorView());
+            }
+        } finally {
+            org.robolectric.RuntimeEnvironment.setQualifiers("+w360dp-h640dp-notnight");
+        }
+    }
+
+    @Test
     public void theAmenitiesStep_fitsAt360dp_andItsButtonsAreComfortableToTap() {
         BookingWizardActivity a = atAmenities();
         plus(a).get(0).performClick();

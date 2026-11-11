@@ -38,7 +38,7 @@
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-black"
                 android:text="@string/request_additional_amenities_button"
-                android:textColor="@color/velocity_red_primary"
+                android:textColor="@color/velocity_action_text"
                 android:textSize="16sp" />
         </LinearLayout>
 

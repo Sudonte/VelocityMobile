@@ -152,7 +152,7 @@ public class AdditionalAmenitiesFixesTest {
         AdditionalAmenitiesActivity a = open(true);
         int red = ContextCompat.getColor(app, R.color.velocity_red_primary);
         TextView title = (TextView) ((android.view.ViewGroup) a.findViewById(R.id.btnAdditionalAmenitiesBack).getParent()).getChildAt(1);
-        assertEquals(red, title.getCurrentTextColor());
+        assertEquals("the title is the red that stays readable in the dark theme too", ContextCompat.getColor(app, R.color.velocity_action_text), title.getCurrentTextColor());
         android.widget.ImageButton back = a.findViewById(R.id.btnAdditionalAmenitiesBack);
         assertNotNull(back.getImageTintList());
         assertEquals(red, back.getImageTintList().getDefaultColor());

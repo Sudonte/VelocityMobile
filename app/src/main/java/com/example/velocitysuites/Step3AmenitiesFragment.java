@@ -224,7 +224,7 @@ public class Step3AmenitiesFragment extends WizardStepFragment {
         tv.setText(text);
         tv.setTextSize(13);
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
-        tv.setTextColor(requireContext().getColor(R.color.velocity_red_primary));
+        tv.setTextColor(requireContext().getColor(R.color.velocity_action_text)); // the red that stays readable on a dark card
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.topMargin = dp(10);
         lp.bottomMargin = dp(6);

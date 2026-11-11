@@ -212,6 +212,32 @@ public class Release174Test {
     }
 
     @Test
+    public void landing_theDateFields_fitAndAreReadable_at360And393dp_inLightAndDark() {
+        String[] configs = {"w360dp-h800dp-notnight", "w360dp-h800dp-night", "w393dp-h851dp-notnight", "w393dp-h851dp-night"};
+        try {
+            for (String q : configs) {
+                org.robolectric.RuntimeEnvironment.setQualifiers("+" + q);
+                api = new ScreenTestSupport.FakeApi();
+                ScreenTestSupport.freshRepository(app, api);
+                LandingActivity a = landing();
+                View decor = a.getWindow().getDecorView();
+                int w = a.getResources().getDisplayMetrics().widthPixels, h = a.getResources().getDisplayMetrics().heightPixels;
+                decor.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+                decor.layout(0, 0, w, h);
+                View row = a.findViewById(R.id.landingDatesRow);
+                LayoutAssert.assertFits(q + " landing dates", (View) row.getParent(), w);
+                for (int id : new int[]{R.id.etLandingCheckIn, R.id.etLandingCheckOut}) {
+                    TextView field = a.findViewById(id);
+                    assertEquals(q + ": the whole date shows", 0, field.getLayout().getEllipsisCount(0));
+                }
+                Release160Test.assertReadable(q + " landing dates", a, (View) row.getParent());
+            }
+        } finally {
+            org.robolectric.RuntimeEnvironment.setQualifiers("+w360dp-h800dp-notnight");
+        }
+    }
+
+    @Test
     public void landing_theDateFieldsFitSideBySideAt360dp_withoutCuttingTheDate() {
         LandingActivity a = landing();
         View decor = a.getWindow().getDecorView();

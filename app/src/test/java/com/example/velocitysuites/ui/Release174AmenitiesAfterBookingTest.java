@@ -301,6 +301,29 @@ public class Release174AmenitiesAfterBookingTest {
     // ---- layout
 
     @Test
+    public void theBookedRooms_fitAndAreReadable_at360And393dp_inLightAndDark() {
+        String[] configs = {"w360dp-h800dp-notnight", "w360dp-h800dp-night", "w393dp-h851dp-notnight", "w393dp-h851dp-night"};
+        try {
+            for (String q : configs) {
+                org.robolectric.RuntimeEnvironment.setQualifiers("+" + q);
+                api = new ScreenTestSupport.FakeApi();
+                ScreenTestSupport.freshRepository(app, api);
+                AdditionalAmenitiesActivity a = beforeCheckIn(stay(5, "2026-12-01", "2026-12-02", "upcoming",
+                        slot(3, 1, "Presidential Family Suite with Balcony (room 1)"), slot(3, 2, "Deluxe Room (room 1)")));
+                catalogArrives();
+                View decor = a.getWindow().getDecorView();
+                int w = a.getResources().getDisplayMetrics().widthPixels, h = a.getResources().getDisplayMetrics().heightPixels;
+                decor.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY));
+                decor.layout(0, 0, w, h);
+                LayoutAssert.assertFits(q + " booked rooms", a.findViewById(R.id.additionalAmenitiesForm), w);
+                Release160Test.assertReadable(q + " booked rooms", a, decor);
+            }
+        } finally {
+            org.robolectric.RuntimeEnvironment.setQualifiers("+w360dp-h800dp-notnight");
+        }
+    }
+
+    @Test
     public void theBookedRoomsFitAt360dp() {
         AdditionalAmenitiesActivity a = beforeCheckIn(stay(5, "2026-12-01", "2026-12-02", "upcoming",
                 slot(3, 1, "Presidential Family Suite with Balcony (room 1)"), slot(3, 2, "Presidential Family Suite with Balcony (room 2)")));

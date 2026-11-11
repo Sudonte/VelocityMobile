@@ -101,7 +101,7 @@
                     android:minHeight="48dp"
                     android:text="@string/retry_label"
                     android:textAllCaps="false"
-                    android:textColor="@color/velocity_red_primary"
+                    android:textColor="@color/velocity_action_text"
                     android:visibility="gone"
                     app:strokeColor="@color/velocity_red_primary" />
             </LinearLayout>
